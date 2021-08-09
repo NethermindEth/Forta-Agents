@@ -54,27 +54,5 @@ describe("multi gas threshold agent", () => {
       ]);
     })
 
-    // it("returns a finding if balance is below threshold", async () => {
-    //   const balance = "400000000000000000"
-    //   mockWeb3.eth.getBalance.mockReset()
-    //   mockWeb3.eth.getBalance.mockReturnValueOnce(balance)
-
-    //   const findings = await handleBlock(blockEvent)
-
-    //   expect(mockWeb3.eth.getBalance).toHaveBeenCalledTimes(1)
-    //   expect(mockWeb3.eth.getBalance).toHaveBeenCalledWith(ACCOUNT)
-    //   expect(findings).toStrictEqual([
-    //     Finding.fromObject({
-    //       name: "Minimum Account Balance",
-    //       description: `Account balance (${balance}) below threshold (${MIN_BALANCE})`,
-    //       alertId: "FORTA-6",
-    //       severity: FindingSeverity.Info,
-    //       type: FindingType.Suspicious,
-    //       metadata: {
-    //         balance
-    //       }
-    //     })
-    //   ])
-    // })
   })
 })
