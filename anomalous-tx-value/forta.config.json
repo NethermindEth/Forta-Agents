@@ -1,7 +1,7 @@
 {
   // "agentId": "",                         /* Globally unique agent identifier e.g. my-new-agent */
   // "version": "0.0.1",                    /* Agent version */
-  "jsonRpcUrl": "wss://mainnet.infura.io/ws/v3/b1d314d76b4a459b964e71d6e99eb18f" /* JSON-RPC url for running agent during development e.g. wss://mainnet.infura.io/ws/v3/YOUR_API_KEY */,
+  // "jsonRpcUrl": "",                      /* JSON-RPC url for running agent during development e.g. wss://mainnet.infura.io/ws/v3/YOUR_API_KEY */
   // "imageRepositoryUrl": "",              /* Container image repository for publishing agent images */
   // "agentRegistryContractAddress": "",    /* Contract address for agent registry */
   // "agentRegistryJsonRpcUrl": "",         /* JSON-RPC url of the network hosting agent registry contract */
