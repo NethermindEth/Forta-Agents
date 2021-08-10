@@ -16,7 +16,10 @@ const INTERSTING_PROTOCOLS: string[] = [
 
 const failureCounter: FailureCounter = new FailureCounter(TIME_INTERVAL)
 
-function provideHandleTransaction(counter: FailureCounter): HandleTransaction {
+function provideHandleTransaction(
+  counter: FailureCounter, 
+  protocols: string[]
+): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
     // report finding if a high volume of failed transaccion ocur within a defined time interval
     const findings: Finding[] = []
@@ -27,5 +30,5 @@ function provideHandleTransaction(counter: FailureCounter): HandleTransaction {
 
 export default {
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(failureCounter),
+  handleTransaction: provideHandleTransaction(failureCounter, INTERSTING_PROTOCOLS),
 }
