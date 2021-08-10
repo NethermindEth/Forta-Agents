@@ -1,16 +1,14 @@
 import BigNumber from 'bignumber.js'
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType
 } from 'forta-agent'
 
-const DECIMALS = 10 ** 18
-const THRESHHOLD_TX_VALUE = 10 * 10 ** 18
+export const DECIMALS = 10 ** 18
+export const TX_VALUE_THRESHHOLD = 10 * DECIMALS
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
@@ -18,14 +16,14 @@ const handleTransaction: HandleTransaction = async (
   const findings: Finding[] = []
 
   // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan('1000000')) {
+  const value = new BigNumber(txEvent.transaction.value)
+  if (value.isGreaterThan(TX_VALUE_THRESHHOLD)) {
     findings.push(
       Finding.fromObject({
-        name: 'High Gas Used',
-        description: `Gas Used: ${gasUsed}`,
+        name: 'High Values Transaction Detected',
+        description: `Value is: ${value}`,
         alertId: 'FORTA-1',
-        severity: FindingSeverity.Medium,
+        severity: FindingSeverity.High,
         type: FindingType.Suspicious
       })
     )
@@ -34,13 +32,6 @@ const handleTransaction: HandleTransaction = async (
   return findings
 }
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
   handleTransaction
-  // handleBlock
 }
