@@ -4,20 +4,20 @@ interface TransactionDetails {
 };
 
 export default class FailureCounter {
-  timeIntervalMs: number
+  timeIntervalMs: number;
   transactionMap: {
     [key: string]: TransactionDetails[],
-  }
+  };
 
   constructor(timeIntervalMins: number) {
-    this.timeIntervalMs = timeIntervalMins * 60 * 1000
-    this.transactionMap = {}
+    this.timeIntervalMs = timeIntervalMins * 60 * 1000;
+    this.transactionMap = {};
   }
 
   failure(protocol: string, txHash: string, blockTimestamp: number): number {
     // if transactions array does not exist, initialize it
     if (!this.transactionMap[protocol]) {
-      this.transactionMap[protocol] = []
+      this.transactionMap[protocol] = [];
     }
 
     const blockTimestampMs = blockTimestamp * 1000; //convert seconds to ms
@@ -30,7 +30,7 @@ export default class FailureCounter {
     this.transactionMap[protocol] = this.transactionMap[protocol].filter(
       (txn) => txn.timestamp > blockTimestampMs - this.timeIntervalMs
     );
-    return this.transactionMap[protocol].length
+    return this.transactionMap[protocol].length;
   }
 
   getTransactions(protocol: string) : string[] {
@@ -38,6 +38,6 @@ export default class FailureCounter {
       this.transactionMap[protocol]
       ? this.transactionMap[protocol].map((txn) => txn.hash)
       : []
-    )
+    );
   }
-}
+};
