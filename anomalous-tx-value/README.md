@@ -13,3 +13,8 @@ Before run the agent to see how it works with real data, specify the `JSON-RPC` 
 ```
 npm start
 ```
+
+## Test
+```
+npm test
+```
