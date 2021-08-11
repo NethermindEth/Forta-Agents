@@ -23,11 +23,11 @@ function provideHandleTransaction(
     // report finding if a high volume of failed transaccion ocur within a defined time interval
     const findings: Finding[] = [];
 
-    if(txEvent.receipt.status) return findings;
+    if(txEvent.status) return findings;
 
     const involvedProtocols = protocols.filter((addr) => txEvent.addresses[addr]);
     involvedProtocols.forEach((addr) => {
-      const amount = counter.failure(addr, txEvent.transaction.hash, txEvent.timestamp);
+      const amount = counter.failure(addr, txEvent.hash, txEvent.timestamp);
       if(amount > HIGH_FAILURE_THRESHOLD) {
         findings.push(
           Finding.fromObject({
