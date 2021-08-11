@@ -1,7 +1,7 @@
 ## Detect anomalous Transaction Value
 
 ### Overview
-This agents detects transactions that very high ETH values used. It checks every transaction one by one and evalute each of them by `THRESHOLD`.
+This agents detects transactions that very high ETH values used. It checks every transaction one by one and evalutes each of them by `THRESHOLD`.
 
 ## Installation
 ```
