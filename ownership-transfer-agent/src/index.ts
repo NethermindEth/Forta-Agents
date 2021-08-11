@@ -1,39 +1,45 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import BigNumber from "bignumber.js";
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
+import { addHexPrefix, isZeroAddress} from "ethereumjs-util";
+import { Log } from "forta-agent/dist/sdk/receipt";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const OWNERSHIP_TRANSFERRED_EVENT_SIGNATURE: string =
+  "OwnershipTransferred(address,address)";
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
+const createFindingFromEvent = (event: Log) : Finding | null => {
+  const prevOwnerHex: string = addHexPrefix(event.topics[1].slice(26));
+  const newOwnerHex: string = addHexPrefix(event.topics[2].slice(26));
+
+  // Ignore transfer from zero address
+  if (isZeroAddress(prevOwnerHex)) {
+    return null;
   }
 
-  return findings
-}
+  return Finding.fromObject({
+    name: "Ownership Transferred",
+    description: `The owner was transferred from ${prevOwnerHex} to ${newOwnerHex}`,
+    alertId: "NEDMFORTA-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Suspicious
+  });
+};
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+const handleTransaction: HandleTransaction = async (
+  txEvent: TransactionEvent
+) => {
+  return await (txEvent.filterEvent(
+    OWNERSHIP_TRANSFERRED_EVENT_SIGNATURE
+  ))
+  .map(createFindingFromEvent)
+  .filter(value => value !== null) as Finding[];
+};
 
 export default {
   handleTransaction,
-  // handleBlock
-}
+};
