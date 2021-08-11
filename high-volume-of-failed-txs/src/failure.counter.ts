@@ -20,12 +20,12 @@ export default class FailureCounter {
       this.transactionMap[protocol] = [];
     }
 
-    const blockTimestampMs = blockTimestamp * 1000; //convert seconds to ms
+    const blockTimestampMs: number = blockTimestamp * 1000; //convert seconds to ms
     // append transaction
     this.transactionMap[protocol].push({
       hash: txHash,
       timestamp: blockTimestampMs,
-    });
+    });    
     // filter out any transactions that fall outside of the time interval
     this.transactionMap[protocol] = this.transactionMap[protocol].filter(
       (txn) => txn.timestamp > blockTimestampMs - this.timeIntervalMs

@@ -7,9 +7,9 @@ import {
 } from 'forta-agent';
 import FailureCounter from './failure.counter';
 
-const HIGH_FAILURE_THRESHOLD: number = 50;
-const TIME_INTERVAL: number = 60; // 1 hour
-const INTERSTING_PROTOCOLS: string[] = [
+export const HIGH_FAILURE_THRESHOLD: number = 50;
+export const TIME_INTERVAL: number = 60; // 1 hour
+export const INTERSTING_PROTOCOLS: string[] = [
   "0xacd43e627e64355f1861cec6d3a6688b31a6f952", // Yearn Dai vault
 ];
 
