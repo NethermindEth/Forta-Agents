@@ -2,7 +2,7 @@
 
 ### Overview
 
-This agent report when the OwnerTransferred event is emitted and the from address is a non zero address.
+This agent report when the OwnerTransferred event is emitted and the `from` address is a non zero address.
 
 ## Installation
 
