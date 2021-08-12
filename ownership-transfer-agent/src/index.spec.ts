@@ -71,7 +71,6 @@ describe("trasnferred ownership agent", () => {
     });
 
     it("Returns finding if there is an OwnershipTrasferred event from a non zero address", async () => {
-        console.log(bufferToHex(keccakFromString("tret")));
         const log: Log = buildLogForOwnershipTransferenceEvent(testAddress1, testAddress2); 
         const txnEvent : TransactionEvent = createTxEvent([log]);
         const findings : Finding[] = await handleTransaction(txnEvent);
