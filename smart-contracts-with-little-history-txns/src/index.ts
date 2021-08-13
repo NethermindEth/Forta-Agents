@@ -12,12 +12,16 @@ export const ETHERSCAN_API_ENDPOINT: string = "https://api.etherscan.io/api?modu
 export const HISTORY_THRESHOLD: number = 10000;
 export const TIMESTAMP_THRESHOLD: number = 5 * 30 * 24 * 60 * 60; // 5 months aprox
 
+export function queryUrl(address: string){
+  return `${ETHERSCAN_API_ENDPOINT}&address=${address}&apiKey=${ETHERSCAN_API_TOKEN}`;
+};
+
 function provideHandleTransaction(getter: any): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent): Promise<Finding[]> {
     if(txEvent.to === null) return [];
 
     const address: string = txEvent.to;
-    const url: string = `${ETHERSCAN_API_ENDPOINT}&address=${address}&apiKey=${ETHERSCAN_API_TOKEN}`;
+    const url: string = queryUrl(address);
     const { data } = await getter(url);
     
     if(data.result.length === 0) return [];
