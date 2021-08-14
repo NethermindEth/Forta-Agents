@@ -1,3 +1,4 @@
+jest.useFakeTimers();
 import {
   EventType,
   Finding,
@@ -9,13 +10,16 @@ import {
 } from "forta-agent";
 import agent from ".";
 
+import Web3 from "web3";
+
+import { callExecuted, callSchedule, MinDelayChange, cancelled } from "./abi";
+
+const ganache = require("ganache-core");
+const provider = ganache.provider();
+const mockWeb3 = new Web3(provider);
+
 describe("flash loan agent", () => {
   let handleTransaction: HandleTransaction;
-  const mockWeb3 = {
-    eth: {
-      getBalance: jest.fn(),
-    },
-  } as any;
 
   const createTxEvent = ({ gasUsed, addresses, logs, blockNumber }: any) => {
     const tx = {} as any;
@@ -46,6 +50,23 @@ describe("flash loan agent", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns a finding of a timelock event emission", async () => {});
+    it("returns a finding of a timelock event emission", async () => {
+      const eventSignature = mockWeb3.eth.abi.encodeFunctionSignature(
+        JSON.stringify(callSchedule)
+      );
+
+      const timeLockEvent = {
+        topics: [eventSignature],
+      };
+
+      const txEvent = createTxEvent({
+        gasUsed: "7000000",
+        logs: [timeLockEvent],
+      });
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings.length).toStrictEqual(1);
+    });
   });
 });

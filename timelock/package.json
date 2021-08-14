@@ -15,9 +15,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^4.2.0",
     "bignumber.js": "^9.0.1",
     "dotenv": "^10.0.0",
-    "forta-agent": "^0.0.7"
+    "forta-agent": "^0.0.7",
+    "ganache": "^6.4.4",
+    "ganache-core": "^2.13.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
