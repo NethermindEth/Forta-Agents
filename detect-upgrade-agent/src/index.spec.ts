@@ -37,7 +37,7 @@ describe('Detect Upgrade Events', () => {
   describe('handleTransaction', () => {
     it('returns a finding when upgrade event detected', async () => {
       const upgradeEventTopic =
-        'bc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b'
+        '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b'
 
       const upgradeEvent = {
         topics: [upgradeEventTopic]
@@ -49,7 +49,7 @@ describe('Detect Upgrade Events', () => {
 
       const findings = await handleTransaction(txEvent)
 
-      expect(findings).toStrictEqual(
+      expect(findings).toStrictEqual([
         Finding.fromObject({
           name: 'Upgrade Event',
           description: `Upgrade Event is detected`,
@@ -57,7 +57,7 @@ describe('Detect Upgrade Events', () => {
           type: FindingType.Suspicious,
           severity: FindingSeverity.High
         })
-      )
+      ])
     })
   })
 })
