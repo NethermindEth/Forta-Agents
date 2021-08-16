@@ -10,7 +10,7 @@ import {
 export const MEDIUM_GAS_THRESHOLD = "1000000";
 export const HIGH_GAS_THRESHOLD = "3000000";
 
-const getSeverity = (gasUsed: BigNumber) : FindingSeverity => {
+const getSeverity = (gasUsed: BigNumber): FindingSeverity => {
   if (gasUsed.isGreaterThanOrEqualTo(HIGH_GAS_THRESHOLD)) {
     return FindingSeverity.High;
   }
@@ -18,7 +18,7 @@ const getSeverity = (gasUsed: BigNumber) : FindingSeverity => {
     return FindingSeverity.Medium;
   }
   return FindingSeverity.Unknown;
-}
+};
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent

@@ -8,11 +8,9 @@ import {
   Network,
   TransactionEvent,
 } from "forta-agent";
-import agent from ".";
+import agent, { timelockEvents } from ".";
 
 import Web3 from "web3";
-
-import { callExecuted, callSchedule, MinDelayChange, cancelled } from "./abi";
 
 const ganache = require("ganache-core");
 const provider = ganache.provider();
@@ -39,7 +37,7 @@ describe("flash loan agent", () => {
   };
 
   beforeAll(() => {
-    handleTransaction = agent.provideHandleTransaction(mockWeb3);
+    handleTransaction = agent.handleTransaction;
   });
 
   describe("handleTransaction", () => {
@@ -51,8 +49,8 @@ describe("flash loan agent", () => {
     });
 
     it("returns a finding of a timelock event emission", async () => {
-      const eventSignature = mockWeb3.eth.abi.encodeFunctionSignature(
-        JSON.stringify(callSchedule)
+      const eventSignature = mockWeb3.eth.abi.encodeEventSignature(
+        timelockEvents[0]
       );
 
       const timeLockEvent = {
@@ -67,6 +65,40 @@ describe("flash loan agent", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings.length).toStrictEqual(1);
+    });
+
+    it("returns a findings of a multiple timelock event emission", async () => {
+      const eventSignature = mockWeb3.eth.abi.encodeEventSignature(
+        timelockEvents[0]
+      );
+      const eventSignature2 = mockWeb3.eth.abi.encodeEventSignature(
+        timelockEvents[1]
+      );
+      const eventSignature3 = mockWeb3.eth.abi.encodeEventSignature(
+        timelockEvents[2]
+      );
+
+      const eventSignature4 = mockWeb3.eth.abi.encodeEventSignature(
+        timelockEvents[3]
+      );
+
+      const timeLockEvent = {
+        topics: [
+          eventSignature,
+          eventSignature2,
+          eventSignature3,
+          eventSignature4,
+        ],
+      };
+
+      const txEvent = createTxEvent({
+        gasUsed: "7000000",
+        logs: [timeLockEvent],
+      });
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings.length).toStrictEqual(4);
     });
   });
 });

@@ -1,8 +1,8 @@
-## Detect anomalous Transaction Value
+## High volume of failed transactions
 
 ### Overview
 
-This agent detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This agent reports protocols that receive a high volume of failed transactions. It checks each transaction one by one and keeps the information of the transactions failed by `INTERSTING_PROTOCOLS` that occurred in the last` TIME_INTERVAL`. A protocol is reported when the volume of transactions exceeded the `HIGH_FAILURE_THRESHOLD`.
 
 ## Installation
 
