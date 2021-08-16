@@ -13,14 +13,12 @@ import agent from '.'
 describe('Detect Upgrade Events', () => {
   let handleTransaction: HandleTransaction
 
-  const createTxEvent = ({
-    addresses,
-    blockNumber,
-    logs
-  }: any): TransactionEvent => {
+  const createTxEvent = ({ logs }: any): TransactionEvent => {
     const tx: any = {}
     const receipt: any = { logs }
     const block: any = {}
+    const addresses: any = {}
+
     return new TransactionEvent(
       EventType.BLOCK,
       Network.MAINNET,
@@ -39,7 +37,7 @@ describe('Detect Upgrade Events', () => {
   describe('handleTransaction', () => {
     it('returns a finding when upgrade event detected', async () => {
       const upgradeEventTopic =
-        '68171bf51270e22535ae8384944e038f162d9b34da9ee0f4d64d086e76515811'
+        'bc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b'
 
       const upgradeEvent = {
         topics: [upgradeEventTopic]

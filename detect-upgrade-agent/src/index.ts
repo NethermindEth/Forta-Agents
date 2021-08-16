@@ -9,7 +9,7 @@ import {
   FindingType
 } from 'forta-agent'
 
-const UPGRADE_EVENT_SIGNATURE = 'id(Upgraded(address))'
+const UPGRADE_EVENT_SIGNATURE = 'Upgraded(address)'
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
