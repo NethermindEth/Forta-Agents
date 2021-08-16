@@ -8,8 +8,14 @@ import {
   FindingSeverity,
   FindingType
 } from 'forta-agent'
+import keccak256 from 'keccak256'
 
-const UPGRADE_EVENT_SIGNATURE = 'Upgraded(address)'
+export const UPGRADE_EVENT_SIGNATURE = 'id(Upgraded(address))'
+
+export const generateHash = (signature: string): string => {
+  const hash = keccak256(signature).toString('hex')
+  return '0x' + hash
+}
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
@@ -17,7 +23,7 @@ const handleTransaction: HandleTransaction = async (
   const findings: Finding[] = []
 
   const upgradeEvents = txEvent.filterEvent(UPGRADE_EVENT_SIGNATURE)
-  console.log(txEvent)
+
   if (!upgradeEvents.length) return findings
 
   findings.push(

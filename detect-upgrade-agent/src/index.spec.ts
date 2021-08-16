@@ -8,7 +8,7 @@ import {
   HandleTransaction
 } from 'forta-agent'
 
-import agent from '.'
+import agent, { generateHash, UPGRADE_EVENT_SIGNATURE } from '.'
 
 describe('Detect Upgrade Events', () => {
   let handleTransaction: HandleTransaction
@@ -35,9 +35,21 @@ describe('Detect Upgrade Events', () => {
   })
 
   describe('handleTransaction', () => {
+    it('should return empty finding', async () => {
+      const upgradeEvent = {
+        topics: []
+      }
+
+      const txEvent = createTxEvent({
+        logs: [upgradeEvent]
+      })
+
+      const findings = await handleTransaction(txEvent)
+
+      expect(findings).toStrictEqual([])
+    })
     it('returns a finding when upgrade event detected', async () => {
-      const upgradeEventTopic =
-        '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b'
+      const upgradeEventTopic: string = generateHash(UPGRADE_EVENT_SIGNATURE)
 
       const upgradeEvent = {
         topics: [upgradeEventTopic]
