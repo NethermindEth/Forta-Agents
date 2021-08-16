@@ -16,18 +16,25 @@ export function queryUrl(address: string){
   return `${ETHERSCAN_API_ENDPOINT}&address=${address}&apiKey=${ETHERSCAN_API_TOKEN}`;
 };
 
+function isContract(data: any, address: string): boolean {
+  // Address without internal transactions can't be a contract
+  if(data.result.length === 0) return false;
+  // The first internal transaction should be the contract creation
+  if(data.result[0].contractAddress !== address) return false;
+  return true;
+}
+
 function provideHandleTransaction(getter: any): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent): Promise<Finding[]> {
-    if(txEvent.to === null) return [];
+    const findings: Finding[] = [];
+
+    if(txEvent.to === null) return findings;
 
     const address: string = txEvent.to;
     const url: string = queryUrl(address);
     const { data } = await getter(url);
     
-    if(data.result.length === 0) return [];
-    if(data.result[0].contractAddress !== address) return [];
-
-    const findings: Finding[] = [];
+    if(!isContract(data, address)) return findings;
     
     if(data.result.length < HISTORY_THRESHOLD){
       findings.push(Finding.fromObject({
