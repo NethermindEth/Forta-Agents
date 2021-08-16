@@ -39,7 +39,7 @@ const handleTransaction: HandleTransaction = async (
       Finding.fromObject({
         name: "TimeLock",
         description: "TimeLock initiated",
-        alertId: "FORTA-1",
+        alertId: "NETHFORTA-7",
         severity: FindingSeverity.Low,
         type: FindingType.Suspicious,
         metadata: {

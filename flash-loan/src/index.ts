@@ -54,7 +54,7 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
       Finding.fromObject({
         name: "Flash Loan with Loss",
         description: `Flash Loan with loss of ${balanceDiff.toString()} detected for ${protocolAddress}`,
-        alertId: "FORTA-5",
+        alertId: "NETHFORTA-6",
         protocol: "aave",
         type: FindingType.Suspicious,
         severity: FindingSeverity.High,
