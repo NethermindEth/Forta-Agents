@@ -16,6 +16,12 @@ const ganache = require("ganache-core");
 const provider = ganache.provider();
 const mockWeb3 = new Web3(provider);
 
+function generateEvent(value) {
+  const eventSignature = mockWeb3.eth.abi.encodeEventSignature(value);
+  const timeLockEvent = { topics: [eventSignature] };
+  return timeLockEvent;
+}
+
 describe("flash loan agent", () => {
   let handleTransaction: HandleTransaction;
 
@@ -68,32 +74,14 @@ describe("flash loan agent", () => {
     });
 
     it("returns a findings of a multiple timelock event emission", async () => {
-      const eventSignature = mockWeb3.eth.abi.encodeEventSignature(
-        timelockEvents[0]
-      );
-      const eventSignature2 = mockWeb3.eth.abi.encodeEventSignature(
-        timelockEvents[1]
-      );
-      const eventSignature3 = mockWeb3.eth.abi.encodeEventSignature(
-        timelockEvents[2]
-      );
-
-      const eventSignature4 = mockWeb3.eth.abi.encodeEventSignature(
-        timelockEvents[3]
-      );
-
-      const timeLockEvent = {
-        topics: [
-          eventSignature,
-          eventSignature2,
-          eventSignature3,
-          eventSignature4,
-        ],
-      };
-
       const txEvent = createTxEvent({
         gasUsed: "7000000",
-        logs: [timeLockEvent],
+        logs: [
+          generateEvent(timelockEvents[0]),
+          generateEvent(timelockEvents[1]),
+          generateEvent(timelockEvents[2]),
+          generateEvent(timelockEvents[3]),
+        ],
       });
 
       const findings = await handleTransaction(txEvent);
