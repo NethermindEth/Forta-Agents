@@ -1,8 +1,6 @@
 import BigNumber from 'bignumber.js'
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
