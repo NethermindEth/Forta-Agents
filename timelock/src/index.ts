@@ -10,7 +10,6 @@ import {
 
 import { Log } from "forta-agent/dist/sdk/receipt";
 
-const HIGH_GAS_THRESHOLD = "7000000";
 export const timelockEvents = [
   "MinDelayChange(uint256,uin256)",
   "CallScheduled(bytes32,uint256,address,uint256,bytes,bytes32,uint256)",
