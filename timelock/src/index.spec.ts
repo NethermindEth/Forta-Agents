@@ -75,6 +75,7 @@ describe("Timelock agent", () => {
 
       const findings = await handleTransaction(txEvent);
 
+      expect(findings.length).toBe(1);
       expect(findings).toStrictEqual([createFinding(timelockEvents[0])]);
     });
 
@@ -96,6 +97,7 @@ describe("Timelock agent", () => {
       );
 
       expect(findings).toStrictEqual(expectedFindings);
+      expect(findings.length).toBe(4);
     });
   });
 });
