@@ -8,6 +8,7 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
+import Web3 from "web3";
 
 export const functionSignature: string = "initialize(uint256)";
 
@@ -19,6 +20,7 @@ const handleTransaction: HandleTransaction = async (
   const findings: Finding[] = [];
 
   // txEvent.
+  const callData = txEvent.transaction.data;
 
   return findings;
 };

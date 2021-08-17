@@ -5,26 +5,34 @@ import {
   Finding,
   HandleTransaction,
   EventType,
-  Network
-} from "forta-agent"
-import agent from "."
+  Network,
+} from "forta-agent";
+import agent from ".";
 
 describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+  let handleTransaction: HandleTransaction;
   const createTxEvent = ({ gasUsed }: any) => {
-    const tx = { } as any
-    const receipt = { gasUsed } as any
-    const block = {} as any
-    const addresses = { } as any
-    return new TransactionEvent(EventType.BLOCK, Network.MAINNET, tx, receipt, [], addresses, block)
+    const tx = {} as any;
+    const receipt = { gasUsed } as any;
+    const block = {} as any;
+    const addresses = {} as any;
+    return new TransactionEvent(
+      EventType.BLOCK,
+      Network.MAINNET,
+      tx,
+      receipt,
+      [],
+      addresses,
+      block
+    );
   };
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = agent.handleTransaction;
+  });
 
   describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
+    it("make just one call to the contract, should return an empty array with no errors.", async () => {
       const txEvent = createTxEvent({
         gasUsed: "1",
       });
@@ -34,7 +42,7 @@ describe("high gas agent", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns a finding if gas used is above threshold", async () => {
+    it("returns a warning when making more than one calls to initialize function", async () => {
       const txEvent = createTxEvent({
         gasUsed: "1000001",
       });
@@ -47,7 +55,7 @@ describe("high gas agent", () => {
           description: `Gas Used: ${txEvent.gasUsed}`,
           alertId: "FORTA-1",
           type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
+          severity: FindingSeverity.Medium,
         }),
       ]);
     });
