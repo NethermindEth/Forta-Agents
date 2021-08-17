@@ -22,7 +22,7 @@ function generateEvent(value) {
   return timeLockEvent;
 }
 
-describe("flash loan agent", () => {
+describe("Timelock agent", () => {
   let handleTransaction: HandleTransaction;
 
   const createTxEvent = ({ gasUsed, addresses, logs, blockNumber }: any) => {
