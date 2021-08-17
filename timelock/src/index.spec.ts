@@ -11,9 +11,8 @@ import {
 import agent, { timelockEvents } from ".";
 
 import Web3 from "web3";
-
-const ganache = require("ganache-core");
-const provider = ganache.provider();
+import ganache from "ganache-core";
+const provider: any = ganache.provider();
 const web3 = new Web3(provider);
 
 function generateEvent(value) {
