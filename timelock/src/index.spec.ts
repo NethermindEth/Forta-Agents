@@ -14,10 +14,10 @@ import Web3 from "web3";
 
 const ganache = require("ganache-core");
 const provider = ganache.provider();
-const mockWeb3 = new Web3(provider);
+const web3 = new Web3(provider);
 
 function generateEvent(value) {
-  const eventSignature = mockWeb3.eth.abi.encodeEventSignature(value);
+  const eventSignature = web3.eth.abi.encodeEventSignature(value);
   const timeLockEvent = { topics: [eventSignature] };
   return timeLockEvent;
 }
