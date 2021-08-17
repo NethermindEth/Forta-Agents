@@ -22,6 +22,19 @@ function generateEvent(value) {
   return timeLockEvent;
 }
 
+function createFinding(eventSignature): Finding {
+  return Finding.fromObject({
+    name: "TimeLock",
+    description: "TimeLock initiated",
+    alertId: "NETHFORTA-7",
+    severity: FindingSeverity.Low,
+    type: FindingType.Suspicious,
+    metadata: {
+      events: JSON.stringify(eventSignature)
+    },
+  });
+}
+
 describe("Timelock agent", () => {
   let handleTransaction: HandleTransaction;
 
@@ -78,7 +91,11 @@ describe("Timelock agent", () => {
 
       const findings = await handleTransaction(txEvent);
 
-      expect(findings.length).toStrictEqual(4);
+      const expectedFindings = timelockEvents.map((timelockEvent) =>
+        createFinding(timelockEvent)
+      );
+
+      expect(findings).toStrictEqual(expectedFindings);
     });
   });
 });
