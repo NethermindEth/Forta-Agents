@@ -30,7 +30,7 @@ function createFinding(eventSignature): Finding {
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
-      events: JSON.stringify(eventSignature)
+      events: JSON.stringify(eventSignature),
     },
   });
 }
@@ -75,7 +75,7 @@ describe("Timelock agent", () => {
 
       const findings = await handleTransaction(txEvent);
 
-      expect(findings.length).toStrictEqual(1);
+      expect(findings).toStrictEqual([createFinding(timelockEvents[0])]);
     });
 
     it("returns a findings of a multiple timelock event emission", async () => {
