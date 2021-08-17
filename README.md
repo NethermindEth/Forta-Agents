@@ -10,3 +10,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Onwership Transfer**: Detect OwnershipTrasnferred events.
 - **Flash Loan**: Detects use of flash loan.
 - **TimeLock**: Detects use of Openzeppelin Timelock.
+- **Detect Upgrade Events**: The agent detects upgrade events either for a specific contract or for any
