@@ -42,7 +42,7 @@ describe('Detect Upgrade Events', () => {
 
       const txEvent = createTxEvent({
         logs: [upgradeEvent],
-        to: '0x001'
+        proxy: '0x001'
       })
 
       const findings = await handleTransaction(txEvent)
@@ -58,7 +58,7 @@ describe('Detect Upgrade Events', () => {
 
       const txEvent = createTxEvent({
         logs: [upgradeEvent],
-        to: '0x001'
+        proxy: '0x001'
       })
 
       const findings = await handleTransaction(txEvent)
