@@ -8,7 +8,7 @@ import {
 import keccak256 from 'keccak256'
 
 // any upgrade topic event can be passed through
-export const UPGRADE_EVENT_SIGNATURE = 'id(Upgraded(address))'
+export const UPGRADE_EVENT_SIGNATURE = 'Upgraded(address)'
 // if running agent for specific agent is demanded, pass the contract address
 export const CONTRACT_ADDRESS = '0xfffff'
 
