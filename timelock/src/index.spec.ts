@@ -55,17 +55,9 @@ describe("Timelock agent", () => {
     });
 
     it("returns a finding of a timelock event emission", async () => {
-      const eventSignature = mockWeb3.eth.abi.encodeEventSignature(
-        timelockEvents[0]
-      );
-
-      const timeLockEvent = {
-        topics: [eventSignature],
-      };
-
       const txEvent = createTxEvent({
         gasUsed: "7000000",
-        logs: [timeLockEvent],
+        logs: [generateEvent(timelockEvents[0])],
       });
 
       const findings = await handleTransaction(txEvent);
