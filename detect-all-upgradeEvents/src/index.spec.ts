@@ -65,7 +65,7 @@ describe('Detect Upgrade Events', () => {
         Finding.fromObject({
           name: 'Upgrade Event',
           description: `Upgrade Event is detected`,
-          alertId: 'FORTA-6',
+          alertId: 'NETHFORTA-6',
           type: FindingType.Suspicious,
           severity: FindingSeverity.High
         })

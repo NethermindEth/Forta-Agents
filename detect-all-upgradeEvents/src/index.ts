@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js'
 import {
   Finding,
   HandleTransaction,
@@ -8,6 +7,7 @@ import {
 } from 'forta-agent'
 import keccak256 from 'keccak256'
 
+// any upgrade topic event can be passed through
 export const UPGRADE_EVENT_SIGNATURE = 'id(Upgraded(address))'
 
 export const generateHash = (signature: string): string => {
@@ -28,7 +28,7 @@ const handleTransaction: HandleTransaction = async (
     Finding.fromObject({
       name: 'Upgrade Event',
       description: `Upgrade Event is detected`,
-      alertId: 'FORTA-6',
+      alertId: 'NETHFORTA-6',
       type: FindingType.Suspicious,
       severity: FindingSeverity.High
     })
