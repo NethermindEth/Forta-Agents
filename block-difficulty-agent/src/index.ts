@@ -3,8 +3,6 @@ import {
   BlockEvent,
   Finding,
   HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
   FindingSeverity,
   FindingType,
   getJsonRpcUrl,
@@ -66,8 +64,7 @@ const getSeverity = (difficultyChange: number): FindingSeverity => {
   return FindingSeverity.High;
 }
 
-const provideHandleBlock = (
-  web3: Web3,
+export const provideHandleBlock = (
   blockDifficultyGetter: BlockDifficultyGetter,
   numberOfBlocksToCheck: number
 ): HandleBlock => {
@@ -101,5 +98,5 @@ const provideHandleBlock = (
 };
 
 export default {
-  handleBlock: provideHandleBlock(web3, blockDifficultyGetter, NUMBER_OF_BLOCKS_TO_CHECK),
+  handleBlock: provideHandleBlock(blockDifficultyGetter, NUMBER_OF_BLOCKS_TO_CHECK),
 };
