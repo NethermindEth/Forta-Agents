@@ -9,6 +9,8 @@ import keccak256 from 'keccak256'
 
 // any upgrade topic event can be passed through
 export const UPGRADE_EVENT_SIGNATURE = 'id(Upgraded(address))'
+// if running agent for specific agent is demanded, pass the contract address
+export const CONTRACT_ADDRESS = '0xfffff'
 
 export const generateHash = (signature: string): string => {
   const hash = keccak256(signature).toString('hex')
@@ -20,8 +22,10 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   const findings: Finding[] = []
 
-  const upgradeEvents = txEvent.filterEvent(UPGRADE_EVENT_SIGNATURE)
-  const proxyAddress = txEvent.to as string
+  const upgradeEvents = txEvent.filterEvent(
+    UPGRADE_EVENT_SIGNATURE,
+    CONTRACT_ADDRESS.length > 0 ? CONTRACT_ADDRESS : undefined
+  )
 
   if (!upgradeEvents.length) return findings
 
@@ -33,7 +37,7 @@ const handleTransaction: HandleTransaction = async (
       type: FindingType.Suspicious,
       severity: FindingSeverity.High,
       metadata: {
-        proxy: proxyAddress
+        proxy: CONTRACT_ADDRESS
       }
     })
   )

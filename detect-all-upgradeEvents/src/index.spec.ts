@@ -8,16 +8,20 @@ import {
   HandleTransaction
 } from 'forta-agent'
 
-import agent, { generateHash, UPGRADE_EVENT_SIGNATURE } from '.'
+import agent, {
+  generateHash,
+  UPGRADE_EVENT_SIGNATURE,
+  CONTRACT_ADDRESS
+} from '.'
 
 describe('Detect Upgrade Events', () => {
   let handleTransaction: HandleTransaction
 
-  const createTxEvent = ({ logs, proxy }: any): TransactionEvent => {
-    const tx: any = { to: proxy }
+  const createTxEvent = ({ logs, addresses }: any): TransactionEvent => {
+    const tx: any = {}
     const receipt: any = { logs }
     const block: any = {}
-    const addresses: any = {}
+    const address: any = { CONTRACT_ADDRESS, ...addresses }
 
     return new TransactionEvent(
       EventType.BLOCK,
@@ -25,7 +29,7 @@ describe('Detect Upgrade Events', () => {
       tx,
       receipt,
       [],
-      addresses,
+      address,
       block
     )
   }
@@ -37,12 +41,12 @@ describe('Detect Upgrade Events', () => {
   describe('handleTransaction', () => {
     it('should return empty finding', async () => {
       const upgradeEvent = {
-        topics: []
+        topics: [],
+        address: undefined
       }
 
       const txEvent = createTxEvent({
-        logs: [upgradeEvent],
-        proxy: '0x001'
+        logs: [upgradeEvent]
       })
 
       const findings = await handleTransaction(txEvent)
@@ -53,12 +57,12 @@ describe('Detect Upgrade Events', () => {
       const upgradeEventTopic: string = generateHash(UPGRADE_EVENT_SIGNATURE)
 
       const upgradeEvent = {
-        topics: [upgradeEventTopic]
+        topics: [upgradeEventTopic],
+        address: CONTRACT_ADDRESS
       }
 
       const txEvent = createTxEvent({
-        logs: [upgradeEvent],
-        proxy: '0x001'
+        logs: [upgradeEvent]
       })
 
       const findings = await handleTransaction(txEvent)
@@ -71,10 +75,25 @@ describe('Detect Upgrade Events', () => {
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
           metadata: {
-            proxy: '0x001'
+            proxy: CONTRACT_ADDRESS
           }
         })
       ])
+    })
+    it('should return empty finding for  contract address', async () => {
+      const upgradeEventTopic: string = generateHash(UPGRADE_EVENT_SIGNATURE)
+
+      const upgradeEvent = {
+        topics: [upgradeEventTopic],
+        address: undefined
+      }
+
+      const txEvent = createTxEvent({
+        logs: [upgradeEvent]
+      })
+
+      const findings = await handleTransaction(txEvent)
+      expect(findings).toStrictEqual([])
     })
   })
 })
