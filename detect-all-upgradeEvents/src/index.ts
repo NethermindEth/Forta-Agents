@@ -21,6 +21,7 @@ const handleTransaction: HandleTransaction = async (
   const findings: Finding[] = []
 
   const upgradeEvents = txEvent.filterEvent(UPGRADE_EVENT_SIGNATURE)
+  const proxyAddress = txEvent.to as string
 
   if (!upgradeEvents.length) return findings
 
@@ -30,7 +31,10 @@ const handleTransaction: HandleTransaction = async (
       description: `Upgrade Event is detected`,
       alertId: 'NETHFORTA-6',
       type: FindingType.Suspicious,
-      severity: FindingSeverity.High
+      severity: FindingSeverity.High,
+      metadata: {
+        proxy: proxyAddress
+      }
     })
   )
 

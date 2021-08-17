@@ -13,8 +13,8 @@ import agent, { generateHash, UPGRADE_EVENT_SIGNATURE } from '.'
 describe('Detect Upgrade Events', () => {
   let handleTransaction: HandleTransaction
 
-  const createTxEvent = ({ logs }: any): TransactionEvent => {
-    const tx: any = {}
+  const createTxEvent = ({ logs, proxy }: any): TransactionEvent => {
+    const tx: any = { to: proxy }
     const receipt: any = { logs }
     const block: any = {}
     const addresses: any = {}
@@ -41,7 +41,8 @@ describe('Detect Upgrade Events', () => {
       }
 
       const txEvent = createTxEvent({
-        logs: [upgradeEvent]
+        logs: [upgradeEvent],
+        to: '0x001'
       })
 
       const findings = await handleTransaction(txEvent)
@@ -56,7 +57,8 @@ describe('Detect Upgrade Events', () => {
       }
 
       const txEvent = createTxEvent({
-        logs: [upgradeEvent]
+        logs: [upgradeEvent],
+        to: '0x001'
       })
 
       const findings = await handleTransaction(txEvent)
@@ -67,7 +69,10 @@ describe('Detect Upgrade Events', () => {
           description: `Upgrade Event is detected`,
           alertId: 'NETHFORTA-6',
           type: FindingType.Suspicious,
-          severity: FindingSeverity.High
+          severity: FindingSeverity.High,
+          metadata: {
+            proxy: '0x001'
+          }
         })
       ])
     })
