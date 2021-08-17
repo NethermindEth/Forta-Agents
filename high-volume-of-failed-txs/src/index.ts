@@ -33,7 +33,7 @@ function provideHandleTransaction(
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${amount}) related with ${addr} protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHERMIND-AGENTS-01",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: addr,
