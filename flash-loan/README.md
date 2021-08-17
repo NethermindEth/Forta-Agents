@@ -1,8 +1,8 @@
-## Detect anomalous Transaction Value
+## Detect Flash Loans
 
 ### Overview
 
-This agent detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This agent detects use of FLash Loans.
 
 ## Installation
 
