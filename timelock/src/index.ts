@@ -23,10 +23,6 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   const findings: Finding[] = [];
 
-  // gas too low condition
-  if (new BigNumber(txEvent.gasUsed).isLessThan(HIGH_GAS_THRESHOLD))
-    return findings;
-
   const timeLockEvents = timelockEvents.filter((value) => {
     const event = txEvent.filterEvent(value);
     return event.length === 0 ? false : true;

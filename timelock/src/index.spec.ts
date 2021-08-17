@@ -59,13 +59,6 @@ describe("Timelock agent", () => {
   });
 
   describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEvent({ gasUsed: "1" });
-      const findings = await handleTransaction(txEvent);
-
-      expect(findings).toStrictEqual([]);
-    });
-
     it("returns a finding of a timelock event emission", async () => {
       const txEvent = createTxEvent({
         gasUsed: "7000000",
