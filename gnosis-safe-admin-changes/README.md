@@ -3,7 +3,7 @@
 ### Overview
 
 This agent reports transactions that emits gnosis safe events of admin or threshold changes.
-The reported events are can be found [here](https://github.com/gnosis/safe-contracts/blob/main/contracts/base/OwnerManager.sol#L9-L11)
+The reported events can be found [here](https://github.com/gnosis/safe-contracts/blob/main/contracts/base/OwnerManager.sol#L9-L11).
 
 ## Installation
 
