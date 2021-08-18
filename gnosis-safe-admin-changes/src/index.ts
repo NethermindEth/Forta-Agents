@@ -33,21 +33,21 @@ const decode = (param:string, type:string): any =>
 export const EVENTS: EventData[] = [
   {
     signature: "AddedOwner(address)",
-    handler: (addr:string): Finding => genFinding(
+    createFinding: (addr:string): Finding => genFinding(
       "Gnosis Safe owner added",
       `New owner wallet (${decode(addr, "address")})`,
     )
   },
   {
     signature: "RemovedOwner(address)",
-    handler: (addr:string): Finding => genFinding(
+    createFinding: (addr:string): Finding => genFinding(
       "Gnosis Safe owner removed",
       `Removed owner wallet (${decode(addr, "address")})`,
     )
   },
   {
     signature: "ChangedThreshold(uint256)",
-    handler: (threshold:string): Finding => genFinding(
+    createFinding: (threshold:string): Finding => genFinding(
       "Gnosis Safe threshold changed",
       `New threshold (${decode(threshold, "uint256")})`,
     )
@@ -62,7 +62,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       .filterEvent(e.signature)
       .forEach((log: Log) => {
         findings.push(
-          e.handler(log.topics[1])
+          e.createFinding(log.topics[1])
         )
       })
   });

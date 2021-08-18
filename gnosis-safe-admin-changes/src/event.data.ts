@@ -7,5 +7,5 @@ export interface EventHandler {
 
 export interface EventData {
     signature: string,
-    handler: EventHandler,
+    createFinding: EventHandler,
 };
