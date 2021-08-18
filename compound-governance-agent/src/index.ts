@@ -1,39 +1,58 @@
 import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
 } from 'forta-agent'
+import { COMPOUND_GOVERNANCE_ADDRESS, HashedSigs } from './utils'
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const handleTransaction: HandleTransaction = async (
+  txEvent: TransactionEvent
+) => {
   const findings: Finding[] = []
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-  }
+  txEvent.receipt.logs.map((log) => {
+    if (!log.address || log.address != COMPOUND_GOVERNANCE_ADDRESS)
+      return findings
+
+    HashedSigs.map((event: any) => {
+      const topic = Object.keys(event).filter((key) => {
+        return log.topics.includes(event[key])
+      })
+
+      if (!topic.length) return findings
+
+      if (!txEvent.status) {
+        findings.push(
+          Finding.fromObject({
+            name: 'COMPOUND GOVERNANCE EVENT',
+            description: `Compound Failed ${topic[0]} Proposal event is detected.`,
+            alertId: 'NETHFORTA-8',
+            protocol: 'Compound',
+            type: FindingType.Suspicious,
+            severity: FindingSeverity.High,
+          })
+        )
+      } else {
+        findings.push(
+          Finding.fromObject({
+            name: 'COMPOUND GOVERNANCE EVENT',
+            description: `Compound ${topic[0]} Proposal Event is detected.`,
+            alertId: 'NETHFORTA-8',
+            protocol: 'Compound',
+            type: FindingType.Unknown,
+            severity: FindingSeverity.Info,
+          })
+        )
+      }
+    })
+  })
 
   return findings
 }
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
   handleTransaction,
-  // handleBlock
 }
