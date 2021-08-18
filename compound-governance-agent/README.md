@@ -1,4 +1,4 @@
-## Detect anomalous Transaction Value
+## Detect COMPOUND Governance Transactions
 
 ### Overview
 
