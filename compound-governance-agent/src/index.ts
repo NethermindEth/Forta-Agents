@@ -13,11 +13,11 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   const findings: Finding[] = []
 
-  txEvent.receipt.logs.map((log) => {
+  txEvent.receipt.logs.forEach((log) => {
     if (!log.address || log.address != COMPOUND_GOVERNANCE_ADDRESS)
       return findings
 
-    HashedSigs.map((event: any) => {
+    HashedSigs.forEach((event: any) => {
       const topic = Object.keys(event).filter((key) => {
         return log.topics.includes(event[key])
       })
