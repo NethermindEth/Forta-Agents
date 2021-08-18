@@ -83,6 +83,57 @@ describe('Detect Compound Governance Event', () => {
       expect(findings).toStrictEqual([])
     })
 
+    it('should return CREATE Proposal Event finding in multiple Logs', async () => {
+      const topicHash: string = HashedSigs[0].CREATE as string
+
+      const GovEvent = {
+        topics: [topicHash],
+        address: COMPOUND_GOVERNANCE_ADDRESS,
+      }
+
+      const anotherEvent = {
+        topics: [],
+        address: COMPOUND_GOVERNANCE_ADDRESS,
+      }
+      const txEvent = createTxEvent({
+        logs: [anotherEvent, GovEvent],
+      })
+
+      const findings = await handleTransaction(txEvent)
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: 'COMPOUND GOVERNANCE EVENT',
+          description: `Compound ${TOPICS.CREATE} Proposal Event is detected.`,
+          alertId: 'NETHFORTA-8',
+          protocol: 'Compound',
+          type: FindingType.Unknown,
+          severity: FindingSeverity.Info,
+        }),
+      ])
+    })
+
+    it('should return empty finding in because of wrong address', async () => {
+      const topicHash: string = HashedSigs[1].VOTE as string
+
+      const GovEvent = {
+        topics: [topicHash],
+        address: '0x02',
+      }
+
+      const anotherEvent = {
+        topics: [],
+        address: COMPOUND_GOVERNANCE_ADDRESS,
+      }
+      const txEvent = createTxEvent({
+        logs: [anotherEvent, GovEvent],
+      })
+
+      const findings = await handleTransaction(txEvent)
+
+      expect(findings).toStrictEqual([])
+    })
+
     describe('Successed Gov Transactions', () => {
       it('should return CREATE Proposal Event finding', async () => {
         const topicHash: string = HashedSigs[0].CREATE as string
