@@ -7,7 +7,7 @@ import {
 } from 'forta-agent';
 import { EventData } from './event.data'
 import { Log } from 'forta-agent/dist/sdk/receipt';
-import ethers from 'ethers';
+import { utils } from 'ethers';
 
 /* Events emited for Gnosis Safe Contracts
    https://github.com/gnosis/safe-contracts/blob/main/contracts/base/OwnerManager.sol#L9-L11
@@ -28,21 +28,21 @@ const genFinding = (
 });
 
 const decode = (param:string, type:string): any => 
-  ethers.utils.defaultAbiCoder.decode([type], param)[0];
+  utils.defaultAbiCoder.decode([type], param)[0];
 
 export const EVENTS: EventData[] = [
   {
     signature: "AddedOwner(address)",
     handler: (addr:string): Finding => genFinding(
       "Gnosis Safe owner added",
-      `New owner wallet (${decode(addr, "string")})`,
+      `New owner wallet (${decode(addr, "address")})`,
     )
   },
   {
     signature: "RemovedOwner(address)",
     handler: (addr:string): Finding => genFinding(
       "Gnosis Safe owner removed",
-      `Removed owner wallet (${decode(addr, "string")})`,
+      `Removed owner wallet (${decode(addr, "address")})`,
     )
   },
   {
