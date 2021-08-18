@@ -1,8 +1,8 @@
-## Detect anomalous Transaction Value
+## Detect anomalous Changes in Difficulty
 
 ### Overview
 
-This agent detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This agent detects blocks with unusual changes in difficulty. The agent check the changes in difficulty in the previous `NUMBER_OF_BLOCKS_TO_CHECK` and verify if the last changes is inside the standard deviation.
 
 ## Installation
 
