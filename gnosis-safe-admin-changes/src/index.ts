@@ -5,7 +5,7 @@ import {
   FindingSeverity, 
   FindingType 
 } from 'forta-agent';
-import { EventData } from './event.data'
+import { Event } from './event.data'
 import { Log } from 'forta-agent/dist/sdk/receipt';
 import { utils } from 'ethers';
 
@@ -30,7 +30,7 @@ const genFinding = (
 const decode = (param:string, type:string): any => 
   utils.defaultAbiCoder.decode([type], param)[0];
 
-export const EVENTS: EventData[] = [
+export const EVENTS: Event[] = [
   {
     signature: "AddedOwner(address)",
     createFinding: (addr:string): Finding => genFinding(
@@ -57,7 +57,7 @@ export const EVENTS: EventData[] = [
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = []
 
-  EVENTS.forEach((e: EventData) => {
+  EVENTS.forEach((e: Event) => {
     txEvent
       .filterEvent(e.signature)
       .forEach((log: Log) => {

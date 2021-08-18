@@ -5,7 +5,7 @@ export interface EventHandler {
     (logs: string): Finding;
 };
 
-export interface EventData {
+export interface Event {
     signature: string,
     createFinding: EventHandler,
 };

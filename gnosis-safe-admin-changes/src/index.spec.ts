@@ -7,7 +7,7 @@ import {
 } from "forta-agent";
 import { Log } from "forta-agent/dist/sdk/receipt";
 import agent, { EVENTS } from ".";
-import { EventData } from "./event.data";
+import { Event } from "./event.data";
 import { utils } from 'ethers';
 
 const addresses: string[] = [
@@ -53,8 +53,8 @@ const createTxEvent = (logs : Log[]): TransactionEvent => {
   );
 };
 
-const generateTests = (
-  event: EventData, 
+const generateTestData = (
+  event: Event, 
   params: Param[]
 ): [Log[], Finding[]] => {
   const logs: Log[] = [];
@@ -80,17 +80,17 @@ describe("Gnosis Safe admin changes agent test suit", () => {
 
     it("Should detect multiple Gnosis Safe events", async () => {
       // Create logs & findings for AddOwner event
-      const [addLogs, addFindings] = generateTests(
+      const [addLogs, addFindings] = generateTestData(
         EVENTS[0],
         addresses,
       );
       // Create logs & findings for RemoveOwner event
-      const [remLogs, remFindings] = generateTests(
+      const [remLogs, remFindings] = generateTestData(
         EVENTS[1],
         addresses,
       );
       // Create logs & findings for ChangedThreshold event
-      const [thrLogs, thrFindings] = generateTests(
+      const [thrLogs, thrFindings] = generateTestData(
         EVENTS[2],
         [50, 20, 1],
       );
