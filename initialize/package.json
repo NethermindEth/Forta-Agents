@@ -15,8 +15,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.8"
+    "ethereum-checksum-address": "0.0.6",
+    "forta-agent": "^0.0.8",
+    "keccak256": "^1.0.3",
+    "web3": "^1.5.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
