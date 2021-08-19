@@ -9,7 +9,16 @@ import {
 } from 'forta-agent'
 
 import agent from '.'
-import { COMPOUND_GOVERNANCE_ADDRESS, TOPICS, HashedSigs } from './utils'
+import {
+  COMPOUND_GOVERNANCE_ADDRESS,
+  PROPOSAL_CREATE_SIGNATURE,
+  PROPOSAL_VOTE_CAST_SIGNATURE,
+  PROPOSAL_QUEUED_SIGNATURE,
+  PROPOSAL_EXECUTED_SIGNATURE,
+  PROPOSAL_CANCEL_SIGNATURE,
+  TOPICS,
+  generateHash,
+} from './utils'
 
 describe('Detect Compound Governance Event', () => {
   let handleTransaction: HandleTransaction
@@ -54,7 +63,7 @@ describe('Detect Compound Governance Event', () => {
     })
 
     it('should return empty finding - wrong address', async () => {
-      const topicHash: string = HashedSigs[0].CREATE as string
+      const topicHash: string = generateHash(PROPOSAL_CREATE_SIGNATURE)
 
       const GovEvent = {
         topics: [topicHash],
@@ -69,7 +78,7 @@ describe('Detect Compound Governance Event', () => {
     })
 
     it('should return empty finding - empty address', async () => {
-      const topicHash: string = HashedSigs[0].CREATE as string
+      const topicHash: string = generateHash(PROPOSAL_CREATE_SIGNATURE)
 
       const GovEvent = {
         topics: [topicHash],
@@ -84,7 +93,7 @@ describe('Detect Compound Governance Event', () => {
     })
 
     it('should return CREATE Proposal Event finding in multiple Logs', async () => {
-      const topicHash: string = HashedSigs[0].CREATE as string
+      const topicHash: string = generateHash(PROPOSAL_CREATE_SIGNATURE)
 
       const GovEvent = {
         topics: [topicHash],
@@ -114,7 +123,7 @@ describe('Detect Compound Governance Event', () => {
     })
 
     it('should return empty finding in because of wrong address', async () => {
-      const topicHash: string = HashedSigs[1].VOTE as string
+      const topicHash: string = generateHash(PROPOSAL_VOTE_CAST_SIGNATURE)
 
       const GovEvent = {
         topics: [topicHash],
@@ -136,7 +145,7 @@ describe('Detect Compound Governance Event', () => {
 
     describe('Successed Gov Transactions', () => {
       it('should return CREATE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[0].CREATE as string
+        const topicHash: string = generateHash(PROPOSAL_CREATE_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -161,7 +170,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return VOTE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[1].VOTE as string
+        const topicHash: string = generateHash(PROPOSAL_VOTE_CAST_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -186,7 +195,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return QUEUE Event finding', async () => {
-        const topicHash: string = HashedSigs[2].QUEUE as string
+        const topicHash: string = generateHash(PROPOSAL_QUEUED_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -211,7 +220,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return EXECUTE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[3].EXECUTE as string
+        const topicHash: string = generateHash(PROPOSAL_EXECUTED_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -236,7 +245,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return CANCEL Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[4].CANCEL as string
+        const topicHash: string = generateHash(PROPOSAL_CANCEL_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -263,7 +272,7 @@ describe('Detect Compound Governance Event', () => {
 
     describe('Failed Gov Transactions', () => {
       it('should return Failed CREATE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[0].CREATE as string
+        const topicHash: string = generateHash(PROPOSAL_CREATE_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -289,7 +298,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return Failed VOTE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[1].VOTE as string
+        const topicHash: string = generateHash(PROPOSAL_VOTE_CAST_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -315,7 +324,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return Failed QUEUE Event finding', async () => {
-        const topicHash: string = HashedSigs[2].QUEUE as string
+        const topicHash: string = generateHash(PROPOSAL_QUEUED_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -341,7 +350,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return Failed EXECUTE Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[3].EXECUTE as string
+        const topicHash: string = generateHash(PROPOSAL_EXECUTED_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],
@@ -367,7 +376,7 @@ describe('Detect Compound Governance Event', () => {
       })
 
       it('should return Failed CANCEL Proposal Event finding', async () => {
-        const topicHash: string = HashedSigs[4].CANCEL as string
+        const topicHash: string = generateHash(PROPOSAL_CANCEL_SIGNATURE)
 
         const GovEvent = {
           topics: [topicHash],

@@ -12,7 +12,7 @@ export const PROPOSAL_VOTE_CAST_SIGNATURE =
   'VoteCast(address,uint256,bool,uint256)'
 
 // An event emitted when a proposal has been canceled
-export const PROPOSAL_CANCEL_SIGNATURE = 'ProposalCanceled(uint)'
+export const PROPOSAL_CANCEL_SIGNATURE = 'ProposalCanceled(uint256)'
 
 // An event emitted when a proposal has been queued
 export const PROPOSAL_QUEUED_SIGNATURE = 'ProposalQueued(uint256,uint256)'
@@ -25,13 +25,13 @@ export const generateHash = (signature: string): string => {
   return '0x' + hash
 }
 
-export const HashedSigs = [
-  { CREATE: generateHash(PROPOSAL_CREATE_SIGNATURE) },
-  { VOTE: generateHash(PROPOSAL_VOTE_CAST_SIGNATURE) },
-  { QUEUE: generateHash(PROPOSAL_QUEUED_SIGNATURE) },
-  { EXECUTE: generateHash(PROPOSAL_EXECUTED_SIGNATURE) },
-  { CANCEL: generateHash(PROPOSAL_CANCEL_SIGNATURE) },
-]
+export const Sigs: any = {
+  CREATE: PROPOSAL_CREATE_SIGNATURE,
+  VOTE: PROPOSAL_VOTE_CAST_SIGNATURE,
+  QUEUE: PROPOSAL_QUEUED_SIGNATURE,
+  EXECUTE: PROPOSAL_EXECUTED_SIGNATURE,
+  CANCEL: PROPOSAL_CANCEL_SIGNATURE,
+}
 
 export enum TOPICS {
   CREATE = 'CREATE',
