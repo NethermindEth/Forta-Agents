@@ -17,7 +17,7 @@ export default class ReserveUtilizationGetter {
   async getUtilization(assetAddress: string): Promise<bigint> {
     const encodedData: string = encodeGetReserveDataCall(assetAddress);
     const encodedReturn: string = await this.web3.eth.call({
-      from: this.AAVE_PROTOCOL_DATA_PROVIDER,
+      to: this.AAVE_PROTOCOL_DATA_PROVIDER,
       data: encodedData,
     });
     const decodedReturnValues = decodeGetReserveDataReturn(encodedReturn);
