@@ -11,6 +11,12 @@ export const Assets = {
     USDT: 2,
 } as const;
  
+export const AssetsNames: { [key: number]: string } = {
+    [Assets.USDC]: "USDC",
+    [Assets.DAI]: "DAI",
+    [Assets.USDT]: "USDT",
+};
+
 export const TREHSHOLDS_VALUES: { [key: number]: number } = {
     [UtilizationLevel.Normal]: 0,
     [UtilizationLevel.High]: 85,
