@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import ReserveUtilizationGetter from "./reserveUtilizationGetter";
 import { encodeGetReserveDataReturn } from "./abi.utils";
 
 const ASSET_ADDRESSES = {
@@ -7,7 +8,7 @@ const ASSET_ADDRESSES = {
   USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 };
 
-const RESERVE_DATA: { [key:string] : string } = {
+const RESERVE_DATA: { [key: string]: string } = {
   "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": encodeGetReserveDataReturn([
     12,
     46,
@@ -32,10 +33,10 @@ const RESERVE_DATA: { [key:string] : string } = {
     0,
     0,
   ]),
-  "0xdAC17F958D2ee523a2206206994597C13D831ec7": encodeGetReserveDataReturn([
+  "0xdac17f958d2ee523a2206206994597c13d831ec7": encodeGetReserveDataReturn([
     19,
     36,
-    55,
+    45,
     0,
     0,
     0,
@@ -46,25 +47,33 @@ const RESERVE_DATA: { [key:string] : string } = {
   ]),
 };
 
-describe("ReserveUtilizationGetter test suite", async () => {
-  const mockWeb3: Web3 = {
-    eth: {
-      call: jest.fn(({ data }) => {
-          const assetAddress: string = "0x" + (data as string).slice(10);
-          return RESERVE_DATA[assetAddress];
-      }),
-    },
-  } as any;
+describe("ReserveUtilizationGetter test suite", () => {
+    const mockWeb3: Web3 = {
+      eth: {
+        call: jest.fn(({ data }) => {
+            const assetAddress: string = "0x" + (data as string).slice(34);
+            return RESERVE_DATA[assetAddress];
+        }),
+      },
+    } as any;
 
   it("should return correct utilization values", async () => {
-    const utilizationGetter: ReserveUtilizationGetter = new ReserveUtilizationGetter(mockWeb3);
+    const utilizationGetter: ReserveUtilizationGetter = new ReserveUtilizationGetter(
+        mockWeb3
+    );
+    RESERVE_DATA[ASSET_ADDRESSES.USDC];
+    const usdcUtilization: bigint = await utilizationGetter.getUtilization(
+      ASSET_ADDRESSES.USDC
+    );
+    const daiUtilization: bigint = await utilizationGetter.getUtilization(
+      ASSET_ADDRESSES.DAI
+    );
+    const usdtUtilization: bigint = await utilizationGetter.getUtilization(
+      ASSET_ADDRESSES.USDT
+    );
 
-    const usdcUtilization: bigint = await utilizationGetter.getUtilization(ASSET_ADDRESSES.USDC);
-    const daiUtilization: bigint = await utilizationGetter.getUtilization(ASSET_ADDRESSES.DAI);
-    const usdtUtilization: bigint = await utilizationGetter.getUtilization(ASSET_ADDRESSES.USDT);
-
-    expect(usdcUtilization).toStrictEqual(88);
-    expect(daiUtilization).toStrictEqual(78);
-    expect(usdtUtilization).toStrictEqual(81);
-  })
+    expect(usdcUtilization.toString()).toStrictEqual("88");
+    expect(daiUtilization.toString()).toStrictEqual("78");
+    expect(usdtUtilization.toString()).toStrictEqual("81");
+  });
 });
