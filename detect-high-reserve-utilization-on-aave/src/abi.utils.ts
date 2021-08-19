@@ -19,6 +19,10 @@ export const decodeGetReserveDataReturn = (returnData: string) => {
     return web3.eth.abi.decodeParameters(getReserveDataReturnTypes, returnData);
 }
 
+export const encodeGetReserveDataReturn = (values: any[]): string => {
+    return web3.eth.abi.encodeParameters(getReserveDataReturnTypes, values);
+}
+
 export const encodeGetReserveDataCall = (assetAddress: string): string => {
     return web3.eth.abi.encodeFunctionCall({
         name: "getReserveData",
