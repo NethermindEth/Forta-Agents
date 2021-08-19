@@ -10,6 +10,8 @@ import axios from 'axios';
 const INTERESTING_PROTOCOLS: string[] = [];
 const API_ENDPOINT: string = "ttps://blocks.flashbots.net/v1/blocks?block_number=";
 
+export const getAPIUrl = (block: number) => `${API_ENDPOINT}${block}`;
+
 const provideHandleTransaction = (
   getter: any, 
   protocols: string[]
@@ -23,13 +25,13 @@ const provideHandleTransaction = (
 
     if(protocolsInUse.length === 0) return findings;
 
-    const { data } = await getter(`${API_ENDPOINT}${txEvent.block}`);
+    const { data } = await getter(getAPIUrl(txEvent.blockNumber));
 
     // check if the block has a bundle
     if(data.blocks.length === 0) return findings;
 
     // check if the transaction is inside the bundle
-    const currentTxn = data.block[0].transactions.filter(
+    const currentTxn = data.blocks[0].transactions.filter(
       (txn: any) => txn.transaction_hash === txEvent.hash
     );
     if(currentTxn.length === 0) return findings;
@@ -47,6 +49,7 @@ const provideHandleTransaction = (
             severity: FindingSeverity.Info,
             metadata: {
               bundle_type: txn.bundle_type,
+              hash: txEvent.hash,
             },
           })
         );
