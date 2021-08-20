@@ -102,14 +102,14 @@ describe("Contracts deployed by contracts agent test suit", () => {
         Finding.fromObject({
           name: "Contract deployed by a contract",
           description: `Contract (0x2) deploy the new contract (0x3)`,
-          alertId: "NETHFORTA-07",
+          alertId: "NETHFORTA-9",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Info,
         }),
         Finding.fromObject({
           name: "Contract deployed by a contract",
           description: `Contract (0x3) deploy the new contract (0x4)`,
-          alertId: "NETHFORTA-07",
+          alertId: "NETHFORTA-9",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Info,
         }),
