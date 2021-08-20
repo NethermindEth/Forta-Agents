@@ -14,7 +14,7 @@ import { abi, initialize } from "./abi";
 
 const web3: any = new Web3(getJsonRpcUrl());
 
-describe("high gas agent", () => {
+describe("high amount of flashloans", () => {
   let handleTransaction: HandleTransaction;
   const createTxEvent = ({ gasUsed, transaction }: any) => {
     const tx = { ...transaction } as any;
