@@ -326,4 +326,53 @@ describe("high aave reserve utilization agent", () => {
       ]);
     });
   });
+
+  describe("reserves at different levels", () => {
+    it("should report multiple findings, each one with correct severity", async () => {
+      const reserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(86),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(98),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      const mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        reserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
+
+      const findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("USDC", FindingSeverity.Medium),
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+    }),
+
+    it("should report finding only when balances cross thresholds", async () => {
+      const reserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(86),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(98),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      const mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        reserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
+
+      let findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("USDC", FindingSeverity.Medium),
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+
+      reserveUtilizations[ASSETS_ADDRESSES[Assets.USDC]] = BigInt(87);
+      reserveUtilizations[ASSETS_ADDRESSES[Assets.USDT]] = BigInt(85);
+      findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([createFinding("USDT", FindingSeverity.Medium)]);
+
+      reserveUtilizations[ASSETS_ADDRESSES[Assets.DAI]] = BigInt(97);
+      findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([]);
+    })
+  })
 });
