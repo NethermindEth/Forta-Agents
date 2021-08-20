@@ -25,7 +25,7 @@ function createFinding(eventSignature): Finding {
   return Finding.fromObject({
     name: "TimeLock",
     description: "TimeLock initiated",
-    alertId: "NETHFORTA-7",
+    alertId: "NETHFORTA-12",
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
