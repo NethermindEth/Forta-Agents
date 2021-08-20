@@ -1,8 +1,8 @@
-## Ownership Transfer
+## Detect Multiple Initialize function calls
 
 ### Overview
 
-This agent report when the OwnerTransferred event is emitted and the `from` address is a non zero address.
+This agent detects multiple calls to initialize function.
 
 ## Installation
 
@@ -21,5 +21,5 @@ npm start
 ## Test
 
 ```
-npm test
+npm run test
 ```

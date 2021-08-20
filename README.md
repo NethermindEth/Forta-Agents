@@ -13,3 +13,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Detect Upgrade Events**: The agent detects upgrade events either for a specific contract or for any
 - **Detect Unusual Block Difficulty**: The agent checks unusual changes in Block difficulty.
 - **Compound Gov Event Tracker**: The agent detect any compound governance event.
+- **Initialize Function Calls** : The agent to detect multiple call to initialize function, indicating suspicious activity.
