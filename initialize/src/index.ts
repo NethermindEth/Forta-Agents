@@ -16,7 +16,12 @@ import { abi } from "./abi";
 
 abiDecoder.addABI(abi);
 
-const count: Number = 0;
+let count: number = 0;
+
+type initializeFunctionSignature = {
+  name: string;
+  params: Array<any>;
+};
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
@@ -24,11 +29,30 @@ const handleTransaction: HandleTransaction = async (
   const findings: Finding[] = [];
 
   // txEvent.
-  console.log(txEvent.transaction);
+
   const callData = txEvent.transaction.data;
 
-  const decodeData = abiDecoder.decodeMethod(callData);
-  console.log(decodeData);
+  const decodeData: initializeFunctionSignature =
+    abiDecoder.decodeMethod(callData);
+
+  if (decodeData.name === "initialize") {
+    count++;
+  }
+
+  if (count > 1) {
+    findings.push(
+      Finding.fromObject({
+        name: "Initialize function",
+        description: `The initialize function got called ${count} times.`,
+        alertId: "NETHFORTA-8",
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Unknown,
+        metadata: {
+          count: count.toString(),
+        },
+      })
+    );
+  }
 
   return findings;
 };
