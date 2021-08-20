@@ -62,7 +62,7 @@ describe("Recently-created smart contracts with very little history agent tests 
         Finding.fromObject({
           name: "Transaction to an smart contract recently created",
           description: `Contract created on ${date.toUTCString()}`,
-          alertId: "NETHERMIND-AGENTS-02",
+          alertId: "NETHFORTA-7",
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
         }),
@@ -92,7 +92,7 @@ describe("Recently-created smart contracts with very little history agent tests 
         Finding.fromObject({
           name: "Transaction to an smart contract with little history",
           description: `Contract (${addr}) has only ${result.length} internal transactions`,
-          alertId: "NETHERMIND-AGENTS-02",
+          alertId: "NETHFORTA-7",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Medium,
         }),
@@ -122,14 +122,14 @@ describe("Recently-created smart contracts with very little history agent tests 
         Finding.fromObject({
           name: "Transaction to an smart contract with little history",
           description: `Contract (${addr}) has only ${result.length} internal transactions`,
-          alertId: "NETHERMIND-AGENTS-02",
+          alertId: "NETHFORTA-7",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Medium,
         }),
         Finding.fromObject({
           name: "Transaction to an smart contract recently created",
           description: `Contract created on ${new Date(0).toUTCString()}`,
-          alertId: "NETHERMIND-AGENTS-02",
+          alertId: "NETHFORTA-7",
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
         }),
