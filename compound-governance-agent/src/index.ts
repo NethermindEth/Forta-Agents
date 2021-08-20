@@ -23,7 +23,7 @@ const handleTransaction: HandleTransaction = async (
         Finding.fromObject({
           name: 'COMPOUND GOVERNANCE EVENT',
           description: `Compound Failed ${sig} Proposal event is detected.`,
-          alertId: 'NETHFORTA-8',
+          alertId: 'NETHFORTA-13',
           protocol: 'Compound',
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
@@ -34,7 +34,7 @@ const handleTransaction: HandleTransaction = async (
         Finding.fromObject({
           name: 'COMPOUND GOVERNANCE EVENT',
           description: `Compound ${sig} Proposal Event is detected.`,
-          alertId: 'NETHFORTA-8',
+          alertId: 'NETHFORTA-13',
           protocol: 'Compound',
           type: FindingType.Unknown,
           severity: FindingSeverity.Info,
