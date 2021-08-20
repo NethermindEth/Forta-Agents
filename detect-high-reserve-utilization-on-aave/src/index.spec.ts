@@ -1,15 +1,12 @@
 import {
-  TransactionEvent,
   FindingType,
   FindingSeverity,
   Finding,
-  HandleTransaction,
   EventType,
   Network,
-  HandleBlock,
   BlockEvent,
 } from "forta-agent";
-import agent, { provideHandleBlock } from ".";
+import { provideHandleBlock } from ".";
 import { ASSETS_ADDRESSES, Assets } from "./constants";
 
 const createReserveUtilizationGetterMock = (reserveUtilizations: {
