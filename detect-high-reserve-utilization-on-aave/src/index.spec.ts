@@ -239,8 +239,91 @@ describe("high aave reserve utilization agent", () => {
   });
 
   describe("reserves in critical level", () => {
-    it("returns a finding if some reserve is above medium level", async () => {});
+    it("should returns a finding if some reserve is above very high level", async () => {
+      const reserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(80),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(98),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      const mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        reserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
 
-    it("returns a finding with multiple assets is reserve is above medium level", async () => {});
+      const findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+    });
+
+    it("should returns multiple findings if multiple assets's reserve is above very high level", async () => {
+      const reserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(97),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(95),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      const mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        reserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
+
+      const findings = await handleBlock(blockEvent);
+
+      expect(findings).toStrictEqual([
+        createFinding("USDC", FindingSeverity.Critical),
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+    });
+
+    it("shouldn't return findings if the reserve keeps the same level", async () => {
+      const reserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(80),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(99),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      const mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        reserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
+
+      let findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+
+      findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should return finding if the reserve go up, go down and go up again", async () => {
+      const initialReserveUtilizations: { [key: string]: bigint } = {
+        [ASSETS_ADDRESSES[Assets.USDC]]: BigInt(80),
+        [ASSETS_ADDRESSES[Assets.DAI]]: BigInt(97),
+        [ASSETS_ADDRESSES[Assets.USDT]]: BigInt(78),
+      };
+      let mockReserveUtilizationGetter = createReserveUtilizationGetterMock(
+        initialReserveUtilizations
+      );
+      const handleBlock = provideHandleBlock(mockReserveUtilizationGetter);
+      const blockEvent = createBlockEvent();
+
+      let findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+
+      initialReserveUtilizations[ASSETS_ADDRESSES[Assets.DAI]] = BigInt(80);
+      findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([]);
+
+      initialReserveUtilizations[ASSETS_ADDRESSES[Assets.DAI]] = BigInt(96);
+      findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([
+        createFinding("DAI", FindingSeverity.Critical),
+      ]);
+    });
   });
 });
