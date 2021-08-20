@@ -78,7 +78,7 @@ describe("trasnferred ownership agent", () => {
             Finding.fromObject({
                 name: "Ownership Transferred",
                 description: `The owner was transferred from ${testAddress1} to ${testAddress2}`,
-                alertId: "NEDMFORTA-2",
+                alertId: "NETHFORTA-4",
                 severity: FindingSeverity.Info,
                 type: FindingType.Suspicious
             })
