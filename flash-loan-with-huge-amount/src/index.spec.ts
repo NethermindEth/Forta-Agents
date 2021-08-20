@@ -106,8 +106,8 @@ describe("flash loan agent", () => {
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
-          name: "Flash Loan with Loss",
-          description: `Flash Loan with loss of 100000 detected for ${protocolAddress}`,
+          name: "Flash Loan with huge amount",
+          description: `Flash Loan with huge amount of 100000 detected for ${protocolAddress}`,
           alertId: "NETHFORTA-6",
           protocol: "aave",
           type: FindingType.Suspicious,

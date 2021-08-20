@@ -43,8 +43,8 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
     if (decodeData[3] > 10000) {
       findings.push(
         Finding.fromObject({
-          name: "Flash Loan with Loss",
-          description: `Flash Loan with loss of ${decodeData[3]} detected for ${protocolAddress}`,
+          name: "Flash Loan with huge amount",
+          description: `Flash Loan with huge amount of ${decodeData[3]} detected for ${protocolAddress}`,
           alertId: "NETHFORTA-6",
           protocol: "aave",
           type: FindingType.Suspicious,
