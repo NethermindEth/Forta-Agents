@@ -2,8 +2,6 @@ import {
   BlockEvent,
   Finding,
   HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
   FindingSeverity,
   FindingType,
   getJsonRpcUrl,
@@ -16,11 +14,6 @@ const web3: Web3 = new Web3(getJsonRpcUrl());
 const reserveUtilizationGetter: ReserveUtilizationGetter = new ReserveUtilizationGetter(web3);
 
 
-const lastState: { [key: number ]: number } = {
-  [Assets.USDC]: UtilizationLevel.Normal,
-  [Assets.DAI]: UtilizationLevel.Normal,
-  [Assets.USDT]: UtilizationLevel.Normal
-};
 
 const getUtilizationLevel = (utilization: bigint): number => {
   let utilizationLevel: number = UtilizationLevel.Normal;
@@ -40,30 +33,32 @@ const getSeverity = (utilizationLevel: number): FindingSeverity => {
   }[utilizationLevel] as FindingSeverity;
 }
 
-const createFinding = (asset: number): Finding => {
-  const severity: FindingSeverity = getSeverity(lastState[asset]);
-  const metadata: { [key: string]: string }= {
+const createFinding = (asset: number, utilizationLevel: number): Finding => {
+  const severity: FindingSeverity = getSeverity(utilizationLevel);
+  const metadata: { [key: string]: string } = {
     "Asset": AssetsNames[asset]
   }
   return Finding.fromObject({
     name: "High use Aave reserve",
     description: "Detects assets with high use of their reserve in Aave protocol",
-    alertId: "NETHFORTA-",
+    alertId: "NETHFORTA-14",
     severity: severity,
     type: FindingType.Suspicious,
     metadata: metadata
   });
 }
 
-const provideHandleBlock = (
+export const provideHandleBlock = (
   reserveUtilizationGetter: ReserveUtilizationGetter
 ): HandleBlock => {
+
+  const lastState: { [key: number ]: number } = {
+    [Assets.USDC]: UtilizationLevel.Normal,
+    [Assets.DAI]: UtilizationLevel.Normal,
+    [Assets.USDT]: UtilizationLevel.Normal
+  };
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-    const namesToNotify: { [key: number]: string[] } = {};
-    for (let utilizationLevel in UtilizationLevel) {
-      namesToNotify[(utilizationLevel as any)] = [];
-    }
 
     for (let asset in Object.values(Assets)) {
       const assetAddress = ASSETS_ADDRESSES[asset];
@@ -72,10 +67,9 @@ const provideHandleBlock = (
       const needToNotify = utilizationLevel > lastState[asset];
       lastState[asset] = utilizationLevel;
       if (needToNotify) {
-        findings.push(createFinding(asset as any));
+        findings.push(createFinding(asset as any, utilizationLevel));
       }
     }
-
     return findings;
   };
 };
