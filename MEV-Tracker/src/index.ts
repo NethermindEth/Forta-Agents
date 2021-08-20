@@ -1,29 +1,66 @@
-import BigNumber from 'bignumber.js'
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from 'forta-agent'
+import { 
+  Finding, 
+  HandleTransaction, 
+  TransactionEvent, 
+  FindingSeverity, 
+  FindingType 
+} from 'forta-agent';
+import axios from 'axios';
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = []
+const INTERESTING_PROTOCOLS: string[] = [];
+const API_ENDPOINT: string = "ttps://blocks.flashbots.net/v1/blocks?block_number=";
 
-  return findings
+export const getAPIUrl = (block: number) => `${API_ENDPOINT}${block}`;
+
+const provideHandleTransaction = (
+  getter: any, 
+  protocols: string[]
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent) => {
+    const findings: Finding[] = [];
+
+    const protocolsInUse: string[] = protocols.filter(
+      (p: string) => txEvent.addresses[p]
+    );
+
+    if(protocolsInUse.length === 0) return findings;
+
+    const { data } = await getter(getAPIUrl(txEvent.blockNumber));
+
+    // check if the block has a bundle
+    if(data.blocks.length === 0) return findings;
+
+    // check if the transaction is inside the bundle
+    const currentTxn = data.blocks[0].transactions.filter(
+      (txn: any) => txn.transaction_hash === txEvent.hash
+    );
+    if(currentTxn.length === 0) return findings;
+    const txn = currentTxn[0];
+
+    // report findings
+    protocolsInUse.forEach(
+      (p: string) => {
+        findings.push(
+          Finding.fromObject({
+            name: "Protocol interaction inside a MEV bundle",
+            description: `Protocol used (${p})`,
+            alertId: "NETHERMIND-AGENTS-10",
+            type: FindingType.Suspicious,
+            severity: FindingSeverity.Info,
+            metadata: {
+              bundle_type: txn.bundle_type,
+              hash: txEvent.hash,
+            },
+          })
+        );
+      }
+    )
+  
+    return findings;
+  }
 }
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(axios.get, INTERESTING_PROTOCOLS),
+};
