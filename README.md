@@ -12,3 +12,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **TimeLock**: Detects use of Openzeppelin Timelock.
 - **Detect Upgrade Events**: The agent detects upgrade events either for a specific contract or for any
 - **Detect Unusual Block Difficulty**: The agent checks unusual changes in Block difficulty.
+- **Compound Gov Event Tracker**: The agent detect any compound governance event.
