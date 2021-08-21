@@ -35,16 +35,16 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
     );
     if (!protocolAddress) return findings;
 
-    const decodeData = web3.eth.abi.decodeParameters(
+    const { 3: loanAmount } = web3.eth.abi.decodeParameters(
       ["address", "address", "address", "uint256", "uint256", "uint16"],
       txEvent.receipt.logs[0].data
     );
 
-    if (decodeData[3] > 10000) {
+    if (loanAmount > 10000) {
       findings.push(
         Finding.fromObject({
           name: "Flash Loan with huge amount",
-          description: `Flash Loan with huge amount of ${decodeData[3]} detected for ${protocolAddress}`,
+          description: `Flash Loan with huge amount of ${loanAmount} detected for ${protocolAddress}`,
           alertId: "NETHFORTA-16",
           protocol: "aave",
           type: FindingType.Suspicious,
@@ -52,7 +52,7 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
           metadata: {
             protocolAddress,
 
-            balanceDiff: decodeData[3],
+            balanceDiff: loanAmount,
             loans: JSON.stringify(flashLoanEvents),
           },
         })
