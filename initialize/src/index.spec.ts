@@ -16,18 +16,18 @@ const web3: any = new Web3(getJsonRpcUrl());
 
 describe("high amount of flashloans", () => {
   let handleTransaction: HandleTransaction;
-  const createTxEvent = ({ gasUsed, transaction }: any) => {
+  const createTxEvent = ({ gasUsed, transaction, addresses }: any) => {
     const tx = { ...transaction } as any;
     const receipt = { gasUsed } as any;
     const block = {} as any;
-    const addresses = {} as any;
+    const addressez = { ...addresses } as any;
     return new TransactionEvent(
       EventType.BLOCK,
       Network.MAINNET,
       tx,
       receipt,
       [],
-      addresses,
+      addressez,
       block
     );
   };
@@ -41,6 +41,9 @@ describe("high amount of flashloans", () => {
     it("make just one call to the contract, should return an empty array with no errors.", async () => {
       const txEvent = createTxEvent({
         gasUsed: "1",
+        addresses: {
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+        },
         transaction: { data: functionSignarue },
       });
 
@@ -51,6 +54,9 @@ describe("high amount of flashloans", () => {
 
     it("second call should give a warning wiht count 2", async () => {
       const txEvent = createTxEvent({
+        addresses: {
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+        },
         gasUsed: "1",
         transaction: { data: functionSignarue },
       });
@@ -74,6 +80,9 @@ describe("high amount of flashloans", () => {
     it("third call should give a warning with count 3", async () => {
       const txEvent = createTxEvent({
         gasUsed: "1",
+        addresses: {
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+        },
         transaction: { data: functionSignarue },
       });
 

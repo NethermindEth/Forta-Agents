@@ -15,6 +15,7 @@ import abiDecoder from "abi-decoder";
 import { abi } from "./abi";
 
 abiDecoder.addABI(abi);
+const PROTOCOL_ADDRESS = "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9";
 
 let count: number = 0;
 
@@ -27,6 +28,9 @@ const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
 ) => {
   const findings: Finding[] = [];
+
+  // if protocol not involved
+  if (!txEvent.addresses[PROTOCOL_ADDRESS]) return findings;
 
   // txEvent.
 
