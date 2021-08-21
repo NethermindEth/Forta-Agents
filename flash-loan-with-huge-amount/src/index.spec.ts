@@ -108,7 +108,7 @@ describe("flash loan agent", () => {
         Finding.fromObject({
           name: "Flash Loan with huge amount",
           description: `Flash Loan with huge amount of 100000 detected for ${protocolAddress}`,
-          alertId: "NETHFORTA-9",
+          alertId: "NETHFORTA-16",
           protocol: "aave",
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,

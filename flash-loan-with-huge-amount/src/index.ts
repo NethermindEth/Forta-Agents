@@ -45,7 +45,7 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
         Finding.fromObject({
           name: "Flash Loan with huge amount",
           description: `Flash Loan with huge amount of ${decodeData[3]} detected for ${protocolAddress}`,
-          alertId: "NETHFORTA-9",
+          alertId: "NETHFORTA-16",
           protocol: "aave",
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
