@@ -48,7 +48,7 @@ const handleTransaction: HandleTransaction = async (
       Finding.fromObject({
         name: "Initialize function",
         description: `The initialize function got called ${count} times.`,
-        alertId: "NETHFORTA-8",
+        alertId: "NETHFORTA-15",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Unknown,
         metadata: {

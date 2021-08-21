@@ -92,7 +92,7 @@ describe("high amount of flashloans", () => {
         Finding.fromObject({
           name: "Initialize function",
           description: `The initialize function got called 3 times.`,
-          alertId: "NETHFORTA-8",
+          alertId: "NETHFORTA-15",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Unknown,
           metadata: {
