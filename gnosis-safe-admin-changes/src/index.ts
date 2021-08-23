@@ -22,7 +22,7 @@ const genFinding = (
 ): Finding => Finding.fromObject({
   name,
   description,
-  alertId: "NETHERMIND-AGENTS-09",
+  alertId: "NETHFORTA-10",
   type: FindingType.Suspicious,
   severity: FindingSeverity.High,
 });

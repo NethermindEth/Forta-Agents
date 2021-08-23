@@ -26,7 +26,7 @@ const provideHandleTransaction = (getCode: any): HandleTransaction => {
             Finding.fromObject({
               name: "Contract deployed by a contract",
               description: `Contract (${from}) deploy the new contract (${addr})`,
-              alertId: "NETHFORTA-07",
+              alertId: "NETHFORTA-9",
               type: FindingType.Suspicious,
               severity: FindingSeverity.Info,
             })

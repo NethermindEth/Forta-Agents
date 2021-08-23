@@ -34,7 +34,7 @@ const handleTransaction: HandleTransaction = async (
     Finding.fromObject({
       name: "High Gas Used",
       description: `Gas Used: ${gasUsed}`,
-      alertId: "NEDMFORTA-1",
+      alertId: "NETHFORTA-1",
       severity: getSeverity(gasUsed),
       type: FindingType.Suspicious,
     })
