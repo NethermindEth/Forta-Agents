@@ -24,7 +24,7 @@ const createFindingFromEvent = (event: Log) : Finding | null => {
   return Finding.fromObject({
     name: "Ownership Transferred",
     description: `The owner was transferred from ${prevOwnerHex} to ${newOwnerHex}`,
-    alertId: "NEDMFORTA-2",
+    alertId: "NETHFORTA-4",
     severity: FindingSeverity.Info,
     type: FindingType.Suspicious
   });

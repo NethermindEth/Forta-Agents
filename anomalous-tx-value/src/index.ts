@@ -25,7 +25,7 @@ const handleTransaction: HandleTransaction = async (
       Finding.fromObject({
         name: 'High Values Transaction Detected',
         description: `Value is: ${value}`,
-        alertId: 'FORTA-1',
+        alertId: 'NETHFORTA-2',
         severity: FindingSeverity.High,
         type: FindingType.Suspicious
       })

@@ -40,7 +40,7 @@ function provideHandleTransaction(getter: any): HandleTransaction {
       findings.push(Finding.fromObject({
         name: "Transaction to an smart contract with little history",
         description: `Contract (${address}) has only ${data.result.length} internal transactions`,
-        alertId: "NETHERMIND-AGENTS-02",
+        alertId: "NETHFORTA-7",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
       }));
@@ -51,7 +51,7 @@ function provideHandleTransaction(getter: any): HandleTransaction {
       findings.push(Finding.fromObject({
         name: "Transaction to an smart contract recently created",
         description: `Contract created on ${date.toUTCString()}`,
-        alertId: "NETHERMIND-AGENTS-02",
+        alertId: "NETHFORTA-7",
         type: FindingType.Suspicious,
         severity: FindingSeverity.High,
       }));
