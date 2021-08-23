@@ -33,7 +33,7 @@ const handleTransaction: HandleTransaction = async (
     Finding.fromObject({
       name: 'Upgrade Event',
       description: `Upgrade Event is detected`,
-      alertId: 'NETHFORTA-6',
+      alertId: 'NETHFORTA-5',
       type: FindingType.Suspicious,
       severity: FindingSeverity.High,
       metadata: {

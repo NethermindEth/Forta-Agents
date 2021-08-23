@@ -114,7 +114,7 @@ describe('Detect Compound Governance Event', () => {
         Finding.fromObject({
           name: 'COMPOUND GOVERNANCE EVENT',
           description: `Compound ${TOPICS.CREATE} Proposal Event is detected.`,
-          alertId: 'NETHFORTA-8',
+          alertId: 'NETHFORTA-13',
           protocol: 'Compound',
           type: FindingType.Unknown,
           severity: FindingSeverity.Info,
@@ -161,7 +161,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound ${TOPICS.CREATE} Proposal Event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Unknown,
             severity: FindingSeverity.Info,
@@ -186,7 +186,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound ${TOPICS.VOTE} Proposal Event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Unknown,
             severity: FindingSeverity.Info,
@@ -211,7 +211,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound ${TOPICS.QUEUE} Proposal Event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Unknown,
             severity: FindingSeverity.Info,
@@ -236,7 +236,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound ${TOPICS.EXECUTE} Proposal Event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Unknown,
             severity: FindingSeverity.Info,
@@ -261,7 +261,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound ${TOPICS.CANCEL} Proposal Event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Unknown,
             severity: FindingSeverity.Info,
@@ -289,7 +289,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound Failed ${TOPICS.CREATE} Proposal event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
@@ -315,7 +315,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound Failed ${TOPICS.VOTE} Proposal event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
@@ -341,7 +341,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound Failed ${TOPICS.QUEUE} Proposal event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
@@ -367,7 +367,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound Failed ${TOPICS.EXECUTE} Proposal event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
@@ -393,7 +393,7 @@ describe('Detect Compound Governance Event', () => {
           Finding.fromObject({
             name: 'COMPOUND GOVERNANCE EVENT',
             description: `Compound Failed ${TOPICS.CANCEL} Proposal event is detected.`,
-            alertId: 'NETHFORTA-8',
+            alertId: 'NETHFORTA-13',
             protocol: 'Compound',
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,

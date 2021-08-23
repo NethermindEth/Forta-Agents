@@ -14,3 +14,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Detect Unusual Block Difficulty**: The agent checks unusual changes in Block difficulty.
 - **Compound Gov Event Tracker**: The agent detect any compound governance event.
 - **Initialize Function Calls** : The agent to detect multiple call to initialize function, indicating suspicious activity.
+- **High Utilization of Aave Reserves**: The agent detect high values on `USDC`, `DAI` and `USDT` reserves on Aave.

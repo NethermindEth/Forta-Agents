@@ -33,7 +33,7 @@ describe("multi gas threshold agent", () => {
         Finding.fromObject({
           name: "High Gas Used",
           description: `Gas Used: ${MEDIUM_GAS_THRESHOLD}`,
-          alertId: "NEDMFORTA-1",
+          alertId: "NETHFORTA-1",
           severity: FindingSeverity.Medium,
           type: FindingType.Suspicious,
         })
@@ -47,7 +47,7 @@ describe("multi gas threshold agent", () => {
         Finding.fromObject({
           name: "High Gas Used",
           description: `Gas Used: ${HIGH_GAS_THRESHOLD}`,
-          alertId: "NEDMFORTA-1",
+          alertId: "NETHFORTA-1",
           severity: FindingSeverity.High,
           type: FindingType.Suspicious,
         })

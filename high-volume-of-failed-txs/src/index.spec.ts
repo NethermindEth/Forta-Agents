@@ -125,7 +125,7 @@ describe("High volume of failed txs agent test suit", () => {
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHFORTA-3",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: "0x1",
@@ -149,7 +149,7 @@ describe("High volume of failed txs agent test suit", () => {
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${addr2hashes.length}) related with 0x2 protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHFORTA-3",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: "0x2",
@@ -188,7 +188,7 @@ describe("High volume of failed txs agent test suit", () => {
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHFORTA-3",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: "0x1",
@@ -199,7 +199,7 @@ describe("High volume of failed txs agent test suit", () => {
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${addr2hashes.length}) related with 0x2 protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHFORTA-3",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: "0x2",
@@ -249,7 +249,7 @@ describe("High volume of failed txs agent test suit", () => {
           Finding.fromObject({
             name: "High volume of failed TXs",
             description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHERMIND-AGENTS",
+            alertId: "NETHFORTA-3",
             type: FindingType.Suspicious,
             severity: FindingSeverity.High,
             protocol: "0x1",
@@ -286,7 +286,7 @@ describe("High volume of failed txs agent test suit", () => {
             Finding.fromObject({
               name: "High volume of failed TXs",
               description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-              alertId: "NETHERMIND-AGENTS",
+              alertId: "NETHFORTA-3",
               type: FindingType.Suspicious,
               severity: FindingSeverity.High,
               protocol: "0x1",
