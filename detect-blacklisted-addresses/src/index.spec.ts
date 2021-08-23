@@ -5,51 +5,75 @@ import {
   Finding,
   HandleTransaction,
   EventType,
-  Network
-} from "forta-agent"
-import agent from "."
+  Network,
+} from "forta-agent";
+import { provideHandleTransaction, createFinding } from ".";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
-  const createTxEvent = ({ gasUsed }: any) => {
-    const tx = { } as any
-    const receipt = { gasUsed } as any
-    const block = {} as any
-    const addresses = { } as any
-    return new TransactionEvent(EventType.BLOCK, Network.MAINNET, tx, receipt, [], addresses, block)
+const BLACKLISTED_ADDRESSES: string[] = [
+  "0x121212",
+  "0x131313",
+];
+
+
+
+describe("Detect transaction involving blacklisted addresse", () => {
+  let handleTransaction: HandleTransaction;
+  const createTxEvent = (addressesInvolved: { [key: string]: boolean }) => {
+    const tx = {} as any;
+    const receipt = { } as any;
+    const block = {} as any;
+    const addresses = addressesInvolved as any;
+    return new TransactionEvent(
+      EventType.BLOCK,
+      Network.MAINNET,
+      tx,
+      receipt,
+      [],
+      addresses,
+      block
+    );
   };
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = provideHandleTransaction(BLACKLISTED_ADDRESSES);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEvent({
-        gasUsed: "1",
-      });
+  it("returns empty findings if there are not blacklisted addresses involved", async () => {
+    const addressesInvolved: { [key: string]: boolean } = {
+      "0x111111": true,
+      "0x141414": true
+    }
 
-      const findings = await handleTransaction(txEvent);
+    const txEvent = createTxEvent(addressesInvolved);
 
-      expect(findings).toStrictEqual([]);
-    });
+    const findings = await handleTransaction(txEvent);
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEvent({
-        gasUsed: "1000001",
-      });
+    expect(findings).toStrictEqual([]);
+  });
 
-      const findings = await handleTransaction(txEvent);
+  it("returns a finding if a blacklisted address is involved", async () => {
+    const addressesInvolved: { [key: string]: boolean } = {
+      "0x111111": true,
+      "0x121212": true
+    }
+    const txEvent = createTxEvent(addressesInvolved);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ]);
-    });
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([createFinding(["0x121212"])]);
+  });
+
+  it("returns a finding if multiple blacklisted addresses are involved", async () => {
+    const addressesInvolved: { [key: string]: boolean } = {
+      "0x121212": true,
+      "0x131313": true,
+    }
+    const txEvent = createTxEvent(addressesInvolved);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(["0x121212", "0x131313"]),
+    ]);
   });
 });
