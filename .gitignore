@@ -9,7 +9,7 @@ node_modules
 forta.config.json
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-flashLoanWithHugAmount
+
 # Runtime data
 pids
 *.pid
