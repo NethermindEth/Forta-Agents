@@ -117,5 +117,20 @@ describe("Possible locked nfts agent test suit", () => {
       expect(mockGetCode).nthCalledWith(1, addresses[2]);
       expect(mockGetCode).nthCalledWith(2, addresses[1]);
     });
+
+    it("Should ignore txns to an EOA", async () => {
+      const txn: TransactionEvent = createTxEvent([{
+        contract: "0x3",
+        from: addresses[1],
+        to: addresses[2],
+        tokenId: 0,
+        method: SIGHASH, // non transferFrom Sighash
+      }]);
+      mockGetCode.mockReturnValueOnce("0x");
+      const findings: Finding[] = await handleTransaction(txn);
+      expect(findings).toStrictEqual([]);
+      expect(mockGetCode).toBeCalledTimes(1);
+      expect(mockGetCode).nthCalledWith(1, addresses[2]);
+    });
   });
 });
