@@ -8,8 +8,8 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
+import BLACKLISTED_ADDRESSES from "./blacklisteAddresses";
 
-const BLACKLISTED_ADDRESSES: string[] = [];
 
 export const createFinding = (addressesDetected: string[]): Finding => {
   return Finding.fromObject({
