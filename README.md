@@ -20,3 +20,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Gnosis Safe admin changes**: Detect transactions that emits gnosis safe events of admin or threshold changes.
 - **Initialize**: Detects if the intialize function is called multiple times.
 - **Hight Flash Loan Value**: Detects if a flash loan with huge amount is used.
+- **Chainkeeper**: Detects transactions involving blacklisted addresses.
