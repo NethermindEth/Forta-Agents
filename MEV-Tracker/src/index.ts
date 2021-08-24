@@ -7,11 +7,7 @@ import {
 } from 'forta-agent'
 import axios from 'axios'
 
-const INTERESTING_PROTOCOLS: string[] = [
-  '0x11111112542d85b3ef69ae05771c2dccff4faa26'.toLowerCase(), // 1inch V3
-  '0x7a250d5630b4cf539739df2c5dacb4c659f2488d'.toLowerCase(), // Uniswap V2
-  '0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f'.toLowerCase(), // SushiSwap Router
-]
+const INTERESTING_PROTOCOLS: string[] = []
 const API_ENDPOINT: string =
   'https://blocks.flashbots.net/v1/blocks?block_number='
 
@@ -25,7 +21,7 @@ const provideHandleTransaction = (
     const findings: Finding[] = []
 
     const protocolsInUse: string[] = protocols.filter(
-      (p: string) => txEvent.addresses[p]
+      (p: string) => txEvent.addresses[p.toLowerCase()]
     )
 
     if (protocolsInUse.length === 0) return findings
