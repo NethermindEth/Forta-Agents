@@ -26,7 +26,7 @@ interface TxEventInfo {
 // transaction in a bundle
 const txnInBundle = {
   hash: '0x14e3ef169d0bb84683d0a9ba75f45d38526f3a199e97f94e6c2fe4287e260d2d',
-  to: '0xcC3938DCc005EacF98Fa53AD05BF861ca2fD485e',
+  to: '0xcC3938DCc005EacF98Fa53AD05BF861ca2fD485e'.toLowerCase(),
   bundle_type: 'flashbots',
   number: 13055778,
 }
@@ -67,7 +67,7 @@ describe('MEV-tracker agent test suit', () => {
         Finding.fromObject({
           name: 'Protocol interaction inside a MEV bundle',
           description: `Protocol used (${txnInBundle.to})`,
-          alertId: 'NETHERMIND-AGENTS-10',
+          alertId: 'NETHERMIND-AGENTS-11',
           type: FindingType.Suspicious,
           severity: FindingSeverity.Info,
           metadata: {
@@ -168,7 +168,7 @@ describe('MEV-tracker agent test suit', () => {
           Finding.fromObject({
             name: 'Protocol interaction inside a MEV bundle',
             description: `Protocol used (0x1)`,
-            alertId: 'NETHERMIND-AGENTS-10',
+            alertId: 'NETHERMIND-AGENTS-11',
             type: FindingType.Suspicious,
             severity: FindingSeverity.Info,
             metadata: {
@@ -179,7 +179,7 @@ describe('MEV-tracker agent test suit', () => {
           Finding.fromObject({
             name: 'Protocol interaction inside a MEV bundle',
             description: `Protocol used (0x3)`,
-            alertId: 'NETHERMIND-AGENTS-10',
+            alertId: 'NETHERMIND-AGENTS-11',
             type: FindingType.Suspicious,
             severity: FindingSeverity.Info,
             metadata: {
