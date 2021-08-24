@@ -9,18 +9,23 @@ import {
   getJsonRpcUrl,
 } from 'forta-agent';
 import { addHexPrefix } from "ethereumjs-util";
-import { utils } from 'ethers';
 import Web3 from 'web3';
 
+const web3 = new Web3(getJsonRpcUrl());
+const abi = web3.eth.abi;
+
 const SIGNATURE: string = 'transferFrom(address,address,uint256)';
-export const SIGHASH: string = utils.id(SIGNATURE).slice(0, 10);
+export const SIGHASH: string = abi.encodeFunctionSignature(SIGNATURE);
 
 const INTERESTING_PROTOCOLS: string[] = [];
 
 const decodeInput = (input: string): any => 
-  utils.defaultAbiCoder.decode(
-    ["address from", "address to", "uint256 tokenId"], 
-    addHexPrefix(input.slice(10))
+  abi.decodeParameters([
+      {type:'address', name:'from'}, 
+      {type:'address', name:'to'}, 
+      {type:'uint256', name:'tokenId'},
+    ], 
+    addHexPrefix(input.slice(10)),
   );
 
 export const createFinding = (
@@ -79,7 +84,7 @@ const provideHandleTransaction = (getCode: any, protocols: string[]): HandleTran
 export default {
   provideHandleTransaction,
   handleTransaction: provideHandleTransaction(
-    new Web3(getJsonRpcUrl()).eth.getCode,
+    web3.eth.getCode,
     INTERESTING_PROTOCOLS,
   ),
 };

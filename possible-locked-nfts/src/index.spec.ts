@@ -8,7 +8,9 @@ import agent, {
   createFinding,
   SIGHASH,
 } from ".";
-import { utils } from 'ethers';
+import Web3 from 'web3';
+
+const abi = new Web3().eth.abi;
 
 const EMPTY_METHOD: string = "0x00000000";
 const protocols: string[] = [
@@ -25,14 +27,14 @@ interface TraceInfo {
   to: string,
   tokenId: number,
   contract: string,
-  method: string,
+  sighash: string,
 }
 
 const encodeUint256 = (uint256: number) => 
-  utils.defaultAbiCoder.encode(["uint256"], [uint256])[0];
+  abi.encodeParameter("uint256", uint256);
 
 const encodeTransferFromInput = (trace:TraceInfo): string =>
-  trace.method + utils.defaultAbiCoder.encode(
+  trace.sighash + abi.encodeParameters(
     ["address", "address", "uint256"], 
     [trace.from, trace.to, trace.tokenId],
   ).slice(2);
@@ -68,7 +70,7 @@ describe("Possible locked nfts agent test suit", () => {
         from: addresses[1],
         to: addresses[2],
         tokenId: 0,
-        method: SIGHASH,
+        sighash: SIGHASH,
       }]);
       const findings: Finding[] = await handleTransaction(txn);
       expect(findings).toStrictEqual([]);
@@ -81,7 +83,7 @@ describe("Possible locked nfts agent test suit", () => {
         from: addresses[1],
         to: addresses[2],
         tokenId: 0,
-        method: EMPTY_METHOD, // non transferFrom Sighash
+        sighash: EMPTY_METHOD, // non transferFrom Sighash
       }]);
       const findings: Finding[] = await handleTransaction(txn);
       expect(findings).toStrictEqual([]);
@@ -95,14 +97,14 @@ describe("Possible locked nfts agent test suit", () => {
           from: addresses[1],
           to: addresses[2],
           tokenId: 10,
-          method: SIGHASH,
+          sighash: SIGHASH,
         },
         {
           contract: "0x2",
           from: addresses[2],
           to: addresses[1],
           tokenId: 5,
-          method: SIGHASH,
+          sighash: SIGHASH,
         },
       ]);
       mockGetCode
@@ -124,7 +126,7 @@ describe("Possible locked nfts agent test suit", () => {
         from: addresses[1],
         to: addresses[2],
         tokenId: 0,
-        method: SIGHASH, // non transferFrom Sighash
+        sighash: SIGHASH,
       }]);
       mockGetCode.mockReturnValueOnce("0x");
       const findings: Finding[] = await handleTransaction(txn);
