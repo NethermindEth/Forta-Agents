@@ -3,9 +3,10 @@
 
 # variables
 NAME="new-agent"
+VERSION="0.0.10"
 
 agent: ## Create an initialize a new agent
-	@mkdir ${NAME} && cd ${NAME} && npx forta-agent init --typescript && npm install
+	@mkdir ${NAME} && cd ${NAME} && npx forta-agent@${VERSION} init --typescript && npm install
 
 test: ## Run an agent test suit
 	@cd ${NAME} && npm test
