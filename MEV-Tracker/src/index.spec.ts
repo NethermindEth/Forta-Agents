@@ -67,7 +67,7 @@ describe('MEV-tracker agent test suit', () => {
         Finding.fromObject({
           name: 'Protocol interaction inside a MEV bundle',
           description: `Protocol used (${txnInBundle.to})`,
-          alertId: 'NETHERMIND-AGENTS-11',
+          alertId: 'NETHFORTA-11',
           type: FindingType.Suspicious,
           severity: FindingSeverity.Info,
           metadata: {
@@ -168,7 +168,7 @@ describe('MEV-tracker agent test suit', () => {
           Finding.fromObject({
             name: 'Protocol interaction inside a MEV bundle',
             description: `Protocol used (0x1)`,
-            alertId: 'NETHERMIND-AGENTS-11',
+            alertId: 'NETHFORTA-11',
             type: FindingType.Suspicious,
             severity: FindingSeverity.Info,
             metadata: {
@@ -179,7 +179,7 @@ describe('MEV-tracker agent test suit', () => {
           Finding.fromObject({
             name: 'Protocol interaction inside a MEV bundle',
             description: `Protocol used (0x3)`,
-            alertId: 'NETHERMIND-AGENTS-11',
+            alertId: 'NETHFORTA-11',
             type: FindingType.Suspicious,
             severity: FindingSeverity.Info,
             metadata: {

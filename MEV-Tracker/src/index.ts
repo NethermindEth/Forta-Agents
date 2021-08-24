@@ -43,7 +43,7 @@ const provideHandleTransaction = (
         Finding.fromObject({
           name: 'Protocol interaction inside a MEV bundle',
           description: `Protocol used (${p})`,
-          alertId: 'NETHERMIND-AGENTS-11',
+          alertId: 'NETHFORTA-11',
           type: FindingType.Suspicious,
           severity: FindingSeverity.Info,
           metadata: {
