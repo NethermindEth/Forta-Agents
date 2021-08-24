@@ -14,6 +14,7 @@ Forta Agents proof of concepts from **Venice** team.
 - **Detect Unusual Block Difficulty**: The agent checks for unusual changes in Block difficulty.
 - **Compound Gov Event Tracker**: The agent detect any compound governance event.
 - **High Utilization of Aave Reserves**: The agent detects high utilization values on `USDC`, `DAI` and `USDT` reserves on Aave.
+- **MEV Tracker**: The agent detects contract interactions which are inside MEV bundle.
 - **Recently-created Smart Contracts with Little History**: Detect txns to contracts recently-created or with little history.
 - **Contracts deployed by contracts**: Detect when a contract deploys a new contract.
 - **Gnosis Safe admin changes**: Detect transactions that emits gnosis safe events of admin or threshold changes.
