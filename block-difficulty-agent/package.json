@@ -16,10 +16,13 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.7"
+    "forta-agent": "^0.0.10",
+    "lru-cache": "^6.0.0",
+    "mathjs": "^9.4.4"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
+    "@types/lru-cache": "^5.1.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
