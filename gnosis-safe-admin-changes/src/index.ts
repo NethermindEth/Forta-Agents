@@ -57,6 +57,9 @@ export const EVENTS: Event[] = [
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = []
 
+  if(txEvent.receipt === undefined || txEvent.receipt === null)
+    return findings;
+
   EVENTS.forEach((e: Event) => {
     txEvent
       .filterEvent(e.signature)
