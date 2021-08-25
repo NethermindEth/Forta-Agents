@@ -24,6 +24,11 @@ const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
 ) => {
   const findings: Finding[] = [];
+
+  if (txEvent.gasUsed === undefined || txEvent.gasUsed === null) {
+    return findings;
+  }
+
   const gasUsed = new BigNumber(txEvent.gasUsed);
 
   if (gasUsed.isLessThan(MEDIUM_GAS_THRESHOLD)) {
