@@ -38,7 +38,7 @@ describe("multi gas threshold agent", () => {
           type: FindingType.Suspicious,
         })
       ]);
-    })
+    });
 
     it("Returns finding with severity High if gas used is greater than or equal to 3000000", async () => {
       const txEvent: TransactionEvent = createTxEvent({ gasUsed: HIGH_GAS_THRESHOLD});
@@ -52,7 +52,13 @@ describe("multi gas threshold agent", () => {
           type: FindingType.Suspicious,
         })
       ]);
-    })
+    });
+
+    it("Returns empty findings if gasUsed is undefined", async () => {
+      const txEvent: TransactionEvent = createTxEvent({});
+      const findings: Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+    });
 
   })
 })
