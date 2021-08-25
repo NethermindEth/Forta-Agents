@@ -20,7 +20,7 @@ const DIFFICULTY_BY_BLOCK: {[key: number]: number} = {
 };
 
 const createBlockEvent = (blockNumber: number): BlockEvent => {
-    return new BlockEvent(EventType.BLOCK, Network.MAINNET, "0x", blockNumber);
+    return new BlockEvent(EventType.BLOCK, Network.MAINNET, "0x", blockNumber, {} as any);
 }
 
 describe("Test difficulty change agent", () => {
