@@ -62,7 +62,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       .filterEvent(e.signature)
       .forEach((log: Log) => {
         findings.push(
-          e.createFinding(log.topics[1])
+          e.createFinding(log.data)
         )
       })
   });

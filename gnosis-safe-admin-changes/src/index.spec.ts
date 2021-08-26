@@ -4,8 +4,11 @@ import {
   Network,
   HandleTransaction,
   TransactionEvent,
+  Log,
+  Receipt,
+  Transaction,
+  Block,
 } from "forta-agent";
-import { Log } from "forta-agent/dist/sdk/receipt";
 import agent, { EVENTS } from ".";
 import { Event } from "./event.data";
 import { utils } from 'ethers';
@@ -28,27 +31,23 @@ const toHex = (param: Param): string =>
   utils.defaultAbiCoder.encode([getType(param)], [param]);
 
 const buildLogForGnosisSafeEvent = (signature:string, param: Param) : Log => {
-    const topics : string[] = [
-        utils.id(signature),
-        toHex(param),
-    ];
     return {
-        topics: topics,
+        topics: [utils.id(signature)],
+        data: toHex(param),
     } as Log;
 };
 
 const createTxEvent = (logs : Log[]): TransactionEvent => {
-  const tx = { } as any;
-  const receipt = { logs } as any;
-  const block = { } as any;
-  const eventAddresses = { } as any;
+  const tx: Transaction = { } as Transaction;
+  const receipt: Receipt = { logs } as Receipt;
+  const block: Block = { } as Block;
   return new TransactionEvent(
     EventType.BLOCK,
     Network.MAINNET,
     tx,
     receipt,
     [],
-    eventAddresses,
+    {},
     block
   );
 };
