@@ -34,7 +34,7 @@ const createFinding = (assetName: string, severity: FindingSeverity) => {
 };
 
 const createBlockEvent = () => {
-  return new BlockEvent(EventType.BLOCK, Network.MAINNET, "", 15);
+  return new BlockEvent(EventType.BLOCK, Network.MAINNET, "", 15, {} as any);
 };
 
 describe("high aave reserve utilization agent", () => {
