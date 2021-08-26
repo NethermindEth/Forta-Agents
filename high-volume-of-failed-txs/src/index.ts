@@ -20,7 +20,20 @@ export const INTERSTING_PROTOCOLS: string[] = [
   "0x3845badAde8e6dFF049820680d1F14bD3903a5d0", // The Sandbox Token 
 ]; 
 
-const failureCounter: FailureCounter = new FailureCounter(TIME_INTERVAL);
+const failureCounter: FailureCounter = new FailureCounter(TIME_INTERVAL, HIGH_FAILURE_THRESHOLD + 5);
+
+export const createFinding = (addr: string, txns: string[]): Finding =>
+  Finding.fromObject({
+    name: "High volume of failed TXs",
+    description: `${txns.length} or more failided transactions related with (${addr}) protocol`,
+    alertId: "NETHFORTA-3",
+    type: FindingType.Suspicious,
+    severity: FindingSeverity.High,
+    protocol: addr,
+    metadata: {
+      transactions: JSON.stringify(txns),
+    },
+  });
 
 function provideHandleTransaction(
   counter: FailureCounter, 
@@ -36,19 +49,7 @@ function provideHandleTransaction(
     involvedProtocols.forEach((addr) => {
       const amount = counter.failure(addr, txEvent.hash, txEvent.timestamp);
       if(amount > HIGH_FAILURE_THRESHOLD) {
-        findings.push(
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${amount}) related with ${addr} protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: addr,
-            metadata: {
-              transactions: JSON.stringify(counter.getTransactions(addr)),
-            },
-          })
-        );
+        findings.push(createFinding(addr, counter.getTransactions(addr)));
       }
     });
 
