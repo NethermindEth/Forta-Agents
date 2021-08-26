@@ -19,13 +19,13 @@ import {
 import Web3 from "web3";
 const web3 = new Web3(getJsonRpcUrl());
 
-import { swap, pairContract } from "./abi";
+import { pairContract } from "./abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
 
 // not working with the whole abi. : TODO
-abiDecoder.addABI([swap]);
+abiDecoder.addABI(pairContract);
 
 function checkFeasibility(tx1: any, tx2: any) {
   const first = web3.eth.abi.decodeParameters(
@@ -71,9 +71,8 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
   // Better apporach: to know the token which is being swapped and then order consecutively.
   // This is determined by the contract itself using token1() token2() function
   // Track all those here for much more accurate results in production
-  // This implementation includes only checking the originalLiquidity of the tokens when the tx was transmitted
+  // This agent only deals with the final swap event emitted.
 
-  console.log(JSON.stringify(swapTxs));
   for (let i = 0; i < swapTxs.length - 2; ) {
     const tx1 = swapTxs[i].params;
     const tx2 = swapTxs[i + 1].params;
