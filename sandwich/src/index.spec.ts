@@ -91,7 +91,7 @@ describe("Agent for SandWich Attack", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("Case: T1 is before TV followed by T2", async () => {
+  it("Case: T1 is before TV followed by T2, but amount used is not too massiv by attacker", async () => {
     // Tv - The transaction from the victim which is detected by the attacker
     const victimTx = generateTx(
       reserveAmount0,
@@ -112,18 +112,70 @@ describe("Agent for SandWich Attack", () => {
     );
 
     const attackerT2 = generateTx(
-      reserveAmount0 + 1000,
-      reserveAmount1 - 1000,
+      reserveAmount0 + 10,
+      reserveAmount1 - 10,
       account2,
       "1000",
       "0",
       1100
     );
 
-    const blockEvent = generateBlockEvent([victimTx, attackerT1, attackerT2]);
+    const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
 
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
+  });
+
+  it("Case: T1 is before TV followed by T2 , and the mev conditions are met: Red Alert", async () => {
+    // T1 - Attackers frontrunning tx
+    const attackerT1 = generateTx(
+      reserveAmount0,
+      reserveAmount1,
+      account2,
+      "1000",
+      "0",
+      1000
+    );
+
+    // Tv - The transaction from the victim which is detected by the attacker
+    const victimTx = generateTx(
+      reserveAmount0,
+      reserveAmount1,
+      account1,
+      "500",
+      "0",
+      500
+    );
+
+    const attackerT2 = generateTx(
+      reserveAmount0 + 520,
+      reserveAmount1 - 520,
+      account2,
+      "520",
+      "0",
+      530
+    );
+
+    const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "MEV Attack Detected",
+        description: `Block number ${blockEvent.blockNumber} detected MEV attack`,
+        alertId: "NETHFORTA-8",
+        severity: FindingSeverity.High,
+        type: FindingType.Exploit,
+        metadata: {
+          r1: "10000",
+          r2: "10000",
+          x: "500",
+          v: "1000",
+          m: "500",
+        },
+      }),
+    ]);
   });
 });

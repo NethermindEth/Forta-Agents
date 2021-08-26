@@ -54,7 +54,7 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
 
   // extract all swap events
   for (let i in txs) {
-    const decodedData = abiDecoder.decodeMethod(txs[0]);
+    const decodedData = abiDecoder.decodeMethod(txs[i]);
 
     if (decodedData != undefined && decodedData.name === "swap") {
       swapTxs.push(decodedData);
@@ -73,6 +73,7 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
   // Track all those here for much more accurate results in production
   // This implementation includes only checking the originalLiquidity of the tokens when the tx was transmitted
 
+  console.log(JSON.stringify(swapTxs));
   for (let i = 0; i < swapTxs.length - 2; ) {
     const tx1 = swapTxs[i].params;
     const tx2 = swapTxs[i + 1].params;
@@ -93,8 +94,15 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
       const x = tx2[0].value;
       const v = tx1[0].value;
 
-      console.log(detectIfAttackPossible(r1, r2, x, v, m));
-      if (detectIfAttackPossible(r1, r2, x, v, m)) {
+      if (
+        detectIfAttackPossible(
+          parseFloat(r1),
+          parseFloat(r2),
+          parseFloat(x),
+          parseFloat(v),
+          parseFloat(m)
+        )
+      ) {
         findings.push(
           Finding.fromObject({
             name: "MEV Attack Detected",

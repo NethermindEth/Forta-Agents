@@ -18,9 +18,10 @@ const detectIfAttackPossible = (
   m: number
 ): boolean => {
   const minimumAmountOfToken2Recieved =
-    (v * 0.997 * (r2 - ((x * 0.997 * r2) / r1 + 0.997 * x))) /
+    (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
     (r1 + x + 0.997 * v);
 
+  console.log(minimumAmountOfToken2Recieved, m);
   if (minimumAmountOfToken2Recieved >= m) {
     return true; // sandwich attack possible
   } else return false;
