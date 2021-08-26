@@ -7,7 +7,16 @@ import {
 } from 'forta-agent'
 import axios from 'axios'
 
-const INTERESTING_PROTOCOLS: string[] = []
+const INTERESTING_PROTOCOLS: string[] = [
+  "0x11111112542d85b3ef69ae05771c2dccff4faa26", // 1inch V3
+  "0x7a250d5630b4cf539739df2c5dacb4c659f2488d", // Uniswap V2
+  "0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f", // SushiSwap Router
+  "0xe592427a0aece92de3edee1f18e0157c05861564", // Uniswap V3
+  "0xDef1C0ded9bec7F1a1670819833240f027b25EfF", // 0x
+  "0x881D40237659C251811CEC9c364ef91dC08D300C", // Metamask Swap Router
+  "0xA58f22e0766B3764376c92915BA545d583c19DBc", // Alchemist Coin MistX Router
+  "0x9008D19f58AAbD9eD0D60971565AA8510560ab41", // Gnosis Protocol
+]
 const API_ENDPOINT: string =
   'https://blocks.flashbots.net/v1/blocks?block_number='
 
