@@ -9,6 +9,10 @@ jobs:
   Publish:
     - name: Set branch name in env var
       run: echo "BRANCH=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 1)" >> $GITHUB_ENV
+    - name: Create folder for private key
+      run: mkdir -p ~/.forta
+    - name: Create private key file
+    - run: echo ${{ secrets.PRIVATE_KEY_FILE }} > ~/.forta/privateKey
     - uses: actions/checkout@v2
     # - name: Publish Agent
     #   if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
