@@ -19,7 +19,7 @@ export const createFinding = (amount: number): Finding =>
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
-  if(!txEvent.receipt.status) return findings;
+  if(!txEvent.status) return findings;
 
   let internalFailureCount: number = 0;
   txEvent.traces.forEach(

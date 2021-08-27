@@ -4,6 +4,10 @@ import {
   HandleTransaction,
   Trace,
   Receipt,
+  EventType,
+  Network,
+  Transaction,
+  Block,
 } from "forta-agent"
 import agent, { createFinding } from ".";
 
@@ -18,11 +22,18 @@ const createTxEvent  = (data: TraceInfo) : TransactionEvent => {
       error,
     } as Trace;
   });
-  const txn: TransactionEvent = { 
-    receipt: { status: data.status } as Receipt, 
-    traces 
-  } as TransactionEvent;
-  return txn;
+  const receipt: Receipt = { 
+    status: data.status 
+  } as Receipt;
+  return new TransactionEvent(
+    EventType.BLOCK, 
+    Network.MAINNET, 
+    {} as Transaction, 
+    receipt, 
+    traces, 
+    {}, 
+    {} as Block, 
+  );
 };
 
 describe("Success txn with internal failures agent test suit", () => {
