@@ -1,55 +1,62 @@
 import {
   TransactionEvent,
-  FindingType,
-  FindingSeverity,
   Finding,
   HandleTransaction,
-  EventType,
-  Network
+  Trace,
+  Receipt,
 } from "forta-agent"
-import agent from "."
+import agent, { createFinding } from ".";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
-  const createTxEvent = ({ gasUsed }: any) => {
-    const tx = { } as any
-    const receipt = { gasUsed } as any
-    const block = {} as any
-    const addresses = { } as any
-    return new TransactionEvent(EventType.BLOCK, Network.MAINNET, tx, receipt, [], addresses, block)
-  };
+interface TraceInfo{
+  status: boolean,
+  errors: string[],
+};
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const createTxEvent  = (data: TraceInfo) : TransactionEvent => {
+  const traces: Trace[] = data.errors.map((error: string) => {
+    return {
+      error,
+    } as Trace;
+  });
+  const txn: TransactionEvent = { 
+    receipt: { status: data.status } as Receipt, 
+    traces 
+  } as TransactionEvent;
+  return txn;
+};
+
+describe("Success txn with internal failures agent test suit", () => {
+  const handleTransaction: HandleTransaction = agent.handleTransaction;
 
   describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEvent({
-        gasUsed: "1",
-      });
-
-      const findings = await handleTransaction(txEvent);
-
+    it("Should returns empty findings if not reverted traces are found", async () => {
+      const tx: TransactionEvent = createTxEvent({
+        status: true,
+        errors: ["None"],
+      }) 
+      const findings: Finding[] = await handleTransaction(tx);
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEvent({
-        gasUsed: "1000001",
-      });
+    it("Should ignore reverted transactions", async () => {
+      const tx: TransactionEvent = createTxEvent({
+        status: false,
+        errors: ["Reverted"],
+      }) 
+      const findings: Finding[] = await handleTransaction(tx);
+      expect(findings).toStrictEqual([]);
+    });
 
-      const findings = await handleTransaction(txEvent);
-
+    it("Should report the number of internal transactions failures", async () => {
+      const tx: TransactionEvent = createTxEvent({
+        status: true,
+        errors: ["Reverted", "Reverted", "None","Reverted"],
+      }) 
+      const findings: Finding[] = await handleTransaction(tx);
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
+        createFinding(3),
       ]);
     });
+
   });
 });
