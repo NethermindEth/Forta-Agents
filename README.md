@@ -22,3 +22,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Hight Flash Loan Value**: Detects if a flash loan with huge amount is used.
 - **Possible locked NFTs**: Detect transactions that may lock an NFT in a contract.
 - **Chainkeeper**: Detects transactions involving blacklisted addresses.
+- **Success txn with internal failures agent**: Detect transactions with internal failures.
