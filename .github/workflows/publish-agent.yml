@@ -1,11 +1,15 @@
 name: Agent Publish
 
-on: push
+on: 
+  pull_requets:
+    branches:
+      - main
 
 jobs:
   Publish:
-    - name: get Agent ID
-      id: AgentId
-      run: |
-        id=$(echo ${{github.event.client_payload.value}} | cut -/- -f2)
-        echo "::set-output name=id::$id"
+    - name: Set branch name in env var
+      run: echo "BRANCH=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 1)" >> $GITHUB_ENV
+    - uses: actions/checkout@v2
+    # - name: Publish Agent
+    #   if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
+    #   uses:
