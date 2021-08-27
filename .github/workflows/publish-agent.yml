@@ -1,0 +1,11 @@
+name: Agent Publish
+
+on: push
+
+jobs:
+  Publish:
+    - name: get Agent ID
+      id: AgentId
+      run: |
+        id=$(echo ${{github.event.client_payload.value}} | cut -/- -f2)
+        echo "::set-output name=id::$id"
