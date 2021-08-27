@@ -5,13 +5,15 @@ interface TransactionDetails {
 
 export default class FailureCounter {
   timeIntervalMs: number;
+  maxStorage: number;
   transactionMap: {
     [key: string]: TransactionDetails[],
   };
 
-  constructor(timeIntervalMins: number) {
+  constructor(timeIntervalMins: number, maxStorage:number) {
     this.timeIntervalMs = timeIntervalMins * 60 * 1000;
     this.transactionMap = {};
+    this.maxStorage = maxStorage;
   }
 
   failure(protocol: string, txHash: string, blockTimestamp: number): number {
@@ -30,6 +32,8 @@ export default class FailureCounter {
     this.transactionMap[protocol] = this.transactionMap[protocol].filter(
       (txn) => txn.timestamp > blockTimestampMs - this.timeIntervalMs
     );
+    while(this.transactionMap[protocol].length > this.maxStorage)
+      this.transactionMap[protocol].shift();
     return this.transactionMap[protocol].length;
   }
 

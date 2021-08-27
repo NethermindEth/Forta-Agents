@@ -6,14 +6,15 @@ import {
   Network,
   FindingType,
   FindingSeverity,
+  Transaction,
+  Receipt,
+  Block,
 } from 'forta-agent';
-import { Transaction } from 'forta-agent/dist/sdk/transaction';
-import { Receipt } from 'forta-agent/dist/sdk/receipt';
-import { Block } from 'forta-agent/dist/sdk/block';
 import FailureCounter from './failure.counter';
 import agent, { 
   HIGH_FAILURE_THRESHOLD,
   TIME_INTERVAL,
+  createFinding,
 } from "./index";
 
 interface TxEventInfo {
@@ -34,19 +35,25 @@ const createTxEvent  = ({ status, hash, timestamp, addresses } : TxEventInfo) : 
   return new TransactionEvent(EventType.BLOCK, Network.MAINNET, tx, receipt, [], addresses, block);
 };
 
-const provideHandleTransaction = (interval: number): HandleTransaction => {
+const createTestFinding = (addr: string, txns: string[], threshold: number): Finding => {
+  while(txns.length > threshold)
+    txns.shift();
+  return createFinding(addr, txns);
+}
+
+const provideHandleTransaction = (interval: number, threshold: number): HandleTransaction => {
   return agent.provideHandleTransaction(
-    new FailureCounter(interval),
+    new FailureCounter(interval, threshold),
     testAddresses,
   );
 };
 
-const txGenerator = (amount: number, addresses: string[], start: number = 0): TransactionEvent[] => {
+const txGenerator = (amount: number, addresses: string[], start: number = 0, status: boolean = false): TransactionEvent[] => {
   const txns: TransactionEvent[] = [];
 
   for(let i:number = 0; i < amount; ++i){
     const event: TxEventInfo = {
-      status: false,
+      status: status,
       hash: `0x${i}`,
       timestamp: i + start,
       addresses: {},
@@ -60,9 +67,10 @@ const txGenerator = (amount: number, addresses: string[], start: number = 0): Tr
 
 describe("High volume of failed txs agent test suit", () => {
   let handleTransaction: HandleTransaction;
+  const threshold: number = HIGH_FAILURE_THRESHOLD + 10;
 
   beforeEach(() => {
-    handleTransaction = provideHandleTransaction(10); 
+    handleTransaction = provideHandleTransaction(10, threshold); 
   });
 
   describe("handleTransaction", () => {
@@ -90,11 +98,11 @@ describe("High volume of failed txs agent test suit", () => {
           HIGH_FAILURE_THRESHOLD - 1, 
           testAddresses,
         );
-        txns.forEach(async (txn) => {
-          addr1hashes.push(txn.hash);
-          addr2hashes.push(txn.hash);
-          await handleTransaction(txn);
-        });
+        for(let i: number = 0; i < txns.length; ++i) {
+          addr1hashes.push(txns[i].hash);
+          addr2hashes.push(txns[i].hash);
+          await handleTransaction(txns[i]);
+        };
 
         const txnAddr1And2: TransactionEvent = createTxEvent({
           status: false,
@@ -122,17 +130,11 @@ describe("High volume of failed txs agent test suit", () => {
         addr1hashes.push("0xA1");
         findings = await handleTransaction(txnAddr1);
         expect(findings).toStrictEqual([
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: "0x1",
-            metadata: {
-              transactions: JSON.stringify(addr1hashes),
-            },
-          }),
+          createTestFinding(
+            "0x1",
+            addr1hashes,
+            threshold,
+          ),
         ]);
   
         const txnAddr2: TransactionEvent = createTxEvent({
@@ -146,17 +148,11 @@ describe("High volume of failed txs agent test suit", () => {
         addr2hashes.push("0xA2");
         findings = await handleTransaction(txnAddr2);
         expect(findings).toStrictEqual([
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${addr2hashes.length}) related with 0x2 protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: "0x2",
-            metadata: {
-              transactions: JSON.stringify(addr2hashes),
-            },
-          }),
+          createTestFinding(
+            "0x2",
+            addr2hashes,
+            threshold,
+          ),
         ]);
   
         const txnAddr3: TransactionEvent = createTxEvent({
@@ -185,28 +181,16 @@ describe("High volume of failed txs agent test suit", () => {
         addr2hashes.push("0xAB");
         findings = await handleTransaction(txnAddr1And2);
         expect(findings).toStrictEqual([
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: "0x1",
-            metadata: {
-              transactions: JSON.stringify(addr1hashes),
-            },
-          }),
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${addr2hashes.length}) related with 0x2 protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: "0x2",
-            metadata: {
-              transactions: JSON.stringify(addr2hashes),
-            },
-          }),
+          createTestFinding(
+            "0x1",
+            addr1hashes,
+            threshold,
+          ),
+          createTestFinding(
+            "0x2",
+            addr2hashes,
+            threshold,
+          ),
         ]);
       });
 
@@ -215,12 +199,14 @@ describe("High volume of failed txs agent test suit", () => {
           HIGH_FAILURE_THRESHOLD, 
           testAddresses, 
           HIGH_FAILURE_THRESHOLD + 1,
+          true,
         );
-        txns.forEach(async (txn) => {
-          addr1hashes.push(txn.hash);
-          addr2hashes.push(txn.hash);
-          await handleTransaction(txn);
-        });
+        for(let i: number = 0; i < txns.length; ++i) {
+          addr1hashes.push(txns[i].hash);
+          addr2hashes.push(txns[i].hash);
+          const findings = await handleTransaction(txns[i]);
+          expect(findings).toStrictEqual([]);
+        };
       });
 
       it("Should ignore successful transactions and keep the failed ones", async () => {
@@ -246,17 +232,11 @@ describe("High volume of failed txs agent test suit", () => {
         addr1hashes.push("0xA2");
         findings = await handleTransaction(txnAddr1);
         expect(findings).toStrictEqual([
-          Finding.fromObject({
-            name: "High volume of failed TXs",
-            description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-            alertId: "NETHFORTA-3",
-            type: FindingType.Suspicious,
-            severity: FindingSeverity.High,
-            protocol: "0x1",
-            metadata: {
-              transactions: JSON.stringify(addr1hashes),
-            },
-          }),
+          createTestFinding(
+            "0x1",
+            addr1hashes,
+            threshold,
+          ),
         ]);
       });
 
@@ -273,7 +253,7 @@ describe("High volume of failed txs agent test suit", () => {
       });
 
       it("Should report the amount of failed transactions", async () => {
-        const amountTxn: number = 10;
+        const amountTxn: number = 200;
         const txns: TransactionEvent[] = txGenerator(
           amountTxn, 
           ["0x1"], 
@@ -283,17 +263,11 @@ describe("High volume of failed txs agent test suit", () => {
           addr1hashes.push(txns[i].hash);
           const findings: Finding[] = await handleTransaction(txns[i]);
           expect(findings).toStrictEqual([
-            Finding.fromObject({
-              name: "High volume of failed TXs",
-              description: `High failed transactions volume (${addr1hashes.length}) related with 0x1 protocol`,
-              alertId: "NETHFORTA-3",
-              type: FindingType.Suspicious,
-              severity: FindingSeverity.High,
-              protocol: "0x1",
-              metadata: {
-                transactions: JSON.stringify(addr1hashes),
-              },
-            }),
+            createTestFinding(
+              "0x1",
+              addr1hashes,
+              threshold,
+            ),
           ]);
         };
       });
