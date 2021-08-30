@@ -1,10 +1,10 @@
 const core = require("@actions/core");
 const exec = require("@actions/exec");
-const { EEXIST } = require("constants");
+const process = require("process");
 const fs = require("fs");
 
 
-const createConfigFile = async () => {
+const createConfigFile = () => {
     const content = fs.readFileSync("package.json");
     const packageData = JSON.parse(content);
     const agentId = packageData["agentId"];
@@ -23,17 +23,23 @@ const createConfigFile = async () => {
         "documentation": "README.md"
     }
 
-    fs.writeFileSync("forta.config.json", JSON.stringify(forta_agent_config));
+    fs.writeFileSync("publish.config.json", JSON.stringify(forta_agent_config));
 }
 
-const runExpectScript = () => {
+const runExpectScript = async () => {
     const password = core.getInput('private-key-password');
     await exec.exec(`../.github/scripts/run_publish_agent.sh ${password}`);
 }
 
+const moveToAgentDir = async () => {
+    const dir = core.getInput("agent-directory");
+    process.chdir(dir);
+}
+
 const main = async () => {
+    await moveToAgentDir();
     createConfigFile();
-    runExpectScript();
+    await runExpectScript();
 }
 
 main();
