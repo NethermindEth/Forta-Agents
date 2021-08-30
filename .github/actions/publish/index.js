@@ -28,7 +28,7 @@ const createConfigFile = async () => {
 
 const runExpectScript = () => {
     const password = core.getInput('private-key-password');
-    await exec.exec(`./.github/scripts/run_publish_agent.sh ${password}`);
+    await exec.exec(`../.github/scripts/run_publish_agent.sh ${password}`);
 }
 
 const main = async () => {
