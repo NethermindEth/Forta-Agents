@@ -45,7 +45,7 @@ const moveToAgentDir = async () => {
 
 const main = async () => {
     await moveToAgentDir();
-    createConfigFile();
+    createConfigFiles();
     await runExpectScript();
 }
 
