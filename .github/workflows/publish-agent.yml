@@ -1,0 +1,35 @@
+name: Agent Publish
+
+on: 
+  pull_requets:
+    branches:
+      - main
+
+jobs:
+  Publish:
+    - name: Set branch name in env var
+      run: echo "BRANCH=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 1)" >> $GITHUB_ENV
+    - name: Set agent name in env var
+      run: echo "AGENT=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 2)" >> $GITHUB_ENV
+    - name: Create folder for private key
+      run: mkdir -p ~/.forta
+    - name: Create private key file
+    - run: echo ${{ secrets.PRIVATE_KEY_FILE }} > ~/.forta/privateKey
+    - uses: actions/checkout@v2
+    - name: Install expect
+      run: sudo apt install expect
+    - uses: actions/checkout@v2
+    - name: Move into agent folder
+      run: cd $AGENT
+    - name: Install action npm packages
+      run: npm install @actions/core @actions/exec
+    - name: Install agent's packages
+      run: npm install
+    - name: Publish Agent
+      if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
+      uses: ./github/actions/publish
+      with:
+        private-key-password: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        goerli-endpoint: "wss://goerli.infura.io/ws/v3/18c1bbac31de4d56a4295d4cdb6709ad"
+        ipfs-endpoint: "https://ipfs.infura.io:5001"
+        ipfs-authorization: ${{ IPFS_AUTH }}
