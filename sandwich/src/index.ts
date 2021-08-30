@@ -34,10 +34,10 @@ const factoryContract = new web3.eth.Contract(
   "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 );
 
-const usdtAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-const wethAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
 
-export const token0Contract = new web3.eth.Contract(erc20 as any, wethAddress);
+export const token0Contract = new web3.eth.Contract(erc20 as any, usdcAddress);
 export const token1Contract = new web3.eth.Contract(erc20 as any, usdtAddress);
 
 const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
@@ -66,7 +66,7 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
   }
 
   const contractAddress = await factoryContract.methods
-    .getPair(wethAddress, usdtAddress)
+    .getPair(usdcAddress, usdtAddress)
     .call();
 
   // to fetch reserves from the block just before the current one
