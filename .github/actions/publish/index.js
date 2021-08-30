@@ -23,7 +23,7 @@ const createConfigFile = () => {
         "documentation": "README.md"
     }
 
-    fs.writeFileSync("forta.config.json", JSON.stringify(forta_agent_config));
+    fs.writeFileSync("publish.config.json", JSON.stringify(forta_agent_config));
 }
 
 const runExpectScript = async () => {
