@@ -4,7 +4,7 @@ const process = require("process");
 const fs = require("fs");
 
 
-const createConfigFile = async () => {
+const createConfigFile = () => {
     const content = fs.readFileSync("package.json");
     const packageData = JSON.parse(content);
     const agentId = packageData["agentId"];
@@ -26,20 +26,20 @@ const createConfigFile = async () => {
     fs.writeFileSync("forta.config.json", JSON.stringify(forta_agent_config));
 }
 
-const runExpectScript = () => {
+const runExpectScript = async () => {
     const password = core.getInput('private-key-password');
     await exec.exec(`../.github/scripts/run_publish_agent.sh ${password}`);
 }
 
-const moveToAgentDir = () => {
+const moveToAgentDir = async () => {
     const dir = core.getInput("agent-directory");
     process.chdir(dir);
 }
 
 const main = async () => {
-    moveToAgentDir();
+    await moveToAgentDir();
     createConfigFile();
-    runExpectScript();
+    await runExpectScript();
 }
 
 main();
