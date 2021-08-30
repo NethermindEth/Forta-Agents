@@ -1,6 +1,6 @@
 const core = require("@actions/core");
 const exec = require("@actions/exec");
-const { EEXIST } = require("constants");
+const process = require("process");
 const fs = require("fs");
 
 
@@ -31,7 +31,13 @@ const runExpectScript = () => {
     await exec.exec(`../.github/scripts/run_publish_agent.sh ${password}`);
 }
 
+const moveToAgentDir = () => {
+    const dir = core.getInput("agent-directory");
+    process.chdir(dir);
+}
+
 const main = async () => {
+    moveToAgentDir();
     createConfigFile();
     runExpectScript();
 }

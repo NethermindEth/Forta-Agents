@@ -13,6 +13,9 @@ inputs:
   ipfs-authorization:
     description: 'Authorization used to interact with ipfs endpoint'
     required: false
+  agent-directory:
+    description: 'Directory where the agent is'
+    required: true
 runs:
   using: 'node12'
   main: 'index.js'
