@@ -22,7 +22,7 @@ jobs:
         run: sudo apt install expect
       - uses: actions/checkout@v2
       - name: Install action npm packages
-        working-directory: ./${{ env.AGENT }}
+        # working-directory: ./${{ env.AGENT }}
         run: npm install @actions/core @actions/exec
       - name: Install agent's packages
         working-directory: ./${{ env.AGENT }}
