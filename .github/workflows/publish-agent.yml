@@ -9,6 +9,8 @@ jobs:
   Publish:
     - name: Set branch name in env var
       run: echo "BRANCH=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 1)" >> $GITHUB_ENV
+    - name: Set agent name in env var
+      run: echo "AGENT=$(echo $GITHUB_HEAD_REF | cut -d '\' -f 2)" >> $GITHUB_ENV
     - name: Create folder for private key
       run: mkdir -p ~/.forta
     - name: Create private key file
