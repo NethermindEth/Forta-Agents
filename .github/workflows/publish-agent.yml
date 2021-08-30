@@ -22,7 +22,6 @@ jobs:
         run: sudo apt install expect
       - uses: actions/checkout@v2
       - name: Install action npm packages
-        # working-directory: ./${{ env.AGENT }}
         run: npm install @actions/core @actions/exec
       - name: Install agent's packages
         working-directory: ./${{ env.AGENT }}
@@ -35,6 +34,6 @@ jobs:
         with:
           agent-directory: ${{ env.AGENT }}
           private-key-password: ${{ secrets.PRIVATE_KEY_PASSWORD }}
-          goerli-endpoint: "wss://goerli.infura.io/ws/v3/18c1bbac31de4d56a4295d4cdb6709ad"
+          goerli-endpoint: ${{ secrets.GOERLI_ENDPOINT }}
           ipfs-endpoint: "https://ipfs.infura.io:5001"
           ipfs-authorization: ${{ secrets.IPFS_AUTH }}
