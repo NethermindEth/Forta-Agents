@@ -19,6 +19,11 @@ jobs:
     - name: Install expect
       run: sudo apt install expect
     - uses: actions/checkout@v2
-    # - name: Publish Agent
-    #   if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
-    #   uses:
+    - name: Publish Agent
+      if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
+      uses: ./github/actions/publish
+      with:
+        private-key-password: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+        goerli-endpoint: "wss://goerli.infura.io/ws/v3/18c1bbac31de4d56a4295d4cdb6709ad"
+        ipfs-endpoint: "https://ipfs.infura.io:5001"
+        ipfs-authorization: ${{ IPFS_AUTH }}
