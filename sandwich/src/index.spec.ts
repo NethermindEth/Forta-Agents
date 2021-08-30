@@ -9,35 +9,27 @@ import {
   Network,
   getJsonRpcUrl,
 } from "forta-agent";
-import agent from ".";
+import agent, { token0Contract, token1Contract } from ".";
 import Web3 from "web3";
 const web3 = new Web3(getJsonRpcUrl());
 
-import { swap, token0, token1 } from "./abi";
-import {
-  detectIfAttackPossible,
-  minimumInputAmountForFrontrunningT1,
-  generateBlockEvent,
-} from "./utils";
+import { swapTokensForExactTokens as swap } from "./router";
+import { detectIfAttackPossible, generateBlockEvent } from "./utils";
 
 const generateTx = (
-  reserve1: number,
-  resever2: number,
-  account: string,
-  amountOut1: string,
-  amountOut2: string,
-  minimumRecieved: number
+  amountOut: string,
+  amountInMAx: string,
+  calldata: string[],
+  address: string,
+  deadline: string
 ) => {
-  const data = web3.eth.abi.encodeParameters(
-    ["uint256", "uint256", "uint256"],
-    [reserve1, resever2, minimumRecieved]
-  );
-
   const signFunctionTx = web3.eth.abi.encodeFunctionCall(swap as any, [
-    amountOut1,
-    amountOut2,
-    account,
-    data,
+    amountOut,
+    amountInMAx,
+    // @ts-ignore
+    calldata,
+    address,
+    deadline,
   ]);
 
   return signFunctionTx;
@@ -45,9 +37,8 @@ const generateTx = (
 
 describe("Agent for SandWich Attack", () => {
   let handleBlock: HandleBlock;
-  let reserveAmount0 = 10000;
-  let reserveAmount1 = 10000;
 
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
   const account1 = "0xf2AfC6F347C3791cBBFe75248DBA18d719026b23";
   const account2 = "0x4FAbF81fAc2cd41e1d6cF90C6964dAF0E20e1a65";
 
@@ -57,8 +48,9 @@ describe("Agent for SandWich Attack", () => {
 
   it("No sandwich attack if only 1 tx on uniswap", async () => {
     const blockEvent = generateBlockEvent([
-      generateTx(reserveAmount0, reserveAmount1, account1, "50", "0", 30),
+      generateTx("50", "0", [zeroAddress], account1, "0"),
     ]);
+
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
@@ -66,23 +58,9 @@ describe("Agent for SandWich Attack", () => {
 
   it("Case: T1 is before Tv, but no T2", async () => {
     // Tv - The transaction from the victim which is detected by the attacker
-    const victimTx = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account1,
-      "500",
-      "0",
-      200
-    );
+    const victimTx = generateTx("500", "0", [zeroAddress], account1, "0");
     // T1 - Attackers frontrunning tx
-    const attackerT1 = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account2,
-      "1000",
-      "0",
-      700
-    );
+    const attackerT1 = generateTx("1000", "0", [zeroAddress], account2, "0");
 
     const blockEvent = generateBlockEvent([victimTx, attackerT1]);
 
@@ -91,34 +69,14 @@ describe("Agent for SandWich Attack", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("Case: T1 is before TV followed by T2, but amount used is not too massiv by attacker", async () => {
+  it("Case: T1 is before TV followed by T2, but amount used is not too massive by attacker", async () => {
     // Tv - The transaction from the victim which is detected by the attacker
-    const victimTx = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account1,
-      "500",
-      "0",
-      500
-    );
+    const victimTx = generateTx("10", "11", [zeroAddress], account1, "0");
     // T1 - Attackers frontrunning tx
-    const attackerT1 = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account2,
-      "10",
-      "0",
-      10
-    );
+    const attackerT1 = generateTx("1000", "1100", [zeroAddress], account2, "0");
 
-    const attackerT2 = generateTx(
-      reserveAmount0 + 10,
-      reserveAmount1 - 10,
-      account2,
-      "1000",
-      "0",
-      1100
-    );
+    // this is v2 : nor required for agent detection but included since its a crucial part of the attack
+    const attackerT2 = generateTx("1000", "1000", [zeroAddress], account2, "0");
 
     const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
 
@@ -130,32 +88,39 @@ describe("Agent for SandWich Attack", () => {
   it("Case: T1 is before TV followed by T2 , and the mev conditions are met: Red Alert", async () => {
     // T1 - Attackers frontrunning tx
     const attackerT1 = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account2,
       "1000",
-      "0",
-      1000
+      "1000000",
+      [zeroAddress],
+      account2,
+      "0"
     );
+
+    let r1 = await token0Contract.methods
+      .balanceOf("0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f")
+      .call(); // token0 reserves
+    r1 /= 10 ** 6;
+    let r2 = await token1Contract.methods
+      .balanceOf("0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f")
+      .call(); // token1 reserves
+    r2 /= 10 ** 6;
+
+    const x = 1000,
+      v = 500;
+
+    const attackableValue =
+      (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
+      (r1 + x + 0.997 * v);
 
     // Tv - The transaction from the victim which is detected by the attacker
     const victimTx = generateTx(
-      reserveAmount0,
-      reserveAmount1,
-      account1,
       "500",
-      "0",
-      500
+      parseInt(attackableValue.toString()).toString(),
+      [zeroAddress],
+      account1,
+      "0"
     );
-
-    const attackerT2 = generateTx(
-      reserveAmount0 + 520,
-      reserveAmount1 - 520,
-      account2,
-      "520",
-      "0",
-      530
-    );
+    // this is v2 : nor required for agent detection but included since its a crucial part of the attack
+    const attackerT2 = generateTx("520", "0", [zeroAddress], account2, "0");
 
     const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
 
@@ -165,15 +130,13 @@ describe("Agent for SandWich Attack", () => {
       Finding.fromObject({
         name: "MEV Attack Detected",
         description: `Block number ${blockEvent.blockNumber} detected MEV attack`,
-        alertId: "NETHFORTA-8",
+        alertId: "NETHFORTA-20",
         severity: FindingSeverity.High,
         type: FindingType.Exploit,
         metadata: {
-          r1: "10000",
-          r2: "10000",
-          x: "500",
-          v: "1000",
-          m: "500",
+          x: "1000",
+          v: "500",
+          m: parseInt(attackableValue.toString()).toString(),
         },
       }),
     ]);
