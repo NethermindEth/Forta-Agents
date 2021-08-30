@@ -1,0 +1,18 @@
+name: 'Publish Agent'
+description: 'Publish Forta Agent'
+inputs:
+  private-key-password:
+    description: 'Password to decrypt private key file'
+    required: true
+  goerli-endpoint:
+    description: 'Endpoint used to make transactions on Goerli network'
+    required: true
+  ipfs-endpoint:
+    description: 'Endpoint used for interacting with ipfs'
+    required: true
+  ipfs-authorization:
+    description: 'Authorization used to interact with ipfs endpoint'
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'
