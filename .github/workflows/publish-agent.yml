@@ -14,6 +14,10 @@ jobs:
     - name: Create private key file
     - run: echo ${{ secrets.PRIVATE_KEY_FILE }} > ~/.forta/privateKey
     - uses: actions/checkout@v2
+    - name: Install action npm packages
+      run: npm install @actions/core @actions/exec
+    - name: Install expect
+      run: sudo apt install expect
     # - name: Publish Agent
     #   if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
     #   uses:
