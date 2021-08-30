@@ -4,7 +4,7 @@ const process = require("process");
 const fs = require("fs");
 
 
-const createConfigFile = () => {
+const createConfigFiles = () => {
     const content = fs.readFileSync("package.json");
     const packageData = JSON.parse(content);
     const agentId = packageData["agentId"];
@@ -13,7 +13,7 @@ const createConfigFile = () => {
     const ipfsGatewayUrl = core.getInput("ipfs-endpoint");
     const ipfsGatewayAuth = core.getInput("ipfs-authorization");
 
-    const forta_agent_config = {
+    const publish_agent_config = {
         "agentId": agentId,
         "version": agentVersion,
         "agentRegistryJsonRpcUrl": agentRegistryJsonRpcUrl,
@@ -23,7 +23,14 @@ const createConfigFile = () => {
         "documentation": "README.md"
     }
 
-    fs.writeFileSync("publish.config.json", JSON.stringify(forta_agent_config));
+    const forta_agent_config = {
+        "agentId": agentId,
+        "version": agentVersion,
+        "handlers": ["./dist"],
+    }
+
+    fs.writeFileSync("publish.config.json", JSON.stringify(publish_agent_config));
+    fs.writeFileSync("forta.config.json", JSON.stringify(forta_agent_config));
 }
 
 const runExpectScript = async () => {
