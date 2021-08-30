@@ -31,7 +31,7 @@ jobs:
         run: sudo chmod +x ./.github/scripts/run_publish_agent.sh 
       - name: Publish Agent
         if: env.BRANCH == '@agent' && github.event.pull_request.merged == true
-        uses: ./github/actions/publish
+        uses: ./.github/actions/publish
         with:
           agent-directory: ${{ env.AGENT }}
           private-key-password: ${{ secrets.PRIVATE_KEY_PASSWORD }}
