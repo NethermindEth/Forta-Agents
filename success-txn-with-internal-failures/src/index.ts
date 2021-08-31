@@ -29,7 +29,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     },
   );  
 
-  if(internalFailureCount){
+  if(internalFailureCount > 0){
     findings.push(createFinding(internalFailureCount));
   }
   return findings;
