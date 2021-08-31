@@ -2,6 +2,7 @@
   "name": "forta-agent-starter",
   "version": "0.0.1",
   "description": "Forta Agent Typescript starter project",
+  "agentId": "nethforta-20",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
