@@ -34,8 +34,8 @@ const factoryContract = new web3.eth.Contract(
   "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 );
 
-const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // change
+const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // change
 
 export const token0Contract = new web3.eth.Contract(erc20 as any, usdcAddress);
 export const token1Contract = new web3.eth.Contract(erc20 as any, usdtAddress);
