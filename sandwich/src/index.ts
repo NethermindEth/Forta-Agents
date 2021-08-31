@@ -78,8 +78,6 @@ function provideHandleTransaction(
       const v = tx2[0].value;
       const m = tx2[1].value;
 
-      console.log(x, v, m, r1, r2);
-
       if (
         detectIfAttackPossible(
           parseFloat(r1),
