@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with a possiblity of MEV attacks.
+This agent detects transactions with a possibility of MEV attacks.
 
 ## Supported Chains
 
