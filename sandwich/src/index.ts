@@ -50,8 +50,6 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
       decodedData.name === "swapTokensForExactTokens"
     ) {
       swapTxs.push(decodedData);
-    } else {
-      continue;
     }
   }
 
