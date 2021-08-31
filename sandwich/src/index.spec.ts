@@ -104,6 +104,7 @@ describe("Agent for SandWich Attack", () => {
       v = 500;
 
     // Refer : https://pub.tik.ee.ethz.ch/students/2021-FS/BA-2021-07.pdf
+    // 0.997 is for lp fee
     const attackableValue =
       (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
       (r1 + x + 0.997 * v);
