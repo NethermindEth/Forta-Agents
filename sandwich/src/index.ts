@@ -30,6 +30,10 @@ const factoryContract = new web3.eth.Contract(
 
 const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // change
 const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // change
+const contractAddress = "0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f";
+// const contractAddress = await factoryContract.methods
+// .getPair(usdcAddress, usdtAddress)
+// .call();
 
 export const token0Contract = new web3.eth.Contract(erc20 as any, usdcAddress);
 export const token1Contract = new web3.eth.Contract(erc20 as any, usdtAddress);
@@ -53,6 +57,7 @@ function provideHandleTransaction(
       const decodedData = abiDecoder.decodeMethod(data.input);
 
       if (
+        data.to === contractAddress &&
         decodedData != undefined &&
         decodedData.name === "swapTokensForExactTokens"
       ) {
@@ -63,10 +68,6 @@ function provideHandleTransaction(
     if (swapTxs.length <= 1) {
       return findings;
     }
-
-    const contractAddress = await factoryContract.methods
-      .getPair(usdcAddress, usdtAddress)
-      .call();
 
     let r1 = await token0Contract.methods.balanceOf(contractAddress).call(); // token0 reserves
     let r2 = await token1Contract.methods.balanceOf(contractAddress).call(); // token1 reserves

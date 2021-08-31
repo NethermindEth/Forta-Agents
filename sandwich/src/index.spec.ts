@@ -36,7 +36,7 @@ const generateTx = (
     blockNumber: 3,
     transactionIndex: 0,
     from: "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
-    to: "0x6295ee1b4f6dd65047762f924ecd367c17eabf8f",
+    to: "0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f",
     value: "123450000000000000",
     gas: 314159,
     gasPrice: "2000000000000",
