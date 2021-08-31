@@ -50,7 +50,7 @@ function provideHandleTransaction(
     for (let i in txs) {
       const data = await web3.eth.getTransaction(txs[i]);
 
-      const decodedData = abiDecoder.decodeMethod(data);
+      const decodedData = abiDecoder.decodeMethod(data.input);
 
       if (
         decodedData != undefined &&
