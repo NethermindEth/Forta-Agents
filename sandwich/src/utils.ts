@@ -20,13 +20,12 @@ const detectIfAttackPossible = (
   r1 /= 10 ** 6;
   r2 /= 10 ** 6;
 
+  // Refer : https://pub.tik.ee.ethz.ch/students/2021-FS/BA-2021-07.pdf
   const minimumAmountOfToken2Recieved =
     (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
     (r1 + x + 0.997 * v);
 
-  if (minimumAmountOfToken2Recieved >= m) {
-    return true; // sandwich attack possible
-  } else return false;
+  return minimumAmountOfToken2Recieved >= m;
 };
 
 const minimumInputAmountForFrontrunningT1 = (
@@ -35,6 +34,7 @@ const minimumInputAmountForFrontrunningT1 = (
   m: number,
   v: number
 ) => {
+  // Refer : https://pub.tik.ee.ethz.ch/students/2021-FS/BA-2021-07.pdf
   const t = Math.sqrt(
     9000000 * r1 * r1 * m +
       3976036000000 * r1 * r2 * v -

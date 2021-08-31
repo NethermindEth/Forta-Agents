@@ -1,6 +1,6 @@
 {
   "name": "forta-agent-starter",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "description": "Forta Agent Typescript starter project",
   "agentId": "nethforta-20",
   "scripts": {
@@ -21,7 +21,7 @@
     "@uniswap/v3-core": "^1.0.0",
     "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.10",
+    "forta-agent": "0.0.11",
     "merkle-patricia-tree": "^4.2.1"
   },
   "devDependencies": {

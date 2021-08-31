@@ -55,7 +55,7 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
     }
   }
 
-  if (swapTxs.length === 1) {
+  if (swapTxs.length <= 1) {
     return findings;
   }
 
@@ -69,8 +69,6 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
   for (let i = 0; i < swapTxs.length - 2; ) {
     const tx1 = swapTxs[i].params;
     const tx2 = swapTxs[i + 1].params;
-    i = i + 3;
-
     const x = tx1[0].value;
     const v = tx2[0].value;
     const m = tx2[1].value;
@@ -84,6 +82,7 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
         parseFloat(m)
       )
     ) {
+      i = i + 2;
       findings.push(
         Finding.fromObject({
           name: "MEV Attack Detected",
@@ -98,6 +97,8 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
           },
         })
       );
+    } else {
+      i++;
     }
   }
 

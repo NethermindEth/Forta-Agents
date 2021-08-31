@@ -103,6 +103,7 @@ describe("Agent for SandWich Attack", () => {
     const x = 1000,
       v = 500;
 
+    // Refer : https://pub.tik.ee.ethz.ch/students/2021-FS/BA-2021-07.pdf
     const attackableValue =
       (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
       (r1 + x + 0.997 * v);
