@@ -3,18 +3,12 @@ import {
   BlockEvent,
   Finding,
   HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
   FindingSeverity,
   FindingType,
-  Block,
   getJsonRpcUrl,
 } from "forta-agent";
 
-import {
-  detectIfAttackPossible,
-  minimumInputAmountForFrontrunningT1,
-} from "./utils";
+import { detectIfAttackPossible } from "./utils";
 
 import Web3 from "web3";
 const web3 = new Web3(getJsonRpcUrl());
@@ -69,8 +63,6 @@ const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
     .getPair(usdcAddress, usdtAddress)
     .call();
 
-  // to fetch reserves from the block just before the current one
-  //contract.defaultBlock = blockEvent.blockNumber - 1;
   let r1 = await token0Contract.methods.balanceOf(contractAddress).call(); // token0 reserves
   let r2 = await token1Contract.methods.balanceOf(contractAddress).call(); // token1 reserves
 

@@ -55,7 +55,7 @@ function generateBlockEvent(tx: string[]): BlockEvent {
     miner: "",
     mixHash: "",
     nonce: "",
-    number: 0,
+    number: 13068613,
     parentHash: "",
     receiptsRoot: "",
     sha3Uncles: "",

@@ -1,12 +1,8 @@
 import {
-  TransactionEvent,
   FindingType,
   FindingSeverity,
   Finding,
   HandleBlock,
-  EventType,
-  BlockEvent,
-  Network,
   getJsonRpcUrl,
 } from "forta-agent";
 import agent, { token0Contract, token1Contract } from ".";
@@ -14,7 +10,7 @@ import Web3 from "web3";
 const web3 = new Web3(getJsonRpcUrl());
 
 import { swapTokensForExactTokens as swap } from "./router";
-import { detectIfAttackPossible, generateBlockEvent } from "./utils";
+import { generateBlockEvent } from "./utils";
 
 const generateTx = (
   amountOut: string,
