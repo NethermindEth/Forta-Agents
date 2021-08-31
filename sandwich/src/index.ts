@@ -34,75 +34,86 @@ const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // change
 export const token0Contract = new web3.eth.Contract(erc20 as any, usdcAddress);
 export const token1Contract = new web3.eth.Contract(erc20 as any, usdtAddress);
 
-const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-  const findings: Finding[] = [];
+function provideHandleTransaction(
+  web3: Web3,
+  token0Contract: any,
+  token1Contract: any
+): HandleBlock {
+  return async function handleBlock(blockEvent: BlockEvent) {
+    const findings: Finding[] = [];
 
-  const txs = blockEvent.block.transactions;
+    const txs = blockEvent.block.transactions;
 
-  let swapTxs = [];
+    let swapTxs = [];
 
-  // extract all swap events
-  for (let i in txs) {
-    const decodedData = abiDecoder.decodeMethod(txs[i]);
+    // extract all swap events
+    for (let i in txs) {
+      const data = await web3.eth.getTransaction(txs[i]);
 
-    if (
-      decodedData != undefined &&
-      decodedData.name === "swapTokensForExactTokens"
-    ) {
-      swapTxs.push(decodedData);
+      const decodedData = abiDecoder.decodeMethod(data);
+
+      if (
+        decodedData != undefined &&
+        decodedData.name === "swapTokensForExactTokens"
+      ) {
+        swapTxs.push(decodedData);
+      }
     }
-  }
 
-  if (swapTxs.length <= 1) {
+    if (swapTxs.length <= 1) {
+      return findings;
+    }
+
+    const contractAddress = await factoryContract.methods
+      .getPair(usdcAddress, usdtAddress)
+      .call();
+
+    let r1 = await token0Contract.methods.balanceOf(contractAddress).call(); // token0 reserves
+    let r2 = await token1Contract.methods.balanceOf(contractAddress).call(); // token1 reserves
+
+    for (let i = 0; i < swapTxs.length - 2; ) {
+      const tx1 = swapTxs[i].params;
+      const tx2 = swapTxs[i + 1].params;
+      const x = tx1[0].value;
+      const v = tx2[0].value;
+      const m = tx2[1].value;
+
+      console.log(x, v, m, r1, r2);
+
+      if (
+        detectIfAttackPossible(
+          parseFloat(r1),
+          parseFloat(r2),
+          parseFloat(x),
+          parseFloat(v),
+          parseFloat(m)
+        )
+      ) {
+        i = i + 2;
+        findings.push(
+          Finding.fromObject({
+            name: "MEV Attack Detected",
+            description: `Block number ${blockEvent.blockNumber} detected MEV attack`,
+            alertId: "NETHFORTA-20",
+            severity: FindingSeverity.High,
+            type: FindingType.Exploit,
+            metadata: {
+              x,
+              v,
+              m,
+            },
+          })
+        );
+      } else {
+        i++;
+      }
+    }
+
     return findings;
-  }
-
-  const contractAddress = await factoryContract.methods
-    .getPair(usdcAddress, usdtAddress)
-    .call();
-
-  let r1 = await token0Contract.methods.balanceOf(contractAddress).call(); // token0 reserves
-  let r2 = await token1Contract.methods.balanceOf(contractAddress).call(); // token1 reserves
-
-  for (let i = 0; i < swapTxs.length - 2; ) {
-    const tx1 = swapTxs[i].params;
-    const tx2 = swapTxs[i + 1].params;
-    const x = tx1[0].value;
-    const v = tx2[0].value;
-    const m = tx2[1].value;
-
-    if (
-      detectIfAttackPossible(
-        parseFloat(r1),
-        parseFloat(r2),
-        parseFloat(x),
-        parseFloat(v),
-        parseFloat(m)
-      )
-    ) {
-      i = i + 2;
-      findings.push(
-        Finding.fromObject({
-          name: "MEV Attack Detected",
-          description: `Block number ${blockEvent.blockNumber} detected MEV attack`,
-          alertId: "NETHFORTA-20",
-          severity: FindingSeverity.High,
-          type: FindingType.Exploit,
-          metadata: {
-            x,
-            v,
-            m,
-          },
-        })
-      );
-    } else {
-      i++;
-    }
-  }
-
-  return findings;
-};
+  };
+}
 
 export default {
-  handleBlock,
+  handleBlock: provideHandleTransaction(web3, token0Contract, token1Contract),
+  provideHandleTransaction,
 };

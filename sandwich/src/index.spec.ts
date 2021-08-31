@@ -5,7 +5,7 @@ import {
   HandleBlock,
   getJsonRpcUrl,
 } from "forta-agent";
-import agent, { token0Contract, token1Contract } from ".";
+import agent from ".";
 import Web3 from "web3";
 const web3 = new Web3(getJsonRpcUrl());
 
@@ -33,72 +33,124 @@ const generateTx = (
 
 describe("Agent for SandWich Attack", () => {
   let handleBlock: HandleBlock;
+  let mockWeb3: any, token0Contract: any, token1Contract: any;
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const account1 = "0xf2AfC6F347C3791cBBFe75248DBA18d719026b23";
   const account2 = "0x4FAbF81fAc2cd41e1d6cF90C6964dAF0E20e1a65";
 
   beforeAll(() => {
-    handleBlock = agent.handleBlock;
+    mockWeb3 = {
+      eth: {
+        getTransaction: jest.fn(),
+        Contract: jest.fn(),
+      },
+    };
+    token0Contract = {
+      methods: {
+        balanceOf: (address: string) => {
+          return { call: jest.fn() };
+        },
+      },
+    };
+    token1Contract = {
+      methods: {
+        balanceOf: (address: string) => {
+          return { call: jest.fn() };
+        },
+      },
+    };
+    handleBlock = agent.provideHandleTransaction(
+      mockWeb3 as any,
+      token0Contract,
+      token1Contract
+    );
   });
 
-  it("No sandwich attack if only 1 tx on uniswap", async () => {
-    const blockEvent = generateBlockEvent([
-      generateTx("50", "0", [zeroAddress], account1, "0"),
-    ]);
+  // it("No sandwich attack if only 1 tx on uniswap", async () => {
+  //   const blockEvent = generateBlockEvent([
+  //     // generateTx("50", "0", [zeroAddress], account1, "0"),
+  //     "ox",
+  //   ]);
 
-    const findings = await handleBlock(blockEvent);
+  //   mockWeb3.eth.getTransaction.mockReturnValueOnce(
+  //     generateTx("50", "0", [zeroAddress], account1, "0")
+  //   );
 
-    expect(findings).toStrictEqual([]);
-  });
+  //   const findings = await handleBlock(blockEvent);
 
-  it("Case: T1 is before Tv, but no T2", async () => {
-    // Tv - The transaction from the victim which is detected by the attacker
-    const victimTx = generateTx("500", "0", [zeroAddress], account1, "0");
-    // T1 - Attackers frontrunning tx
-    const attackerT1 = generateTx("1000", "0", [zeroAddress], account2, "0");
+  //   expect(findings).toStrictEqual([]);
+  // });
 
-    const blockEvent = generateBlockEvent([victimTx, attackerT1]);
+  // it("Case: T1 is before Tv, but no T2", async () => {
+  //   // Tv - The transaction from the victim which is detected by the attacker
+  //   const victimTx = "0x";
+  //   // T1 - Attackers frontrunning tx
+  //   const attackerT1 = "0x";
 
-    const findings = await handleBlock(blockEvent);
+  //   const blockEvent = generateBlockEvent([victimTx, attackerT1]);
 
-    expect(findings).toStrictEqual([]);
-  });
+  //   mockWeb3.eth.getTransaction
+  //     .mockReturnValueOnce(generateTx("500", "0", [zeroAddress], account1, "0"))
+  //     .mockReturnValueOnce(
+  //       generateTx("1000", "0", [zeroAddress], account2, "0")
+  //     );
 
-  it("Case: T1 is before TV followed by T2, but amount used is not too massive by attacker", async () => {
-    // Tv - The transaction from the victim which is detected by the attacker
-    const victimTx = generateTx("10", "11", [zeroAddress], account1, "0");
-    // T1 - Attackers frontrunning tx
-    const attackerT1 = generateTx("1000", "1100", [zeroAddress], account2, "0");
+  //   token0Contract.methods.balanceOf().call.mockReturnValueOnce(10000);
+  //   token1Contract.methods.balanceOf().call.mockReturnValueOnce(10000);
 
-    // this is v2 : nor required for agent detection but included since its a crucial part of the attack
-    const attackerT2 = generateTx("1000", "1000", [zeroAddress], account2, "0");
+  //   const findings = await handleBlock(blockEvent);
 
-    const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
+  //   expect(findings).toStrictEqual([]);
+  // });
 
-    const findings = await handleBlock(blockEvent);
+  // it("Case: T1 is before TV followed by T2, but amount used is not too massive by attacker", async () => {
+  //   // Tv - The transaction from the victim which is detected by the attacker
+  //   const victimTx = "0x";
+  //   // T1 - Attackers frontrunning tx
+  //   const attackerT1 = "0x";
 
-    expect(findings).toStrictEqual([]);
-  });
+  //   // this is v2 : nor required for agent detection but included since its a crucial part of the attack
+  //   const attackerT2 = "0x";
+
+  //   const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
+
+  //   mockWeb3.eth.getTransaction
+  //     .mockReturnValueOnce(
+  //       generateTx("1000", "1100", [zeroAddress], account2, "0")
+  //     )
+  //     .mockReturnValueOnce(generateTx("10", "11", [zeroAddress], account1, "0"))
+  //     .mockReturnValueOnce(
+  //       generateTx("1000", "1000", [zeroAddress], account2, "0")
+  //     );
+
+  //   token0Contract.methods.balanceOf().call.mockReturnValueOnce(10000);
+  //   token1Contract.methods.balanceOf().call.mockReturnValueOnce(10000);
+
+  //   const findings = await handleBlock(blockEvent);
+
+  //   expect(findings).toStrictEqual([]);
+  // });
 
   it("Case: T1 is before TV followed by T2 , and the mev conditions are met: Red Alert", async () => {
     // T1 - Attackers frontrunning tx
-    const attackerT1 = generateTx(
-      "1000",
-      "1000000",
-      [zeroAddress],
-      account2,
-      "0"
-    );
+    const attackerT1 = "0x";
+    // Tv - The transaction from the victim which is detected by the attacker
+    const victimTx = "0x";
+    // this is v2 : nor required for agent detection but included since its a crucial part of the attack
+    const attackerT2 = "0x";
 
-    let r1 = await token0Contract.methods
-      .balanceOf("0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f")
-      .call(); // token0 reserves
-    r1 /= 10 ** 6;
-    let r2 = await token1Contract.methods
-      .balanceOf("0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f")
-      .call(); // token1 reserves
-    r2 /= 10 ** 6;
+    let r1 = 100000000000000000; // token0 reserves
+    let r2 = 100000000000000000; // token1 reserves
+
+    token0Contract.methods
+      .balanceOf()
+      .call.mockReturnValueOnce(r1)
+      .mockReturnValueOnce(r1);
+    token1Contract.methods
+      .balanceOf()
+      .call.mockReturnValueOnce(r2)
+      .mockReturnValueOnce(r2);
 
     const x = 1000,
       v = 500;
@@ -109,16 +161,24 @@ describe("Agent for SandWich Attack", () => {
       (v * 0.997 * (r2 - (x * 0.997 * r2) / (r1 + 0.997 * x))) /
       (r1 + x + 0.997 * v);
 
-    // Tv - The transaction from the victim which is detected by the attacker
-    const victimTx = generateTx(
-      "500",
-      parseInt(attackableValue.toString()).toString(),
-      [zeroAddress],
-      account1,
-      "0"
-    );
-    // this is v2 : nor required for agent detection but included since its a crucial part of the attack
-    const attackerT2 = generateTx("520", "0", [zeroAddress], account2, "0");
+    console.log(attackableValue);
+
+    mockWeb3.eth.getTransaction
+      .mockReturnValueOnce(
+        generateTx("1000", "1000000", [zeroAddress], account2, "0")
+      )
+      .mockReturnValueOnce(
+        generateTx(
+          "500",
+          (parseInt(attackableValue.toString()) + 10).toString(),
+          [zeroAddress],
+          account1,
+          "0"
+        )
+      )
+      .mockReturnValueOnce(
+        generateTx("520", "0", [zeroAddress], account2, "0")
+      );
 
     const blockEvent = generateBlockEvent([attackerT1, victimTx, attackerT2]);
 
