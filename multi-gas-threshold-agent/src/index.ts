@@ -7,8 +7,8 @@ import {
   FindingType,
 } from "forta-agent";
 
-export const MEDIUM_GAS_THRESHOLD = "1000000";
-export const HIGH_GAS_THRESHOLD = "3000000";
+export const MEDIUM_GAS_THRESHOLD = "4000000";
+export const HIGH_GAS_THRESHOLD = "6000000";
 
 const getSeverity = (gasUsed: BigNumber): FindingSeverity => {
   if (gasUsed.isGreaterThanOrEqualTo(HIGH_GAS_THRESHOLD)) {
