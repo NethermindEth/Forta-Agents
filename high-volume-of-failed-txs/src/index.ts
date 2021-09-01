@@ -43,10 +43,7 @@ function provideHandleTransaction(
     // report finding if a high volume of failed transaccion ocur within a defined time interval
     const findings: Finding[] = [];
 
-    // @ts-ignore
-    if (txEvent.status === "" || txEvent.status) {
-      return findings;
-    }
+    if (txEvent.status !== false) return findings;
 
     const involvedProtocols = protocols.filter((addr) => txEvent.addresses[addr.toLowerCase()]);
     involvedProtocols.forEach((addr) => {
