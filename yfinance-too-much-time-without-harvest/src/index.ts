@@ -15,6 +15,17 @@ import {
 } from "./agent.utils";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
+const INTERESTING_STRATEGIES = [
+  // DAI Vault Strategies
+  "0xc8f17f8e15900b6d6079680b15da3ce5263f62aa",
+  "0x6341c289b2e0795a04223df04b53a77970958723",
+  "0xa6d1c610b3000f143c18c75d84baa0ec22681185",
+  // ETH Vault Strategies
+  "0x83b6211379c26e0ba8d01b9ecd4ee1ae915630aa",
+  "0xd28b508ea08f14a473a5f332631ea1972cfd7cc0",
+  "0xf9fdc2b5f60355a237deb8bd62cc117b1c907f7b",
+  "0x0967afe627c732d152e3dfcadd6f9dbfecde18c3",
+]
 
 const checkStrategyInBlock = async (
   strategyAddress: string,
@@ -60,5 +71,5 @@ export const provideHandleBlock = (
 };
 
 export default {
-  handleBlock: provideHandleBlock(web3, []),
+  handleBlock: provideHandleBlock(web3, INTERESTING_STRATEGIES),
 };
