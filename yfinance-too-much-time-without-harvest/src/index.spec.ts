@@ -5,7 +5,6 @@ import {
   HandleBlock,
   BlockEvent,
 } from "forta-agent";
-import agent from ".";
 import Web3 from "web3";
 import {
   createBlockEventWithTimestamp,
@@ -13,11 +12,11 @@ import {
   strategyParamsCollection,
   createStrategyParamWithLastReport,
 } from "./tests.utils";
-import { createFinding } from ".";
+import { provideHandleBlock, createFinding } from ".";
 
-const strategyAddress1: string = "0x121212";
-const strategyAddress2: string = "0x131313";
-const vaultAddress: string = "0x141414";
+const strategyAddress1: string = "0x6341c289b2e0795a04223df04b53a77970958723";
+const strategyAddress2: string = "0x3280499298ace3fd3cd9c2558e9e8746ace3e52d";
+const vaultAddress: string = "0xda816459f1ab5631232fe5e97a05bbbb94970c95";
 
 describe("Yearn Finance Too much time without calling harvest agent test suite", () => {
   it("returns empty findings if haven't passed max delay since last harvest", async () => {
