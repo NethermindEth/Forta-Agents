@@ -22,7 +22,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
   it("returns empty findings if haven't passed max delay since last harvest", async () => {
     const blockEvent: BlockEvent = createBlockEventWithTimestamp(1000100);
     const strategyParams: strategyParamsCollection = {
-      strategyAddress: createStrategyParamWithLastReport(BigInt(1000000)),
+      [strategyAddress1]: createStrategyParamWithLastReport(BigInt(1000000)),
     };
     const mockWeb3: Web3 = createMocks(
       strategyParams,
@@ -30,7 +30,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
       vaultAddress,
       strategyAddress1
     );
-    const handleBlock: HandleBlock = providerHandleBlock(mockWeb3, [
+    const handleBlock: HandleBlock = provideHandleBlock(mockWeb3, [
       strategyAddress1,
     ]);
 
@@ -42,7 +42,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
   it("returns a finding if an strategy have been too much time without harvest ", async () => {
     const blockEvent: BlockEvent = createBlockEventWithTimestamp(1000100);
     const strategyParams: strategyParamsCollection = {
-      strategyAddress: createStrategyParamWithLastReport(BigInt(1000000)),
+      [strategyAddress1]: createStrategyParamWithLastReport(BigInt(1000000)),
     };
     const mockWeb3: Web3 = createMocks(
       strategyParams,
@@ -50,7 +50,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
       vaultAddress,
       strategyAddress1
     );
-    const handleBlock: HandleBlock = providerHandleBlock(mockWeb3, [
+    const handleBlock: HandleBlock = provideHandleBlock(mockWeb3, [
       strategyAddress1,
     ]);
 
