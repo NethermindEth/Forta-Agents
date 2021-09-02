@@ -31,11 +31,19 @@ export const createTxDataStrategiesCall = (strategyAddress: string): string => {
 };
 
 export const createTxDataVaultCall = (): string => {
-  return web3.eth.abi.encodeEventSignature("vault()");
+  return web3.eth.abi.encodeFunctionCall({
+      name: "vault",
+      type: "function",
+      inputs: [],
+  }, []);
 };
 
 export const createTxDataMaxReportDelayCall = (): string => {
-  return web3.eth.abi.encodeEventSignature("maxReportDelay()");
+  return web3.eth.abi.encodeFunctionCall({
+      name: "maxReportDelay",
+      type: "function",
+      inputs: [],
+  }, []);
 };
 
 export const decodeReturnStrategies = (returnValue: string): StrategyParams => {
@@ -61,18 +69,19 @@ export const encodeStrategyParams = (
   strategyParams: StrategyParams
 ): string => {
   return web3.eth.abi.encodeParameter(
-      {
-        "StrategyParams": {
-            performanceFee: "uint256",
-            activation: "uint256",
-            debtRatio: "uint256",
-            minDebtPerHarvest: "uint256",
-            maxDebtPerHarvest: "uint256",
-            lastReport: "uint256",
-            totalDebt: "uint256",
-            totalGain: "uint256",
-            totalLoss: "uint256",
-        }
-      }, strategyParams
-    );
+    {
+      StrategyParams: {
+        performanceFee: "uint256",
+        activation: "uint256",
+        debtRatio: "uint256",
+        minDebtPerHarvest: "uint256",
+        maxDebtPerHarvest: "uint256",
+        lastReport: "uint256",
+        totalDebt: "uint256",
+        totalGain: "uint256",
+        totalLoss: "uint256",
+      },
+    },
+    strategyParams
+  );
 };
