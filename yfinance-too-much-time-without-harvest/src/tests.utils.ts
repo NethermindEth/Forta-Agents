@@ -103,11 +103,9 @@ const createMockWeb3 = (
     }
   };
 
-  return {
-    eth: {
-      call: call,
-    },
-  } as any;
+  const web3Mocked = new Web3();
+  web3Mocked.eth.call = call as any;
+  return web3Mocked;
 };
 
 export const createMocks = (
