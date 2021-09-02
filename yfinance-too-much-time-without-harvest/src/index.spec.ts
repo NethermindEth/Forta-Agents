@@ -1,10 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleBlock,
-  BlockEvent,
-} from "forta-agent";
+import { Finding, HandleBlock, BlockEvent } from "forta-agent";
 import Web3 from "web3";
 import {
   createBlockEventWithTimestamp,
@@ -12,7 +6,8 @@ import {
   strategyParamsCollection,
   createStrategyParamWithLastReport,
 } from "./tests.utils";
-import { provideHandleBlock, createFinding } from ".";
+import { provideHandleBlock } from ".";
+import { createFinding } from "./agent.utils";
 
 const strategyAddress1: string = "0x6341c289b2e0795a04223df04b53a77970958723";
 const strategyAddress2: string = "0x3280499298ace3fd3cd9c2558e9e8746ace3e52d";
