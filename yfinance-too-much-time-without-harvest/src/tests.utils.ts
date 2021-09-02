@@ -90,14 +90,13 @@ const createMockWeb3 = (
   strategyMock: mockStrategy,
   strategyAddress: string
 ): Web3 => {
-  let txData: string, to: string;
-  const call = ({ txData, to }: { txData: string; to: string }): string => {
+  const call = ({ data, to }: { data: string; to: string }): string => {
     switch (to) {
       case vaultAddress:
-        return vaultMock(txData);
+        return vaultMock(data);
 
       case strategyAddress:
-        return strategyMock(txData);
+        return strategyMock(data);
 
       default:
         return "";
