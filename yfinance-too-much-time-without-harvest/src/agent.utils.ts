@@ -11,7 +11,7 @@ import Web3 from "web3";
 export const createFinding = (strategyToReport: string): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance no harvested strategies",
-    alertId: "NETHFORTA-22",
+    alertId: "NETHFORTA-21",
     description:
       "A yearn finance strategy have been too much time without trigerring harvest",
     severity: FindingSeverity.Info,
