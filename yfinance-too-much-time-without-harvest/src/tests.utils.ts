@@ -121,12 +121,5 @@ export const createMocks = (
   strategiesInfo: strategyInfo[]
 ): Web3 => {
   const vaultMock: mockVault = createMockVault(strategyParams);
-  //   const strategiesMock: mockStrategy[] = strategiesInfo.map(
-  //     ({ maxReportDelay }) => createMockStrategy(vaultAddress, maxReportDelay)
-  //   );
-  //   const strategyMock: mockStrategy = createMockStrategy(
-  //     vaultAddress,
-  //     maxReportDelay
-  //   );
   return createMockWeb3(vaultMock, vaultAddress, strategiesInfo);
 };
