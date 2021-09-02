@@ -15,11 +15,11 @@ export type strategyParamsCollection = { [key: string]: StrategyParams };
 const web3: Web3 = new Web3();
 
 const stripSelector = (data: string): string => {
-  return data.slice(8);
+  return data.slice(10);
 };
 
 const getSelector = (data: string): string => {
-  return data.slice(0, 8);
+  return data.slice(2, 10);
 };
 
 export const createBlockEventWithTimestamp = (timestamp: number): BlockEvent => {
