@@ -9,7 +9,22 @@ import {
   FindingType 
 } from 'forta-agent'
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const web3: Web3 = new Web3(getJsonRpcUrl());
+
+export const createFinding = (strategyToReport: string): Finding => {
+  return Finding.fromObject({
+    name: "Yearn Finance no harvested strategies",
+    alertId: "NETHFORTA-22",
+    description: "A yearn finance strategy have been too much time without trigerring harvest",
+    severity: FindingSeverity.Info,
+    type: FindingType.Suspicious,
+    metadata: {
+      Strategy: strategyToReport
+    }
+  })
+}
+
+const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
   const findings: Finding[] = []
 
   // create finding if gas used is higher than threshold
