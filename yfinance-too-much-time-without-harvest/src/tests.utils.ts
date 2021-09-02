@@ -69,10 +69,10 @@ const createMockStrategy = (
   return (txData: string) => {
     const selector: string = getSelector(txData);
     switch (selector) {
-      case web3.eth.abi.encodeFunctionSignature("vault()"):
+      case getSelector(web3.eth.abi.encodeFunctionSignature("vault()")):
         return web3.eth.abi.encodeParameter("address", vaultAddress);
 
-      case web3.eth.abi.encodeFunctionSignature("maxReportDelay()"):
+      case getSelector(web3.eth.abi.encodeFunctionSignature("maxReportDelay()")):
         return web3.eth.abi.encodeParameter(
           "uint256",
           maxReportDelay.toString()
