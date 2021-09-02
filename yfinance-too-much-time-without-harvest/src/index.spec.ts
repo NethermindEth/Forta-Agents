@@ -2,47 +2,29 @@ import {
   FindingType,
   FindingSeverity,
   Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "."
+  HandleBlock,
+  BlockEvent,
+} from "forta-agent";
+import agent from ".";
+import Web3 from "web3";
+import { createBlockEventWithTimestamp, createMocks, strategyParamsCollection, createStrategyParamWithLastReport } from "./tests.utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const strategyAddress: string = "0x121212";
+const vaultAddress: string = "0x131313";
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+describe("Yearn Finance Too much time without calling harvest agent test suite", () => {
+  it("returns empty findings if haven't passed max delay since last harvest", async () => {
+    const blockEvent: BlockEvent = createBlockEventWithTimestamp(1000100);
+    const strategyParams: strategyParamsCollection = {
+      strategyAddress: createStrategyParamWithLastReport(BigInt(1000000)),
+    };
+    const mockWeb3: Web3 = createMocks(strategyParams, BigInt(110), vaultAddress, strategyAddress);
+    const handleBlock: HandleBlock = providerHandleBlock(mockWeb3, [ strategyAddress ]);
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+    const findings: Finding[] = await handleBlock(blockEvent);
 
-      const findings = await handleTransaction(txEvent)
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([])
-    })
-
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
-
-      const findings = await handleTransaction(txEvent)
-
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+});
