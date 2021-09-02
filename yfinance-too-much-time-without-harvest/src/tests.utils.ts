@@ -7,9 +7,11 @@ import {
 } from "forta-agent";
 import Web3 from "web3";
 import { StrategyParams, encodeStrategyParams } from "./abi.utils";
+import { getMaxReportDelay } from "./agent.utils";
 
 type mockVault = (data: string) => string;
 type mockStrategy = (data: string) => string;
+export type strategyInfo = { strategyAddress: string; maxReportDelay: bigint };
 export type strategyParamsCollection = { [key: string]: StrategyParams };
 
 const web3: Web3 = new Web3();
@@ -22,7 +24,9 @@ const getSelector = (data: string): string => {
   return data.slice(2, 10);
 };
 
-export const createBlockEventWithTimestamp = (timestamp: number): BlockEvent => {
+export const createBlockEventWithTimestamp = (
+  timestamp: number
+): BlockEvent => {
   const block: Block = {
     timestamp: timestamp,
   } as Block;
@@ -58,7 +62,7 @@ const createMockVault = (data: strategyParamsCollection): mockVault => {
       "address",
       stripSelector(txData)
     ) as any;
-    
+
     return encodeStrategyParams(data[address.toLowerCase()]);
   };
 };
@@ -73,7 +77,9 @@ const createMockStrategy = (
       case getSelector(web3.eth.abi.encodeFunctionSignature("vault()")):
         return web3.eth.abi.encodeParameter("address", vaultAddress);
 
-      case getSelector(web3.eth.abi.encodeFunctionSignature("maxReportDelay()")):
+      case getSelector(
+        web3.eth.abi.encodeFunctionSignature("maxReportDelay()")
+      ):
         return web3.eth.abi.encodeParameter(
           "uint256",
           maxReportDelay.toString()
@@ -88,20 +94,20 @@ const createMockStrategy = (
 const createMockWeb3 = (
   vaultMock: mockVault,
   vaultAddress: string,
-  strategyMock: mockStrategy,
-  strategyAddress: string
+  strategiesInfo: strategyInfo[]
 ): Web3 => {
+  const strategiesMock: { [key: string]: mockStrategy } = {};
+  strategiesInfo.forEach((stratInfo) => {
+    strategiesMock[stratInfo.strategyAddress] = createMockStrategy(
+      vaultAddress,
+      stratInfo.maxReportDelay
+    );
+  });
   const call = ({ data, to }: { data: string; to: string }): string => {
-    switch (to.toLowerCase()) {
-      case vaultAddress:
-        return vaultMock(data);
-
-      case strategyAddress:
-        return strategyMock(data);
-
-      default:
-        return "";
+    if (to.toLowerCase() == vaultAddress) {
+      return vaultMock(data);
     }
+    return strategiesMock[to.toLowerCase()](data);
   };
 
   const web3Mocked = new Web3();
@@ -111,14 +117,16 @@ const createMockWeb3 = (
 
 export const createMocks = (
   strategyParams: strategyParamsCollection,
-  maxReportDelay: bigint,
   vaultAddress: string,
-  strategyAddress: string
+  strategiesInfo: strategyInfo[]
 ): Web3 => {
   const vaultMock: mockVault = createMockVault(strategyParams);
-  const strategyMock: mockStrategy = createMockStrategy(
-    vaultAddress,
-    maxReportDelay
-  );
-  return createMockWeb3(vaultMock, vaultAddress, strategyMock, strategyAddress);
+  //   const strategiesMock: mockStrategy[] = strategiesInfo.map(
+  //     ({ maxReportDelay }) => createMockStrategy(vaultAddress, maxReportDelay)
+  //   );
+  //   const strategyMock: mockStrategy = createMockStrategy(
+  //     vaultAddress,
+  //     maxReportDelay
+  //   );
+  return createMockWeb3(vaultMock, vaultAddress, strategiesInfo);
 };
