@@ -1,8 +1,4 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleBlock,
   createBlockEvent,
   BlockEvent,
   Block,
@@ -14,7 +10,7 @@ import { StrategyParams, encodeStrategyParams } from "./abi.utils";
 
 type mockVault = (data: string) => string;
 type mockStrategy = (data: string) => string;
-type strategyParamsCollection = { [key: string]: StrategyParams };
+export type strategyParamsCollection = { [key: string]: StrategyParams };
 
 const web3: Web3 = new Web3();
 
@@ -26,7 +22,7 @@ const getSelector = (data: string): string => {
   return data.slice(0, 8);
 };
 
-const createBlockEventWithTimestamp = (timestamp: number): BlockEvent => {
+export const createBlockEventWithTimestamp = (timestamp: number): BlockEvent => {
   const block: Block = {
     timestamp: timestamp,
   } as Block;
@@ -38,6 +34,22 @@ const createBlockEventWithTimestamp = (timestamp: number): BlockEvent => {
     blockNumber: 12,
     block: block,
   });
+};
+
+export const createStrategyParamWithLastReport = (
+  lastReport: bigint
+): StrategyParams => {
+  return {
+    performanceFee: BigInt(0),
+    activation: BigInt(0),
+    debtRatio: BigInt(0),
+    minDebtPerHarvest: BigInt(0),
+    maxDebtPerHarvest: BigInt(0),
+    lastReport: BigInt(lastReport),
+    totalDebt: BigInt(0),
+    totalGain: BigInt(0),
+    totalLoss: BigInt(0),
+  };
 };
 
 const createMockVault = (data: strategyParamsCollection): mockVault => {
