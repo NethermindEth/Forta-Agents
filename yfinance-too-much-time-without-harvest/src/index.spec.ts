@@ -131,4 +131,36 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
       createFinding(strategyAddress1),
     ]);
   })
+
+  it("returns only strategies listed as interesting", async () => {
+    const blockEvent: BlockEvent = createBlockEventWithTimestamp(1000100);
+    const strategyParams: strategyParamsCollection = {
+      [strategyAddress1]: createStrategyParamWithLastReport(BigInt(1000000)),
+      [strategyAddress2]: createStrategyParamWithLastReport(BigInt(999995)),
+    };
+    const strategiesInfo: strategyInfo[] = [
+      {
+        strategyAddress: strategyAddress1,
+        maxReportDelay: BigInt(90),
+      },
+      {
+        strategyAddress: strategyAddress2,
+        maxReportDelay: BigInt(90),
+      },
+    ];
+    const mockWeb3: Web3 = createMocks(
+      strategyParams,
+      vaultAddress,
+      strategiesInfo
+    );
+    const handleBlock: HandleBlock = provideHandleBlock(mockWeb3, [
+      strategyAddress1,
+    ]);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(strategyAddress1),
+    ]);
+  })
 });
