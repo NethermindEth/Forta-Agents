@@ -100,14 +100,14 @@ export const provideHandleBlock = (
   strategiesToCheck: string[]
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    let findings: Finding[] = [];
     for (let i = 0; i < strategiesToCheck.length; i++) {
       const newFindings: Finding[] = await checkStrategyInBlock(
         strategiesToCheck[i],
         blockEvent.block,
         web3
       );
-      findings.concat(newFindings);
+      findings = findings.concat(newFindings);
     }
     return findings;
   };
