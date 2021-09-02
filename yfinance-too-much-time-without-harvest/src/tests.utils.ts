@@ -58,7 +58,8 @@ const createMockVault = (data: strategyParamsCollection): mockVault => {
       "address",
       stripSelector(txData)
     ) as any;
-    return encodeStrategyParams(data[address]);
+    
+    return encodeStrategyParams(data[address.toLowerCase()]);
   };
 };
 
@@ -91,7 +92,7 @@ const createMockWeb3 = (
   strategyAddress: string
 ): Web3 => {
   const call = ({ data, to }: { data: string; to: string }): string => {
-    switch (to) {
+    switch (to.toLowerCase()) {
       case vaultAddress:
         return vaultMock(data);
 
