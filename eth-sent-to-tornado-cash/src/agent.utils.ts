@@ -13,3 +13,7 @@ export const createFinding = (address: string): Finding => {
         }
     });
 }
+
+export function isInArray<T> (array: T[], element: T): boolean {
+    return array.filter( elem => elem === element).length > 0;
+};
