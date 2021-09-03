@@ -9,13 +9,6 @@ import {
 import { provideHandleTransaction } from ".";
 import { createFinding } from "./agent.utils";
 
-const createTxEventWithGasUsed = (gasUsed: string) =>
-  createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  });
-
 const createTxEvent = (
   from: string,
   to: string,

@@ -1,12 +1,7 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
-  getJsonRpcUrl,
 } from "forta-agent";
 import { createFinding, isInArray } from "./agent.utils";
 import AccountCashRecord, { createCashIn } from "./account.cash.record";
