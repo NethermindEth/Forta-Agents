@@ -22,9 +22,9 @@ export const provideHandleTransaction = (
 
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const sender: string = txEvent.transaction.from;
-    const to: string | null = txEvent.transaction.to;
-    const timestamp: bigint = BigInt(txEvent.block.timestamp);
+    const sender: string = txEvent.from;
+    const to: string | null = txEvent.to;
+    const timestamp: bigint = BigInt(txEvent.timestamp);
     const ethValue: bigint = BigInt(txEvent.transaction.value);
 
     if (!isInArray(tornadoAddresses, to)) {
