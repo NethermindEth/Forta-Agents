@@ -1,39 +1,59 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  BlockEvent,
+  Finding,
+  HandleBlock,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+  getJsonRpcUrl,
+} from "forta-agent";
+import { createFinding, isInArray } from "./agent.utils";
+import AccountCashRecord, { createCashIn } from "./account.cash.record";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+const TORNADO_ADDRESSES: string[] = [
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-  }
+];
+const VALUE_THRESHOLD: bigint = BigInt(0);
+const TIME_LIMIT: bigint = BigInt(0);
 
-  return findings
-}
+export const provideHandleTransaction = (
+  tornadoAddresses: string[],
+  valueThreshold: bigint,
+  timeLimit: bigint
+): HandleTransaction => {
+  const createAccountCashRecord = (): AccountCashRecord => new AccountCashRecord(timeLimit);
+  const accountCashRecords: { [key: string]: AccountCashRecord } = { };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+  return async (txEvent: TransactionEvent) => {
+    const findings: Finding[] = [];
+    const sender: string = txEvent.transaction.from;
+    const to: string | null = txEvent.transaction.to;
+    const timestamp: bigint = BigInt(txEvent.block.timestamp);
+    const ethValue: bigint = BigInt(txEvent.transaction.value);
+
+    if (!isInArray(tornadoAddresses, to)) {
+      return findings;
+    }
+
+    if (accountCashRecords[sender] === undefined) {
+      accountCashRecords[sender] = createAccountCashRecord();
+    }
+
+    const accountCashRecord = accountCashRecords[sender];
+    accountCashRecord.addCashIn(createCashIn(ethValue, timestamp));
+    const totalValueOfSender = accountCashRecord.getAmountIn();
+
+    if (totalValueOfSender > valueThreshold) {
+      findings.push(createFinding(sender));
+    }
+    
+    return findings;
+  };
+};
+
+
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(TORNADO_ADDRESSES, VALUE_THRESHOLD, TIME_LIMIT),
+};
