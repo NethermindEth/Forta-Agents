@@ -38,7 +38,7 @@ describe("Tornado Cash Agent Test Suite", () => {
     timeLimit: bigint;
 
   beforeEach(() => {
-    tornadoAddresses = [];
+    tornadoAddresses = ["0x121212"];
     valueThreshold = BigInt("10000");
     timeLimit = BigInt("1000");
     handleTransaction = provideHandleTransaction(
