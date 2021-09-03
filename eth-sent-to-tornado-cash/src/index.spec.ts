@@ -7,6 +7,7 @@ import {
   Network,
 } from "forta-agent";
 import { provideHandleTransaction } from ".";
+import { createFinding } from "./agent.utils";
 
 const createTxEventWithGasUsed = (gasUsed: string) =>
   createTransactionEvent({
@@ -42,7 +43,8 @@ describe("Tornado Cash Agent Test Suite", () => {
     timeLimit = BigInt("1000");
     handleTransaction = provideHandleTransaction(
       tornadoAddresses,
-      valueThreshold
+      valueThreshold,
+      timeLimit
     );
   });
 
@@ -92,6 +94,10 @@ describe("Tornado Cash Agent Test Suite", () => {
     txEvent = createTxEvent("0x0", tornadoAddresses[0], "9000", "1200");
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "2000", "1300");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([createFinding("0x0")]);
   });
 
 });
