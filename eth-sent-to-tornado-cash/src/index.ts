@@ -9,8 +9,8 @@ import AccountCashRecord, { createCashIn } from "./account.cash.record";
 const TORNADO_ADDRESSES: string[] = [
 
 ];
-const VALUE_THRESHOLD: bigint = BigInt(0);
-const TIME_LIMIT: bigint = BigInt(0);
+const VALUE_THRESHOLD: bigint = BigInt("100000000000000000000"); // 100 ETH
+const TIME_LIMIT: bigint = BigInt("86400"); // 1 day
 
 export const provideHandleTransaction = (
   tornadoAddresses: string[],
