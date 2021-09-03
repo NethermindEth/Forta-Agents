@@ -38,7 +38,10 @@ describe("Tornado Cash Agent Test Suite", () => {
     timeLimit: bigint;
 
   beforeEach(() => {
-    tornadoAddresses = ["0x121212"];
+    tornadoAddresses = [
+      "0x121212",
+      "0x131313",
+    ];
     valueThreshold = BigInt("10000");
     timeLimit = BigInt("1000");
     handleTransaction = provideHandleTransaction(
@@ -96,6 +99,18 @@ describe("Tornado Cash Agent Test Suite", () => {
     expect(findings).toStrictEqual([]);
 
     txEvent = createTxEvent("0x0", tornadoAddresses[0], "2000", "1300");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([createFinding("0x0")]);
+  });
+
+  it("returns findings if the amount of eth sent into multiple tornado addresses is above threshold", async () => {
+    let txEvent: TransactionEvent, findings: Finding[];
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "9000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[1], "9000", "200");
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([createFinding("0x0")]);
   });
