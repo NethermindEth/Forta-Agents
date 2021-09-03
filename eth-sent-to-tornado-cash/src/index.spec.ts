@@ -1,48 +1,97 @@
 import {
-  FindingType,
-  FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "."
+  createTransactionEvent,
+  TransactionEvent,
+  EventType,
+  Network,
+} from "forta-agent";
+import { provideHandleTransaction } from ".";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
-
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
+const createTxEventWithGasUsed = (gasUsed: string) =>
+  createTransactionEvent({
     transaction: {} as any,
     receipt: { gasUsed } as any,
     block: {} as any,
-  })
+  });
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const createTxEvent = (
+  from: string,
+  to: string,
+  value: string,
+  timestamp: string
+): TransactionEvent => {
+  return createTransactionEvent({
+    type: EventType.BLOCK,
+    network: Network.MAINNET,
+    transaction: { from: from, to: to, value: value } as any,
+    receipt: {} as any,
+    block: { timestamp: timestamp } as any,
+  });
+};
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+describe("Tornado Cash Agent Test Suite", () => {
+  let handleTransaction: HandleTransaction,
+    tornadoAddresses: string[],
+    valueThreshold: bigint,
+    timeLimit: bigint;
 
-      const findings = await handleTransaction(txEvent)
+  beforeEach(() => {
+    tornadoAddresses = [];
+    valueThreshold = BigInt("10000");
+    timeLimit = BigInt("1000");
+    handleTransaction = provideHandleTransaction(
+      tornadoAddresses,
+      valueThreshold
+    );
+  });
 
-      expect(findings).toStrictEqual([])
-    })
+  it("returns empty findings if it is not a tornado transaction", async () => {
+    const txEvent = createTxEvent("0x0", "0x12", "1000000000", "100");
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    const findings = await handleTransaction(txEvent);
 
-      const findings = await handleTransaction(txEvent)
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+  it("returns a finding if a transaction with a big value in sent into tornado", async () => {
+    const txEvent = createTxEvent("0x0", tornadoAddresses[0], "1000000", "100");
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([createFinding("0x0")]);
+  });
+
+  it("returns empty findings if any address has passed the threshold value", async () => {
+    let txEvent: TransactionEvent, findings: Finding[];
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "1000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x1", tornadoAddresses[0], "6000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "4000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x1", tornadoAddresses[0], "3000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("returns findings taking in account only transaction inside the correct time frame", async () => {
+    let txEvent: TransactionEvent, findings: Finding[];
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "9000", "100");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    txEvent = createTxEvent("0x0", tornadoAddresses[0], "9000", "1200");
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+});
