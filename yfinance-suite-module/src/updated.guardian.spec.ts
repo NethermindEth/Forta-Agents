@@ -21,11 +21,19 @@ describe("Yearn Finance Updated Guardian Tests", () => {
   });
 
   it("should return empty findings if the event is not related with the specified vault", async () => {
+    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, "0x0");
 
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
   });
 
   it("should return findings when the specified vault emit the expected event", async () => {
+    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, "0x121212");
 
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([createFinding("testID", YEARN_VAULT_ADDRESS)]);
   });
 });
 
