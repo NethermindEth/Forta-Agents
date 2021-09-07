@@ -16,9 +16,14 @@ export const createFinding = (alertId: string, yearnVaultAddress: string): Findi
     })
 }
 
-export default function provideUpdatedGuardianAgent(yearnVaultAddress: string): HandleTransaction {
+
+export default function provideUpdatedGuardianAgent(yearnVaultAddress: string, alertId: string): HandleTransaction {
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         const findings: Finding[] = [];
+
+        if (txEvent.filterEvent(EVENT_SIGNATURE, yearnVaultAddress).length > 0) {
+            findings.push(createFinding(alertId, yearnVaultAddress));
+        }
 
         return findings;
     }
