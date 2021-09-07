@@ -23,3 +23,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Possible locked NFTs**: Detect transactions that may lock an NFT in a contract.
 - **Chainkeeper**: Detects transactions involving blacklisted addresses.
 - **Success txn with internal failures agent**: Detect transactions with internal failures.
+- **Yearn Strategy without call Harvest** - Detects yearn strategies that haven't call harvest in too much time
