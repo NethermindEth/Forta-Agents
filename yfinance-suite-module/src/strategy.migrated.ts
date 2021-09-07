@@ -7,7 +7,7 @@ export const createFinding = (alertId: string, yearnVaultAddress: string): Findi
     return Finding.fromObject({
         name: "Yearn Finance Strategy Migrated",
         description: "Detects Strategy Migrated event on the watched Yearn Vault",
-        alertId: alertId,
+        alertId,
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
         metadata: {

@@ -7,7 +7,7 @@ const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
     return Finding.fromObject({
         name: "Yearn Finance Updated Guardian",
         description: "Detects Updated Guardian event on the wathced Yearn Vault",
-        alertId: alertId,
+        alertId,
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
         metadata: {

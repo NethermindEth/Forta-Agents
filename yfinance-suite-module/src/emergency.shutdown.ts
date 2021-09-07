@@ -7,7 +7,7 @@ export const createFinding = (alertId: string, yearnVaultAddress: string): Findi
     return Finding.fromObject({
         name: "Yearn Finance Emergency Shutdown",
         description: "Detects Emergency Shutdown event on the watched Yearn Vault",
-        alertId: alertId,
+        alertId,
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
         metadata: {
