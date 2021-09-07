@@ -5,7 +5,8 @@ import { createTxEventWithEventLogged } from "./test.utils";
 
 const YEARN_VAULT_ADDRESS = "0x121212";
 const ALERT_ID = "testID";
-const EVENT_SIGNATURE = "UpdateGorvenance(address)";
+const EVENT_SIGNATURE = "UpdateGovernance(address)";
+
 
 
 const createFinding = (): Finding => {
@@ -45,7 +46,7 @@ describe("Yearn Finance Updated Governance Tests", () => {
   });
 
   it("should return findings when the specified vault emit the expected event", async () => {
-    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, "0x121212");
+    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, YEARN_VAULT_ADDRESS);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
