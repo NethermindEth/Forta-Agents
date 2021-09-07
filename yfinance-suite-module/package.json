@@ -10,7 +10,7 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "lint-fix": "tslint -p tsconfig.json --fix"
   },

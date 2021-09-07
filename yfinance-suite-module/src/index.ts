@@ -5,9 +5,9 @@ import provideUpdatedGovernanceAgent from "./updated.governance";
 import provideUpdatedGuardianAgent from "./updated.guardian";
 
 export default {
-    provideEmergencyShutdownAgent,
-    provideStrategyMigratedAgent,
-    provideStrategyRevokedAgent,
-    provideUpdatedGovernanceAgent,
-    provideUpdatedGuardianAgent,
-}
+  provideEmergencyShutdownAgent,
+  provideStrategyMigratedAgent,
+  provideStrategyRevokedAgent,
+  provideUpdatedGovernanceAgent,
+  provideUpdatedGuardianAgent,
+};

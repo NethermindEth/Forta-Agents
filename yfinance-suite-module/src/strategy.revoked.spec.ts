@@ -2,32 +2,29 @@ import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEv
 import provideStrategyRevokedAgent from "./strategy.revoked";
 import { createTxEventWithEventLogged } from "./test.utils";
 
-
 const YEARN_VAULT_ADDRESS = "0x121212";
 const ALERT_ID = "testID";
 const EVENT_SIGNATURE = "StrategyRevoked(address)";
 
-
-
 const createFinding = (): Finding => {
-    return Finding.fromObject({
-        name: "Yearn Finance Strategy Revoked",
-        description: "Detects Strategy Revoked event on the watched Yearn Vault",
-        alertId: ALERT_ID,
-        type: FindingType.Suspicious,
-        severity: FindingSeverity.Medium,
-        metadata: {
-            YearnVault: YEARN_VAULT_ADDRESS 
-        },
-    })
+  return Finding.fromObject({
+    name: "Yearn Finance Strategy Revoked",
+    description: "Detects Strategy Revoked event on the watched Yearn Vault",
+    alertId: ALERT_ID,
+    type: FindingType.Suspicious,
+    severity: FindingSeverity.Medium,
+    metadata: {
+      YearnVault: YEARN_VAULT_ADDRESS,
+    },
+  });
 };
 
 describe("Yearn Finance Strategy Revoked Tests", () => {
-  let handleTransaction: HandleTransaction;  
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
     handleTransaction = provideStrategyRevokedAgent(YEARN_VAULT_ADDRESS, ALERT_ID);
-  })
+  });
 
   it("should return empty findings if the expected event wasn't called", async () => {
     const txEvent: TransactionEvent = createTxEventWithEventLogged("badEvent", "0x121212");
