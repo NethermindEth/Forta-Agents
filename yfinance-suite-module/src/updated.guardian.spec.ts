@@ -4,16 +4,17 @@ import { createTxEventWithEventLogged } from "./test.utils";
 
 
 const YEARN_VAULT_ADDRESS = "0x121212";
+const ALERT_ID = "testID";
 
 describe("Yearn Finance Updated Guardian Tests", () => {
   let handleTransaction: HandleTransaction;  
 
   beforeAll(() => {
-    handleTransaction = provideUpdatedGuardianAgent(YEARN_VAULT_ADDRESS);
+    handleTransaction = provideUpdatedGuardianAgent(YEARN_VAULT_ADDRESS, ALERT_ID);
   })
 
   it("should return empty findings if the expected event wasn't called", async () => {
-    const txEvent: TransactionEvent = createTxEventWithEventLogged("badEvent", "0x0");
+    const txEvent: TransactionEvent = createTxEventWithEventLogged("badEvent", "0x121212");
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -33,7 +34,7 @@ describe("Yearn Finance Updated Guardian Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding("testID", YEARN_VAULT_ADDRESS)]);
+    expect(findings).toStrictEqual([createFinding(ALERT_ID, YEARN_VAULT_ADDRESS)]);
   });
 });
 
