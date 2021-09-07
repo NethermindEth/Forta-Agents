@@ -4,7 +4,7 @@ import provideStrategyRevokedAgent from "./strategy.revoked";
 import provideUpdatedGovernanceAgent from "./updated.governance";
 import provideUpdatedGuardianAgent from "./updated.guardian";
 
-export default {
+export {
   provideEmergencyShutdownAgent,
   provideStrategyMigratedAgent,
   provideStrategyRevokedAgent,
