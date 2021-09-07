@@ -1,4 +1,4 @@
-import { createTransactionEvent, EventType, Finding, HandleTransaction, Network, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import provideUpdatedGuardianAgent, { EVENT_SIGNATURE, createFinding } from "./updated.guardian";
 import { createTxEventWithEventLogged } from "./test.utils";
 
