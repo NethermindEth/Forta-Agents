@@ -1,10 +1,24 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import provideUpdatedGuardianAgent, { EVENT_SIGNATURE, createFinding } from "./updated.guardian";
+import { FindingSeverity, FindingType, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import provideUpdatedGuardianAgent from "./updated.guardian";
 import { createTxEventWithEventLogged } from "./test.utils";
 
 
 const YEARN_VAULT_ADDRESS = "0x121212";
 const ALERT_ID = "testID";
+const EVENT_SIGNATURE = "UpdateGuardian(address)";
+
+const createFinding = (): Finding => {
+    return Finding.fromObject({
+        name: "Yearn Finance Updated Guardian",
+        description: "Detects Updated Guardian event on the wathced Yearn Vault",
+        alertId: ALERT_ID,
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Medium,
+        metadata: {
+            YearnVault: YEARN_VAULT_ADDRESS 
+        },
+    })
+}
 
 describe("Yearn Finance Updated Guardian Tests", () => {
   let handleTransaction: HandleTransaction;  
@@ -34,7 +48,7 @@ describe("Yearn Finance Updated Guardian Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(ALERT_ID, YEARN_VAULT_ADDRESS)]);
+    expect(findings).toStrictEqual([createFinding()]);
   });
 });
 
