@@ -4,7 +4,7 @@ import { FindingGenerator } from "./utils";
 export default function provideEventCheckerHandler(
   createFinding: FindingGenerator,
   eventSignature: string,
-  address: string | undefined
+  address: string | undefined = undefined
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
