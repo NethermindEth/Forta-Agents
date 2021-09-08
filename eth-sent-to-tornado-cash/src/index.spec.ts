@@ -60,7 +60,7 @@ describe("Tornado Cash Agent Test Suite", () => {
     expect(findings).toStrictEqual([createFinding("0x0")]);
   });
 
-  it("returns empty findings if any address has passed the threshold value", async () => {
+  it("returns empty findings if no address has passed the threshold value", async () => {
     let txEvent: TransactionEvent, findings: Finding[];
 
     txEvent = createTxEvent("0x0", tornadoAddresses[0], "1000", "100");
