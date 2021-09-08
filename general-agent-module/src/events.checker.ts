@@ -9,7 +9,7 @@ export default function provideEventCheckerHandler(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    if (txEvent.filterEvent(eventSignature, address).length > 1) {
+    if (txEvent.filterEvent(eventSignature, address).length > 0) {
       findings.push(createFinding(txEvent));
     }
 
