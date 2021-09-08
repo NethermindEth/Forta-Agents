@@ -16,8 +16,7 @@ export const provideHandleTransaction = (
   valueThreshold: bigint,
   timeLimit: bigint
 ): HandleTransaction => {
-  const createAccountCashRecord = (): AccountCashRecord =>
-    new AccountCashRecord(timeLimit);
+  const createAccountCashRecord = (): AccountCashRecord => new AccountCashRecord(timeLimit);
   const accountCashRecords: { [key: string]: AccountCashRecord } = {};
 
   return async (txEvent: TransactionEvent) => {
@@ -48,9 +47,5 @@ export const provideHandleTransaction = (
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    TORNADO_ADDRESSES,
-    VALUE_THRESHOLD,
-    TIME_LIMIT
-  ),
+  handleTransaction: provideHandleTransaction(TORNADO_ADDRESSES, VALUE_THRESHOLD, TIME_LIMIT),
 };
