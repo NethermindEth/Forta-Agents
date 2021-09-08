@@ -1,20 +1,8 @@
-import {
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  TransactionEvent,
-  EventType,
-  Network,
-} from "forta-agent";
+import { Finding, HandleTransaction, createTransactionEvent, TransactionEvent, EventType, Network } from "forta-agent";
 import { provideHandleTransaction } from ".";
 import { createFinding } from "./agent.utils";
 
-const createTxEvent = (
-  from: string,
-  to: string,
-  value: string,
-  timestamp: string
-): TransactionEvent => {
+const createTxEvent = (from: string, to: string, value: string, timestamp: string): TransactionEvent => {
   return createTransactionEvent({
     type: EventType.BLOCK,
     network: Network.MAINNET,
@@ -25,23 +13,13 @@ const createTxEvent = (
 };
 
 describe("Tornado Cash Agent Test Suite", () => {
-  let handleTransaction: HandleTransaction,
-    tornadoAddresses: string[],
-    valueThreshold: bigint,
-    timeLimit: bigint;
+  let handleTransaction: HandleTransaction, tornadoAddresses: string[], valueThreshold: bigint, timeLimit: bigint;
 
   beforeEach(() => {
-    tornadoAddresses = [
-      "0x121212",
-      "0x131313",
-    ];
+    tornadoAddresses = ["0x121212", "0x131313"];
     valueThreshold = BigInt("10000");
     timeLimit = BigInt("1000");
-    handleTransaction = provideHandleTransaction(
-      tornadoAddresses,
-      valueThreshold,
-      timeLimit
-    );
+    handleTransaction = provideHandleTransaction(tornadoAddresses, valueThreshold, timeLimit);
   });
 
   it("returns empty findings if it is not a tornado transaction", async () => {
@@ -107,5 +85,4 @@ describe("Tornado Cash Agent Test Suite", () => {
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([createFinding("0x0")]);
   });
-
 });
