@@ -1,26 +1,18 @@
-import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { FindingGenerator } from "./utils";
 
-const createFinding = (alertId: string, eventSignature: string): Finding => {
-    return Finding.fromObject({
-        name: "Event Checker",
-        description: "The specified event was found",
-        alertId,
-        severity: FindingSeverity.Medium,
-        type: FindingType.Exploit,
-        metadata: {
-            EventSignature: eventSignature
-        },
-    });
-};
+export default function provideEventCheckerHandler(
+  createFinding: FindingGenerator,
+  eventSignature: string,
+  address: string | undefined
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-export default function provideEventCheckerHandler(eventSignature: string, alertId: string, address: string | undefined): HandleTransaction {
-    return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-        const findings: Finding[] = [];
+    if (txEvent.filterEvent(eventSignature, address).length > 1) {
+      findings.push(createFinding(txEvent));
+    }
 
-        if (txEvent.filterEvent(eventSignature, address).length > 1) {
-            findings.push(createFinding(alertId, eventSignature));
-        }
-
-        return findings
-    };
-};
+    return findings;
+  };
+}
