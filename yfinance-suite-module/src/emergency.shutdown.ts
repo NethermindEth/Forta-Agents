@@ -2,7 +2,7 @@ import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEv
 
 export const EVENT_SIGNATURE: string = "EmergencyShutdown(bool)";
 
-export const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
+const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Emergency Shutdown",
     description: "Detects Emergency Shutdown event on the watched Yearn Vault",

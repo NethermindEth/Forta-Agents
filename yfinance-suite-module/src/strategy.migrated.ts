@@ -2,7 +2,7 @@ import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEv
 
 export const EVENT_SIGNATURE: string = "StrategyMigrated(address,address)";
 
-export const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
+const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Strategy Migrated",
     description: "Detects Strategy Migrated event on the watched Yearn Vault",

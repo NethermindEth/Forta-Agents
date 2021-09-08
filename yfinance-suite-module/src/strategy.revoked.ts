@@ -2,7 +2,7 @@ import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEv
 
 export const EVENT_SIGNATURE: string = "StrategyRevoked(address)";
 
-export const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
+const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Strategy Revoked",
     description: "Detects Strategy Revoked event on the watched Yearn Vault",
