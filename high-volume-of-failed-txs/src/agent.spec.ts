@@ -4,8 +4,6 @@ import {
   TransactionEvent, 
   EventType,
   Network,
-  FindingType,
-  FindingSeverity,
   Transaction,
   Receipt,
   Block,
@@ -15,7 +13,7 @@ import agent, {
   HIGH_FAILURE_THRESHOLD,
   TIME_INTERVAL,
   createFinding,
-} from "./index";
+} from "./agent";
 
 interface TxEventInfo {
   status: boolean, 
