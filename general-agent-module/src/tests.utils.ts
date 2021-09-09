@@ -1,11 +1,27 @@
-import { TransactionEvent, Log, Network, EventType, createTransactionEvent, BlockEvent, Finding, FindingSeverity, FindingType } from "forta-agent";
+import {
+  TransactionEvent,
+  Log,
+  Network,
+  EventType,
+  createTransactionEvent,
+  BlockEvent,
+  Finding,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
 import { FindingGenerator } from "./utils";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
 
-export const createTxEventWithEventLogged = (eventSignature: string, address: string): TransactionEvent => {
+export const createTxEventWithEventLogged = (
+  eventSignature: string,
+  address: string,
+  restTopics: string[] = [],
+  data: string = ""
+): TransactionEvent => {
   const log: Log = {
     address,
-    topics: [keccak256(eventSignature)],
+    topics: [keccak256(eventSignature), ...restTopics],
+    data: data,
   } as any;
 
   return createTransactionEvent({
