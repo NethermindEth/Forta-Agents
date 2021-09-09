@@ -2,8 +2,6 @@ import { HandleTransaction, Finding } from "forta-agent";
 import { createTxEventWithEventLogged, generalTestFindingGenerator } from "./tests.utils";
 import provideEventCheckerHandler from "./events.checker";
 
-
-
 const EVENT_SIGNATURE = "testSignature(bool,address)";
 
 describe("Event Checker Agent Tests", () => {
