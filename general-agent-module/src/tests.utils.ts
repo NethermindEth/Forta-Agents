@@ -1,3 +1,4 @@
+import Web3 from "web3";
 import {
   TransactionEvent,
   Log,
@@ -43,4 +44,8 @@ export const generalTestFindingGenerator: FindingGenerator = (txEvent: Transacti
     severity: FindingSeverity.Low,
     type: FindingType.Unknown,
   });
+};
+
+export const createAddress = (suffix: string): string => {
+  return Web3.utils.leftPad(suffix, 40);
 };
