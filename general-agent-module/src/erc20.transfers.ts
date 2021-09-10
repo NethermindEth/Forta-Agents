@@ -53,13 +53,12 @@ export default function provideERC20TransferAgent(
   tokenAddress: string,
   agentOptions?: agentOptions
 ): HandleTransaction {
+  const filterTransferInfo: (transferInfo: transferInfo) => boolean = createFilter(agentOptions);
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
-    if (txEvent.filterEvent(EVENT_SIGNATURE, tokenAddress).length > 0) {
-      findings.push(findingGenerator(txEvent));
-    }
-
-    return findings;
+    return txEvent
+      .filterEvent(EVENT_SIGNATURE, tokenAddress)
+      .map(fromLogToTransferInfo)
+      .filter(filterTransferInfo)
+      .map((elem) => findingGenerator(txEvent));
   };
 }
