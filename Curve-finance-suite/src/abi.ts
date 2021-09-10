@@ -596,3 +596,5 @@ const abi = [
     gas: 2711,
   },
 ];
+
+export default abi;

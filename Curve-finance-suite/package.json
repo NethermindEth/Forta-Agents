@@ -15,6 +15,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.14"
   },
