@@ -1,5 +1,5 @@
-import { BlockEvent, Finding, TransactionEvent } from "forta-agent";
+import { Finding } from "forta-agent";
 
-export type FindingGenerator = (
-  event: TransactionEvent | BlockEvent
-) => Finding;
+type metadataVault = { [key: string]: any };
+
+export type FindingGenerator = (metadata?: metadataVault) => Finding;

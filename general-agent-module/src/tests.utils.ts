@@ -36,7 +36,7 @@ export const createTxEventWithEventLogged = (
   });
 };
 
-export const generalTestFindingGenerator: FindingGenerator = (txEvent: TransactionEvent | BlockEvent): Finding => {
+export const generalTestFindingGenerator: FindingGenerator = (): Finding => {
   return Finding.fromObject({
     name: "Finding Test",
     description: "Finding for test",

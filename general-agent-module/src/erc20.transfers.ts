@@ -59,6 +59,6 @@ export default function provideERC20TransferAgent(
       .filterEvent(EVENT_SIGNATURE, tokenAddress)
       .map(fromLogToTransferInfo)
       .filter(filterTransferInfo)
-      .map((elem) => findingGenerator(txEvent));
+      .map((transferInfo) => findingGenerator(transferInfo));
   };
 }

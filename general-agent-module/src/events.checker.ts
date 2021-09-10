@@ -10,7 +10,7 @@ export default function provideEventCheckerHandler(
     const findings: Finding[] = [];
 
     if (txEvent.filterEvent(eventSignature, address).length > 0) {
-      findings.push(createFinding(txEvent));
+      findings.push(createFinding());
     }
 
     return findings;
