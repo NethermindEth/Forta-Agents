@@ -60,22 +60,127 @@ describe("ERC20 Transfer Agent Tests", () => {
   });
 
   it("should returns a finding only if the event has in the field `to` the correct address", async () => {
-    // handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS);
+    handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
+      to: createAddress("0x12"),
+    });
 
-    // const txEvent: TransactionEvent = createTransactionEventWithTransferLog(
-    //   "0x0",
-    //   createAddress("0x0"),
-    //   createAddress("0x0"),
-    //   "0"
-    // );
-    // const findings: Finding[] = await handleTransaction(txEvent);
+    const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x0"),
+      createAddress("0x0"),
+      "0"
+    );
+    let findings: Finding[] = await handleTransaction(txEvent1);
+    expect(findings).toStrictEqual([]);
 
-    // expect(findings).toStrictEqual([]);
+    const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x0"),
+      createAddress("0x12"),
+      "0"
+    );
+    findings = findings.concat(await handleTransaction(txEvent2));
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2)]);
   });
 
-  it("should returns a finding only if the event has in the field `from` the correct address", async () => {});
+  it("should returns a finding only if the event has in the field `from` the correct address", async () => {
+    handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
+      from: createAddress("0x12"),
+    });
 
-  it("should returns a finding only if the event has in the field `value` a value greater than the specified threshold", async () => {});
+    const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x0"),
+      createAddress("0x0"),
+      "0"
+    );
+    let findings: Finding[] = await handleTransaction(txEvent1);
+    expect(findings).toStrictEqual([]);
 
-  it("should returns a finding only if all the conditions are met", async () => {});
+    const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x12"),
+      createAddress("0x0"),
+      "0"
+    );
+    findings = findings.concat(await handleTransaction(txEvent2));
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2)]);
+  });
+
+  it("should returns a finding only if the event has in the field `value` a value greater than the specified threshold", async () => {
+    handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
+      amountThreshold: "350",
+    });
+
+    const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x0"),
+      createAddress("0x0"),
+      "300"
+    );
+    let findings: Finding[] = await handleTransaction(txEvent1);
+    expect(findings).toStrictEqual([]);
+
+    const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x12"),
+      createAddress("0x0"),
+      "350"
+    );
+    findings = findings.concat(await handleTransaction(txEvent2));
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2)]);
+
+    const txEvent3: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x12"),
+      createAddress("0x0"),
+      "360"
+    );
+    findings = findings.concat(await handleTransaction(txEvent2));
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2), generalTestFindingGenerator(txEvent3)]);
+  });
+
+  it("should returns a finding only if all the conditions are met", async () => {
+    handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
+      from: createAddress("0x1"),
+      to: createAddress("0x2"),
+      amountThreshold: "350",
+    });
+
+    const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x1"),
+      createAddress("0x2"),
+      "300"
+    );
+    let findings: Finding[] = await handleTransaction(txEvent1);
+    expect(findings).toStrictEqual([]);
+
+    const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x1"),
+      createAddress("0x0"),
+      "350"
+    );
+    findings = findings.concat(await handleTransaction(txEvent2));
+    expect(findings).toStrictEqual([]);
+
+    const txEvent3: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x3"),
+      createAddress("0x2"),
+      "360"
+    );
+    findings = findings.concat(await handleTransaction(txEvent3));
+    expect(findings).toStrictEqual([]);
+
+    const txEvent4: TransactionEvent = createTransactionEventWithTransferLog(
+      "0x0",
+      createAddress("0x1"),
+      createAddress("0x2"),
+      "360"
+    );
+    findings = findings.concat(await handleTransaction(txEvent4));
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent4)]);
+  });
 });

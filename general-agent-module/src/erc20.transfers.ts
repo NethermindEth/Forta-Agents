@@ -4,6 +4,12 @@ import { FindingGenerator } from "./utils";
 const EVENT_SIGNATURE = "Transfer(address,address,uint256)";
 
 type agentOptions = {
+    to?: string,
+    from?: string,
+    amountThreshold?: string,
+};
+
+type transferInfo = {
     to: string,
     from: string,
     amountThreshold: string,
