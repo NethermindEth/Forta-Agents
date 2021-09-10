@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createTxEventWithEventLogged, generalTestFindingGenerator, createAddress } from "./tests.utils";
 
 import Web3 from "web3";
-import provideERC20TransferAgent from "./events.checker";
+import provideERC20TransferAgent from "./erc20.transfers";
 
 const TOKEN_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 
