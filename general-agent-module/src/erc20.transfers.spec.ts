@@ -65,7 +65,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     });
 
     const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x0"),
       createAddress("0x0"),
       "0"
@@ -74,7 +74,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x0"),
       createAddress("0x12"),
       "0"
@@ -89,7 +89,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     });
 
     const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x0"),
       createAddress("0x0"),
       "0"
@@ -98,7 +98,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x12"),
       createAddress("0x0"),
       "0"
@@ -113,7 +113,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     });
 
     const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x0"),
       createAddress("0x0"),
       "300"
@@ -122,7 +122,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x12"),
       createAddress("0x0"),
       "350"
@@ -131,7 +131,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2)]);
 
     const txEvent3: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x12"),
       createAddress("0x0"),
       "360"
@@ -148,7 +148,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     });
 
     const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x1"),
       createAddress("0x2"),
       "300"
@@ -157,7 +157,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent2: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x1"),
       createAddress("0x0"),
       "350"
@@ -166,7 +166,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent3: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x3"),
       createAddress("0x2"),
       "360"
@@ -175,7 +175,7 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([]);
 
     const txEvent4: TransactionEvent = createTransactionEventWithTransferLog(
-      "0x0",
+      TOKEN_ADDRESS,
       createAddress("0x1"),
       createAddress("0x2"),
       "360"
