@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createTxEventWithEventLogged, generalTestFindingGenerator, createAddress } from "./tests.utils";
 
 import Web3 from "web3";
@@ -182,5 +182,36 @@ describe("ERC20 Transfer Agent Tests", () => {
     );
     findings = findings.concat(await handleTransaction(txEvent4));
     expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent4)]);
+  });
+
+  it("should pass correct metadata to findingGenerator", async () => {
+    const findingGenerator = (metadata: { [key: string]: any } | undefined): Finding => {
+      return Finding.fromObject({
+        name: "testName",
+        description: "testDescription",
+        alertId: "testId",
+        severity: FindingSeverity.Medium,
+        type: FindingType.Suspicious,
+        metadata: {
+          from: metadata?.from,
+          to: metadata?.to,
+          amount: metadata?.amount,
+        },
+      });
+    };
+    handleTransaction = provideERC20TransferAgent(findingGenerator, TOKEN_ADDRESS);
+
+    const txEvent: TransactionEvent = createTransactionEventWithTransferLog(
+      TOKEN_ADDRESS,
+      createAddress("0x1"),
+      createAddress("0x2"),
+      "300"
+    );
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      findingGenerator({ from: createAddress("0x1"), to: createAddress("0x2"), amount: "300" }),
+    ]);
   });
 });
