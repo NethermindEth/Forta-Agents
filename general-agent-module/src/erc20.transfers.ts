@@ -26,12 +26,26 @@ const fromLogToTransferInfo = (log: Log): transferInfo => {
   };
 };
 
-        if (txEvent.filterEvent(EVENT_SIGNATURE, tokenAddress).length > 0) {
-            findings.push(findingGenerator(txEvent));
-        }
+const createFilter = (options: agentOptions | undefined): ((transferInfo: transferInfo) => boolean) => {
+  if (options === undefined) {
+    return (_) => true;
+  }
 
-        return findings;
-    };
+  return (transferInfo) => {
+    if (options.from !== undefined && options.from !== transferInfo.from) {
+      return false;
+    }
+
+    if (options.to !== undefined && options.to !== transferInfo.to) {
+      return false;
+    }
+
+    if (options.amountThreshold !== undefined && options.amountThreshold > transferInfo.amount) {
+      return false;
+    }
+
+    return true;
+  };
 };
 
 export default function provideERC20TransferAgent(
