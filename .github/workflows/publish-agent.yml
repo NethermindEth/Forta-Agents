@@ -36,5 +36,5 @@ jobs:
           agent-directory: ${{ env.AGENT }}
           private-key-password: ${{ secrets.PRIVATE_KEY_PASSWORD }}
           goerli-endpoint: ${{ secrets.GOERLI_ENDPOINT }}
-          ipfs-endpoint: "https://ipfs.infura.io:5001"
+          ipfs-endpoint: ${{ secrets.IPFS_ENDPOINT }}
           ipfs-authorization: ${{ secrets.IPFS_AUTH }}
