@@ -8,16 +8,19 @@ export interface Counter{
   [key:string]: number,
 };
 
-export const reentracyLevel = (reentracyCount: number, thresholds: [number, FindingSeverity][]): [Boolean, FindingSeverity] => {
-  const isDangerousAndSeverity: [boolean, FindingSeverity] = [false, FindingSEverity.Unknown]
+export const reentracyLevel = (
+  reentracyCount: number, 
+  thresholds: [number, FindingSeverity][],
+
+): [Boolean, FindingSeverity] => {
+  let isDangerousAndSeverity: [boolean, FindingSeverity] = [false, FindingSeverity.Unknown];
   for(let i:number = 0; i < thresholds.length; i++){
     const [threshold, severity] = thresholds[i];
-    if(reentracyCount < threshold) {
-       break;
-    }
-    isDangerousAndSeverity = [threshold, severity];
+    if(reentracyCount < threshold) 
+      return isDangerousAndSeverity;
+    isDangerousAndSeverity = [true, severity];
   }
- return isDangerousAndSeverity;
+  return isDangerousAndSeverity;
 };
 
 export const createFinding = (
