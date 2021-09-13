@@ -7,7 +7,7 @@ import {
 import { FindingGenerator } from "./utils";
 import Web3 from "web3";
 
-const web3 = new Web3();
+const abi = new Web3().eth.abi;
 
 interface AgentOptions{
   from?: string;
@@ -48,7 +48,7 @@ const createFilter = (options: AgentOptions | undefined): Filter => {
     }
 
     if (options.functionSignature !== undefined) {
-      const expectedSelector: string = web3.eth.abi.encodeFunctionSignature(options.functionSignature);
+      const expectedSelector: string = abi.encodeFunctionSignature(options.functionSignature);
       const functionSelector: string = traceInfo.input.slice(0, 10);
       if(expectedSelector !== functionSelector)
         return false;
