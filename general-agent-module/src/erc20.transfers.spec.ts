@@ -1,5 +1,9 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-import { createTxEventWithEventLogged, generalTestFindingGenerator, createAddress } from "./tests.utils";
+import {
+  generalTestFindingGenerator,
+  createAddress,
+  TestTransactionEvent,
+} from "./tests.utils";
 
 import Web3 from "web3";
 import provideERC20TransferAgent from "./erc20.transfers";
@@ -16,7 +20,12 @@ const createTransactionEventWithTransferLog = (
   const fromTopic: string = web3.eth.abi.encodeParameter("address", from);
   const toTopic: string = web3.eth.abi.encodeParameter("address", to);
   const data: string = web3.eth.abi.encodeParameter("uint256", amount);
-  return createTxEventWithEventLogged("Transfer(address,address,uint256)", tokenAddress, [fromTopic, toTopic], data);
+  return new TestTransactionEvent().addEventLog(
+    "Transfer(address,address,uint256)",
+    tokenAddress,
+    [fromTopic, toTopic],
+    data
+  );
 };
 
 describe("ERC20 Transfer Agent Tests", () => {
@@ -24,7 +33,8 @@ describe("ERC20 Transfer Agent Tests", () => {
 
   it("should returns empty findings if the expected event wasn't emitted", async () => {
     handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS);
-    const txEvent: TransactionEvent = createTxEventWithEventLogged("badSignature", TOKEN_ADDRESS);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("badSignature", TOKEN_ADDRESS);
+
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
