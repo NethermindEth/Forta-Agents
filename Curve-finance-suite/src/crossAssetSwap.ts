@@ -19,14 +19,8 @@ abiDecoder.addABI(abi);
 
 export const web3 = new Web3();
 
-export const unkill = {
-  name: "unkill_me",
-  outputs: [],
-  inputs: [],
-  stateMutability: "nonpayable",
-  type: "function",
-  gas: 22195,
-};
+export const CrossChainSwap = "TokenUpdate(uint256,address, address, uint256)";
+
 const address = "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE";
 
 const handleTransaction: HandleTransaction = async (
@@ -36,18 +30,20 @@ const handleTransaction: HandleTransaction = async (
 
   if (!txEvent.addresses[address]) return findings;
 
-  const data = abiDecoder.decodeMethod(txEvent.transaction.data);
+  const filterFindings = txEvent.filterEvent(CrossChainSwap);
+  if (!filterFindings.length) return findings;
 
-  if (!data) return findings;
-
-  if (data.name === "unkill_me") {
+  if (filterFindings) {
     findings.push(
       Finding.fromObject({
-        name: "UnKill Me funciton called",
-        description: "UnKill Me funciton called on pool",
-        alertId: "NETHFORTA-24-1",
+        name: "CrossChainSwap Me funciton called",
+        description: "CrossChainSwap Me funciton called on pool",
+        alertId: "NETHFORTA-24-4",
         severity: FindingSeverity.Low,
         type: FindingType.Suspicious,
+        metadata: {
+          data: JSON.stringify(filterFindings),
+        },
       })
     );
   }

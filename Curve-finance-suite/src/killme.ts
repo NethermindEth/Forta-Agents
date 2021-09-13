@@ -10,7 +10,7 @@ import {
 } from "forta-agent";
 
 import Web3 from "web3";
-import abi from "./abi";
+import abi from "./stable-swap-abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";

@@ -10,7 +10,7 @@ import {
 } from "forta-agent";
 
 import Web3 from "web3";
-import abi from "./abi";
+import abi from "./stable-swap-abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -22,18 +22,6 @@ export const web3 = new Web3();
 export const RemoveLiquidityImbalance =
   "RemoveLiquidiityImbalance(address, uint256[3], uint256[3],uint256, uint256)";
 
-// export const RemoveLiquidityImbalance = {
-//   name: "RemoveLiquidityImbalance",
-//   inputs: [
-//     { type: "address", name: "provider", indexed: true },
-//     { type: "uint256[3]", name: "token_amounts", indexed: false },
-//     { type: "uint256[3]", name: "fees", indexed: false },
-//     { type: "uint256", name: "invariant", indexed: false },
-//     { type: "uint256", name: "token_supply", indexed: false },
-//   ],
-//   anonymous: false,
-//   type: "event",
-// };
 const address = "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE";
 
 const handleTransaction: HandleTransaction = async (
