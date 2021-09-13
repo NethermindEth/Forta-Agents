@@ -46,12 +46,12 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   });
 
   // Create findings if needed
-  addresses.forEach((addr: string) => {
+  for(const addr in maxReentrancyNumber){
     const maxCount: number = maxReentrancyNumber[addr]
     const [report, severity] = reentracyLevel(maxCount);
     if(report)
       findings.push(createFinding(addr, maxCount, severity));
-  });
+  };
 
   return findings;
 };
