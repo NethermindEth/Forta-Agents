@@ -1,10 +1,8 @@
 import Web3 from "web3";
 import {
   TransactionEvent,
-  Log,
   Network,
   EventType,
-  createTransactionEvent,
   Finding,
   FindingSeverity,
   FindingType,
@@ -14,29 +12,6 @@ import {
 } from "forta-agent";
 import { FindingGenerator } from "./utils";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
-
-export const createTxEventWithEventLogged = (
-  eventSignature: string,
-  address: string,
-  restTopics: string[] = [],
-  data: string = ""
-): TransactionEvent => {
-  const log: Log = {
-    address,
-    topics: [keccak256(eventSignature), ...restTopics],
-    data: data,
-  } as any;
-
-  return createTransactionEvent({
-    network: Network.MAINNET,
-    type: EventType.BLOCK,
-    block: {} as any,
-    transaction: {} as any,
-    receipt: {
-      logs: [log],
-    } as any,
-  });
-};
 
 export const generalTestFindingGenerator: FindingGenerator = (): Finding => {
   return Finding.fromObject({
