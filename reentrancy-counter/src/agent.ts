@@ -13,13 +13,11 @@ import {
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
-  if(txEvent.to === null) return findings;
-
   const maxReentrancyNumber: Counter = {};
   const currentCounter: Counter = {};
 
   // Add the addresses to the counters
-  const addresses: string[] = [txEvent.to];
+  const addresses: string[] = [];
   txEvent.traces.forEach((trace: Trace) => {
     addresses.push(trace.action.to);
   });
@@ -27,14 +25,13 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     maxReentrancyNumber[addr] = 1;
     currentCounter[addr] = 0;
   });
-  currentCounter[txEvent.to] = 1;
 
   const stack: string[] = [];
 
   // Review the traces stack
   txEvent.traces.forEach((trace: Trace) => {
     const curStack: number[] = trace.traceAddress;
-    while((stack.length !== 0) && (stack.length >= curStack.length)){
+    while(stack.length > curStack.length){
       // @ts-ignore
       const last: string = stack.pop();
       currentCounter[last] -= 1;
