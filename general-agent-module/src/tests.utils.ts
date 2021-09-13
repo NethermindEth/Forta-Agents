@@ -9,6 +9,7 @@ import {
   Receipt,
   Transaction,
   Block,
+  Trace,
 } from "forta-agent";
 import { FindingGenerator } from "./utils";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
@@ -93,6 +94,11 @@ export class TestTransactionEvent extends TransactionEvent {
 
   public addInvolvedAddress(address: string): TestTransactionEvent {
     this.addresses[address] = true;
+    return this;
+  }
+
+  public addTrace(trace: Trace): TestTransactionEvent {
+    this.traces.push(trace);
     return this;
   }
 }
