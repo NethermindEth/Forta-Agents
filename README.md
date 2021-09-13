@@ -25,3 +25,4 @@ Forta Agents proof of concepts from **Venice** team.
 - **Success txn with internal failures agent**: Detect transactions with internal failures.
 - **Yearn Strategy without call Harvest**:  Detects yearn strategies that haven't call harvest in too much time
 - **Tornado Cash 1**: Detects addresses that sent more than 100 eth into Tornado Cash in one day.
+- **Reentrancy Counter**: Detects transactions with multiples nested calls to the same contract.
