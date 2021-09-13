@@ -24,7 +24,6 @@ describe("ERC20 Transfer Agent Tests", () => {
 
   it("should returns empty findings if the expected event wasn't emitted", async () => {
     handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS);
-
     const txEvent: TransactionEvent = createTxEventWithEventLogged("badSignature", TOKEN_ADDRESS);
     const findings: Finding[] = await handleTransaction(txEvent);
 
