@@ -21,9 +21,7 @@ interface TraceInfo{
   input: string;
 };
 
-interface Filter{
-  (traceInfo: TraceInfo): boolean,
-};
+type Filter = (traceInfo: TraceInfo) => boolean,;
 
 const fromTraceActionToTraceInfo = (trace: Trace): TraceInfo => {
   return {

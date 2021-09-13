@@ -177,17 +177,17 @@ describe("Function calls detector Agent Tests", () => {
     handleTransaction = provideFunctionCallsDetectorAgent(
       findingGenerator, 
       { 
-        to: to,
-        from: from,
+        to,
+        from,
         functionSignature: signature,
       },
     );
 
     const txEvent: TransactionEvent =new TestTransactionEvent().addTrace({
       action: {
-        to: to,
-        from: from,
-        input: input,
+        to,
+        from,
+        input,
       },
     } as Trace);
 
@@ -195,9 +195,9 @@ describe("Function calls detector Agent Tests", () => {
 
     expect(findings).toStrictEqual([
       findingGenerator({ 
-        to: to, 
-        from: from, 
-        input: input 
+        to, 
+        from, 
+        input 
       }),
     ]);
   });

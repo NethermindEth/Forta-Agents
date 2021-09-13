@@ -85,9 +85,9 @@ export class TestTransactionEvent extends TransactionEvent {
     data: string = ""
   ): TestTransactionEvent {
     this.receipt.logs.push({
-      address: address,
+      address,
       topics: [keccak256(eventSignature), ...topics],
-      data: data,
+      data,
     } as any);
     return this;
   }
