@@ -12,7 +12,7 @@ const web3 = new Web3();
 interface AgentOptions{
   from?: string;
   to?: string;
-  functionSignature?: string;
+  functionSignature: string;
 };
 
 interface TraceInfo{
@@ -27,8 +27,8 @@ interface Filter{
 
 const fromTraceActionToTraceInfo = (trace: Trace): TraceInfo => {
   return {
-    to: trace.action.from,
-    from: trace.action.to,
+    to: trace.action.to,
+    from: trace.action.from,
     input: trace.action.input,
   };
 };
