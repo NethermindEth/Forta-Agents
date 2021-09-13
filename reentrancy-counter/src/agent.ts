@@ -2,13 +2,22 @@ import {
   Finding, 
   HandleTransaction, 
   TransactionEvent, 
-  Trace
+  Trace,
+  FindingSeverity,
 } from 'forta-agent';
 import {
   Counter,
   reentracyLevel,
   createFinding,
 } from './agent.utils';
+
+export const thresholds: [number, FindingSeverity][] = [
+  [3, FindingSeverity.Info],
+  [5, FindingSeverity.Low],
+  [7, FindingSeverity.Medium],
+  [9, FindingSeverity.High],
+  [11, FindingSeverity.Critical],
+];
 
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
@@ -48,7 +57,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   // Create findings if needed
   for(const addr in maxReentrancyNumber){
     const maxCount: number = maxReentrancyNumber[addr]
-    const [report, severity] = reentracyLevel(maxCount);
+    const [report, severity] = reentracyLevel(maxCount, thresholds);
     if(report)
       findings.push(createFinding(addr, maxCount, severity));
   };

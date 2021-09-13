@@ -9,7 +9,7 @@ import {
   TransactionEvent,
   TraceAction,
 } from "forta-agent";
-import agent from "./agent";
+import agent, { thresholds } from "./agent";
 import { createFinding, reentracyLevel } from "./agent.utils";
 
 const createTrace = (to: string, stack: number[]): Trace => {
@@ -71,7 +71,7 @@ describe("Reentrancy counter agent tests suit", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("Should detect different levels of reentrancy", async () => {
+    it("Should detect different thresholds of reentrancy", async () => {
       // 0x0, 0x1, 0x3, 0x5, 0x6 called less than 3 times
       // 0x2 called 3 times
       // 0x4 called 5 times
@@ -94,9 +94,9 @@ describe("Reentrancy counter agent tests suit", () => {
         createTrace("0x1", [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]),    //                       Calls 0x1
         createTrace("0x4", [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), //                         Calls 0x4       
       ]);
-      const [report0x1, severity0x1] = reentracyLevel(1);
-      const [report0x2, severity0x2] = reentracyLevel(3);
-      const [report0x4, severity0x4] = reentracyLevel(5);
+      const [report0x1, severity0x1] = reentracyLevel(1, thresholds);
+      const [report0x2, severity0x2] = reentracyLevel(3, thresholds);
+      const [report0x4, severity0x4] = reentracyLevel(5, thresholds);
       const expected: Finding[] = [];
       if(report0x1) 
         expected.push(createFinding("0x1", 1, severity0x1))
