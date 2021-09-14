@@ -1,9 +1,5 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-import {
-  generalTestFindingGenerator,
-  createAddress,
-  TestTransactionEvent,
-} from "./tests.utils";
+import { generalTestFindingGenerator, createAddress, TestTransactionEvent } from "./tests.utils";
 
 import Web3 from "web3";
 import provideERC20TransferAgent from "./erc20.transfers";

@@ -1,24 +1,19 @@
-import { 
-  Finding, 
-  HandleTransaction, 
-  TransactionEvent, 
-  Trace,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, Trace } from "forta-agent";
 import { FindingGenerator } from "./utils";
 import Web3 from "web3";
 
 const abi = new Web3().eth.abi;
 
-interface AgentOptions{
+interface AgentOptions {
   from?: string;
   to?: string;
-};
+}
 
-interface TraceInfo{
+interface TraceInfo {
   from: string;
   to: string;
   input: string;
-};
+}
 
 type Filter = (traceInfo: TraceInfo) => boolean;
 
@@ -36,16 +31,13 @@ const createFilter = (functionSignature: string, options: AgentOptions | undefin
   }
 
   return (traceInfo) => {
-    if (options.from !== undefined && options.from !== traceInfo.from) 
-      return false;
+    if (options.from !== undefined && options.from !== traceInfo.from) return false;
 
-    if (options.to !== undefined && options.to !== traceInfo.to)
-      return false;
+    if (options.to !== undefined && options.to !== traceInfo.to) return false;
 
     const expectedSelector: string = abi.encodeFunctionSignature(functionSignature);
     const functionSelector: string = traceInfo.input.slice(0, 10);
-    if(expectedSelector !== functionSelector)
-        return false;
+    if (expectedSelector !== functionSelector) return false;
 
     return true;
   };
