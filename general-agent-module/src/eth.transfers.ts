@@ -1,6 +1,8 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { FindingGenerator } from "./utils";
 
+const DEFAULT_THRESHOLD = "10000000000000000000";
+
 type agentOptions = {
   from?: string;
   to?: string;
@@ -19,6 +21,8 @@ export default function provideETHTransferAgent(
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    const valueThreshold: bigint =
+      agentOptions?.valueThreshold !== undefined ? BigInt(agentOptions.valueThreshold) : BigInt(DEFAULT_THRESHOLD);
 
     if (agentOptions?.from !== undefined && agentOptions?.from !== txEvent.from) {
       return findings;
@@ -28,7 +32,9 @@ export default function provideETHTransferAgent(
       return findings;
     }
 
-    if (agentOptions?.valueThreshold !== undefined && agentOptions?.valueThreshold !== txEvent.transaction.value) {
+    if (
+      valueThreshold < BigInt(txEvent.transaction.value)
+    ) {
       return findings;
     }
 
