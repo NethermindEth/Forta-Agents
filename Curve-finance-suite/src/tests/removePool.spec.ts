@@ -5,7 +5,10 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import provideAddPoolAgent, { ADD_POOL_SIGNATURE } from "../agents/addPool";
+import provideRemovePoolAgent, {
+  REMOVE_POOL_SIGNATURE,
+} from "../agents/removePool";
+
 import createTxEventWithLog from "../utils/createEventLog";
 
 const ADDRESS = "0X1111";
@@ -15,12 +18,12 @@ describe("Add Pool agent", () => {
   let handleTransactions: HandleTransaction;
 
   beforeAll(() => {
-    handleTransactions = provideAddPoolAgent(ALERT_ID, ADDRESS);
+    handleTransactions = provideRemovePoolAgent(ALERT_ID, ADDRESS);
   });
 
   it("should create a findings", async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
-      ADD_POOL_SIGNATURE,
+      REMOVE_POOL_SIGNATURE,
       ADDRESS
     );
 
@@ -28,8 +31,8 @@ describe("Add Pool agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Add Pool",
-        description: "New Pool Added",
+        name: "Remove Pool",
+        description: "Pool Removed",
         alertId: ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
