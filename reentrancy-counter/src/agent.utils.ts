@@ -30,7 +30,7 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentracyCount} calls to the same contract ocur`,
+    description: `${reentracyCount} calls to the same contract occured`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,
