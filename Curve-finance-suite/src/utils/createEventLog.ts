@@ -1,0 +1,24 @@
+import { TransactionEvent, Log, Network, EventType } from "forta-agent";
+import { createTransactionEvent, keccak256 } from "forta-agent/dist/sdk/utils";
+
+const createTxEventWithLog = (
+  eventSignature: string,
+  address: string
+): TransactionEvent => {
+  const log: Log = {
+    address,
+    topics: [keccak256(eventSignature)],
+  } as any;
+
+  return createTransactionEvent({
+    network: Network.MAINNET,
+    type: EventType.BLOCK,
+    block: {} as any,
+    transaction: {} as any,
+    receipt: {
+      logs: [log],
+    } as any,
+  });
+};
+
+export default createTxEventWithLog;
