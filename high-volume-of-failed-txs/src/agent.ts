@@ -29,7 +29,6 @@ export const createFinding = (addr: string, txns: string[]): Finding =>
     alertId: "NETHFORTA-3",
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
-    protocol: addr,
     metadata: {
       transactions: JSON.stringify(txns),
     },
