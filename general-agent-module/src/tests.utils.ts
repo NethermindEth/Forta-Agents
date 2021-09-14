@@ -14,6 +14,12 @@ import {
 import { FindingGenerator } from "./utils";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
 
+interface TraceProps{
+  to?: string,
+  from?: string,
+  input?: string,
+};
+
 export const generalTestFindingGenerator: FindingGenerator = (): Finding => {
   return Finding.fromObject({
     name: "Finding Test",
@@ -97,7 +103,18 @@ export class TestTransactionEvent extends TransactionEvent {
     return this;
   }
 
-  public addTrace(trace: Trace): TestTransactionEvent {
+  public addTrace({
+    to,
+    from,
+    input,
+  }: TraceProps): TestTransactionEvent {
+    const trace: Trace = {
+      action: {
+        to,
+        from, 
+        input,
+      },
+    } as Trace;
     this.traces.push(trace);
     return this;
   }
