@@ -29,8 +29,8 @@ describe("high gas agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "CrossChainSwap Me funciton called",
-        description: "CrossChainSwap Me funciton called on pool",
+        name: "CrossChainSwap funciton called",
+        description: "CrossChainSwap funciton called on pool",
         alertId: ALERT_ID,
         severity: FindingSeverity.Low,
         type: FindingType.Suspicious,

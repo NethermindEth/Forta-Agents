@@ -17,8 +17,8 @@ export const CROSSCHAINSWAPSIGNATURE =
 
 const createFinding = (alertID: string, address: string): Finding => {
   return Finding.fromObject({
-    name: "CrossChainSwap Me funciton called",
-    description: "CrossChainSwap Me funciton called on pool",
+    name: "CrossChainSwap funciton called",
+    description: "CrossChainSwap funciton called on pool",
     alertId: alertID,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
