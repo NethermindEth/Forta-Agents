@@ -20,25 +20,21 @@ export default function provideETHTransferAgent(
   agentOptions?: agentOptions
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
     const valueThreshold: bigint =
       agentOptions?.valueThreshold !== undefined ? BigInt(agentOptions.valueThreshold) : BigInt(DEFAULT_THRESHOLD);
 
     if (agentOptions?.from !== undefined && agentOptions?.from !== txEvent.from) {
-      return findings;
+      return [];
     }
 
     if (agentOptions?.to !== undefined && agentOptions?.to !== txEvent.to) {
-      return findings;
+      return [];
     }
 
-    if (
-      valueThreshold < BigInt(txEvent.transaction.value)
-    ) {
-      return findings;
+    if (valueThreshold > BigInt(txEvent.transaction.value)) {
+      return [];
     }
 
-    findings.push(findingGenerator({ from: txEvent.from, to: txEvent.to, value: txEvent.transaction.value }));
-    return findings;
+    return [findingGenerator({ from: txEvent.from, to: txEvent.to, value: txEvent.transaction.value })];
   };
 }
