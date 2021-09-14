@@ -30,7 +30,7 @@ describe("ETH Transfer Agent Tests", () => {
   });
 
   it("should returns empty findings if value is under specified threshold", async () => {
-    handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { value: toWei("100") });
+    handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { valueThreshold: toWei("100") });
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setValue(toWei("99"));
 
@@ -40,7 +40,7 @@ describe("ETH Transfer Agent Tests", () => {
   });
 
   it("should returns findings if value is equal or greater to specified threshold ", async () => {
-    handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { value: toWei("100") });
+    handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { valueThreshold: toWei("100") });
 
     const txEvent1: TransactionEvent = new TestTransactionEvent().setValue("100");
     let findings: Finding[] = await handleTransaction(txEvent1);
@@ -95,7 +95,7 @@ describe("ETH Transfer Agent Tests", () => {
     handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, {
       from: createAddress("0x12"),
       to: createAddress("0x13"),
-      value: toWei("50"),
+      valueThreshold: toWei("50"),
     });
 
     const txEvent1: TransactionEvent = new TestTransactionEvent().setValue(toWei("100")).setTo(createAddress("0x13"));
