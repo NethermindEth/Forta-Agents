@@ -19,11 +19,11 @@ describe("ETH Transfer Agent Tests", () => {
   it("should returns empty findings if no threshold was specified and transactions are 10 ETH or more", async () => {
     handleTransaction = provideETHTransferAgent(generalTestFindingGenerator);
 
-    const txEvent1: TransactionEvent = new TestTransactionEvent().setValue("10");
+    const txEvent1: TransactionEvent = new TestTransactionEvent().setValue(toWei("10"));
     let findings: Finding[] = await handleTransaction(txEvent1);
     expect(findings).toStrictEqual([generalTestFindingGenerator()]);
 
-    const txEvent2: TransactionEvent = new TestTransactionEvent().setValue("100");
+    const txEvent2: TransactionEvent = new TestTransactionEvent().setValue(toWei("100"));
     findings = await handleTransaction(txEvent2);
     expect(findings).toStrictEqual([generalTestFindingGenerator()]);
   });
@@ -41,11 +41,11 @@ describe("ETH Transfer Agent Tests", () => {
   it("should returns findings if value is equal or greater to specified threshold ", async () => {
     handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { valueThreshold: toWei("100") });
 
-    const txEvent1: TransactionEvent = new TestTransactionEvent().setValue("100");
+    const txEvent1: TransactionEvent = new TestTransactionEvent().setValue(toWei("100"));
     let findings: Finding[] = await handleTransaction(txEvent1);
     expect(findings).toStrictEqual([generalTestFindingGenerator()]);
 
-    const txEvent2: TransactionEvent = new TestTransactionEvent().setValue("1000");
+    const txEvent2: TransactionEvent = new TestTransactionEvent().setValue(toWei("1000"));
     findings = await handleTransaction(txEvent2);
     expect(findings).toStrictEqual([generalTestFindingGenerator()]);
   });
