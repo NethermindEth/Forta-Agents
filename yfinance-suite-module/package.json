@@ -27,6 +27,7 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "forta-agent": "0.0.14"
+    "forta-agent": "0.0.14",
+    "general-agents-module": "file:general-agents-module-1.0.0.tgz"
   }
 }
