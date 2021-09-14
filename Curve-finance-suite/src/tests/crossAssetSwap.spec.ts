@@ -2,26 +2,34 @@ import {
   Finding,
   HandleTransaction,
   createTransactionEvent,
+  FindingSeverity,
+  FindingType,
 } from "forta-agent";
-import agent, { web3, CrossChainSwap } from "./crossAssetSwap";
+import provideCrossAssetSwap, {
+  web3,
+  CROSSCHAINSWAPSIGNATURE,
+} from "../agents/crossAssetSwap";
+
+const ADDRESS = "0x1111";
+const ALERT_ID = "test";
 
 describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;
 
+  beforeAll(() => {
+    handleTransaction = provideCrossAssetSwap(ALERT_ID, ADDRESS);
+  });
+
   const createTxEvent = (event: any) =>
     createTransactionEvent({
       transaction: {} as any,
-      addresses: { "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE": true },
+      addresses: { ADDRESS: true },
       receipt: { logs: [event] } as any,
       block: {} as any,
     });
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
-  });
-
   it("create and send a tx with the tx event", async () => {
-    const topic = web3.eth.abi.encodeEventSignature(CrossChainSwap);
+    const topic = web3.eth.abi.encodeEventSignature(CROSSCHAINSWAPSIGNATURE);
     const event = {
       topics: [topic],
     };
@@ -31,13 +39,11 @@ describe("high gas agent", () => {
       Finding.fromObject({
         name: "CrossChainSwap Me funciton called",
         description: "CrossChainSwap Me funciton called on pool",
-        alertId: "NETHFORTA-24-4",
-        protocol: "ethereum",
-        severity: 2,
-        type: 2,
-        everestId: undefined,
+        alertId: ALERT_ID,
+        severity: FindingSeverity.Low,
+        type: FindingType.Suspicious,
         metadata: {
-          data: '[{"topics":["0x9f93cf34904cf7574290d700588e3c627086db9aeaf26df5e0cc123c62937bab"]}]',
+          address: ADDRESS,
         },
       }),
     ]);
