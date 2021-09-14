@@ -9,9 +9,16 @@ import {
   Receipt,
   Transaction,
   Block,
+  Trace,
 } from "forta-agent";
 import { FindingGenerator } from "./utils";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
+
+interface TraceProps{
+  to?: string,
+  from?: string,
+  input?: string,
+};
 
 export const generalTestFindingGenerator: FindingGenerator = (): Finding => {
   return Finding.fromObject({
@@ -84,15 +91,31 @@ export class TestTransactionEvent extends TransactionEvent {
     data: string = ""
   ): TestTransactionEvent {
     this.receipt.logs.push({
-      address: address,
+      address,
       topics: [keccak256(eventSignature), ...topics],
-      data: data,
+      data,
     } as any);
     return this;
   }
 
   public addInvolvedAddress(address: string): TestTransactionEvent {
     this.addresses[address] = true;
+    return this;
+  }
+
+  public addTrace({
+    to,
+    from,
+    input,
+  }: TraceProps): TestTransactionEvent {
+    const trace: Trace = {
+      action: {
+        to,
+        from, 
+        input,
+      },
+    } as Trace;
+    this.traces.push(trace);
     return this;
   }
 }
