@@ -1,7 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { FindingGenerator } from "./utils";
+import { FindingGenerator, toWei } from "./utils";
 
-const DEFAULT_THRESHOLD = "10000000000000000000";
+const DEFAULT_THRESHOLD = toWei("10");
 
 type agentOptions = {
   from?: string;
