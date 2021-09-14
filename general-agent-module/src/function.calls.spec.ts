@@ -22,7 +22,7 @@ describe("Function calls detector Agent Tests", () => {
   it("Should returns empty findings if the expected function wasn't called", async () => {
     handleTransaction = provideFunctionCallsDetectorAgent(
       generalTestFindingGenerator, 
-      { functionSignature: "Func()" },
+      "Func()",
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -35,11 +35,9 @@ describe("Function calls detector Agent Tests", () => {
     const signature: string = "Func()";
     const selector: string = abi.encodeFunctionSignature(signature);
     handleTransaction = provideFunctionCallsDetectorAgent(
-      generalTestFindingGenerator, 
-      { 
-        to: createAddress("0x0"),
-        functionSignature: signature,
-      },
+      generalTestFindingGenerator,
+      signature,
+      { to: createAddress("0x0") },
     );
 
     const txEvent1: TransactionEvent = new TestTransactionEvent().addTrace({
@@ -66,10 +64,8 @@ describe("Function calls detector Agent Tests", () => {
     const selector: string = abi.encodeFunctionSignature(signature);
     handleTransaction = provideFunctionCallsDetectorAgent(
       generalTestFindingGenerator, 
-      { 
-        from: createAddress("0x0"),
-        functionSignature: signature,
-      },
+      signature,
+      { from: createAddress("0x0") },
     );
 
     const txEvent1: TransactionEvent = new TestTransactionEvent().addTrace({
@@ -96,10 +92,10 @@ describe("Function calls detector Agent Tests", () => {
     const selector: string = abi.encodeFunctionSignature(signature);
     handleTransaction = provideFunctionCallsDetectorAgent(
       generalTestFindingGenerator, 
+      signature,
       { 
         from: createAddress("0x1"),
         to: createAddress("0x2"),
-        functionSignature: signature,
       },
     );
 
@@ -176,10 +172,10 @@ describe("Function calls detector Agent Tests", () => {
     const from: string = createAddress("0x2");
     handleTransaction = provideFunctionCallsDetectorAgent(
       findingGenerator, 
+      signature,
       { 
         to,
         from,
-        functionSignature: signature,
       },
     );
 

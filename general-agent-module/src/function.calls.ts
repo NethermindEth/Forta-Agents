@@ -12,7 +12,6 @@ const abi = new Web3().eth.abi;
 interface AgentOptions{
   from?: string;
   to?: string;
-  functionSignature: string;
 };
 
 interface TraceInfo{
@@ -21,7 +20,7 @@ interface TraceInfo{
   input: string;
 };
 
-type Filter = (traceInfo: TraceInfo) => boolean,;
+type Filter = (traceInfo: TraceInfo) => boolean;
 
 const fromTraceActionToTraceInfo = (trace: Trace): TraceInfo => {
   return {
@@ -31,26 +30,22 @@ const fromTraceActionToTraceInfo = (trace: Trace): TraceInfo => {
   };
 };
 
-const createFilter = (options: AgentOptions | undefined): Filter => {
+const createFilter = (functionSignature: string, options: AgentOptions | undefined): Filter => {
   if (options === undefined) {
     return (_) => true;
   }
 
   return (traceInfo) => {
-    if (options.from !== undefined && options.from !== traceInfo.from) {
+    if (options.from !== undefined && options.from !== traceInfo.from) 
       return false;
-    }
 
-    if (options.to !== undefined && options.to !== traceInfo.to) {
+    if (options.to !== undefined && options.to !== traceInfo.to)
       return false;
-    }
 
-    if (options.functionSignature !== undefined) {
-      const expectedSelector: string = abi.encodeFunctionSignature(options.functionSignature);
-      const functionSelector: string = traceInfo.input.slice(0, 10);
-      if(expectedSelector !== functionSelector)
+    const expectedSelector: string = abi.encodeFunctionSignature(functionSignature);
+    const functionSelector: string = traceInfo.input.slice(0, 10);
+    if(expectedSelector !== functionSelector)
         return false;
-    }
 
     return true;
   };
@@ -58,9 +53,10 @@ const createFilter = (options: AgentOptions | undefined): Filter => {
 
 export default function provideFunctionCallsDetectorAgent(
   findingGenerator: FindingGenerator,
+  functionSignature: string,
   agentOptions?: AgentOptions
 ): HandleTransaction {
-  const filterTransferInfo: Filter = createFilter(agentOptions);
+  const filterTransferInfo: Filter = createFilter(functionSignature, agentOptions);
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     return txEvent.traces
       .map(fromTraceActionToTraceInfo)
