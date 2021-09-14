@@ -67,13 +67,13 @@ describe("ETH Transfer Agent Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([]);
+    expect(findings).toStrictEqual([generalTestFindingGenerator()]);
   });
 
   it("should returns empty findings if transactions are not to specified address", async () => {
     handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { to: createAddress("0x12") });
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setValue(toWei("15")).setTo("0x13");
+    const txEvent: TransactionEvent = new TestTransactionEvent().setValue(toWei("15")).setTo(createAddress("0x13"));
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -83,11 +83,11 @@ describe("ETH Transfer Agent Tests", () => {
   it("should returns findings if transactions are to specified address", async () => {
     handleTransaction = provideETHTransferAgent(generalTestFindingGenerator, { to: createAddress("0x12") });
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setValue(toWei("15")).setTo("0x12");
+    const txEvent: TransactionEvent = new TestTransactionEvent().setValue(toWei("15")).setTo(createAddress("0x12"));
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([]);
+    expect(findings).toStrictEqual([generalTestFindingGenerator()]);
   });
 
   it("should returns findings only when all the specified conditions are met", async () => {
