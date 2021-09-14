@@ -36,4 +36,15 @@ describe("Add Pool agent", () => {
       }),
     ]);
   });
+
+  it("should return empty finding", async () => {
+    const txEvent: TransactionEvent = createTxEventWithLog(
+      "Wrong Signature",
+      "0x123"
+    );
+
+    const findings = await handleTransactions(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
 });
