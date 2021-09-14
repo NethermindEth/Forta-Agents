@@ -1,9 +1,10 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
+import { provideEventCheckerHandler, FindingGenerator } from "general-agents-module";
 
 const EVENT_SIGNATURE: string = "UpdateGuardian(address)";
 
-const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
-  return Finding.fromObject({
+const createFindingGenerator = (alertId: string, yearnVaultAddress: string): FindingGenerator => {
+  return () => Finding.fromObject({
     name: "Yearn Finance Updated Guardian",
     description: "Detects Updated Guardian event on the wathced Yearn Vault",
     alertId,
@@ -16,13 +17,5 @@ const createFinding = (alertId: string, yearnVaultAddress: string): Finding => {
 };
 
 export default function provideUpdatedGuardianAgent(yearnVaultAddress: string, alertId: string): HandleTransaction {
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
-    if (txEvent.filterEvent(EVENT_SIGNATURE, yearnVaultAddress).length > 0) {
-      findings.push(createFinding(alertId, yearnVaultAddress));
-    }
-
-    return findings;
-  };
+  return provideEventCheckerHandler(createFindingGenerator(alertId, yearnVaultAddress), EVENT_SIGNATURE, yearnVaultAddress);
 }
