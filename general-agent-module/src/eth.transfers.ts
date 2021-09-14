@@ -9,12 +9,6 @@ type agentOptions = {
   valueThreshold?: string;
 };
 
-type ethTransferInfo = {
-  from: string;
-  to: string;
-  value: string;
-};
-
 export default function provideETHTransferAgent(
   findingGenerator: FindingGenerator,
   agentOptions?: agentOptions
