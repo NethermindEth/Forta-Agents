@@ -14,7 +14,6 @@ import abi from "./stable-swap-abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
-
 abiDecoder.addABI(abi);
 
 export const web3 = new Web3();
@@ -27,35 +26,33 @@ export const unkill = {
   type: "function",
   gas: 22195,
 };
-const address = "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE";
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  if (!txEvent.addresses[address]) return findings;
-
-  const data = abiDecoder.decodeMethod(txEvent.transaction.data);
-
-  if (!data) return findings;
-
-  if (data.name === "unkill_me") {
-    findings.push(
-      Finding.fromObject({
-        name: "UnKill Me funciton called",
-        description: "UnKill Me funciton called on pool",
-        alertId: "NETHFORTA-24-1",
-        severity: FindingSeverity.Low,
-        type: FindingType.Suspicious,
-      })
-    );
-  }
-
-  return findings;
+const createFinding = (alertID: string): Finding => {
+  return Finding.fromObject({
+    name: "UnKill Me funciton called",
+    description: "UnKill Me funciton called on pool",
+    alertId: alertID,
+    severity: FindingSeverity.Low,
+    type: FindingType.Suspicious,
+  });
 };
 
-export default {
-  handleTransaction,
-  // handleBlock
-};
+export default function provideUnkillAgent(
+  alertID: string,
+  address: string
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    if (txEvent.addresses[address] == false) return findings;
+
+    const data = abiDecoder.decodeMethod(txEvent.transaction.data);
+    if (!data) return findings;
+
+    if (data.name === "unkill_me") {
+      findings.push(createFinding(alertID));
+    }
+
+    return findings;
+  };
+}

@@ -1,6 +1,4 @@
 import {
-  FindingType,
-  FindingSeverity,
   Finding,
   HandleTransaction,
   createTransactionEvent,

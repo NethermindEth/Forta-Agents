@@ -31,7 +31,7 @@ const createFinding = (alertID: string, address: string): Finding => {
   });
 };
 
-export default function provideCrossAssetSwap(
+export default function provideRemoveLiquidityImbalanceAgent(
   alertID: string,
   address: string
 ): HandleTransaction {

@@ -5,22 +5,25 @@ import {
   HandleTransaction,
   createTransactionEvent,
 } from "forta-agent";
-import agent, { web3, unkill } from "./unkill";
+import provideUnkillAgent, { web3, unkill } from "./unkill";
+
+const ADDRESS = "0x1111";
+const ALERTID = "test";
 
 describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;
 
+  beforeAll(() => {
+    handleTransaction = provideUnkillAgent(ALERTID, ADDRESS);
+  });
+
   const createTxEvent = (signature: string) =>
     createTransactionEvent({
       transaction: { data: signature } as any,
-      addresses: { "0xDeBF20617708857ebe4F679508E7b7863a8A8EeE": true },
+      addresses: { ADDRESS: true },
       receipt: {} as any,
       block: {} as any,
     });
-
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
-  });
 
   it("create and send a tx with the tx event", async () => {
     const signature = web3.eth.abi.encodeFunctionCall(unkill as any, []);
@@ -30,7 +33,7 @@ describe("high gas agent", () => {
       Finding.fromObject({
         name: "UnKill Me funciton called",
         description: "UnKill Me funciton called on pool",
-        alertId: "NETHFORTA-24-1",
+        alertId: ALERTID,
         protocol: "ethereum",
         severity: 2,
         type: 2,
