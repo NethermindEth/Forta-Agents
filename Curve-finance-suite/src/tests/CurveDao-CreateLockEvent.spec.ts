@@ -6,7 +6,7 @@ import {
 import providecreateLockAgent, {
   web3,
   createLock,
-} from "./CurveDao-CreateLockEvent";
+} from "../agents/CurveDao-CreateLockEvent";
 
 const ADDRESS = "0x1111";
 const ALERTID = "test";

@@ -7,7 +7,7 @@ import {
 } from "forta-agent";
 
 import Web3 from "web3";
-import abi from "./curve-dao-abi";
+import abi from "../utils/curve-dao-abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
