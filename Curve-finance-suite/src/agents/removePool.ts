@@ -6,19 +6,19 @@ import {
   HandleTransaction,
 } from "forta-agent";
 
-export const ADD_POOL_SIGNATURE = "PoolAdded(address,bytes)";
+export const REMOVE_POOL_SIGNATURE = "PoolRemoved(address)";
 
 export const createFinding = (alertID: string, address: string) => {
   return Finding.fromObject({
-    name: "Add Pool",
-    description: "New Pool Added",
+    name: "Remove Pool",
+    description: "Pool Removed",
     alertId: alertID,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,
   });
 };
 
-const provideAddPoolAgent = (
+const provideRemovePoolAgent = (
   alertID: string,
   address: string
 ): HandleTransaction => {
@@ -26,11 +26,11 @@ const provideAddPoolAgent = (
     const findings: Finding[] = [];
     if (TextEvent.addresses[address] == false) return findings;
 
-    if (TextEvent.filterEvent(ADD_POOL_SIGNATURE, address).length > 0) {
+    if (TextEvent.filterEvent(REMOVE_POOL_SIGNATURE, address).length > 0) {
       findings.push(createFinding(alertID, address));
     }
     return findings;
   };
 };
 
-export default provideAddPoolAgent;
+export default provideRemovePoolAgent;
