@@ -18,11 +18,11 @@ export const web3 = new Web3();
 export const CROSSCHAINSWAPSIGNATURE =
   "TokenUpdate(uint256,address, address, uint256)";
 
-const createFinding = (alertId: string, address: string): Finding => {
+const createFinding = (alertID: string, address: string): Finding => {
   return Finding.fromObject({
     name: "CrossChainSwap Me funciton called",
     description: "CrossChainSwap Me funciton called on pool",
-    alertId: alertId,
+    alertId: alertID,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
