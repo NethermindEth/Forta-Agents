@@ -1,7 +1,7 @@
-import provideCrossAssetSwap from "./crossAssetSwap";
-import provideKillMeAgent from "./killme";
-import provideRemoveLiquidityImbalanceAgent from "./removeImbalanceLiquidity";
-import provideUnkillAgent from "./unkill";
+import provideCrossAssetSwap from "./agents/crossAssetSwap";
+import provideKillMeAgent from "./agents/killme";
+import provideRemoveLiquidityImbalanceAgent from "./agents/removeImbalanceLiquidity";
+import provideUnkillAgent from "./agents/unkill";
 
 export {
   provideCrossAssetSwap,

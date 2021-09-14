@@ -7,7 +7,7 @@ import {
 } from "forta-agent";
 
 import Web3 from "web3";
-import abi from "./stable-swap-abi";
+import abi from "../utils/stable-swap-abi";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -15,26 +15,26 @@ abiDecoder.addABI(abi);
 
 export const web3 = new Web3();
 
-export const killme = {
-  name: "kill_me",
+export const unkill = {
+  name: "unkill_me",
   outputs: [],
   inputs: [],
   stateMutability: "nonpayable",
   type: "function",
-  gas: 38058,
+  gas: 22195,
 };
 
-const createFinding = (alertId: string): Finding => {
+const createFinding = (alertID: string): Finding => {
   return Finding.fromObject({
-    name: "Kill Me funciton called",
-    description: "Kill Me funciton called on pool",
-    alertId: alertId,
+    name: "UnKill Me funciton called",
+    description: "UnKill Me funciton called on pool",
+    alertId: alertID,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
   });
 };
 
-export default function provideKillMeAgent(
+export default function provideUnkillAgent(
   alertID: string,
   address: string
 ): HandleTransaction {
@@ -46,7 +46,7 @@ export default function provideKillMeAgent(
     const data = abiDecoder.decodeMethod(txEvent.transaction.data);
     if (!data) return findings;
 
-    if (data.name === "kill_me") {
+    if (data.name === "unkill_me") {
       findings.push(createFinding(alertID));
     }
 

@@ -3,7 +3,7 @@ import {
   HandleTransaction,
   createTransactionEvent,
 } from "forta-agent";
-import provideUnkillAgent, { web3, unkill } from "./unkill";
+import provideKillMeAgent, { web3, killme } from "../agents/killme";
 
 const ADDRESS = "0x1111";
 const ALERTID = "test";
@@ -12,7 +12,7 @@ describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideUnkillAgent(ALERTID, ADDRESS);
+    handleTransaction = provideKillMeAgent(ALERTID, ADDRESS);
   });
 
   const createTxEvent = (signature: string) =>
@@ -24,13 +24,13 @@ describe("high gas agent", () => {
     });
 
   it("create and send a tx with the tx event", async () => {
-    const signature = web3.eth.abi.encodeFunctionCall(unkill as any, []);
+    const signature = web3.eth.abi.encodeFunctionCall(killme as any, []);
     const tx = createTxEvent(signature);
     const findings = await handleTransaction(tx);
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "UnKill Me funciton called",
-        description: "UnKill Me funciton called on pool",
+        name: "Kill Me funciton called",
+        description: "Kill Me funciton called on pool",
         alertId: ALERTID,
         protocol: "ethereum",
         severity: 2,

@@ -2,22 +2,20 @@ import {
   Finding,
   HandleTransaction,
   createTransactionEvent,
-  FindingSeverity,
-  FindingType,
 } from "forta-agent";
-import provideCrossAssetSwap, {
+import provideRemoveLiquidityImbalanceAgent, {
   web3,
-  CROSSCHAINSWAPSIGNATURE,
-} from "./crossAssetSwap";
+  REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE,
+} from "../agents/removeImbalanceLiquidity";
 
 const ADDRESS = "0x1111";
-const ALERT_ID = "test";
+const ALERTID = "test";
 
 describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideCrossAssetSwap(ALERT_ID, ADDRESS);
+    handleTransaction = provideRemoveLiquidityImbalanceAgent(ALERTID, ADDRESS);
   });
 
   const createTxEvent = (event: any) =>
@@ -29,7 +27,9 @@ describe("high gas agent", () => {
     });
 
   it("create and send a tx with the tx event", async () => {
-    const topic = web3.eth.abi.encodeEventSignature(CROSSCHAINSWAPSIGNATURE);
+    const topic = web3.eth.abi.encodeEventSignature(
+      REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE
+    );
     const event = {
       topics: [topic],
     };
@@ -37,13 +37,15 @@ describe("high gas agent", () => {
     const findings = await handleTransaction(tx);
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "CrossChainSwap Me funciton called",
-        description: "CrossChainSwap Me funciton called on pool",
-        alertId: ALERT_ID,
-        severity: FindingSeverity.Low,
-        type: FindingType.Suspicious,
+        name: "RemoveLiquidityImbalance Me funciton called",
+        description: "RemoveLiquidityImbalance Me funciton called on pool",
+        alertId: ALERTID,
+        protocol: "ethereum",
+        severity: 2,
+        type: 2,
+        everestId: undefined,
         metadata: {
-          address: ADDRESS,
+          data: ADDRESS,
         },
       }),
     ]);
