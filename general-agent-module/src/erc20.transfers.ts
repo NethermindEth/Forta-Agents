@@ -40,7 +40,7 @@ const createFilter = (options: agentOptions | undefined): ((transferInfo: transf
       return false;
     }
 
-    if (options.amountThreshold !== undefined && options.amountThreshold > transferInfo.amount) {
+    if (options.amountThreshold !== undefined && BigInt(options.amountThreshold) > BigInt(transferInfo.amount)) {
       return false;
     }
 
