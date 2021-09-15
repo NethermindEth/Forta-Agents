@@ -13,7 +13,7 @@ import createTxEventWithLog from "../utils/createEventLog";
 const ADDRESS = "0x1212";
 const ALERT_ID = "test";
 
-describe("high gas agent", () => {
+describe("Cross Swap Agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
