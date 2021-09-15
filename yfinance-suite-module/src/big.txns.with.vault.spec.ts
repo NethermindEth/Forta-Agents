@@ -156,6 +156,4 @@ describe("Yearn Vault Big Transactions", () => {
 
     expect(finding).toStrictEqual([generateFinding(false, toWei("10")), generateFinding(true, toWei("10"))]);
   });
-
-  it("", async () => {});
 });
