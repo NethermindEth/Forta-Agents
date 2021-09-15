@@ -145,6 +145,21 @@ describe("ERC20 Transfer Agent Tests", () => {
     expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent2), generalTestFindingGenerator(txEvent3)]);
   });
 
+  it("should not compare thresholds using lexicographic order", async () => {
+    handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
+      amountThreshold: "10",
+    });
+
+    const txEvent1: TransactionEvent = createTransactionEventWithTransferLog(
+      TOKEN_ADDRESS,
+      createAddress("0x0"),
+      createAddress("0x0"),
+      "2"
+    );
+    let findings: Finding[] = await handleTransaction(txEvent1);
+    expect(findings).toStrictEqual([]);
+  });
+
   it("should returns a finding only if all the conditions are met", async () => {
     handleTransaction = provideERC20TransferAgent(generalTestFindingGenerator, TOKEN_ADDRESS, {
       from: createAddress("0x1"),
