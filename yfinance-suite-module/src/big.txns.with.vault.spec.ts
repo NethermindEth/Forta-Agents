@@ -60,9 +60,35 @@ describe("Yearn Vault Big Transactions", () => {
     expect(finding).toStrictEqual([]);
   });
 
-  it("should returns empty findings if the ERC20 event is not from the underlying asset", async () => {});
+  it("should returns empty findings if the ERC20 event is not from the underlying asset", async () => {
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
 
-  it("should returns empy findings if the ERC20 trasnfer is not realted with the Vault", async () => {});
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      "Transfer(address,address,uint256)",
+      createAddress("0x141414"),
+      [encodeParameter("address", createAddress("0x0")), encodeParameter("address", TEST_VAULT_ADDR)],
+      encodeParameter("uint256", toWei("11")),
+    );
+
+    const finding: Finding[] = await handleTransaction(txEvent);
+
+    expect(finding).toStrictEqual([]);
+  });
+
+  it("should returns empy findings if the ERC20 trasnfer is not related with the Vault", async () => {
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      "Transfer(address,address,uint256)",
+      TEST_VAULT_UNDERLYING_TOKEN,
+      [encodeParameter("address", createAddress("0x0")), encodeParameter("address", createAddress("0x141414"))],
+      encodeParameter("uint256", toWei("11")),
+    );
+
+    const finding: Finding[] = await handleTransaction(txEvent);
+
+    expect(finding).toStrictEqual([]);
+  });
 
   it("should returns a finding if the ERC20 transfer is going into the Vault", async () => {
     handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
@@ -79,13 +105,57 @@ describe("Yearn Vault Big Transactions", () => {
     expect(finding).toStrictEqual([generateFinding(false, toWei("10"))]);
   });
 
-  it("should returns a finding if the ERC20 transfer is from the Vault", async () => {});
+  it("should returns a finding if the ERC20 transfer is from the Vault", async () => {
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
 
-  it("should returns empty finding if the ERC20 transfer is below the threshold", async () => {});
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      "Transfer(address,address,uint256)",
+      TEST_VAULT_UNDERLYING_TOKEN,
+      [encodeParameter("address", TEST_VAULT_ADDR), encodeParameter("address", createAddress("0x0"))],
+      encodeParameter("uint256", toWei("11")),
+    );
 
-  it("should returns a finding if the ERC20 is above the threshold", async () => {});
+    const finding: Finding[] = await handleTransaction(txEvent);
 
-  it("should returns multiple findings if there are multiple ERC20 trasnfer from or to the Vault", async () => {});
+    expect(finding).toStrictEqual([generateFinding(true, toWei("10"))]);
+  });
+
+  it("should returns empty finding if the ERC20 transfer is below the threshold", async () => {
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      "Transfer(address,address,uint256)",
+      TEST_VAULT_UNDERLYING_TOKEN,
+      [encodeParameter("address", TEST_VAULT_ADDR), encodeParameter("address", createAddress("0x0"))],
+      encodeParameter("uint256", toWei("8")),
+    );
+
+    const finding: Finding[] = await handleTransaction(txEvent);
+
+    expect(finding).toStrictEqual([]);
+  });
+
+  it("should returns multiple findings if there are multiple ERC20 trasnfer from or to the Vault", async () => {
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        "Transfer(address,address,uint256)",
+        TEST_VAULT_UNDERLYING_TOKEN,
+        [encodeParameter("address", TEST_VAULT_ADDR), encodeParameter("address", createAddress("0x0"))],
+        encodeParameter("uint256", toWei("20")),
+      )
+      .addEventLog(
+        "Transfer(address,address,uint256)",
+        TEST_VAULT_UNDERLYING_TOKEN,
+        [encodeParameter("address", createAddress("0x0")), encodeParameter("address", TEST_VAULT_ADDR)],
+        encodeParameter("uint256", toWei("20")),
+      );
+
+    const finding: Finding[] = await handleTransaction(txEvent);
+
+    expect(finding).toStrictEqual([generateFinding(false, toWei("10")), generateFinding(true, toWei("10"))]);
+  });
 
   it("", async () => {});
 });
