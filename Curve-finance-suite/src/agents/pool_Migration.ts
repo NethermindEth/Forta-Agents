@@ -5,6 +5,7 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
+
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
@@ -15,10 +16,10 @@ export const MIGRATE_POOL_SIG = "migrate_to_new_pool(address,address,uint256)";
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     return Finding.fromObject({
-      name: "Finding Test",
-      description: "Finding for test",
+      name: "Pool Migration Finding",
+      description: "Pool migrated to new address",
       alertId: alertId,
-      severity: FindingSeverity.Low,
+      severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata,
     });
