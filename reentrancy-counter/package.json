@@ -1,23 +1,23 @@
 {
   "name": "forta-agent-starter",
-  "version": "0.0.8",
-  "agentId": "nethforta-3",
+  "version": "0.0.1",
+  "agentId": "nethforta-25",
   "description": "Forta Agent Typescript starter project",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
     "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec 'npm run build && forta-agent run'",
     "start:prod": "forta-agent run --prod",
-    "tx": "forta-agent run --tx",
-    "block": "forta-agent run --block",
-    "range": "forta-agent run --range",
-    "file": "forta-agent run --file",
+    "tx": "npm run build && forta-agent run --tx",
+    "block": "npm run build && forta-agent run --block",
+    "range": "npm run build && forta-agent run --range",
+    "file": "npm run build && forta-agent run --file",
     "publish": "forta-agent publish",
     "test": "jest"
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.13"
+    "forta-agent": "^0.0.15"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
