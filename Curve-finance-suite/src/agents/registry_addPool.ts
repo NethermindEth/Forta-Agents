@@ -8,7 +8,7 @@ import {
 
 export const ADD_POOL_SIGNATURE = "PoolAdded(address,bytes)";
 
-export const createFinding = (alertID: string, address: string) => {
+export const createFinding = (alertID: string) => {
   return Finding.fromObject({
     name: "Add Pool",
     description: "New Pool Added",
@@ -27,7 +27,7 @@ const provideAddPoolAgent = (
     if (TextEvent.addresses[address] == false) return findings;
 
     if (TextEvent.filterEvent(ADD_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding(alertID, address));
+      findings.push(createFinding(alertID));
     }
     return findings;
   };
