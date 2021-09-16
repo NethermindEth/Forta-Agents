@@ -3,19 +3,20 @@ import {
   HandleTransaction,
   createTransactionEvent,
 } from "forta-agent";
-import provideclaimManyAgent, {
+import providesetRewardsAgent, {
   web3,
-  claimMany,
-} from "../agents/Curve-Dao-ClaimMany";
+  setRewards,
+} from "../agents/Curve-Gauge-SetRewards";
 
 const ADDRESS = "0x1111";
-const ALERTID = "NETHFORTA-21-8";
+const PAYOUTADDRESS = "0x5C34E725CcA657F02C1D81fb16142F6F0067689b";
+const ALERTID = "NETHFORTA-21-7";
 
 describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideclaimManyAgent(ALERTID, ADDRESS);
+    handleTransaction = providesetRewardsAgent(ALERTID, ADDRESS);
   });
 
   const createTxEvent = (signature: string) =>
@@ -27,19 +28,19 @@ describe("high gas agent", () => {
     });
 
   it("create and send a tx with the tx event", async () => {
-    const signature = web3.eth.abi.encodeFunctionCall(claimMany as any, [
-      [...Array(20)].map(
+    const signature = web3.eth.abi.encodeFunctionCall(setRewards as any, [
+      PAYOUTADDRESS,
+      "0x",
+      [...Array(8)].map(
         (_, i) => "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
       ) as any,
     ]);
-
     const tx = createTxEvent(signature);
     const findings = await handleTransaction(tx);
-
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Claim Rewards funciton called",
-        description: "Claim Rewards funciton called on pool",
+        name: "Set Rewards funciton called",
+        description: "Set Rewards funciton called on pool",
         alertId: ALERTID,
         protocol: "ethereum",
         severity: 2,
