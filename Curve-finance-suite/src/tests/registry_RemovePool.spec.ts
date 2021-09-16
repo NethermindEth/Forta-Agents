@@ -7,7 +7,7 @@ import {
 } from "forta-agent";
 import provideRemovePoolAgent, {
   REMOVE_POOL_SIGNATURE,
-} from "../agents/removePool";
+} from "../agents/registry_RemovePool";
 
 import createTxEventWithLog from "../utils/createEventLog";
 

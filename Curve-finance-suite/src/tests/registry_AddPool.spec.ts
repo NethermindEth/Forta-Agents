@@ -5,7 +5,9 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import provideAddPoolAgent, { ADD_POOL_SIGNATURE } from "../agents/addPool";
+import provideAddPoolAgent, {
+  ADD_POOL_SIGNATURE,
+} from "../agents/registry_addPool";
 import createTxEventWithLog from "../utils/createEventLog";
 
 const ADDRESS = "0X1111";
