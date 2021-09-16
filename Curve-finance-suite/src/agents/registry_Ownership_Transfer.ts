@@ -39,7 +39,7 @@ const provideCommitNewAdminEvent = (
 
     TextEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map(
       (log: Log) => {
-        const newOwner: string = addHexPrefix(log.topics[2].slice(26));
+        const newOwner: string = addHexPrefix(log.topics[2]);
         findings.push(createFinding(alertID, newOwner));
       }
     );

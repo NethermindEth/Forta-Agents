@@ -3,11 +3,12 @@ import { createTransactionEvent, keccak256 } from "forta-agent/dist/sdk/utils";
 
 const createTxEventWithLog = (
   eventSignature: string,
-  address: string
+  address: string,
+  args: any = []
 ): TransactionEvent => {
   const log: Log = {
     address,
-    topics: [keccak256(eventSignature)],
+    topics: [keccak256(eventSignature), ...args],
   } as any;
 
   return createTransactionEvent({
