@@ -8,6 +8,7 @@ import {
 } from "forta-agent";
 import Web3 from "web3";
 import provideMıgratePoolAgent from "../agents/pool_Migration";
+import { createAddress } from "general-agents-module";
 
 const abi = new Web3().eth.abi;
 const ADDRESS = "0X1111";
@@ -32,10 +33,6 @@ const createTxEvent = (data: TraceInfo[]): TransactionEvent => {
 
   const txn: TransactionEvent = { traces } as TransactionEvent;
   return txn;
-};
-
-const createAddress = (suffix: string): string => {
-  return Web3.utils.leftPad(suffix, 40);
 };
 
 describe("Pool Migration Agent", () => {
@@ -70,7 +67,7 @@ describe("Pool Migration Agent", () => {
       },
       [_old_pool, _new_pool, "1000"]
     );
-    console.log(_input);
+
     const txEvent: TransactionEvent = createTxEvent([
       { input: _input, to: ADDRESS, from: _from },
     ]);
