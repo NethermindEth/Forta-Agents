@@ -1,48 +1,89 @@
 import {
-  FindingType,
-  FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  TransactionEvent,
+} from "forta-agent";
+import agent, {
+  YFI_ADDRESS,
+  createFinding,
+} from "./agent";
+import {
+  createAddress,
+  TestTransactionEvent,
+} from 'general-agents-module';
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+import Web3 from 'web3';
+import { AbiCoder } from 'web3-eth-abi';
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const abi: AbiCoder = new Web3().eth.abi;
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const createMetadata = (
+  from: string,
+  newOwner:string, 
+  to: string = YFI_ADDRESS
+): any => {
+  return {
+    from: from,
+    to: to,
+    input: abi.encodeFunctionCall({
+      name: 'setGovernance',
+      type: 'function',
+      inputs: [{
+        type: 'address',
+        name: 'owner',
+      }],
+    }, [newOwner]),
+  };
+};
+
+describe("YFI governance changes agent tests suit", () => {
+  let handleTransaction: HandleTransaction = agent.handleTransaction;
 
   describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+    it("Should return empty findings if no governance change occured", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(txEvent)
+      const findings: Finding[] = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([])
-    })
+    });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    it("Should ignore governance changes not in YFI", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .addTrace(createMetadata(
+          createAddress("0x1"),
+          createAddress("0x2"),
+          createAddress("0xdead"),
+        ))
+        .addTrace(createMetadata(
+          createAddress("0x3"),
+          createAddress("0x4"),
+          createAddress("0x0"),
+        ));
 
-      const findings = await handleTransaction(txEvent)
+      const findings: Finding[] = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([])
+    });
+
+    it("Should detect governance changes", async () => {
+      const meta1 = createMetadata(
+        createAddress("0x1"), 
+        createAddress("0x2"),
+      );
+      const meta2 = createMetadata(
+        createAddress("0x2"), 
+        createAddress("0x3"),
+      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .addTrace(meta1).addTrace(meta2);
+
+      const findings: Finding[] = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
+        createFinding(meta1),
+        createFinding(meta2),
       ])
-    })
-  })
-})
+    });
+  });
+});
