@@ -5,12 +5,12 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import provideRemovePoolAgent, { RAMPSIGNATURE } from "../agents/ramp";
+import provideRemovePoolAgent, { RAMPSIGNATURE } from "../agents/stopRamp";
 
 import createTxEventWithLog from "../utils/createEventLog";
 
 const ADDRESS = "0X1111";
-const ALERT_ID = "NETHFORTA-21-9";
+const ALERT_ID = "NETHFORTA-21-10";
 
 describe("Add Pool agent", () => {
   let handleTransactions: HandleTransaction;
@@ -29,8 +29,8 @@ describe("Add Pool agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Ramp",
-        description: "Ramp Called",
+        name: "Stop Ramp",
+        description: "Stop Ramp Called",
         alertId: ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
