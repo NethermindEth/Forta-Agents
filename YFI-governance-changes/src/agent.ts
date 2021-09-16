@@ -16,9 +16,9 @@ export const YFI_GOVERNANCE_SIGNATURE: string = "setGovernance(address)";
 export const YFI_ADDRESS: string = "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e";
 const abi: AbiCoder = new Web3().eth.abi;
 
-const createFinding: FindingGenerator = (metadata: { [key: string]: any } | undefined): Finding => {
+export const createFinding: FindingGenerator = (metadata: { [key: string]: any } | undefined): Finding => {
   const input: string = metadata?.input;
-  const addr: string = abi.decodeParameter(['address'], input.slice(10))[0];
+  const addr: string = abi.decodeParameter('address', input.slice(10))[0];
   return Finding.fromObject({
     name: "YFI Governance address changed",
     description: `New owner is (${addr})`,
