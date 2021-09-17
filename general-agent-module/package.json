@@ -1,5 +1,5 @@
 {
-  "name": "general-agents-module",
+  "name": "@nethermind_devops/general-agents-module",
   "version": "1.0.0",
   "description": "Forta Agents for common approaches",
   "main": "lib/index.js",
@@ -15,8 +15,8 @@
     "lint-fix": "tslint -p tsconfig.json --fix"
   },
   "keywords": [],
-  "author": "",
-  "license": "MIT",
+  "author": "Nethermind",
+  "license": "GPL-3.0",
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "jest": "^27.1.0",
@@ -28,5 +28,19 @@
   },
   "dependencies": {
     "forta-agent": "0.0.14"
-  }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/nethermind_devops"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/NethermindEth/Forta-Agents.git"
+  },
+  "bugs": {
+    "url": "https://github.com/NethermindEth/Forta-Agents/issues"
+  },
+  "homepage": "https://github.com/NethermindEth/Forta-Agents#readme"
 }
