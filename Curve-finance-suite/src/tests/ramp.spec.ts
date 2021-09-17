@@ -5,7 +5,7 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import provideRemovePoolAgent, { RAMPSIGNATURE } from "../agents/ramp";
+import provideRampAgent, { RAMPSIGNATURE } from "../agents/ramp";
 
 import createTxEventWithLog from "../utils/createEventLog";
 
@@ -16,7 +16,7 @@ describe("Add Pool agent", () => {
   let handleTransactions: HandleTransaction;
 
   beforeAll(() => {
-    handleTransactions = provideRemovePoolAgent(ALERT_ID, ADDRESS);
+    handleTransactions = provideRampAgent(ALERT_ID, ADDRESS);
   });
 
   it("should create a findings", async () => {

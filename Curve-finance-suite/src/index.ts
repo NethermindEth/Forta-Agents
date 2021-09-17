@@ -9,6 +9,11 @@ import providecreateLockAgent from "./agents/CurveDao-CreateLockEvent";
 import providesetKilledAgent from "./agents/Curve-dao-KillingGauge";
 import providesetRewardsAgent from "./agents/Curve-Gauge-SetRewards";
 import provideCommitNewAdminEvent from "./agents/addressProvider_Ownership_Transfer";
+import provideclaimManyAgent from "./agents/Curve-Dao-ClaimMany";
+import provideMıgratePoolAgent from "./agents/pool_Migration";
+import provideApplyNewFeesAgent from "./agents/applyNewFee";
+import provideRampAgent from "./agents/ramp";
+import provideStompRampAgent from "./agents/stopRamp";
 
 export {
   provideCrossAssetSwap,
@@ -22,4 +27,9 @@ export {
   providecreateLockAgent,
   providesetRewardsAgent,
   provideCommitNewAdminEvent,
+  provideMıgratePoolAgent,
+  provideclaimManyAgent,
+  provideApplyNewFeesAgent,
+  provideRampAgent,
+  provideStompRampAgent,
 };

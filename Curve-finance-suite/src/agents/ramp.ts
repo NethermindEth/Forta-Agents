@@ -18,7 +18,7 @@ export const createFinding = (alertID: string, address: string) => {
   });
 };
 
-const provideRemovePoolAgent = (
+const provideRampAgent = (
   alertID: string,
   address: string
 ): HandleTransaction => {
@@ -33,4 +33,4 @@ const provideRemovePoolAgent = (
   };
 };
 
-export default provideRemovePoolAgent;
+export default provideRampAgent;
