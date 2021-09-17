@@ -5,29 +5,32 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import provideApplyNewFeesAgent, { NEWFEE } from "../agents/applyNewFee";
+import provideRampAgent, { RAMPSIGNATURE } from "../agents/ramp";
 
 import createTxEventWithLog from "../utils/createEventLog";
 
 const ADDRESS = "0X1111";
-const ALERT_ID = "NETHFORTA-21-11";
+const ALERT_ID = "NETHFORTA-21-9";
 
 describe("Add Pool agent", () => {
   let handleTransactions: HandleTransaction;
 
   beforeAll(() => {
-    handleTransactions = provideApplyNewFeesAgent(ALERT_ID, ADDRESS);
+    handleTransactions = provideRampAgent(ALERT_ID, ADDRESS);
   });
 
   it("should create a findings", async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog(NEWFEE, ADDRESS);
+    const txEvent: TransactionEvent = createTxEventWithLog(
+      RAMPSIGNATURE,
+      ADDRESS
+    );
 
     const findings = await handleTransactions(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "New Fee",
-        description: "New Fee Function Called",
+        name: "Ramp",
+        description: "Ramp Called",
         alertId: ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,

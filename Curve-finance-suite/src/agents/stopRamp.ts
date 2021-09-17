@@ -6,19 +6,19 @@ import {
   HandleTransaction,
 } from "forta-agent";
 
-export const NEWFEE = "NewFee(uint256,uint256,uint256)";
+export const RAMPSIGNATURE = "StopRampA(uint256,uint256)";
 
 export const createFinding = (alertID: string, address: string) => {
   return Finding.fromObject({
-    name: "New Fee",
-    description: "New Fee Function Called",
+    name: "Stop Ramp",
+    description: "Stop Ramp Called",
     alertId: alertID,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,
   });
 };
 
-const provideApplyNewFeesAgent = (
+const provideStompRampAgent = (
   alertID: string,
   address: string
 ): HandleTransaction => {
@@ -26,11 +26,11 @@ const provideApplyNewFeesAgent = (
     const findings: Finding[] = [];
     if (TextEvent.addresses[address] == false) return findings;
 
-    if (TextEvent.filterEvent(NEWFEE, address).length > 0) {
+    if (TextEvent.filterEvent(RAMPSIGNATURE, address).length > 0) {
       findings.push(createFinding(alertID, address));
     }
     return findings;
   };
 };
 
-export default provideApplyNewFeesAgent;
+export default provideStompRampAgent;
