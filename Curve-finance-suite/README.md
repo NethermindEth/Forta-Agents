@@ -2,13 +2,14 @@
 
 ## Description
 
-This module provides a list of agents that related to Curve contracts. 
+This module provides a list of agents related to Curve contracts.
 
 ## Supported Chains
 
 - Ethereum
 
 ## Agent Alerts
+
 - Detect ownership transfer in address provider contract
 - Detect pool migration
 - Detect deploying new meta pool
