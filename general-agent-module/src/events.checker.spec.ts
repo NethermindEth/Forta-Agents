@@ -1,4 +1,4 @@
-import { HandleTransaction, Finding, Transaction, TransactionEvent } from "forta-agent";
+import { HandleTransaction, Finding, Transaction, TransactionEvent, Log } from "forta-agent";
 import { generalTestFindingGenerator, TestTransactionEvent } from "./tests.utils";
 import provideEventCheckerHandler from "./events.checker";
 
@@ -54,6 +54,62 @@ describe("Event Checker Agent Tests", () => {
 
     const txEvent2: TransactionEvent = new TestTransactionEvent().addEventLog(EVENT_SIGNATURE, "0x131313");
     findings = findings.concat(await transactionHandler(txEvent2));
+
+    expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1)]);
+  });
+
+  it("should returns empty findings with filtered function", async () => {
+    const filterLog = (log: Log): boolean => {
+      const number = Number(BigInt(log.data)) / 10 ** 18;
+      if (number > 2) {
+        return true;
+      }
+
+      return false;
+    };
+
+    transactionHandler = provideEventCheckerHandler(
+      generalTestFindingGenerator,
+      EVENT_SIGNATURE,
+      "0x121212",
+      filterLog
+    );
+
+    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+      EVENT_SIGNATURE,
+      "0x121212",
+      [],
+      "0x000000000000000000000000000000000000000000000000000eebe0b40e8000" // 0.0042
+    );
+    let findings: Finding[] = await transactionHandler(txEvent1);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should returns findings with filtered function if condition met", async () => {
+    const filterLog = (log: Log): boolean => {
+      const number = Number(BigInt(log.data)) / 10 ** 18;
+      if (number > 2) {
+        return true;
+      }
+
+      return false;
+    };
+
+    transactionHandler = provideEventCheckerHandler(
+      generalTestFindingGenerator,
+      EVENT_SIGNATURE,
+      "0x121212",
+      filterLog
+    );
+
+    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
+      EVENT_SIGNATURE,
+      "0x121212",
+      [],
+      "0x00000000000000000000000000000000000000000000000029a2241af62c0000" // 3
+    );
+    let findings: Finding[] = await transactionHandler(txEvent1);
 
     expect(findings).toStrictEqual([generalTestFindingGenerator(txEvent1)]);
   });
