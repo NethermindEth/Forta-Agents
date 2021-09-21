@@ -21,7 +21,7 @@ describe('ESM Fire Event Agent', () => {
   });
 
   it('should return a finding', async () => {
-    const txEvent = createTxEventWithLog(
+    const txEvent: TransactionEvent = createTxEventWithLog(
       MAKER_ESM_FIRE_EVENT_SIGNATURE,
       ADDRESS,
     );
@@ -40,5 +40,32 @@ describe('ESM Fire Event Agent', () => {
         },
       }),
     ]);
+  });
+
+  it('should return empty finding cause bad ADDRESS', async () => {
+    const txEvent: TransactionEvent = createTxEventWithLog(
+      MAKER_ESM_FIRE_EVENT_SIGNATURE,
+      'ox222',
+    );
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return empty finding cause bad SIGNATURE', async () => {
+    const txEvent: TransactionEvent = createTxEventWithLog('bad sig', ADDRESS);
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return empty finding cause bad SIGNATURE and bad ADDRESS', async () => {
+    const txEvent: TransactionEvent = createTxEventWithLog('bad sig', '0x222');
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
   });
 });
