@@ -30,15 +30,18 @@ export const provideLiftEventsListener = (
   targetAddress: string,
   knownAddresses: Set,
   topic: string = LIFT_EVENT,
-): HandleTransaction =>
-  async (txEvent: TransactionEvent) => {
+): HandleTransaction => {
+
+  const target: string = targetAddress.toLowerCase();
+
+  return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    if(!txEvent.addresses[targetAddress.toLowerCase()])
+    if(!txEvent.addresses[target])
       return findings;
 
     txEvent.logs.forEach((log: Log) => {
-      if(log.topics[0] === topic){
+      if((log.address === target) && (log.topics[0] === topic)){
         if(!knownAddresses[log.topics[1]])
           findings.push(createFinding(alertId, log.topics[1], 1));
         if(!knownAddresses[log.topics[2]])
@@ -48,3 +51,4 @@ export const provideLiftEventsListener = (
 
     return findings;
   };
+};

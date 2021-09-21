@@ -16,6 +16,7 @@ import {
 
 const alertId: string = "Test Finding";
 const target: string = "0xA";
+const targetInLower: string = target.toLowerCase();
 const topic: string = "0xFF";
 const address: Set = {
   "0xB": true,
@@ -29,8 +30,9 @@ const listToSet = (...list: string[]): Set => {
   return set;
 };
 
-const createLog = (...topics: string[]): Log => {
+const createLog = (address: string, ...topics: string[]): Log => {
   return {
+    address: address,
     topics: topics,
   } as Log;
 };
@@ -45,7 +47,7 @@ const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent =>
     addresses: addresses,
   });
 
-describe('Lift Events listener test suit', () => {
+describe('Lift Events listener test suite', () => {
   const handleTransaction: HandleTransaction = provider(alertId, target, address, topic)
 
   it('Should return 0 findings if the target is not involve in the tx', async () => {
@@ -57,11 +59,11 @@ describe('Lift Events listener test suit', () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it('Should return 0 findings if the event is not found', async () => {
+  it('Should return 0 findings if the event is not emited by the address', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', target.toLowerCase()),
-      createLog('0x11', '0x123'),
-      createLog('0x22', '0x456', '0xCAFE'),
+      listToSet('0x1', '0x2', targetInLower),
+      createLog('0xE', '0x11', '0x123'),
+      createLog('0xE', topic, '0x456', '0xCAFE'),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -70,10 +72,10 @@ describe('Lift Events listener test suit', () => {
 
   it('Should return 0 findings if the address are known', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', target.toLowerCase()),
-      createLog(topic, '0xB', '0xC'),
-      createLog(topic, '0xD', '0xB'),
-      createLog(topic, '0xC', '0xD'),
+      listToSet('0x1', '0x2', targetInLower),
+      createLog(targetInLower, topic, '0xB', '0xC'),
+      createLog(targetInLower, topic, '0xD', '0xB'),
+      createLog(targetInLower, topic, '0xC', '0xD'),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -82,10 +84,10 @@ describe('Lift Events listener test suit', () => {
 
   it('Should detect unknown addresses in the event', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', target.toLowerCase()),
-      createLog(topic, '0xB', '0xC1'),
-      createLog(topic, '0xD2', '0xB'),
-      createLog(topic, '0xC3', '0xD3'),
+      listToSet('0x1', '0x2', targetInLower),
+      createLog(targetInLower, topic, '0xB', '0xC1'),
+      createLog(targetInLower, topic, '0xD2', '0xB'),
+      createLog(targetInLower, topic, '0xC3', '0xD3'),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
