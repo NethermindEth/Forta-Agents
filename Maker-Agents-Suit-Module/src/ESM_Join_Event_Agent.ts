@@ -8,10 +8,18 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
+  Log,
 } from 'forta-agent';
 
 const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
 const MKR_DECIMALS = 18;
+
+const filterLog = (log: Log): boolean => {
+  const value = Number(BigInt(log.data)) / 10 ** MKR_DECIMALS;
+
+  if (value > 2) return true;
+  return false;
+};
 
 const createFindingGenerator = (alertID: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
@@ -26,7 +34,7 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
   };
 };
 
-const provideJoinEventAgent = (
+const provideESMJoinEventAgent = (
   _alertID: string,
   _contractAddress: string,
 ): HandleTransaction => {
@@ -42,4 +50,4 @@ const provideJoinEventAgent = (
   };
 };
 
-export default provideJoinEventAgent;
+export default provideESMJoinEventAgent;
