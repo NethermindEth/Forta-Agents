@@ -12,7 +12,7 @@ import {
   Set,
   createFinding, 
   provideLiftEventsListener as provider,
-} from './governance.module.lift.events';
+} from './lift.events';
 
 const alertId: string = "Test Finding";
 const contract: string = "0xA";
