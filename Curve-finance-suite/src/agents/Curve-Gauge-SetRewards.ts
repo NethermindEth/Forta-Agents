@@ -45,7 +45,7 @@ export default function providesetRewardsAgent(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    if (txEvent.addresses[address] == false) return findings;
+    if (!txEvent.addresses[address]) return findings;
 
     const data = abiDecoder.decodeMethod(txEvent.transaction.data);
     if (!data) return findings;

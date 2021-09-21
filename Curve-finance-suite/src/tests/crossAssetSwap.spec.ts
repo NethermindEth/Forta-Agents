@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import provideCrossAssetSwap, {
-  CROSSCHAINSWAPSIGNATURE,
+  CROSS_CHAIN_SWAP_SIGNATURE,
 } from "../agents/crossAssetSwap";
 import createTxEventWithLog from "../utils/createEventLog";
 
@@ -22,7 +22,7 @@ describe("Cross Swap Agent", () => {
 
   it("create and send a tx with the tx event", async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
-      CROSSCHAINSWAPSIGNATURE,
+      CROSS_CHAIN_SWAP_SIGNATURE,
       ADDRESS
     );
     const findings = await handleTransaction(txEvent);

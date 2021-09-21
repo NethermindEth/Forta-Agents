@@ -26,8 +26,8 @@ export const claimMany = {
 
 const createFinding = (alertId: string): Finding => {
   return Finding.fromObject({
-    name: "Claim Rewards funciton called",
-    description: "Claim Rewards funciton called on pool",
+    name: "Claim Rewards function called",
+    description: "Claim Rewards function called on pool",
     alertId: alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
@@ -41,7 +41,7 @@ export default function provideclaimManyAgent(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    if (txEvent.addresses[address] == false) return findings;
+    if (!txEvent.addresses[address]) return findings;
 
     const data = abiDecoder.decodeMethod(txEvent.transaction.data);
     if (!data) return findings;

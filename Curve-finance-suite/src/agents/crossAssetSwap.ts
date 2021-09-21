@@ -12,7 +12,7 @@ import abi from "../utils/stable-swap-abi";
 import abiDecoder from "abi-decoder";
 abiDecoder.addABI(abi);
 
-export const CROSSCHAINSWAPSIGNATURE =
+export const CROSS_CHAIN_SWAP_SIGNATURE =
   "TokenUpdate(uint256,address, address, uint256)";
 
 const createFinding = (alertID: string, address: string): Finding => {
@@ -37,7 +37,7 @@ export default function provideCrossAssetSwap(
 
     if (txEvent.addresses[address] == false) return findings;
 
-    if (txEvent.filterEvent(CROSSCHAINSWAPSIGNATURE, address).length > 0) {
+    if (txEvent.filterEvent(CROSS_CHAIN_SWAP_SIGNATURE, address).length > 0) {
       findings.push(createFinding(alertID, address));
     }
 

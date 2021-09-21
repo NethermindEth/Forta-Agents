@@ -33,16 +33,14 @@ const provideCommitNewAdminEvent = (
   alertID: string,
   address: string
 ): HandleTransaction => {
-  return async (TextEvent: TransactionEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    if (TextEvent.addresses[address] == false) return findings;
+    if (txEvent.addresses[address] == false) return findings;
 
-    TextEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map(
-      (log: Log) => {
-        const newOwner: string = addHexPrefix(log.topics[2]);
-        findings.push(createFinding(alertID, newOwner));
-      }
-    );
+    txEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map((log: Log) => {
+      const newOwner: string = addHexPrefix(log.topics[2]);
+      findings.push(createFinding(alertID, newOwner));
+    });
 
     return findings;
   };
