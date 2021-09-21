@@ -27,21 +27,21 @@ export const createFinding = (alertId: string, unknown: string, topic: number): 
 
 export const provideLiftEventsListener = (
   alertId: string, 
-  targetAddress: string,
+  contractAddress: string,
   knownAddresses: Set,
   topic: string = LIFT_EVENT,
 ): HandleTransaction => {
 
-  const target: string = targetAddress.toLowerCase();
+  const contract: string = contractAddress.toLowerCase();
 
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    if(!txEvent.addresses[target])
+    if(!txEvent.addresses[contract])
       return findings;
 
     txEvent.logs.forEach((log: Log) => {
-      if((log.address === target) && (log.topics[0] === topic)){
+      if((log.address === contract) && (log.topics[0] === topic)){
         if(!knownAddresses[log.topics[1]])
           findings.push(createFinding(alertId, log.topics[1], 1));
         if(!knownAddresses[log.topics[2]])
