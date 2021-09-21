@@ -11,8 +11,8 @@ import {
   Log,
 } from 'forta-agent';
 
-const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
-const MKR_DECIMALS = 18;
+export const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
+export const MKR_DECIMALS = 18;
 
 const filterLog = (log: Log): boolean => {
   const value = Number(BigInt(log.data)) / 10 ** MKR_DECIMALS;
@@ -22,16 +22,14 @@ const filterLog = (log: Log): boolean => {
 };
 
 const createFindingGenerator = (alertID: string): FindingGenerator => {
-  return (metadata: { [key: string]: any } | undefined): Finding => {
-    return Finding.fromObject({
+  return () =>
+    Finding.fromObject({
       name: 'Maker ESM Contract Join Detect Agent',
       description: 'Greater than 2 MKR is sent to ESM contract.',
       alertId: alertID,
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
-      metadata,
     });
-  };
 };
 
 const provideESMJoinEventAgent = (
@@ -43,6 +41,7 @@ const provideESMJoinEventAgent = (
       createFindingGenerator(_alertID),
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       _contractAddress,
+      filterLog,
     );
 
     const findings: Finding[] = await agentHandler(txEvent);
