@@ -7,7 +7,7 @@ import {
 } from 'forta-agent';
 import provideESMFireEventAgent, {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
-} from './ESM_Fire_Event_Agent';
+} from './ESM_fire_event_agent';
 import { createTxEventWithLog } from './utils';
 
 const ADDRESS = '0x1212';
