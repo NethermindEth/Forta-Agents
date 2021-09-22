@@ -1,4 +1,8 @@
 import { AbiItem } from "web3-utils";
+import BigNumber from "bignumber.js";
+import Web3 from "web3";
+
+const _web3: Web3 = new Web3();
 
 export interface Set {
   [key: string]: boolean,
@@ -33,3 +37,27 @@ export enum HatFinding {
   HatModified = 1,
   FewApprovals = 2,
 };
+
+export const createAddr = (addr: string): string =>
+  Web3.utils.leftPad(addr, 40);
+
+export const createEncodedAddr = (addr: string): string =>
+  _web3.eth.abi.encodeParameter(
+    'address', 
+    createAddr(addr),
+  );
+
+export const createEncodedUint256 = (value: BigNumber): string =>
+  _web3.eth.abi.encodeParameter(
+    'uint256', 
+    value,
+  );
+
+export const hatCall = (): string =>
+  _web3.eth.abi.encodeFunctionCall(HAT_JSON_INTERFACE, []);
+
+export const approvalsCall = (addr: string): string =>
+  _web3.eth.abi.encodeFunctionCall(APPROVALS_JSON_INTERFACE, [addr]);
+
+export const decodeSingleParam = (ptype: string, encoded: string): any =>
+  _web3.eth.abi.decodeParameters([ptype], encoded)[0]; 

@@ -10,39 +10,18 @@ import {
   provideHatChecker, 
   createFinding,
 } from './new.hat';
-import Web3 from 'web3';
 import { 
   HatFinding, 
-  APPROVALS_JSON_INTERFACE,
-  HAT_JSON_INTERFACE,
+  createAddr,
+  createEncodedAddr,
+  createEncodedUint256,
+  hatCall,
+  approvalsCall,
 } from './utils';
-
-const web3: Web3 = new Web3();
-
-const hatCall = (): string =>
-  web3.eth.abi.encodeFunctionCall(HAT_JSON_INTERFACE, []);
-
-const approvalsCall = (addr: string): string =>
-  web3.eth.abi.encodeFunctionCall(APPROVALS_JSON_INTERFACE, [addr]);
 
 const alertId: string = "Test Findings";
 const contract: string = "0xA";
 const threshold: BigNumber = new BigNumber(20);
-
-const createAddr = (addr: string): string =>
-  Web3.utils.leftPad(addr, 40);
-
-const createEncodedAddr = (addr: string): string =>
-  web3.eth.abi.encodeParameter(
-    'address', 
-    createAddr(addr),
-  );
-
-const createEncodedUint256 = (value: BigNumber): string =>
-  web3.eth.abi.encodeParameter(
-    'uint256', 
-    value,
-  );
 
 const knownAddresses = {
   [createAddr("0xb")]: true,
@@ -57,7 +36,7 @@ const createTestBlockEvent = (blockNumber: number): BlockEvent =>
     block: {} as Block,
   });
 
-describe('Chief Hat Changes detector test suite', () => {
+describe('Chief Contract Hat Changes detector test suite', () => {
   const web3CallMock = jest.fn();
   const handleBlock: HandleBlock = provideHatChecker(
     web3CallMock,

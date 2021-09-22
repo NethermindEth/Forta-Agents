@@ -7,14 +7,12 @@ import {
 } from 'forta-agent';
 import {
   Set,
-  HAT_JSON_INTERFACE,
-  APPROVALS_JSON_INTERFACE,
   HatFinding,
+  hatCall,
+  decodeSingleParam,
+  approvalsCall,
 } from './utils';
-import Web3 from 'web3';
 import BigNumber from 'bignumber.js'
-
-const _web3: Web3 = new Web3();
 
 const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
 
@@ -51,9 +49,9 @@ export const provideHatChecker = (
   const getHat = async (block: number) => {
     const encodedHat = await web3Call({
       to: contractAddress,
-      data: _web3.eth.abi.encodeFunctionCall(HAT_JSON_INTERFACE, [])
+      data: hatCall(),
     }, block);
-    const hat: string = _web3.eth.abi.decodeParameters(['address'], encodedHat)[0];
+    const hat: string = decodeSingleParam('address', encodedHat);
     return hat.toLowerCase();
   }
 
@@ -89,9 +87,9 @@ export const provideHatChecker = (
       // Retrieve MKR for hat
       const encodedMKR = await web3Call({
         to: contractAddress,
-        data: _web3.eth.abi.encodeFunctionCall(APPROVALS_JSON_INTERFACE, [hat])
+        data: approvalsCall(hat),
       }, blockEvent.blockNumber);
-      const MKR: BigNumber = _web3.eth.abi.decodeParameters(['uint256'], encodedMKR)[0];
+      const MKR: BigNumber = decodeSingleParam('uint256', encodedMKR);
 
       // Send alarm if MKR is below threshold
       if(MKR < threshold){
