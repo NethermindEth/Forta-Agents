@@ -9,6 +9,7 @@ import {
   Set,
   HAT_JSON_INTERFACE,
   APPROVALS_JSON_INTERFACE,
+  HatFinding,
 } from './utils';
 import Web3 from 'web3';
 import BigNumber from 'bignumber.js'
@@ -17,14 +18,22 @@ const _web3: Web3 = new Web3();
 
 const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
 
+const desc: {
+  [key in HatFinding]: string;
+} = {
+  [HatFinding.UnknownHat]:   "Hat is an unknown address",
+  [HatFinding.HatModified]:  "Hat address modified",
+  [HatFinding.FewApprovals]: "Hat MKR is below the threshold",
+}
+
 export const createFinding = (
   alertId: string,
-  description: string, 
+  finding: HatFinding, 
   metadata: { [key: string]: string } = {},
 ) => 
   Finding.fromObject({
     name: "Chief contract Hat Alert",
-    description: description,
+    description: desc[finding],
     alertId: alertId,
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
@@ -45,7 +54,7 @@ export const provideHatChecker = (
       data: _web3.eth.abi.encodeFunctionCall(HAT_JSON_INTERFACE, [])
     }, block);
     const hat: string = _web3.eth.abi.decodeParameters(['address'], encodedHat)[0];
-    return hat;
+    return hat.toLowerCase();
   }
 
   return async (blockEvent: BlockEvent) => {
@@ -59,7 +68,7 @@ export const provideHatChecker = (
       findings.push(
         createFinding(
           alertId,
-          "Hat is an unknown address",
+          HatFinding.UnknownHat,
           { hat: hat },
         ),
       );
@@ -71,7 +80,7 @@ export const provideHatChecker = (
         findings.push(
           createFinding(
             alertId,
-            "Hat is address modified",
+            HatFinding.HatModified,
             { hat: hat, previousHat: previousHat },
           ),
         );
@@ -85,11 +94,11 @@ export const provideHatChecker = (
       const MKR: BigNumber = _web3.eth.abi.decodeParameters(['uint256'], encodedMKR)[0];
 
       // Send alarm if MKR is below threshold
-      if(MKR.isLessThan(threshold)){
+      if(MKR < threshold){
         findings.push(
           createFinding(
             alertId,
-            "Hat MKR is below the threshold",
+            HatFinding.FewApprovals,
             { hat: hat, MKR: MKR.toString(), threshold: threshold.toString() },
           ),
         );
@@ -98,8 +107,4 @@ export const provideHatChecker = (
 
     return findings;
   };
-};
-
-export default {
-  provideHatChecker,
 };

@@ -27,3 +27,9 @@ export const APPROVALS_JSON_INTERFACE = {
     }
   ],
 } as AbiItem;
+
+export enum HatFinding {
+  UnknownHat = 0,
+  HatModified = 1,
+  FewApprovals = 2,
+};
