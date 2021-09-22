@@ -22,6 +22,10 @@ import {
 const alertId: string = "Test Findings";
 const contract: string = "0xA";
 const threshold: BigNumber = new BigNumber(20);
+const decimals: number = 10 ** 18;
+
+const toBalance = (value: BigNumber) =>
+  value.multipliedBy(decimals);
 
 const knownAddresses = {
   [createAddr("0xb")]: true,
@@ -77,7 +81,7 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(threshold));
+    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
 
 
     const findings: Finding[] = await handleBlock(blockEvent);
@@ -111,7 +115,7 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(threshold.minus(1)));
+    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
@@ -120,8 +124,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
         HatFinding.FewApprovals,
         { 
           hat: hat.toLowerCase(), 
-          MKR: threshold.minus(1).toString(),
-          threshold: threshold.toString(),
+          MKR: toBalance(threshold.minus(1)).toString(),
+          threshold: toBalance(threshold).toString(),
         },
       ),
     ]);
@@ -145,7 +149,7 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(threshold.minus(1)));
+    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
@@ -162,8 +166,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
         HatFinding.FewApprovals,
         { 
           hat: hat.toLowerCase(), 
-          MKR: threshold.minus(1).toString(),
-          threshold: threshold.toString(),
+          MKR: toBalance(threshold.minus(1)).toString(),
+          threshold: toBalance(threshold).toString(),
         },
       ),
     ]);
@@ -187,7 +191,7 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(threshold));
+    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);

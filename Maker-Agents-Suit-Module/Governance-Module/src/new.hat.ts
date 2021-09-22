@@ -15,6 +15,7 @@ import {
 import BigNumber from 'bignumber.js'
 
 const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
+const MKR_DECIMALS: number = 18;
 
 const desc: {
   [key in HatFinding]: string;
@@ -45,6 +46,8 @@ export const provideHatChecker = (
   knownAddresses: Set,
   threshold: BigNumber = MKR_THRESHOLD,
 ): HandleBlock => {
+
+  const realThreshold: BigNumber = threshold.multipliedBy(10 ** MKR_DECIMALS);
 
   const getHat = async (block: number) => {
     const encodedHat = await web3Call({
@@ -92,12 +95,12 @@ export const provideHatChecker = (
       const MKR: BigNumber = decodeSingleParam('uint256', encodedMKR);
 
       // Send alarm if MKR is below threshold
-      if(threshold.isGreaterThan(MKR)){
+      if(realThreshold.isGreaterThan(MKR)){
         findings.push(
           createFinding(
             alertId,
             HatFinding.FewApprovals,
-            { hat: hat, MKR: MKR.toString(), threshold: threshold.toString() },
+            { hat: hat, MKR: MKR.toString(), threshold: realThreshold.toString() },
           ),
         );
       }
