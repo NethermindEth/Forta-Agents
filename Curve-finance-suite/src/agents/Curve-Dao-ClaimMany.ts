@@ -8,6 +8,10 @@ import {
 
 import Web3 from "web3";
 import abi from "../utils/fee-distribution";
+import {
+  provideFunctionCallsDetectorAgent,
+  FindingGenerator,
+} from "general-agents-module";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -24,14 +28,19 @@ export const claimMany = {
   gas: 26281905,
 };
 
-const createFinding = (alertId: string): Finding => {
-  return Finding.fromObject({
+const createFinding = (alertId: string): Finding =>
+  Finding.fromObject({
     name: "Claim Rewards function called",
     description: "Claim Rewards function called on pool",
     alertId: alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
   });
+
+const createFindingGenerator = (alertId: string): FindingGenerator => {
+  return (metadata: { [key: string]: any } | undefined): Finding => {
+    return createFinding(alertId);
+  };
 };
 
 export default function provideclaimManyAgent(
@@ -39,7 +48,13 @@ export default function provideclaimManyAgent(
   address: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    const agentHandler = provideFunctionCallsDetectorAgent(
+      createFindingGenerator(alertID),
+      claimMany as any,
+      { to: address }
+    );
+
+    const findings: Finding[] = await agentHandler(txEvent);
 
     if (!txEvent.addresses[address]) return findings;
 
