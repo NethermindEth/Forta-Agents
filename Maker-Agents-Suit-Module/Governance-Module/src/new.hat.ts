@@ -92,7 +92,7 @@ export const provideHatChecker = (
       const MKR: BigNumber = decodeSingleParam('uint256', encodedMKR);
 
       // Send alarm if MKR is below threshold
-      if(MKR < threshold){
+      if(threshold.isGreaterThan(MKR)){
         findings.push(
           createFinding(
             alertId,
