@@ -8,7 +8,7 @@ import {
 import provideESMFireEventAgent, {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
 } from './ESM_fire_event_agent';
-import { createTxEventWithLog } from './utils';
+import { TestTransactionEvent } from '@nethermindeth/general-agents-module';
 
 const ADDRESS = '0x1212';
 const ALERT_ID = 'testID';
@@ -21,7 +21,7 @@ describe('ESM Fire Event Agent', () => {
   });
 
   it('should return a finding', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog(
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_FIRE_EVENT_SIGNATURE,
       ADDRESS,
     );
@@ -43,7 +43,7 @@ describe('ESM Fire Event Agent', () => {
   });
 
   it('should return empty finding cause bad ADDRESS', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog(
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_FIRE_EVENT_SIGNATURE,
       'ox222',
     );
@@ -54,7 +54,10 @@ describe('ESM Fire Event Agent', () => {
   });
 
   it('should return empty finding cause bad SIGNATURE', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog('bad sig', ADDRESS);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      'bad sig',
+      ADDRESS,
+    );
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -62,7 +65,10 @@ describe('ESM Fire Event Agent', () => {
   });
 
   it('should return empty finding cause bad SIGNATURE and bad ADDRESS', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog('bad sig', '0x222');
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      'bad sig',
+      '0x222',
+    );
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
