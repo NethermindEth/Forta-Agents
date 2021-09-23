@@ -27,3 +27,25 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
       },
     });
 };
+
+export default function provideDenyFunctionAgent(
+  alertID: string,
+  contracts: string[] = OSM_CONTRACTS
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    let findings: Finding[] = [];
+
+    contracts.map(async (_contract: string) => {
+      const agentHandler = provideFunctionCallsDetectorAgent(
+        createFindingGenerator(alertID),
+        DENY_FUNCTION_SIG,
+        { to: _contract }
+      );
+
+      const newFindings = await agentHandler(txEvent);
+      findings.push(...newFindings);
+    });
+
+    return findings;
+  };
+}
