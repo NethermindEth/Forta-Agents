@@ -62,7 +62,7 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata: {
-        usr: metadata ? metadata.input : null,
+        contract: metadata ? metadata.to : null,
       },
     });
 };
