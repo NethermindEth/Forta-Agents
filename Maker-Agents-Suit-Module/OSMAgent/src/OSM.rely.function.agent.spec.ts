@@ -13,12 +13,6 @@ import {
   TestTransactionEvent,
 } from '@nethermindeth/general-agents-module';
 
-interface TraceInfo {
-  from: string;
-  to: string;
-  input: string;
-}
-
 const ADDRESS = createAddress('0x1');
 const ALERT_ID = 'testID';
 const ABI = new Web3().eth.abi;
