@@ -61,4 +61,32 @@ describe('OSM Rely Function Agent', () => {
       }),
     ]);
   });
+
+  it('should return empty finding when OSM contract address does found', async () => {
+    const _from = createAddress('0x2');
+    const _to = '0x1'; // BAD ADDRESS
+    const _input: string = ABI.encodeFunctionCall(
+      {
+        name: 'rely',
+        type: 'function',
+        inputs: [
+          {
+            type: 'address',
+            name: 'usr',
+          },
+        ],
+      },
+      [ADDRESS]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTrace({
+      to: _to,
+      from: _from,
+      input: _input,
+    });
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
 });
