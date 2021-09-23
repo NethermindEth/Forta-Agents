@@ -32,7 +32,7 @@ describe('OSM Rely Function Agent', () => {
 
   it('should return a finding for one of the OSM contract', async () => {
     const _from = createAddress('0x2');
-    const _to = '0x32d8416e8538Ac36272c44b0cd962cD7E0198489';
+    const _to = '0x81FE72B5A8d1A857d176C3E7d5Bd2679A9B85763'; // PIP_ETH
     const _input: string = ABI.encodeFunctionCall(
       {
         name: 'rely',
@@ -62,7 +62,7 @@ describe('OSM Rely Function Agent', () => {
         severity: FindingSeverity.Medium,
         type: FindingType.Unknown,
         metadata: {
-          usr: _input,
+          contract: _to,
         },
       }),
     ]);
