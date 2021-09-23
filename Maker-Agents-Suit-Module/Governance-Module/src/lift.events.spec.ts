@@ -9,26 +9,19 @@ import {
   Block,
 } from 'forta-agent';
 import { 
-  Set,
   createFinding, 
   provideLiftEventsListener as provider,
 } from './lift.events';
+import { 
+  Set, 
+  argsToSet, 
+} from './utils';
 
 const alertId: string = "Test Finding";
 const contract: string = "0xA";
 const contractInLower: string = contract.toLowerCase();
 const topic: string = "0xFF";
-const address: Set = {
-  "0xB": true,
-  "0xC": true,
-  "0xD": true,
-}
-
-const listToSet = (...list: string[]): Set => {
-  const set: Set = {};
-  list.forEach((s:string) => set[s] = true);
-  return set;
-};
+const address: Set = argsToSet("0xB", "0xC", "0xD");
 
 const createLog = (address: string, ...topics: string[]): Log => {
   return {
@@ -52,7 +45,7 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the contract is not involve in the tx', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2'),
+      argsToSet('0x1', '0x2'),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -61,7 +54,7 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the event is not emited by the address', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', contractInLower),
+      argsToSet('0x1', '0x2', contractInLower),
       createLog('0xE', '0x11', '0x123'),
       createLog('0xE', topic, '0x456', '0xCAFE'),
     );
@@ -72,7 +65,7 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the address are known', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', contractInLower),
+      argsToSet('0x1', '0x2', contractInLower),
       createLog(contractInLower, topic, '0xB', '0xC'),
       createLog(contractInLower, topic, '0xD', '0xB'),
       createLog(contractInLower, topic, '0xC', '0xD'),
@@ -84,7 +77,7 @@ describe('Lift Events listener test suite', () => {
 
   it('Should detect unknown addresses in the event', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      listToSet('0x1', '0x2', contractInLower),
+      argsToSet('0x1', '0x2', contractInLower),
       createLog(contractInLower, topic, '0xB', '0xC1'),
       createLog(contractInLower, topic, '0xD2', '0xB'),
       createLog(contractInLower, topic, '0xC3', '0xD3'),

@@ -61,3 +61,10 @@ export const approvalsCall = (addr: string): string =>
 
 export const decodeSingleParam = (ptype: string, encoded: string): any =>
   _web3.eth.abi.decodeParameters([ptype], encoded)[0]; 
+
+export const argsToSet = (...list: string[]): Set => {
+  const set: Set = {};
+  list.forEach((s:string) => set[s] = true);
+  return set;
+};
+  
