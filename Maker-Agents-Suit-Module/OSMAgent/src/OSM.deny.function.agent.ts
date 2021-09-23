@@ -43,17 +43,16 @@ export default function provideDenyFunctionAgent(
   alertID: string,
   contracts: string[] = OSM_CONTRACTS
 ): HandleTransaction {
-  let handlers: HandleTransaction[] = [];
 
-  for (const contract in contracts) {
-    handlers.push(createAgentHandler(contract, alertID));
-  }
+  const handlers: HandleTransaction[] = contracts.map(
+    (contract: string) => createAgentHandler(contract, alertID),
+  );
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    let findings: Finding[] = [];
+    const findings: Finding[] = [];
 
-    for (const handler of handlers) {
+    for (let handler of handlers) {
       const finding = await handler(txEvent);
-
       findings.push(...finding);
     }
 
