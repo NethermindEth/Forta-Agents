@@ -15,10 +15,9 @@ export const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
 export const MKR_DECIMALS = 18;
 
 const filterLog = (log: Log): boolean => {
-  const value = Number(BigInt(log.data)) / 10 ** MKR_DECIMALS;
+  const value = BigInt(log.data) / BigInt(10 ** MKR_DECIMALS);
 
-  if (value > 2) return true;
-  return false;
+  return value > 2;
 };
 
 const createFindingGenerator = (alertID: string): FindingGenerator => {
