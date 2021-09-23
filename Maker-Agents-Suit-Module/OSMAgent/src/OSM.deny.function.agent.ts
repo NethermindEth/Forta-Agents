@@ -28,23 +28,34 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
     });
 };
 
+const createAgentHandler = (
+  _contract: string,
+  alertID: string
+): HandleTransaction => {
+  return provideFunctionCallsDetectorAgent(
+    createFindingGenerator(alertID),
+    DENY_FUNCTION_SIG,
+    { to: _contract }
+  );
+};
+
 export default function provideDenyFunctionAgent(
   alertID: string,
   contracts: string[] = OSM_CONTRACTS
 ): HandleTransaction {
+  let handlers: HandleTransaction[] = [];
+
+  for (const contract in contracts) {
+    handlers.push(createAgentHandler(contract, alertID));
+  }
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
-    contracts.map(async (_contract: string) => {
-      const agentHandler = provideFunctionCallsDetectorAgent(
-        createFindingGenerator(alertID),
-        DENY_FUNCTION_SIG,
-        { to: _contract }
-      );
+    for (const handler of handlers) {
+      const finding = await handler(txEvent);
 
-      const newFindings = await agentHandler(txEvent);
-      findings.push(...newFindings);
-    });
+      findings.push(...finding);
+    }
 
     return findings;
   };
