@@ -21,5 +21,8 @@ describe("high gas agent", () => {
     handleTransaction = agent.handleTransaction;
   });
 
-  describe("handleTransaction", () => {});
+  describe("No response if different protocol", () => {});
+  describe("Time < 10min, nothing returned, first time function call", () => {});
+  describe("getStatus after time has lasped > 10 min and the status is still false", () => {});
+  describe("getStatus after time has lasped < 10 min and the status is true, should return a critical shoutout", () => {});
 });
