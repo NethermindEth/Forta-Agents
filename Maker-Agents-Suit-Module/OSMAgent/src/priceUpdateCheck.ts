@@ -11,7 +11,11 @@ import TimeTracking from "./TimeTracking";
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
+<<<<<<< HEAD
 } from "@nethermindeth/general-agents-module";
+=======
+} from "general-agents-module";
+>>>>>>> ea9159b... issue from general agent module
 
 const time = new TimeTracking();
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
@@ -43,8 +47,15 @@ const handleTransaction: HandleTransaction = async (
     functionSignature
   );
 
+  const data = await agentHandler(txEvent);
+  console.log(data);
+
   findings = [...findings, ...(await agentHandler(txEvent))];
 
+<<<<<<< HEAD
+=======
+  //  console.log(findings);
+>>>>>>> ea9159b... issue from general agent module
   time.initialUpdate(timestamp);
 
   // if time is less than 10 min when the tx is submitted.
