@@ -16,13 +16,19 @@ import {
   Set, 
   argsToSet, 
   AddressVerifier,
+  createAddr,
+  createEncodedAddr,
 } from './utils';
 
 const alertId: string = "Test Finding";
-const contract: string = "0xA";
+const contract: string = createAddr("0xA");
 const contractInLower: string = contract.toLowerCase();
-const topic: string = "0xFF";
-const addresses: Set = argsToSet("0xB", "0xC", "0xD");
+const topic: string = createEncodedAddr("0xFF");
+const addresses: Set = argsToSet(
+  createAddr("0xb"), 
+  createAddr("0xc"), 
+  createAddr("0xd"),
+);
 const isKnown: AddressVerifier = async (addr: string): Promise<boolean> => 
   (addresses[addr] !== undefined);
 
@@ -48,7 +54,7 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the contract is not involve in the tx', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      argsToSet('0x1', '0x2'),
+      argsToSet(createAddr('0x1'), createAddr('0x2')),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -57,9 +63,9 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the event is not emited by the address', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      argsToSet('0x1', '0x2', contractInLower),
-      createLog('0xE', '0x11', '0x123'),
-      createLog('0xE', topic, '0x456', '0xCAFE'),
+      argsToSet(createAddr('0x1'), createAddr('0x2'), createAddr(contract)),
+      createLog(createAddr('0x1'), createEncodedAddr('0x11'), createEncodedAddr('0x123')),
+      createLog(createAddr('0x2'), topic, createEncodedAddr('0x456'), createEncodedAddr('0x20')),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -68,10 +74,10 @@ describe('Lift Events listener test suite', () => {
 
   it('Should return 0 findings if the address are known', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      argsToSet('0x1', '0x2', contractInLower),
-      createLog(contractInLower, topic, '0xB', '0xC'),
-      createLog(contractInLower, topic, '0xD', '0xB'),
-      createLog(contractInLower, topic, '0xC', '0xD'),
+      argsToSet(createAddr('0x1'), createAddr('0x2'), contractInLower),
+      createLog(contractInLower, topic, createEncodedAddr('0xb'), createEncodedAddr('0xc')),
+      createLog(contractInLower, topic, createEncodedAddr('0xd'), createEncodedAddr('0xb')),
+      createLog(contractInLower, topic, createEncodedAddr('0xc'), createEncodedAddr('0xd')),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -80,18 +86,18 @@ describe('Lift Events listener test suite', () => {
 
   it('Should detect unknown addresses in the event', async () => {
     const txEvent: TransactionEvent = createTxEvent(
-      argsToSet('0x1', '0x2', contractInLower),
-      createLog(contractInLower, topic, '0xB', '0xC1'),
-      createLog(contractInLower, topic, '0xD2', '0xB'),
-      createLog(contractInLower, topic, '0xC3', '0xD3'),
+      argsToSet(createAddr('0x1'), createAddr('0x2'), contractInLower),
+      createLog(contractInLower, topic, createEncodedAddr('0xB'),  createEncodedAddr('0xC1')),
+      createLog(contractInLower, topic, createEncodedAddr('0xD2'), createEncodedAddr('0xB')),
+      createLog(contractInLower, topic, createEncodedAddr('0xC3'), createEncodedAddr('0xD3')),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      createFinding(alertId, '0xC1', 2),
-      createFinding(alertId, '0xD2', 1),
-      createFinding(alertId, '0xC3', 1),
-      createFinding(alertId, '0xD3', 2),
+      createFinding(alertId, createAddr('0xc1'), 2),
+      createFinding(alertId, createAddr('0xd2'), 1),
+      createFinding(alertId, createAddr('0xc3'), 1),
+      createFinding(alertId, createAddr('0xd3'), 2),
     ]);
   });
 });

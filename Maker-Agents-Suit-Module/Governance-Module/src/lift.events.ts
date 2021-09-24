@@ -9,6 +9,7 @@ import {
 import { 
   AddressVerifier,
   isAddressKnown,
+  decodeSingleParam,
 } from './utils';
 
 const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
@@ -42,10 +43,12 @@ export const provideLiftEventsListener = (
 
     for(const log of txEvent.logs) {
       if((log.address === contract) && (log.topics[0] === topic)){
-        if(!(await isKnown(log.topics[1])))
-          findings.push(createFinding(alertId, log.topics[1], 1));
-        if(!(await isKnown(log.topics[2])))
-          findings.push(createFinding(alertId, log.topics[2], 2));
+        const topic1: string = decodeSingleParam('address', log.topics[1]).toLowerCase();
+        const topic2: string = decodeSingleParam('address', log.topics[2]).toLowerCase();
+        if(!(await isKnown(topic1)))
+          findings.push(createFinding(alertId, topic1, 1));
+        if(!(await isKnown(topic2)))
+          findings.push(createFinding(alertId, topic2, 2));
       }
     }
 
