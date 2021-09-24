@@ -17,7 +17,7 @@ export const createFinding = (contractAddress: string): Finding => {
     name: "MakerDAO OSM Contract Big Enqueued Price Deviation",
     description:
       "The new enqueued price deviate more than 6% from current price",
-    alertId: "MakerDAO-1",
+    alertId: "MakerDAO-OSM-1",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Info,
     metadata: {
