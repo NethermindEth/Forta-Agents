@@ -1,4 +1,33 @@
-import provideESMJoinEventAgent from './ESM_Join_Event_Agent';
-import provideESMFireEventAgent from './ESM_fire_event_agent';
+import provideESMJoinEventAgent from './ESM.join.event.agent';
+import provideESMFireEventAgent from './ESM.fire.event.agent';
+import { Finding, TransactionEvent } from 'forta-agent';
 
-export { provideESMFireEventAgent, provideESMJoinEventAgent };
+const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';
+const JOIN_EVENT_ALERTID = 'MakerDAO-ESM-1';
+const FIRE_EVENT_ALERTID = 'MakerDAO-ESM-2';
+
+const provideAgentHandler = () => {
+  const joinEventHandler = provideESMJoinEventAgent(
+    JOIN_EVENT_ALERTID,
+    MakerDAO_ESM_CONTRACT,
+  );
+  const FireEventHandler = provideESMFireEventAgent(
+    FIRE_EVENT_ALERTID,
+    MakerDAO_ESM_CONTRACT,
+  );
+
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    let findings: Finding[] = [];
+
+    findings = [
+      ...(await joinEventHandler(txEvent)),
+      ...(await FireEventHandler(txEvent)),
+    ];
+
+    return findings;
+  };
+};
+
+module.exports = {
+  handleTransaction: provideAgentHandler(),
+};
