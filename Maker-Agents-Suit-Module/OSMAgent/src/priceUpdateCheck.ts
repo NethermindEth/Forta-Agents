@@ -13,12 +13,9 @@ import {
   FindingGenerator,
 } from "general-agents-module";
 
-import Web3 from "web3";
-const abi = new Web3().eth.abi;
-
 const time = new TimeTracking();
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
-const functionSignature = "function poke()";
+export const functionSignature = "function poke()";
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
@@ -39,17 +36,23 @@ const handleTransaction: HandleTransaction = async (
 
   if (!txEvent.addresses[address]) return findings;
 
+  const timestamp = txEvent.block.timestamp;
+
   const agentHandler = provideFunctionCallsDetectorAgent(
     createFindingGenerator("Nethforta-24"),
     functionSignature
   );
 
+  const data = await agentHandler(txEvent);
+  console.log(data);
+
   findings = [...findings, ...(await agentHandler(txEvent))];
 
-  time.initialUpdate();
+  //  console.log(findings);
+  time.initialUpdate(timestamp);
 
   // if time is less than 10 min when the tx is submitted.
-  if (time.getTime()) {
+  if (time.getTime(timestamp)) {
     time.setStatus(true);
     return findings;
   } else {
