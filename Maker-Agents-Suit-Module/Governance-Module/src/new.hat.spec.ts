@@ -11,6 +11,9 @@ import {
   createFinding,
 } from './new.hat';
 import { 
+  Set,
+  argsToSet,
+  AddressVerifier,
   HatFinding, 
   createAddr,
   createEncodedAddr,
@@ -27,11 +30,13 @@ const decimals: number = 10 ** 18;
 const toBalance = (value: BigNumber) =>
   value.multipliedBy(decimals);
 
-const knownAddresses = {
-  [createAddr("0xb")]: true,
-  [createAddr("0xc")]: true,
-  [createAddr("0xd")]: true,
-};
+const addresses: Set = argsToSet(
+  createAddr("0xb"), 
+  createAddr("0xc"), 
+  createAddr("0xd")
+);
+const isKnown: AddressVerifier = async (addr: string): Promise<boolean> =>
+  (addresses[addr] !== undefined);
 
 const createTestBlockEvent = (blockNumber: number): BlockEvent =>
   createBlockEvent({
@@ -46,7 +51,7 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     web3CallMock,
     alertId,
     contract,
-    knownAddresses,
+    isKnown,
     threshold,
   );
 

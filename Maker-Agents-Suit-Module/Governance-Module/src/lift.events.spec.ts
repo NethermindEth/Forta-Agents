@@ -15,13 +15,16 @@ import {
 import { 
   Set, 
   argsToSet, 
+  AddressVerifier,
 } from './utils';
 
 const alertId: string = "Test Finding";
 const contract: string = "0xA";
 const contractInLower: string = contract.toLowerCase();
 const topic: string = "0xFF";
-const address: Set = argsToSet("0xB", "0xC", "0xD");
+const addresses: Set = argsToSet("0xB", "0xC", "0xD");
+const isKnown: AddressVerifier = async (addr: string): Promise<boolean> => 
+  (addresses[addr] !== undefined);
 
 const createLog = (address: string, ...topics: string[]): Log => {
   return {
@@ -41,7 +44,7 @@ const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent =>
   });
 
 describe('Lift Events listener test suite', () => {
-  const handleTransaction: HandleTransaction = provider(alertId, contract, address, topic)
+  const handleTransaction: HandleTransaction = provider(alertId, contract, isKnown, topic)
 
   it('Should return 0 findings if the contract is not involve in the tx', async () => {
     const txEvent: TransactionEvent = createTxEvent(

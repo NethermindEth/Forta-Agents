@@ -6,7 +6,8 @@ import {
   FindingType, 
 } from 'forta-agent';
 import {
-  Set,
+  AddressVerifier,
+  isAddressKnown,
   HatFinding,
   hatCall,
   decodeSingleParam,
@@ -43,7 +44,7 @@ export const provideHatChecker = (
   web3Call: any,
   alertId: string, 
   contractAddress: string,
-  knownAddresses: Set,
+  isKnown: AddressVerifier = isAddressKnown,
   threshold: BigNumber = MKR_THRESHOLD,
 ): HandleBlock => {
 
@@ -65,7 +66,7 @@ export const provideHatChecker = (
     const hat: string = await getHat(blockEvent.blockNumber);
 
     // Check if hat address is a known address 
-    if(!knownAddresses[hat]){
+    if(!(await isKnown(hat))){
       findings.push(
         createFinding(
           alertId,

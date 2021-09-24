@@ -4,6 +4,8 @@ import Web3 from "web3";
 
 const _web3: Web3 = new Web3();
 
+export type AddressVerifier = (addr: string) => Promise<boolean>;
+
 export interface Set {
   [key: string]: boolean,
 };
@@ -59,7 +61,7 @@ export const hatCall = (): string =>
 export const approvalsCall = (addr: string): string =>
   _web3.eth.abi.encodeFunctionCall(APPROVALS_JSON_INTERFACE, [addr]);
 
-export const decodeSingleParam = (ptype: string, encoded: string): any =>
+export const decodeSingleParam = (ptype: string, encoded: string): any => 
   _web3.eth.abi.decodeParameters([ptype], encoded)[0]; 
 
 export const argsToSet = (...list: string[]): Set => {
@@ -68,3 +70,6 @@ export const argsToSet = (...list: string[]): Set => {
   return set;
 };
   
+export const isAddressKnown: AddressVerifier = async (adrress: string): Promise<boolean> => {
+  return false;
+};

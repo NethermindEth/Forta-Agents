@@ -6,7 +6,10 @@ import {
   FindingType, 
   Log,
 } from 'forta-agent';
-import { Set } from './utils';
+import { 
+  AddressVerifier,
+  isAddressKnown,
+} from './utils';
 
 const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
 
@@ -25,7 +28,7 @@ export const createFinding = (alertId: string, unknown: string, topic: number): 
 export const provideLiftEventsListener = (
   alertId: string, 
   contractAddress: string,
-  knownAddresses: Set,
+  isKnown: AddressVerifier = isAddressKnown,
   topic: string = LIFT_EVENT,
 ): HandleTransaction => {
 
@@ -37,14 +40,14 @@ export const provideLiftEventsListener = (
     if(!txEvent.addresses[contract])
       return findings;
 
-    txEvent.logs.forEach((log: Log) => {
+    for(const log of txEvent.logs) {
       if((log.address === contract) && (log.topics[0] === topic)){
-        if(!knownAddresses[log.topics[1]])
+        if(!(await isKnown(log.topics[1])))
           findings.push(createFinding(alertId, log.topics[1], 1));
-        if(!knownAddresses[log.topics[2]])
-        findings.push(createFinding(alertId, log.topics[2], 2));
+        if(!(await isKnown(log.topics[2])))
+          findings.push(createFinding(alertId, log.topics[2], 2));
       }
-    })
+    }
 
     return findings;
   };
