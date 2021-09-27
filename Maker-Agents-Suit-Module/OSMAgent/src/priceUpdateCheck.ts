@@ -21,7 +21,7 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     return Finding.fromObject({
       name: "Method not called within the first 10 minutes",
-      description: "Poke() functioon not called within 10 minutes of the hour",
+      description: "Poke() function not called within 10 minutes of the hour",
       alertId: "NETHFORTA-24",
       severity: FindingSeverity.Critical,
       type: FindingType.Unknown,
@@ -43,12 +43,8 @@ const handleTransaction: HandleTransaction = async (
     functionSignature
   );
 
-  const data = await agentHandler(txEvent);
-  console.log(data);
-
   findings = [...findings, ...(await agentHandler(txEvent))];
 
-  //  console.log(findings);
   time.initialUpdate(timestamp);
 
   // if time is less than 10 min when the tx is submitted.
@@ -57,12 +53,13 @@ const handleTransaction: HandleTransaction = async (
     return findings;
   } else {
     // time > 10min
+
     if (!time.getStatus()) {
       findings.push(
         Finding.fromObject({
           name: "Method not called within the first 10 minutes",
           description:
-            "Poke() functioon not called within 10 minutes of the hour",
+            "Poke() function not called within 10 minutes of the hour",
           alertId: "NETHFORTA-24",
           severity: FindingSeverity.Critical,
           type: FindingType.Unknown,
