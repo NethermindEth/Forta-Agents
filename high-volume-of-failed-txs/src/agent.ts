@@ -25,7 +25,7 @@ const failureCounter: FailureCounter = new FailureCounter(TIME_INTERVAL, HIGH_FA
 export const createFinding = (addr: string, txns: string[]): Finding =>
   Finding.fromObject({
     name: "High volume of failed TXs",
-    description: `${txns.length} or more failided transactions related with (${addr}) protocol`,
+    description: `${txns.length} or more failed transactions related with (${addr}) protocol`,
     alertId: "NETHFORTA-3",
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
