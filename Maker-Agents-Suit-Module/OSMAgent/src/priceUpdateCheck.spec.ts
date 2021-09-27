@@ -1,17 +1,7 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  Trace,
-  HandleTransaction,
-  createTransactionEvent,
-  TransactionEvent,
-} from "forta-agent";
-import agent, { functionSignature } from "./priceUpdateCheck";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import agent from "./priceUpdateCheck";
 
-import { TestTransactionEvent } from "general-agents-module";
-
-import Web3 from "web3";
+import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
 describe("high gas agent", () => {
   let handleTransaction: HandleTransaction;

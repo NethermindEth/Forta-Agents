@@ -11,7 +11,7 @@ import TimeTracking from "./TimeTracking";
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
-} from "general-agents-module";
+} from "@nethermindeth/general-agents-module";
 
 const time = new TimeTracking();
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
