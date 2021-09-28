@@ -16,11 +16,12 @@ const LIFT_EVENT: string = "0x3c278bd5000000000000000000000000000000000000000000
 
 export const createFinding = (alertId: string, unknown: string, topic: number): Finding =>
   Finding.fromObject({
-    name: "MakerDAO MCDM_ADM lift event detected",
+    name: "MakerDAO's Chief contract lift event detected",
     description: `Topic #${topic} is an unknown address`,
     alertId: alertId,
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
+    protocol: "Maker",
     metadata: {
       address: unknown,
     },

@@ -32,11 +32,12 @@ export const createFinding = (
   metadata: { [key: string]: string } = {},
 ) => 
   Finding.fromObject({
-    name: "Chief contract Hat Alert",
+    name: "MakerDAO's Chief contract Hat Alert",
     description: desc[finding],
     alertId: alertId,
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
+    protocol: "Maker",
     metadata: metadata,
   });
 
