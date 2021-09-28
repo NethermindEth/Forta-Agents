@@ -7,7 +7,6 @@ import {
 } from 'forta-agent';
 import {
   AddressVerifier,
-  isAddressKnown,
   HatFinding,
   hatCall,
   decodeSingleParam,
@@ -45,7 +44,7 @@ export const provideHatChecker = (
   web3Call: any,
   alertId: string, 
   contractAddress: string,
-  isKnown: AddressVerifier = isAddressKnown,
+  isKnown: AddressVerifier,
   threshold: BigNumber = MKR_THRESHOLD,
 ): HandleBlock => {
 
@@ -111,3 +110,5 @@ export const provideHatChecker = (
     return findings;
   };
 };
+
+export default provideHatChecker;

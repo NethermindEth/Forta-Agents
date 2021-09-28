@@ -8,7 +8,6 @@ import {
 } from 'forta-agent';
 import { 
   AddressVerifier,
-  isAddressKnown,
   decodeSingleParam,
 } from './utils';
 
@@ -30,7 +29,7 @@ export const createFinding = (alertId: string, unknown: string, topic: number): 
 export const provideLiftEventsListener = (
   alertId: string, 
   contractAddress: string,
-  isKnown: AddressVerifier = isAddressKnown,
+  isKnown: AddressVerifier,
   topic: string = LIFT_EVENT,
 ): HandleTransaction => {
 
@@ -56,3 +55,5 @@ export const provideLiftEventsListener = (
     return findings;
   };
 };
+
+export default provideLiftEventsListener;

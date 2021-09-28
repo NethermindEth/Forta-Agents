@@ -2,17 +2,13 @@ import BigNumber from 'bignumber.js';
 import {
   Finding, 
   HandleBlock,
-  createBlockEvent,
   BlockEvent,
-  Block,
 } from 'forta-agent';
 import { 
   provideHatChecker, 
   createFinding,
 } from './new.hat';
 import { 
-  Set,
-  argsToSet,
   AddressVerifier,
   HatFinding, 
   createAddr,
@@ -20,30 +16,15 @@ import {
   createEncodedUint256,
   hatCall,
   approvalsCall,
+  generateAddressVerifier,
+  createTestBlockEvent,
+  toBalance,
 } from './utils';
 
 const alertId: string = "Test Findings";
-const contract: string = "0xA";
+const contract: string = createAddr("0xA");
 const threshold: BigNumber = new BigNumber(20);
-const decimals: number = 10 ** 18;
-
-const toBalance = (value: BigNumber) =>
-  value.multipliedBy(decimals);
-
-const addresses: Set = argsToSet(
-  createAddr("0xb"), 
-  createAddr("0xc"), 
-  createAddr("0xd")
-);
-const isKnown: AddressVerifier = async (addr: string): Promise<boolean> =>
-  (addresses[addr] !== undefined);
-
-const createTestBlockEvent = (blockNumber: number): BlockEvent =>
-  createBlockEvent({
-    blockNumber: blockNumber,
-    blockHash: "0x0",
-    block: {} as Block,
-  });
+const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
 
 describe('Chief Contract Hat Changes detector test suite', () => {
   const web3CallMock = jest.fn();

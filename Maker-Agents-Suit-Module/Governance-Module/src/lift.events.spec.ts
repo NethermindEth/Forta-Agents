@@ -2,52 +2,26 @@ import {
   Finding, 
   HandleTransaction, 
   TransactionEvent, 
-  Log,
-  createTransactionEvent,
-  Receipt,
-  Transaction,
-  Block,
 } from 'forta-agent';
 import { 
   createFinding, 
   provideLiftEventsListener as provider,
 } from './lift.events';
 import { 
-  Set, 
   argsToSet, 
   AddressVerifier,
   createAddr,
   createEncodedAddr,
+  generateAddressVerifier,
+  createTxEvent,
+  createLog,
 } from './utils';
 
 const alertId: string = "Test Finding";
 const contract: string = createAddr("0xA");
 const contractInLower: string = contract.toLowerCase();
 const topic: string = createEncodedAddr("0xFF");
-const addresses: Set = argsToSet(
-  createAddr("0xb"), 
-  createAddr("0xc"), 
-  createAddr("0xd"),
-);
-const isKnown: AddressVerifier = async (addr: string): Promise<boolean> => 
-  (addresses[addr] !== undefined);
-
-const createLog = (address: string, ...topics: string[]): Log => {
-  return {
-    address: address,
-    topics: topics,
-  } as Log;
-};
-
-const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent => 
-  createTransactionEvent({
-    receipt: {
-      logs: logs,
-    } as Receipt,
-    transaction: {} as Transaction,
-    block: {} as Block,
-    addresses: addresses,
-  });
+const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
 
 describe('Lift Events listener test suite', () => {
   const handleTransaction: HandleTransaction = provider(alertId, contract, isKnown, topic)

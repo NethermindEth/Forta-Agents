@@ -1,6 +1,16 @@
 import { AbiItem } from "web3-utils";
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
+import { 
+  Log, 
+  Block,
+  Receipt, 
+  Transaction, 
+  TransactionEvent,
+  createTransactionEvent,
+  BlockEvent,
+  createBlockEvent, 
+} from "forta-agent";
 
 const _web3: Web3 = new Web3();
 
@@ -69,7 +79,36 @@ export const argsToSet = (...list: string[]): Set => {
   list.forEach((s:string) => set[s] = true);
   return set;
 };
-  
-export const isAddressKnown: AddressVerifier = async (adrress: string): Promise<boolean> => {
-  return false;
+
+export const toBalance = (value: BigNumber) =>
+  value.multipliedBy(10 ** 18);
+
+export const generateAddressVerifier = (...addresses: string[]): AddressVerifier => {
+  const set: Set = argsToSet(...addresses.map(createAddr));
+  return async (addr: string): Promise<boolean> =>
+    (set[addr] !== undefined);
 };
+
+export const createLog = (address: string, ...topics: string[]): Log => {
+  return {
+    address: address,
+    topics: topics,
+  } as Log;
+};
+
+export const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent => 
+  createTransactionEvent({
+    receipt: {
+      logs: logs,
+    } as Receipt,
+    transaction: {} as Transaction,
+    block: {} as Block,
+    addresses: addresses,
+  });
+
+export const createTestBlockEvent = (blockNumber: number): BlockEvent =>
+  createBlockEvent({
+    blockNumber: blockNumber,
+    blockHash: "0x0",
+    block: {} as Block,
+  });
