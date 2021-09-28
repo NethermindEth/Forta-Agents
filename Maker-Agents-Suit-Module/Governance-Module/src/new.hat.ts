@@ -37,6 +37,7 @@ export const createFinding = (
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
     protocol: "Maker",
+    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: metadata,
   });
 
