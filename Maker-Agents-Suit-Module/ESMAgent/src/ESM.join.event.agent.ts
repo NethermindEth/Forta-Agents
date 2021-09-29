@@ -2,7 +2,7 @@ import {
   FindingGenerator,
   provideEventCheckerHandler,
 } from '@nethermindeth/general-agents-module';
-import Web3 from 'web3';
+
 import {
   Finding,
   HandleTransaction,
@@ -22,12 +22,8 @@ const filterLog = (log: Log): boolean => {
   return value > 2;
 };
 
-const createFindingGenerator = (
-  _alertID: string,
-  _usr: string,
-  _amount: string,
-): FindingGenerator => {
-  return () =>
+const createFindingGenerator = (_alertID: string): FindingGenerator => {
+  return (metadata: { [key: string]: any } | undefined): Finding =>
     Finding.fromObject({
       name: 'Maker ESM Join Event',
       description: 'Greater than 2 MKR is sent to ESM contract.',
@@ -37,8 +33,8 @@ const createFindingGenerator = (
       type: FindingType.Suspicious,
       everestId: MAKER_EVEREST_ID,
       metadata: {
-        usr: _usr,
-        amount: _amount,
+        usr: metadata!.topics[1],
+        amount: BigInt(metadata!.data).toString(),
       },
     });
 };
@@ -48,25 +44,8 @@ const provideESMJoinEventAgent = (
   _contractAddress: string,
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    let findingGenerator: FindingGenerator;
-
-    const logs = txEvent.filterEvent(
-      MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      _contractAddress,
-    );
-
-    if (logs.length) {
-      findingGenerator = createFindingGenerator(
-        _alertID,
-        logs[0].topics[1],
-        BigInt(logs[0].data).toString(),
-      );
-    } else {
-      findingGenerator = createFindingGenerator(_alertID, '', '');
-    }
-
     const agentHandler = provideEventCheckerHandler(
-      findingGenerator,
+      createFindingGenerator(_alertID),
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       _contractAddress,
       filterLog,
