@@ -84,21 +84,17 @@ describe('Agent Handler', () => {
   });
 
   it('should return both Join and Fire event finding', async () => {
-    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-      MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      MakerDAO_ESM_CONTRACT,
-      [encodeParam('address', USER)],
-      encodeParam('uint256', AMOUNT_3), // 3
-    );
-
-    const txEvent2: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        MAKER_ESM_JOIN_EVENT_SIGNATURE,
+        MakerDAO_ESM_CONTRACT,
+        [encodeParam('address', USER)],
+        encodeParam('uint256', AMOUNT_3), // 3
+      )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
 
-    const findings: Finding[] = [
-      ...(await handleTransaction(txEvent1)),
-      ...(await handleTransaction(txEvent2)),
-    ];
+    const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -131,21 +127,17 @@ describe('Agent Handler', () => {
   });
 
   it('should return just Join event finding', async () => {
-    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-      MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      MakerDAO_ESM_CONTRACT,
-      [encodeParam('address', USER)],
-      encodeParam('uint256', AMOUNT_3), // 3
-    );
-
-    const txEvent2: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        MAKER_ESM_JOIN_EVENT_SIGNATURE,
+        MakerDAO_ESM_CONTRACT,
+        [encodeParam('address', USER)],
+        encodeParam('uint256', AMOUNT_3), // 3
+      )
       .addEventLog('BAD SIGNATURE', MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
 
-    const findings: Finding[] = [
-      ...(await handleTransaction(txEvent1)),
-      ...(await handleTransaction(txEvent2)),
-    ];
+    const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -165,21 +157,17 @@ describe('Agent Handler', () => {
   });
 
   it('should return just Fire event finding', async () => {
-    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-      MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      MakerDAO_ESM_CONTRACT,
-      [encodeParam('address', USER)],
-      encodeParam('uint256', AMOUNT_1),
-    );
-
-    const txEvent2: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        MAKER_ESM_JOIN_EVENT_SIGNATURE,
+        MakerDAO_ESM_CONTRACT,
+        [encodeParam('address', USER)],
+        encodeParam('uint256', AMOUNT_1),
+      )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
 
-    const findings: Finding[] = [
-      ...(await handleTransaction(txEvent1)),
-      ...(await handleTransaction(txEvent2)),
-    ];
+    const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -198,41 +186,33 @@ describe('Agent Handler', () => {
     ]);
   });
   it('should return empty finding if address is wrong', async () => {
-    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-      MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      '0x1', // bad address
-      [encodeParam('address', USER)],
-      encodeParam('uint256', AMOUNT_1),
-    );
-
-    const txEvent2: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        MAKER_ESM_JOIN_EVENT_SIGNATURE,
+        '0x1', // bad address
+        [encodeParam('address', USER)],
+        encodeParam('uint256', AMOUNT_1),
+      )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, '0x1')
       .setFrom(USER);
 
-    const findings: Finding[] = [
-      ...(await handleTransaction(txEvent1)),
-      ...(await handleTransaction(txEvent2)),
-    ];
+    const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
 
   it('should return empty finding if signature is wrong', async () => {
-    const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
-      '0xabc', // bad signature
-      MakerDAO_ESM_CONTRACT,
-      [encodeParam('address', USER)],
-      encodeParam('uint256', AMOUNT_1),
-    );
-
-    const txEvent2: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        '0xabc', // bad signature
+        MakerDAO_ESM_CONTRACT,
+        [encodeParam('address', USER)],
+        encodeParam('uint256', AMOUNT_1),
+      )
       .addEventLog('0xabc', MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
 
-    const findings: Finding[] = [
-      ...(await handleTransaction(txEvent1)),
-      ...(await handleTransaction(txEvent2)),
-    ];
+    const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });

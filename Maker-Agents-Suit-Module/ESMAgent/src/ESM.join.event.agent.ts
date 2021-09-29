@@ -34,7 +34,7 @@ const createFindingGenerator = (_alertID: string): FindingGenerator => {
       everestId: MAKER_EVEREST_ID,
       metadata: {
         usr: decodeParam('address', metadata!.topics[1]).toLowerCase(),
-        amount: decodeParam('uint256', metadata!.data).toLowerCase(),
+        amount: decodeParam('uint256', metadata!.data),
       },
     });
 };
