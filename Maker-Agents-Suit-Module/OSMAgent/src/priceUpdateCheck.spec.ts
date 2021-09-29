@@ -7,7 +7,7 @@ const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const lessThanTenMinutes2 = 1467022181; // "Mon, 27 Jun 2016 10:09:41 GMT"
 const greaterThanTenMinures = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 const differentHour = 1467032181; // "Mon, 27 Jun 2016 12:56:21 GMT"
-const differentHour2 = 1467042181; // "Mon, 27 Jun 2016 15:43:01 GMT"
+const differentHour2 = 1467040181000; // "Mon, 27 Jun 2016 15:09:41 GMT"
 const differentHour3 = 1467052181; //"Mon, 27 Jun 2016 18:29:41 GMT"
 
 describe("Poker Method", () => {
@@ -75,20 +75,11 @@ describe("Poker Method", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    // console.log(findings, [
-    //   Finding.fromObject({
-    //     alertId: "MakerDAO-OSM-4",
-    //     description: "Poke() function not called within 10 minutes of the hour",
-    //     name: "Method not called within the first 10 minutes",
-    //     severity: 5,
-    //     type: 0,
-    //   }),
-    // ]);
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        alertId: "MakerDAO-OSM-4",
-        description: "Poke() function not called within 10 minutes of the hour",
         name: "Method not called within the first 10 minutes",
+        description: "Poke() function not called within 10 minutes of the hour",
+        alertId: "MakerDAO-OSM-4",
         severity: 5,
         type: 0,
       }),

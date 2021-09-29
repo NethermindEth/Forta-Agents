@@ -34,15 +34,23 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   let findings: Finding[] = [];
 
+  const timestamp = txEvent.block.timestamp;
+
+  const newHour = time.isNewHour(timestamp);
+
   const agentHandler = provideFunctionCallsDetectorAgent(
     createFindingGenerator("MakerDAO-OSM-4"),
     functionSignature,
     { to: address }
   );
 
-  const timestamp = txEvent.block.timestamp;
+  // newHour set and the tx is NOT from our protocol
+  if (newHour.length !== 0 && (await agentHandler(txEvent)) === [])
+    return findings;
 
   findings.push(...findings, ...time.isNewHour(timestamp));
+
+  console.log("Asdsa");
 
   if (!txEvent.addresses[address]) return findings;
 
