@@ -25,6 +25,17 @@ export default class TimeTracking {
         );
       } else {
         this.hourStatus = false;
+        if (!this.isInFirstTenMins)
+          finding.push(
+            Finding.fromObject({
+              name: "Method not called within the first 10 minutes",
+              description:
+                "Poke() function not called within 10 minutes of the hour",
+              alertId: "MakerDAO-OSM-4",
+              severity: FindingSeverity.Critical,
+              type: FindingType.Unknown,
+            })
+          );
       }
     }
     return finding;
