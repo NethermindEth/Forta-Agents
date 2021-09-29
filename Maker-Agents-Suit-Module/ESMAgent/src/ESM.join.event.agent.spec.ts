@@ -9,10 +9,16 @@ import {
 
 import provideESMJoinEventAgent, {
   MAKER_ESM_JOIN_EVENT_SIGNATURE,
+  MAKER_EVEREST_ID,
 } from './ESM.join.event.agent';
 
 const ADDRESS = '0x1212';
 const ALERT_ID = 'testID';
+const USER = '0x22222';
+const AMOUNT_3 =
+  '0x00000000000000000000000000000000000000000000000029a2241af62c0000';
+const AMOUNT_1 =
+  '0x000000000000000000000000000000000000000000000000000000000000001';
 
 describe('ESM Join Event Agent', () => {
   let handleTransaction: HandleTransaction;
@@ -25,19 +31,25 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [],
-      '0x00000000000000000000000000000000000000000000000029a2241af62c0000', // 3
+      [USER],
+      AMOUNT_3, // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Contract Join Detect Agent',
+        name: 'Maker ESM Join Event',
         description: 'Greater than 2 MKR is sent to ESM contract.',
         alertId: ALERT_ID,
+        protocol: 'Maker',
         severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
+        type: FindingType.Suspicious,
+        everestId: MAKER_EVEREST_ID,
+        metadata: {
+          usr: USER,
+          amount: BigInt(AMOUNT_3).toString(),
+        },
       }),
     ]);
   });
@@ -46,8 +58,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [],
-      '0x000000000000000000000000000000000000000000000000000000000000001', //1
+      [USER],
+      AMOUNT_1, //1
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -59,8 +71,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       'bad sig',
       ADDRESS,
-      [],
-      '0x00000000000000000000000000000000000000000000000029a2241af62c0000', // 3
+      [USER],
+      AMOUNT_3, // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -72,8 +84,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       '0x1',
-      [],
-      '0x00000000000000000000000000000000000000000000000029a2241af62c0000', // 3
+      [USER],
+      AMOUNT_3, // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
