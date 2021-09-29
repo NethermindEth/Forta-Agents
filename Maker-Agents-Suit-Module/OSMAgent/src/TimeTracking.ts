@@ -5,17 +5,20 @@ export default class TimeTracking {
   hour = 0; // keeps track of the hour
 
   // make sure hour gets updates and consequently status
-  initialUpdate(timestamp: number): any {
+  isNewHour(timestamp: number): any {
     let finding: Finding[] = [];
     if (this.hour !== this.getHour(timestamp)) {
+      console.log("hours:", this.hour, this.getHour(timestamp), timestamp);
       this.hour = this.getHour(timestamp);
+
+      // when the  previous hour never got called
       if (this.hourStatus === false) {
         finding.push(
           Finding.fromObject({
             name: "Method not called within the first 10 minutes",
             description:
               "Poke() function not called within 10 minutes of the hour",
-            alertId: "NETHFORTA-24",
+            alertId: "MakerDAO-OSM-4",
             severity: FindingSeverity.Critical,
             type: FindingType.Unknown,
           })
@@ -29,24 +32,26 @@ export default class TimeTracking {
 
   getHour(timestamp: number): number {
     const nd = new Date(timestamp * 1000);
-    return nd.getHours();
+
+    return nd.getUTCHours();
   }
 
   getMinute(timestamp: number): number {
     var d = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds var s = d.toUTCString() s = s.substring(0,s.indexOf("GMT")) + "UTC" //change the confusing 'GMT' to 'UTC'
-    return d.getMinutes();
+    return d.getUTCMinutes();
   }
 
-  getTime(timestamp: number): boolean {
+  isInFirstTenMins(timestamp: number): boolean {
     const minutes = this.getMinute(timestamp);
+    console.log(minutes, timestamp);
     return minutes <= 10 ? true : false;
   }
 
-  getStatus(): boolean {
+  getFunctionCalledStatus(): boolean {
     return this.hourStatus;
   }
 
-  setStatus(status: boolean): void {
+  setFunctionCalledStatus(status: boolean): void {
     this.hourStatus = status;
   }
 }

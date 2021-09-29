@@ -15,14 +15,14 @@ import {
 
 const time = new TimeTracking();
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
-export const functionSignature = "function poke()";
+export const functionSignature = "poke()";
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     return Finding.fromObject({
       name: "Method not called within the first 10 minutes",
       description: "Poke() function not called within 10 minutes of the hour",
-      alertId: "NETHFORTA-24",
+      alertId: "MakerDAO-OSM-4",
       severity: FindingSeverity.Critical,
       type: FindingType.Unknown,
     });
@@ -34,35 +34,31 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   let findings: Finding[] = [];
 
-  if (!txEvent.addresses[address]) return findings;
+  const agentHandler = provideFunctionCallsDetectorAgent(
+    createFindingGenerator("MakerDAO-OSM-4"),
+    functionSignature,
+    { to: address }
+  );
 
   const timestamp = txEvent.block.timestamp;
 
-  const agentHandler = provideFunctionCallsDetectorAgent(
-    createFindingGenerator("Nethforta-24"),
-    functionSignature
-  );
+  findings.push(...findings, ...time.isNewHour(timestamp));
 
-  findings = [...findings, ...(await agentHandler(txEvent))];
-
-  console.log(time.initialUpdate(timestamp));
-  findings.push(...findings, ...time.initialUpdate(timestamp));
-  console.log(findings);
+  if (!txEvent.addresses[address]) return findings;
 
   // if time is less than 10 min when the tx is submitted.
-  if (time.getTime(timestamp)) {
-    time.setStatus(true);
-    return findings;
+  if (time.isInFirstTenMins(timestamp)) {
+    time.setFunctionCalledStatus(true);
+    return [];
   } else {
-    // time > 10min
-
-    if (!time.getStatus()) {
+    // time > 10min and if function is already called do nothing, else raise a warning
+    if (!time.getFunctionCalledStatus()) {
       findings.push(
         Finding.fromObject({
           name: "Method not called within the first 10 minutes",
           description:
             "Poke() function not called within 10 minutes of the hour",
-          alertId: "NETHFORTA-24",
+          alertId: "MakerDAO-OSM-4",
           severity: FindingSeverity.Critical,
           type: FindingType.Unknown,
         })
