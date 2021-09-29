@@ -1,5 +1,5 @@
-import provideESMJoinEventAgent from './ESM.join.event.agent';
-import provideESMFireEventAgent from './ESM.fire.event.agent';
+import provideESMJoinEventAgent from './join.event';
+import provideESMFireEventAgent from './fire.event';
 import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
 
 const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';

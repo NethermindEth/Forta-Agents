@@ -13,7 +13,7 @@ import {
 import provideESMJoinEventAgent, {
   MAKER_ESM_JOIN_EVENT_SIGNATURE,
   MAKER_EVEREST_ID,
-} from './ESM.join.event.agent';
+} from './join.event';
 import { encodeParam } from './utils';
 
 const ADDRESS = createAddress('0x1');

@@ -13,8 +13,8 @@ import agent from './agent';
 import {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
   MAKER_EVEREST_ID,
-} from './ESM.fire.event.agent';
-import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from './ESM.join.event.agent';
+} from './fire.event';
+import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from './join.event';
 import { encodeParam } from './utils';
 
 const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';

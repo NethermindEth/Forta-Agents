@@ -8,7 +8,7 @@ import {
 import provideESMFireEventAgent, {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
   MAKER_EVEREST_ID,
-} from './ESM.fire.event.agent';
+} from './fire.event';
 import {
   createAddress,
   TestTransactionEvent,
