@@ -9,11 +9,14 @@ import provideESMFireEventAgent, {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
   MAKER_EVEREST_ID,
 } from './ESM.fire.event.agent';
-import { TestTransactionEvent } from '@nethermindeth/general-agents-module';
+import {
+  createAddress,
+  TestTransactionEvent,
+} from '@nethermindeth/general-agents-module';
 
-const ADDRESS = '0x1212';
+const ADDRESS = createAddress('0x1');
+const USER = createAddress('0x2');
 const ALERT_ID = 'testID';
-const USER = '0x2222';
 
 describe('ESM Fire Event Agent', () => {
   let handleTransaction: HandleTransaction;

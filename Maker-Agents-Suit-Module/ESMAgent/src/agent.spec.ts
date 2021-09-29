@@ -1,4 +1,7 @@
-import { TestTransactionEvent } from '@nethermindeth/general-agents-module';
+import {
+  createAddress,
+  TestTransactionEvent,
+} from '@nethermindeth/general-agents-module';
 import {
   Finding,
   HandleTransaction,
@@ -12,16 +15,15 @@ import {
   MAKER_EVEREST_ID,
 } from './ESM.fire.event.agent';
 import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from './ESM.join.event.agent';
+import { encodeParam } from './utils';
 
 const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';
 const JOIN_EVENT_ALERTID = 'MakerDAO-ESM-1';
 const FIRE_EVENT_ALERTID = 'MakerDAO-ESM-2';
 
-const AMOUNT_3 =
-  '0x00000000000000000000000000000000000000000000000029a2241af62c0000';
-const AMOUNT_1 =
-  '0x000000000000000000000000000000000000000000000000000000000000001';
-const USER = '0x22222';
+const AMOUNT_3 = '3';
+const AMOUNT_1 = '1';
+const USER = createAddress('0x2');
 
 describe('Agent Handler', () => {
   let handleTransaction: HandleTransaction;
@@ -58,8 +60,8 @@ describe('Agent Handler', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_3), // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -75,7 +77,7 @@ describe('Agent Handler', () => {
         everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
-          amount: BigInt(AMOUNT_3).toString(),
+          amount: AMOUNT_3,
         },
       }),
     ]);
@@ -85,8 +87,8 @@ describe('Agent Handler', () => {
     const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_3), // 3
     );
 
     const txEvent2: TransactionEvent = new TestTransactionEvent()
@@ -109,7 +111,7 @@ describe('Agent Handler', () => {
         everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
-          amount: BigInt(AMOUNT_3).toString(),
+          amount: AMOUNT_3,
         },
       }),
       Finding.fromObject({
@@ -132,8 +134,8 @@ describe('Agent Handler', () => {
     const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_3), // 3
     );
 
     const txEvent2: TransactionEvent = new TestTransactionEvent()
@@ -156,7 +158,7 @@ describe('Agent Handler', () => {
         everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
-          amount: BigInt(AMOUNT_3).toString(),
+          amount: AMOUNT_3,
         },
       }),
     ]);
@@ -166,8 +168,8 @@ describe('Agent Handler', () => {
     const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
-      [USER],
-      AMOUNT_1, // 1
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_1),
     );
 
     const txEvent2: TransactionEvent = new TestTransactionEvent()
@@ -199,8 +201,8 @@ describe('Agent Handler', () => {
     const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       '0x1', // bad address
-      [USER],
-      AMOUNT_3, // 1
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_1),
     );
 
     const txEvent2: TransactionEvent = new TestTransactionEvent()
@@ -219,8 +221,8 @@ describe('Agent Handler', () => {
     const txEvent1: TransactionEvent = new TestTransactionEvent().addEventLog(
       '0xabc', // bad signature
       MakerDAO_ESM_CONTRACT,
-      [USER],
-      AMOUNT_3, // 1
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_1),
     );
 
     const txEvent2: TransactionEvent = new TestTransactionEvent()

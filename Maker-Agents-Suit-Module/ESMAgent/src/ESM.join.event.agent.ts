@@ -11,15 +11,15 @@ import {
   FindingType,
   Log,
 } from 'forta-agent';
+import { decodeParam } from './utils';
 
 export const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
 export const MKR_DECIMALS = 18;
 export const MAKER_EVEREST_ID = '0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437';
 
 const filterLog = (log: Log): boolean => {
-  const value = BigInt(log.data) / BigInt(10 ** MKR_DECIMALS);
-
-  return value > 2;
+  const amount = decodeParam('uint256', log.data);
+  return amount > 2;
 };
 
 const createFindingGenerator = (_alertID: string): FindingGenerator => {
@@ -33,8 +33,8 @@ const createFindingGenerator = (_alertID: string): FindingGenerator => {
       type: FindingType.Suspicious,
       everestId: MAKER_EVEREST_ID,
       metadata: {
-        usr: metadata!.topics[1],
-        amount: BigInt(metadata!.data).toString(),
+        usr: decodeParam('address', metadata!.topics[1]).toLowerCase(),
+        amount: decodeParam('uint256', metadata!.data).toLowerCase(),
       },
     });
 };

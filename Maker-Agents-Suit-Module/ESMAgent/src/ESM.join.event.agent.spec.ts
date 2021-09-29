@@ -1,4 +1,7 @@
-import { TestTransactionEvent } from '@nethermindeth/general-agents-module';
+import {
+  TestTransactionEvent,
+  createAddress,
+} from '@nethermindeth/general-agents-module';
 import {
   Finding,
   HandleTransaction,
@@ -11,14 +14,13 @@ import provideESMJoinEventAgent, {
   MAKER_ESM_JOIN_EVENT_SIGNATURE,
   MAKER_EVEREST_ID,
 } from './ESM.join.event.agent';
+import { encodeParam } from './utils';
 
-const ADDRESS = '0x1212';
+const ADDRESS = createAddress('0x1');
+const USER = createAddress('0x2');
 const ALERT_ID = 'testID';
-const USER = '0x22222';
-const AMOUNT_3 =
-  '0x00000000000000000000000000000000000000000000000029a2241af62c0000';
-const AMOUNT_1 =
-  '0x000000000000000000000000000000000000000000000000000000000000001';
+const AMOUNT_3 = '3';
+const AMOUNT_1 = '1';
 
 describe('ESM Join Event Agent', () => {
   let handleTransaction: HandleTransaction;
@@ -31,8 +33,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_3), // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -48,7 +50,7 @@ describe('ESM Join Event Agent', () => {
         everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
-          amount: BigInt(AMOUNT_3).toString(),
+          amount: AMOUNT_3,
         },
       }),
     ]);
@@ -58,8 +60,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [USER],
-      AMOUNT_1, //1
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_1), //1
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -71,8 +73,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       'bad sig',
       ADDRESS,
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_3), // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -84,8 +86,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       '0x1',
-      [USER],
-      AMOUNT_3, // 3
+      [encodeParam('address', USER)],
+      encodeParam('uint256', AMOUNT_1), // 3
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
