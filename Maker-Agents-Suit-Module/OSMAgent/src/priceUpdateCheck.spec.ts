@@ -4,11 +4,9 @@ import agent from "./priceUpdateCheck";
 import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
-const lessThanTenMinutes2 = 1467022181; // "Mon, 27 Jun 2016 10:09:41 GMT"
 const greaterThanTenMinures = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 const differentHour = 1467032181; // "Mon, 27 Jun 2016 12:56:21 GMT"
 const differentHour2 = 1467040181000; // "Mon, 27 Jun 2016 15:09:41 GMT"
-const differentHour3 = 1467052181; //"Mon, 27 Jun 2016 18:29:41 GMT"
 
 describe("Poker Method", () => {
   let handleTransaction: HandleTransaction;
