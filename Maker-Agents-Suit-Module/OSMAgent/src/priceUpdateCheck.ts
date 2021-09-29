@@ -45,14 +45,9 @@ const handleTransaction: HandleTransaction = async (
 
   findings = [...findings, ...(await agentHandler(txEvent))];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  //  console.log(findings);
->>>>>>> ea9159b... issue from general agent module
-=======
->>>>>>> d69a3de... completed
-  time.initialUpdate(timestamp);
+  console.log(time.initialUpdate(timestamp));
+  findings.push(...findings, ...time.initialUpdate(timestamp));
+  console.log(findings);
 
   // if time is less than 10 min when the tx is submitted.
   if (time.getTime(timestamp)) {
