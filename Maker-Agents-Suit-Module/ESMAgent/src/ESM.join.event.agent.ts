@@ -48,15 +48,22 @@ const provideESMJoinEventAgent = (
   _contractAddress: string,
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findingGenerator = txEvent.logs.map((log: Log) => {
-      if (log.address == _contractAddress) {
-        return createFindingGenerator(
-          _alertID,
-          log.topics[1],
-          BigInt(log.data).toString(),
-        );
-      } else return createFindingGenerator(_alertID, '', '');
-    })[0];
+    let findingGenerator: FindingGenerator;
+
+    const logs = txEvent.filterEvent(
+      MAKER_ESM_JOIN_EVENT_SIGNATURE,
+      _contractAddress,
+    );
+
+    if (logs.length) {
+      findingGenerator = createFindingGenerator(
+        _alertID,
+        logs[0].topics[1],
+        BigInt(logs[0].data).toString(),
+      );
+    } else {
+      findingGenerator = createFindingGenerator(_alertID, '', '');
+    }
 
     const agentHandler = provideEventCheckerHandler(
       findingGenerator,
