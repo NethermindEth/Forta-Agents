@@ -19,7 +19,8 @@ export const MAKER_EVEREST_ID = '0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437';
 
 const filterLog = (log: Log): boolean => {
   const amount = decodeParam('uint256', log.data);
-  return amount > 2;
+
+  return BigInt(amount) > BigInt(2 * 10 ** MKR_DECIMALS);
 };
 
 const createFindingGenerator = (_alertID: string): FindingGenerator => {

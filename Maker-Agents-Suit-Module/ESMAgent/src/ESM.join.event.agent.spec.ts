@@ -19,8 +19,9 @@ import { encodeParam } from './utils';
 const ADDRESS = createAddress('0x1');
 const USER = createAddress('0x2');
 const ALERT_ID = 'testID';
-const AMOUNT_3 = '3';
-const AMOUNT_1 = '1';
+
+const AMOUNT_3 = '3000000000000000000'; // 3
+const AMOUNT_1 = '1000000000000000000'; // 1
 
 describe('ESM Join Event Agent', () => {
   let handleTransaction: HandleTransaction;

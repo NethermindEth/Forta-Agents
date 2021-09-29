@@ -21,8 +21,8 @@ const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';
 const JOIN_EVENT_ALERTID = 'MakerDAO-ESM-1';
 const FIRE_EVENT_ALERTID = 'MakerDAO-ESM-2';
 
-const AMOUNT_3 = '3';
-const AMOUNT_1 = '1';
+const AMOUNT_3 = '3000000000000000000'; // 3
+const AMOUNT_1 = '1000000000000000000'; // 1
 const USER = createAddress('0x2');
 
 describe('Agent Handler', () => {
