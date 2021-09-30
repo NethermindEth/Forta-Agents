@@ -21,6 +21,7 @@ export const createFinding = (
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
     type: FindingType.Unknown,
+    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contract: metadata ? metadata.to : null,
     },

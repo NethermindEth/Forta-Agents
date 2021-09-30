@@ -26,6 +26,7 @@ export const createFinding = (): Finding => {
     alertId: "MakerDAO-OSM-4",
     severity: FindingSeverity.Critical,
     type: FindingType.Unknown,
+    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
   });
 };
 

@@ -20,6 +20,7 @@ export const createFinding = (contractAddress: string): Finding => {
     alertId: "MakerDAO-OSM-1",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Info,
+    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contractAddress: contractAddress,
     },
