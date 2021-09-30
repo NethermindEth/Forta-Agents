@@ -7,7 +7,7 @@ import {
   Trace,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideRelyFunctionAgent from './OSM.rely.function.agent';
+import provideRelyFunctionAgent from './rely.function';
 import {
   createAddress,
   TestTransactionEvent,

@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideDenyFunctionAgent from './OSM.deny.function.agent';
+import provideDenyFunctionAgent from './deny.function';
 import {
   createAddress,
   TestTransactionEvent,
