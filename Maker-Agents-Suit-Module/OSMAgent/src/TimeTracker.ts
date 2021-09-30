@@ -1,5 +1,7 @@
 export default class TimeTracker {
   hour: number; // keeps track of the hour
+  functionWasCalled: boolean = false;
+  findingReported: boolean = false;
 
   constructor() {
     this.hour = -1;
@@ -12,19 +14,27 @@ export default class TimeTracker {
     return this.hour !== this.getHour(timestamp);
   }
 
+  updateFunctionWasCalled(status: boolean): void {
+    this.functionWasCalled = status;
+  }
+
+  updateFindingReport(status: boolean): void {
+    this.findingReported = status;
+  }
+
   getHour(timestamp: number): number {
-    const nd = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds 
+    const nd = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds
     return nd.getUTCHours();
   }
 
   getMinute(timestamp: number): number {
-    var d = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds 
+    var d = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds
     return d.getUTCMinutes();
   }
 
   isInFirstTenMins(timestamp: number): boolean {
     const minutes = this.getMinute(timestamp);
-    return minutes <= 10; 
+    return minutes <= 10;
   }
 
   updateHour(timestamp: number): void {
