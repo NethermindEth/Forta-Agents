@@ -6,20 +6,8 @@ export default class TimeTracking {
   hour = 0; // keeps track of the hour
 
   // make sure hour gets updates and consequently status
-  isNewHour(timestamp: number): any {
-    let finding: Finding[] = [];
-    if (this.hour !== this.getHour(timestamp)) {
-      this.hour = this.getHour(timestamp);
-
-      // when the  previous hour never got called
-      if (this.hourStatus === false) {
-        finding.push(Findings as any);
-      } else {
-        this.hourStatus = false;
-        if (!this.isInFirstTenMins) finding.push(Findings as any);
-      }
-    }
-    return finding;
+  isNewHour(timestamp: number): boolean {
+    return this.hour !== this.getHour(timestamp);
   }
 
   getHour(timestamp: number): number {

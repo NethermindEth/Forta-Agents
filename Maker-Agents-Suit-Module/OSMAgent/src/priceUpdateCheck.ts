@@ -40,19 +40,26 @@ const handleTransaction: HandleTransaction = async (
 
   const newHour = time.isNewHour(timestamp);
 
+  if (newHour) {
+    time.hour = time.getHour(timestamp);
+    // when the  previous hour never got called
+    if (time.hourStatus === false) {
+      findings.push(finding as any);
+    } else {
+      time.hourStatus = false;
+    }
+  }
+
+  if (findings.length !== 0) return findings;
+
   const agentHandler = provideFunctionCallsDetectorAgent(
     createFindingGenerator("MakerDAO-OSM-4"),
     functionSignature,
     { to: address }
   );
 
-  // newHour set and the tx is NOT from our protocol
-  if (newHour.length !== 0 && (await agentHandler(txEvent)) === [])
+  if ((await agentHandler(txEvent)) === [] && !txEvent.addresses[address])
     return findings;
-
-  findings.push(...findings, ...time.isNewHour(timestamp));
-
-  if (!txEvent.addresses[address]) return findings;
 
   // if time is less than 10 min when the tx is submitted.
   if (time.isInFirstTenMins(timestamp)) {
