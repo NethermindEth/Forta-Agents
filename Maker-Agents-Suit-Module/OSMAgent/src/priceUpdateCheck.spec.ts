@@ -11,7 +11,7 @@ import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const pokeFunctionSelector = "0x18178358";
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
-const greaterThanTenMinures = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
+const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 const differentHour = 1467032181; // "Mon, 27 Jun 2016 12:56:21 GMT"
 
 describe("Poker Method", () => {
@@ -25,7 +25,7 @@ describe("Poker Method", () => {
       .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
       .setTimestamp(lessThanTenMinutes);
     const txEvent2 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinures
+      greaterThanTenMinutes
     );
 
     findings = findings.concat(await handleTransaction(txEvent1));
@@ -42,7 +42,7 @@ describe("Poker Method", () => {
       lessThanTenMinutes
     );
     const txEvent2 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinures
+      greaterThanTenMinutes
     );
 
     findings = findings.concat(await handleTransaction(txEvent1));
@@ -60,7 +60,7 @@ describe("Poker Method", () => {
     );
     const txEvent2 = new TestTransactionEvent()
       .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
-      .setTimestamp(greaterThanTenMinures);
+      .setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
@@ -77,7 +77,7 @@ describe("Poker Method", () => {
     );
     const txEvent2 = new TestTransactionEvent()
       .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
-      .setTimestamp(greaterThanTenMinures);
+      .setTimestamp(greaterThanTenMinutes);
     const txEvent3 = new TestTransactionEvent().setTimestamp(differentHour);
 
     findings = findings.concat(await handleTransaction(txEvent1));

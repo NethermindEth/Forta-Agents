@@ -21,7 +21,7 @@ const pokeFunctionSelector = "0x18178358";
 const peekFunctionSelector = "0x59e02dd7";
 
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
-const greaterThanTenMinures = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
+const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 
 const web3: Web3 = new Web3();
 
@@ -44,7 +44,7 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const txEvent = new TestTransactionEvent()
-      .setTimestamp(greaterThanTenMinures)
+      .setTimestamp(greaterThanTenMinutes)
       .addTrace({
         from: testAddresses[0],
         input: peekFunctionSelector,
@@ -134,7 +134,7 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const txEvent = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinures
+      greaterThanTenMinutes
     );
 
     findings = findings.concat(await transactionHandler(txEvent));
@@ -184,7 +184,7 @@ describe("OSM Agent Test Suite", () => {
         [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
-      .setTimestamp(greaterThanTenMinures);
+      .setTimestamp(greaterThanTenMinutes);
 
     const _from = createAddress("0x2");
     const _to = testAddresses[0];
@@ -208,7 +208,7 @@ describe("OSM Agent Test Suite", () => {
         from: _from,
         input: _input,
       })
-      .setTimestamp(greaterThanTenMinures);
+      .setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent1));
     findings = findings.concat(await transactionHandler(txEvent2));
