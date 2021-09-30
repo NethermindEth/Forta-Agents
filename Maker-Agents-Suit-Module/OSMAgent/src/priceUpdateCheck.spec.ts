@@ -1,85 +1,119 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import agent from "./priceUpdateCheck";
+import {
+  Finding,
+  HandleTransaction,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
+import { provideHandleTransaction } from "./priceUpdateCheck";
 
 import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
+const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
+const pokeFunctionSelector = "0x18178358";
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const greaterThanTenMinures = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 const differentHour = 1467032181; // "Mon, 27 Jun 2016 12:56:21 GMT"
-const differentHour2 = 1467040181000; // "Mon, 27 Jun 2016 15:09:41 GMT"
 
 describe("Poker Method", () => {
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
-  });
+  it("should returns empty findings if the function was correctly called", async () => {
+    handleTransaction = provideHandleTransaction();
+    let findings: Finding[] = [];
 
-  it("No response if different protocol", async () => {
-    const txEvent = new TestTransactionEvent().addInvolvedAddress(
-      "0x2417c2762ec12f2696f62cfa5492953b9467dc81"
+    const txEvent1 = new TestTransactionEvent()
+      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .setTimestamp(lessThanTenMinutes);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(
+      greaterThanTenMinures
     );
 
-    txEvent.block.timestamp = 0;
-    const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("Time < 10min, nothing returned, first time function call: sets status to true", async () => {
-    const txEvent = new TestTransactionEvent().addInvolvedAddress(
-      "0x2417c2762ec12f2696f62cfa5492953b9467dc81"
-    );
-    txEvent.block.timestamp = lessThanTenMinutes;
-
-    let findings = await handleTransaction(txEvent);
+    findings = findings.concat(await handleTransaction(txEvent1));
+    findings = findings.concat(await handleTransaction(txEvent2));
 
     expect(findings).toStrictEqual([]);
   });
 
-  it("getStatus after time has lasped > 10 min and the status is true", async () => {
-    const txEvent = new TestTransactionEvent().addInvolvedAddress(
-      "0x2417c2762ec12f2696f62cfa5492953b9467dc81"
+  it("should returns a finding if the function is not called in that hour", async () => {
+    handleTransaction = provideHandleTransaction();
+    let findings: Finding[] = [];
+
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      lessThanTenMinutes
     );
-    txEvent.block.timestamp = greaterThanTenMinures; // 19 minutes hour - 19
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("getStatus after time has lasped > 10 min and the status is set to false due to hour change, and since minutes > 10, error thrown", async () => {
-    const txEvent = new TestTransactionEvent().addInvolvedAddress(
-      "0x2417c2762ec12f2696f62cfa5492953b9467dc81"
+    const txEvent2 = new TestTransactionEvent().setTimestamp(
+      greaterThanTenMinures
     );
-    txEvent.block.timestamp = differentHour; // hour - 9 minutes - 26
 
-    const findings = await handleTransaction(txEvent);
+    findings = findings.concat(await handleTransaction(txEvent1));
+    findings = findings.concat(await handleTransaction(txEvent2));
+
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Method not called within the first 10 minutes",
         description: "Poke() function not called within 10 minutes of the hour",
         alertId: "MakerDAO-OSM-4",
-        severity: 5,
-        type: 0,
+        severity: FindingSeverity.Critical,
+        type: FindingType.Unknown,
       }),
     ]);
   });
 
-  it("if the hour changes and the call is not make at all, throw an alert", async () => {
-    const txEvent = new TestTransactionEvent().addInvolvedAddress(
-      "0x2417c2762ec12f2696f62cfa5492953b9467dc81"
-    );
-    txEvent.block.timestamp = differentHour2; // hour - 9 minutes - 26
+  it("should returns a finding if the function was not called in the first ten minutes", async () => {
+    handleTransaction = provideHandleTransaction();
+    let findings: Finding[] = [];
 
-    const findings = await handleTransaction(txEvent);
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      lessThanTenMinutes
+    );
+    const txEvent2 = new TestTransactionEvent()
+      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .setTimestamp(greaterThanTenMinures);
+
+    findings = findings.concat(await handleTransaction(txEvent1));
+    findings = findings.concat(await handleTransaction(txEvent2));
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Method not called within the first 10 minutes",
         description: "Poke() function not called within 10 minutes of the hour",
         alertId: "MakerDAO-OSM-4",
-        severity: 5,
-        type: 0,
+        severity: FindingSeverity.Critical,
+        type: FindingType.Unknown,
+      }),
+    ]);
+  });
+
+  it("should returns a finding for every hour in which function is not called in the first ten minutes", async () => {
+    handleTransaction = provideHandleTransaction();
+    let findings: Finding[] = [];
+
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      lessThanTenMinutes
+    );
+    const txEvent2 = new TestTransactionEvent()
+      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .setTimestamp(greaterThanTenMinures);
+    const txEvent3 = new TestTransactionEvent().setTimestamp(differentHour);
+
+    findings = findings.concat(await handleTransaction(txEvent1));
+    findings = findings.concat(await handleTransaction(txEvent2));
+    findings = findings.concat(await handleTransaction(txEvent3));
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "Method not called within the first 10 minutes",
+        description: "Poke() function not called within 10 minutes of the hour",
+        alertId: "MakerDAO-OSM-4",
+        severity: FindingSeverity.Critical,
+        type: FindingType.Unknown,
+      }),
+      Finding.fromObject({
+        name: "Method not called within the first 10 minutes",
+        description: "Poke() function not called within 10 minutes of the hour",
+        alertId: "MakerDAO-OSM-4",
+        severity: FindingSeverity.Critical,
+        type: FindingType.Unknown,
       }),
     ]);
   });
