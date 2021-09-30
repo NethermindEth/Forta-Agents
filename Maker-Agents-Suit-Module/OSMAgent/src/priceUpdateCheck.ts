@@ -17,15 +17,17 @@ const time = new TimeTracking();
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 export const functionSignature = "poke()";
 
+export const finding = Finding.fromObject({
+  name: "Method not called within the first 10 minutes",
+  description: "Poke() function not called within 10 minutes of the hour",
+  alertId: "MakerDAO-OSM-4",
+  severity: FindingSeverity.Critical,
+  type: FindingType.Unknown,
+});
+
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
-    return Finding.fromObject({
-      name: "Method not called within the first 10 minutes",
-      description: "Poke() function not called within 10 minutes of the hour",
-      alertId: "MakerDAO-OSM-4",
-      severity: FindingSeverity.Critical,
-      type: FindingType.Unknown,
-    });
+    return finding;
   };
 };
 
@@ -50,8 +52,6 @@ const handleTransaction: HandleTransaction = async (
 
   findings.push(...findings, ...time.isNewHour(timestamp));
 
-  console.log("Asdsa");
-
   if (!txEvent.addresses[address]) return findings;
 
   // if time is less than 10 min when the tx is submitted.
@@ -61,16 +61,7 @@ const handleTransaction: HandleTransaction = async (
   } else {
     // time > 10min and if function is already called do nothing, else raise a warning
     if (!time.getFunctionCalledStatus()) {
-      findings.push(
-        Finding.fromObject({
-          name: "Method not called within the first 10 minutes",
-          description:
-            "Poke() function not called within 10 minutes of the hour",
-          alertId: "MakerDAO-OSM-4",
-          severity: FindingSeverity.Critical,
-          type: FindingType.Unknown,
-        })
-      );
+      findings.push(finding);
     }
   }
 

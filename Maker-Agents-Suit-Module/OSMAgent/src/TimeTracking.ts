@@ -1,4 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { finding as Findings } from "./priceUpdateCheck";
 
 export default class TimeTracking {
   hourStatus = false; // indicates if the function got called
@@ -8,34 +9,14 @@ export default class TimeTracking {
   isNewHour(timestamp: number): any {
     let finding: Finding[] = [];
     if (this.hour !== this.getHour(timestamp)) {
-      console.log("hours:", this.hour, this.getHour(timestamp), timestamp);
       this.hour = this.getHour(timestamp);
 
       // when the  previous hour never got called
       if (this.hourStatus === false) {
-        finding.push(
-          Finding.fromObject({
-            name: "Method not called within the first 10 minutes",
-            description:
-              "Poke() function not called within 10 minutes of the hour",
-            alertId: "MakerDAO-OSM-4",
-            severity: FindingSeverity.Critical,
-            type: FindingType.Unknown,
-          })
-        );
+        finding.push(Findings as any);
       } else {
         this.hourStatus = false;
-        if (!this.isInFirstTenMins)
-          finding.push(
-            Finding.fromObject({
-              name: "Method not called within the first 10 minutes",
-              description:
-                "Poke() function not called within 10 minutes of the hour",
-              alertId: "MakerDAO-OSM-4",
-              severity: FindingSeverity.Critical,
-              type: FindingType.Unknown,
-            })
-          );
+        if (!this.isInFirstTenMins) finding.push(Findings as any);
       }
     }
     return finding;
@@ -54,7 +35,6 @@ export default class TimeTracking {
 
   isInFirstTenMins(timestamp: number): boolean {
     const minutes = this.getMinute(timestamp);
-    console.log(minutes, timestamp);
     return minutes <= 10 ? true : false;
   }
 
