@@ -21,29 +21,27 @@ const functionCallDetector = provideFunctionCallsDetectorAgent(
 
 export const provideHandleTransaction = (): HandleTransaction => {
   const timeTracker = new TimeTracker();
-  let functionWasCalled: boolean = false;
-  let findingReported: boolean = false;
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
     const timestamp = txEvent.block.timestamp;
 
     if (timeTracker.isDifferentHour(timestamp)) {
-      functionWasCalled = false;
-      findingReported = false;
+      timeTracker.updateFindingReport(false);
+      timeTracker.updateFunctionWasCalled(false);
     }
 
     if (
       (await functionCallDetector(txEvent)).length !== 0 &&
       timeTracker.isInFirstTenMins(timestamp)
     ) {
-      functionWasCalled = true;
+      timeTracker.updateFunctionWasCalled(true);
     }
 
     if (
       !timeTracker.isInFirstTenMins(timestamp) &&
-      !functionWasCalled &&
-      !findingReported
+      !timeTracker.functionWasCalled &&
+      !timeTracker.findingReported
     ) {
       findings.push(
         Finding.fromObject({
