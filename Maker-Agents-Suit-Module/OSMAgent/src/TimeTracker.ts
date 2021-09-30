@@ -6,7 +6,10 @@ export default class TimeTracker {
   }
 
   isDifferentHour(timestamp: number): boolean {
-    return this.hour !== this.getHour(timestamp * 1000); //x1000 to convert from seconds to milliseconds 
+    if (this.hour === -1) {
+      return false;
+    }
+    return this.hour !== this.getHour(timestamp);
   }
 
   getHour(timestamp: number): number {
@@ -20,11 +23,11 @@ export default class TimeTracker {
   }
 
   isInFirstTenMins(timestamp: number): boolean {
-    const minutes = this.getMinute(timestamp * 1000); //x1000 to convert from seconds to milliseconds 
+    const minutes = this.getMinute(timestamp);
     return minutes <= 10; 
   }
 
   updateHour(timestamp: number): void {
-    this.hour = new Date(timestamp * 1000).getUTCHours(); //x1000 to convert from seconds to milliseconds 
+    this.hour = this.getHour(timestamp);
   }
 }
