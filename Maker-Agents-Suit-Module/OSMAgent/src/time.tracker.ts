@@ -1,10 +1,12 @@
 export default class TimeTracker {
   hour: number; // keeps track of the hour
-  functionWasCalled: boolean = false;
-  findingReported: boolean = false;
+  functionWasCalled: boolean;
+  findingReported: boolean;
 
   constructor() {
     this.hour = -1;
+    this.functionWasCalled = false;
+    this.findingReported = false;
   }
 
   isDifferentHour(timestamp: number): boolean {
