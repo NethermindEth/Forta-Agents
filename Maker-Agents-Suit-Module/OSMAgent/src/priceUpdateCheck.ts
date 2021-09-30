@@ -6,7 +6,7 @@ import {
   FindingType,
 } from "forta-agent";
 import { provideFunctionCallsDetectorAgent } from "@nethermindeth/general-agents-module";
-import TimeTracker from "./timeTracker";
+import TimeTracker from "./TimeTracker";
 
 const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const functionSignature = "poke()";
