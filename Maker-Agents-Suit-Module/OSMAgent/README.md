@@ -1,27 +1,45 @@
-# High Gas Agent
+ MakerDAO Oracle Security Agent
 
 ## Description
 
-This agent detects transactions with high gas consumption
+This agent detects: 
+- Rely method called on an OSM contract.
+- Deny method called on an OSM contract.
+- When `poke` method on MegaPoker contract was not called in the first ten minutes of an hour.
+- When the enqueued price deviate more than 6% from current price on an OSM contract.
+
+> MegaPoker contract address: `0x2417c2762ec12f2696f62cfa5492953b9467dc81`
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- MakerDAO-OSM-1
+  - Fired when the enqueued price deviate more than 6% from current price in some OSM contract.
+  - Severity is always set to "info" .
+  - Type is always set to "suspicious".
+  - The metadata contains:
+    - `contractAddress`: OSM contract address.
 
-## Test Data
+- MakerDAO-OSM-2
+  - Fired when Deny method is called on some OSM contract
+  - Severity is always set to "medium".
+  - Type is always set to "unknow".
+  - The metadata contains:
+    - `contract`: OSM contract address.
 
-The agent behaviour can be verified with the following transactions:
+- MakerDAO-OSM-3
+  - Fired when Rely method is called on some OSM contract
+  - Severity is always set to "medium".
+  - Type is always set to "unknow".
+  - The metadata contains:
+    - `contract`: OSM contract address.
 
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+- MakerDAO-OSM-4
+  - Fired when `poke` method from MegaPoker contract is not called in the first ten minutes of an hour.
+  - Severity is always set to "critical".
+  - Type is always set to "unknow".
