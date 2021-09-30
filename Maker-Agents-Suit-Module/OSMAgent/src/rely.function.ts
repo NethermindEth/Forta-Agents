@@ -16,7 +16,7 @@ export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
   return Finding.fromObject({
-    name: "Maker OSM Contract RELY Function Agent",
+    name: "Maker OSM Contract RELY Function",
     description: "RELY Function is called",
     alertId: "MakerDAO-OSM-3",
     severity: FindingSeverity.Medium,

@@ -16,7 +16,7 @@ export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
   return Finding.fromObject({
-    name: "Maker OSM DENY Function Agent",
+    name: "Maker OSM DENY Function",
     description: "DENY Function is called",
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
