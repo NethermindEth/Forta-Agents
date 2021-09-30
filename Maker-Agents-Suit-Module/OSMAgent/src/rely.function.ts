@@ -10,16 +10,15 @@ import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
 } from '@nethermindeth/general-agents-module';
-import { OSM_CONTRACTS } from './utils';
 
 export const RELY_FUNCTION_SIG = 'rely(address)';
 
-const createFindingGenerator = (alertID: string): FindingGenerator => {
+const createFindingGenerator = (): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) =>
     Finding.fromObject({
       name: 'Maker OSM Contract RELY Function Agent',
       description: 'RELY Function is called',
-      alertId: alertID,
+      alertId: "MakerDAO-OSM-3",
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata: {
@@ -30,21 +29,19 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
 
 const createAgentHandler = (
   _contract: string,
-  _alertID: string
 ): HandleTransaction => {
   return provideFunctionCallsDetectorAgent(
-    createFindingGenerator(_alertID),
+    createFindingGenerator(),
     RELY_FUNCTION_SIG,
     { to: _contract }
   );
 };
 
 export default function provideRelyFunctionHandler(
-  alertID: string,
-  contracts: string[] = OSM_CONTRACTS
+  contracts: string[]
 ): HandleTransaction {
   const handlers: HandleTransaction[] = contracts.map((contract: string) =>
-    createAgentHandler(contract, alertID)
+    createAgentHandler(contract.toLowerCase())
   );
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {

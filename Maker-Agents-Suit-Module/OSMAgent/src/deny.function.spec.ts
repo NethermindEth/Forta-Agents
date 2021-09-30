@@ -11,21 +11,21 @@ import {
   createAddress,
   TestTransactionEvent,
 } from '@nethermindeth/general-agents-module';
+import { OSM_CONTRACTS } from './utils';
 
 const ADDRESS = createAddress('0x1');
-const ALERT_ID = 'testID';
 const ABI = new Web3().eth.abi;
 
 describe('OSM Rely Function Agent', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideDenyFunctionHandler(ALERT_ID);
+    handleTransaction = provideDenyFunctionHandler(OSM_CONTRACTS);
   });
 
   it('should return a finding for one of the OSM contract', async () => {
     const _from = createAddress('0x2');
-    const _to = '0x81FE72B5A8d1A857d176C3E7d5Bd2679A9B85763'; // PIP_ETH
+    const _to = '0x81fe72b5a8d1a857d176c3e7d5bd2679a9b85763'; // PIP_ETH
     const _input: string = ABI.encodeFunctionCall(
       {
         name: 'deny',
@@ -51,7 +51,7 @@ describe('OSM Rely Function Agent', () => {
       Finding.fromObject({
         name: 'Maker OSM DENY Function Agent',
         description: 'DENY Function is called',
-        alertId: ALERT_ID,
+        alertId: "MakerDAO-OSM-2",
         severity: FindingSeverity.Medium,
         type: FindingType.Unknown,
         metadata: {

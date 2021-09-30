@@ -4,22 +4,21 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-} from 'forta-agent';
+} from "forta-agent";
 
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
-} from '@nethermindeth/general-agents-module';
-import { OSM_CONTRACTS } from './utils';
+} from "@nethermindeth/general-agents-module";
 
-export const DENY_FUNCTION_SIG = 'deny(address)';
+export const DENY_FUNCTION_SIG = "deny(address)";
 
-const createFindingGenerator = (alertID: string): FindingGenerator => {
+const createFindingGenerator = (): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) =>
     Finding.fromObject({
-      name: 'Maker OSM DENY Function Agent',
-      description: 'DENY Function is called',
-      alertId: alertID,
+      name: "Maker OSM DENY Function Agent",
+      description: "DENY Function is called",
+      alertId: "MakerDAO-OSM-2",
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata: {
@@ -28,24 +27,19 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
     });
 };
 
-const createAgentHandler = (
-  _contract: string,
-  alertID: string
-): HandleTransaction => {
+const createAgentHandler = (_contract: string): HandleTransaction => {
   return provideFunctionCallsDetectorAgent(
-    createFindingGenerator(alertID),
+    createFindingGenerator(),
     DENY_FUNCTION_SIG,
     { to: _contract }
   );
 };
 
 export default function provideDenyFunctionHandler(
-  alertID: string,
-  contracts: string[] = OSM_CONTRACTS
+  contracts: string[]
 ): HandleTransaction {
-
-  const handlers: HandleTransaction[] = contracts.map(
-    (contract: string) => createAgentHandler(contract, alertID),
+  const handlers: HandleTransaction[] = contracts.map((contract: string) =>
+    createAgentHandler(contract.toLowerCase())
   );
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
