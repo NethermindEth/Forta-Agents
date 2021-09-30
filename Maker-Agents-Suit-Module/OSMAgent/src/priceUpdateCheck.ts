@@ -43,10 +43,10 @@ const handleTransaction: HandleTransaction = async (
   if (newHour) {
     time.hour = time.getHour(timestamp);
     // when the  previous hour never got called
-    if (time.hourStatus === false) {
+    if (time.functionWasCalled === false) {
       findings.push(finding as any);
     } else {
-      time.hourStatus = false;
+      time.functionWasCalled = false;
     }
   }
 

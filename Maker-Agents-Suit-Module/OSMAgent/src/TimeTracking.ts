@@ -2,7 +2,7 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { finding as Findings } from "./priceUpdateCheck";
 
 export default class TimeTracking {
-  hourStatus = false; // indicates if the function got called
+  functionWasCalled = false; // indicates if the function got called
   hour = 0; // keeps track of the hour
 
   // make sure hour gets updates and consequently status
@@ -27,10 +27,10 @@ export default class TimeTracking {
   }
 
   getFunctionCalledStatus(): boolean {
-    return this.hourStatus;
+    return this.functionWasCalled;
   }
 
   setFunctionCalledStatus(status: boolean): void {
-    this.hourStatus = status;
+    this.functionWasCalled = status;
   }
 }
