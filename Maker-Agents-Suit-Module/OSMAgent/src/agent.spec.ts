@@ -6,7 +6,7 @@ import {
 } from "@nethermindeth/general-agents-module";
 import Web3 from "web3";
 import { createFinding as deviationFinding } from "./big.queued.price.deviation";
-import { createFinding as priceUpdateFinding } from "./priceUpdateCheck";
+import { createFinding as priceUpdateFinding } from "./price.update.check";
 import { createFinding as relyFinding } from "./rely.function";
 import { createFinding as denyFinding } from "./deny.function";
 

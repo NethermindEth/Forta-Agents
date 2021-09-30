@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import provideDenyFunctionHandler from "./deny.function";
 import provideRelyFunctionHandler from "./rely.function";
 import provideBigQueuedPriceDeviationHandler from "./big.queued.price.deviation";
-import providePriceUpdateCheckHandler from "./priceUpdateCheck";
+import providePriceUpdateCheckHandler from "./price.update.check";
 import { OSM_CONTRACTS } from "./utils";
 
 

@@ -4,7 +4,7 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
-import providePriceUpdateCheckHandler, { createFinding } from "./priceUpdateCheck";
+import providePriceUpdateCheckHandler, { createFinding } from "./price.update.check";
 
 import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
