@@ -8,28 +8,28 @@ import {
 
 import {
   provideFunctionCallsDetectorAgent,
-  FindingGenerator,
 } from "@nethermindeth/general-agents-module";
 
 export const DENY_FUNCTION_SIG = "deny(address)";
 
-const createFindingGenerator = (): FindingGenerator => {
-  return (metadata: { [key: string]: any } | undefined) =>
-    Finding.fromObject({
-      name: "Maker OSM DENY Function Agent",
-      description: "DENY Function is called",
-      alertId: "MakerDAO-OSM-2",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Unknown,
-      metadata: {
-        contract: metadata ? metadata.to : null,
-      },
-    });
+export const createFinding = (
+  metadata: { [key: string]: any } | undefined
+): Finding => {
+  return Finding.fromObject({
+    name: "Maker OSM DENY Function Agent",
+    description: "DENY Function is called",
+    alertId: "MakerDAO-OSM-2",
+    severity: FindingSeverity.Medium,
+    type: FindingType.Unknown,
+    metadata: {
+      contract: metadata ? metadata.to : null,
+    },
+  });
 };
 
 const createAgentHandler = (_contract: string): HandleTransaction => {
   return provideFunctionCallsDetectorAgent(
-    createFindingGenerator(),
+    createFinding,
     DENY_FUNCTION_SIG,
     { to: _contract }
   );

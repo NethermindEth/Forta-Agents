@@ -19,6 +19,16 @@ const functionCallDetector = provideFunctionCallsDetectorAgent(
   { to: address }
 );
 
+export const createFinding = (): Finding => {
+  return Finding.fromObject({
+    name: "Method not called within the first 10 minutes",
+    description: "Poke() function not called within 10 minutes of the hour",
+    alertId: "MakerDAO-OSM-4",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Unknown,
+  });
+};
+
 export default function providePriceUpdateCheckHandler(): HandleTransaction {
   const timeTracker = new TimeTracker();
 
@@ -43,19 +53,10 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
       !timeTracker.functionWasCalled &&
       !timeTracker.findingReported
     ) {
-      findings.push(
-        Finding.fromObject({
-          name: "Method not called within the first 10 minutes",
-          description:
-            "Poke() function not called within 10 minutes of the hour",
-          alertId: "MakerDAO-OSM-4",
-          severity: FindingSeverity.Critical,
-          type: FindingType.Unknown,
-        })
-      );
+      findings.push(createFinding());
     }
 
     timeTracker.updateHour(timestamp);
     return findings;
   };
-};
+}

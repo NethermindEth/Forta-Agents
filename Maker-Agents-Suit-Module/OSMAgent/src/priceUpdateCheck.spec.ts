@@ -4,7 +4,7 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
-import providePriceUpdateCheckHandler from "./priceUpdateCheck";
+import providePriceUpdateCheckHandler, { createFinding } from "./priceUpdateCheck";
 
 import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
@@ -48,15 +48,7 @@ describe("Poker Method", () => {
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Method not called within the first 10 minutes",
-        description: "Poke() function not called within 10 minutes of the hour",
-        alertId: "MakerDAO-OSM-4",
-        severity: FindingSeverity.Critical,
-        type: FindingType.Unknown,
-      }),
-    ]);
+    expect(findings).toStrictEqual([ createFinding() ]);
   });
 
   it("should returns a finding if the function was not called in the first ten minutes", async () => {
@@ -73,15 +65,7 @@ describe("Poker Method", () => {
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Method not called within the first 10 minutes",
-        description: "Poke() function not called within 10 minutes of the hour",
-        alertId: "MakerDAO-OSM-4",
-        severity: FindingSeverity.Critical,
-        type: FindingType.Unknown,
-      }),
-    ]);
+    expect(findings).toStrictEqual([ createFinding() ]);
   });
 
   it("should returns a finding for every hour in which function is not called in the first ten minutes", async () => {
@@ -100,21 +84,6 @@ describe("Poker Method", () => {
     findings = findings.concat(await handleTransaction(txEvent2));
     findings = findings.concat(await handleTransaction(txEvent3));
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Method not called within the first 10 minutes",
-        description: "Poke() function not called within 10 minutes of the hour",
-        alertId: "MakerDAO-OSM-4",
-        severity: FindingSeverity.Critical,
-        type: FindingType.Unknown,
-      }),
-      Finding.fromObject({
-        name: "Method not called within the first 10 minutes",
-        description: "Poke() function not called within 10 minutes of the hour",
-        alertId: "MakerDAO-OSM-4",
-        severity: FindingSeverity.Critical,
-        type: FindingType.Unknown,
-      }),
-    ]);
+    expect(findings).toStrictEqual([ createFinding(), createFinding() ]);
   });
 });

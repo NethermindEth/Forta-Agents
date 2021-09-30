@@ -6,7 +6,7 @@ import providePriceUpdateCheckHandler from "./priceUpdateCheck";
 import { OSM_CONTRACTS } from "./utils";
 
 
-const provideAgentHandler = (oracleAddresses: string[]): HandleTransaction => {
+export const provideAgentHandler = (oracleAddresses: string[]): HandleTransaction => {
   const bigDeviationNextPriceHandler: HandleTransaction = provideBigQueuedPriceDeviationHandler(
     oracleAddresses
   );

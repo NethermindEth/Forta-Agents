@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideRelyFunctionHandler from './rely.function';
+import provideRelyFunctionHandler, { createFinding } from './rely.function';
 import {
   createAddress,
   TestTransactionEvent,
@@ -14,7 +14,6 @@ import {
 import { OSM_CONTRACTS } from './utils';
 
 const ADDRESS = createAddress('0x1');
-const ALERT_ID = 'testID';
 const ABI = new Web3().eth.abi;
 
 describe('OSM Rely Function Agent', () => {
@@ -48,18 +47,7 @@ describe('OSM Rely Function Agent', () => {
     });
 
     const findings: Finding[] = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: 'Maker OSM Contract RELY Function Agent',
-        description: 'RELY Function is called',
-        alertId: "MakerDAO-OSM-3",
-        severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
-        metadata: {
-          contract: _to,
-        },
-      }),
-    ]);
+    expect(findings).toStrictEqual([ createFinding({to : _to}) ]);
   });
 
   it('should return empty finding when OSM contract address does found', async () => {

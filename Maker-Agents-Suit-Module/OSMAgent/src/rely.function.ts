@@ -4,34 +4,32 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-} from 'forta-agent';
+} from "forta-agent";
 
 import {
   provideFunctionCallsDetectorAgent,
-  FindingGenerator,
-} from '@nethermindeth/general-agents-module';
+} from "@nethermindeth/general-agents-module";
 
-export const RELY_FUNCTION_SIG = 'rely(address)';
+export const RELY_FUNCTION_SIG = "rely(address)";
 
-const createFindingGenerator = (): FindingGenerator => {
-  return (metadata: { [key: string]: any } | undefined) =>
-    Finding.fromObject({
-      name: 'Maker OSM Contract RELY Function Agent',
-      description: 'RELY Function is called',
-      alertId: "MakerDAO-OSM-3",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Unknown,
-      metadata: {
-        contract: metadata ? metadata.to : null,
-      },
-    });
+export const createFinding = (
+  metadata: { [key: string]: any } | undefined
+): Finding => {
+  return Finding.fromObject({
+    name: "Maker OSM Contract RELY Function Agent",
+    description: "RELY Function is called",
+    alertId: "MakerDAO-OSM-3",
+    severity: FindingSeverity.Medium,
+    type: FindingType.Unknown,
+    metadata: {
+      contract: metadata ? metadata.to : null,
+    },
+  });
 };
 
-const createAgentHandler = (
-  _contract: string,
-): HandleTransaction => {
+const createAgentHandler = (_contract: string): HandleTransaction => {
   return provideFunctionCallsDetectorAgent(
-    createFindingGenerator(),
+    createFinding,
     RELY_FUNCTION_SIG,
     { to: _contract }
   );

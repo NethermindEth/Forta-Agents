@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideDenyFunctionHandler from './deny.function';
+import provideDenyFunctionHandler, { createFinding } from './deny.function';
 import {
   createAddress,
   TestTransactionEvent,
@@ -47,18 +47,7 @@ describe('OSM Rely Function Agent', () => {
     });
 
     const findings: Finding[] = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: 'Maker OSM DENY Function Agent',
-        description: 'DENY Function is called',
-        alertId: "MakerDAO-OSM-2",
-        severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
-        metadata: {
-          contract: _to,
-        },
-      }),
-    ]);
+    expect(findings).toStrictEqual([ createFinding({ to: _to })]);
   });
 
   it('should return empty finding when OSM contract address does found', async () => {
