@@ -39,7 +39,7 @@ const createAgentHandler = (
   );
 };
 
-export default function provideDenyFunctionAgent(
+export default function provideDenyFunctionHandler(
   alertID: string,
   contracts: string[] = OSM_CONTRACTS
 ): HandleTransaction {

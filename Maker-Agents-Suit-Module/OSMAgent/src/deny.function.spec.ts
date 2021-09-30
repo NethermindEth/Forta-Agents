@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideDenyFunctionAgent from './deny.function';
+import provideDenyFunctionHandler from './deny.function';
 import {
   createAddress,
   TestTransactionEvent,
@@ -20,7 +20,7 @@ describe('OSM Rely Function Agent', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideDenyFunctionAgent(ALERT_ID);
+    handleTransaction = provideDenyFunctionHandler(ALERT_ID);
   });
 
   it('should return a finding for one of the OSM contract', async () => {

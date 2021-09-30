@@ -4,10 +4,9 @@ import {
   FindingSeverity,
   FindingType,
   TransactionEvent,
-  Trace,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideRelyFunctionAgent from './rely.function';
+import provideRelyFunctionHandler from './rely.function';
 import {
   createAddress,
   TestTransactionEvent,
@@ -21,7 +20,7 @@ describe('OSM Rely Function Agent', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideRelyFunctionAgent(ALERT_ID);
+    handleTransaction = provideRelyFunctionHandler(ALERT_ID);
   });
 
   it('should return a finding for one of the OSM contract', async () => {

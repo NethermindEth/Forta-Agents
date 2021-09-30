@@ -39,7 +39,7 @@ const createAgentHandler = (
   );
 };
 
-export default function provideRelyFunctionAgent(
+export default function provideRelyFunctionHandler(
   alertID: string,
   contracts: string[] = OSM_CONTRACTS
 ): HandleTransaction {

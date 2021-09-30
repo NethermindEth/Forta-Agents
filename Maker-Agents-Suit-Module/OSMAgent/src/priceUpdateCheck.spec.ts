@@ -4,7 +4,7 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
-import { provideHandleTransaction } from "./priceUpdateCheck";
+import providePriceUpdateCheckHandler from "./priceUpdateCheck";
 
 import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
 
@@ -18,7 +18,7 @@ describe("Poker Method", () => {
   let handleTransaction: HandleTransaction;
 
   it("should returns empty findings if the function was correctly called", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
     const txEvent1 = new TestTransactionEvent()
@@ -35,7 +35,7 @@ describe("Poker Method", () => {
   });
 
   it("should returns a finding if the function is not called in that hour", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
     const txEvent1 = new TestTransactionEvent().setTimestamp(
@@ -60,7 +60,7 @@ describe("Poker Method", () => {
   });
 
   it("should returns a finding if the function was not called in the first ten minutes", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
     const txEvent1 = new TestTransactionEvent().setTimestamp(
@@ -85,7 +85,7 @@ describe("Poker Method", () => {
   });
 
   it("should returns a finding for every hour in which function is not called in the first ten minutes", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
     const txEvent1 = new TestTransactionEvent().setTimestamp(

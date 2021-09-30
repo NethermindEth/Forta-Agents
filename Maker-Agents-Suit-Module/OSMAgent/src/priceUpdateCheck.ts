@@ -19,7 +19,7 @@ const functionCallDetector = provideFunctionCallsDetectorAgent(
   { to: address }
 );
 
-export const provideHandleTransaction = (): HandleTransaction => {
+export default function providePriceUpdateCheckHandler(): HandleTransaction {
   const timeTracker = new TimeTracker();
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
@@ -58,8 +58,4 @@ export const provideHandleTransaction = (): HandleTransaction => {
     timeTracker.updateHour(timestamp);
     return findings;
   };
-};
-
-export default {
-  handleTransaction: provideHandleTransaction(),
 };
