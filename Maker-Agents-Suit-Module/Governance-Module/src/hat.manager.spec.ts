@@ -8,21 +8,14 @@ import {
 
 describe("Hat Manager test suite", () => {
   let hat: string;
+  const addr1: string = createAddr("0x1");
   const dead: string = createAddr("0xdead");
-  const web3CallMock: any = jest.fn(
-    (calldata: any, block:number) => calldata.data,
-  );
-  // fetcher always return 0xdead address
-  const fetcher: PropertyFetcher = propertyFetcher(
-    web3CallMock, 
-    "", 
-    () => createEncodedAddr(dead), 
-    'address',
-  )
+  // always return 0xdead address
+  const web3CallMock: any = jest.fn(() => createEncodedAddr(dead));
   let hatManager: HatManager;
 
   beforeEach(() => {
-    hatManager = new HatManager(fetcher);
+    hatManager = new HatManager(web3CallMock, addr1);
     web3CallMock.mockClear();
   });
 

@@ -52,16 +52,15 @@ export const provideHatChecker = (
 ): HandleBlock => {
 
   const realThreshold: BigNumber = threshold.multipliedBy(10 ** MKR_DECIMALS);
-  const getHat: PropertyFetcher = propertyFetcher(web3Call, contractAddress, hatCall, 'address');
   const getApprovals: PropertyFetcher = propertyFetcher(web3Call, contractAddress, approvalsCall, 'uint256');
-  const hatManager: HatManager = new HatManager(getHat);
+  const hatManager: HatManager = new HatManager(web3Call, contractAddress);
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
     // Get the current Hat
     const block: number = blockEvent.blockNumber;
-    const hat: string = (await getHat(block)).toLowerCase();
+    const hat: string = (await hatManager.getAddress(block));
 
     // Check if hat address is a known address 
     if(!(await isKnown(hat))){
