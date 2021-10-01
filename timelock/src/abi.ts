@@ -5,47 +5,47 @@ const callSchedule = {
       indexed: true,
       internalType: "bytes32",
       name: "id",
-      type: "bytes32",
+      type: "bytes32"
     },
     {
       indexed: true,
       internalType: "uint256",
       name: "index",
-      type: "uint256",
+      type: "uint256"
     },
     {
       indexed: false,
       internalType: "address",
       name: "target",
-      type: "address",
+      type: "address"
     },
     {
       indexed: false,
       internalType: "uint256",
       name: "value",
-      type: "uint256",
+      type: "uint256"
     },
     {
       indexed: false,
       internalType: "bytes",
       name: "data",
-      type: "bytes",
+      type: "bytes"
     },
     {
       indexed: false,
       internalType: "bytes32",
       name: "predecessor",
-      type: "bytes32",
+      type: "bytes32"
     },
     {
       indexed: false,
       internalType: "uint256",
       name: "delay",
-      type: "uint256",
-    },
+      type: "uint256"
+    }
   ],
   name: "CallScheduled",
-  type: "event",
+  type: "event"
 };
 
 const callExecuted = {
@@ -55,35 +55,35 @@ const callExecuted = {
       indexed: true,
       internalType: "bytes32",
       name: "id",
-      type: "bytes32",
+      type: "bytes32"
     },
     {
       indexed: true,
       internalType: "uint256",
       name: "index",
-      type: "uint256",
+      type: "uint256"
     },
     {
       indexed: false,
       internalType: "address",
       name: "target",
-      type: "address",
+      type: "address"
     },
     {
       indexed: false,
       internalType: "uint256",
       name: "value",
-      type: "uint256",
+      type: "uint256"
     },
     {
       indexed: false,
       internalType: "bytes",
       name: "data",
-      type: "bytes",
-    },
+      type: "bytes"
+    }
   ],
   name: "CallExecuted",
-  type: "event",
+  type: "event"
 };
 
 const cancelled = {
@@ -93,11 +93,11 @@ const cancelled = {
       indexed: true,
       internalType: "bytes32",
       name: "id",
-      type: "bytes32",
-    },
+      type: "bytes32"
+    }
   ],
   name: "Cancelled",
-  type: "event",
+  type: "event"
 };
 
 const MinDelayChange = {
@@ -107,17 +107,17 @@ const MinDelayChange = {
       indexed: false,
       internalType: "uint256",
       name: "oldDuration",
-      type: "uint256",
+      type: "uint256"
     },
     {
       indexed: false,
       internalType: "uint256",
       name: "newDuration",
-      type: "uint256",
-    },
+      type: "uint256"
+    }
   ],
   name: "MinDelayChange",
-  type: "event",
+  type: "event"
 };
 
 export { callExecuted, callSchedule, MinDelayChange, cancelled };
