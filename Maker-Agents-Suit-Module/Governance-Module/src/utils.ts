@@ -50,6 +50,11 @@ export enum HatFinding {
   FewApprovals = 2,
 };
 
+export enum LiftFinding {
+  Lifter = 0,
+  Spell = 1,
+};
+
 export const createAddr = (addr: string): string =>
   Web3.utils.leftPad(addr, 40);
 

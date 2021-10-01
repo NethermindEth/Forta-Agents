@@ -23,7 +23,7 @@ const desc: {
   [HatFinding.UnknownHat]:   "Hat is an unknown address",
   [HatFinding.HatModified]:  "Hat address modified",
   [HatFinding.FewApprovals]: "Hat MKR is below the threshold",
-}
+};
 
 export const createFinding = (
   alertId: string,
