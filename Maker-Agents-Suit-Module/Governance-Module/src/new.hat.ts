@@ -8,7 +8,6 @@ import {
 import {
   AddressVerifier,
   HatFinding,
-  hatCall,
   approvalsCall,
   PropertyFetcher,
   propertyFetcher,
@@ -58,9 +57,10 @@ export const provideHatChecker = (
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    // Get the current Hat
     const block: number = blockEvent.blockNumber;
-    const hat: string = (await hatManager.getAddress(block));
+    // Get Hat Information
+    const previousHat = await hatManager.getAddress(block - 1);
+    const hat: string = await hatManager.getAddress(block);
 
     // Check if hat address is a known address 
     if(!(await isKnown(hat))){
@@ -74,7 +74,6 @@ export const provideHatChecker = (
     }
     else{
       // Compare with previous hat address
-      const previousHat = await hatManager.getAddress(block - 1);
       if(hat !== previousHat){
         findings.push(
           createFinding(
@@ -100,7 +99,6 @@ export const provideHatChecker = (
       }
     }
 
-    hatManager.setAddress(hat).setBlock(block);
     return findings;
   };
 };

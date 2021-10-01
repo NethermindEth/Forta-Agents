@@ -29,6 +29,7 @@ const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
 describe('Chief Contract Hat Changes detector test suite', () => {
   const web3CallMock = jest.fn();
   let handleBlock: HandleBlock;
+  const callData = {to: contract, data: hatCall()};
 
   beforeEach(() => {
     web3CallMock.mockClear();
@@ -44,8 +45,10 @@ describe('Chief Contract Hat Changes detector test suite', () => {
   it('Should report when hat is an unknown address', async () => {
     const block: number = 1;
     const hat: string = createAddr("0xDEAD");
+    const previousHat: string = createAddr("0x1");
     const blockEvent: BlockEvent = createTestBlockEvent(block);
 
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
 
     const findings: Finding[] = await handleBlock(blockEvent);
@@ -56,8 +59,9 @@ describe('Chief Contract Hat Changes detector test suite', () => {
         { hat: hat.toLowerCase() },
       ),
     ]);
-    expect(web3CallMock).toBeCalledTimes(1);
-    expect(web3CallMock).nthCalledWith(1, {to: contract, data: hatCall()}, block);
+    expect(web3CallMock).toBeCalledTimes(2);
+    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
+    expect(web3CallMock).nthCalledWith(2, callData, block);
   });
 
   it('Should report when hat is modified', async () => {
@@ -66,8 +70,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     const previousHat: string = createAddr("0xDEAD");
     const blockEvent: BlockEvent = createTestBlockEvent(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
 
 
@@ -83,8 +87,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
       ),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, {to: contract, data: hatCall()}, block);
-    expect(web3CallMock).nthCalledWith(2, {to: contract, data: hatCall()}, block - 1);
+    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
+    expect(web3CallMock).nthCalledWith(2, callData, block);
     expect(web3CallMock).nthCalledWith(3, 
       {
         to: contract, 
@@ -100,8 +104,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     const previousHat: string = hat;
     const blockEvent: BlockEvent = createTestBlockEvent(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
 
     const findings: Finding[] = await handleBlock(blockEvent);
@@ -117,8 +121,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
       ),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, {to: contract, data: hatCall()}, block);
-    expect(web3CallMock).nthCalledWith(2, {to: contract, data: hatCall()}, block - 1);
+    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
+    expect(web3CallMock).nthCalledWith(2, callData, block);
     expect(web3CallMock).nthCalledWith(3, 
       {
         to: contract, 
@@ -134,8 +138,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     const previousHat: string = createAddr("0xDEAD");
     const blockEvent: BlockEvent = createTestBlockEvent(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
 
     const findings: Finding[] = await handleBlock(blockEvent);
@@ -159,8 +163,8 @@ describe('Chief Contract Hat Changes detector test suite', () => {
       ),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, {to: contract, data: hatCall()}, block);
-    expect(web3CallMock).nthCalledWith(2, {to: contract, data: hatCall()}, block - 1);
+    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
+    expect(web3CallMock).nthCalledWith(2, callData, block);
     expect(web3CallMock).nthCalledWith(3, 
       {
         to: contract, 
@@ -176,11 +180,21 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     const previousHat: string = hat;
     const blockEvent: BlockEvent = createTestBlockEvent(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
+    expect(web3CallMock).toBeCalledTimes(3);
+    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
+    expect(web3CallMock).nthCalledWith(2, callData, block);
+    expect(web3CallMock).nthCalledWith(3, 
+      {
+        to: contract, 
+        data: approvalsCall(hat.toLowerCase()),
+      }, 
+      block,
+    );
   });
 });

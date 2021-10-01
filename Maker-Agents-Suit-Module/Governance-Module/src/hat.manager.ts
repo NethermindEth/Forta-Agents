@@ -12,18 +12,10 @@ export default class HatManager {
   }
 
   public async getAddress(block: number) {
-    if(this.block !== block)
-      return (await this.hatFetcher(block)).toLowerCase();
+    if(this.block !== block){
+      this.address = (await this.hatFetcher(block)).toLowerCase();
+      this.block = block;
+    }
     return this.address;
-  }
-
-  public setAddress(address: string) {
-    this.address = address;
-    return this;
-  }
-
-  public setBlock(block: number) {
-    this.block = block;
-    return this;
   }
 };
