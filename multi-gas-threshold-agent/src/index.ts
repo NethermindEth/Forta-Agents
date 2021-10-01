@@ -1,14 +1,14 @@
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
 import {
   Finding,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType,
-} from 'forta-agent';
+  FindingType
+} from "forta-agent";
 
-export const MEDIUM_GAS_THRESHOLD = '4000000';
-export const HIGH_GAS_THRESHOLD = '6000000';
+export const MEDIUM_GAS_THRESHOLD = "4000000";
+export const HIGH_GAS_THRESHOLD = "6000000";
 
 const getSeverity = (gasUsed: BigNumber): FindingSeverity => {
   if (gasUsed.isGreaterThanOrEqualTo(HIGH_GAS_THRESHOLD)) {
@@ -37,11 +37,14 @@ const handleTransaction: HandleTransaction = async (
 
   findings.push(
     Finding.fromObject({
-      name: 'High Gas Use Detection',
-      description: `Gas Used by Transaction: ${gasUsed}`,
-      alertId: 'NETHFORTA-1',
+      name: "High Gas Use Detection",
+      description: `Gas Used by Transaction`,
+      alertId: "NETHFORTA-1",
       severity: getSeverity(gasUsed),
       type: FindingType.Suspicious,
+      metadata: {
+        gas: gasUsed.toString()
+      }
     })
   );
 
@@ -49,5 +52,5 @@ const handleTransaction: HandleTransaction = async (
 };
 
 export default {
-  handleTransaction,
+  handleTransaction
 };
