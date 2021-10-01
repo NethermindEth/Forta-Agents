@@ -4,7 +4,7 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType,
+  FindingType
 } from "forta-agent";
 
 export const MEDIUM_GAS_THRESHOLD = "4000000";
@@ -37,11 +37,14 @@ const handleTransaction: HandleTransaction = async (
 
   findings.push(
     Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
+      name: "High Gas Use Detection",
+      description: `Gas Used by Transaction`,
       alertId: "NETHFORTA-1",
       severity: getSeverity(gasUsed),
       type: FindingType.Suspicious,
+      metadata: {
+        gas: gasUsed.toString()
+      }
     })
   );
 
@@ -49,5 +52,5 @@ const handleTransaction: HandleTransaction = async (
 };
 
 export default {
-  handleTransaction,
+  handleTransaction
 };
