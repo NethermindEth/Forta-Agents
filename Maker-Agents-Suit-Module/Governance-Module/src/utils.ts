@@ -124,12 +124,12 @@ export const propertyFetcher = (
   web3Call: any, 
   address: string, 
   dataEncoder: any, 
-  prpertyType: string,
+  propertyType: string,
 ): PropertyFetcher => 
   async (block: number, ...params: string[]): Promise<any> => {
     const encodedValue = await web3Call({
       to: address, 
       data: dataEncoder(...params),
     }, block);
-    return decodeSingleParam(prpertyType, encodedValue);
+    return decodeSingleParam(propertyType, encodedValue);
   };
