@@ -6,7 +6,7 @@ import {
   FindingType,
   HandleTransaction,
   Network,
-  TransactionEvent,
+  TransactionEvent
 } from "forta-agent";
 import agent, { timelockEvents } from ".";
 
@@ -23,14 +23,14 @@ function generateEvent(value) {
 
 function createFinding(eventSignature): Finding {
   return Finding.fromObject({
-    name: "TimeLock",
-    description: "TimeLock initiated",
+    name: "TimeLock Event Detection",
+    description: "TimeLock is initiated.",
     alertId: "NETHFORTA-12",
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
-      events: JSON.stringify(eventSignature),
-    },
+      events: JSON.stringify(eventSignature)
+    }
   });
 }
 
@@ -62,7 +62,7 @@ describe("Timelock agent", () => {
     it("returns a finding of a timelock event emission", async () => {
       const txEvent = createTxEvent({
         gasUsed: "7000000",
-        logs: [generateEvent(timelockEvents[0])],
+        logs: [generateEvent(timelockEvents[0])]
       });
 
       const findings = await handleTransaction(txEvent);
@@ -78,8 +78,8 @@ describe("Timelock agent", () => {
           generateEvent(timelockEvents[0]),
           generateEvent(timelockEvents[1]),
           generateEvent(timelockEvents[2]),
-          generateEvent(timelockEvents[3]),
-        ],
+          generateEvent(timelockEvents[3])
+        ]
       });
 
       const findings = await handleTransaction(txEvent);
