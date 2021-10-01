@@ -65,8 +65,5 @@ function provideHandleTransaction(
 
 export default {
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(
-    failureCounter,
-    INTERSTING_PROTOCOLS
-  )
+  handleTransaction: provideHandleTransaction(failureCounter, INTERSTING_PROTOCOLS)
 };
