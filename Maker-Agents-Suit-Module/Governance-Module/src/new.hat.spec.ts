@@ -28,16 +28,17 @@ const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
 
 describe('Chief Contract Hat Changes detector test suite', () => {
   const web3CallMock = jest.fn();
-  const handleBlock: HandleBlock = provideHatChecker(
-    web3CallMock,
-    alertId,
-    contract,
-    isKnown,
-    threshold,
-  );
+  let handleBlock: HandleBlock;
 
   beforeEach(() => {
     web3CallMock.mockClear();
+    handleBlock = provideHatChecker(
+      web3CallMock,
+      alertId,
+      contract,
+      isKnown,
+      threshold,
+    );
   });
 
   it('Should report when hat is an unknown address', async () => {

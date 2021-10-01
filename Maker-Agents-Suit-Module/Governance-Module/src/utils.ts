@@ -16,6 +16,8 @@ const _web3: Web3 = new Web3();
 
 export type AddressVerifier = (addr: string) => Promise<boolean>;
 
+export type PropertyFetcher = (block: number, ...params: string[]) => Promise<any>;
+
 export interface Set {
   [key: string]: boolean,
 };
@@ -117,3 +119,17 @@ export const createTestBlockEvent = (blockNumber: number): BlockEvent =>
     blockHash: "0x0",
     block: {} as Block,
   });
+
+export const propertyFetcher = (
+  web3Call: any, 
+  address: string, 
+  dataEncoder: any, 
+  prpertyType: string,
+): PropertyFetcher => 
+  async (block: number, ...params: string[]): Promise<any> => {
+    const encodedValue = await web3Call({
+      to: address, 
+      data: dataEncoder(...params),
+    }, block);
+    return decodeSingleParam(prpertyType, encodedValue);
+  };

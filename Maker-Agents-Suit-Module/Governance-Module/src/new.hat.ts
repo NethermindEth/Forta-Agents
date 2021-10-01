@@ -9,10 +9,12 @@ import {
   AddressVerifier,
   HatFinding,
   hatCall,
-  decodeSingleParam,
   approvalsCall,
+  PropertyFetcher,
+  propertyFetcher,
 } from './utils';
 import BigNumber from 'bignumber.js'
+import HatManager from './hat.manager';
 
 const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
 const MKR_DECIMALS: number = 18;
@@ -50,21 +52,16 @@ export const provideHatChecker = (
 ): HandleBlock => {
 
   const realThreshold: BigNumber = threshold.multipliedBy(10 ** MKR_DECIMALS);
-
-  const getHat = async (block: number) => {
-    const encodedHat = await web3Call({
-      to: contractAddress,
-      data: hatCall(),
-    }, block);
-    const hat: string = decodeSingleParam('address', encodedHat);
-    return hat.toLowerCase();
-  }
+  const getHat: PropertyFetcher = propertyFetcher(web3Call, contractAddress, hatCall, 'address');
+  const getApprovals: PropertyFetcher = propertyFetcher(web3Call, contractAddress, approvalsCall, 'uint256');
+  const hatManager: HatManager = new HatManager(getHat);
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
     // Get the current Hat
-    const hat: string = await getHat(blockEvent.blockNumber);
+    const block: number = blockEvent.blockNumber;
+    const hat: string = (await getHat(block)).toLowerCase();
 
     // Check if hat address is a known address 
     if(!(await isKnown(hat))){
@@ -78,7 +75,7 @@ export const provideHatChecker = (
     }
     else{
       // Compare with previous hat address
-      const previousHat = await getHat(blockEvent.blockNumber - 1);
+      const previousHat = await hatManager.getAddress(block - 1);
       if(hat !== previousHat){
         findings.push(
           createFinding(
@@ -90,11 +87,7 @@ export const provideHatChecker = (
       }
 
       // Retrieve MKR for hat
-      const encodedMKR = await web3Call({
-        to: contractAddress,
-        data: approvalsCall(hat),
-      }, blockEvent.blockNumber);
-      const MKR: BigNumber = decodeSingleParam('uint256', encodedMKR);
+      const MKR: BigNumber = await getApprovals(block, hat);
 
       // Send alarm if MKR is below threshold
       if(realThreshold.isGreaterThan(MKR)){
@@ -108,6 +101,7 @@ export const provideHatChecker = (
       }
     }
 
+    hatManager.setAddress(hat).setBlock(block);
     return findings;
   };
 };
