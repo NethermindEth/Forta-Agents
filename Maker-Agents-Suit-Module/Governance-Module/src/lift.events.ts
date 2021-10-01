@@ -51,7 +51,11 @@ export const provideLiftEventsListener = (
       return findings;
 
     for(const log of txEvent.logs) {
-      if((log.address === contract) && (log.topics[0] === topic)){
+      if(
+        (log.address === contract) && 
+        (log.topics.length >= 3) &&
+        (log.topics[0] === topic) 
+      ){
         const topic1: string = decodeSingleParam('address', log.topics[1]).toLowerCase();
         const topic2: string = decodeSingleParam('address', log.topics[2]).toLowerCase();
         if(!(await isKnown(topic1)))
