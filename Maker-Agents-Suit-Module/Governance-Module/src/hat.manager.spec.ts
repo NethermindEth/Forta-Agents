@@ -2,8 +2,6 @@ import HatManager from "./hat.manager";
 import { 
   createAddr, 
   createEncodedAddr, 
-  propertyFetcher, 
-  PropertyFetcher, 
 } from "./utils";
 
 describe("Hat Manager test suite", () => {
