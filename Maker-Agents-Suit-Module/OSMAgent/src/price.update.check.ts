@@ -54,6 +54,7 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
       !timeTracker.functionWasCalled &&
       !timeTracker.findingReported
     ) {
+      timeTracker.updateFindingReport(true);
       findings.push(createFinding());
     }
 
