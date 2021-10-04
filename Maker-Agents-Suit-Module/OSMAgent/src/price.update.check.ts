@@ -51,8 +51,9 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
 
     if (
       !timeTracker.isInFirstTenMins(timestamp) &&
+      !timeTracker.isFirstHour(timestamp) &&
       !timeTracker.functionWasCalled &&
-      !timeTracker.findingReported
+      !timeTracker.findingReported 
     ) {
       timeTracker.updateFindingReport(true);
       findings.push(createFinding());
