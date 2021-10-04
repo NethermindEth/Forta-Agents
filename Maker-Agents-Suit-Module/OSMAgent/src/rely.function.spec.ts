@@ -47,7 +47,7 @@ describe('OSM Rely Function Agent', () => {
     });
 
     const findings: Finding[] = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([ createFinding({to : _to}) ]);
+    expect(findings).toStrictEqual([ createFinding({ to : _to, input: _input }) ]);
   });
 
   it('should return empty finding when OSM contract address does found', async () => {

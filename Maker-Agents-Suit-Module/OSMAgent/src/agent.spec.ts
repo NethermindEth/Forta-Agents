@@ -99,7 +99,7 @@ describe("OSM Agent Test Suite", () => {
       .setTimestamp(lessThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent));
-    expect(findings).toStrictEqual([relyFinding({ to: testAddresses[0] })]);
+    expect(findings).toStrictEqual([relyFinding({ to: testAddresses[0], input: _input })]);
   });
 
   it("should detect deny function", async () => {

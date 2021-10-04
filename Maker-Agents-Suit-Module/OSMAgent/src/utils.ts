@@ -1,3 +1,5 @@
+import Web3 from "web3";
+
 export const OSM_CONTRACTS = [
   "0x81fe72b5a8d1a857d176c3e7d5bd2679a9b85763",
   "0xb4eb54af9cc7882df0121d26c5b97e802915abe6",
@@ -26,3 +28,13 @@ export const OSM_CONTRACTS = [
   "0x9a1cd705dc7ac64b50777bceca3529e58b1292f1",
   "0x65c79fcb50ca1594b025960e539ed7a9a6d434a3",
 ];
+
+export const extractReliedAddress = (txnData: string): string => {
+  const txnDataWithoutSelector = txnData.slice(10); 
+  return new Web3().eth.abi.decodeParameter("address", txnDataWithoutSelector) as any;
+};
+
+export const extractDeniedAddress = (txnData: string): string => {
+  const txnDataWithoutSelector = txnData.slice(10); 
+  return new Web3().eth.abi.decodeParameter("address", txnDataWithoutSelector) as any;
+};
