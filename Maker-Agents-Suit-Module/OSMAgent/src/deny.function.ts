@@ -5,25 +5,27 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
-
 import {
   provideFunctionCallsDetectorAgent,
 } from "@nethermindeth/general-agents-module";
+import { extractDeniedAddress } from "./utils";
 
 export const DENY_FUNCTION_SIG = "deny(address)";
 
 export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
+  const deniedAddress: string =  extractDeniedAddress(metadata ? metadata.input : "");
   return Finding.fromObject({
     name: "Maker OSM DENY Function",
     description: "DENY Function is called",
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
-    type: FindingType.Unknown,
+    type: FindingType.Info,
     everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contract: metadata ? metadata.to : null,
+      deniedAddress: deniedAddress,
     },
   });
 };

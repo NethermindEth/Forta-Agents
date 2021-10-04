@@ -131,7 +131,7 @@ describe("OSM Agent Test Suite", () => {
       .setTimestamp(lessThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent));
-    expect(findings).toStrictEqual([denyFinding({ to: testAddresses[0] })]);
+    expect(findings).toStrictEqual([denyFinding({ to: testAddresses[0], input: _input })]);
   });
 
   it("should detects when poke was not called", async () => {
@@ -223,7 +223,7 @@ describe("OSM Agent Test Suite", () => {
 
     expect(findings).toStrictEqual([
       deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
-      denyFinding({ to: testAddresses[0] }),
+      denyFinding({ to: testAddresses[0], input: _input }),
     ]);
   });
 });
