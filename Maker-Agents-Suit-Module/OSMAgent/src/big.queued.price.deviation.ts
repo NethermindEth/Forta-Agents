@@ -12,7 +12,11 @@ import Web3 from "web3";
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
 const LOG_VALUE_EVENT_SIGNATURE = "LogValue(bytes32)";
 
-export const createFinding = (contractAddress: string, currentPrice: bigint, queuedPrice: bigint): Finding => {
+export const createFinding = (
+  contractAddress: string,
+  currentPrice: bigint,
+  queuedPrice: bigint
+): Finding => {
   return Finding.fromObject({
     name: "MakerDAO OSM Contract Big Enqueued Price Deviation",
     description:
@@ -24,7 +28,7 @@ export const createFinding = (contractAddress: string, currentPrice: bigint, que
     metadata: {
       contractAddress: contractAddress,
       currentPrice: currentPrice.toString(),
-      queuedPrice: queuedPrice.toString(), 
+      queuedPrice: queuedPrice.toString(),
     },
   });
 };
@@ -76,13 +80,13 @@ const getCurrentValues = (
 };
 
 const abs = (a: bigint): bigint => {
-    return a < 0 ? -a : a;
-}
+  return a < 0 ? -a : a;
+};
 
 const needToReport = (currentValue: bigint, nextValue: bigint): boolean => {
-    const bigDeviation: bigint = BigInt(6) * currentValue / BigInt(100);
-    return abs(currentValue - nextValue) > bigDeviation;
-}
+  const bigDeviation: bigint = (BigInt(6) * currentValue) / BigInt(100);
+  return abs(currentValue - nextValue) > bigDeviation;
+};
 
 const checkOSMContract = (
   contractAddress: string,
@@ -97,22 +101,31 @@ const checkOSMContract = (
   const lessLenght: number = Math.min(currentValues.length, nextValues.length);
   for (let i = 0; i < lessLenght; i++) {
     if (needToReport(currentValues[i], nextValues[i])) {
-      return createFinding(contractAddress.toLowerCase(), currentValues[i], nextValues[i]);
+      return createFinding(
+        contractAddress.toLowerCase(),
+        currentValues[i],
+        nextValues[i]
+      );
     }
   }
 
   return null;
 };
 
-export default function provideBigQueuedPriceDeviationHandler(contractAddressesList: string[]): HandleTransaction {
-    return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-        const findings: Finding[] = []
-        for (let i = 0; i < contractAddressesList.length; i++) {
-            const finding: Finding | null = checkOSMContract(contractAddressesList[i], txEvent);
-            if (finding !== null) {
-                findings.push(finding);
-            }
-        }
-        return findings
+export default function provideBigQueuedPriceDeviationHandler(
+  contractAddressesList: string[]
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    for (let i = 0; i < contractAddressesList.length; i++) {
+      const finding: Finding | null = checkOSMContract(
+        contractAddressesList[i],
+        txEvent
+      );
+      if (finding !== null) {
+        findings.push(finding);
+      }
     }
-};
+    return findings;
+  };
+}

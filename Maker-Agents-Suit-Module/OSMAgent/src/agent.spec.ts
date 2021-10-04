@@ -20,7 +20,7 @@ const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const pokeFunctionSelector = "0x18178358";
 const peekFunctionSelector = "0x59e02dd7";
 
-const previousHourForActivatingAgent = 1467018381; 
+const previousHourForActivatingAgent = 1467018381;
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 
@@ -44,8 +44,12 @@ describe("OSM Agent Test Suite", () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
-    const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      previousHourForActivatingAgent
+    );
+    const txEvent2 = new TestTransactionEvent().setTimestamp(
+      lessThanTenMinutes
+    );
     const txEvent3 = new TestTransactionEvent()
       .setTimestamp(greaterThanTenMinutes)
       .addTrace({
@@ -99,7 +103,9 @@ describe("OSM Agent Test Suite", () => {
       .setTimestamp(lessThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent));
-    expect(findings).toStrictEqual([relyFinding({ to: testAddresses[0], input: _input })]);
+    expect(findings).toStrictEqual([
+      relyFinding({ to: testAddresses[0], input: _input }),
+    ]);
   });
 
   it("should detect deny function", async () => {
@@ -131,14 +137,18 @@ describe("OSM Agent Test Suite", () => {
       .setTimestamp(lessThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent));
-    expect(findings).toStrictEqual([denyFinding({ to: testAddresses[0], input: _input })]);
+    expect(findings).toStrictEqual([
+      denyFinding({ to: testAddresses[0], input: _input }),
+    ]);
   });
 
   it("should detects when poke was not called", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      previousHourForActivatingAgent
+    );
     const txEvent2 = new TestTransactionEvent().setTimestamp(
       greaterThanTenMinutes
     );
@@ -169,7 +179,9 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
 
-    expect(findings).toStrictEqual([deviationFinding(testAddresses[0], BigInt(100), BigInt(107))]);
+    expect(findings).toStrictEqual([
+      deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
+    ]);
   });
 
   it("should not return MakerDAO-OSM-4 finding if poke was already called in that hour", async () => {

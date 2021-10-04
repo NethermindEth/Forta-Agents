@@ -28,8 +28,8 @@ export const createFinding = (): Finding => {
     type: FindingType.Info,
     everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
-      MegaPokerContractAddress: address
-    }
+      MegaPokerContractAddress: address,
+    },
   });
 };
 
@@ -56,7 +56,7 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
       !timeTracker.isInFirstTenMins(timestamp) &&
       !timeTracker.isFirstHour(timestamp) &&
       !timeTracker.functionWasCalled &&
-      !timeTracker.findingReported 
+      !timeTracker.findingReported
     ) {
       timeTracker.updateFindingReport(true);
       findings.push(createFinding());

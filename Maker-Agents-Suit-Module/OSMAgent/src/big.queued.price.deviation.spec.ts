@@ -23,9 +23,8 @@ describe("Big deviation queued price Tests", () => {
   let handleTransaction: HandleTransaction;
 
   it("should returns empty findings if there are not traces", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
@@ -35,9 +34,8 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns a finding when the new price deviate too much", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -54,13 +52,14 @@ describe("Big deviation queued price Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(CONTRACT_ADDRESSES[0], BigInt(100), BigInt(107))]);
+    expect(findings).toStrictEqual([
+      createFinding(CONTRACT_ADDRESSES[0], BigInt(100), BigInt(107)),
+    ]);
   });
 
   it("should returns empty findings if the new price doesn't deviate too much", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -81,9 +80,9 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns empty findings if the Peek function wasn't called from the correct contract", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      [CONTRACT_ADDRESSES[0]]
-    );
+    handleTransaction = provideBigQueuedPriceDeviationHandler([
+      CONTRACT_ADDRESSES[0],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -104,16 +103,14 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns empty findings if Peek function wasn't called", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
-        from: CONTRACT_ADDRESSES[0],
-        input: "0x11111111",
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
-      });
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTrace({
+      from: CONTRACT_ADDRESSES[0],
+      input: "0x11111111",
+      output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+    });
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -121,19 +118,14 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns empty findings if the Peek call wasn't successful", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
-        from: CONTRACT_ADDRESSES[0],
-        input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(
-          ["uint128", "bool"],
-          [108, false]
-        ),
-      });
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTrace({
+      from: CONTRACT_ADDRESSES[0],
+      input: PEEK_FUNCTION_SELECTOR,
+      output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, false]),
+    });
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -141,9 +133,8 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns empty findings if the event with deviated price is not emmited from the correct address", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -164,16 +155,14 @@ describe("Big deviation queued price Tests", () => {
         web3.eth.abi.encodeParameter("uint128", 105)
       );
 
-
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
 
   it("should returns multiple findings if there are multiple Oracles with big deviations in new prices", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -208,9 +197,8 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should returns only findings from the Oracles with big deviations on new prices", async () => {
-    handleTransaction = provideBigQueuedPriceDeviationHandler(
-      CONTRACT_ADDRESSES
-    );
+    handleTransaction =
+      provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTrace({
@@ -249,7 +237,10 @@ describe("Big deviation queued price Tests", () => {
       .addTrace({
         from: CONTRACT_ADDRESSES[3],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [101, false]),
+        output: web3.eth.abi.encodeParameters(
+          ["uint128", "bool"],
+          [101, false]
+        ),
       });
 
     const findings: Finding[] = await handleTransaction(txEvent);
