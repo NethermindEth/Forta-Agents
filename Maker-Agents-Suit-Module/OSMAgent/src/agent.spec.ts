@@ -20,6 +20,7 @@ const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const pokeFunctionSelector = "0x18178358";
 const peekFunctionSelector = "0x59e02dd7";
 
+const previousHourForActivatingAgent = 1467018381; 
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 
@@ -43,7 +44,9 @@ describe("OSM Agent Test Suite", () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
-    const txEvent = new TestTransactionEvent()
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
+    const txEvent3 = new TestTransactionEvent()
       .setTimestamp(greaterThanTenMinutes)
       .addTrace({
         from: testAddresses[0],
@@ -57,7 +60,9 @@ describe("OSM Agent Test Suite", () => {
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
-    findings = findings.concat(await transactionHandler(txEvent));
+    findings = findings.concat(await transactionHandler(txEvent1));
+    findings = findings.concat(await transactionHandler(txEvent2));
+    findings = findings.concat(await transactionHandler(txEvent3));
 
     expect(findings).toStrictEqual([
       deviationFinding(testAddresses[0]),
@@ -133,11 +138,13 @@ describe("OSM Agent Test Suite", () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
-    const txEvent = new TestTransactionEvent().setTimestamp(
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(
       greaterThanTenMinutes
     );
 
-    findings = findings.concat(await transactionHandler(txEvent));
+    findings = findings.concat(await transactionHandler(txEvent1));
+    findings = findings.concat(await transactionHandler(txEvent2));
 
     expect(findings).toStrictEqual([priceUpdateFinding()]);
   });
