@@ -86,4 +86,19 @@ describe("Poker Method", () => {
 
     expect(findings).toStrictEqual([ createFinding(), createFinding() ]);
   });
+
+  it("should report findings only once per hour", async () => {
+    handleTransaction = providePriceUpdateCheckHandler();
+    let findings: Finding[] = [];
+
+    const txEvent1 = new TestTransactionEvent().setTimestamp(
+      greaterThanTenMinutes 
+    );
+    const txEvent2 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
+
+    findings = findings.concat(await handleTransaction(txEvent1));
+    findings = findings.concat(await handleTransaction(txEvent2));
+
+    expect(findings).toStrictEqual([ createFinding() ]);
+  })
 });
