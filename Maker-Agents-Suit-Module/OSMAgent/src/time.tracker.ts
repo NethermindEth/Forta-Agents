@@ -1,10 +1,12 @@
 export default class TimeTracker {
-  hour: number; // keeps track of the hour
+  private hour: number; // keeps track of the hour
+  private firstHour: number;
   functionWasCalled: boolean;
   findingReported: boolean;
 
   constructor() {
     this.hour = -1;
+    this.firstHour = -1;
     this.functionWasCalled = false;
     this.findingReported = false;
   }
@@ -39,7 +41,14 @@ export default class TimeTracker {
     return minutes <= 10;
   }
 
+  isFirstHour(timestamp: number): boolean {
+    return this.firstHour === this.getHour(timestamp);
+  }
+
   updateHour(timestamp: number): void {
+    if (this.hour === -1) {
+      this.firstHour = this.getHour(timestamp);
+    }
     this.hour = this.getHour(timestamp);
   }
 }
