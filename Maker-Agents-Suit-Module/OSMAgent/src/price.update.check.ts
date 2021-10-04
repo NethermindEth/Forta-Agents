@@ -25,8 +25,11 @@ export const createFinding = (): Finding => {
     description: "Poke() function not called within 10 minutes of the hour",
     alertId: "MakerDAO-OSM-4",
     severity: FindingSeverity.Critical,
-    type: FindingType.Unknown,
+    type: FindingType.Info,
     everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
+    metadata: {
+      MegaPokerContractAddress: address
+    }
   });
 };
 
