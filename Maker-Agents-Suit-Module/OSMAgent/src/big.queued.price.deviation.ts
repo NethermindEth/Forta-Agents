@@ -12,7 +12,7 @@ import Web3 from "web3";
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
 const LOG_VALUE_EVENT_SIGNATURE = "LogValue(bytes32)";
 
-export const createFinding = (contractAddress: string): Finding => {
+export const createFinding = (contractAddress: string, currentPrice: bigint, queuedPrice: bigint): Finding => {
   return Finding.fromObject({
     name: "MakerDAO OSM Contract Big Enqueued Price Deviation",
     description:
@@ -23,6 +23,8 @@ export const createFinding = (contractAddress: string): Finding => {
     everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contractAddress: contractAddress,
+      currentPrice: currentPrice.toString(),
+      queuedPrice: queuedPrice.toString(), 
     },
   });
 };
@@ -95,7 +97,7 @@ const checkOSMContract = (
   const lessLenght: number = Math.min(currentValues.length, nextValues.length);
   for (let i = 0; i < lessLenght; i++) {
     if (needToReport(currentValues[i], nextValues[i])) {
-      return createFinding(contractAddress.toLowerCase());
+      return createFinding(contractAddress.toLowerCase(), currentValues[i], nextValues[i]);
     }
   }
 

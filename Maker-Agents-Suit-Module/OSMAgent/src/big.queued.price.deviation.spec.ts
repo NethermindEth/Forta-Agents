@@ -54,7 +54,7 @@ describe("Big deviation queued price Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(CONTRACT_ADDRESSES[0])]);
+    expect(findings).toStrictEqual([createFinding(CONTRACT_ADDRESSES[0], BigInt(100), BigInt(107))]);
   });
 
   it("should returns empty findings if the new price doesn't deviate too much", async () => {
@@ -202,8 +202,8 @@ describe("Big deviation queued price Tests", () => {
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(CONTRACT_ADDRESSES[0]),
-      createFinding(CONTRACT_ADDRESSES[1]),
+      createFinding(CONTRACT_ADDRESSES[0], BigInt(100), BigInt(108)),
+      createFinding(CONTRACT_ADDRESSES[1], BigInt(90), BigInt(118)),
     ]);
   });
 
@@ -255,8 +255,8 @@ describe("Big deviation queued price Tests", () => {
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(CONTRACT_ADDRESSES[0]),
-      createFinding(CONTRACT_ADDRESSES[1]),
+      createFinding(CONTRACT_ADDRESSES[0], BigInt(100), BigInt(108)),
+      createFinding(CONTRACT_ADDRESSES[1], BigInt(90), BigInt(118)),
     ]);
   });
 });
