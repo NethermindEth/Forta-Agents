@@ -6,30 +6,30 @@ const abi = [
         indexed: true,
         internalType: "address",
         name: "oldOwner",
-        type: "address",
+        type: "address"
       },
       {
         indexed: true,
         internalType: "address",
         name: "newOwner",
-        type: "address",
-      },
+        type: "address"
+      }
     ],
     name: "OwnerSet",
-    type: "event",
+    type: "event"
   },
   {
     inputs: [
       {
         internalType: "address",
         name: "newOwner",
-        type: "address",
-      },
+        type: "address"
+      }
     ],
     name: "changeOwner",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [],
@@ -38,19 +38,19 @@ const abi = [
       {
         internalType: "address",
         name: "",
-        type: "address",
-      },
+        type: "address"
+      }
     ],
     stateMutability: "view",
-    type: "function",
+    type: "function"
   },
   {
     inputs: [],
     name: "initialize",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
+    type: "function"
+  }
 ];
 
 const initialize = {
@@ -58,7 +58,7 @@ const initialize = {
   name: "initialize",
   outputs: [],
   stateMutability: "nonpayable",
-  type: "function",
+  type: "function"
 };
 
 export { abi, initialize };
