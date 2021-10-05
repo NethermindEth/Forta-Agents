@@ -1,5 +1,4 @@
-import BigNumber from "bignumber.js";
-import Web3 from "web3";
+import Web3 from 'web3';
 import {
   Finding,
   HandleTransaction,
@@ -7,14 +6,12 @@ import {
   FindingSeverity,
   FindingType,
   getJsonRpcUrl,
-} from "forta-agent";
+} from 'forta-agent';
 
-const HIGH_GAS_THRESHOLD = "7000000";
-const AAVE_V2_ADDRESS = "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9";
+const AAVE_V2_ADDRESS = '0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9';
 const FLASH_LOAN_EVENT_SIGNATURE =
-  "FlashLoan(address,address,address,uint256,uint256,uint16)";
-const INTERESTING_PROTOCOLS = ["0xacd43e627e64355f1861cec6d3a6688b31a6f952"]; // Yearn Dai vault
-const BALANCE_DIFF_THRESHOLD = "200000000000000000000"; // 200 eth
+  'FlashLoan(address,address,address,uint256,uint256,uint16)';
+const INTERESTING_PROTOCOLS = ['0xacd43e627e64355f1861cec6d3a6688b31a6f952']; // Yearn Dai vault
 
 const web3 = new Web3(getJsonRpcUrl());
 function provideHandleTransaction(web3: Web3): HandleTransaction {
@@ -36,22 +33,21 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
     if (!protocolAddress) return findings;
 
     const { 3: loanAmount } = web3.eth.abi.decodeParameters(
-      ["address", "address", "address", "uint256", "uint256", "uint16"],
+      ['address', 'address', 'address', 'uint256', 'uint256', 'uint16'],
       txEvent.receipt.logs[0].data
     );
 
     if (loanAmount > 10000) {
       findings.push(
         Finding.fromObject({
-          name: "Flash Loan with huge amount",
+          name: 'Flash Loan with Huge Amount Detection',
           description: `Flash Loan with huge amount of ${loanAmount} detected for ${protocolAddress}`,
-          alertId: "NETHFORTA-16",
-          protocol: "aave",
+          alertId: 'NETHFORTA-16',
+          protocol: 'aave',
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
           metadata: {
             protocolAddress,
-
             balanceDiff: loanAmount,
             loans: JSON.stringify(flashLoanEvents),
           },
