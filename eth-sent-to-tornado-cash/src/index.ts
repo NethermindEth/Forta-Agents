@@ -39,7 +39,7 @@ export const provideHandleTransaction = (
     const totalValueOfSender = accountCashRecord.getAmountIn();
 
     if (totalValueOfSender >= valueThreshold) {
-      findings.push(createFinding(sender));
+      findings.push(createFinding(sender, totalValueOfSender));
     }
 
     return findings;
