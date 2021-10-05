@@ -1,11 +1,10 @@
-import { Finding } from 'forta-agent';
-import { Log } from 'forta-agent/dist/sdk/receipt';
+import { Finding } from "forta-agent";
 
 export interface EventHandler {
-    (logs: string): Finding;
-};
+  (logs: string): Finding;
+}
 
 export interface Event {
-    signature: string,
-    createFinding: EventHandler,
-};
+  signature: string;
+  createFinding: EventHandler;
+}
