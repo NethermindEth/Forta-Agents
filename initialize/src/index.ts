@@ -1,14 +1,10 @@
-import BigNumber from "bignumber.js";
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType,
+  FindingType
 } from "forta-agent";
-import Web3 from "web3";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -29,10 +25,7 @@ const handleTransaction: HandleTransaction = async (
 ) => {
   const findings: Finding[] = [];
 
-  // if protocol not involved
   if (!txEvent.addresses[PROTOCOL_ADDRESS]) return findings;
-
-  // txEvent.
 
   const callData = txEvent.transaction.data;
 
@@ -46,14 +39,14 @@ const handleTransaction: HandleTransaction = async (
   if (count > 1) {
     findings.push(
       Finding.fromObject({
-        name: "Initialize function",
-        description: `The initialize function got called ${count} times.`,
+        name: "Initialize Function Detection",
+        description: `The initialize function is called.`,
         alertId: "NETHFORTA-15",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Unknown,
         metadata: {
-          count: count.toString(),
-        },
+          count: count.toString()
+        }
       })
     );
   }
@@ -62,5 +55,5 @@ const handleTransaction: HandleTransaction = async (
 };
 
 export default {
-  handleTransaction,
+  handleTransaction
 };
