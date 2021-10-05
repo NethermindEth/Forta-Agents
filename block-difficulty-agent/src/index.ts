@@ -3,15 +3,17 @@ import {
   Finding,
   HandleBlock,
   FindingSeverity,
-  FindingType
+  FindingType,
+  getJsonRpcUrl
 } from "forta-agent";
+
 import BlockDifficultyGetter from "./blockDifficultyGetter";
 import Web3 from "web3";
 import { mean, std, abs } from "mathjs";
 
 const NUMBER_OF_BLOCKS_TO_CHECK = 50;
 
-const web3: Web3 = new Web3();
+const web3: Web3 = new Web3(getJsonRpcUrl());
 const blockDifficultyGetter: BlockDifficultyGetter = new BlockDifficultyGetter(
   web3
 );
