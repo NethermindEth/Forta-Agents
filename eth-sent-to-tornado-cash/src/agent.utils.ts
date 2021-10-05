@@ -1,6 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (address: string): Finding => {
+export const createFinding = (address: string, amount: bigint): Finding => {
   return Finding.fromObject({
     alertId: "NETHFORTA-22",
     description: "Too much eth sent into Tornado from the same address in a short time interval",
@@ -9,6 +9,7 @@ export const createFinding = (address: string): Finding => {
     type: FindingType.Suspicious,
     metadata: {
       Address: address,
+      Amount: amount.toString(),
     },
   });
 };
