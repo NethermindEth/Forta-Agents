@@ -13,7 +13,7 @@ export const createFinding = (strategyToReport: string): Finding => {
     name: "Yearn Finance no harvested strategies",
     alertId: "NETHFORTA-21",
     description:
-      "A yearn finance strategy have been too much time without trigerring harvest",
+      "A yearn finance strategy has been too much time without trigering a harvest",
     severity: FindingSeverity.Info,
     type: FindingType.Suspicious,
     metadata: {
