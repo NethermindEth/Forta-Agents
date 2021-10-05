@@ -5,7 +5,8 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType
+  FindingType,
+  getJsonRpcUrl
 } from "forta-agent";
 
 const HIGH_GAS_THRESHOLD = "7000000";
@@ -15,7 +16,8 @@ const FLASH_LOAN_EVENT_SIGNATURE =
 const INTERESTING_PROTOCOLS = ["0xacd43e627e64355f1861cec6d3a6688b31a6f952"]; // Yearn Dai vault
 const BALANCE_DIFF_THRESHOLD = "200000000000000000000"; // 200 eth
 
-const web3 = new Web3();
+const web3 = new Web3(getJsonRpcUrl());
+
 function provideHandleTransaction(web3: Web3): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
     // report finding if detected a flash loan attack on Yearn Dai vault
