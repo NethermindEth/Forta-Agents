@@ -15,6 +15,7 @@ import {
   generateAddressVerifier,
   createTxEvent,
   createLog,
+  LiftFinding,
 } from './utils';
 
 const alertId: string = "Test Finding";
@@ -68,10 +69,10 @@ describe('Lift Events listener test suite', () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      createFinding(alertId, createAddr('0xc1'), 2),
-      createFinding(alertId, createAddr('0xd2'), 1),
-      createFinding(alertId, createAddr('0xc3'), 1),
-      createFinding(alertId, createAddr('0xd3'), 2),
+      createFinding(alertId, createAddr('0xc1'), LiftFinding.Spell),
+      createFinding(alertId, createAddr('0xd2'), LiftFinding.Lifter),
+      createFinding(alertId, createAddr('0xc3'), LiftFinding.Lifter),
+      createFinding(alertId, createAddr('0xd3'), LiftFinding.Spell),
     ]);
   });
 });
