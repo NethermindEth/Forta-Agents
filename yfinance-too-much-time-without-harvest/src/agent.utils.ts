@@ -8,7 +8,7 @@ import {
 } from "./abi.utils";
 import Web3 from "web3";
 
-export const createFinding = (strategyToReport: string): Finding => {
+export const createFinding = (strategyToReport: string, elapsed: bigint, maxDelay: bigint): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance no harvested strategies",
     alertId: "NETHFORTA-21",
@@ -18,6 +18,8 @@ export const createFinding = (strategyToReport: string): Finding => {
     type: FindingType.Suspicious,
     metadata: {
       Strategy: strategyToReport,
+      ElapsedTime: elapsed.toString(),
+      MaxDelay: maxDelay.toString(),
     },
   });
 };

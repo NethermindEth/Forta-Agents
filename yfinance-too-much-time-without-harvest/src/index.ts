@@ -45,8 +45,9 @@ const checkStrategyInBlock = async (
   const maxReportDelay: bigint = await getMaxReportDelay(strategyAddress, web3);
   const actualTimestamp: bigint = BigInt(block.timestamp);
 
-  if (actualTimestamp - lastReport > maxReportDelay) {
-    findings.push(createFinding(strategyAddress));
+  const elapsed: bigint = actualTimestamp - lastReport;
+  if (elapsed > maxReportDelay) {
+    findings.push(createFinding(strategyAddress, elapsed, maxReportDelay));
   }
 
   return findings;

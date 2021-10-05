@@ -62,7 +62,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([createFinding(strategyAddress1)]);
+    expect(findings).toStrictEqual([createFinding(strategyAddress1, BigInt(100), BigInt(90))]);
   });
 
   it("returns multiple findings if there are multiple strategies affected", async () => {
@@ -94,8 +94,8 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(strategyAddress1),
-      createFinding(strategyAddress2),
+      createFinding(strategyAddress1, BigInt(100), BigInt(90)),
+      createFinding(strategyAddress2, BigInt(105), BigInt(90)),
     ]);
   });
 
@@ -128,7 +128,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(strategyAddress1),
+      createFinding(strategyAddress1, BigInt(100), BigInt(90)),
     ]);
   })
 
@@ -160,7 +160,7 @@ describe("Yearn Finance Too much time without calling harvest agent test suite",
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(strategyAddress1),
+      createFinding(strategyAddress1, BigInt(100), BigInt(90)),
     ]);
   })
 });
