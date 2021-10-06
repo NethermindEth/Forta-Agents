@@ -10,12 +10,8 @@ import agent, {
 import {
   createAddress,
   TestTransactionEvent,
-} from 'general-agents-module';
-
-import Web3 from 'web3';
-import { AbiCoder } from 'web3-eth-abi';
-
-const abi: AbiCoder = new Web3().eth.abi;
+  encodeFunctionCall,
+} from 'nethermindeth-general-agents-module';
 
 const createMetadata = (
   from: string,
@@ -25,7 +21,7 @@ const createMetadata = (
   return {
     from: from,
     to: to,
-    input: abi.encodeFunctionCall({
+    input: encodeFunctionCall({
       name: 'setGovernance',
       type: 'function',
       inputs: [{

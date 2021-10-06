@@ -8,7 +8,8 @@ import {
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
-} from 'general-agents-module';
+  decodeParameter,
+} from 'nethermindeth-general-agents-module';
 import Web3 from 'web3';
 import { AbiCoder } from 'web3-eth-abi';
 
@@ -18,7 +19,7 @@ const abi: AbiCoder = new Web3().eth.abi;
 
 export const createFinding: FindingGenerator = (metadata: { [key: string]: any } | undefined): Finding => {
   const input: string = metadata?.input;
-  const addr: string = abi.decodeParameter('address', input.slice(10))[0];
+  const addr: string = decodeParameter('address', input.slice(10));
   return Finding.fromObject({
     name: "YFI Governance address changed",
     description: `New owner is (${addr})`,
