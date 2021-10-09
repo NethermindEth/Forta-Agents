@@ -1,7 +1,7 @@
 import { encode } from 'rlp';
 import { keccak256 } from 'web3-utils';
 
-export default class DeployedAddressManager {
+export default class DeployedAddressesManager {
   private nonce: number;
   private deployer: string;
   private deployedAddresses: {

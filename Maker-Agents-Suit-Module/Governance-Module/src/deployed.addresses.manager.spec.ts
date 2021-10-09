@@ -1,9 +1,5 @@
-import DeployedAddressManager from "./deployed.address.manager";
-import knownAddresses from "./known.addresses";
-import { 
-  createAddr, 
-  createEncodedAddr, 
-} from "./utils";
+import AddressManager from "./deployed.addresses.manager";
+import { createAddr } from "./utils";
 
 const addr1: string = createAddr("0x1");
 const addr2: string = createAddr("0x2");
@@ -23,7 +19,7 @@ const deadContracts: string[] = [
 
 describe("DeployedAddressManager test suite", () => {
   const getNonce: any = jest.fn();
-  let addressesManager: DeployedAddressManager = new DeployedAddressManager(dead, getNonce);
+  let addressesManager: AddressManager = new AddressManager(dead, getNonce);
 
   it("Should update the deployed addresses at each nonce increasement", async () => {
     // advance nonce to 1
