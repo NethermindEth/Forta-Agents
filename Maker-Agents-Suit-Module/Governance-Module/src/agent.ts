@@ -28,6 +28,7 @@ export const handleTransaction: HandleTransaction =
 export function provideHandleBlock(): HandleBlock {
   const handler: HandleBlock = provideHatChecker(_web3.eth.call, "MakerDAO-GM-1", CHIEF_CONTRACT, isAddressKnown);
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    // Update the SPELL_DEPLOYER's nonce
     await addressManager.update(blockEvent.blockNumber);
     return handler(blockEvent);
   };
