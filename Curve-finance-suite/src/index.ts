@@ -1,19 +1,19 @@
-import provideCrossAssetSwap from "./agents/crossAssetSwap";
-import provideKillMeAgent from "./agents/killme";
-import provideRemoveLiquidityImbalanceAgent from "./agents/removeImbalanceLiquidity";
-import provideUnkillAgent from "./agents/unkill";
-import provideAddPoolAgent from "./agents/registry_addPool";
-import provideRemovePoolAgent from "./agents/registry_RemovePool";
-import provideMetaPoolDeployment from "./agents/deployMetaPool";
-import providecreateLockAgent from "./agents/CurveDao-CreateLockEvent";
-import providesetKilledAgent from "./agents/Curve-dao-KillingGauge";
-import providesetRewardsAgent from "./agents/Curve-Gauge-SetRewards";
-import provideCommitNewAdminEvent from "./agents/addressProvider_Ownership_Transfer";
-import provideclaimManyAgent from "./agents/Curve-Dao-ClaimMany";
-import provideMıgratePoolAgent from "./agents/pool_Migration";
-import provideApplyNewFeesAgent from "./agents/applyNewFee";
-import provideRampAgent from "./agents/ramp";
-import provideStompRampAgent from "./agents/stopRamp";
+import provideCrossAssetSwap from './agents/cross.asset.swap';
+import provideKillMeAgent from './agents/kill.me';
+import provideRemoveLiquidityImbalanceAgent from './agents/remove.imbalance.liquidity';
+import provideUnkillAgent from './agents/unkill';
+import provideAddPoolAgent from './agents/registry.add.pool';
+import provideRemovePoolAgent from './agents/registry.remove.pool';
+import provideMetaPoolDeployment from './agents/deploy.metapool';
+import providecreateLockAgent from './agents/curve.dao.create.lockevent';
+import providesetKilledAgent from './agents/curve.dao.killing.gauge';
+import providesetRewardsAgent from './agents/curve.gauge.set.rewards';
+import provideCommitNewAdminEvent from './agents/addressprovider.ownership.transfer';
+import provideclaimManyAgent from './agents/curve.dao.claim.many';
+import provideMıgratePoolAgent from './agents/pool.migration';
+import provideApplyNewFeesAgent from './agents/apply.newfee';
+import provideRampAgent from './agents/ramp';
+import provideStompRampAgent from './agents/stop.ramp';
 
 export {
   provideCrossAssetSwap,

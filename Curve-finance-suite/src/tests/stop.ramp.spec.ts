@@ -4,22 +4,22 @@ import {
   FindingSeverity,
   FindingType,
   TransactionEvent,
-} from "forta-agent";
-import provideStompRampAgent, { RAMPSIGNATURE } from "../agents/stopRamp";
+} from 'forta-agent';
+import provideStompRampAgent, { RAMPSIGNATURE } from '../agents/stop.ramp';
 
-import createTxEventWithLog from "../utils/createEventLog";
+import createTxEventWithLog from '../utils/create.event.log';
 
-const ADDRESS = "0X1111";
-const ALERT_ID = "NETHFORTA-21-10";
+const ADDRESS = '0X1111';
+const ALERT_ID = 'NETHFORTA-21-10';
 
-describe("Add Pool agent", () => {
+describe('Add Pool agent', () => {
   let handleTransactions: HandleTransaction;
 
   beforeAll(() => {
     handleTransactions = provideStompRampAgent(ALERT_ID, ADDRESS);
   });
 
-  it("should create a findings", async () => {
+  it('should create a findings', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       RAMPSIGNATURE,
       ADDRESS
@@ -29,8 +29,8 @@ describe("Add Pool agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Stop Ramp",
-        description: "Stop Ramp Called",
+        name: 'Stop Ramp',
+        description: 'Stop Ramp Called',
         alertId: ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
@@ -38,10 +38,10 @@ describe("Add Pool agent", () => {
     ]);
   });
 
-  it("should return empty finding", async () => {
+  it('should return empty finding', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
-      "Wrong Signature",
-      "0x123"
+      'Wrong Signature',
+      '0x123'
     );
 
     const findings = await handleTransactions(txEvent);

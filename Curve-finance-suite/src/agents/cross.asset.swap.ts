@@ -4,21 +4,21 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
-} from "forta-agent";
+} from 'forta-agent';
 
-import abi from "../utils/stable-swap-abi";
+import abi from '../utils/stable.swap.abi';
 
 // @ts-ignore
-import abiDecoder from "abi-decoder";
+import abiDecoder from 'abi-decoder';
 abiDecoder.addABI(abi);
 
 export const CROSS_CHAIN_SWAP_SIGNATURE =
-  "TokenUpdate(uint256,address, address, uint256)";
+  'TokenUpdate(uint256,address, address, uint256)';
 
 const createFinding = (alertID: string, address: string): Finding => {
   return Finding.fromObject({
-    name: "CrossChainSwap funciton called",
-    description: "CrossChainSwap funciton called on pool",
+    name: 'CrossChainSwap funciton called',
+    description: 'CrossChainSwap funciton called on pool',
     alertId: alertID,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,

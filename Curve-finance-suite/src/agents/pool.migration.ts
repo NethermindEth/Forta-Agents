@@ -4,20 +4,20 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-} from "forta-agent";
+} from 'forta-agent';
 
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
-} from "general-agents-module";
+} from 'nethermindeth-general-agents-module';
 
-export const MIGRATE_POOL_SIG = "migrate_to_new_pool(address,address,uint256)";
+export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     return Finding.fromObject({
-      name: "Pool Migration Finding",
-      description: "Pool migrated to new address",
+      name: 'Pool Migration Finding',
+      description: 'Pool migrated to new address',
       alertId: alertId,
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
@@ -36,7 +36,7 @@ export default function provideMıgratePoolAgent(
       MIGRATE_POOL_SIG,
       { to: contractAddress }
     );
-    const findings = await agentHandler(txEvent);
+    const findings: Finding[] = await agentHandler(txEvent);
     return findings;
   };
 }

@@ -4,21 +4,21 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
-} from "forta-agent";
+} from 'forta-agent';
 
-import abi from "../utils/stable-swap-abi";
+import abi from '../utils/stable.swap.abi';
 
 // @ts-ignore
-import abiDecoder from "abi-decoder";
+import abiDecoder from 'abi-decoder';
 abiDecoder.addABI(abi);
 
 export const REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE =
-  "RemoveLiquidiityImbalance(address, uint256[3], uint256[3],uint256, uint256)";
+  'RemoveLiquidiityImbalance(address, uint256[3], uint256[3],uint256, uint256)';
 
 const createFinding = (alertID: string, address: string): Finding => {
   return Finding.fromObject({
-    name: "RemoveLiquidityImbalance funciton called",
-    description: "RemoveLiquidityImbalance funciton called on pool",
+    name: 'RemoveLiquidityImbalance funciton called',
+    description: 'RemoveLiquidityImbalance funciton called on pool',
     alertId: alertID,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,

@@ -4,14 +4,14 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-} from "forta-agent";
+} from 'forta-agent';
 
-export const RAMPSIGNATURE = "Ramp(uint256,uint256,uint256,uint256)";
+export const RAMPSIGNATURE = 'Ramp(uint256,uint256,uint256,uint256)';
 
 export const createFinding = (alertID: string, address: string) => {
   return Finding.fromObject({
-    name: "Ramp",
-    description: "Ramp Called",
+    name: 'Ramp',
+    description: 'Ramp Called',
     alertId: alertID,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,

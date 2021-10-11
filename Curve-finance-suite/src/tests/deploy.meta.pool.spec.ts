@@ -4,24 +4,24 @@ import {
   FindingSeverity,
   FindingType,
   TransactionEvent,
-} from "forta-agent";
+} from 'forta-agent';
 import provideMetaPoolDeployment, {
   DEPLOY_META_POOL_SIGNATURE,
-} from "../agents/deployMetaPool";
+} from '../agents/deploy.metapool';
 
-import createTxEventWithLog from "../utils/createEventLog";
+import createTxEventWithLog from '../utils/create.event.log';
 
-const ADDRESS = "0x1212";
-const ALERT_ID = "test";
+const ADDRESS = '0x1212';
+const ALERT_ID = 'test';
 
-describe("Meta Pool Deployment Agent", () => {
+describe('Meta Pool Deployment Agent', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
     handleTransaction = provideMetaPoolDeployment(ALERT_ID, ADDRESS);
   });
 
-  it("should return a finding", async () => {
+  it('should return a finding', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       DEPLOY_META_POOL_SIGNATURE,
       ADDRESS
@@ -31,8 +31,8 @@ describe("Meta Pool Deployment Agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Deploy Meta Pool Event",
-        description: "New meta pool is deployed",
+        name: 'Deploy Meta Pool Event',
+        description: 'New meta pool is deployed',
         alertId: ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
@@ -40,18 +40,18 @@ describe("Meta Pool Deployment Agent", () => {
     ]);
   });
 
-  it("should return empty finding cause bad signature", async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog("badSig", ADDRESS);
+  it('should return empty finding cause bad signature', async () => {
+    const txEvent: TransactionEvent = createTxEventWithLog('badSig', ADDRESS);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty finding cause wrong Address", async () => {
+  it('should return empty finding cause wrong Address', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       DEPLOY_META_POOL_SIGNATURE,
-      "0x1111"
+      '0x1111'
     );
 
     const findings = await handleTransaction(txEvent);
