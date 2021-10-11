@@ -4,16 +4,14 @@ import { keccak256 } from 'web3-utils';
 export default class DeployedAddressesManager {
   private nonce: number;
   private deployer: string;
-  private deployedAddresses: {
-    [key: string]: boolean,
-  };
+  private deployedAddresses: Set<string>;
   private getNonce: any;
 
   public constructor(deployer: string, getNonce: any) {
     this.nonce = 0;
     this.deployer = deployer;
-    this.deployedAddresses = {};
     this.getNonce = getNonce;
+    this.deployedAddresses = new Set<string>();
   }
 
   public async update(block: string | number = "latest"): Promise<void> {
@@ -24,13 +22,13 @@ export default class DeployedAddressesManager {
         const input_arr = [ this.deployer, i ];
         const rlp_encoded = encode(input_arr);
         const addr = "0x" + keccak256(rlp_encoded as any).slice(26);
-        this.deployedAddresses[addr] = true;
+        this.deployedAddresses.add(addr);
       }
       this.nonce = nonce;
     }
   }    
 
   public isDeployedAddress(addr: string): boolean{
-    return this.deployedAddresses[addr] !== undefined;
+    return this.deployedAddresses.has(addr);
   }
 };
