@@ -5,6 +5,7 @@ import {
   FindingType,
   TransactionEvent,
 } from 'forta-agent';
+import { encodeParameter } from 'nethermindeth-general-agents-module';
 
 import provideCommitNewAdminEvent, {
   COMMIT_NEW_ADMIN_SIGNATURE,
@@ -28,7 +29,7 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       ADDRESS,
-      [DURATION, NEW_ADMIN]
+      [DURATION, encodeParameter('address', NEW_ADMIN)]
     );
 
     const findings = await handleTransaction(txEvent);
@@ -49,7 +50,7 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
   it('should return empty finding because of wrong SIG', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog('bad sig', ADDRESS, [
       DURATION,
-      NEW_ADMIN,
+      encodeParameter('address', NEW_ADMIN),
     ]);
 
     const findings = await handleTransaction(txEvent);
@@ -61,7 +62,7 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       '0x',
-      [DURATION, NEW_ADMIN]
+      [DURATION, encodeParameter('address', NEW_ADMIN)]
     );
 
     const findings = await handleTransaction(txEvent);
