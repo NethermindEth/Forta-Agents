@@ -63,7 +63,7 @@ export const provideHatChecker = (
     const hat: string = await hatManager.getAddress(block);
 
     // Check if hat address is a known address 
-    if(!(await isKnown(hat))){
+    if(!isKnown(hat)){
       findings.push(
         createFinding(
           alertId,

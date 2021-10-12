@@ -14,7 +14,7 @@ import {
 
 const _web3: Web3 = new Web3();
 
-export type AddressVerifier = (addr: string) => Promise<boolean>;
+export type AddressVerifier = (addr: string) => boolean;
 
 export type PropertyFetcher = (block: number, ...params: string[]) => Promise<any>;
 
@@ -92,7 +92,7 @@ export const toBalance = (value: BigNumber) =>
 
 export const generateAddressVerifier = (...addresses: string[]): AddressVerifier => {
   const set: Set = argsToSet(...addresses.map(createAddr));
-  return async (addr: string): Promise<boolean> =>
+  return (addr: string): boolean =>
     (set[addr] !== undefined);
 };
 

@@ -19,14 +19,14 @@ const addressManager: AddressManager =
   new AddressManager(SPELL_DEPLOYER, _web3.eth.getTransactionCount);
 
 const isAddressKnown: AddressVerifier = 
-  async (addr: string): Promise<boolean> => 
+  (addr: string): boolean => 
     addressManager.isDeployedAddress(addr);
 
 export const handleTransaction: HandleTransaction =
   provideLiftEventsListener("MakerDAO-GM-2", CHIEF_CONTRACT, isAddressKnown);
 
-export function provideHandleBlock(): HandleBlock {
-  const handler: HandleBlock = provideHatChecker(_web3.eth.call, "MakerDAO-GM-1", CHIEF_CONTRACT, isAddressKnown);
+export function provideHandleBlock(web3Call: any): HandleBlock {
+  const handler: HandleBlock = provideHatChecker(web3Call, "MakerDAO-GM-1", CHIEF_CONTRACT, isAddressKnown);
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     // Update the SPELL_DEPLOYER's nonce
     await addressManager.update(blockEvent.blockNumber);
@@ -36,5 +36,5 @@ export function provideHandleBlock(): HandleBlock {
 
 export default {
   handleTransaction,
-  handleBlock: provideHandleBlock(),
+  handleBlock: provideHandleBlock(_web3.eth.call),
 }
