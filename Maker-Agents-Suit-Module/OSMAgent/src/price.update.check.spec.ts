@@ -24,6 +24,19 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
+    const txEvent = new TestTransactionEvent().setTimestamp(
+      greaterThanTenMinutes
+    );
+
+    findings = findings.concat(await handleTransaction(txEvent));
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should returns empty findings in the first hour", async () => {
+    handleTransaction = providePriceUpdateCheckHandler();
+    let findings: Finding[] = [];
+
     const txEvent1 = new TestTransactionEvent().setTimestamp(
       lessThanTenMinutes
     );
