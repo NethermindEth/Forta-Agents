@@ -61,9 +61,7 @@ export default function provideclaimManyAgent(
     const data = abiDecoder.decodeMethod(txEvent.transaction.data);
     if (!data) return findings;
 
-    if (data.name === 'claim_many') {
-      findings.push(createFinding(alertID));
-    }
+    findings.push(createFinding(alertID));
 
     return findings;
   };
