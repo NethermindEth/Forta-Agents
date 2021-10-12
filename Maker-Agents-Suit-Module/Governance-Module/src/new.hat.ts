@@ -15,7 +15,7 @@ import {
 import BigNumber from 'bignumber.js'
 import HatManager from './hat.manager';
 
-const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
+export const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
 const MKR_DECIMALS: number = 18;
 
 const desc: {
@@ -85,7 +85,7 @@ export const provideHatChecker = (
       }
 
       // Retrieve MKR for hat
-      const MKR: BigNumber = await getApprovals(block, hat);
+      const MKR: BigNumber = new BigNumber(await getApprovals(block, hat));
 
       // Send alarm if MKR is below threshold
       if(realThreshold.isGreaterThan(MKR)){

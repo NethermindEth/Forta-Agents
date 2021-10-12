@@ -12,7 +12,7 @@ import {
   LiftFinding,
 } from './utils';
 
-const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
+export const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
 
 const desc: {
   [key in LiftFinding]: string;
