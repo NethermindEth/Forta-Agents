@@ -1,11 +1,11 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-import { FindingGenerator, provideERC20TransferAgent } from "general-agents-module";
+import { FindingGenerator, provideERC20TransferHandler, getFunctionSelector, decodeParameter } from "forta-agent-tools";
 import Web3 from "web3";
 
 const getUnderlayingAsset = async (web3: Web3, yearnVaultAddress: string): Promise<string> => {
-  const txData: string = web3.eth.abi.encodeFunctionSignature("token()");
+  const txData: string = getFunctionSelector("token()");
   const returnValue: string = await web3.eth.call({ to: yearnVaultAddress, data: txData });
-  return web3.eth.abi.decodeParameter("address", returnValue) as any;
+  return decodeParameter("address", returnValue) as any;
 };
 
 const createFindingGenerator = (
@@ -38,12 +38,12 @@ export default function provideBigTransactionsAgent(
     let findings: Finding[] = [];
 
     const underlyingTokenAddress: string = await getUnderlayingAsset(web3, yearnVaultAddress);
-    const erc20InDetector = provideERC20TransferAgent(
+    const erc20InDetector = provideERC20TransferHandler(
       createFindingGenerator(false, alertId, yearnVaultAddress, valueThreshold),
       underlyingTokenAddress,
       { to: yearnVaultAddress, amountThreshold: valueThreshold },
     );
-    const erc20OutDetector = provideERC20TransferAgent(
+    const erc20OutDetector = provideERC20TransferHandler(
       createFindingGenerator(true, alertId, yearnVaultAddress, valueThreshold),
       underlyingTokenAddress,
       { from: yearnVaultAddress, amountThreshold: valueThreshold },
