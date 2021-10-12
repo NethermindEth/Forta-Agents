@@ -8,7 +8,7 @@ import {
 
 import provideCommitNewAdminEvent, {
   COMMIT_NEW_ADMIN_SIGNATURE,
-} from '../agents/addressprovider.ownership.transfer';
+} from '../agents/address.provider.ownership.transfer';
 
 import createTxEventWithLog from '../utils/create.event.log';
 
