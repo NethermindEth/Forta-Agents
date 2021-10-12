@@ -42,7 +42,7 @@ export default class TimeTracker {
   }
 
   isFirstHour(timestamp: number): boolean {
-    return this.firstHour === this.getHour(timestamp);
+    return this.firstHour === -1 || this.firstHour === this.getHour(timestamp);
   }
 
   updateHour(timestamp: number): void {
