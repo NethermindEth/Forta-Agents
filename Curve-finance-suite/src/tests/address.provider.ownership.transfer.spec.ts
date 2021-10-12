@@ -16,7 +16,7 @@ import createTxEventWithLog from '../utils/create.event.log';
 const ADDRESS = '0x1212';
 const ALERT_ID = 'test';
 const NEW_ADMIN = '0xedf2c58e16cc606da1977e79e1e69e79c54fe242';
-const DURATION = 1;
+const DURATION = '1';
 
 describe('Transfer Ownership Agent for Registry Contract', () => {
   let handleTransaction: HandleTransaction;
@@ -29,7 +29,10 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       ADDRESS,
-      [DURATION, encodeParameter('address', NEW_ADMIN)]
+      [
+        encodeParameter('uint256', DURATION),
+        encodeParameter('address', NEW_ADMIN),
+      ]
     );
 
     const findings = await handleTransaction(txEvent);
@@ -49,7 +52,7 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
   });
   it('should return empty finding because of wrong SIG', async () => {
     const txEvent: TransactionEvent = createTxEventWithLog('bad sig', ADDRESS, [
-      DURATION,
+      encodeParameter('uint256', DURATION),
       encodeParameter('address', NEW_ADMIN),
     ]);
 
@@ -62,7 +65,10 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
     const txEvent: TransactionEvent = createTxEventWithLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       '0x',
-      [DURATION, encodeParameter('address', NEW_ADMIN)]
+      [
+        encodeParameter('uint256', DURATION),
+        encodeParameter('address', NEW_ADMIN),
+      ]
     );
 
     const findings = await handleTransaction(txEvent);
