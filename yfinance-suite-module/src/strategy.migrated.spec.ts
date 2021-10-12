@@ -1,8 +1,8 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import provideStrategyMigratedAgent from "./strategy.migrated";
-import { createTxEventWithEventLogged } from "./test.utils";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools";
 
-const YEARN_VAULT_ADDRESS = "0x121212";
+const YEARN_VAULT_ADDRESS = createAddress("0x121212");
 const ALERT_ID = "testID";
 const EVENT_SIGNATURE = "StrategyMigrated(address,address)";
 
@@ -27,7 +27,7 @@ describe("Yearn Finance Strategy Revoked Tests", () => {
   });
 
   it("should return empty findings if the expected event wasn't called", async () => {
-    const txEvent: TransactionEvent = createTxEventWithEventLogged("badEvent", "0x121212");
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("badEvent", YEARN_VAULT_ADDRESS);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -35,7 +35,7 @@ describe("Yearn Finance Strategy Revoked Tests", () => {
   });
 
   it("should return empty findings if the event is not related with the specified vault", async () => {
-    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, "0x0");
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(EVENT_SIGNATURE, createAddress("0x0"));
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -43,7 +43,7 @@ describe("Yearn Finance Strategy Revoked Tests", () => {
   });
 
   it("should return findings when the specified vault emit the expected event", async () => {
-    const txEvent: TransactionEvent = createTxEventWithEventLogged(EVENT_SIGNATURE, YEARN_VAULT_ADDRESS);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(EVENT_SIGNATURE, YEARN_VAULT_ADDRESS);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 

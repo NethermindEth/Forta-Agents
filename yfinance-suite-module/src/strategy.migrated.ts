@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-import { provideEventCheckerHandler, FindingGenerator } from "general-agents-module";
+import { provideEventCheckerHandler, FindingGenerator } from "forta-agent-tools";
 
 export const EVENT_SIGNATURE: string = "StrategyMigrated(address,address)";
 
