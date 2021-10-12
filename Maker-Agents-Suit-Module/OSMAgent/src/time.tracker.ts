@@ -38,7 +38,7 @@ export default class TimeTracker {
 
   isInFirstTenMins(timestamp: number): boolean {
     const minutes = this.getMinute(timestamp);
-    return minutes <= 10;
+    return minutes < 10;
   }
 
   isFirstHour(timestamp: number): boolean {
