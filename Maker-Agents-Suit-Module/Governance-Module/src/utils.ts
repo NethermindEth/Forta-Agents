@@ -14,6 +14,11 @@ import {
 
 const _web3: Web3 = new Web3();
 
+export interface AddressManager {
+  isKnownAddress(addr: string): boolean;
+  update(addr: string | number): Promise<void>;
+};
+
 export type AddressVerifier = (addr: string) => boolean;
 
 export type PropertyFetcher = (block: number, ...params: string[]) => Promise<any>;

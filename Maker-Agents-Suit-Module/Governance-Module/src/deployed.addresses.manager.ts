@@ -1,7 +1,8 @@
 import { encode } from 'rlp';
 import { keccak256 } from 'web3-utils';
+import { AddressManager } from './utils';
 
-export default class DeployedAddressesManager {
+export default class DeployedAddressesManager implements AddressManager {
   private nonce: number;
   private deployer: string;
   private deployedAddresses: Set<string>;
@@ -31,4 +32,8 @@ export default class DeployedAddressesManager {
   public isDeployedAddress(addr: string): boolean{
     return this.deployedAddresses.has(addr);
   }
+
+  // Implemented as arrow function to preserve the context inside the function
+  public isKnownAddress = (addr: string): boolean =>
+    this.isDeployedAddress(addr);
 };
