@@ -79,7 +79,7 @@ describe("Governance Module agent tests suite", () => {
   });
 
   it("should report unknown hat if the address is not deployed", async () => {
-    // deadContract[2] not deplyed at block 4
+    // deadContract[2] not deployed at block 4
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[2]);
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[2]);
     mockWebGetTxCount.mockReturnValueOnce(2);
@@ -92,7 +92,7 @@ describe("Governance Module agent tests suite", () => {
       createHatFinding("MakerDAO-GM-1", HatFinding.UnknownHat, {hat: deadContracts[2]}),
     ]);
 
-    // deadContract[2] deplyed at block 5
+    // deadContract[2] deployed at block 5
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[2]);
     mockWeb3Call.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
     mockWebGetTxCount.mockReturnValueOnce(3);
@@ -158,13 +158,13 @@ describe("Governance Module agent tests suite", () => {
     mockWebGetTxCount.mockReturnValueOnce(2);
 
     const txs: TransactionEvent[] = [
-      new TestTransactionEvent()
+      new TestTransactionEvent() // Unknown lifter
         .addAnonymousEventLog(chiefInLower, "", LIFT_EVENT, deadContractsEncoded[2], deadContractsEncoded[0])
         .addInvolvedAddresses(chiefInLower),
-      new TestTransactionEvent()
+      new TestTransactionEvent() // Unknown spell
         .addAnonymousEventLog(chiefInLower, "", LIFT_EVENT, deadContractsEncoded[1], deadContractsEncoded[3])
         .addInvolvedAddresses(chiefInLower),
-      new TestTransactionEvent()
+      new TestTransactionEvent() // CHIEF contract is not in the txn involved addresses
         .addAnonymousEventLog(chiefInLower, "", LIFT_EVENT, deadContractsEncoded[6], deadContractsEncoded[4]),
     ];
 
