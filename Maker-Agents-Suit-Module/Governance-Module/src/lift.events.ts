@@ -12,7 +12,7 @@ import {
   LiftFinding,
 } from './utils';
 
-const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
+export const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
 
 const desc: {
   [key in LiftFinding]: string;
@@ -58,9 +58,9 @@ export const provideLiftEventsListener = (
       ){
         const topic1: string = decodeSingleParam('address', log.topics[1]).toLowerCase();
         const topic2: string = decodeSingleParam('address', log.topics[2]).toLowerCase();
-        if(!(await isKnown(topic1)))
+        if(!isKnown(topic1))
           findings.push(createFinding(alertId, topic1, LiftFinding.Lifter));
-        if(!(await isKnown(topic2)))
+        if(!isKnown(topic2))
           findings.push(createFinding(alertId, topic2, LiftFinding.Spell));
       }
     }
