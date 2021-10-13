@@ -10,7 +10,6 @@ const getUnderlayingAsset = async (web3: Web3, yearnVaultAddress: string): Promi
 
 const createFindingGenerator = (
   isFrom: boolean,
-  alertId: string,
   yearnVaultAddress: string,
   valueThreshold: string,
 ): FindingGenerator => {
@@ -19,7 +18,7 @@ const createFindingGenerator = (
     Finding.fromObject({
       name: "Big transaction related with Yearn Vault",
       description: `An amount greater than ${valueThreshold} of underlaying was moved ${directionString} Yearn Vault`,
-      alertId,
+      alertId: "NETHFORTA-23-1",
       severity: FindingSeverity.Info,
       type: FindingType.Suspicious,
       metadata: {
@@ -30,7 +29,6 @@ const createFindingGenerator = (
 
 export default function provideBigTransactionsAgent(
   web3: Web3,
-  alertId: string,
   yearnVaultAddress: string,
   valueThreshold: string,
 ): HandleTransaction {
@@ -39,12 +37,12 @@ export default function provideBigTransactionsAgent(
 
     const underlyingTokenAddress: string = await getUnderlayingAsset(web3, yearnVaultAddress);
     const erc20InDetector = provideERC20TransferHandler(
-      createFindingGenerator(false, alertId, yearnVaultAddress, valueThreshold),
+      createFindingGenerator(false, yearnVaultAddress, valueThreshold),
       underlyingTokenAddress,
       { to: yearnVaultAddress, amountThreshold: valueThreshold },
     );
     const erc20OutDetector = provideERC20TransferHandler(
-      createFindingGenerator(true, alertId, yearnVaultAddress, valueThreshold),
+      createFindingGenerator(true, yearnVaultAddress, valueThreshold),
       underlyingTokenAddress,
       { from: yearnVaultAddress, amountThreshold: valueThreshold },
     );

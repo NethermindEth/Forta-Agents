@@ -2,7 +2,7 @@ import { HandleTransaction, TransactionEvent, Finding, FindingType, FindingSever
 import { TestTransactionEvent, createAddress, encodeParameter } from "forta-agent-tools";
 import Web3 from "web3";
 import provideBigTransactionsAgent from "./big.txns.with.vault";
-import { toWei } from "./test.utils";
+import { toWei } from "web3-utils";
 
 const TEST_VAULT_ADDR = createAddress("0x121212");
 const TEST_VAULT_UNDERLYING_TOKEN = createAddress("0x131313");
@@ -12,7 +12,7 @@ const generateFinding = (isFrom: boolean, threshold: string): Finding => {
   const stringDirection = isFrom ? "from" : "into";
   return Finding.fromObject({
     name: "Big transaction related with Yearn Vault",
-    alertId: "TEST",
+    alertId: "NETHFORTA-23-1",
     description: `An amount greater than ${threshold} of underlaying was moved ${stringDirection} Yearn Vault`,
     severity: FindingSeverity.Info,
     type: FindingType.Suspicious,
@@ -51,7 +51,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns empty findings if no event is emmited", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
@@ -61,7 +61,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns empty findings if the ERC20 event is not from the underlying asset", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "Transfer(address,address,uint256)",
@@ -77,7 +77,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns empy findings if the ERC20 trasnfer is not related with the Vault", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "Transfer(address,address,uint256)",
@@ -93,7 +93,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns a finding if the ERC20 transfer is going into the Vault", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "Transfer(address,address,uint256)",
@@ -109,7 +109,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns a finding if the ERC20 transfer is from the Vault", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "Transfer(address,address,uint256)",
@@ -125,7 +125,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns empty finding if the ERC20 transfer is below the threshold", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "Transfer(address,address,uint256)",
@@ -141,7 +141,7 @@ describe("Yearn Vault Big Transactions", () => {
   });
 
   it("should returns multiple findings if there are multiple ERC20 trasnfer from or to the Vault", async () => {
-    handleTransaction = provideBigTransactionsAgent(mockWeb3, "TEST", TEST_VAULT_ADDR, toWei("10"));
+    handleTransaction = provideBigTransactionsAgent(mockWeb3, TEST_VAULT_ADDR, toWei("10"));
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(

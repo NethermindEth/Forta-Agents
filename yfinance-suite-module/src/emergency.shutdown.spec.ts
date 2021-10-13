@@ -3,14 +3,13 @@ import provideEmergencyShutdownAgent from "./emergency.shutdown";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools";
 
 const YEARN_VAULT_ADDRESS = createAddress("0x121212");
-const ALERT_ID = "testID";
 const EVENT_SIGNATURE = "EmergencyShutdown(bool)";
 
 const createFinding = (): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Emergency Shutdown",
     description: "Detects Emergency Shutdown event on the watched Yearn Vault",
-    alertId: ALERT_ID,
+    alertId: "NETHFORTA-23-2",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Medium,
     metadata: {
@@ -23,7 +22,7 @@ describe("Yearn Finance Emergency Shutdown Tests", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideEmergencyShutdownAgent(YEARN_VAULT_ADDRESS, ALERT_ID);
+    handleTransaction = provideEmergencyShutdownAgent(YEARN_VAULT_ADDRESS);
   });
 
   it("should return empty findings if the expected event wasn't called", async () => {

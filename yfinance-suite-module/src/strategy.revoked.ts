@@ -3,11 +3,11 @@ import { provideEventCheckerHandler, FindingGenerator } from "forta-agent-tools"
 
 export const EVENT_SIGNATURE: string = "StrategyRevoked(address)";
 
-const createFindingGenerator = (alertId: string, yearnVaultAddress: string): FindingGenerator => {
+const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
   return () => Finding.fromObject({
     name: "Yearn Finance Strategy Revoked",
     description: "Detects Strategy Revoked event on the watched Yearn Vault",
-    alertId,
+    alertId: "NETHFORTA-23-4",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Medium,
     metadata: {
@@ -16,6 +16,6 @@ const createFindingGenerator = (alertId: string, yearnVaultAddress: string): Fin
   });
 };
 
-export default function provideEmergencyShutdownAgent(yearnVaultAddress: string, alertId: string): HandleTransaction {
-  return provideEventCheckerHandler(createFindingGenerator(alertId, yearnVaultAddress), EVENT_SIGNATURE, yearnVaultAddress);
+export default function provideEmergencyShutdownAgent(yearnVaultAddress: string): HandleTransaction {
+  return provideEventCheckerHandler(createFindingGenerator(yearnVaultAddress), EVENT_SIGNATURE, yearnVaultAddress);
 }

@@ -3,14 +3,13 @@ import provideUpdatedGovernanceAgent from "./updated.governance";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools";
 
 const YEARN_VAULT_ADDRESS = createAddress("0x121212");
-const ALERT_ID = "testID";
 const EVENT_SIGNATURE = "UpdateGovernance(address)";
 
 const createFinding = (): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Updated Governance",
     description: "Detects Updated Governance event on the watched Yearn Vault",
-    alertId: ALERT_ID,
+    alertId: "NETHFORTA-23-5",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Medium,
     metadata: {
@@ -23,7 +22,7 @@ describe("Yearn Finance Updated Governance Tests", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideUpdatedGovernanceAgent(YEARN_VAULT_ADDRESS, ALERT_ID);
+    handleTransaction = provideUpdatedGovernanceAgent(YEARN_VAULT_ADDRESS);
   });
 
   it("should return empty findings if the expected event wasn't called", async () => {

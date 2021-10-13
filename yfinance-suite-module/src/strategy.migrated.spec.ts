@@ -3,14 +3,13 @@ import provideStrategyMigratedAgent from "./strategy.migrated";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools";
 
 const YEARN_VAULT_ADDRESS = createAddress("0x121212");
-const ALERT_ID = "testID";
 const EVENT_SIGNATURE = "StrategyMigrated(address,address)";
 
 const createFinding = (): Finding => {
   return Finding.fromObject({
     name: "Yearn Finance Strategy Migrated",
     description: "Detects Strategy Migrated event on the watched Yearn Vault",
-    alertId: ALERT_ID,
+    alertId: "NETHFORTA-23-3",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Medium,
     metadata: {
@@ -23,7 +22,7 @@ describe("Yearn Finance Strategy Revoked Tests", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideStrategyMigratedAgent(YEARN_VAULT_ADDRESS, ALERT_ID);
+    handleTransaction = provideStrategyMigratedAgent(YEARN_VAULT_ADDRESS);
   });
 
   it("should return empty findings if the expected event wasn't called", async () => {
