@@ -3,7 +3,7 @@ import { provideEventCheckerHandler, FindingGenerator } from "forta-agent-tools"
 
 export const EVENT_SIGNATURE: string = "EmergencyShutdown(bool)";
 
-const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
+export const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
   return () => Finding.fromObject({
     name: "Yearn Finance Emergency Shutdown",
     description: "Detects Emergency Shutdown event on the watched Yearn Vault",

@@ -3,7 +3,7 @@ import { provideEventCheckerHandler, FindingGenerator } from "forta-agent-tools"
 
 export const EVENT_SIGNATURE: string = "StrategyMigrated(address,address)";
 
-const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
+export const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
   return () => Finding.fromObject({
     name: "Yearn Finance Strategy Migrated",
     description: "Detects Strategy Migrated event on the watched Yearn Vault",

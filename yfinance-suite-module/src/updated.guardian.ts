@@ -3,7 +3,7 @@ import { provideEventCheckerHandler, FindingGenerator } from "forta-agent-tools"
 
 const EVENT_SIGNATURE: string = "UpdateGuardian(address)";
 
-const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
+export const createFindingGenerator = (yearnVaultAddress: string): FindingGenerator => {
   return () => Finding.fromObject({
     name: "Yearn Finance Updated Guardian",
     description: "Detects Updated Guardian event on the wathced Yearn Vault",
