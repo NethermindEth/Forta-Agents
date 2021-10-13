@@ -1,29 +1,23 @@
-import { 
-  Finding, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingType,
-  FindingSeverity,
-} from 'forta-agent';
-import { Trace } from 'forta-agent/dist/sdk/trace';
-import agent from "./index";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Trace } from "forta-agent/dist/sdk/trace";
+import agent, { createFinding } from "./index";
 
 interface TraceInfo {
-  from: string, 
-  addr: string, 
-  type: string, 
-};
-  
-const createTxEvent  = (data: TraceInfo[]) : TransactionEvent => {
+  from: string;
+  addr: string;
+  type: string;
+}
+
+const createTxEvent = (data: TraceInfo[]): TransactionEvent => {
   const traces: Trace[] = data.map((traceInfo: TraceInfo) => {
     return {
       type: traceInfo.type,
       action: {
-        from: traceInfo.from,
+        from: traceInfo.from
       },
       result: {
-        address: traceInfo.addr,
-      },
+        address: traceInfo.addr
+      }
     } as Trace;
   });
   const txn: TransactionEvent = { traces } as TransactionEvent;
@@ -32,10 +26,11 @@ const createTxEvent  = (data: TraceInfo[]) : TransactionEvent => {
 
 describe("Contracts deployed by contracts agent test suit", () => {
   const mockGetCode = jest.fn();
-  const handleTransaction: HandleTransaction = agent.provideHandleTransaction(mockGetCode);
+  const handleTransaction: HandleTransaction =
+    agent.provideHandleTransaction(mockGetCode);
 
   beforeEach(() => {
-    mockGetCode.mockClear(); 
+    mockGetCode.mockClear();
   });
 
   describe("handleTransaction", () => {
@@ -51,18 +46,18 @@ describe("Contracts deployed by contracts agent test suit", () => {
         {
           from: "0x1",
           addr: "0x2",
-          type: "call",
+          type: "call"
         },
         {
           from: "0x1",
           addr: "0x3",
-          type: "staticcall",
+          type: "staticcall"
         },
         {
           from: "0x3",
           addr: "0x4",
-          type: "delegatecall",
-        },
+          type: "delegatecall"
+        }
       ]);
       const findings: Finding[] = await handleTransaction(txn);
       expect(findings).toStrictEqual([]);
@@ -74,23 +69,23 @@ describe("Contracts deployed by contracts agent test suit", () => {
         {
           from: "0x1",
           addr: "0x2",
-          type: "create",
+          type: "create"
         },
         {
           from: "0x2",
           addr: "0x3",
-          type: "create",
+          type: "create"
         },
         {
           from: "0x3",
           addr: "0x4",
-          type: "create",
+          type: "create"
         },
         {
           from: "0x5",
           addr: "0x6",
-          type: "create",
-        },
+          type: "create"
+        }
       ]);
       mockGetCode
         .mockReturnValueOnce("0x")
@@ -99,20 +94,8 @@ describe("Contracts deployed by contracts agent test suit", () => {
         .mockReturnValueOnce("0x");
       const findings: Finding[] = await handleTransaction(txn);
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "Contract deployed by a contract",
-          description: `Contract (0x2) deploy the new contract (0x3)`,
-          alertId: "NETHFORTA-9",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Info,
-        }),
-        Finding.fromObject({
-          name: "Contract deployed by a contract",
-          description: `Contract (0x3) deploy the new contract (0x4)`,
-          alertId: "NETHFORTA-9",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Info,
-        }),
+        createFinding("0x2", "0x3"),
+        createFinding("0x3", "0x4")
       ]);
       expect(mockGetCode).toHaveBeenCalledTimes(4);
       expect(mockGetCode).nthCalledWith(1, "0x1");

@@ -35,7 +35,7 @@ describe("Tornado Cash Agent Test Suite", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding("0x0")]);
+    expect(findings).toStrictEqual([createFinding("0x0", BigInt(1000000))]);
   });
 
   it("returns empty findings if no address has passed the threshold value", async () => {
@@ -71,7 +71,7 @@ describe("Tornado Cash Agent Test Suite", () => {
 
     txEvent = createTxEvent("0x0", tornadoAddresses[0], "2000", "1300");
     findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([createFinding("0x0")]);
+    expect(findings).toStrictEqual([createFinding("0x0", BigInt(11000))]);
   });
 
   it("returns findings if the amount of eth sent into multiple tornado addresses is above threshold", async () => {
@@ -83,6 +83,6 @@ describe("Tornado Cash Agent Test Suite", () => {
 
     txEvent = createTxEvent("0x0", tornadoAddresses[1], "9000", "200");
     findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([createFinding("0x0")]);
+    expect(findings).toStrictEqual([createFinding("0x0", BigInt(18000))]);
   });
 });

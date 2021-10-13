@@ -6,7 +6,7 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
-  getJsonRpcUrl,
+  getJsonRpcUrl
 } from "forta-agent";
 
 const HIGH_GAS_THRESHOLD = "7000000";
@@ -17,6 +17,7 @@ const INTERESTING_PROTOCOLS = ["0xacd43e627e64355f1861cec6d3a6688b31a6f952"]; //
 const BALANCE_DIFF_THRESHOLD = "200000000000000000000"; // 200 eth
 
 const web3 = new Web3(getJsonRpcUrl());
+
 function provideHandleTransaction(web3: Web3): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
     // report finding if detected a flash loan attack on Yearn Dai vault
@@ -52,17 +53,17 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
 
     findings.push(
       Finding.fromObject({
-        name: "Flash Loan with Loss",
-        description: `Flash Loan with loss of ${balanceDiff.toString()} detected for ${protocolAddress}`,
+        name: "Flash Loan With Loss Detection",
+        description: "Flash loan with loss is detected.",
         alertId: "NETHFORTA-6",
-        protocol: "aave",
+        protocol: "Aave",
         type: FindingType.Suspicious,
         severity: FindingSeverity.High,
         metadata: {
-          protocolAddress,
+          protocol: protocolAddress,
           balanceDiff: balanceDiff.toString(),
-          loans: JSON.stringify(flashLoanEvents),
-        },
+          loans: JSON.stringify(flashLoanEvents)
+        }
       })
     );
     return findings;
@@ -71,5 +72,5 @@ function provideHandleTransaction(web3: Web3): HandleTransaction {
 
 export default {
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(web3),
+  handleTransaction: provideHandleTransaction(web3)
 };

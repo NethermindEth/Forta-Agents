@@ -4,8 +4,9 @@ import {
   HandleBlock,
   FindingSeverity,
   FindingType,
-  getJsonRpcUrl,
+  getJsonRpcUrl
 } from "forta-agent";
+
 import BlockDifficultyGetter from "./blockDifficultyGetter";
 import Web3 from "web3";
 import { mean, std, abs } from "mathjs";
@@ -61,7 +62,7 @@ const getSeverity = (difficultyChange: number): FindingSeverity => {
     return FindingSeverity.Info;
   }
   return FindingSeverity.High;
-}
+};
 
 export const provideHandleBlock = (
   blockDifficultyGetter: BlockDifficultyGetter,
@@ -84,18 +85,26 @@ export const provideHandleBlock = (
     );
 
     if (isRelevant(actualBlockChange, difficultyChangesHistory)) {
-      findings.push(Finding.fromObject({
-        name: "Unusual Difficulty Change",
-        description: `Block number ${currentBlock} made an unusual difficulty change`,
-        alertId: "NETHFORTA-8",
-        severity: getSeverity(actualBlockChange),
-        type: FindingType.Suspicious
-      }));
+      findings.push(
+        Finding.fromObject({
+          name: "Unusual Difficulty Change Detection",
+          description: "Unusual block difficulty change detected.",
+          alertId: "NETHFORTA-8",
+          severity: getSeverity(actualBlockChange),
+          type: FindingType.Suspicious,
+          metadata: {
+            block: currentBlock.toString()
+          }
+        })
+      );
     }
     return findings;
   };
 };
 
 export default {
-  handleBlock: provideHandleBlock(blockDifficultyGetter, NUMBER_OF_BLOCKS_TO_CHECK),
+  handleBlock: provideHandleBlock(
+    blockDifficultyGetter,
+    NUMBER_OF_BLOCKS_TO_CHECK
+  )
 };

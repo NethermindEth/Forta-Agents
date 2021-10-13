@@ -1,6 +1,7 @@
 {
   "name": "forta-agent-starter",
-  "version": "0.0.1",
+  "version": "0.1.1",
+  "agentId": "nethforta-6",
   "description": "Forta Agent Typescript starter project",
   "scripts": {
     "build": "tsc",
@@ -16,7 +17,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.7"
+    "forta-agent": "^0.0.16"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",

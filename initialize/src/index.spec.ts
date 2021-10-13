@@ -6,11 +6,11 @@ import {
   HandleTransaction,
   EventType,
   getJsonRpcUrl,
-  Network,
+  Network
 } from "forta-agent";
 import agent from ".";
 import Web3 from "web3";
-import { abi, initialize } from "./abi";
+import { initialize } from "./abi";
 
 const web3: any = new Web3(getJsonRpcUrl());
 
@@ -42,9 +42,9 @@ describe("high amount of flashloans", () => {
       const txEvent = createTxEvent({
         gasUsed: "1",
         addresses: {
-          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true
         },
-        transaction: { data: functionSignarue },
+        transaction: { data: functionSignarue }
       });
 
       const findings = await handleTransaction(txEvent);
@@ -55,25 +55,25 @@ describe("high amount of flashloans", () => {
     it("second call should give a warning wiht count 2", async () => {
       const txEvent = createTxEvent({
         addresses: {
-          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true
         },
         gasUsed: "1",
-        transaction: { data: functionSignarue },
+        transaction: { data: functionSignarue }
       });
 
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
-          name: "Initialize function",
-          description: `The initialize function got called 2 times.`,
+          name: "Initialize Function Detection",
+          description: `The initialize function is called.`,
           alertId: "NETHFORTA-15",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Unknown,
           metadata: {
-            count: "2",
-          },
-        }),
+            count: "2"
+          }
+        })
       ]);
     });
 
@@ -81,24 +81,24 @@ describe("high amount of flashloans", () => {
       const txEvent = createTxEvent({
         gasUsed: "1",
         addresses: {
-          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true,
+          "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": true
         },
-        transaction: { data: functionSignarue },
+        transaction: { data: functionSignarue }
       });
 
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
-          name: "Initialize function",
-          description: `The initialize function got called 3 times.`,
+          name: "Initialize Function Detection",
+          description: `The initialize function is called.`,
           alertId: "NETHFORTA-15",
           type: FindingType.Suspicious,
           severity: FindingSeverity.Unknown,
           metadata: {
-            count: "3",
-          },
-        }),
+            count: "3"
+          }
+        })
       ]);
     });
   });

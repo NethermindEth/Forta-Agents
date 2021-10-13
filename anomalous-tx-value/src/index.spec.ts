@@ -6,16 +6,16 @@ import {
   EventType,
   Network,
   HandleTransaction
-} from 'forta-agent'
+} from "forta-agent";
 
-import agent, { DECIMALS, TX_VALUE_THRESHHOLD } from '.'
+import agent, { DECIMALS, TX_VALUE_THRESHHOLD } from ".";
 
-describe('Detect Very High Txn Value', () => {
-  let handleTransaction: HandleTransaction
+describe("Detect Very High Txn Value", () => {
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = agent.handleTransaction;
+  });
 
   const createTxEvent = ({
     transaction,
@@ -24,9 +24,9 @@ describe('Detect Very High Txn Value', () => {
   }: any): TransactionEvent => {
     const tx: any = {
       value: transaction.value
-    }
-    const receipt: any = {}
-    const block: any = { number: blockNumber }
+    };
+    const receipt: any = {};
+    const block: any = { number: blockNumber };
     return new TransactionEvent(
       EventType.BLOCK,
       Network.MAINNET,
@@ -35,47 +35,50 @@ describe('Detect Very High Txn Value', () => {
       [],
       addresses,
       block
-    )
-  }
+    );
+  };
 
-  describe('Handle Transaction', () => {
-    it('returns empty findings if value is below threshold', async () => {
+  describe("Handle Transaction", () => {
+    it("returns empty findings if value is below threshold", async () => {
       const txEvent = createTxEvent({
         transaction: { value: 1 * DECIMALS }
-      })
+      });
 
-      const findings = await handleTransaction(txEvent)
+      const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+      expect(findings).toStrictEqual([]);
+    });
 
-    it('returns empty findings if value is equal to threshold', async () => {
+    it("returns empty findings if value is equal to threshold", async () => {
       const txEvent = createTxEvent({
         transaction: { value: TX_VALUE_THRESHHOLD }
-      })
+      });
 
-      const findings = await handleTransaction(txEvent)
+      const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+      expect(findings).toStrictEqual([]);
+    });
 
-    it('returns a findings if value is above threshold', async () => {
-      const value = 101 * DECIMALS
+    it("returns a findings if value is above threshold", async () => {
+      const value = 101 * DECIMALS;
       const txEvent = createTxEvent({
         transaction: { value: value }
-      })
+      });
 
-      const findings = await handleTransaction(txEvent)
+      const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
-          name: 'High Values Transaction Detected',
-          description: `Value is: ${value}`,
-          alertId: 'NETHFORTA-2',
+          name: "High Value Use Detection",
+          description: `High value is used.`,
+          alertId: "NETHFORTA-2",
           severity: FindingSeverity.High,
-          type: FindingType.Suspicious
+          type: FindingType.Suspicious,
+          metadata: {
+            value: value.toString()
+          }
         })
-      ])
-    })
-  })
-})
+      ]);
+    });
+  });
+});
