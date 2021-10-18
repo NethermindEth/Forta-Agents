@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
 import {
   BlockEvent,
   Finding,
@@ -6,8 +6,8 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType,
-} from 'forta-agent';
+  FindingType
+} from "forta-agent";
 
 const handleTransaction: HandleTransaction = async (
   txEvent: TransactionEvent
@@ -24,6 +24,6 @@ const handleTransaction: HandleTransaction = async (
 // }
 
 export default {
-  handleTransaction,
+  handleTransaction
   // handleBlock
 };
