@@ -1,8 +1,8 @@
-import BigNumber from "bignumber.js";
-import { Finding, HandleBlock, BlockEvent } from "forta-agent";
-import provideMakerStrategyHandler from "../../src/maker.strategy.cases.agent";
+import BigNumber from 'bignumber.js';
+import { Finding, HandleBlock, BlockEvent } from 'forta-agent';
+import provideMakerStrategyHandler from './maker.strategy.cases.agent';
 
-describe("Maker Strategy Agent Test Suit", () => {
+describe('Maker Strategy Agent Test Suit', () => {
   const web3CallMock = jest.fn();
   let handleBlock: HandleBlock;
 
@@ -10,5 +10,5 @@ describe("Maker Strategy Agent Test Suit", () => {
     handleBlock = provideMakerStrategyHandler(web3CallMock);
   });
 
-  it("", () => {});
+  it('', () => {});
 });
