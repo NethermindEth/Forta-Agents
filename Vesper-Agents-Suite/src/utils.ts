@@ -4,7 +4,7 @@ import Web3 from "web3";
 
 const _web3: Web3 = new Web3();
 
-export type PropertyFetcher = (...params: string[]) => Promise<any>;
+export type PropertyFetcher = () => Promise<any>;
 
 const IsUnderWater_Json_Interface = {
   inputs: [],
@@ -41,13 +41,13 @@ export const propertyFetcher =
   (
     web3Call: any,
     address: string,
-    dataEncoder: any,
+    encodedFunction: string,
     type: string
   ): PropertyFetcher =>
-  async (...params: string[]): Promise<any> => {
+  async (): Promise<any> => {
     const encodedValue = await web3Call({
       to: address,
-      data: dataEncoder(...params)
+      data: encodedFunction
     });
     return decodeParameter(type, encodedValue);
   };
