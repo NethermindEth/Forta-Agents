@@ -5,27 +5,27 @@ import {
   FindingSeverity,
   FindingType
 } from "forta-agent";
+import {
+  IsUnderWaterCall,
+  Pools,
+  propertyFetcher,
+  PropertyFetcher,
+  Strategy
+} from "./utils";
 //@ts-ignore
 import axios from "axios";
 
-interface Strategy {
-  address: string;
-  tokens: [];
-  info: string;
-  weight: number;
-}
+export const provideMakerStrategyHandler = (
+  web3Call: any,
+  address: string
+): HandleBlock => {
+  const isUnderWater: PropertyFetcher = propertyFetcher(
+    web3Call,
+    address,
+    IsUnderWaterCall,
+    "bool"
+  );
 
-interface Pools {
-  name: string;
-  contract: Object;
-  strategies: Array<Strategy>;
-  strategy: Object;
-  poolRewards: Object;
-  status: string;
-  stage: string;
-}
-
-export const provideMakerStrategyHandler = (): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const MakerStrategies: Strategy[] = [];
@@ -45,6 +45,4 @@ export const provideMakerStrategyHandler = (): HandleBlock => {
   };
 };
 
-export default {
-  handleBlock: provideMakerStrategyHandler()
-};
+export default provideMakerStrategyHandler;
