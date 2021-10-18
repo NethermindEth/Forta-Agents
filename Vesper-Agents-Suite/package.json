@@ -17,9 +17,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.23.0",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.22",
-    "node-fetch": "^3.0.0"
+    "forta-agent": "^0.0.22"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
