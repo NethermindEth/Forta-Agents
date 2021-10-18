@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import {
   BlockEvent,
   Finding,
@@ -6,13 +5,18 @@ import {
   FindingSeverity,
   FindingType
 } from "forta-agent";
+import fetch from "node-fetch";
 
-const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-  const findings: Finding[] = [];
+export const provideMakerStrategyHandler = (): HandleBlock => {
+  return async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
 
-  return findings;
+    const strategies = await fetch("https://api.vesper.finance/dashboard");
+
+    return findings;
+  };
 };
 
 export default {
-  handleBlock
+  handleBlock: provideMakerStrategyHandler()
 };

@@ -7,4 +7,6 @@ import {
 } from "forta-agent";
 import agent from "./agent";
 
-describe("", () => {});
+describe("", () => {
+  it("", () => {});
+});
