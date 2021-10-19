@@ -9,21 +9,21 @@ import {
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import {
   createFinding,
-  reportLossSignature,
+  reportLossABI,
   getPoolAccountants,
 } from "./utils";
 import Web3 from "web3";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
-const providerHandleTransaction = (web3: Web3): HandleTransaction => {
+export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const poolAccountant: string[] = await getPoolAccountants();
     const reportLossHandlers: HandleTransaction[] = poolAccountant.map(
       (poolAccountant) =>
         provideFunctionCallsDetectorHandler(
           createFinding,
-          reportLossSignature,
+          reportLossABI,
           {
             to: poolAccountant,
           }
@@ -41,5 +41,5 @@ const providerHandleTransaction = (web3: Web3): HandleTransaction => {
 };
 
 export default {
-  handleTransaction: providerHandleTransaction(web3),
+  handleTransaction: provideHandleTransaction(web3),
 };

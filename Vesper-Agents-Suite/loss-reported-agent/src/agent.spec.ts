@@ -5,29 +5,15 @@ import {
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
-import agent from "./agent";
+import { provideHandleTransaction  } from "./agent";
 import {
   TestTransactionEvent,
   createAddress,
   encodeFunctionCall,
 } from "forta-agent-tools";
+import { reportLossABI } from "./utils";
 
 const strategyAddresses = [createAddress("0x0"), createAddress("0x1")];
-
-const reportLossABI = {
-  name: "reportLoss",
-  type: "function",
-  inputs: [
-    {
-      type: "address",
-      name: "",
-    },
-    {
-      type: "uint256",
-      name: "",
-    },
-  ],
-};
 
 const createFinding = (strategyAddress: string, lossValue: string): Finding => {
   return Finding.fromObject({
@@ -47,7 +33,7 @@ describe("Reported Loss Agent", () => {
   let handleTransaction: HandleTransaction;
 
   it("should return empty findings if not reportLoss is called", async () => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction  ();
 
     let findings: Finding[] = [];
 
@@ -55,11 +41,11 @@ describe("Reported Loss Agent", () => {
 
     findings = findings.concat(await handleTransaction(txEvent));
 
-    expect(findings).toStrictEqual([]);
+      expect(findings).toStrictEqual([]);
   });
 
   it("should returns finding if reportLoss was called", async () => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction();
 
     let findings: Finding[] = [];
 
@@ -78,7 +64,7 @@ describe("Reported Loss Agent", () => {
   });
 
   it("should returns multiple findings if reportLoss was called multiple times", async () => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction();
 
     let findings: Finding[] = [];
 
