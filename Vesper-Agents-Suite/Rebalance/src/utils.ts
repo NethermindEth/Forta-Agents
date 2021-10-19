@@ -4,14 +4,14 @@ import {
 } from "forta-agent-tools";
 import { AbiItem } from "web3-utils";
 
-export type Fetcher = (block: number, ...params: string[]) => Promise<any>;
+export type Fetcher = (block: number | string, ...params: string[]) => Promise<any>;
 
 export const createFetcher = (
   web3Call: any, 
   address: string, 
   jsonInteface: AbiItem, 
 ): Fetcher => 
-  async (block: number, ...params: string[]): Promise<any> => {
+  async (block: number | string, ...params: string[]): Promise<any> => {
     const encodedValue = await web3Call({
       to: address, 
       data: encodeFunctionCall(jsonInteface, params),
