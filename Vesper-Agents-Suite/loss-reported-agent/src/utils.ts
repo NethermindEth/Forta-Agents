@@ -28,7 +28,7 @@ export const createFinding: FindingGenerator = (callInfo) => {
   });
 };
 
-const getPools = async (web3: Web3, blockNumber: string): Promise<string[]> => {
+const getPools = async (web3: Web3, blockNumber: string | number): Promise<string[]> => {
   const pools: string[] = [];
 
   const controllerContract = new web3.eth.Contract(ControllerABI, controllerAddresss);
@@ -44,7 +44,7 @@ const getPools = async (web3: Web3, blockNumber: string): Promise<string[]> => {
   return pools;
 };
 
-export const getPoolAccountants = async (web3: Web3, blockNumber="latest"): Promise<string[]> => {
+export const getPoolAccountants = async (web3: Web3, blockNumber: number | string ="latest"): Promise<string[]> => {
   const poolAccountants: string[] = [];
   const pools: string[] = await getPools(web3, blockNumber);
 
