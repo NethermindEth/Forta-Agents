@@ -97,4 +97,22 @@ describe("Reported Loss Agent", () => {
       createFinding(strategyAddresses[1], "150"),
     ]);
   });
+
+  it("should returns empty findings if reportLoss wasn't called in the correct contract", async () => {
+    handleTransaction = provideHandleTransaction(mockWeb3);
+
+    let findings: Finding[] = [];
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
+      input: encodeFunctionCall(reportLossABI as any, [
+        strategyAddresses[0],
+        "100",
+      ]),
+      to: createAddress("0x4")
+    });
+
+    findings = findings.concat(await handleTransaction(txEvent));
+
+    expect(findings).toStrictEqual([]);
+  })
 });

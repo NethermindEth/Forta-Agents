@@ -12,7 +12,6 @@ export const generateMockBuilder = (p: string[]) => class mockContract {
 
   constructor(_: any, address: string) {
     this.addr = address;
-    console.log(address);
   }
 
   private pools() {
