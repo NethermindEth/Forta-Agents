@@ -5,6 +5,10 @@ import {
 } from "forta-agent-tools";
 import Web3 from "web3";
 import { ControllerABI, AddressListABI, PoolABI } from "./abi";
+import LRU from "lru-cache";
+
+
+const poolAccountantsCache = new LRU({ max: 10_000 });
 
 const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
@@ -62,6 +66,11 @@ export const getPoolAccountants = async (
   web3: Web3,
   blockNumber: number | string = "latest"
 ): Promise<string[]> => {
+
+  if (blockNumber !== "latest" && poolAccountantsCache.get(blockNumber) !== undefined) {
+    return poolAccountantsCache.get(blockNumber) as any;
+  }
+
   const poolAccountants: string[] = [];
   const pools: string[] = await getPools(web3, blockNumber);
 
@@ -71,6 +80,7 @@ export const getPoolAccountants = async (
       poolAccountants.push(await poolContract.methods.poolAccountant().call());
     } catch {}
   }
-
+  
+  poolAccountantsCache.set(blockNumber, poolAccountants);
   return poolAccountants;
 };
