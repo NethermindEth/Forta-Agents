@@ -23,10 +23,10 @@ export const ControllerABI = [
     outputs: [
       {
         type: "address",
-        name: ""
-      }
-    ]
-  }
+        name: "",
+      },
+    ],
+  },
 ] as AbiItem[];
 
 export const AddressListABI = [
@@ -38,8 +38,8 @@ export const AddressListABI = [
       {
         type: "uint256",
         name: "",
-      }
-    ]
+      },
+    ],
   },
   {
     name: "at",
@@ -48,15 +48,15 @@ export const AddressListABI = [
       {
         type: "uint256",
         name: "index",
-      }
+      },
     ],
     outputs: [
       {
         type: "address",
         name: "",
-      }
-    ]
-  }
+      },
+    ],
+  },
 ] as AbiItem[];
 
 export const PoolABI = [
@@ -68,7 +68,7 @@ export const PoolABI = [
       {
         type: "address",
         name: "",
-      }
+      },
     ],
-  }
+  },
 ] as AbiItem[];
