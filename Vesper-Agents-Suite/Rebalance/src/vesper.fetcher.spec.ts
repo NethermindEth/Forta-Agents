@@ -87,12 +87,14 @@ describe("VesperFetcher tests suite", () => {
 
     // // V3 strategies
     for(let i = 0; i < POOLS_V3.length; ++i){
+      // controller strategy should return 0 for all V3 pools
       when(mockWeb3Call).calledWith({
           to: CONTROLLER, 
           data: encodeFunctionCall(abi.STRATEGY, [POOLS_V3[i]]),
         }, 
         "latest",
       ).mockReturnValue(encodeParameters(abi.STRATEGY.outputs as any[], [ZERO]));
+      // each pool should return its strategies
       when(mockWeb3Call).calledWith({
           to: POOLS_V3[i], 
           data: encodeFunctionCall(abi.GET_STRATEGIES, []),
