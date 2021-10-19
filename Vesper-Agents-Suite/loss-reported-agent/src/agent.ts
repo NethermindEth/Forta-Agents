@@ -11,7 +11,7 @@ import {
 import { provideFunctionCallsDetectorHandler, FindingGenerator, decodeFunctionCallParameters } from 'forta-agent-tools';
 
 
-const createReportLossFinding: FindingGenerator = (callInfo) => {
+const createFinding: FindingGenerator = (callInfo) => {
   const { 0: strategyAddress, 1: lossValue } = decodeFunctionCallParameters(["address", "uint256"], callInfo.input);
 
   return Finding.fromObject({
@@ -31,9 +31,8 @@ const createReportLossFinding: FindingGenerator = (callInfo) => {
 
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   
-  const v3Strategies: string[] = await getV3Strategies();
-  const reportLossHandlers: HandleTransaction[] = v3Strategies.map((strategy) => provideFunctionCallsDetectorHandler());
-  const reportEarningsHandlers: HandleTransaction[] = v3Strategies.map((strategy) => provideFunctionCallsDetectorHandler());
+  const poolAccountant: string[] = await getPoolAccountants();
+  const reportLossHandlers: HandleTransaction[] = getPoolAccountants.map((poolAccountant) => provideFunctionCallsDetectorHandler());
 
   let findings: Finding[] = []
 
@@ -41,10 +40,6 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     findings = findings.concat(await reportLossHandler(txEvent));
   }
 
-  for (let reportEarningsHandler of reportEarningsHandlers ) {
-    findings = findings.concat(await reportEarningsHandler(txEvent));
-  }
-  
   return findings
 }
 
