@@ -16,9 +16,9 @@ export const createFinding: FindingGenerator = (callInfo) => {
   );
 
   return Finding.fromObject({
-    name: "",
-    description: "",
-    alertId: "",
+    name: "Loss Reported",
+    description: "A loss was reported by a V3 strategy",
+    alertId: "Vesper2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {

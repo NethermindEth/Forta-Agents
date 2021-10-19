@@ -11,15 +11,20 @@ import {
   createAddress,
   encodeFunctionCall,
 } from "forta-agent-tools";
-import { reportLossABI } from "./utils";
+import { reportLossABI } from "./abi";
+import { generateMockBuilder }from "./mockContract";
 
-const strategyAddresses = [createAddress("0x0"), createAddress("0x1")];
+
+const poolAccountants = [ createAddress("0x0"), createAddress("0x1") ];
+const strategyAddresses = [ createAddress("0x2"), createAddress("0x3") ];
+
+const mockWeb3 = { eth: { Contract: generateMockBuilder(poolAccountants) } } as any;
 
 const createFinding = (strategyAddress: string, lossValue: string): Finding => {
   return Finding.fromObject({
-    name: "",
-    description: "",
-    alertId: "",
+    name: "Loss Reported",
+    description: "A loss was reported by a V3 strategy",
+    alertId: "Vesper2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {
@@ -33,7 +38,7 @@ describe("Reported Loss Agent", () => {
   let handleTransaction: HandleTransaction;
 
   it("should return empty findings if not reportLoss is called", async () => {
-    handleTransaction = provideHandleTransaction  ();
+    handleTransaction = provideHandleTransaction(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -45,7 +50,7 @@ describe("Reported Loss Agent", () => {
   });
 
   it("should returns finding if reportLoss was called", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = provideHandleTransaction(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -54,6 +59,7 @@ describe("Reported Loss Agent", () => {
         strategyAddresses[0],
         "100",
       ]),
+      to: poolAccountants[1],
     });
 
     findings = findings.concat(await handleTransaction(txEvent));
@@ -64,7 +70,7 @@ describe("Reported Loss Agent", () => {
   });
 
   it("should returns multiple findings if reportLoss was called multiple times", async () => {
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = provideHandleTransaction(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -74,12 +80,14 @@ describe("Reported Loss Agent", () => {
           strategyAddresses[0],
           "100",
         ]),
+        to: poolAccountants[0]
       })
       .addTraces({
         input: encodeFunctionCall(reportLossABI as any, [
           strategyAddresses[1],
           "150",
         ]),
+        to: poolAccountants[1]
       });
 
     findings = findings.concat(await handleTransaction(txEvent));
