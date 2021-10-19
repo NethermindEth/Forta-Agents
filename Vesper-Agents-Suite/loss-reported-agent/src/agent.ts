@@ -8,9 +8,25 @@ import {
   FindingSeverity, 
   FindingType 
 } from 'forta-agent'
-import { provideFunctionCallsDetectorHandler, FindingGenerator } from 'forta-agent-tools';
+import { provideFunctionCallsDetectorHandler, FindingGenerator, decodeFunctionCallParameters } from 'forta-agent-tools';
 
-  
+
+const createReportLossFinding: FindingGenerator = (callInfo) => {
+  const { 0: strategyAddress, 1: lossValue } = decodeFunctionCallParameters(["address", "uint256"], callInfo.input);
+
+  return Finding.fromObject({
+    name: "",
+    description: "",
+    alertId: "",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    metadata: {
+      strategyAddress: strategyAddress,
+      lossValue: lossValue,
+    }
+  });
+}
+
 
 
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
