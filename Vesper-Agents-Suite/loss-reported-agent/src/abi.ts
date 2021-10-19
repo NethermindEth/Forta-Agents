@@ -1,6 +1,5 @@
 import { AbiItem } from "web3-utils";
 
-
 export const reportLossABI = {
   name: "reportLoss",
   type: "function",
@@ -57,5 +56,19 @@ export const AddressListABI = [
         name: "",
       }
     ]
+  }
+] as AbiItem[];
+
+export const PoolABI = [
+  {
+    name: "poolAccountant",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      }
+    ],
   }
 ] as AbiItem[];
