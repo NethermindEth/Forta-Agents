@@ -1,49 +1,41 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
-import { provideFunctionCallsDetectorHandler, FindingGenerator, decodeFunctionCallParameters } from 'forta-agent-tools';
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+  getJsonRpcUrl,
+} from "forta-agent";
+import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
+import {
+  createFinding,
+  reportLossSignature,
+  getPoolAccountants,
+} from "./utils";
+import Web3 from "web3";
 
+const web3: Web3 = new Web3(getJsonRpcUrl());
 
-const createFinding: FindingGenerator = (callInfo) => {
-  const { 0: strategyAddress, 1: lossValue } = decodeFunctionCallParameters(["address", "uint256"], callInfo.input);
-
-  return Finding.fromObject({
-    name: "",
-    description: "",
-    alertId: "",
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
-    metadata: {
-      strategyAddress: strategyAddress,
-      lossValue: lossValue,
-    }
-  });
-}
-
-
-
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  
+const handleTransaction: HandleTransaction = async (
+  txEvent: TransactionEvent
+) => {
   const poolAccountant: string[] = await getPoolAccountants();
-  const reportLossHandlers: HandleTransaction[] = getPoolAccountants.map((poolAccountant) => provideFunctionCallsDetectorHandler());
+  const reportLossHandlers: HandleTransaction[] = poolAccountant.map(
+    (poolAccountant) =>
+      provideFunctionCallsDetectorHandler(createFinding, reportLossSignature, {
+        to: poolAccountant,
+      })
+  );
 
-  let findings: Finding[] = []
+  let findings: Finding[] = [];
 
   for (let reportLossHandler of reportLossHandlers) {
     findings = findings.concat(await reportLossHandler(txEvent));
   }
 
-  return findings
-}
-
+  return findings;
+};
 
 export default {
   handleTransaction,
-}
+};
