@@ -20,7 +20,7 @@
     "@types/jest-when": "^2.7.3",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.22",
-    "forta-agent-tools": "^1.0.19",
+    "forta-agent-tools": "^1.0.20",
     "jest-when": "^3.4.1"
   },
   "devDependencies": {
