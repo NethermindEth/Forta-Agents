@@ -17,15 +17,41 @@ const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
 export const decodeSingleParam = (ptype: string, encoded: string): any =>
   _web3.eth.abi.decodeParameters([ptype], encoded)[0];
 
-export const createFinding = (_alertId: string): Finding => {
-  return Finding.fromObject({
-    name: 'Maker ESM Fire Event',
-    description: 'Fire event emitted.',
-    alertId: _alertId,
-    severity: FindingSeverity.Critical,
-    type: FindingType.Suspicious,
-    protocol: 'Vesper',
-  });
+export const enum TYPE {
+  isUnderWater,
+  lowWater,
+  highWater,
+}
+
+export const createFinding = (alertId: string, _type: TYPE): Finding => {
+  if (_type == TYPE.isUnderWater) {
+    return Finding.fromObject({
+      name: 'Maker Type Strategy isUnderWater Detection',
+      description: 'IsUnderWater returned True for a Maker Strategy',
+      severity: FindingSeverity.High,
+      type: FindingType.Suspicious,
+      alertId: alertId,
+      protocol: 'Vesper',
+    });
+  } else if (_type == TYPE.lowWater) {
+    return Finding.fromObject({
+      name: 'Maker Type Strategy Collateral Ratio < lowWater Detection',
+      description: 'Collateral Ratio is below lowWater',
+      severity: FindingSeverity.Critical,
+      type: FindingType.Suspicious,
+      alertId: alertId,
+      protocol: 'Vesper',
+    });
+  } else {
+    return Finding.fromObject({
+      name: 'Maker Type Strategy Collateral Ratio > highWater Detection',
+      description: 'Collateral Ratio is above highWater',
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      alertId: alertId,
+      protocol: 'Vesper',
+    });
+  }
 };
 
 export const getPools = async (

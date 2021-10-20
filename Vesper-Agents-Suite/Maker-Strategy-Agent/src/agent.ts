@@ -8,6 +8,7 @@ import {
   getCollateralRatio,
   getLowWater,
   getHighWater,
+  TYPE,
 } from './utils';
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
@@ -28,7 +29,7 @@ export const provideMakerStrategyHandler = (
       if (
         (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true
       )
-        findings.push(createFinding(alertId));
+        findings.push(createFinding(alertId, TYPE.isUnderWater));
     }
 
     for (let str of makerStrategies) {
@@ -39,9 +40,9 @@ export const provideMakerStrategyHandler = (
       const highWater = await getHighWater(web3, blockEvent.blockNumber, str);
 
       if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
-        findings.push(createFinding(alertId));
+        findings.push(createFinding(alertId, TYPE.lowWater));
       } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
-        findings.push(createFinding(alertId));
+        findings.push(createFinding(alertId, TYPE.highWater));
     }
 
     return findings;
