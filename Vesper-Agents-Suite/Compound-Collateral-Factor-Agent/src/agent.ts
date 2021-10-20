@@ -4,24 +4,22 @@ import {
   TransactionEvent
 } from 'forta-agent';
 import {
+  decodeParameters,
   FindingGenerator,
   provideEventCheckerHandler
 } from 'forta-agent-tools';
-import Web3 from 'web3';
 import { COLLATERAL_FACTOR_EVENT_ALERT_ID, COMPOUND_COMPTROLLER_ADDRESS, NEW_COLLATERAL_FACTOR_SIGNATURE } from './utils';
 
-const web3 = new Web3();
-
-const createFindingGenerator = (): FindingGenerator => {
+const createFindingGenerator = (alertId = COLLATERAL_FACTOR_EVENT_ALERT_ID): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) => {
-    const { 2: newCollateralFactorMantissa } = web3.eth.abi.decodeParameters(
+    const { 2: newCollateralFactorMantissa } = decodeParameters(
       ['address', 'uint256', 'uint256'],
       metadata?.data,
     );
     return Finding.fromObject({
       name: 'COMPOUND NEW COLLATERAL FACTOR EVENT',
       description: 'Updated collateral factor mantissa for Compound',
-      alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
+      alertId,
       type: FindingType.Info,
       severity: FindingSeverity.Info,
       protocol: 'Compound',

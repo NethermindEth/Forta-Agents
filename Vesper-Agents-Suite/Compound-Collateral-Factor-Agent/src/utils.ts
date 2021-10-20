@@ -1,5 +1,3 @@
-import keccak256 from 'keccak256';
-
 export const COMPOUND_COMPTROLLER_ADDRESS =
     '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B'
 
@@ -8,8 +6,3 @@ export const NEW_COLLATERAL_FACTOR_SIGNATURE =
     'NewCollateralFactor(address,uint256,uint256)'
 
 export const COLLATERAL_FACTOR_EVENT_ALERT_ID = 'Vesper-6'
-
-export const generateHash = (signature: string): string => {
-    const hash = keccak256(signature).toString('hex');
-    return '0x' + hash;
-}
