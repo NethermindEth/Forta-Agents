@@ -1,25 +1,7 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  FindingSeverity,
-  FindingType,
-} from 'forta-agent';
-import {
-  IsUnderWaterCall,
-  Pools,
-  Strategy,
-  getPools,
-  getStrategies,
-  getMakerStrategies,
-  checkIsUnderWater,
-  createFinding,
-} from './utils';
+import { BlockEvent, Finding, HandleBlock } from 'forta-agent';
+import { getMakerStrategies, checkIsUnderWater, createFinding } from './utils';
 
-export const provideMakerStrategyHandler = (
-  web3: any,
-  address: string = '0x235A6DCe7D40fa5b0157F55Dda0693dcAc4Ea932'
-): HandleBlock => {
+export const provideMakerStrategyHandler = (web3: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 

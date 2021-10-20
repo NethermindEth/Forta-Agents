@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from 'forta-agent';
-import { decodeParameter, FindingGenerator } from 'forta-agent-tools';
+import { FindingGenerator } from 'forta-agent-tools';
 import Web3 from 'web3';
 import {
   IsUnderWater_Json_Interface,
@@ -14,28 +14,21 @@ const _web3: Web3 = new Web3();
 
 const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
 
-export interface Strategy {
-  address: string;
-  tokens: [];
-  info: string;
-  weight: number;
-}
-
-export interface Pools {
-  name: string;
-  contract: Object;
-  strategies: Array<Strategy>;
-  strategy: Object;
-  poolRewards: Object;
-  status: string;
-  stage: string;
-}
-
 export const decodeSingleParam = (ptype: string, encoded: string): any =>
   _web3.eth.abi.decodeParameters([ptype], encoded)[0];
 
 export const IsUnderWaterCall = (addr: string): string =>
   _web3.eth.abi.encodeFunctionCall(IsUnderWater_Json_Interface, [addr]);
+
+export const createFinding: FindingGenerator = () => {
+  return Finding.fromObject({
+    name: 'Is Under Water Detection',
+    description: 'Is under water is True',
+    alertId: 'Vesper-1',
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+  });
+};
 
 export const getPools = async (
   web3: Web3,
@@ -131,14 +124,4 @@ export const checkIsUnderWater = async (
   const isUnderwater: boolean = await Strategy.methods.isUnderwater().call();
 
   return isUnderwater;
-};
-
-export const createFinding: FindingGenerator = () => {
-  return Finding.fromObject({
-    name: 'Is Under Water Detection',
-    description: 'Is under water is True',
-    alertId: 'Vesper-1',
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
-  });
 };
