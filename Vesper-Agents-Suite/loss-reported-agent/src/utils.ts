@@ -1,18 +1,19 @@
-import { Finding, FindingType, FindingSeverity } from "forta-agent";
+import { Finding, FindingType, FindingSeverity, Log } from "forta-agent";
 import {
   FindingGenerator,
   decodeFunctionCallParameters,
+  decodeParameters,
+  decodeParameter,
 } from "forta-agent-tools";
 import Web3 from "web3";
 import { ControllerABI, AddressListABI, PoolABI } from "./abi";
 import LRU from "lru-cache";
 
-
 const poolAccountantsCache = new LRU({ max: 10_000 });
 
 const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
-export const createFinding: FindingGenerator = (callInfo) => {
+export const createFindingCallDetector: FindingGenerator = (callInfo) => {
   const { 0: strategyAddress, 1: lossValue } = decodeFunctionCallParameters(
     ["address", "uint256"],
     callInfo?.input
@@ -29,6 +30,35 @@ export const createFinding: FindingGenerator = (callInfo) => {
       lossValue: lossValue,
     },
   });
+};
+
+export const createFindingEventDetector: FindingGenerator = (eventInfo) => {
+  const { 1: lossValue } = decodeParameters(
+    ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
+    eventInfo?.data
+  );
+  const address: string = decodeParameter("address", eventInfo?.topics[1]);
+
+  return Finding.fromObject({
+    name: "Loss Reported",
+    description: "A loss was reported by a V3 strategy",
+    alertId: "Vesper-2",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    metadata: {
+      strategyAddress: address,
+      lossValue: lossValue,
+    },
+  });
+};
+
+export const hasLosses = (log: Log) => {
+  const data = log.data;
+  const { 1: loss } = decodeParameters(
+    ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
+    data
+  );
+  return BigInt(loss) > BigInt(0);
 };
 
 const getPools = async (
@@ -66,8 +96,10 @@ export const getPoolAccountants = async (
   web3: Web3,
   blockNumber: number | string = "latest"
 ): Promise<string[]> => {
-
-  if (blockNumber !== "latest" && poolAccountantsCache.get(blockNumber) !== undefined) {
+  if (
+    blockNumber !== "latest" &&
+    poolAccountantsCache.get(blockNumber) !== undefined
+  ) {
     return poolAccountantsCache.get(blockNumber) as any;
   }
 
@@ -77,10 +109,12 @@ export const getPoolAccountants = async (
   for (let pool of pools) {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      poolAccountants.push(await poolContract.methods.poolAccountant().call({}, blockNumber));
+      poolAccountants.push(
+        await poolContract.methods.poolAccountant().call({}, blockNumber)
+      );
     } catch {}
   }
-  
+
   poolAccountantsCache.set(blockNumber, poolAccountants);
   return poolAccountants;
 };

@@ -4,10 +4,18 @@ import {
   TransactionEvent,
   getJsonRpcUrl,
 } from "forta-agent";
-import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
-import { createFinding, getPoolAccountants } from "./utils";
+import {
+  provideFunctionCallsDetectorHandler,
+  provideEventCheckerHandler,
+} from "forta-agent-tools";
+import {
+  createFindingCallDetector,
+  createFindingEventDetector,
+  getPoolAccountants,
+  hasLosses,
+} from "./utils";
 import Web3 from "web3";
-import { reportLossABI } from "./abi";
+import { reportLossABI, earningReportedSignature } from "./abi";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
@@ -19,15 +27,33 @@ export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
     );
     const reportLossHandlers: HandleTransaction[] = poolAccountant.map(
       (poolAccountant) =>
-        provideFunctionCallsDetectorHandler(createFinding, reportLossABI, {
-          to: poolAccountant,
-        })
+        provideFunctionCallsDetectorHandler(
+          createFindingCallDetector,
+          reportLossABI,
+          {
+            to: poolAccountant,
+          }
+        )
+    );
+
+    const reportEarningEventWithLoss: HandleTransaction[] = poolAccountant.map(
+      (poolAccountant) =>
+        provideEventCheckerHandler(
+          createFindingEventDetector,
+          earningReportedSignature,
+          poolAccountant,
+          hasLosses
+        )
     );
 
     let findings: Finding[] = [];
 
     for (let reportLossHandler of reportLossHandlers) {
       findings = findings.concat(await reportLossHandler(txEvent));
+    }
+
+    for (let reportEarningReportdEvent of reportEarningEventWithLoss) {
+      findings = findings.concat(await reportEarningReportdEvent(txEvent));
     }
 
     return findings;
