@@ -17,13 +17,14 @@ const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
 export const decodeSingleParam = (ptype: string, encoded: string): any =>
   _web3.eth.abi.decodeParameters([ptype], encoded)[0];
 
-export const createFinding: FindingGenerator = () => {
+export const createFinding = (_alertId: string): Finding => {
   return Finding.fromObject({
-    name: 'Is Under Water Detection',
-    description: 'Is under water is True',
-    alertId: 'Vesper-1',
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
+    name: 'Maker ESM Fire Event',
+    description: 'Fire event emitted.',
+    alertId: _alertId,
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    protocol: 'Vesper',
   });
 };
 
