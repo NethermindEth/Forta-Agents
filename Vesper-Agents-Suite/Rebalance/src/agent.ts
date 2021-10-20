@@ -13,16 +13,18 @@ import {
 } from 'forta-agent-tools';
 import VesperFetcher from './vesper.fetcher';
 import Web3 from "web3";
+import TimeTracker from './time.tracker';
 
 const CONTROLLER: string = "0xa4f1671d3aee73c05b552d57f2d16d3cfcbd0217";
 const _web3Call: any = new Web3(getJsonRpcUrl());
 
 const fetcher: VesperFetcher = new VesperFetcher(_web3Call, CONTROLLER);
 
+const tracker: TimeTracker = new TimeTracker();
 const TWO_WEEKS: number = 1209600000; // two weeks in miliseconds
 const REBALANCE_SIGNATURE: string = 'rebalance()';
 
-const createFinding = (address: string, elapsed: number) => 
+const createFinding = (address: string, elapsed: number, threshold: number) => 
   Finding.fromObject({
     name: "Vesper Strategies rebalance alert",
     description: "Rebalance function not called since long",
@@ -32,10 +34,12 @@ const createFinding = (address: string, elapsed: number) =>
     metadata: {
       strategy: address,
       elapsedTime: elapsed.toString(),
+      threshold: threshold.toString(),
     }
   })
 
-const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransaction => {
+// Transactions are handled just to detect Rebalance calls and update the times 
+export const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransaction => {
   return async (txEvent: TransactionEvent) => {
     if(txEvent.status){
       const strategies: string[] = await fetcher.getAllStrategies();
@@ -46,11 +50,10 @@ const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransaction => 
           {to: strat},  
         ),
       );
-      for(let handler of handlers){
-        const findings: Finding[] = await handler(txEvent);
-        if(findings.length > 0){
-          //TODO: Update calls time
-        }
+      for(let i = 0; i < strategies.length; ++i){
+        const findings: Finding[] = await handlers[i](txEvent);
+        if(findings.length > 0)
+          tracker.update(strategies[i], txEvent.timestamp);
       }
     }
     
@@ -58,17 +61,23 @@ const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransaction => 
   };
 };
 
-const provideHandleBlock = (fetcher: VesperFetcher): HandleBlock => {
+export const provideHandleBlock = (fetcher: VesperFetcher, timeThreshold: number): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
     const strategies: string[] = await fetcher.getAllStrategies();
     strategies.forEach(
       (strat: string) => {
-        //TODO: Calculate de elapsed time without calling rebalance for the current strat
-        const elapsed: number = 0;
-        if(elapsed > TWO_WEEKS)
-          findings.push(createFinding(strat, elapsed));
+        const [success, time] = tracker.tryGetLastTime(strat);
+        if(!success) {
+          // set this block as the time to start tracking the strategy
+          tracker.update(strat, time);
+          return;
+        };
+        
+        const elapsed: number = blockEvent.block.timestamp - time;
+        if(elapsed > timeThreshold)
+          findings.push(createFinding(strat, elapsed, timeThreshold));
       }
     );
 
@@ -78,5 +87,5 @@ const provideHandleBlock = (fetcher: VesperFetcher): HandleBlock => {
 
 export default {
   handleTransaction: provideHandleTransaction(fetcher),
-  handleBlock: provideHandleBlock(fetcher),
+  handleBlock: provideHandleBlock(fetcher, TWO_WEEKS),
 };
