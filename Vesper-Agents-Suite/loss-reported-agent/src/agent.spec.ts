@@ -10,8 +10,10 @@ import {
   TestTransactionEvent,
   createAddress,
   encodeFunctionCall,
+  encodeParameters,
+  encodeParameter,
 } from "forta-agent-tools";
-import { reportLossABI } from "./abi";
+import { reportLossABI, earningReportedSignature } from "./abi";
 import { generateMockBuilder } from "./mockContract";
 
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
@@ -111,6 +113,46 @@ describe("Reported Loss Agent", () => {
       ]),
       to: createAddress("0x4"),
     });
+
+    findings = findings.concat(await handleTransaction(txEvent));
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should returns finding if losses were reported through EarningReported event", async () => {
+    handleTransaction = provideHandleTransaction(mockWeb3);
+
+    let findings: Finding[] = [];
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      earningReportedSignature,
+      poolAccountants[0],
+      encodeParameters(
+        ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
+        [0, 12, 13, 40, 20, 10]
+      ),
+      encodeParameter("address", strategyAddresses[0]),
+    );
+
+    findings = findings.concat(await handleTransaction(txEvent));
+
+    expect(findings).toStrictEqual([createFinding(strategyAddresses[0], "12")]);
+  });
+
+  it("should returns empty finding if EarningReported doesn't report losses", async () => {
+    handleTransaction = provideHandleTransaction(mockWeb3);
+
+    let findings: Finding[] = [];
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      earningReportedSignature,
+      poolAccountants[0],
+      encodeParameters(
+        ["uint256", "uint256", "uint256", "uint256", "uint256", "uint256"],
+        [1, 0, 13, 40, 20, 10]
+      ),
+      encodeParameter("address", strategyAddresses[0]),
+    );
 
     findings = findings.concat(await handleTransaction(txEvent));
 

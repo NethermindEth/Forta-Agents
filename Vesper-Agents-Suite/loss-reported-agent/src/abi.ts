@@ -1,5 +1,7 @@
 import { AbiItem } from "web3-utils";
 
+export const earningReportedSignature = "EarningReported(address,uint256,uint256,uint256,uint256,uint256,uint256)";
+
 export const reportLossABI = {
   name: "reportLoss",
   type: "function",
