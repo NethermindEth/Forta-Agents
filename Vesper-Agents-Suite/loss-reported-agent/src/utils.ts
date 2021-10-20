@@ -43,14 +43,14 @@ const getPools = async (
   );
   const addressListAddress: string = await controllerContract.methods
     .pools()
-    .call();
+    .call({}, blockNumber);
 
   const addressListContract = new web3.eth.Contract(
     AddressListABI,
     addressListAddress
   );
   const poolsLength: number = Number(
-    await addressListContract.methods.length().call()
+    await addressListContract.methods.length().call({}, blockNumber)
   );
 
   for (let i = 0; i < poolsLength; i++) {
@@ -77,7 +77,7 @@ export const getPoolAccountants = async (
   for (let pool of pools) {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      poolAccountants.push(await poolContract.methods.poolAccountant().call());
+      poolAccountants.push(await poolContract.methods.poolAccountant().call({}, blockNumber));
     } catch {}
   }
   
