@@ -2,12 +2,12 @@ import { Finding, FindingSeverity, FindingType } from 'forta-agent';
 import { FindingGenerator } from 'forta-agent-tools';
 import Web3 from 'web3';
 import {
-  IsUnderWater_Json_Interface,
   CONTROLLER_ABI,
   AddressListABI,
   PoolABI,
   Accountant_ABI,
   Strategy_ABI,
+  CM_ABI,
 } from './abi';
 
 const _web3: Web3 = new Web3();
@@ -16,9 +16,6 @@ const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
 
 export const decodeSingleParam = (ptype: string, encoded: string): any =>
   _web3.eth.abi.decodeParameters([ptype], encoded)[0];
-
-export const IsUnderWaterCall = (addr: string): string =>
-  _web3.eth.abi.encodeFunctionCall(IsUnderWater_Json_Interface, [addr]);
 
 export const createFinding: FindingGenerator = () => {
   return Finding.fromObject({
@@ -78,7 +75,7 @@ export const getPoolAccountants = async (
   return poolAccountants;
 };
 
-export const getStrategies = async (
+export const getAllStrategies = async (
   web3: Web3,
   blockNumber: string | number
 ): Promise<string[]> => {
@@ -100,7 +97,7 @@ export const getMakerStrategies = async (
 ): Promise<string[]> => {
   let MakerStrategies: string[] = [];
 
-  const strategies = await getStrategies(web3, blockNumber);
+  const strategies = await getAllStrategies(web3, blockNumber);
 
   for (let strategy of strategies) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
@@ -114,14 +111,52 @@ export const getMakerStrategies = async (
   return MakerStrategies;
 };
 
-export const checkIsUnderWater = async (
+export const checkIsUnderWaterTrue = async (
   web3: Web3,
   blockNumber: string | number = 'latest',
   address: string
 ): Promise<boolean> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
 
-  const isUnderwater: boolean = await Strategy.methods.isUnderwater().call();
+  const isUnderwater = await Strategy.methods.isUnderwater().call();
 
   return isUnderwater;
+};
+
+export const getCollateralRatio = async (
+  web3: Web3,
+  blockNumber: string | number = 'latest',
+  address: string
+) => {
+  const Strategy = new web3.eth.Contract(Strategy_ABI, address);
+  const CM_ADDRESS = await Strategy.methods.cm().call();
+
+  const CM = new web3.eth.Contract(CM_ABI, CM_ADDRESS);
+  const collateralRatio = await CM.methods.getVaultInfo(address).call();
+
+  return collateralRatio;
+};
+
+export const getLowWater = async (
+  web3: Web3,
+  blockNumber: string | number = 'latest',
+  address: string
+): Promise<number> => {
+  const Strategy = new web3.eth.Contract(Strategy_ABI, address);
+
+  const lowWater = await Strategy.methods.lowWater().call();
+
+  return lowWater;
+};
+
+export const getHighWater = async (
+  web3: Web3,
+  blockNumber: string | number = 'latest',
+  address: string
+): Promise<number> => {
+  const Strategy = new web3.eth.Contract(Strategy_ABI, address);
+
+  const lowWater = await Strategy.methods.highWater().call();
+
+  return lowWater;
 };

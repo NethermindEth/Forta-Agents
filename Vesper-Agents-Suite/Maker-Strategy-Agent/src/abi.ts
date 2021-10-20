@@ -76,6 +76,19 @@ export const Accountant_ABI = [
 export const Strategy_ABI = [
   {
     inputs: [],
+    name: 'cm',
+    outputs: [
+      {
+        internalType: 'contract ICollateralManager',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'NAME',
     outputs: [{ internalType: 'string', name: '', type: 'string' }],
     stateMutability: 'view',
@@ -88,12 +101,34 @@ export const Strategy_ABI = [
     stateMutability: 'view',
     type: 'function',
   },
+  {
+    inputs: [],
+    name: 'lowWater',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'highWater',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ] as AbiItem[];
 
-export const IsUnderWater_Json_Interface = {
-  inputs: [],
-  name: 'isUnderwater',
-  outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-  stateMutability: 'view',
-  type: 'function',
-} as AbiItem;
+export const CM_ABI = [
+  {
+    inputs: [{ internalType: 'address', name: '_vaultOwner', type: 'address' }],
+    name: 'getVaultInfo',
+    outputs: [
+      { internalType: 'uint256', name: 'collateralLocked', type: 'uint256' },
+      { internalType: 'uint256', name: 'daiDebt', type: 'uint256' },
+      { internalType: 'uint256', name: 'collateralUsdRate', type: 'uint256' },
+      { internalType: 'uint256', name: 'collateralRatio', type: 'uint256' },
+      { internalType: 'uint256', name: 'minimumDebt', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as AbiItem[];

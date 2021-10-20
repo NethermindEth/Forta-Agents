@@ -1,5 +1,12 @@
 import { BlockEvent, Finding, HandleBlock } from 'forta-agent';
-import { getMakerStrategies, checkIsUnderWater, createFinding } from './utils';
+import {
+  getMakerStrategies,
+  checkIsUnderWaterTrue,
+  createFinding,
+  getCollateralRatio,
+  getLowWater,
+  getHighWater,
+} from './utils';
 
 export const provideMakerStrategyHandler = (web3: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
@@ -11,7 +18,24 @@ export const provideMakerStrategyHandler = (web3: any): HandleBlock => {
     );
 
     for (let str of makerStrategies) {
-      if ((await checkIsUnderWater(web3, blockEvent.blockNumber, str)) == true)
+      console.log(str);
+
+      if (
+        (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true
+      )
+        findings.push(createFinding());
+    }
+
+    for (let str of makerStrategies) {
+      const collateralRatio: { collateralRatio: string } =
+        await getCollateralRatio(web3, blockEvent.blockNumber, str);
+
+      const lowWater = await getLowWater(web3, blockEvent.blockNumber, str);
+      const highWater = await getHighWater(web3, blockEvent.blockNumber, str);
+
+      if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
+        findings.push(createFinding());
+      } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
         findings.push(createFinding());
     }
 
