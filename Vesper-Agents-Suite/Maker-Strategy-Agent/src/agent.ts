@@ -26,23 +26,23 @@ export const provideMakerStrategyHandler = (
     );
 
     for (let str of makerStrategies) {
-      if (
-        (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true
-      )
-        findings.push(createFinding(alertId, TYPE.isUnderWater));
-    }
-
-    for (let str of makerStrategies) {
       const collateralRatio: { collateralRatio: string } =
         await getCollateralRatio(web3, blockEvent.blockNumber, str);
 
       const lowWater = await getLowWater(web3, blockEvent.blockNumber, str);
       const highWater = await getHighWater(web3, blockEvent.blockNumber, str);
+      console.log('low: ', lowWater);
+      console.log('high: ', highWater);
+      console.log('cr: ', collateralRatio.collateralRatio);
 
-      if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
-        findings.push(createFinding(alertId, TYPE.lowWater));
+      if (
+        (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true
+      ) {
+        findings.push(createFinding(alertId, TYPE.isUnderWater, str));
+      } else if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
+        findings.push(createFinding(alertId, TYPE.lowWater, str));
       } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
-        findings.push(createFinding(alertId, TYPE.highWater));
+        findings.push(createFinding(alertId, TYPE.highWater, str));
     }
 
     return findings;
@@ -50,5 +50,5 @@ export const provideMakerStrategyHandler = (
 };
 
 module.exports = {
-  handleBlock: provideMakerStrategyHandler(web3, ''),
+  handleBlock: provideMakerStrategyHandler(web3, 'Vesper-Agent#1'),
 };

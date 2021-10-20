@@ -23,15 +23,22 @@ export const enum TYPE {
   highWater,
 }
 
-export const createFinding = (alertId: string, _type: TYPE): Finding => {
+export const createFinding = (
+  _alertId: string,
+  _type: TYPE,
+  _strategy: string
+): Finding => {
   if (_type == TYPE.isUnderWater) {
     return Finding.fromObject({
       name: 'Maker Type Strategy isUnderWater Detection',
       description: 'IsUnderWater returned True for a Maker Strategy',
       severity: FindingSeverity.High,
       type: FindingType.Suspicious,
-      alertId: alertId,
+      alertId: _alertId,
       protocol: 'Vesper',
+      metadata: {
+        strategy: _strategy,
+      },
     });
   } else if (_type == TYPE.lowWater) {
     return Finding.fromObject({
@@ -39,8 +46,11 @@ export const createFinding = (alertId: string, _type: TYPE): Finding => {
       description: 'Collateral Ratio is below lowWater',
       severity: FindingSeverity.Critical,
       type: FindingType.Suspicious,
-      alertId: alertId,
+      alertId: _alertId,
       protocol: 'Vesper',
+      metadata: {
+        strategy: _strategy,
+      },
     });
   } else {
     return Finding.fromObject({
@@ -48,8 +58,11 @@ export const createFinding = (alertId: string, _type: TYPE): Finding => {
       description: 'Collateral Ratio is above highWater',
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      alertId: alertId,
+      alertId: _alertId,
       protocol: 'Vesper',
+      metadata: {
+        strategy: _strategy,
+      },
     });
   }
 };
