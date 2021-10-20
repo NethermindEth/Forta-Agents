@@ -24,7 +24,7 @@ const tracker: TimeTracker = new TimeTracker();
 const TWO_WEEKS: number = 1209600000; // two weeks in miliseconds
 const REBALANCE_SIGNATURE: string = 'rebalance()';
 
-const createFinding = (address: string, elapsed: number, threshold: number) => 
+export const createFinding = (address: string, elapsed: number, threshold: number) => 
   Finding.fromObject({
     name: "Vesper Strategies rebalance alert",
     description: "Rebalance function not called since long",
@@ -39,13 +39,16 @@ const createFinding = (address: string, elapsed: number, threshold: number) =>
   })
 
 // Transactions are handled just to detect Rebalance calls and update the times 
-export const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransaction => {
+export const provideHandleTransaction = (
+  fetcher: VesperFetcher, 
+  tracker: TimeTracker
+): HandleTransaction => {
   return async (txEvent: TransactionEvent) => {
     if(txEvent.status){
       const strategies: string[] = await fetcher.getAllStrategies();
       const handlers: HandleTransaction[] = strategies.map(
         (strat: string) => provideFunctionCallsDetectorHandler(
-          (_) => { return {} as Finding }, 
+          (_) => { return {} as Finding; }, 
           REBALANCE_SIGNATURE,
           {to: strat},  
         ),
@@ -61,7 +64,11 @@ export const provideHandleTransaction = (fetcher: VesperFetcher): HandleTransact
   };
 };
 
-export const provideHandleBlock = (fetcher: VesperFetcher, timeThreshold: number): HandleBlock => {
+export const provideHandleBlock = (
+  fetcher: VesperFetcher, 
+  timeThreshold: number,
+  tracker: TimeTracker,
+): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
@@ -71,7 +78,7 @@ export const provideHandleBlock = (fetcher: VesperFetcher, timeThreshold: number
         const [success, time] = tracker.tryGetLastTime(strat);
         if(!success) {
           // set this block as the time to start tracking the strategy
-          tracker.update(strat, time);
+          tracker.update(strat, blockEvent.block.timestamp);
           return;
         };
         
@@ -86,6 +93,6 @@ export const provideHandleBlock = (fetcher: VesperFetcher, timeThreshold: number
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(fetcher),
-  handleBlock: provideHandleBlock(fetcher, TWO_WEEKS),
+  handleTransaction: provideHandleTransaction(fetcher, tracker),
+  handleBlock: provideHandleBlock(fetcher, TWO_WEEKS, tracker),
 };
