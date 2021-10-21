@@ -31,6 +31,7 @@ export const createFinding = (address: string, elapsed: number, threshold: numbe
     alertId: "VESPER-4",
     severity: FindingSeverity.High,
     type: FindingType.Info,
+    protocol: "Vesper",
     metadata: {
       strategy: address,
       elapsedTime: elapsed.toString(),
