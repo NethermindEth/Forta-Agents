@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "Vesper-6",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Vesper agent alerting updates on collateralFactorMantissa",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

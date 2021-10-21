@@ -30,15 +30,11 @@ const createFindingGenerator = (alertId = COLLATERAL_FACTOR_EVENT_ALERT_ID): Fin
   }
 }
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const agentHandler = provideEventCheckerHandler(
-    createFindingGenerator(),
-    NEW_COLLATERAL_FACTOR_SIGNATURE,
-    COMPOUND_COMPTROLLER_ADDRESS,
-  );
-
-  return agentHandler(txEvent);
-}
+const handleTransaction: HandleTransaction = provideEventCheckerHandler(
+  createFindingGenerator(),
+  NEW_COLLATERAL_FACTOR_SIGNATURE,
+  COMPOUND_COMPTROLLER_ADDRESS,
+);
 
 export default {
   handleTransaction,

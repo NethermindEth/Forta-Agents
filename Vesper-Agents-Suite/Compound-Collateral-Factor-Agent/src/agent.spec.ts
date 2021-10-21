@@ -2,6 +2,7 @@ import {
   Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent
 } from "forta-agent";
 import { encodeParameters, TestTransactionEvent } from "forta-agent-tools";
+import { generalTestFindingGenerator } from "forta-agent-tools/lib/tests.utils";
 import agent from "./agent";
 import { COLLATERAL_FACTOR_EVENT_ALERT_ID, COMPOUND_COMPTROLLER_ADDRESS, NEW_COLLATERAL_FACTOR_SIGNATURE } from "./utils";
 
@@ -12,6 +13,20 @@ function generateEvent(newMantissa: number) {
     ['address', 'uint256', 'uint256'],
     [mockAddress, 1, newMantissa],
   )
+}
+
+function generateExpectedFinding(expectedMantissa: string) {
+  return Finding.fromObject({
+    name: "COMPOUND NEW COLLATERAL FACTOR EVENT",
+    description: "Updated collateral factor mantissa for Compound",
+    alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: 'Compound',
+    metadata: {
+      mantissa: expectedMantissa
+    }
+  })
 }
 
 describe("compount detect update to collateral factor mantissa", () => {
@@ -72,39 +87,9 @@ describe("compount detect update to collateral factor mantissa", () => {
       const findings = await handleTransaction(txEvent)
 
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "COMPOUND NEW COLLATERAL FACTOR EVENT",
-          description: "Updated collateral factor mantissa for Compound",
-          alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
-          type: FindingType.Info,
-          severity: FindingSeverity.Info,
-          protocol: 'Compound',
-          metadata: {
-            mantissa: '2'
-          }
-        }),
-        Finding.fromObject({
-          name: "COMPOUND NEW COLLATERAL FACTOR EVENT",
-          description: "Updated collateral factor mantissa for Compound",
-          alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
-          type: FindingType.Info,
-          severity: FindingSeverity.Info,
-          protocol: 'Compound',
-          metadata: {
-            mantissa: '4'
-          }
-        }),
-        Finding.fromObject({
-          name: "COMPOUND NEW COLLATERAL FACTOR EVENT",
-          description: "Updated collateral factor mantissa for Compound",
-          alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
-          type: FindingType.Info,
-          severity: FindingSeverity.Info,
-          protocol: 'Compound',
-          metadata: {
-            mantissa: '5'
-          }
-        }),
+        generateExpectedFinding('2'),
+        generateExpectedFinding('4'),
+        generateExpectedFinding('5'),
       ])
     })
 
