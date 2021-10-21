@@ -1,39 +1,63 @@
-import BigNumber from 'bignumber.js'
 import { 
-  BlockEvent, 
   Finding, 
-  HandleBlock, 
   HandleTransaction, 
   TransactionEvent, 
   FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+  FindingType, 
+  getJsonRpcUrl
+} from 'forta-agent';
+import AeveFetcher, { TokenData } from './aeve.fetcher';
+import Web3 from 'web3';
+import { 
+  provideEventCheckerHandler,
+  decodeParameter, 
+} from 'forta-agent-tools';
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+const web3: Web3 = new Web3(getJsonRpcUrl());
+export const UPGRADED: string = "Upgraded(address)";
+const AAVE_PROVIDER = "0x057835ad21a177dbdd3090bb1cae03eacf78fc6d";
+const fetcher: AeveFetcher = new AeveFetcher(web3.eth.call, AAVE_PROVIDER);
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-  }
+export const createFindingGenerator = (symbol: string) => 
+  (metadata: { [key: string]: any } | undefined): Finding => {
+    const implementation = decodeParameter(
+      'address',
+      metadata?.topics[1],
+    );
 
-  return findings
-}
+    return Finding.fromObject({
+      name: 'Aeve aToken implementation changed',
+      description: `'Token ${symbol} modified'`,
+      alertId: "VESPER-8",
+      type: FindingType.Info,
+      severity: FindingSeverity.High,
+      protocol: 'AEVE',
+      metadata: {
+        tokenSymbol: symbol,
+        tokenAddress: metadata?.address,
+        newImplementation: implementation,
+      }
+    })
+  };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction = (fetcher: AeveFetcher): HandleTransaction => {
+  return async (txEvent: TransactionEvent) => {
+    const findings: Finding[] = [];  
+
+    const tokens: TokenData[] = await fetcher.getTokens(txEvent.blockNumber);
+    for(let token of tokens){
+      const handler: HandleTransaction = provideEventCheckerHandler(
+        createFindingGenerator(token.symbol),
+        UPGRADED,
+        token.address,
+      );
+      findings.push(...await handler(txEvent));
+    }
+  
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(fetcher),
+};
