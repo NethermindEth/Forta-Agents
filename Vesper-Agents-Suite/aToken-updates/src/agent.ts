@@ -18,7 +18,7 @@ export const UPGRADED: string = "Upgraded(address)";
 const AAVE_PROVIDER = "0x057835ad21a177dbdd3090bb1cae03eacf78fc6d";
 const fetcher: AeveFetcher = new AeveFetcher(web3.eth.call, AAVE_PROVIDER);
 
-export const createFindingGenerator = (symbol: string) => 
+const createFindingGenerator = (symbol: string) => 
   (metadata: { [key: string]: any } | undefined): Finding => {
     const implementation = decodeParameter(
       'address',
