@@ -5,11 +5,11 @@ import abi from "./abi";
 
 const PROVIDER: string = createAddress("0xdead");
 const TOKENS: TokenData[] = [
+  {symbol: "aToken0", address: createAddress("0x0")},
   {symbol: "aToken1", address: createAddress("0x1")},
   {symbol: "aToken2", address: createAddress("0x2")},
   {symbol: "aToken3", address: createAddress("0x3")},
   {symbol: "aToken4", address: createAddress("0x4")},
-  {symbol: "aToken5", address: createAddress("0x5")},
 ];
 const TOKENS_AT_BLOCK_3 = TOKENS.slice(2);
 
