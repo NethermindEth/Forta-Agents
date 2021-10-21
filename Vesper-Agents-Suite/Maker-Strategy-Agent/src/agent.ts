@@ -28,12 +28,8 @@ export const provideMakerStrategyHandler = (
     for (let str of makerStrategies) {
       const collateralRatio: { collateralRatio: string } =
         await getCollateralRatio(web3, blockEvent.blockNumber, str);
-
       const lowWater = await getLowWater(web3, blockEvent.blockNumber, str);
       const highWater = await getHighWater(web3, blockEvent.blockNumber, str);
-      console.log('low: ', lowWater);
-      console.log('high: ', highWater);
-      console.log('cr: ', collateralRatio.collateralRatio);
 
       if (
         (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true

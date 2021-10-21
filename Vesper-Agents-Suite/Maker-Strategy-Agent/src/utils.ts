@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from 'forta-agent';
-import { FindingGenerator } from 'forta-agent-tools';
+import { isZeroAddress } from 'ethereumjs-util';
 import Web3 from 'web3';
 import {
   CONTROLLER_ABI,
@@ -115,19 +115,54 @@ export const getPoolAccountants = async (
   return poolAccountants;
 };
 
-export const getAllStrategies = async (
+export const getV2Strategies = async (
   web3: Web3,
   blockNumber: string | number
-): Promise<string[]> => {
-  let strategies: string[] = [];
+) => {
+  const v2Strategies: string[] = [];
+  const pools: string[] = await getPools(web3, blockNumber);
+
+  const controllerContract = new web3.eth.Contract(
+    CONTROLLER_ABI,
+    CONTROLLER_CONTRACT
+  );
+
+  for (let pool of pools) {
+    const strategy = await controllerContract.methods.strategy(pool).call();
+    if (!isZeroAddress(strategy)) v2Strategies.push(strategy);
+  }
+
+  return v2Strategies;
+};
+
+export const getV3Strategies = async (
+  web3: Web3,
+  blockNumber: string | number
+) => {
+  const v3Strategies: string[] = [];
   const poolAccountants: string[] = await getPoolAccountants(web3, blockNumber);
 
   for (let accountant of poolAccountants) {
     const acc = new web3.eth.Contract(Accountant_ABI, accountant);
 
     const strategyList: string[] = await acc.methods.getStrategies().call();
-    strategies.push(...strategyList);
+    v3Strategies.push(...strategyList);
   }
+
+  return v3Strategies;
+};
+
+export const getAllStrategies = async (
+  web3: Web3,
+  blockNumber: string | number
+): Promise<string[]> => {
+  let strategies: string[] = [];
+
+  strategies = [
+    ...(await getV2Strategies(web3, blockNumber)),
+    ...(await getV3Strategies(web3, blockNumber)),
+  ];
+
   return strategies;
 };
 
@@ -138,6 +173,7 @@ export const getMakerStrategies = async (
   let MakerStrategies: string[] = [];
 
   const strategies = await getAllStrategies(web3, blockNumber);
+  console.log(strategies);
 
   for (let strategy of strategies) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
@@ -147,6 +183,7 @@ export const getMakerStrategies = async (
       MakerStrategies.push(strategy);
     }
   }
+  console.log(MakerStrategies);
 
   return MakerStrategies;
 };
