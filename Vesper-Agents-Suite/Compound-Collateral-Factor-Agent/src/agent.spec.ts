@@ -52,17 +52,7 @@ describe("compount detect update to collateral factor mantissa", () => {
       const findings = await handleTransaction(txEvent)
 
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "COMPOUND NEW COLLATERAL FACTOR EVENT",
-          description: "Updated collateral factor mantissa for Compound",
-          alertId: COLLATERAL_FACTOR_EVENT_ALERT_ID,
-          type: FindingType.Info,
-          severity: FindingSeverity.Info,
-          protocol: 'Compound',
-          metadata: {
-            mantissa: '2'
-          }
-        }),
+        generateExpectedFinding('2'),
       ])
     })
 
