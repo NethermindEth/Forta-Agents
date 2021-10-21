@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import {
   Finding,
   HandleTransaction,
@@ -8,17 +7,17 @@ import {
   getJsonRpcUrl,
 } from "forta-agent";
 
+import abi from "./pool.abi";
 import Web3 from "web3";
+import { defaultList } from "./utils";
+
 const web3 = new Web3(getJsonRpcUrl());
 
-import Pool from "./pool";
-const defaultList: Array<string> = [];
-
 // pool.tokenHere() - pool.totalValue()*(MAX_BPS-totalDebtRatio) > 10% of pool.totalValue()
-const protocolAddress = "0x8d0b8e2b5584cE1487317f81Da7d97397eF3e899";
+const protocolAddress = "0xBA680a906d8f624a5F11fba54D3C672f09F26e47";
 
 function provideHandleFunction(
-  web3: any,
+  web3: Web3,
   pools: Array<string>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
@@ -26,10 +25,33 @@ function provideHandleFunction(
 
     if (!txEvent.addresses[protocolAddress]) return findings;
 
-    const totalValue = await contract.methods.totalValue().call();
-    const tokenHere = await contract.methods.tokenHere().call();
-    const MAX_BPS = 
-    const totalDebtRatio = await contract.methods.
+    const promises = [];
+
+    pools.forEach((value) => {
+      const contract = new web3.eth.Contract(abi as any, value);
+
+      promises.push(async () => {
+        const totalValue = await contract.methods.totalValue().call();
+        const tokenHere = await contract.methods.tokensHere().call();
+        const MAX_BPS = await contract.methods.MAX_BPS().call();
+        const totalDebtRatio = await contract.methods.totalDebtRatio().call();
+
+        if (
+          tokenHere - totalValue * (MAX_BPS * totalDebtRatio) >
+          0.1 * totalValue
+        ) {
+          findings.push(
+            Finding.fromObject({
+              name: "Fund Ratio",
+              alertId: "NethForta-Vesper-3",
+              description: "There is idle fund in the pool",
+              severity: FindingSeverity.High,
+              type: FindingType.Suspicious,
+            })
+          );
+        }
+      });
+    });
 
     return findings;
   };
