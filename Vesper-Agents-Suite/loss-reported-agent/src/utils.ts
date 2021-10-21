@@ -25,6 +25,7 @@ export const createFindingCallDetector: FindingGenerator = (callInfo) => {
     alertId: "Vesper-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
+    protocol: "Vesper",
     metadata: {
       strategyAddress: strategyAddress,
       lossValue: lossValue,
@@ -45,6 +46,7 @@ export const createFindingEventDetector: FindingGenerator = (eventInfo) => {
     alertId: "Vesper-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
+    protocol: "Vesper",
     metadata: {
       strategyAddress: address,
       lossValue: lossValue,
