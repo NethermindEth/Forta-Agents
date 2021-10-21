@@ -25,34 +25,33 @@ function provideHandleFunction(
 
     if (!txEvent.addresses[protocolAddress]) return findings;
 
-    const promises = [];
+    const promises: Array<any> = [];
 
-    pools.forEach((value) => {
+    pools.forEach(async (value) => {
       const contract = new web3.eth.Contract(abi as any, value);
 
-      promises.push(async () => {
-        const totalValue = await contract.methods.totalValue().call();
-        const tokenHere = await contract.methods.tokensHere().call();
-        const MAX_BPS = await contract.methods.MAX_BPS().call();
-        const totalDebtRatio = await contract.methods.totalDebtRatio().call();
+      // console.log(contract, contract.methods.totalValue().call);
+      const totalValue = await contract.methods.totalValue().call();
+      const tokenHere = await contract.methods.tokensHere().call();
+      const MAX_BPS = await contract.methods.MAX_BPS().call();
+      const totalDebtRatio = await contract.methods.totalDebtRatio().call();
 
-        if (
-          tokenHere - totalValue * (MAX_BPS * totalDebtRatio) >
-          0.1 * totalValue
-        ) {
-          findings.push(
-            Finding.fromObject({
-              name: "Fund Ratio",
-              alertId: "NethForta-Vesper-3",
-              description: "There is idle fund in the pool",
-              severity: FindingSeverity.High,
-              type: FindingType.Suspicious,
-            })
-          );
-        }
-      });
+      if (
+        tokenHere - totalValue * (MAX_BPS * totalDebtRatio) >
+        0.1 * totalValue
+      ) {
+        findings.push(
+          Finding.fromObject({
+            name: "Fund Ratio",
+            alertId: "NethForta-Vesper-3",
+            description: "There is idle fund in the pool",
+            severity: FindingSeverity.High,
+            type: FindingType.Suspicious,
+          })
+        );
+      }
     });
-
+    console.log(findings);
     return findings;
   };
 }
