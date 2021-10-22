@@ -9,8 +9,8 @@ export const strategyABI = [
       {
         type: "uint256",
         name: "",
-      }
-    ]
+      },
+    ],
   },
 
   {
@@ -25,10 +25,21 @@ export const strategyABI = [
       {
         type: "uint256",
         name: "maxBorrowRatio",
-      }
-    ]
+      },
+    ],
   },
-  
+
+  {
+    name: "NAME",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "string",
+        name: "name",
+      },
+    ],
+  },
 ] as AbiItem[];
 
 export const comptrollerABI = [
@@ -39,7 +50,7 @@ export const comptrollerABI = [
       {
         type: "address",
         name: "",
-      }
+      },
     ],
     outputs: [
       {
@@ -53,7 +64,81 @@ export const comptrollerABI = [
       {
         type: "bool",
         name: "isComped",
-      }
-    ] 
+      },
+    ],
+  },
+] as AbiItem[];
+
+export const vesperControllerABI = [
+  {
+    name: "pools",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+  },
+  {
+    name: "strategy",
+    type: "function",
+    inputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+    outputs: [
+      {
+        type: "address",
+        name: "strategy",
+      },
+    ],
+  },
+] as AbiItem[];
+
+export const addressListABI = [
+  {
+    name: "length",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "uint256",
+        name: "",
+      },
+    ],
+  },
+  {
+    name: "at",
+    type: "function",
+    inputs: [
+      {
+        type: "uint256",
+        name: "index",
+      },
+    ],
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+  },
+] as AbiItem[];
+
+export const poolABI = [
+  {
+    name: "getStrategies",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "address[]",
+        name: "strategies",
+      },
+    ],
   },
 ] as AbiItem[];
