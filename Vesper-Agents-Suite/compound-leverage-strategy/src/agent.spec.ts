@@ -7,7 +7,11 @@ import {
   mockPool,
   mockStrategy,
 } from "./mock";
-import { createAddress, encodeParameter, TestBlockEvent } from "forta-agent-tools";
+import {
+  createAddress,
+  encodeParameter,
+  TestBlockEvent,
+} from "forta-agent-tools";
 import {
   vesperControllerAddress,
   comptrollerAddress,
@@ -113,7 +117,9 @@ describe("Compound Leverage Agent Tests", () => {
 
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
-    expect(findings).toStrictEqual([ createFindingForHighCurrentBorrowRatio(createAddress("0x9")) ]);
+    expect(findings).toStrictEqual([
+      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
+    ]);
   });
 
   it("should returns finding if current ratio is too close to collateral factor", async () => {
@@ -125,11 +131,38 @@ describe("Compound Leverage Agent Tests", () => {
 
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
-    expect(findings).toStrictEqual([ createFindingForLiquidationWarning(createAddress("0x9")) ]);
+    expect(findings).toStrictEqual([
+      createFindingForLiquidationWarning(createAddress("0x9")),
+    ]);
   });
 
-  // it("", async () => {});
-  // it("", async () => {});
-  // it("", async () => {});
-  // it("", async () => {});
+  it("should returns findings from multiple strategies", async () => {
+    compoundLeverage1.setCurrentBorrowRatio("6000");
+    compoundLeverage1.setRangeBorrowRatio("2000", "5000");
+    compoundLeverage2.setCurrentBorrowRatio("8000");
+    compoundLeverage2.setRangeBorrowRatio("2000", "8000");
+    comptroller.setMarketInfo(cTokenAddress, "900000000000000000");
+
+    const findings: Finding[] = await handleBlock(new TestBlockEvent());
+
+    expect(findings).toStrictEqual([
+      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
+      createFindingForLiquidationWarning(createAddress("0x10")),
+    ]);
+  });
+
+  it("should returns multiple findings from the same strategy", async () => {
+    compoundLeverage1.setCurrentBorrowRatio("9000");
+    compoundLeverage1.setRangeBorrowRatio("2000", "5000");
+    compoundLeverage2.setCurrentBorrowRatio("7000");
+    compoundLeverage2.setRangeBorrowRatio("2000", "8000");
+    comptroller.setMarketInfo(cTokenAddress, "900000000000000000");
+
+    const findings: Finding[] = await handleBlock(new TestBlockEvent());
+
+    expect(findings).toStrictEqual([
+      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
+      createFindingForLiquidationWarning(createAddress("0x9")),
+    ]);
+  });
 });
