@@ -25,20 +25,34 @@ export const provideMakerStrategyHandler = (
       blockEvent.blockNumber
     );
 
-    for (let str of makerStrategies) {
+    for (let strategy of makerStrategies) {
       const collateralRatio: { collateralRatio: string } =
-        await getCollateralRatio(web3, blockEvent.blockNumber, str);
-      const lowWater = await getLowWater(web3, blockEvent.blockNumber, str);
-      const highWater = await getHighWater(web3, blockEvent.blockNumber, str);
+        await getCollateralRatio(web3, strategy);
+      const lowWater = await getLowWater(web3, strategy);
+      const highWater = await getHighWater(web3, strategy);
 
-      if (
-        (await checkIsUnderWaterTrue(web3, blockEvent.blockNumber, str)) == true
-      ) {
-        findings.push(createFinding(alertId, TYPE.isUnderWater, str));
+      if ((await checkIsUnderWaterTrue(web3, strategy)) == true) {
+        findings.push(createFinding(alertId, TYPE.isUnderWater, strategy));
       } else if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
-        findings.push(createFinding(alertId, TYPE.lowWater, str));
+        findings.push(
+          createFinding(
+            alertId,
+            TYPE.lowWater,
+            strategy,
+            collateralRatio.collateralRatio,
+            lowWater.toString()
+          )
+        );
       } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
-        findings.push(createFinding(alertId, TYPE.highWater, str));
+        findings.push(
+          createFinding(
+            alertId,
+            TYPE.highWater,
+            strategy,
+            collateralRatio.collateralRatio,
+            highWater.toString()
+          )
+        );
     }
 
     return findings;
@@ -46,5 +60,5 @@ export const provideMakerStrategyHandler = (
 };
 
 module.exports = {
-  handleBlock: provideMakerStrategyHandler(web3, 'Vesper-Agent#1'),
+  handleBlock: provideMakerStrategyHandler(web3, 'Vesper-1'),
 };

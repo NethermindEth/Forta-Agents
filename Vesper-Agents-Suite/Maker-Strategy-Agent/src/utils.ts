@@ -26,7 +26,9 @@ export const enum TYPE {
 export const createFinding = (
   _alertId: string,
   _type: TYPE,
-  _strategy: string
+  _strategy: string,
+  _collateralRatio: string = '',
+  _comparedValue: string = ''
 ): Finding => {
   if (_type == TYPE.isUnderWater) {
     return Finding.fromObject({
@@ -50,6 +52,8 @@ export const createFinding = (
       protocol: 'Vesper',
       metadata: {
         strategy: _strategy,
+        collateralRatio: _collateralRatio,
+        lowWater: _comparedValue,
       },
     });
   } else {
@@ -62,6 +66,8 @@ export const createFinding = (
       protocol: 'Vesper',
       metadata: {
         strategy: _strategy,
+        collateralRatio: _collateralRatio,
+        highWater: _comparedValue,
       },
     });
   }
@@ -128,8 +134,10 @@ export const getV2Strategies = async (
   );
 
   for (let pool of pools) {
-    const strategy = await controllerContract.methods.strategy(pool).call();
-    if (!isZeroAddress(strategy)) v2Strategies.push(strategy);
+    try {
+      const strategy = await controllerContract.methods.strategy(pool).call();
+      if (!isZeroAddress(strategy)) v2Strategies.push(strategy);
+    } catch {}
   }
 
   return v2Strategies;
@@ -173,24 +181,19 @@ export const getMakerStrategies = async (
   let MakerStrategies: string[] = [];
 
   const strategies = await getAllStrategies(web3, blockNumber);
-  console.log(strategies);
 
   for (let strategy of strategies) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
     const name: string = await str.methods.NAME().call();
 
-    if (name.includes('Maker')) {
-      MakerStrategies.push(strategy);
-    }
+    if (name.includes('Maker')) MakerStrategies.push(strategy);
   }
-  console.log(MakerStrategies);
 
   return MakerStrategies;
 };
 
 export const checkIsUnderWaterTrue = async (
   web3: Web3,
-  blockNumber: string | number = 'latest',
   address: string
 ): Promise<boolean> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
@@ -200,11 +203,7 @@ export const checkIsUnderWaterTrue = async (
   return isUnderwater;
 };
 
-export const getCollateralRatio = async (
-  web3: Web3,
-  blockNumber: string | number = 'latest',
-  address: string
-) => {
+export const getCollateralRatio = async (web3: Web3, address: string) => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
   const CM_ADDRESS = await Strategy.methods.cm().call();
 
@@ -216,7 +215,6 @@ export const getCollateralRatio = async (
 
 export const getLowWater = async (
   web3: Web3,
-  blockNumber: string | number = 'latest',
   address: string
 ): Promise<number> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
@@ -228,7 +226,6 @@ export const getLowWater = async (
 
 export const getHighWater = async (
   web3: Web3,
-  blockNumber: string | number = 'latest',
   address: string
 ): Promise<number> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
