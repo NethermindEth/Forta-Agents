@@ -10,8 +10,8 @@ import { createAddress, decodeParameter } from "forta-agent-tools";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 const zeroAddress = createAddress("0x0");
-const comptrollerAddress = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B";
-const vesperControllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
+export const comptrollerAddress = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B";
+export const vesperControllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const createFindingForHighCurrentBorrowRatio = (
   strategyAddress: string
@@ -66,7 +66,7 @@ export const getScaledCurrentBorrowRatio = async (
     contractAddress,
     blockNumber
   );
-  return currentBorrowRatio * BigInt(10e14);
+  return currentBorrowRatio * BigInt(1e14);
 };
 
 export const getMaxBorrowRatio = async (
