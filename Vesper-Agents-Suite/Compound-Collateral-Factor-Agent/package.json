@@ -1,5 +1,5 @@
 {
-  "name": "Vesper-6",
+  "name": "vesper-6",
   "version": "0.0.1",
   "description": "Vesper agent alerting updates on collateralFactorMantissa",
   "scripts": {

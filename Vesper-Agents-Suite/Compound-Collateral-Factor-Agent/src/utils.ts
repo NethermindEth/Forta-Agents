@@ -5,4 +5,4 @@ export const COMPOUND_COMPTROLLER_ADDRESS =
 export const NEW_COLLATERAL_FACTOR_SIGNATURE =
     'NewCollateralFactor(address,uint256,uint256)'
 
-export const COLLATERAL_FACTOR_EVENT_ALERT_ID = 'Vesper-6'
+export const COLLATERAL_FACTOR_EVENT_ALERT_ID = 'vesper-6'
