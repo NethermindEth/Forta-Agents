@@ -7,7 +7,7 @@ const comptrollerAddress = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B";
 export const getCurrentBorrowRatio = async (
   web3: Web3,
   contractAddress: string,
-  blockNumber: string
+  blockNumber: string | number
 ): Promise<bigint> => {
   const strategyContract = new web3.eth.Contract(strategyABI, contractAddress);
   const currentBorrowRatio = await strategyContract.methods
@@ -19,7 +19,7 @@ export const getCurrentBorrowRatio = async (
 export const getScaledCurrentBorrowRatio = async (
   web3: Web3,
   contractAddress: string,
-  blockNumber: string
+  blockNumber: string | number
 ): Promise<bigint> => {
   const currentBorrowRatio = await getCurrentBorrowRatio(
     web3,
@@ -32,7 +32,7 @@ export const getScaledCurrentBorrowRatio = async (
 export const getMaxBorrowRatio = async (
   web3: Web3,
   contractAddress: string,
-  blockNumber: string
+  blockNumber: string | number
 ): Promise<BigInt> => {
   const strategyContract = new web3.eth.Contract(strategyABI, contractAddress);
   const { maxBorrowRatio } = await strategyContract.methods
@@ -44,7 +44,7 @@ export const getMaxBorrowRatio = async (
 export const getRelatedCToken = async (
   web3: Web3,
   contractAddress: string,
-  blockNumber: string
+  blockNumber: string | number
 ): Promise<string> => {
   return decodeParameter(
     "address",
@@ -55,7 +55,7 @@ export const getRelatedCToken = async (
 export const getCollateralFactorMantissa = async (
   web3: Web3,
   cToken: string,
-  blockNumber: string
+  blockNumber: string | number
 ): Promise<bigint> => {
   const comptrollerContract = new web3.eth.Contract(
     comptrollerABI,
