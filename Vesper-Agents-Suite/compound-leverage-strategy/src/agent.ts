@@ -54,15 +54,15 @@ const closeToLiquidation = async (
     cToken,
     blockEvent.blockNumber
   );
-  const scaledBorrowRation = await getScaledCurrentBorrowRatio(
+  const scaledBorrowRatio = await getScaledCurrentBorrowRatio(
     web3,
     contractAddress,
     blockEvent.blockNumber
   );
 
   if (
-    collateralFactor - scaledBorrowRation > 10e18 ||
-    scaledBorrowRation > collateralFactor
+    collateralFactor - scaledBorrowRatio <= 1e17 ||
+    scaledBorrowRatio > collateralFactor
   ) {
     findings.push(createFindingForLiquidationWarning(contractAddress));
   }
@@ -70,7 +70,7 @@ const closeToLiquidation = async (
   return findings;
 };
 
-const provideHandleBlock = (web3: Web3): HandleBlock => {
+export const provideHandleBlock = (web3: Web3): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     let findings: Finding[] = [];
 
