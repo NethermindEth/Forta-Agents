@@ -1,8 +1,48 @@
-import { strategyABI, comptrollerABI } from "./abi";
+import {
+  strategyABI,
+  comptrollerABI,
+  vesperControllerABI,
+  poolABI,
+  addressListABI,
+} from "./abi";
 import Web3 from "web3";
-import { decodeParameter } from "forta-agent-tools";
+import { createAddress, decodeParameter } from "forta-agent-tools";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
+const zeroAddress = createAddress("0x0");
 const comptrollerAddress = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B";
+const vesperControllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
+
+export const createFindingForHighCurrentBorrowRatio = (
+  strategyAddress: string
+) => {
+  return Finding.fromObject({
+    name: "High Borrow Ratio",
+    description: "The current borrow ratio is above the max borrow ratio",
+    alertId: "Vesper-5-1",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Vesper",
+    metadata: {
+      strategyAddress: strategyAddress,
+    },
+  });
+};
+
+export const createFindingForLiquidationWarning = (strategyAddress: string) => {
+  return Finding.fromObject({
+    name: "Liquidation Warning",
+    description:
+      "The current borrow ratio is close to compound collateral factor",
+    alertId: "Vesper-5-2",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Vesper",
+    metadata: {
+      strategyAddress: strategyAddress,
+    },
+  });
+};
 
 export const getCurrentBorrowRatio = async (
   web3: Web3,
