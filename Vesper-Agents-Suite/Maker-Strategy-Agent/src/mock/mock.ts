@@ -3,6 +3,7 @@ import { createAddress } from 'forta-agent-tools';
 const ZERO: string = createAddress('0x0');
 const CONTROLLER: string = createAddress('0x1111');
 const ADDRESS_LIST: string = createAddress('0x2222');
+const CM: string = createAddress('0x3333');
 
 const POOLS: string[] = [
   createAddress('0x1'),
@@ -33,15 +34,20 @@ const STRATEGIES_V3: string[] = [
 ];
 const STRATEGIES: string[] = [...STRATEGIES_V2, ...STRATEGIES_V3];
 
-const build_Mock = (pools: string[]) => {
+const build_Mock = (pools: string[]) =>
   class MockContract {
     private addr: string;
 
     public methods = {
-      name: this.NAME,
+      NAME: this.NAME,
       strategy: this.strategy,
       getStrategies: this.getStrategies,
       pools: this.pools,
+      cm: this.cm,
+      getVaultInfo: this.getVaultInfo,
+      isUnderwater: this.isUnderwater,
+      lowWater: this.lowWater,
+      highWater: this.highWater,
       length: this.length,
       at: this.at,
       poolAccountant: this.poolAccountant.bind(this),
@@ -53,7 +59,7 @@ const build_Mock = (pools: string[]) => {
 
     private NAME() {
       return {
-        call: () => 'test',
+        call: () => 'Maker',
       };
     }
 
@@ -65,19 +71,48 @@ const build_Mock = (pools: string[]) => {
 
     private getStrategies() {
       return {
-        call: () => createAddress('0x2'),
+        call: () => STRATEGIES,
       };
     }
 
     private pools() {
       return {
-        call: () => createAddress('0x3'),
+        call: () => POOLS,
+      };
+    }
+
+    private cm() {
+      return {
+        call: () => CM,
       };
     }
 
     private length() {
       return {
         call: () => '2',
+      };
+    }
+
+    private isUnderwater() {
+      return {
+        call: () => true,
+      };
+    }
+    private getVaultInfo() {
+      return {
+        call: () => 250,
+      };
+    }
+
+    private lowWater() {
+      return {
+        call: () => 200,
+      };
+    }
+
+    private highWater() {
+      return {
+        call: () => 300,
       };
     }
 
@@ -92,8 +127,7 @@ const build_Mock = (pools: string[]) => {
         call: () => this.addr,
       };
     }
-  }
-};
+  };
 
 export default {
   CONTROLLER,

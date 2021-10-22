@@ -76,8 +76,8 @@ export const createFinding = (
 export const getPools = async (
   web3: Web3,
   blockNumber: string | number = 'latest'
-): Promise<string[]> => {
-  const pools: string[] = [];
+): Promise<Set<string>> => {
+  const pools: Set<string> = new Set();
 
   const controllerContract = new web3.eth.Contract(
     CONTROLLER_ABI,
@@ -97,7 +97,7 @@ export const getPools = async (
     const poolAddress = await addressListContract.methods
       .at(i)
       .call({}, blockNumber);
-    pools.push(poolAddress);
+    pools.add(poolAddress);
   }
 
   return pools;
@@ -106,15 +106,15 @@ export const getPools = async (
 export const getPoolAccountants = async (
   web3: Web3,
   blockNumber: string | number
-): Promise<string[]> => {
-  const poolAccountants: string[] = [];
+): Promise<Set<string>> => {
+  const poolAccountants: Set<string> = new Set();
 
-  const pools: string[] = await getPools(web3, blockNumber);
+  const pools: Set<string> = await getPools(web3, blockNumber);
 
-  for (let pool of pools) {
+  for (let pool of Array.from(pools)) {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      poolAccountants.push(await poolContract.methods.poolAccountant().call());
+      poolAccountants.add(await poolContract.methods.poolAccountant().call());
     } catch {}
   }
 
@@ -125,18 +125,18 @@ export const getV2Strategies = async (
   web3: Web3,
   blockNumber: string | number
 ) => {
-  const v2Strategies: string[] = [];
-  const pools: string[] = await getPools(web3, blockNumber);
+  const v2Strategies: Set<string> = new Set();
+  const pools: Set<string> = await getPools(web3, blockNumber);
 
   const controllerContract = new web3.eth.Contract(
     CONTROLLER_ABI,
     CONTROLLER_CONTRACT
   );
 
-  for (let pool of pools) {
+  for (let pool of Array.from(pools)) {
     try {
       const strategy = await controllerContract.methods.strategy(pool).call();
-      if (!isZeroAddress(strategy)) v2Strategies.push(strategy);
+      if (!isZeroAddress(strategy)) v2Strategies.add(strategy);
     } catch {}
   }
 
@@ -147,14 +147,17 @@ export const getV3Strategies = async (
   web3: Web3,
   blockNumber: string | number
 ) => {
-  const v3Strategies: string[] = [];
-  const poolAccountants: string[] = await getPoolAccountants(web3, blockNumber);
+  let v3Strategies: Set<string> = new Set();
+  const poolAccountants: Set<string> = await getPoolAccountants(
+    web3,
+    blockNumber
+  );
 
-  for (let accountant of poolAccountants) {
+  for (let accountant of Array.from(poolAccountants)) {
     const acc = new web3.eth.Contract(Accountant_ABI, accountant);
 
     const strategyList: string[] = await acc.methods.getStrategies().call();
-    v3Strategies.push(...strategyList);
+    v3Strategies = new Set([...Array.from(v3Strategies), ...strategyList]);
   }
 
   return v3Strategies;
@@ -163,13 +166,13 @@ export const getV3Strategies = async (
 export const getAllStrategies = async (
   web3: Web3,
   blockNumber: string | number
-): Promise<string[]> => {
-  let strategies: string[] = [];
+): Promise<Set<string>> => {
+  let strategies: Set<string> = new Set();
 
-  strategies = [
-    ...(await getV2Strategies(web3, blockNumber)),
-    ...(await getV3Strategies(web3, blockNumber)),
-  ];
+  strategies = new Set([
+    ...Array.from(await getV2Strategies(web3, blockNumber)),
+    ...Array.from(await getV3Strategies(web3, blockNumber)),
+  ]);
 
   return strategies;
 };
@@ -177,17 +180,18 @@ export const getAllStrategies = async (
 export const getMakerStrategies = async (
   web3: Web3,
   blockNumber: string | number = 'latest'
-): Promise<string[]> => {
-  let MakerStrategies: string[] = [];
+): Promise<Set<string>> => {
+  let MakerStrategies: Set<string> = new Set();
 
   const strategies = await getAllStrategies(web3, blockNumber);
 
-  for (let strategy of strategies) {
+  for (let strategy of Array.from(strategies)) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
     const name: string = await str.methods.NAME().call();
 
-    if (name.includes('Maker')) MakerStrategies.push(strategy);
+    if (name.includes('Maker')) MakerStrategies.add(strategy);
   }
+  console.log(MakerStrategies);
 
   return MakerStrategies;
 };

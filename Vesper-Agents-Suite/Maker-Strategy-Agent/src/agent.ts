@@ -14,7 +14,7 @@ import {
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
 export const provideMakerStrategyHandler = (
-  web3: any,
+  web3: Web3,
   alertId: string
 ): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
@@ -25,7 +25,7 @@ export const provideMakerStrategyHandler = (
       blockEvent.blockNumber
     );
 
-    for (let strategy of makerStrategies) {
+    for (let strategy of Array.from(makerStrategies)) {
       const collateralRatio: { collateralRatio: string } =
         await getCollateralRatio(web3, strategy);
       const lowWater = await getLowWater(web3, strategy);
@@ -61,4 +61,5 @@ export const provideMakerStrategyHandler = (
 
 module.exports = {
   handleBlock: provideMakerStrategyHandler(web3, 'Vesper-1'),
+  provideMakerStrategyHandler,
 };
