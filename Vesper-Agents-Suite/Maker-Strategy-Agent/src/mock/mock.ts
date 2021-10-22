@@ -5,36 +5,19 @@ const CONTROLLER: string = createAddress('0x1111');
 const ADDRESS_LIST: string = createAddress('0x2222');
 const CM: string = createAddress('0x3333');
 
-const POOLS: string[] = [
-  createAddress('0x1'),
-  createAddress('0x2'),
-  createAddress('0x3'),
-  createAddress('0x4'),
-  createAddress('0x5'),
-  createAddress('0x6'),
-  createAddress('0x7'),
-  createAddress('0x8'),
-];
+const POOLS: string[] = [createAddress('0x2')];
 
-const STRATEGIES_V2: string[] = [
-  createAddress('0x9'),
-  createAddress('0x10'),
-  createAddress('0x11'),
-  createAddress('0x12'),
-];
-const STRATEGIES_V3: string[] = [
-  createAddress('0x13'),
-  createAddress('0x14'),
-  createAddress('0x15'),
-  createAddress('0x16'),
-  createAddress('0x17'),
-  createAddress('0x18'),
-  createAddress('0x19'),
-  createAddress('0x20'),
-];
-const STRATEGIES: string[] = [...STRATEGIES_V2, ...STRATEGIES_V3];
+const STRATEGIES_V2: string[] = [createAddress('0x3')];
+const STRATEGIES_V3: string[] = [createAddress('0x4')];
 
-const build_Mock = (pools: string[]) =>
+const build_Mock = (
+  pools: string[],
+  isUnderWater: boolean = false,
+  vaultInfo: { collateralRatio: string },
+  lowWater: string,
+  highWater: string,
+  name: string = 'Maker'
+) =>
   class MockContract {
     private addr: string;
 
@@ -59,19 +42,19 @@ const build_Mock = (pools: string[]) =>
 
     private NAME() {
       return {
-        call: () => 'Maker',
+        call: () => name,
       };
     }
 
     private strategy(pool: string) {
       return {
-        call: () => createAddress('0x1'),
+        call: () => STRATEGIES_V2,
       };
     }
 
     private getStrategies() {
       return {
-        call: () => STRATEGIES,
+        call: () => STRATEGIES_V3,
       };
     }
 
@@ -95,24 +78,24 @@ const build_Mock = (pools: string[]) =>
 
     private isUnderwater() {
       return {
-        call: () => true,
+        call: () => isUnderWater,
       };
     }
     private getVaultInfo() {
       return {
-        call: () => 250,
+        call: () => vaultInfo,
       };
     }
 
     private lowWater() {
       return {
-        call: () => 200,
+        call: () => lowWater,
       };
     }
 
     private highWater() {
       return {
-        call: () => 300,
+        call: () => highWater,
       };
     }
 
@@ -135,6 +118,5 @@ export default {
   POOLS,
   STRATEGIES_V2,
   STRATEGIES_V3,
-  STRATEGIES,
   build_Mock,
 };

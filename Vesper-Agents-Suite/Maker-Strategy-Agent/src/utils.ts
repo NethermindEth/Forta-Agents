@@ -125,7 +125,7 @@ export const getV2Strategies = async (
   web3: Web3,
   blockNumber: string | number
 ) => {
-  const v2Strategies: Set<string> = new Set();
+  let v2Strategies: Set<string> = new Set();
   const pools: Set<string> = await getPools(web3, blockNumber);
 
   const controllerContract = new web3.eth.Contract(
@@ -136,7 +136,9 @@ export const getV2Strategies = async (
   for (let pool of Array.from(pools)) {
     try {
       const strategy = await controllerContract.methods.strategy(pool).call();
-      if (!isZeroAddress(strategy)) v2Strategies.add(strategy);
+      if (!isZeroAddress(strategy)) {
+        v2Strategies = new Set([...Array.from(v2Strategies), ...strategy]);
+      }
     } catch {}
   }
 
@@ -191,7 +193,6 @@ export const getMakerStrategies = async (
 
     if (name.includes('Maker')) MakerStrategies.add(strategy);
   }
-  console.log(MakerStrategies);
 
   return MakerStrategies;
 };
