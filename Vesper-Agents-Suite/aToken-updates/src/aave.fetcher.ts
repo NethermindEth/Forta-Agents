@@ -9,7 +9,7 @@ export interface TokenData {
   address: string,
 };
 
-export default class AeveFetcher {
+export default class AaveFetcher {
   private web3Call: any;
   private contract: string;
   private cache: LRU<BlockId, TokenData[]>;

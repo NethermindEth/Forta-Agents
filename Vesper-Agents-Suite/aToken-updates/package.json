@@ -1,7 +1,7 @@
 {
   "name": "vesper-8",
   "version": "0.0.1",
-  "description": "Agent to monitor Aeve aToken Upgraded events",
+  "description": "Agent to monitor Aave aToken Upgraded events",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

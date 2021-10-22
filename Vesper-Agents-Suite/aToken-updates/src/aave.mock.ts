@@ -1,6 +1,6 @@
 import { when } from "jest-when";
 import { createAddress, encodeFunctionCall, encodeParameters } from "forta-agent-tools";
-import { TokenData } from "./aeve.fetcher";
+import { TokenData } from "./aave.fetcher";
 import abi from "./abi";
 
 const PROVIDER: string = createAddress("0xdead");

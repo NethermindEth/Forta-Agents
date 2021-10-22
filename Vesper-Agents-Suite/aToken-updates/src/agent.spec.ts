@@ -5,22 +5,22 @@ import {
   HandleTransaction, 
   TransactionEvent,
 } from "forta-agent"
-import aeve from "./aeve.mock";
+import aave from "./aave.mock";
 import { 
   provideHandleTransaction, 
   UPGRADED, 
 } from "./agent";
-import AeveFetcher, { TokenData } from "./aeve.fetcher";
+import AaveFetcher, { TokenData } from "./aave.fetcher";
 import { createAddress, encodeParameter, TestTransactionEvent } from "forta-agent-tools";
 
 const expectedFinding = (token: TokenData, implementation: string): Finding =>
   Finding.fromObject({
-    name: 'Aeve aToken implementation changed',
+    name: 'Aave aToken implementation changed',
     description: `'Token ${token.symbol} modified'`,
     alertId: "VESPER-8",
     type: FindingType.Info,
     severity: FindingSeverity.High,
-    protocol: 'AEVE',
+    protocol: 'Aave',
     metadata: {
       tokenSymbol: token.symbol,
       tokenAddress: token.address,
@@ -30,10 +30,10 @@ const expectedFinding = (token: TokenData, implementation: string): Finding =>
 
 describe("aToken Updates agent tests suite", () => {
   const mockWeb3Call: any = jest.fn();
-  const fetcher: AeveFetcher = new AeveFetcher(mockWeb3Call, aeve.PROVIDER)
+  const fetcher: AaveFetcher = new AaveFetcher(mockWeb3Call, aave.PROVIDER)
   const handler: HandleTransaction = provideHandleTransaction(fetcher);
 
-  beforeAll(() => aeve.initMock(mockWeb3Call));
+  beforeAll(() => aave.initMock(mockWeb3Call));
 
   it("should return empty findings if no Upgraded event occur", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
@@ -58,20 +58,20 @@ describe("aToken Updates agent tests suite", () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         UPGRADED,
-        aeve.TOKENS[1].address,
+        aave.TOKENS[1].address,
         undefined,
         encodeParameter("address", addr1),
       )
       .addEventLog(
         UPGRADED,
-        aeve.TOKENS[2].address,
+        aave.TOKENS[2].address,
         undefined,
         encodeParameter("address", addr2),
       );
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      expectedFinding(aeve.TOKENS[1], addr1),
-      expectedFinding(aeve.TOKENS[2], addr2),
+      expectedFinding(aave.TOKENS[1], addr1),
+      expectedFinding(aave.TOKENS[2], addr2),
     ]);
   });
 
@@ -83,25 +83,25 @@ describe("aToken Updates agent tests suite", () => {
       .setBlock(3) // Fetch aToken of the block 3
       .addEventLog(
         UPGRADED,
-        aeve.TOKENS[0].address,
+        aave.TOKENS[0].address,
         undefined,
         encodeParameter("address", addr0),
       )
       .addEventLog(
         UPGRADED,
-        aeve.TOKENS[2].address,
+        aave.TOKENS[2].address,
         undefined,
         encodeParameter("address", addr2),
       )
       .addEventLog(
         UPGRADED,
-        aeve.TOKENS[1].address,
+        aave.TOKENS[1].address,
         undefined,
         encodeParameter("address", addr1),
       );
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      expectedFinding(aeve.TOKENS[2], addr2),
+      expectedFinding(aave.TOKENS[2], addr2),
     ]);
   });
 });
