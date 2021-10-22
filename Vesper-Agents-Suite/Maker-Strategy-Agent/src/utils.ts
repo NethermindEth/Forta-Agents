@@ -78,18 +78,20 @@ export const getPools = async (
     CONTROLLER_ABI,
     CONTROLLER_CONTRACT
   );
-  const addressListAddress = await controllerContract.methods.pools().call();
+  const addressListAddress = await controllerContract.methods
+    .pools()
+    .call({}, blockNumber);
 
   const addressListContract = new web3.eth.Contract(
     AddressListABI,
     addressListAddress
   );
   const poolsLength: number = Number(
-    await addressListContract.methods.length().call()
+    await addressListContract.methods.length().call({}, blockNumber)
   );
 
   for (let i = 0; i < poolsLength; i++) {
-    const poolAddress = await addressListContract.methods
+    const [poolAddress, _] = await addressListContract.methods
       .at(i)
       .call({}, blockNumber);
     pools.add(poolAddress);
@@ -109,7 +111,10 @@ export const getPoolAccountants = async (
   for (let pool of Array.from(pools)) {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      poolAccountants.add(await poolContract.methods.poolAccountant().call());
+      const poolAccountant = await poolContract.methods
+        .poolAccountant()
+        .call({}, blockNumber);
+      poolAccountants.add(poolAccountant);
     } catch {}
   }
 
@@ -129,12 +134,10 @@ export const getV2Strategies = async (
   );
 
   for (let pool of Array.from(pools)) {
-    try {
-      const strategy = await controllerContract.methods.strategy(pool).call();
-      if (!isZeroAddress(strategy)) {
-        v2Strategies = new Set([...Array.from(v2Strategies), ...strategy]);
-      }
-    } catch {}
+    const strategy = await controllerContract.methods
+      .strategy(pool)
+      .call({}, blockNumber);
+    if (!isZeroAddress(strategy)) v2Strategies.add(strategy);
   }
 
   return v2Strategies;
@@ -153,8 +156,10 @@ export const getV3Strategies = async (
   for (let accountant of Array.from(poolAccountants)) {
     const acc = new web3.eth.Contract(Accountant_ABI, accountant);
 
-    const strategyList: string[] = await acc.methods.getStrategies().call();
-    v3Strategies = new Set([...Array.from(v3Strategies), ...strategyList]);
+    const strategyList: string[] = await acc.methods
+      .getStrategies()
+      .call({}, blockNumber);
+    strategyList.forEach((item) => v3Strategies.add(item));
   }
 
   return v3Strategies;
@@ -167,8 +172,8 @@ export const getAllStrategies = async (
   let strategies: Set<string> = new Set();
 
   strategies = new Set([
-    ...Array.from(await getV2Strategies(web3, blockNumber)),
-    ...Array.from(await getV3Strategies(web3, blockNumber))
+    ...(await getV2Strategies(web3, blockNumber)),
+    ...(await getV3Strategies(web3, blockNumber))
   ]);
 
   return strategies;
@@ -184,7 +189,7 @@ export const getMakerStrategies = async (
 
   for (let strategy of Array.from(strategies)) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
-    const name: string = await str.methods.NAME().call();
+    const name: string = await str.methods.NAME().call({}, blockNumber);
 
     if (name.includes("Maker")) MakerStrategies.add(strategy);
   }
@@ -194,43 +199,53 @@ export const getMakerStrategies = async (
 
 export const checkIsUnderWaterTrue = async (
   web3: Web3,
-  address: string
+  address: string,
+  blockNumber: string | number = "latest"
 ): Promise<boolean> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
 
-  const isUnderwater = await Strategy.methods.isUnderwater().call();
+  const isUnderwater = await Strategy.methods
+    .isUnderwater()
+    .call({}, blockNumber);
 
   return isUnderwater;
 };
 
-export const getCollateralRatio = async (web3: Web3, address: string) => {
+export const getCollateralRatio = async (
+  web3: Web3,
+  address: string,
+  blockNumber: string | number = "latest"
+) => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
-  const CM_ADDRESS = await Strategy.methods.cm().call();
+  const CM_ADDRESS = await Strategy.methods.cm().call({}, blockNumber);
 
   const CM = new web3.eth.Contract(CM_ABI, CM_ADDRESS);
-  const collateralRatio = await CM.methods.getVaultInfo(address).call();
+  const collateralRatio = await CM.methods
+    .getVaultInfo(address)
+    .call({}, blockNumber);
 
   return collateralRatio;
 };
 
 export const getLowWater = async (
   web3: Web3,
-  address: string
+  address: string,
+  blockNumber: string | number = "latest"
 ): Promise<number> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
 
-  const lowWater = await Strategy.methods.lowWater().call();
+  const lowWater = await Strategy.methods.lowWater().call({}, blockNumber);
 
   return lowWater;
 };
 
 export const getHighWater = async (
   web3: Web3,
-  address: string
+  address: string,
+  blockNumber: string | number = "latest"
 ): Promise<number> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
+  const highWater = await Strategy.methods.highWater().call({}, blockNumber);
 
-  const lowWater = await Strategy.methods.highWater().call();
-
-  return lowWater;
+  return highWater;
 };

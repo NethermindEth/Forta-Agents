@@ -4,7 +4,7 @@ const CM: string = createAddress("0x3333");
 const POOLS: string[] = [createAddress("0x2")];
 
 const STRATEGIES_V2: string[] = [createAddress("0x3")];
-const STRATEGIES_V3: string[] = [createAddress("0x4")];
+const STRATEGIES_V3: string[] = [createAddress("0x5")];
 
 const build_Mock = (
   pools: string[],
