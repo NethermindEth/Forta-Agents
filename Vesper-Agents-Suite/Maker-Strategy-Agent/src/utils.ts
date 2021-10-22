@@ -1,76 +1,76 @@
-import { Finding, FindingSeverity, FindingType } from 'forta-agent';
-import { isZeroAddress } from 'ethereumjs-util';
-import Web3 from 'web3';
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { isZeroAddress } from "ethereumjs-util";
+import Web3 from "web3";
 import {
   CONTROLLER_ABI,
   AddressListABI,
   PoolABI,
   Accountant_ABI,
   Strategy_ABI,
-  CM_ABI,
-} from './abi';
+  CM_ABI
+} from "./abi";
 
-const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
+const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const enum TYPE {
   isUnderWater,
   lowWater,
-  highWater,
+  highWater
 }
 
 export const createFinding = (
   _alertId: string,
   _type: TYPE,
   _strategy: string,
-  _collateralRatio: string = '',
-  _comparedValue: string = ''
+  _collateralRatio: string = "",
+  _comparedValue: string = ""
 ): Finding => {
   if (_type == TYPE.isUnderWater) {
     return Finding.fromObject({
-      name: 'Maker Type Strategy isUnderWater Detection',
-      description: 'IsUnderWater returned True for a Maker Strategy',
+      name: "Maker Type Strategy isUnderWater Detection",
+      description: "IsUnderWater returned True for a Maker Strategy",
       severity: FindingSeverity.High,
       type: FindingType.Suspicious,
       alertId: _alertId,
-      protocol: 'Vesper',
+      protocol: "Vesper",
       metadata: {
-        strategy: _strategy,
-      },
+        strategy: _strategy
+      }
     });
   } else if (_type == TYPE.lowWater) {
     return Finding.fromObject({
-      name: 'Maker Type Strategy Collateral Ratio < lowWater Detection',
-      description: 'Collateral Ratio is below lowWater',
+      name: "Maker Type Strategy Collateral Ratio < lowWater Detection",
+      description: "Collateral Ratio is below lowWater",
       severity: FindingSeverity.Critical,
       type: FindingType.Suspicious,
       alertId: _alertId,
-      protocol: 'Vesper',
+      protocol: "Vesper",
       metadata: {
         strategy: _strategy,
         collateralRatio: _collateralRatio,
-        lowWater: _comparedValue,
-      },
+        lowWater: _comparedValue
+      }
     });
   } else {
     return Finding.fromObject({
-      name: 'Maker Type Strategy Collateral Ratio > highWater Detection',
-      description: 'Collateral Ratio is above highWater',
+      name: "Maker Type Strategy Collateral Ratio > highWater Detection",
+      description: "Collateral Ratio is above highWater",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       alertId: _alertId,
-      protocol: 'Vesper',
+      protocol: "Vesper",
       metadata: {
         strategy: _strategy,
         collateralRatio: _collateralRatio,
-        highWater: _comparedValue,
-      },
+        highWater: _comparedValue
+      }
     });
   }
 };
 
 export const getPools = async (
   web3: Web3,
-  blockNumber: string | number = 'latest'
+  blockNumber: string | number = "latest"
 ): Promise<Set<string>> => {
   const pools: Set<string> = new Set();
 
@@ -168,7 +168,7 @@ export const getAllStrategies = async (
 
   strategies = new Set([
     ...Array.from(await getV2Strategies(web3, blockNumber)),
-    ...Array.from(await getV3Strategies(web3, blockNumber)),
+    ...Array.from(await getV3Strategies(web3, blockNumber))
   ]);
 
   return strategies;
@@ -176,7 +176,7 @@ export const getAllStrategies = async (
 
 export const getMakerStrategies = async (
   web3: Web3,
-  blockNumber: string | number = 'latest'
+  blockNumber: string | number = "latest"
 ): Promise<Set<string>> => {
   let MakerStrategies: Set<string> = new Set();
 
@@ -186,7 +186,7 @@ export const getMakerStrategies = async (
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
     const name: string = await str.methods.NAME().call();
 
-    if (name.includes('Maker')) MakerStrategies.add(strategy);
+    if (name.includes("Maker")) MakerStrategies.add(strategy);
   }
 
   return MakerStrategies;

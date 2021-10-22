@@ -1,7 +1,7 @@
 {
   "name": "vesper-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Vesper Maker Strategies Agent",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

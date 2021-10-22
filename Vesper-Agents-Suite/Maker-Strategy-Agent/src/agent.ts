@@ -1,6 +1,6 @@
-import Web3 from 'web3';
-import { getJsonRpcUrl } from 'forta-agent';
-import { BlockEvent, Finding, HandleBlock } from 'forta-agent';
+import Web3 from "web3";
+import { getJsonRpcUrl } from "forta-agent";
+import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
   getMakerStrategies,
   checkIsUnderWaterTrue,
@@ -8,8 +8,8 @@ import {
   getCollateralRatio,
   getLowWater,
   getHighWater,
-  TYPE,
-} from './utils';
+  TYPE
+} from "./utils";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
@@ -60,6 +60,6 @@ export const provideMakerStrategyHandler = (
 };
 
 module.exports = {
-  handleBlock: provideMakerStrategyHandler(web3, 'Vesper-1'),
-  provideMakerStrategyHandler,
+  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1"),
+  provideMakerStrategyHandler
 };
