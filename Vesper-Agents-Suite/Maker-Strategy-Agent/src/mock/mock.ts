@@ -1,10 +1,6 @@
 import { createAddress } from 'forta-agent-tools';
 
-const ZERO: string = createAddress('0x0');
-const CONTROLLER: string = createAddress('0x1111');
-const ADDRESS_LIST: string = createAddress('0x2222');
 const CM: string = createAddress('0x3333');
-
 const POOLS: string[] = [createAddress('0x2')];
 
 const STRATEGIES_V2: string[] = [createAddress('0x3')];
@@ -113,8 +109,6 @@ const build_Mock = (
   };
 
 export default {
-  CONTROLLER,
-  ADDRESS_LIST,
   POOLS,
   STRATEGIES_V2,
   STRATEGIES_V3,

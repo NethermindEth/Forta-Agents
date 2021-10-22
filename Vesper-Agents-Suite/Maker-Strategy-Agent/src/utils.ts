@@ -10,12 +10,7 @@ import {
   CM_ABI,
 } from './abi';
 
-const _web3: Web3 = new Web3();
-
 const CONTROLLER_CONTRACT = '0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217';
-
-export const decodeSingleParam = (ptype: string, encoded: string): any =>
-  _web3.eth.abi.decodeParameters([ptype], encoded)[0];
 
 export const enum TYPE {
   isUnderWater,

@@ -1,10 +1,5 @@
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  HandleBlock,
-} from 'forta-agent';
-import { runBlock, TestBlockEvent } from 'forta-agent-tools';
+import { Finding, HandleBlock } from 'forta-agent';
+import { TestBlockEvent } from 'forta-agent-tools';
 import { BlockEvent } from 'forta-agent-tools/node_modules/forta-agent';
 import { provideMakerStrategyHandler } from './agent';
 import { createAddress } from 'forta-agent-tools';
