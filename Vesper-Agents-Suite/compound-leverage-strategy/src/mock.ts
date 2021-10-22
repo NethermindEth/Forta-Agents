@@ -1,7 +1,14 @@
+import { createAddress } from "forta-agent-tools";
 
-export const createMockContractGenerator = (contractPerAddress: { [key: string]: string }) => {
-  return (_: any, address: string) => {
-    return contractPerAddress[address];
+export const createMockContractGenerator = (contractPerAddress: {
+  [key: string]: any;
+}) => {
+  return class {
+    public methods: any;
+
+    constructor(_: any, contractAddress: string) {
+      this.methods = contractPerAddress[contractAddress]?.methods;
+    }
   }
 };
 
