@@ -27,10 +27,8 @@ function provideHandleFunction(
 
     const promises: Array<any> = [];
 
-    pools.forEach(async (value) => {
-      const contract = new web3.eth.Contract(abi as any, value);
-
-      // console.log(contract, contract.methods.totalValue().call);
+    for (let x = 0; x < pools.length; x++) {
+      const contract = new web3.eth.Contract(abi as any, pools[x]);
       const totalValue = await contract.methods.totalValue().call();
       const tokenHere = await contract.methods.tokensHere().call();
       const MAX_BPS = await contract.methods.MAX_BPS().call();
@@ -50,8 +48,8 @@ function provideHandleFunction(
           })
         );
       }
-    });
-    console.log(findings);
+    }
+
     return findings;
   };
 }
