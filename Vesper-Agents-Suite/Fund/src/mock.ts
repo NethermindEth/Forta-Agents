@@ -1,7 +1,3 @@
-import { createAddress } from "forta-agent-tools";
-
-const POOLS: string[] = [createAddress("0x2")];
-
 const build_Mock = (
   totalValue: number,
   tokensHere: number,
@@ -47,6 +43,5 @@ const build_Mock = (
   };
 
 export default {
-  POOLS,
   build_Mock,
 };
