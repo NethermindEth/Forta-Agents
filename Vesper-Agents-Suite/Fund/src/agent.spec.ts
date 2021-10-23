@@ -1,6 +1,6 @@
-import { Finding, HandleTransaction } from "forta-agent";
+import { HandleTransaction } from "forta-agent";
 import agent from "./agent";
-import { defaultList } from "./utils";
+import { createFinding, defaultList } from "./utils";
 import Mock from "./mock";
 
 describe("high gas agent", () => {
@@ -45,18 +45,10 @@ describe("high gas agent", () => {
     );
 
     const findings = await handleTransaction(txEvent as any);
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Fund Ratio",
-        alertId: "NethForta-Vesper-3",
-        description: "There is idle fund in the pool",
-        severity: 4,
-        type: 2,
-      }),
-    ]);
+    expect(findings).toStrictEqual([createFinding()]);
   });
 
-  it(" The condition for tokenfunds gives true", async () => {
+  it(" The condition for tokenfunds gives true, and for multiple pool addresses,", async () => {
     const txEvent = {
       addresses: { "0xBA680a906d8f624a5F11fba54D3C672f09F26e47": true },
     };
@@ -73,22 +65,6 @@ describe("high gas agent", () => {
     );
 
     const findings = await handleTransaction(txEvent as any);
-    console.log(findings);
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Fund Ratio",
-        alertId: "NethForta-Vesper-3",
-        description: "There is idle fund in the pool",
-        severity: 4,
-        type: 2,
-      }),
-      Finding.fromObject({
-        name: "Fund Ratio",
-        alertId: "NethForta-Vesper-3",
-        description: "There is idle fund in the pool",
-        severity: 4,
-        type: 2,
-      }),
-    ]);
+    expect(findings).toStrictEqual([createFinding(), createFinding()]);
   });
 });
