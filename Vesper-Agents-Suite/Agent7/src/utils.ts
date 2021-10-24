@@ -1,5 +1,0 @@
-export const COMPOUND_COMPTROLLER_ADDRESS = '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B'
-
-export const NEW_IMPLEMENTATION_SIGNATURE = 'NewImplementation(address,address)'
-
-export const NEW_IMPLEMENTATION_EVENT_ALERT_ID = 'Vesper-7'
