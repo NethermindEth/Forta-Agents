@@ -22,7 +22,7 @@ import {
 } from "./utils"
 
 import {generateMockBuilder} from './mockContract'
-describe("Agent 7", () => {
+describe("Comptroller and CToken NewImplementation Event Checking Agent", () => {
   
   let handleTransaction: HandleTransaction
 
