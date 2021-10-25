@@ -30,6 +30,7 @@ const createFinding = (strategyAddress: string, lossValue: string): Finding => {
     alertId: "Vesper-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
+    protocol: "Vesper",
     metadata: {
       strategyAddress: strategyAddress,
       lossValue: lossValue,
