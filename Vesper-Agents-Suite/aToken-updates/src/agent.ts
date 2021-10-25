@@ -27,7 +27,7 @@ const createFindingGenerator = (symbol: string) =>
 
     return Finding.fromObject({
       name: 'Aave aToken implementation changed',
-      description: `'Token ${symbol} modified'`,
+      description: `Token ${symbol} modified`,
       alertId: "VESPER-8",
       type: FindingType.Info,
       severity: FindingSeverity.High,
