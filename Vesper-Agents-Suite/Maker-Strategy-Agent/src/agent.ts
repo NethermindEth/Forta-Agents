@@ -39,14 +39,12 @@ export const provideMakerStrategyHandler = (
         blockEvent.blockNumber
       );
 
-      if (
-        (await checkIsUnderWaterTrue(web3, strategy, blockEvent.blockNumber)) ==
-        true
-      ) {
+      if (await checkIsUnderWaterTrue(web3, strategy, blockEvent.blockNumber)) {
         findings.push(
           createFinding(alertId, TYPE.isUnderWater, strategy.toString())
         );
-      } else if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
+      }
+      if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
         findings.push(
           createFinding(
             alertId,

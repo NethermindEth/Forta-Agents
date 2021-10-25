@@ -6,14 +6,16 @@ const POOLS: string[] = [createAddress("0x2")];
 const STRATEGIES_V2: string[] = [createAddress("0x3")];
 const STRATEGIES_V3: string[] = [createAddress("0x5")];
 
-const build_Mock = (
+export type Args = [
   pools: string[],
-  isUnderWater: boolean = false,
+  isUnderWater: boolean,
   vaultInfo: { collateralRatio: string },
   lowWater: string,
   highWater: string,
-  name: string = "Maker"
-) =>
+  name: string
+];
+
+const build_Mock = (args: Args) =>
   class MockContract {
     private addr: string;
 
@@ -38,7 +40,7 @@ const build_Mock = (
 
     private NAME() {
       return {
-        call: () => name
+        call: () => args[5]
       };
     }
 
@@ -74,30 +76,30 @@ const build_Mock = (
 
     private isUnderwater() {
       return {
-        call: () => isUnderWater
+        call: () => args[1]
       };
     }
     private getVaultInfo() {
       return {
-        call: () => vaultInfo
+        call: () => args[2]
       };
     }
 
     private lowWater() {
       return {
-        call: () => lowWater
+        call: () => args[3]
       };
     }
 
     private highWater() {
       return {
-        call: () => highWater
+        call: () => args[4]
       };
     }
 
     private at(index: number) {
       return {
-        call: () => pools[index]
+        call: () => args[0][index]
       };
     }
 
