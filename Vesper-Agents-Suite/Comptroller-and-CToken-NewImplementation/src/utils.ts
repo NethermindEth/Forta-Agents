@@ -36,7 +36,7 @@ export const createFindingDetectNewComptrollerImplementation : FindingGenerator 
     return Finding.fromObject({
       name: 'COMPOUND COMPTROLLER NEW IMPLEMENTATION EVENT',
       description: 'Update implementation logic for Compound Comptroller',
-      alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+      alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
       type: FindingType.Info,
       severity: FindingSeverity.Info,
       protocol: 'Compound',
@@ -55,7 +55,7 @@ export const createFindingNewCTokenImplementation: FindingGenerator = (metadata:
     return Finding.fromObject({
       name: 'CTOKEN NEW IMPLEMENTATION EVENT',
       description: 'Update implementation logic for a market on Compound',
-      alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+      alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
       type: FindingType.Info,
       severity: FindingSeverity.Info,
       protocol: 'Compound',
@@ -67,7 +67,8 @@ export const createFindingNewCTokenImplementation: FindingGenerator = (metadata:
   
 export const COMPOUND_COMPTROLLER_ADDRESS = '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B'
 export const NEW_IMPLEMENTATION_SIGNATURE = 'NewImplementation(address,address)'
-export const NEW_IMPLEMENTATION_EVENT_ALERT_ID = 'Vesper-7'
+export const NEW_IMPLEMENTATION_EVENT_ALERT_ID_1 = 'Vesper-7-1'
+export const NEW_IMPLEMENTATION_EVENT_ALERT_ID_2 = 'Vesper-7-2'
 export const MOCKADDRESS = createAddress('0x0')
 export const OLDADDRESS1 = createAddress('0x1')
 export const NEWADDRESS1 = createAddress('0x2')

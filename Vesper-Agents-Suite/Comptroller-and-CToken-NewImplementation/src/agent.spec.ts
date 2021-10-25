@@ -11,7 +11,8 @@ import agent from "./agent"
 import {
   NEW_IMPLEMENTATION_SIGNATURE,
   COMPOUND_COMPTROLLER_ADDRESS,
-  NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+  NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
+  NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
   MOCKADDRESS,
   OLDADDRESS1,
   OLDADDRESS2,
@@ -72,7 +73,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
       Finding.fromObject({
         name: 'COMPOUND COMPTROLLER NEW IMPLEMENTATION EVENT',
         description: 'Update implementation logic for Compound Comptroller',
-        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
         type: FindingType.Info,
         severity: FindingSeverity.Info,
         protocol: 'Compound',
@@ -83,7 +84,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
       Finding.fromObject({
         name: 'CTOKEN NEW IMPLEMENTATION EVENT',
         description: 'Update implementation logic for a market on Compound',
-        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
         type: FindingType.Info,
         severity: FindingSeverity.Info,
         protocol: 'Compound',
@@ -108,7 +109,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
         Finding.fromObject({
           name: 'COMPOUND COMPTROLLER NEW IMPLEMENTATION EVENT',
           description: 'Update implementation logic for Compound Comptroller',
-          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
           type: FindingType.Info,
           severity: FindingSeverity.Info,
           protocol: 'Compound',
@@ -140,7 +141,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
         Finding.fromObject({
           name: 'COMPOUND COMPTROLLER NEW IMPLEMENTATION EVENT',
           description: 'Update implementation logic for Compound Comptroller',
-          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
           type: FindingType.Info,
           severity: FindingSeverity.Info,
           protocol: 'Compound',
@@ -151,7 +152,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
         Finding.fromObject({
           name: 'COMPOUND COMPTROLLER NEW IMPLEMENTATION EVENT',
           description: 'Update implementation logic for Compound Comptroller',
-          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_1,
           type: FindingType.Info,
           severity: FindingSeverity.Info,
           protocol: 'Compound',
@@ -177,7 +178,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
       expect(findings).toStrictEqual([Finding.fromObject({
         name: 'CTOKEN NEW IMPLEMENTATION EVENT',
         description: 'Update implementation logic for a market on Compound',
-        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+        alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
         type: FindingType.Info,
         severity: FindingSeverity.Info,
         protocol: 'Compound',
@@ -206,7 +207,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
         Finding.fromObject({
           name: 'CTOKEN NEW IMPLEMENTATION EVENT',
           description: 'Update implementation logic for a market on Compound',
-          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
           type: FindingType.Info,
           severity: FindingSeverity.Info,
           protocol: 'Compound',
@@ -217,7 +218,7 @@ describe("Comptroller and CToken NewImplementation Event Checking Agent", () => 
         Finding.fromObject({
           name: 'CTOKEN NEW IMPLEMENTATION EVENT',
           description: 'Update implementation logic for a market on Compound',
-          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID,
+          alertId: NEW_IMPLEMENTATION_EVENT_ALERT_ID_2,
           type: FindingType.Info,
           severity: FindingSeverity.Info,
           protocol: 'Compound',
