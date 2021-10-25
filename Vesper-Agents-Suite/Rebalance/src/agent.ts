@@ -16,7 +16,7 @@ import Web3 from "web3";
 import TimeTracker from './time.tracker';
 
 const CONTROLLER: string = "0xa4f1671d3aee73c05b552d57f2d16d3cfcbd0217";
-const _web3Call: any = new Web3(getJsonRpcUrl());
+const _web3Call: any = new Web3(getJsonRpcUrl()).eth.call;
 
 const fetcher: VesperFetcher = new VesperFetcher(_web3Call, CONTROLLER);
 
