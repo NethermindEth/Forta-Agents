@@ -52,7 +52,7 @@ export const getCurrentBorrowRatio = async (
   const strategyContract = new web3.eth.Contract(strategyABI, contractAddress);
   const currentBorrowRatio = await strategyContract.methods
     .currentBorrowRatio()
-    .call(blockNumber);
+    .call({}, blockNumber);
   return BigInt(currentBorrowRatio);
 };
 
@@ -77,7 +77,7 @@ export const getMaxBorrowRatio = async (
   const strategyContract = new web3.eth.Contract(strategyABI, contractAddress);
   const { maxBorrowRatio } = await strategyContract.methods
     .borrowRatioRange()
-    .call(blockNumber);
+    .call({}, blockNumber);
   return BigInt(maxBorrowRatio);
 };
 
@@ -103,7 +103,7 @@ export const getCollateralFactorMantissa = async (
   );
   const { collateralFactorMantissa } = await comptrollerContract.methods
     .markets(cToken)
-    .call(blockNumber);
+    .call({}, blockNumber);
   return BigInt(collateralFactorMantissa);
 };
 
@@ -149,7 +149,7 @@ const getStrategiesAsV2 = async (
   );
   const strategy = await vesperControllerContract.methods
     .strategy(pool)
-    .call(blockNumber);
+    .call({}, blockNumber);
   return strategy === zeroAddress ? [] : [strategy];
 };
 
@@ -162,7 +162,7 @@ const getStrategiesAsV3 = async (
   try {
     const strategies = await vesperPoolContract.methods
       .getStrategies()
-      .call(blockNumber);
+      .call({}, blockNumber);
     return strategies;
   } catch {
     return [];
@@ -197,7 +197,7 @@ export const getCompoundLeverageStrategies = async (
     const strategyContract = new web3.eth.Contract(strategyABI, strategy);
     const strategyName: string = await strategyContract.methods
       .NAME()
-      .call(blockNumber);
+      .call({}, blockNumber);
     if (strategyName.includes("Compound-Leverage")) {
       compoundLeverageStrategies.push(strategy);
     }
