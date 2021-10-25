@@ -1,5 +1,6 @@
 import { createFetcher, Fetcher } from "./utils";
-import { isZeroAddress } from "ethereumjs-util"
+import { isZeroAddress } from "ethereumjs-util";
+import LRU from "lru-cache";
 import abi from "./abi";
 
 type BlockId = string | number;
@@ -7,13 +8,15 @@ type BlockId = string | number;
 export default class VesperFetcher{
   private web3Call: any;
   private controller: string;
+  private cache: LRU<BlockId, any>;
 
   constructor(web3Call: any, controller: string){
     this.web3Call = web3Call;
     this.controller = controller;
+    this.cache = new LRU<BlockId, any>({max: 10_000});
   }
 
-  public async getPools(block: BlockId = "latest"){
+  public async getPools(block: BlockId = "latest"): Promise<string[]> {
     const { poolsList } = await createFetcher(this.web3Call, this.controller, abi.POOLS)(block);
     const poolsListLower = poolsList.toLowerCase();
     const { length } = await createFetcher(this.web3Call, poolsListLower, abi.LENGHT)(block);
@@ -57,8 +60,13 @@ export default class VesperFetcher{
   }
 
   public async getAllStrategies(block: BlockId = "latest"){
+    if(block !== "latest" && this.cache.get(block) !== undefined)
+      return this.cache.get(block);
     const { V2, V3 } = await this._getStrategies(block);
     V3.forEach(strat => V2.add(strat));
-    return Array.from(V2);
+
+    const strategies: string[] = Array.from(V2);
+    this.cache.set(block, strategies);
+    return strategies;
   }
 };

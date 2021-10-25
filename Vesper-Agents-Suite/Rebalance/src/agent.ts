@@ -46,7 +46,7 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent) => {
     if(txEvent.status){
-      const strategies: string[] = await fetcher.getAllStrategies();
+      const strategies: string[] = await fetcher.getAllStrategies(txEvent.blockNumber);
       const handlers: HandleTransaction[] = strategies.map(
         (strat: string) => provideFunctionCallsDetectorHandler(
           (_) => { return {} as Finding; }, 
@@ -73,7 +73,7 @@ export const provideHandleBlock = (
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    const strategies: string[] = await fetcher.getAllStrategies();
+    const strategies: string[] = await fetcher.getAllStrategies(blockEvent.blockNumber);
     strategies.forEach(
       (strat: string) => {
         const [success, time] = tracker.tryGetLastTime(strat);
