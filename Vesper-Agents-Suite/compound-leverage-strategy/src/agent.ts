@@ -20,23 +20,23 @@ const currentRatioTooHigh = async (
   blockEvent: BlockEvent
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
-  const currentRatio = await getCurrentBorrowRatio(
+  const currentRatioPromise = getCurrentBorrowRatio(
     web3,
     contractAddress,
     blockEvent.blockNumber
   );
-  const maxRatio = await getMaxBorrowRatio(
+  const maxRatioPromise = getMaxBorrowRatio(
     web3,
     contractAddress,
     blockEvent.blockNumber
   );
 
-  if (currentRatio > maxRatio) {
+  if ((await currentRatioPromise) > (await maxRatioPromise)) {
     findings.push(
       createFindingForHighCurrentBorrowRatio(
         contractAddress,
-        currentRatio,
-        maxRatio
+        await currentRatioPromise,
+        await maxRatioPromise
       )
     );
   }
@@ -55,26 +55,27 @@ const closeToLiquidation = async (
     contractAddress,
     blockEvent.blockNumber
   );
-  const collateralFactor = await getCollateralFactorMantissa(
+  const collateralFactorPromise = getCollateralFactorMantissa(
     web3,
     cToken,
     blockEvent.blockNumber
   );
-  const scaledBorrowRatio = await getScaledCurrentBorrowRatio(
+  const scaledBorrowRatioPromise = getScaledCurrentBorrowRatio(
     web3,
     contractAddress,
     blockEvent.blockNumber
   );
 
   if (
-    collateralFactor - scaledBorrowRatio <= 1e17 ||
-    scaledBorrowRatio > collateralFactor
+    (await collateralFactorPromise) - (await scaledBorrowRatioPromise) <=
+      1e17 ||
+    (await scaledBorrowRatioPromise) > (await collateralFactorPromise)
   ) {
     findings.push(
       createFindingForLiquidationWarning(
         contractAddress,
-        scaledBorrowRatio,
-        collateralFactor
+        await scaledBorrowRatioPromise,
+        await collateralFactorPromise
       )
     );
   }
@@ -89,17 +90,15 @@ export const provideHandleBlock = (web3: Web3): HandleBlock => {
     const compoundLeverageStrategies: string[] =
       await getCompoundLeverageStrategies(web3, blockEvent.blockNumber);
 
-    for (let strategy of compoundLeverageStrategies) {
-      findings = findings.concat(
-        await currentRatioTooHigh(web3, strategy, blockEvent)
-      );
-    }
+    const currentRatioTooHighPromises = compoundLeverageStrategies.map(
+      (strategy: string) => currentRatioTooHigh(web3, strategy, blockEvent)
+    );
+    const closeToLiquidationPromises = compoundLeverageStrategies.map(
+      (strategy: string) => closeToLiquidation(web3, strategy, blockEvent)
+    );
 
-    for (let strategy of compoundLeverageStrategies) {
-      findings = findings.concat(
-        await closeToLiquidation(web3, strategy, blockEvent)
-      );
-    }
+    findings = findings.concat((await Promise.all(currentRatioTooHighPromises)).flat());
+    findings = findings.concat((await Promise.all(closeToLiquidationPromises)).flat());
 
     return findings;
   };
