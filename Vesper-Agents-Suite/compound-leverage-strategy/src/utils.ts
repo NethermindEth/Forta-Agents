@@ -11,10 +11,13 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 const zeroAddress = createAddress("0x0");
 export const comptrollerAddress = "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B";
-export const vesperControllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
+export const vesperControllerAddress =
+  "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const createFindingForHighCurrentBorrowRatio = (
-  strategyAddress: string
+  strategyAddress: string,
+  currentRatio: bigint,
+  maxRatio: bigint
 ) => {
   return Finding.fromObject({
     name: "High Borrow Ratio",
@@ -25,11 +28,17 @@ export const createFindingForHighCurrentBorrowRatio = (
     protocol: "Vesper",
     metadata: {
       strategyAddress: strategyAddress,
+      currentRatio: currentRatio.toString(),
+      maxRatio: maxRatio.toString(),
     },
   });
 };
 
-export const createFindingForLiquidationWarning = (strategyAddress: string) => {
+export const createFindingForLiquidationWarning = (
+  strategyAddress: string,
+  scaledBorrowRatio: bigint,
+  collateralFactor: bigint
+) => {
   return Finding.fromObject({
     name: "Liquidation Warning",
     description:
@@ -40,6 +49,8 @@ export const createFindingForLiquidationWarning = (strategyAddress: string) => {
     protocol: "Vesper",
     metadata: {
       strategyAddress: strategyAddress,
+      scaledBorrowRatio: scaledBorrowRatio.toString(),
+      collateralFactor: collateralFactor.toString(),
     },
   });
 };
@@ -73,7 +84,7 @@ export const getMaxBorrowRatio = async (
   web3: Web3,
   contractAddress: string,
   blockNumber: string | number
-): Promise<BigInt> => {
+): Promise<bigint> => {
   const strategyContract = new web3.eth.Contract(strategyABI, contractAddress);
   const { maxBorrowRatio } = await strategyContract.methods
     .borrowRatioRange()

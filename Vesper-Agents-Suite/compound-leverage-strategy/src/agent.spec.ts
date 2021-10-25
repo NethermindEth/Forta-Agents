@@ -118,7 +118,11 @@ describe("Compound Leverage Agent Tests", () => {
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
     expect(findings).toStrictEqual([
-      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
+      createFindingForHighCurrentBorrowRatio(
+        createAddress("0x9"),
+        BigInt("7000"),
+        BigInt("6000")
+      ),
     ]);
   });
 
@@ -132,7 +136,11 @@ describe("Compound Leverage Agent Tests", () => {
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
     expect(findings).toStrictEqual([
-      createFindingForLiquidationWarning(createAddress("0x9")),
+      createFindingForLiquidationWarning(
+        createAddress("0x9"),
+        BigInt("800000000000000000"),
+        BigInt("900000000000000000")
+      ),
     ]);
   });
 
@@ -146,8 +154,16 @@ describe("Compound Leverage Agent Tests", () => {
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
     expect(findings).toStrictEqual([
-      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
-      createFindingForLiquidationWarning(createAddress("0x10")),
+      createFindingForHighCurrentBorrowRatio(
+        createAddress("0x9"),
+        BigInt("6000"),
+        BigInt("5000")
+      ),
+      createFindingForLiquidationWarning(
+        createAddress("0x10"),
+        BigInt("800000000000000000"),
+        BigInt("900000000000000000")
+      ),
     ]);
   });
 
@@ -161,8 +177,16 @@ describe("Compound Leverage Agent Tests", () => {
     const findings: Finding[] = await handleBlock(new TestBlockEvent());
 
     expect(findings).toStrictEqual([
-      createFindingForHighCurrentBorrowRatio(createAddress("0x9")),
-      createFindingForLiquidationWarning(createAddress("0x9")),
+      createFindingForHighCurrentBorrowRatio(
+        createAddress("0x9"),
+        BigInt("9000"),
+        BigInt("5000")
+      ),
+      createFindingForLiquidationWarning(
+        createAddress("0x9"),
+        BigInt("900000000000000000"),
+        BigInt("900000000000000000")
+      ),
     ]);
   });
 });

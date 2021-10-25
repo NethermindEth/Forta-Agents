@@ -32,7 +32,13 @@ const currentRatioTooHigh = async (
   );
 
   if (currentRatio > maxRatio) {
-    findings.push(createFindingForHighCurrentBorrowRatio(contractAddress));
+    findings.push(
+      createFindingForHighCurrentBorrowRatio(
+        contractAddress,
+        currentRatio,
+        maxRatio
+      )
+    );
   }
 
   return findings;
@@ -64,7 +70,13 @@ const closeToLiquidation = async (
     collateralFactor - scaledBorrowRatio <= 1e17 ||
     scaledBorrowRatio > collateralFactor
   ) {
-    findings.push(createFindingForLiquidationWarning(contractAddress));
+    findings.push(
+      createFindingForLiquidationWarning(
+        contractAddress,
+        scaledBorrowRatio,
+        collateralFactor
+      )
+    );
   }
 
   return findings;
