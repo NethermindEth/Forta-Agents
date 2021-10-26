@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import { getJsonRpcUrl } from "forta-agent";
+import { getJsonRpcUrl, Trace, TransactionEvent } from "forta-agent";
 import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
   getMakerStrategies,
@@ -8,8 +8,15 @@ import {
   getCollateralRatio,
   getLowWater,
   getHighWater,
-  TYPE
+  TYPE,
+  getCollateralType,
+  JUG_DRIP_FUNCTION_SIGNATURE,
+  createStabilityFeeFinding
 } from "./utils";
+import {
+  encodeFunctionSignature,
+  provideFunctionCallsDetectorHandler
+} from "forta-agent-tools";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
@@ -70,7 +77,42 @@ export const provideMakerStrategyHandler = (
   };
 };
 
+export const provideHandleTransaction = (alertId: string, web3: Web3) => {
+  return async (txEvent: TransactionEvent) => {
+    const findings: Finding[] = [];
+
+    if (txEvent.status) {
+      const makerStrategies = await getMakerStrategies(web3);
+
+      for (const strategy of makerStrategies) {
+        const collateralType = await getCollateralType(web3, strategy);
+
+        const traces = txEvent.traces.filter((trace: Trace) => {
+          const expectedSelector: string = encodeFunctionSignature(
+            JUG_DRIP_FUNCTION_SIGNATURE
+          );
+          const functionSelector = trace.action.input.slice(0, 10);
+
+          if (functionSelector == expectedSelector) {
+            const input = "0x" + trace.action.input.slice(10);
+            if (input == collateralType) return true;
+          }
+        });
+
+        if (!traces.length) return findings;
+
+        findings.push(createStabilityFeeFinding(alertId, strategy.toString()));
+      }
+
+      return findings;
+    }
+    return findings;
+  };
+};
+
 export default {
-  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1"),
-  provideMakerStrategyHandler
+  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1.0"),
+  handleTransaction: provideHandleTransaction("Vesper-1.1", web3),
+  provideMakerStrategyHandler,
+  provideHandleTransaction
 };

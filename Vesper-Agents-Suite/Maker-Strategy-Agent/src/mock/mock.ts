@@ -31,7 +31,8 @@ const build_Mock = (args: Args) =>
       highWater: this.highWater,
       length: this.length,
       at: this.at,
-      poolAccountant: this.poolAccountant.bind(this)
+      poolAccountant: this.poolAccountant.bind(this),
+      collateralType: this.collateralType
     };
 
     constructor(_: any, address: string) {
@@ -106,6 +107,13 @@ const build_Mock = (args: Args) =>
     private poolAccountant() {
       return {
         call: () => this.addr
+      };
+    }
+
+    private collateralType() {
+      return {
+        call: () =>
+          "0x4554482d43000000000000000000000000000000000000000000000000000000"
       };
     }
   };

@@ -1,10 +1,10 @@
-import { Finding, HandleBlock } from "forta-agent";
-import { TestBlockEvent } from "forta-agent-tools";
+import { Finding, HandleBlock, HandleTransaction } from "forta-agent";
+import { TestBlockEvent, TestTransactionEvent } from "forta-agent-tools";
 import { BlockEvent } from "forta-agent-tools/node_modules/forta-agent";
-import { provideMakerStrategyHandler } from "./agent";
+import { provideHandleTransaction, provideMakerStrategyHandler } from "./agent";
 import { createAddress } from "forta-agent-tools";
 import Mock, { Args } from "./mock/mock";
-import { createFinding, TYPE } from "./utils";
+import { createFinding, createStabilityFeeFinding, TYPE } from "./utils";
 
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
 const ALERT_ID = "Vesper-1";
@@ -19,6 +19,7 @@ const createMock = (...args: Args) => {
 
 describe("Vesper Maker Strategy Agent Test Suite", () => {
   let handleBlock: HandleBlock;
+  let handleTransaction: HandleTransaction;
 
   it("should return empty findings if isUnderWater=False", async () => {
     const LOW_WATER = "2200000000000000000";
@@ -264,6 +265,38 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
         COLLATERAL_RATIO,
         HIGH_WATER
       )
+    ]);
+  });
+
+  it("should return finding if stability fee changed in specific strategy", async () => {
+    const COLLATERAL_RATIO = "2516557646144049203";
+    const LOW_WATER = "2200000000000000000";
+    const HIGH_WATER = "2500000000000000000";
+
+    const mockWeb3 = createMock(
+      poolAccountants,
+      true, // isUnderWater
+      {
+        collateralRatio: COLLATERAL_RATIO
+      },
+      LOW_WATER,
+      HIGH_WATER,
+      "Maker"
+    );
+
+    handleTransaction = provideHandleTransaction("Vesper-1.1", mockWeb3);
+
+    const txnEvent = new TestTransactionEvent().addTraces({
+      input:
+        "0x44e2a5a84554482d43000000000000000000000000000000000000000000000000000000"
+    });
+
+    let findings: Finding[];
+    findings = await handleTransaction(txnEvent);
+
+    expect(findings).toStrictEqual([
+      createStabilityFeeFinding("Vesper-1.1", Mock.STRATEGIES_V2.toString()),
+      createStabilityFeeFinding("Vesper-1.1", Mock.STRATEGIES_V3.toString())
     ]);
   });
 });
