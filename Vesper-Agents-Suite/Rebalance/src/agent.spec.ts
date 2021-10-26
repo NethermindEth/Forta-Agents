@@ -33,12 +33,12 @@ describe("Vesper Rebalance agent tests suite", () => {
     handleBlock: provideHandleBlock(fetcher, threshold, tracker),
   }
 
-  beforeAll(() => vesper.initMock(mockWeb3Call));
+  beforeAll(() => vesper.initMock(mockWeb3Call, 10));
 
   beforeEach(() => tracker.clear());
 
   it("should report empty findings on the first block handled", async () => {
-    const block: BlockEvent = new TestBlockEvent();
+    const block: BlockEvent = new TestBlockEvent().setNumber(10);
     
     const findings: Finding[] = await runBlock(agent, block);
     expect(findings).toStrictEqual([]);
@@ -46,7 +46,9 @@ describe("Vesper Rebalance agent tests suite", () => {
 
   it("should report strategies with elapsed time since rebalance above the threshold", async () => {
     const startBlock = 200;
-    const block: TestBlockEvent = new TestBlockEvent().setTimestamp(startBlock);
+    const block: TestBlockEvent = new TestBlockEvent()
+      .setTimestamp(startBlock)
+      .setNumber(10);
     
     let findings: Finding[] = await runBlock(agent, block);
     expect(findings).toStrictEqual([]);
@@ -54,6 +56,7 @@ describe("Vesper Rebalance agent tests suite", () => {
     // first 2 mock stategies not rebalanced
     let txns: TransactionEvent[] = vesper.STRATEGIES.slice(2).map(
       (strat: string) => new TestTransactionEvent()
+        .setBlock(10)
         .setTimestamp(startBlock + threshold)
         .addTraces({
           to: strat,
@@ -66,6 +69,7 @@ describe("Vesper Rebalance agent tests suite", () => {
 
     // rebalance 1st & 2nd mock strategies
     let tx = new TestTransactionEvent()
+      .setBlock(10)
       .setTimestamp(startBlock + threshold + 1)
       .addTraces(...vesper.STRATEGIES.slice(0, 2).map(
         (strat: string) =>  {
@@ -85,6 +89,7 @@ describe("Vesper Rebalance agent tests suite", () => {
 
     // rebalance 3rd mock strategies
     tx = new TestTransactionEvent()
+      .setBlock(10)
       .setTimestamp(startBlock + threshold + 2)
       .addTraces({
           to: vesper.STRATEGIES[2],
@@ -106,7 +111,9 @@ describe("Vesper Rebalance agent tests suite", () => {
   });
 
   it("should report diferent elapsed times", async () => {
-    const block: TestBlockEvent = new TestBlockEvent().setTimestamp(1);
+    const block: TestBlockEvent = new TestBlockEvent()
+      .setTimestamp(1)
+      .setNumber(10);
     
     let findings: Finding[] = await runBlock(agent, block);
     expect(findings).toStrictEqual([]);
@@ -114,6 +121,7 @@ describe("Vesper Rebalance agent tests suite", () => {
     // Rebalance 1st strategy
     block.setTimestamp(2);
     let tx: TransactionEvent = new TestTransactionEvent()
+      .setBlock(10)
       .setTimestamp(2)
       .addTraces({
         to: vesper.STRATEGIES[0],
@@ -125,6 +133,7 @@ describe("Vesper Rebalance agent tests suite", () => {
     // Rebalance 2nd strategy
     block.setTimestamp(3);
     tx = new TestTransactionEvent()
+      .setBlock(10)
       .setTimestamp(3)
       .addTraces({
         to: vesper.STRATEGIES[1],
@@ -136,6 +145,7 @@ describe("Vesper Rebalance agent tests suite", () => {
     // Rebalance all the remanning strategies
     block.setTimestamp(4);
     tx = new TestTransactionEvent()
+      .setBlock(10)
       .setTimestamp(4)
       .addTraces(...vesper.STRATEGIES.slice(2).map(
         (strat: string) =>  {

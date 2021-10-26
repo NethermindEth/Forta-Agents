@@ -47,13 +47,13 @@ const STRATEGIES: string[] = [
     ...STRATEGIES_V3,
 ];
 
-function initMock(mock: any): void {
+function initMock(mock: any, block: string | number = "latest"): void {
   // Return pool list
   when(mock).calledWith({
       to: CONTROLLER, 
       data: encodeFunctionCall(abi.POOLS, []),
     }, 
-    "latest",
+    block,
   ).mockReturnValue(encodeParameters(abi.POOLS.outputs as any[], [ADDRESS_LIST]));
 
   // Pool length
@@ -61,7 +61,7 @@ function initMock(mock: any): void {
       to: ADDRESS_LIST, 
       data: encodeFunctionCall(abi.LENGHT, []),
     }, 
-    "latest",
+    block,
   ).mockReturnValue(encodeParameters(abi.LENGHT.outputs as any[], [POOLS.length]));
 
   // // Pools addresses
@@ -70,7 +70,7 @@ function initMock(mock: any): void {
         to: ADDRESS_LIST, 
         data: encodeFunctionCall(abi.AT, [i.toString()]),
       }, 
-      "latest",
+      block,
     ).mockReturnValue(encodeParameters(abi.AT.outputs as any[], [POOLS[i], "1"]));
   }
 
@@ -80,7 +80,7 @@ function initMock(mock: any): void {
         to: CONTROLLER, 
         data: encodeFunctionCall(abi.STRATEGY, [POOLS_V2[i]]),
       }, 
-      "latest",
+      block,
     ).mockReturnValue(encodeParameters(abi.STRATEGY.outputs as any[], [STRATEGIES_V2[i]]));
   }
 
@@ -91,14 +91,14 @@ function initMock(mock: any): void {
         to: CONTROLLER, 
         data: encodeFunctionCall(abi.STRATEGY, [POOLS_V3[i]]),
       }, 
-      "latest",
+      block,
     ).mockReturnValue(encodeParameters(abi.STRATEGY.outputs as any[], [ZERO]));
     // each pool should return its strategies
     when(mock).calledWith({
         to: POOLS_V3[i], 
         data: encodeFunctionCall(abi.GET_STRATEGIES, []),
       }, 
-      "latest",
+      block,
     ).mockReturnValue(encodeParameters(abi.GET_STRATEGIES.outputs as any[], [[
       STRATEGIES_V3[i * 2],
       STRATEGIES_V3[i * 2 + 1],
