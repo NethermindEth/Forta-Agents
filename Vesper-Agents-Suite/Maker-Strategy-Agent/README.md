@@ -17,20 +17,25 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
     - if `isUnderWater` returns true
     - Severity is `High`
     - Type is `Suspicious`
+    - The alert metadata includes:
+      - `strategy`: The address of the Maker strategy
 
   - Maker Type Strategy Collateral Ratio < lowWater Detection:
 
     - if `Collateral Ratio` is below `lowWater`
     - Severity is `Critical`
     - Type is `Suspicious`
+    - The alert metadata includes:
+      - `strategy`: The address of the Maker strategy
+      - `Collateral Ratio`: The collateral ratio taken from `Collateral Manager(CM)`
+      - `lowWater`: The `lowWater` value
 
   - Maker Type Strategy Collateral Ratio > highWater Detection:
 
     - if `Collateral Ratio` is above `highWater`
     - Severity is `Info`
     - Type is `Info`
-
-  - The alert metadata includes:
-    - `strategy`: The address of the Maker strategy
-    - `Collateral Ratio`: The collateral ratio taken from `Collateral Manager(CM)`
-    - `lowWater` or `highWater`: it is decided by `TYPE` of the alert
+    - The alert metadata includes:
+      - `strategy`: The address of the Maker strategy
+      - `Collateral Ratio`: The collateral ratio taken from `Collateral Manager(CM)`
+      - `highWater`: The `highWater` value
