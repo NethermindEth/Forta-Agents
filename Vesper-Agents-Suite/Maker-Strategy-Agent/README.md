@@ -41,6 +41,7 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
       - `highWater`: The `highWater` value
 
 - Vesper-1-1
+
   - Stability Fee Updates Detection:
     - throws alert when stability fee changes in the collaterals of maker strategies
     - Severity is `High`
