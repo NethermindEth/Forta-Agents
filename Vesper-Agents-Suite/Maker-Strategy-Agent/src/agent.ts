@@ -77,15 +77,22 @@ export const provideMakerStrategyHandler = (
   };
 };
 
-export const provideHandleTransaction = (alertId: string, web3: Web3) => {
+export const provideHandleTransaction = (web3: Web3, alertId: string) => {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
     if (txEvent.status) {
-      const makerStrategies = await getMakerStrategies(web3);
+      const makerStrategies = await getMakerStrategies(
+        web3,
+        txEvent.blockNumber
+      );
 
       for (const strategy of makerStrategies) {
-        const collateralType = await getCollateralType(web3, strategy);
+        const collateralType = await getCollateralType(
+          web3,
+          strategy,
+          txEvent.blockNumber
+        );
 
         const traces = txEvent.traces.filter((trace: Trace) => {
           const expectedSelector: string = encodeFunctionSignature(
@@ -111,8 +118,8 @@ export const provideHandleTransaction = (alertId: string, web3: Web3) => {
 };
 
 export default {
-  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1.0"),
-  handleTransaction: provideHandleTransaction("Vesper-1.1", web3),
+  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1-0"),
+  handleTransaction: provideHandleTransaction(web3, "Vesper-1-1"),
   provideMakerStrategyHandler,
   provideHandleTransaction
 };

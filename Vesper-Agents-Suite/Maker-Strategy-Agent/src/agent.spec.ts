@@ -272,10 +272,12 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const COLLATERAL_RATIO = "2516557646144049203";
     const LOW_WATER = "2200000000000000000";
     const HIGH_WATER = "2500000000000000000";
+    const INPUT =
+      "0x44e2a5a84554482d43000000000000000000000000000000000000000000000000000000";
 
     const mockWeb3 = createMock(
       poolAccountants,
-      true, // isUnderWater
+      false,
       {
         collateralRatio: COLLATERAL_RATIO
       },
@@ -284,19 +286,18 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleTransaction = provideHandleTransaction("Vesper-1.1", mockWeb3);
+    handleTransaction = provideHandleTransaction(mockWeb3, "Vesper-1-1");
 
     const txnEvent = new TestTransactionEvent().addTraces({
-      input:
-        "0x44e2a5a84554482d43000000000000000000000000000000000000000000000000000000"
+      input: INPUT
     });
 
     let findings: Finding[];
     findings = await handleTransaction(txnEvent);
 
     expect(findings).toStrictEqual([
-      createStabilityFeeFinding("Vesper-1.1", Mock.STRATEGIES_V2.toString()),
-      createStabilityFeeFinding("Vesper-1.1", Mock.STRATEGIES_V3.toString())
+      createStabilityFeeFinding("Vesper-1-1", Mock.STRATEGIES_V2.toString()),
+      createStabilityFeeFinding("Vesper-1-1", Mock.STRATEGIES_V3.toString())
     ]);
   });
 });

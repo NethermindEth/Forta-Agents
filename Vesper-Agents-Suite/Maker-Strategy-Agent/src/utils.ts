@@ -9,10 +9,6 @@ import {
   Strategy_ABI,
   CM_ABI
 } from "./abi";
-import {
-  decodeFunctionCallParameters,
-  FindingGenerator
-} from "forta-agent-tools";
 
 const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
@@ -29,10 +25,10 @@ export const createStabilityFeeFinding = (
   _strategy: string
 ) => {
   return Finding.fromObject({
-    name: "Maker Type Strategy isUnderWater Detection",
-    description: "IsUnderWater returned True for a Maker Strategy",
+    name: "Stability Fee Update Detection",
+    description: "stability Fee is changed for related strategy's collateral",
     severity: FindingSeverity.High,
-    type: FindingType.Suspicious,
+    type: FindingType.Info,
     alertId: _alertId,
     protocol: "Vesper",
     metadata: {
@@ -275,10 +271,13 @@ export const getHighWater = async (
 
 export const getCollateralType = async (
   web3: Web3,
-  address: string
+  address: string,
+  blockNumber: string | number = "latest"
 ): Promise<string> => {
   const Strategy = new web3.eth.Contract(Strategy_ABI, address);
-  const collateralType = await Strategy.methods.collateralType().call();
+  const collateralType = await Strategy.methods
+    .collateralType()
+    .call({}, blockNumber);
 
   return collateralType;
 };
