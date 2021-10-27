@@ -1,5 +1,9 @@
 import { Finding, HandleBlock, HandleTransaction } from "forta-agent";
-import { TestBlockEvent, TestTransactionEvent } from "forta-agent-tools";
+import {
+  encodeFunctionSignature,
+  TestBlockEvent,
+  TestTransactionEvent
+} from "forta-agent-tools";
 import { BlockEvent } from "forta-agent-tools/node_modules/forta-agent";
 import { provideHandleTransaction, provideMakerStrategyHandler } from "./agent";
 import { createAddress } from "forta-agent-tools";
@@ -8,7 +12,8 @@ import {
   createFindingIsUnderWater,
   createFindingLowWater,
   createFindingHighWater,
-  createFindingStabilityFee
+  createFindingStabilityFee,
+  JUG_DRIP_FUNCTION_SIGNATURE
 } from "./utils";
 
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
@@ -257,20 +262,20 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
   });
 
   it("should return finding if stability fee changed in specific strategy", async () => {
-    const COLLATERAL_RATIO = "2516557646144049203";
-    const LOW_WATER = "2200000000000000000";
-    const HIGH_WATER = "2500000000000000000";
-    const INPUT =
-      "0x44e2a5a84554482d43000000000000000000000000000000000000000000000000000000";
+    const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
+    const collateralType =
+      "4554482d43000000000000000000000000000000000000000000000000000000";
+
+    const INPUT = selector + collateralType;
 
     const mockWeb3 = createMock(
       poolAccountants,
       false,
       {
-        collateralRatio: COLLATERAL_RATIO
+        collateralRatio: "2516557646144049203"
       },
-      LOW_WATER,
-      HIGH_WATER,
+      "2200000000000000000",
+      "2500000000000000000",
       "Maker"
     );
 
@@ -287,5 +292,35 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       createFindingStabilityFee(Mock.STRATEGIES_V2.toString()),
       createFindingStabilityFee(Mock.STRATEGIES_V3.toString())
     ]);
+  });
+
+  it("should return empty finding if stability fee changed in non-maker strategy", async () => {
+    const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
+    const collateralType =
+      "3554482d43000000000000000000000000000000000000000000000000000000"; // bad collateral type
+
+    const INPUT = selector + collateralType;
+
+    const mockWeb3 = createMock(
+      poolAccountants,
+      false,
+      {
+        collateralRatio: "2516557646144049203"
+      },
+      "2200000000000000000",
+      "2500000000000000000",
+      "Maker"
+    );
+
+    handleTransaction = provideHandleTransaction(mockWeb3);
+
+    const txnEvent = new TestTransactionEvent().addTraces({
+      input: INPUT
+    });
+
+    let findings: Finding[];
+    findings = await handleTransaction(txnEvent);
+
+    expect(findings).toStrictEqual([]);
   });
 });
