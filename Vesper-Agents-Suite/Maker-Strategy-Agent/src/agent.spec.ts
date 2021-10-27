@@ -4,10 +4,14 @@ import { BlockEvent } from "forta-agent-tools/node_modules/forta-agent";
 import { provideHandleTransaction, provideMakerStrategyHandler } from "./agent";
 import { createAddress } from "forta-agent-tools";
 import Mock, { Args } from "./mock/mock";
-import { createFinding, createStabilityFeeFinding, TYPE } from "./utils";
+import {
+  createFindingIsUnderWater,
+  createFindingLowWater,
+  createFindingHighWater,
+  createFindingStabilityFee
+} from "./utils";
 
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
-const ALERT_ID = "Vesper-1";
 
 const createMock = (...args: Args) => {
   return {
@@ -36,7 +40,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, ALERT_ID);
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -61,7 +65,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -69,16 +73,12 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(
-        ALERT_ID,
-        TYPE.highWater,
+      createFindingHighWater(
         Mock.STRATEGIES_V2.toString(),
         COLLATERAL_RATIO,
         HIGH_WATER
       ),
-      createFinding(
-        ALERT_ID,
-        TYPE.highWater,
+      createFindingHighWater(
         Mock.STRATEGIES_V3.toString(),
         COLLATERAL_RATIO,
         HIGH_WATER
@@ -102,7 +102,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -110,16 +110,12 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(
-        ALERT_ID,
-        TYPE.lowWater,
+      createFindingLowWater(
         Mock.STRATEGIES_V2.toString(),
         COLLATERAL_RATIO,
         LOW_WATER
       ),
-      createFinding(
-        ALERT_ID,
-        TYPE.lowWater,
+      createFindingLowWater(
         Mock.STRATEGIES_V3.toString(),
         COLLATERAL_RATIO,
         LOW_WATER
@@ -143,7 +139,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -151,8 +147,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V2.toString()),
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V3.toString())
+      createFindingIsUnderWater(Mock.STRATEGIES_V2.toString()),
+      createFindingIsUnderWater(Mock.STRATEGIES_V3.toString())
     ]);
   });
 
@@ -172,7 +168,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "UniSwap"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -198,7 +194,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -206,18 +202,14 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V2.toString()),
-      createFinding(
-        ALERT_ID,
-        TYPE.lowWater,
+      createFindingIsUnderWater(Mock.STRATEGIES_V2.toString()),
+      createFindingLowWater(
         Mock.STRATEGIES_V2.toString(),
         COLLATERAL_RATIO,
         LOW_WATER
       ),
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V3.toString()),
-      createFinding(
-        ALERT_ID,
-        TYPE.lowWater,
+      createFindingIsUnderWater(Mock.STRATEGIES_V3.toString()),
+      createFindingLowWater(
         Mock.STRATEGIES_V3.toString(),
         COLLATERAL_RATIO,
         LOW_WATER
@@ -241,7 +233,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3, "Vesper-1");
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
 
     let findings: Finding[] = [];
 
@@ -249,18 +241,14 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V2.toString()),
-      createFinding(
-        ALERT_ID,
-        TYPE.highWater,
+      createFindingIsUnderWater(Mock.STRATEGIES_V2.toString()),
+      createFindingHighWater(
         Mock.STRATEGIES_V2.toString(),
         COLLATERAL_RATIO,
         HIGH_WATER
       ),
-      createFinding(ALERT_ID, TYPE.isUnderWater, Mock.STRATEGIES_V3.toString()),
-      createFinding(
-        ALERT_ID,
-        TYPE.highWater,
+      createFindingIsUnderWater(Mock.STRATEGIES_V3.toString()),
+      createFindingHighWater(
         Mock.STRATEGIES_V3.toString(),
         COLLATERAL_RATIO,
         HIGH_WATER
@@ -286,7 +274,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker"
     );
 
-    handleTransaction = provideHandleTransaction(mockWeb3, "Vesper-1-1");
+    handleTransaction = provideHandleTransaction(mockWeb3);
 
     const txnEvent = new TestTransactionEvent().addTraces({
       input: INPUT
@@ -296,8 +284,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleTransaction(txnEvent);
 
     expect(findings).toStrictEqual([
-      createStabilityFeeFinding("Vesper-1-1", Mock.STRATEGIES_V2.toString()),
-      createStabilityFeeFinding("Vesper-1-1", Mock.STRATEGIES_V3.toString())
+      createFindingStabilityFee(Mock.STRATEGIES_V2.toString()),
+      createFindingStabilityFee(Mock.STRATEGIES_V3.toString())
     ]);
   });
 });

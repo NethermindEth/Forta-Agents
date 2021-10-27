@@ -14,22 +14,13 @@ const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const JUG_DRIP_FUNCTION_SIGNATURE = "drip(bytes32)";
 
-export const enum TYPE {
-  isUnderWater,
-  lowWater,
-  highWater
-}
-
-export const createStabilityFeeFinding = (
-  _alertId: string,
-  _strategy: string
-) => {
+export const createFindingStabilityFee = (_strategy: string): Finding => {
   return Finding.fromObject({
     name: "Stability Fee Update Detection",
     description: "stability Fee is changed for related strategy's collateral",
     severity: FindingSeverity.High,
     type: FindingType.Info,
-    alertId: _alertId,
+    alertId: "Vesper-1-1",
     protocol: "Vesper",
     metadata: {
       strategy: _strategy
@@ -37,54 +28,58 @@ export const createStabilityFeeFinding = (
   });
 };
 
-export const createFinding = (
-  _alertId: string,
-  _type: TYPE,
+export const createFindingIsUnderWater = (_strategy: string): Finding => {
+  return Finding.fromObject({
+    name: "Maker Type Strategy isUnderWater Detection",
+    description: "IsUnderWater returned True for a Maker Strategy",
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    alertId: "Vesper-1-0",
+    protocol: "Vesper",
+    metadata: {
+      strategy: _strategy
+    }
+  });
+};
+
+export const createFindingLowWater = (
   _strategy: string,
-  _collateralRatio: string = "",
-  _comparedValue: string = ""
+  _collateralRatio: string,
+  _lowWater: string
 ): Finding => {
-  if (_type == TYPE.isUnderWater) {
-    return Finding.fromObject({
-      name: "Maker Type Strategy isUnderWater Detection",
-      description: "IsUnderWater returned True for a Maker Strategy",
-      severity: FindingSeverity.High,
-      type: FindingType.Suspicious,
-      alertId: _alertId,
-      protocol: "Vesper",
-      metadata: {
-        strategy: _strategy
-      }
-    });
-  } else if (_type == TYPE.lowWater) {
-    return Finding.fromObject({
-      name: "Maker Type Strategy Collateral Ratio < lowWater Detection",
-      description: "Collateral Ratio is below lowWater",
-      severity: FindingSeverity.Critical,
-      type: FindingType.Suspicious,
-      alertId: _alertId,
-      protocol: "Vesper",
-      metadata: {
-        strategy: _strategy,
-        collateralRatio: _collateralRatio,
-        lowWater: _comparedValue
-      }
-    });
-  } else {
-    return Finding.fromObject({
-      name: "Maker Type Strategy Collateral Ratio > highWater Detection",
-      description: "Collateral Ratio is above highWater",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      alertId: _alertId,
-      protocol: "Vesper",
-      metadata: {
-        strategy: _strategy,
-        collateralRatio: _collateralRatio,
-        highWater: _comparedValue
-      }
-    });
-  }
+  return Finding.fromObject({
+    name: "Maker Type Strategy Collateral Ratio < lowWater Detection",
+    description: "Collateral Ratio is below lowWater",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    alertId: "Vesper-1-0",
+    protocol: "Vesper",
+    metadata: {
+      strategy: _strategy,
+      collateralRatio: _collateralRatio,
+      lowWater: _lowWater
+    }
+  });
+};
+
+export const createFindingHighWater = (
+  _strategy: string,
+  _collateralRatio: string,
+  _highWater: string
+): Finding => {
+  return Finding.fromObject({
+    name: "Maker Type Strategy Collateral Ratio > highWater Detection",
+    description: "Collateral Ratio is above highWater",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "Vesper-1-0",
+    protocol: "Vesper",
+    metadata: {
+      strategy: _strategy,
+      collateralRatio: _collateralRatio,
+      highWater: _highWater
+    }
+  });
 };
 
 export const getPools = async (

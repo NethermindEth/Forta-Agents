@@ -1,29 +1,24 @@
 import Web3 from "web3";
-import { getJsonRpcUrl, Trace, TransactionEvent } from "forta-agent";
+import { getJsonRpcUrl, TransactionEvent } from "forta-agent";
 import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
   getMakerStrategies,
   checkIsUnderWaterTrue,
-  createFinding,
+  createFindingHighWater,
+  createFindingIsUnderWater,
+  createFindingLowWater,
+  createFindingStabilityFee,
   getCollateralRatio,
   getLowWater,
   getHighWater,
-  TYPE,
   getCollateralType,
-  JUG_DRIP_FUNCTION_SIGNATURE,
-  createStabilityFeeFinding
+  JUG_DRIP_FUNCTION_SIGNATURE
 } from "./utils";
-import {
-  encodeFunctionSignature,
-  provideFunctionCallsDetectorHandler
-} from "forta-agent-tools";
+import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
 
-export const provideMakerStrategyHandler = (
-  web3: Web3,
-  alertId: string
-): HandleBlock => {
+export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
@@ -47,15 +42,11 @@ export const provideMakerStrategyHandler = (
       );
 
       if (await checkIsUnderWaterTrue(web3, strategy, blockEvent.blockNumber)) {
-        findings.push(
-          createFinding(alertId, TYPE.isUnderWater, strategy.toString())
-        );
+        findings.push(createFindingIsUnderWater(strategy.toString()));
       }
       if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
         findings.push(
-          createFinding(
-            alertId,
-            TYPE.lowWater,
+          createFindingLowWater(
             strategy.toString(),
             collateralRatio.collateralRatio,
             lowWater.toString()
@@ -63,9 +54,7 @@ export const provideMakerStrategyHandler = (
         );
       } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
         findings.push(
-          createFinding(
-            alertId,
-            TYPE.highWater,
+          createFindingHighWater(
             strategy.toString(),
             collateralRatio.collateralRatio,
             highWater.toString()
@@ -77,7 +66,7 @@ export const provideMakerStrategyHandler = (
   };
 };
 
-export const provideHandleTransaction = (web3: Web3, alertId: string) => {
+export const provideHandleTransaction = (web3: Web3) => {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
@@ -94,21 +83,17 @@ export const provideHandleTransaction = (web3: Web3, alertId: string) => {
           txEvent.blockNumber
         );
 
-        const traces = txEvent.traces.filter((trace: Trace) => {
-          const expectedSelector: string = encodeFunctionSignature(
-            JUG_DRIP_FUNCTION_SIGNATURE
-          );
-          const functionSelector = trace.action.input.slice(0, 10);
+        const filterOnArguments = (args: { [key: string]: any }): boolean => {
+          return args[0] === collateralType;
+        };
 
-          if (functionSelector == expectedSelector) {
-            const input = "0x" + trace.action.input.slice(10);
-            if (input == collateralType) return true;
-          }
-        });
+        const agentHandler = provideFunctionCallsDetectorHandler(
+          () => createFindingStabilityFee(strategy.toString()),
+          JUG_DRIP_FUNCTION_SIGNATURE,
+          { filterOnArguments }
+        );
 
-        if (!traces.length) return findings;
-
-        findings.push(createStabilityFeeFinding(alertId, strategy.toString()));
+        findings.push(...(await agentHandler(txEvent)));
       }
 
       return findings;
@@ -118,8 +103,8 @@ export const provideHandleTransaction = (web3: Web3, alertId: string) => {
 };
 
 export default {
-  handleBlock: provideMakerStrategyHandler(web3, "Vesper-1-0"),
-  handleTransaction: provideHandleTransaction(web3, "Vesper-1-1"),
+  handleBlock: provideMakerStrategyHandler(web3),
+  handleTransaction: provideHandleTransaction(web3),
   provideMakerStrategyHandler,
   provideHandleTransaction
 };
