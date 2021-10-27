@@ -48,3 +48,4 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
     - Type is `Info`
     - The alert metadata includes:
       - `strategy`: The address of the Maker strategy
+      - `collateralType`: The collateral type of strategy
