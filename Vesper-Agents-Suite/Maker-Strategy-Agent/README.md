@@ -10,7 +10,7 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
 
 ## Alerts
 
-- Vesper-1-0
+- Vesper-1-1
 
   - Maker Type Strategy isUnderWater Detection:
 
@@ -40,7 +40,7 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
       - `Collateral Ratio`: The collateral ratio taken from `Collateral Manager(CM)`
       - `highWater`: The `highWater` value
 
-- Vesper-1-1
+- Vesper-1-2
 
   - Stability Fee Updates Detection:
     - throws alert when stability fee changes in the collaterals of maker strategies

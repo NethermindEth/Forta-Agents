@@ -1,4 +1,10 @@
-import { Finding, HandleBlock, HandleTransaction } from "forta-agent";
+import {
+  Finding,
+  FindingSeverity,
+  FindingType,
+  HandleBlock,
+  HandleTransaction
+} from "forta-agent";
 import {
   encodeFunctionSignature,
   TestBlockEvent,
@@ -13,7 +19,8 @@ import {
   createFindingLowWater,
   createFindingHighWater,
   createFindingStabilityFee,
-  JUG_DRIP_FUNCTION_SIGNATURE
+  JUG_DRIP_FUNCTION_SIGNATURE,
+  JUG_CONTRACT
 } from "./utils";
 
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
@@ -24,6 +31,24 @@ const createMock = (...args: Args) => {
       Contract: Mock.build_Mock(args)
     }
   } as any;
+};
+
+const createFindingSF = (
+  _strategy: string,
+  collateralType: string
+): Finding => {
+  return Finding.fromObject({
+    name: "Stability Fee Update Detection",
+    description: "stability Fee is changed for related strategy's collateral",
+    severity: FindingSeverity.High,
+    type: FindingType.Info,
+    alertId: "Vesper-1-2",
+    protocol: "Vesper",
+    metadata: {
+      strategy: _strategy,
+      collateralType: collateralType
+    }
+  });
 };
 
 describe("Vesper Maker Strategy Agent Test Suite", () => {
@@ -282,6 +307,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     handleTransaction = provideHandleTransaction(mockWeb3);
 
     const txnEvent = new TestTransactionEvent().addTraces({
+      to: JUG_CONTRACT,
       input: INPUT
     });
 
@@ -289,8 +315,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleTransaction(txnEvent);
 
     expect(findings).toStrictEqual([
-      createFindingStabilityFee(Mock.STRATEGIES_V2.toString()),
-      createFindingStabilityFee(Mock.STRATEGIES_V3.toString())
+      createFindingSF(Mock.STRATEGIES_V2.toString(), "0x" + collateralType),
+      createFindingSF(Mock.STRATEGIES_V3.toString(), "0x" + collateralType)
     ]);
   });
 
@@ -315,6 +341,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     handleTransaction = provideHandleTransaction(mockWeb3);
 
     const txnEvent = new TestTransactionEvent().addTraces({
+      to: JUG_CONTRACT,
       input: INPUT
     });
 

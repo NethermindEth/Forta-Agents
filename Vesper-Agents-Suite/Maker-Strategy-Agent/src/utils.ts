@@ -9,23 +9,30 @@ import {
   Strategy_ABI,
   CM_ABI
 } from "./abi";
+import { FindingGenerator } from "forta-agent-tools";
 
 const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const JUG_DRIP_FUNCTION_SIGNATURE = "drip(bytes32)";
+export const JUG_CONTRACT = "0x19c0976f590D67707E62397C87829d896Dc0f1F1";
 
-export const createFindingStabilityFee = (_strategy: string): Finding => {
-  return Finding.fromObject({
-    name: "Stability Fee Update Detection",
-    description: "stability Fee is changed for related strategy's collateral",
-    severity: FindingSeverity.High,
-    type: FindingType.Info,
-    alertId: "Vesper-1-1",
-    protocol: "Vesper",
-    metadata: {
-      strategy: _strategy
-    }
-  });
+export const createFindingStabilityFee = (
+  _strategy: string
+): FindingGenerator => {
+  return (metadata): Finding => {
+    return Finding.fromObject({
+      name: "Stability Fee Update Detection",
+      description: "stability Fee is changed for related strategy's collateral",
+      severity: FindingSeverity.High,
+      type: FindingType.Info,
+      alertId: "Vesper-1-2",
+      protocol: "Vesper",
+      metadata: {
+        strategy: _strategy,
+        collateralType: metadata?.arguments[0]
+      }
+    });
+  };
 };
 
 export const createFindingIsUnderWater = (_strategy: string): Finding => {
@@ -34,7 +41,7 @@ export const createFindingIsUnderWater = (_strategy: string): Finding => {
     description: "IsUnderWater returned True for a Maker Strategy",
     severity: FindingSeverity.High,
     type: FindingType.Suspicious,
-    alertId: "Vesper-1-0",
+    alertId: "Vesper-1-1",
     protocol: "Vesper",
     metadata: {
       strategy: _strategy
@@ -52,7 +59,7 @@ export const createFindingLowWater = (
     description: "Collateral Ratio is below lowWater",
     severity: FindingSeverity.Critical,
     type: FindingType.Suspicious,
-    alertId: "Vesper-1-0",
+    alertId: "Vesper-1-1",
     protocol: "Vesper",
     metadata: {
       strategy: _strategy,
@@ -72,7 +79,7 @@ export const createFindingHighWater = (
     description: "Collateral Ratio is above highWater",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    alertId: "Vesper-1-0",
+    alertId: "Vesper-1-1",
     protocol: "Vesper",
     metadata: {
       strategy: _strategy,

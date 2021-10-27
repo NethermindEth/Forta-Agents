@@ -12,7 +12,8 @@ import {
   getLowWater,
   getHighWater,
   getCollateralType,
-  JUG_DRIP_FUNCTION_SIGNATURE
+  JUG_DRIP_FUNCTION_SIGNATURE,
+  JUG_CONTRACT
 } from "./utils";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 
@@ -88,9 +89,9 @@ export const provideHandleTransaction = (web3: Web3) => {
         };
 
         const agentHandler = provideFunctionCallsDetectorHandler(
-          () => createFindingStabilityFee(strategy.toString()),
+          createFindingStabilityFee(strategy.toString()),
           JUG_DRIP_FUNCTION_SIGNATURE,
-          { filterOnArguments }
+          { to: JUG_CONTRACT, filterOnArguments }
         );
 
         findings.push(...(await agentHandler(txEvent)));
