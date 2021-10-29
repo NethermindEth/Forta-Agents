@@ -17,7 +17,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.23",
     "forta-agent-tools": "^1.0.19"
