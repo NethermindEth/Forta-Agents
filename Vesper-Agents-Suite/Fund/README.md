@@ -8,6 +8,8 @@ This agent detects for idle funds in a pool.
   - Fired when the current dle funds in the pool > 10% of total value.
   - Severity is always set to "info".
   - Type is always set to "High".
+  - Metadata
+    - Ideal funds: Gives list of ideal funds in a pool
 
 ## Supported Chains
 
