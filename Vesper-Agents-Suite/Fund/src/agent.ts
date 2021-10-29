@@ -1,5 +1,5 @@
 import { Finding, getJsonRpcUrl, BlockEvent, HandleBlock } from "forta-agent";
-
+import BigNumber from "bignumber.js";
 import abi from "./pool.abi";
 import Web3 from "web3";
 import {
@@ -21,21 +21,34 @@ function provideHandleFunction(web3: Web3): HandleBlock {
     const blockNumber = blockEvent.blockNumber;
 
     const pools: any = await getPools(web3, blockNumber);
-    console.log(pools, pools.length);
 
     for (let x = 0; x < pools.length; x++) {
       const contract = new web3.eth.Contract(abi as any, pools[x]);
-
-      const totalValue = await getTotalValue(contract, blockNumber);
-      const tokenHere = await getTokensHere(contract, blockNumber);
-      const MAX_BPS = await getBPSValue(contract, blockNumber);
-      const totalDebtRatio = await getTotalDebtRatio(contract, blockNumber);
-
-      const idleFunds = tokenHere - totalValue * (MAX_BPS * totalDebtRatio);
-
-      if (idleFunds > 0.1 * totalValue) {
-        findings.push(createFinding(idleFunds));
+      const totalValue = new BigNumber(
+        await getTotalValue(contract, blockNumber)
+      );
+      const tokenHere = new BigNumber(
+        await getTokensHere(contract, blockNumber)
+      );
+      let MAX_BPS;
+      try {
+        MAX_BPS = new BigNumber(await getBPSValue(contract, blockNumber));
+      } catch (e) {
+        continue;
       }
+      const totalDebtRatio = new BigNumber(
+        await getTotalDebtRatio(contract, blockNumber)
+      );
+      let idleFunds;
+      if (MAX_BPS)
+        idleFunds = tokenHere.minus(
+          totalValue.multipliedBy(MAX_BPS.minus(totalDebtRatio))
+        );
+
+      if (idleFunds)
+        if (idleFunds.isGreaterThan(totalValue.multipliedBy(0.1))) {
+          findings.push(createFinding(idleFunds.toNumber()));
+        }
     }
 
     return findings;

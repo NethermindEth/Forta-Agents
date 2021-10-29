@@ -12,9 +12,10 @@ const mockList = [
 ];
 
 const getTotalValue = async (contract: any, blockNumber: number) => {
-  return await contract.methods
+  const value = await contract.methods
     .totalValue()
     .call({ defaultBlock: blockNumber });
+  return value;
 };
 
 const getTokensHere = async (contract: any, blockNumber: number) => {
@@ -23,7 +24,11 @@ const getTokensHere = async (contract: any, blockNumber: number) => {
     .call({ defaultBlock: blockNumber });
 };
 const getBPSValue = async (contract: any, blockNumber: number) => {
-  return await contract.methods.MAX_BPS().call({ defaultBlock: blockNumber });
+  const value = await contract.methods
+    .MAX_BPS()
+    .call({ defaultBlock: blockNumber });
+  console.log(value);
+  return value;
 };
 const getTotalDebtRatio = async (contract: any, blockNumber: number) => {
   return await contract.methods
