@@ -1,5 +1,5 @@
 {
-  "name": "Vesper-3",
+  "name": "vesper-3",
   "version": "0.0.1",
   "description": "Forta agent to detect if idle funds in the pool > 10% of total value",
   "scripts": {
