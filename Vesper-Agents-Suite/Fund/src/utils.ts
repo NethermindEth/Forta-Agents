@@ -7,18 +7,24 @@ const mockList = [
   "0x097ee00F42f9D7512929A6434185Ae94aC6dafD7",
 ];
 
-const getTotalValue = async (contract: any) => {
-  return await contract.methods.totalValue().call();
+const getTotalValue = async (contract: any, blockNumber: number) => {
+  return await contract.methods
+    .totalValue()
+    .call({ defaultBlock: blockNumber });
 };
 
-const getTokensHere = async (contract: any) => {
-  return await contract.methods.tokensHere().call();
+const getTokensHere = async (contract: any, blockNumber: number) => {
+  return await contract.methods
+    .tokensHere()
+    .call({ defaultBlock: blockNumber });
 };
-const getBPSValue = async (contract: any) => {
-  return await contract.methods.MAX_BPS().call();
+const getBPSValue = async (contract: any, blockNumber: number) => {
+  return await contract.methods.MAX_BPS().call({ defaultBlock: blockNumber });
 };
-const getTotalDebtRatio = async (contract: any) => {
-  return await contract.methods.totalDebtRatio().call();
+const getTotalDebtRatio = async (contract: any, blockNumber: number) => {
+  return await contract.methods
+    .totalDebtRatio()
+    .call({ defaultBlock: blockNumber });
 };
 
 const createFinding = (tokenfunds = 0): Finding => {

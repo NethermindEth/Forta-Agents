@@ -25,7 +25,7 @@ describe("Vesper Agent 3: Idle fund", () => {
 
     mockAxios.get.mockResolvedValue(mockList);
 
-    const findings = await handleBlock({} as any);
+    const findings = await handleBlock({ block: { number: 100 } } as any);
     expect(findings).toStrictEqual([]);
   });
 
@@ -43,7 +43,7 @@ describe("Vesper Agent 3: Idle fund", () => {
 
     mockAxios.get.mockResolvedValue(mockList.slice(0, 1));
 
-    const findings = await handleBlock({} as any);
+    const findings = await handleBlock({ block: { number: 101 } } as any);
     expect(findings).toStrictEqual([createFinding(600)]);
   });
 
@@ -61,7 +61,7 @@ describe("Vesper Agent 3: Idle fund", () => {
 
     mockAxios.get.mockResolvedValue(mockList.slice(0, 2));
 
-    const findings = await handleBlock({} as any);
+    const findings = await handleBlock({ block: { number: 102 } } as any);
     expect(findings).toStrictEqual([createFinding(600), createFinding(600)]);
   });
 });
