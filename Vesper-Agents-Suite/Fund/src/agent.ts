@@ -8,23 +8,23 @@ import {
   getTotalDebtRatio,
   getTotalValue,
   createFinding,
+  getPools,
 } from "./utils";
-
-import axios, { Axios } from "axios";
 
 const web3 = new Web3(getJsonRpcUrl());
 
 // pool.tokenHere() - pool.totalValue()*(MAX_BPS-totalDebtRatio) > 10% of pool.totalValue()
 
-function provideHandleFunction(web3: Web3, axios: Axios): HandleBlock {
+function provideHandleFunction(web3: Web3): HandleBlock {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const blockNumber = blockEvent.blockNumber;
 
-    const pools = await axios.get<any, any>("https://api.vesper.finance/pools");
+    const pools: any = await getPools(web3, blockNumber);
+    console.log(pools, pools.length);
 
     for (let x = 0; x < pools.length; x++) {
-      const contract = new web3.eth.Contract(abi as any, pools[x].address);
+      const contract = new web3.eth.Contract(abi as any, pools[x]);
 
       const totalValue = await getTotalValue(contract, blockNumber);
       const tokenHere = await getTokensHere(contract, blockNumber);
@@ -43,6 +43,6 @@ function provideHandleFunction(web3: Web3, axios: Axios): HandleBlock {
 }
 
 export default {
-  handleBlock: provideHandleFunction(web3, axios),
+  handleBlock: provideHandleFunction(web3),
   provideHandleFunction,
 };

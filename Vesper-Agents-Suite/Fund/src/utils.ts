@@ -1,4 +1,8 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import Web3 from "web3";
+import { ControllerABI, AddressListABI } from "./abi";
+
+const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 const mockList = [
   "0xcA0c34A3F35520B9490C1d58b35A19AB64014D80",
@@ -40,6 +44,37 @@ const createFinding = (tokenfunds = 0): Finding => {
   });
 };
 
+const getPools = async (
+  web3: Web3,
+  blockNumber: string | number
+): Promise<string[]> => {
+  const pools: string[] = [];
+
+  const controllerContract = new web3.eth.Contract(
+    ControllerABI,
+    controllerAddresss
+  );
+  const addressListAddress: string = await controllerContract.methods
+    .pools()
+    .call({}, blockNumber);
+
+  const addressListContract = new web3.eth.Contract(
+    AddressListABI,
+    addressListAddress
+  );
+  const poolsLength: number = Number(
+    await addressListContract.methods.length().call({}, blockNumber)
+  );
+
+  for (let i = 0; i < poolsLength; i++) {
+    const poolAddress = await addressListContract.methods
+      .at(i)
+      .call({}, blockNumber);
+    pools.push(poolAddress);
+  }
+  return pools;
+};
+
 export {
   mockList,
   getTotalValue,
@@ -47,4 +82,5 @@ export {
   getBPSValue,
   getTotalDebtRatio,
   createFinding,
+  getPools,
 };
