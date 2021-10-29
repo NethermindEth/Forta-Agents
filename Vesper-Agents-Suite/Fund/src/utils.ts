@@ -1,6 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-const defaultList = [
+const mockList = [
   "0xcA0c34A3F35520B9490C1d58b35A19AB64014D80",
   "0x8d0b8e2b5584cE1487317f81Da7d97397eF3e899",
   "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217",
@@ -21,18 +21,21 @@ const getTotalDebtRatio = async (contract: any) => {
   return await contract.methods.totalDebtRatio().call();
 };
 
-const createFinding = (): Finding => {
+const createFinding = (tokenfunds = 0): Finding => {
   return Finding.fromObject({
-    name: "Loss Reported",
-    description: "A loss was reported by a V3 strategy",
+    name: "Pool Fund's Report",
+    description: "The idle funds in the pool > 10% of total value",
     alertId: "Vesper-3",
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
+    metadata: {
+      tokenfunds: tokenfunds.toString(),
+    },
   });
 };
 
 export {
-  defaultList,
+  mockList,
   getTotalValue,
   getTokensHere,
   getBPSValue,

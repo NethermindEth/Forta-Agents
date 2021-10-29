@@ -1,70 +1,67 @@
-import { HandleTransaction } from "forta-agent";
+import { HandleBlock } from "forta-agent";
 import agent from "./agent";
-import { createFinding, defaultList } from "./utils";
+import { createFinding, mockList } from "./utils";
 import Mock from "./mock";
+import mockAxios from "jest-mock-axios";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction;
+describe("Vesper Agent 3: Idle fund", () => {
+  let handleBlock: HandleBlock;
 
-  beforeAll(() => {});
+  afterAll(() => {
+    mockAxios.reset();
+  });
 
   it("A new transaction gets received. The condition for tokenfunds gives false", async () => {
-    const txEvent = {
-      addresses: { "0xBA680a906d8f624a5F11fba54D3C672f09F26e47": true },
-    };
-
     let mockWeb3 = {
       eth: {
         Contract: Mock.build_Mock(1000, 150, 800, 10),
       },
     } as any;
 
-    handleTransaction = agent.provideHandleFunction(
+    handleBlock = agent.provideHandleFunction(
       mockWeb3 as any,
-      defaultList
+      mockAxios as any
     );
 
-    const findings = await handleTransaction(txEvent as any);
+    mockAxios.get.mockResolvedValue(mockList);
+
+    const findings = await handleBlock({} as any);
     expect(findings).toStrictEqual([]);
   });
 
   it(" The condition for tokenfunds gives true", async () => {
-    const txEvent = {
-      addresses: { "0xBA680a906d8f624a5F11fba54D3C672f09F26e47": true },
-    };
-
     let mockWeb3 = {
       eth: {
         Contract: Mock.build_Mock(100, 1000, 0.5, 8),
       },
     } as any;
 
-    handleTransaction = agent.provideHandleFunction(
+    handleBlock = agent.provideHandleFunction(
       mockWeb3 as any,
-      defaultList.slice(0, 1)
+      mockAxios as any
     );
 
-    const findings = await handleTransaction(txEvent as any);
-    expect(findings).toStrictEqual([createFinding()]);
+    mockAxios.get.mockResolvedValue(mockList.slice(0, 1));
+
+    const findings = await handleBlock({} as any);
+    expect(findings).toStrictEqual([createFinding(600)]);
   });
 
-  it(" The condition for tokenfunds gives true, and for multiple pool addresses,", async () => {
-    const txEvent = {
-      addresses: { "0xBA680a906d8f624a5F11fba54D3C672f09F26e47": true },
-    };
-
+  it("xThe condition for tokenfunds gives true, and for multiple pool addresses,", async () => {
     let mockWeb3 = {
       eth: {
         Contract: Mock.build_Mock(100, 1000, 0.5, 8),
       },
     } as any;
 
-    handleTransaction = agent.provideHandleFunction(
+    handleBlock = agent.provideHandleFunction(
       mockWeb3 as any,
-      defaultList.slice(0, 2)
+      mockAxios as any
     );
 
-    const findings = await handleTransaction(txEvent as any);
-    expect(findings).toStrictEqual([createFinding(), createFinding()]);
+    mockAxios.get.mockResolvedValue(mockList.slice(0, 2));
+
+    const findings = await handleBlock({} as any);
+    expect(findings).toStrictEqual([createFinding(600), createFinding(600)]);
   });
 });

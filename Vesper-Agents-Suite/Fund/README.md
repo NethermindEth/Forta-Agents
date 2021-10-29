@@ -4,6 +4,11 @@
 
 This agent detects for idle funds in a pool.
 
+- Vesper-5-1
+  - Fired when the current dle funds in the pool > 10% of total value.
+  - Severity is always set to "info".
+  - Type is always set to "High".
+
 ## Supported Chains
 
 - Ethereum

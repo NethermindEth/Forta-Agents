@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "Vesper-3",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta agent to detect if idle funds in the pool > 10% of total value",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -17,6 +17,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.24.0",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.23",
     "forta-agent-tools": "^1.0.19"
@@ -25,6 +26,7 @@
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
+    "jest-mock-axios": "^4.4.1",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
