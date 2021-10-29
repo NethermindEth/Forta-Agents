@@ -42,6 +42,6 @@ function provideHandleFunction(web3: Web3, axios: Axios): HandleBlock {
 }
 
 export default {
-  handleTransaction: provideHandleFunction(web3, axios),
+  handleBlock: provideHandleFunction(web3, axios),
   provideHandleFunction,
 };
