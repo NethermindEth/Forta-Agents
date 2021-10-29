@@ -12,28 +12,18 @@ const mockList = [
 ];
 
 const getTotalValue = async (contract: any, blockNumber: number) => {
-  const value = await contract.methods
-    .totalValue()
-    .call({ defaultBlock: blockNumber });
+  const value = await contract.methods.totalValue().call({}, blockNumber);
   return value;
 };
 
 const getTokensHere = async (contract: any, blockNumber: number) => {
-  return await contract.methods
-    .tokensHere()
-    .call({ defaultBlock: blockNumber });
+  return await contract.methods.tokensHere().call({}, blockNumber);
 };
 const getBPSValue = async (contract: any, blockNumber: number) => {
-  const value = await contract.methods
-    .MAX_BPS()
-    .call({ defaultBlock: blockNumber });
-  console.log(value);
-  return value;
+  return await contract.methods.MAX_BPS().call({}, blockNumber);
 };
 const getTotalDebtRatio = async (contract: any, blockNumber: number) => {
-  return await contract.methods
-    .totalDebtRatio()
-    .call({ defaultBlock: blockNumber });
+  return await contract.methods.totalDebtRatio().call({}, blockNumber);
 };
 
 const createFinding = (tokenfunds = 0): Finding => {

@@ -6,8 +6,6 @@ import Mock from "./mock";
 describe("Vesper Agent 3: Idle fund", () => {
   let handleBlock: HandleBlock;
 
-  afterAll(() => {});
-
   it("A new transaction gets received. The condition for tokenfunds gives false", async () => {
     let mockWeb3 = {
       eth: {
@@ -34,7 +32,7 @@ describe("Vesper Agent 3: Idle fund", () => {
     expect(findings).toStrictEqual([createFinding(250)]);
   });
 
-  it("xThe condition for tokenfunds gives true, and for multiple pool addresses,", async () => {
+  it("The condition for tokenfunds gives true for multiple pool addresses,", async () => {
     let mockWeb3 = {
       eth: {
         Contract: Mock.build_Mock(100, 1000, 0.5, 8, mockList.slice(0, 2)),
