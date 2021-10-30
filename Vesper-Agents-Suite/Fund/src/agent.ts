@@ -34,6 +34,10 @@ function provideHandleFunction(web3: Web3): HandleBlock {
       try {
         MAX_BPS = new BigNumber(await getBPSValue(contract, blockNumber));
       } catch (e) {
+        // the pool is V2 hence the relation: tokenHere > 20% of totalValue
+        if (tokenHere.isGreaterThan(totalValue.times(0.2))) {
+          findings.push(createFinding(tokenHere.toNumber()));
+        }
         continue;
       }
       const totalDebtRatio = new BigNumber(
