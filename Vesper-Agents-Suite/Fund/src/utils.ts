@@ -29,7 +29,7 @@ const getTotalDebtRatio = async (contract: any, blockNumber: number) => {
 const createFinding = (tokenfunds = 0): Finding => {
   return Finding.fromObject({
     name: "Pool Fund's Report",
-    description: "The idle funds in the pool > 10% of total value",
+    description: "The idle funds in the pool > 20% of total value",
     alertId: "Vesper-3",
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,

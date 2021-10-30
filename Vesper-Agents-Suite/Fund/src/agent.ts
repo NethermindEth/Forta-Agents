@@ -13,7 +13,7 @@ import {
 
 const web3 = new Web3(getJsonRpcUrl());
 
-// pool.tokenHere() - pool.totalValue() > 20% of pool.totalValue()
+// pool.tokenHere()> 20% of pool.totalValue()
 
 function provideHandleFunction(web3: Web3): HandleBlock {
   return async (blockEvent: BlockEvent) => {
