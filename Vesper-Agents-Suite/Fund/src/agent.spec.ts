@@ -29,7 +29,7 @@ describe("Vesper Agent 3: Idle fund", () => {
     handleBlock = agent.provideHandleFunction(mockWeb3 as any);
 
     const findings = await handleBlock({ block: { number: 101 } } as any);
-    expect(findings).toStrictEqual([createFinding(250)]);
+    expect(findings).toStrictEqual([createFinding(1000)]);
   });
 
   it("The condition for tokenfunds gives true for multiple pool addresses,", async () => {
@@ -42,6 +42,6 @@ describe("Vesper Agent 3: Idle fund", () => {
     handleBlock = agent.provideHandleFunction(mockWeb3 as any);
 
     const findings = await handleBlock({ block: { number: 102 } } as any);
-    expect(findings).toStrictEqual([createFinding(250), createFinding(250)]);
+    expect(findings).toStrictEqual([createFinding(1000), createFinding(1000)]);
   });
 });

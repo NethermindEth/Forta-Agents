@@ -13,7 +13,7 @@ import {
 
 const web3 = new Web3(getJsonRpcUrl());
 
-// pool.tokenHere() - pool.totalValue()*(MAX_BPS-totalDebtRatio) > 10% of pool.totalValue()
+// pool.tokenHere() - pool.totalValue() > 20% of pool.totalValue()
 
 function provideHandleFunction(web3: Web3): HandleBlock {
   return async (blockEvent: BlockEvent) => {
@@ -30,29 +30,10 @@ function provideHandleFunction(web3: Web3): HandleBlock {
       const tokenHere = new BigNumber(
         await getTokensHere(contract, blockNumber)
       );
-      let MAX_BPS;
-      try {
-        MAX_BPS = new BigNumber(await getBPSValue(contract, blockNumber));
-      } catch (e) {
-        // the pool is V2 hence the relation: tokenHere > 20% of totalValue
-        if (tokenHere.isGreaterThan(totalValue.times(0.2))) {
-          findings.push(createFinding(tokenHere.toNumber()));
-        }
-        continue;
-      }
-      const totalDebtRatio = new BigNumber(
-        await getTotalDebtRatio(contract, blockNumber)
-      );
-      let idleFunds;
-      if (MAX_BPS)
-        idleFunds = tokenHere.minus(
-          totalValue.multipliedBy(MAX_BPS.minus(totalDebtRatio))
-        );
 
-      if (idleFunds)
-        if (idleFunds.isGreaterThan(totalValue.multipliedBy(0.1))) {
-          findings.push(createFinding(idleFunds.toNumber()));
-        }
+      if (tokenHere.isGreaterThan(totalValue.multipliedBy(0.2))) {
+        findings.push(createFinding(tokenHere.toNumber()));
+      }
     }
 
     return findings;
