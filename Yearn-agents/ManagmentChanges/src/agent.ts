@@ -1,7 +1,6 @@
 import {
     getJsonRpcUrl,
   HandleTransaction,
-  TransactionEvent,
 } from "forta-agent";
 import { provideEventCheckerHandler } from "forta-agent-tools";
 import {
@@ -54,16 +53,7 @@ export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
   return findings.flat();
   }
 }
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-};
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
 
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(web3),
 };
