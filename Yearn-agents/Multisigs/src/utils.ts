@@ -1,4 +1,4 @@
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, Log } from "forta-agent";
 import { decodeParameter, decodeParameters, FindingGenerator } from "forta-agent-tools";
 
 const provideOwnerAddedFindingGenerator = (ens: string): FindingGenerator => 
@@ -68,19 +68,25 @@ const provideExecutionFailureFindingGenerator = (ens: string): FindingGenerator 
   };
 
 const provideERC20TransferFindingGenerator = (ens: string): FindingGenerator => 
-  (metadata?: {[key: string]: any}): Finding => Finding.fromObject({
-    name: "Yearn multisig transfer detected",
-    description: "ERC20 transfer",
-    severity: FindingSeverity.Medium,
-    type: FindingType.Info,
-    protocol: "Yearn",
-    alertId: "YEARN-1-4",
-    metadata: {
-      From: ens,
-      To: metadata?.to,
-      Value: metadata?.value,
-    },
-  });
+  (metadata?: {[key: string]: any}): Finding => {
+    const value: BigInt = BigInt(decodeParameter("uint256", metadata?.data));
+    const to: string = decodeParameter("address", metadata?.topcis[2]);
+
+    return Finding.fromObject({
+      name: "Yearn multisig transfer detected",
+      description: "ERC20 transfer",
+      severity: FindingSeverity.Medium,
+      type: FindingType.Info,
+      protocol: "Yearn",
+      alertId: "YEARN-1-4",
+      metadata: {
+        From: ens,
+        To: to,
+        Value: value.toString(),
+        TokenAddress: metadata?.address,
+      },
+    })
+  };
 
 const provideETHTransferFindingGenerator = (ens: string): FindingGenerator => 
   (metadata?: {[key: string]: any}): Finding => Finding.fromObject({
@@ -97,6 +103,32 @@ const provideETHTransferFindingGenerator = (ens: string): FindingGenerator =>
     },
   });
 
+
+const provideERC20filter = (addr: string) => {
+  const lowerAddr: string = addr.toLowerCase();
+
+  return (log: Log): boolean => {
+    // check that the event has 2 indexed topics
+    if(log.topics.length != 3) 
+      return false;
+
+    try {
+      // check that both indexed parameters fit into address type
+      const from: string = decodeParameter("address", log.topics[1]);
+      decodeParameter("address", log.topics[2]);
+
+      // check that from is the expected address
+      if(lowerAddr !== from)
+        return false;
+    }
+    catch { 
+      return false; 
+    }
+
+    return true;
+  };
+};
+
 export default {
   provideOwnerAddedFindingGenerator,
   provideOwnerRemovedFindingGenerator,
@@ -104,4 +136,5 @@ export default {
   provideExecutionFailureFindingGenerator,
   provideERC20TransferFindingGenerator,
   provideETHTransferFindingGenerator,
+  provideERC20filter,
 };
