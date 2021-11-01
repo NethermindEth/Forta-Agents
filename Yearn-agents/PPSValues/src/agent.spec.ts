@@ -2,47 +2,58 @@ import {
   FindingType,
   FindingSeverity,
   Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  createTransactionEvent,
+  HandleBlock,
+} from "forta-agent";
+import { TestBlockEvent } from "forta-agent-tools";
+import agent, { createFinding } from "./agent";
+import MockWeb3 from "./mock";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
-
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+describe("PPS ( Price per share ) agent", () => {
+  let handleBlock: HandleBlock;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    let mockWeb3 = {
+      eth: {
+        Contract: MockWeb3.build_Mock(),
+      },
+    } as any;
+    handleBlock = agent.provideHandleFunction(mockWeb3 as any);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  it("returns empty findings if pps increases", async () => {
+    const blockEvent = new TestBlockEvent();
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleBlock(blockEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it("Returns findings if pps decreases", async () => {
+    const blockEvent = new TestBlockEvent();
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleBlock(blockEvent);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    expect(findings).toStrictEqual([
+      createFinding("100", "101", "Decrese in PPS"),
+    ]);
+  });
+
+  it("Returns findings if swift change in pps", async () => {
+    const blockEvent = new TestBlockEvent();
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual(
+      createFinding("200", "100", "Very Swift change")
+    );
+  });
+
+  it("Returns findings when swift change +  pps decrease", async () => {
+    const blockEvent = new TestBlockEvent();
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual(
+      createFinding("300", "200", "Very Swift change")
+    );
+  });
+});
