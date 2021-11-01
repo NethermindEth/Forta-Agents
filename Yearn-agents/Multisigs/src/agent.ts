@@ -9,7 +9,7 @@ import Web3 from "web3";
 import utils from './utils';
 
 
-const _ensReolver: any = new Web3(getJsonRpcUrl()).eth.ens.getAddress;
+const _web3: any = new Web3(getJsonRpcUrl());
 
 
 export const MULTISIGS: string[] = [
@@ -20,40 +20,40 @@ export const MULTISIGS: string[] = [
 ];
 
 
-const provideHandleTransaction = (ensResolver: any): HandleTransaction => {
+export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
   return async (txEvent: TransactionEvent) => {
-    const addresses: string[] = await Promise.all(MULTISIGS.map((ens: string) => ensResolver(ens)));
+    const addresses: string[] = await Promise.all(MULTISIGS.map((ens: string) => web3.eth.ens.getAddress(ens)));
     const handlers: HandleTransaction[] = addresses.map(
       (addr: string, i: number) => [
         provideEventCheckerHandler(
           utils.provideOwnerAddedFindingGenerator(MULTISIGS[i]), 
-          "AddedOwner(address)",
+          utils.ADDED_OWNER,
           addr,
         ),
         provideEventCheckerHandler(
           utils.provideOwnerRemovedFindingGenerator(MULTISIGS[i]), 
-          "RemovedOwner(address)",
+          utils.REMOVED_OWNER,
           addr,
         ),
         provideEventCheckerHandler(
           utils.provideExecutionSuccessFindingGenerator(MULTISIGS[i]), 
-          "ExecutionSuccess(bytes32,uint256)",
+          utils.EXECUTION_SUCCESS,
           addr,
         ),
         provideEventCheckerHandler(
           utils.provideExecutionFailureFindingGenerator(MULTISIGS[i]), 
-          "ExecutionFailure(bytes32,uint256)",
+          utils.EXECUTION_FAILURE,
           addr,
         ),
         provideEventCheckerHandler(
           utils.provideERC20TransferFindingGenerator(MULTISIGS[i]), 
-          "Transfer(address,address,uint256)",
+          utils.TRANSFER,
           undefined,
           utils.provideERC20filter(addr),
         ),
         provideETHTransferHandler(
           utils.provideETHTransferFindingGenerator(MULTISIGS[i]), 
-          { from: addr },
+          { from: addr.toLowerCase(), valueThreshold: "1" },
         ),
       ] 
     ).flat();
@@ -66,5 +66,5 @@ const provideHandleTransaction = (ensResolver: any): HandleTransaction => {
 
 
 export default {
-  handleTransaction: provideHandleTransaction(_ensReolver),
+  handleTransaction: provideHandleTransaction(_web3),
 };

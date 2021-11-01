@@ -1,6 +1,14 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, Log } from "forta-agent";
 import { decodeParameter, decodeParameters, FindingGenerator } from "forta-agent-tools";
 
+
+// Signatures
+const ADDED_OWNER: string = "AddedOwner(address)";
+const REMOVED_OWNER: string = "RemovedOwner(address)";
+const EXECUTION_SUCCESS: string = "ExecutionSuccess(bytes32,uint256)";
+const EXECUTION_FAILURE: string = "ExecutionFailure(bytes32,uint256)";
+const TRANSFER: string = "Transfer(address,address,uint256)";
+
 const provideOwnerAddedFindingGenerator = (ens: string): FindingGenerator => 
   (metadata?: {[key: string]: any}): Finding => Finding.fromObject({
     name: "Yearn multisig wallet event detected",
@@ -8,10 +16,10 @@ const provideOwnerAddedFindingGenerator = (ens: string): FindingGenerator =>
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
     protocol: "Yearn",
-    alertId: "YEARN-1-2",
+    alertId: "YEARN-1-1",
     metadata: {
       Multisig: ens,
-      NewOwner: decodeParameter("address", metadata?.data),
+      NewOwner: decodeParameter("address", metadata?.data).toLowerCase(),
     },
   });
 
@@ -25,7 +33,7 @@ const provideOwnerRemovedFindingGenerator = (ens: string): FindingGenerator =>
     alertId: "YEARN-1-2",
     metadata: {
       Multisig: ens,
-      OldOwner: decodeParameter("address", metadata?.data),
+      OldOwner: decodeParameter("address", metadata?.data).toLowerCase(),
     },
   });
 
@@ -58,7 +66,7 @@ const provideExecutionFailureFindingGenerator = (ens: string): FindingGenerator 
       severity: FindingSeverity.Medium,
       type: FindingType.Info,
       protocol: "Yearn",
-      alertId: "YEARN-1-3",
+      alertId: "YEARN-1-4",
       metadata: {
         Multisig: ens,
         TxHash: txHash,
@@ -70,7 +78,7 @@ const provideExecutionFailureFindingGenerator = (ens: string): FindingGenerator 
 const provideERC20TransferFindingGenerator = (ens: string): FindingGenerator => 
   (metadata?: {[key: string]: any}): Finding => {
     const value: BigInt = BigInt(decodeParameter("uint256", metadata?.data));
-    const to: string = decodeParameter("address", metadata?.topcis[2]);
+    const to: string = decodeParameter("address", metadata?.topics[2]);
 
     return Finding.fromObject({
       name: "Yearn multisig transfer detected",
@@ -78,10 +86,10 @@ const provideERC20TransferFindingGenerator = (ens: string): FindingGenerator =>
       severity: FindingSeverity.Medium,
       type: FindingType.Info,
       protocol: "Yearn",
-      alertId: "YEARN-1-4",
+      alertId: "YEARN-1-5",
       metadata: {
         From: ens,
-        To: to,
+        To: to.toLowerCase(),
         Value: value.toString(),
         TokenAddress: metadata?.address,
       },
@@ -95,7 +103,7 @@ const provideETHTransferFindingGenerator = (ens: string): FindingGenerator =>
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
     protocol: "Yearn",
-    alertId: "YEARN-1-5",
+    alertId: "YEARN-1-6",
     metadata: {
       From: ens,
       To: metadata?.to,
@@ -114,7 +122,7 @@ const provideERC20filter = (addr: string) => {
 
     try {
       // check that both indexed parameters fit into address type
-      const from: string = decodeParameter("address", log.topics[1]);
+      const from: string = decodeParameter("address", log.topics[1]).toLowerCase();
       decodeParameter("address", log.topics[2]);
 
       // check that from is the expected address
@@ -137,4 +145,9 @@ export default {
   provideERC20TransferFindingGenerator,
   provideETHTransferFindingGenerator,
   provideERC20filter,
+  ADDED_OWNER,
+  REMOVED_OWNER,
+  EXECUTION_SUCCESS,
+  EXECUTION_FAILURE,
+  TRANSFER,
 };
