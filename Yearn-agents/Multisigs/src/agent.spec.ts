@@ -269,8 +269,6 @@ describe("Mutisigs agent test suite", () => {
     );
 
     const findings: Finding[] = await handler(tx);
-    console.log(findings);
-    console.log(expected);
     expect(findings).toStrictEqual(expected);
   });
 });

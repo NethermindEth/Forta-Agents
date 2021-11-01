@@ -1,27 +1,67 @@
-# High Gas Agent
+# Yearn Multisigs agents
 
 ## Description
 
-This agent detects transactions with high gas consumption
+This agent monitor the events and transactions that occur in the Year multisig wallets
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- YEARN-1-1
+  - Fired when a yearn multisig wallet emits `AddedOwner` event
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `Multisig`: Wallet that emits the event,
+    - `NewOwner`: The owner added
 
-## Test Data
+- YEARN-1-2
+  - Fired when a yearn multisig wallet emits `RemovedOwner` event
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `Multisig`: Wallet that emits the event,
+    - `OldOwner`: The owner removed
 
-The agent behaviour can be verified with the following transactions:
+- YEARN-1-3
+  - Fired when a yearn multisig wallet emits `ExecutionSuccess` event
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `Multisig`: Wallet that emits the event,
+    - `TxHash`: The hash of the executed transaction,
+    - `Payment`: The payment associated to the execution,
 
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+- YEARN-1-4
+  - Fired when a yearn multisig wallet emits `ExecutionFailure` event
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `Multisig`: Wallet that emits the event,
+    - `TxHash`: The hash of the executed transaction,
+    - `Payment`: The payment associated to the execution,
+
+- YEARN-1-5
+  - Fired when a yearn multisig sends ERC20 tokens
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `From`: Wallet that sends the tokens,
+    - `To`: Address that receives the tokens,
+    - `Value`: Value sent,
+    - `TokenAddress`: Address of the token being sent,
+  - This alerts can be false positives if the multsigs interact with a non-ERC20 contract that emit an event with signature `Transfer(indexed address, address, indexed value)`
+
+- YEARN-1-6
+  - Fired when a yearn multisig sends ETH tokens
+  - Severity is always set to "medium"
+  - Type is always set to "info"
+  - Metadata contains:
+    - `From`: Wallet that sends the tokens,
+    - `To`: Address that receives the tokens,
+    - `Value`: Value sent,

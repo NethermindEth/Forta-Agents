@@ -111,7 +111,6 @@ const provideETHTransferFindingGenerator = (ens: string): FindingGenerator =>
     },
   });
 
-
 const provideERC20filter = (addr: string) => {
   const lowerAddr: string = addr.toLowerCase();
 
