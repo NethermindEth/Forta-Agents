@@ -8,8 +8,7 @@ import {
   getJsonRpcUrl,
 } from "forta-agent";
 import Web3 from "web3";
-import { getYearnVaults } from "./utils";
-import abi from "./vault.abi";
+import { abi, getYearnVaults } from "./utils";
 
 const web3 = new Web3(getJsonRpcUrl());
 

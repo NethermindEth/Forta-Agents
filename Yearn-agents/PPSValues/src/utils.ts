@@ -23,3 +23,15 @@ export const getYearnVaults = async (
   const yearnHelper = new web3.eth.Contract(helperAbi, yearnDataProvider);
   return await yearnHelper.methods.assetsAddresses().call({}, blockNumber);
 };
+
+export const abi = [
+  {
+    constant: true,
+    inputs: [],
+    name: "getPricePerFullShare",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+];
