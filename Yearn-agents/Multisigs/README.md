@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent monitor the events and transactions that occur in the Year multisig wallets
+This agent monitor the events and transactions that occur in the Yearn multisig wallets
 
 ## Supported Chains
 
