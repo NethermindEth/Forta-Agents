@@ -22,7 +22,7 @@ export const createFinding = (
   return Finding.fromObject({
     name: "Yearn PPS Agent",
     description: `Year PPS value: ${reason}`,
-    alertId: `Yearn-7-${id}`,
+    alertId: `Yearn-8-${id}`,
     severity: FindingSeverity.High,
     type: FindingType.Unknown,
     metadata: {
