@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import { createAddress } from "forta-agent-tools";
 
 const mockPrice = jest.fn();

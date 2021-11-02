@@ -1,10 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  createTransactionEvent,
-  HandleBlock,
-} from "forta-agent";
+import { HandleBlock } from "forta-agent";
 import { TestBlockEvent } from "forta-agent-tools";
 import agent, { createFinding } from "./agent";
 import MockWeb3 from "./mock";
