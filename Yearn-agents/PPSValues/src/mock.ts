@@ -2,9 +2,9 @@ import BigNumber from "bignumber.js";
 
 const mockPrice = jest.fn();
 mockPrice
-  .mockReturnValueOnce(101) // First call. Tracker = 101
-  .mockReturnValueOnce(100) // Second test. Tracker = 100  (<101)
-  .mockReturnValueOnce(200) // Third test. Tracker = 200. ( > 100 )
+  .mockReturnValueOnce(1.1) // First call. Tracker = 101
+  .mockReturnValueOnce(1) // Second test. Tracker = 100  (<101)
+  .mockReturnValueOnce(100) // Third test. Tracker = 200. ( > 100 )
   .mockReturnValueOnce(300); // Fourth test.
 
 const build_Mock = () =>
@@ -21,7 +21,7 @@ const build_Mock = () =>
 
     private getPricePerFullShare() {
       return {
-        call: () => mockPrice,
+        call: mockPrice,
       };
     }
   };

@@ -35,7 +35,7 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("100", "101", "Decrese in PPS"),
+      createFinding("1", "1.1", "Decrese in PPS"),
     ]);
   });
 
@@ -43,17 +43,17 @@ describe("PPS ( Price per share ) agent", () => {
     const blockEvent = new TestBlockEvent();
     const findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual(
-      createFinding("200", "100", "Very Swift change")
-    );
+    expect(findings).toStrictEqual([
+      createFinding("100", "1", "Very Swift change"),
+    ]);
   });
 
   it("Returns findings when swift change +  pps decrease", async () => {
     const blockEvent = new TestBlockEvent();
     const findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual(
-      createFinding("300", "200", "Very Swift change")
-    );
+    expect(findings).toStrictEqual([
+      createFinding("300", "100", "Very Swift change"),
+    ]);
   });
 });

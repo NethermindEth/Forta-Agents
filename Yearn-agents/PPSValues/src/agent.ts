@@ -31,17 +31,14 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
     abi as any,
     "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7"
   );
-  let tracker = new BigNumber(0);
+  let tracker = new BigNumber(1);
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    // console.log(await vault.methods.getPricePerFullShare().call());
     const pps = new BigNumber(
       await vault.methods.getPricePerFullShare().call()
     );
-
-    console.log(tracker.toNumber(), pps);
 
     // pps should increase only
     if (pps.isLessThan(tracker)) {
