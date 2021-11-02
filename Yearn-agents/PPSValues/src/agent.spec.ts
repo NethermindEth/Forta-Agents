@@ -29,7 +29,7 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("1", "1.1", "Decrese in PPS"),
+      createFinding("1", "1.1", "Decrease in PPS", 1),
     ]);
   });
 
@@ -38,7 +38,7 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("100", "1", "Very Swift change"),
+      createFinding("100", "1", "Very Swift change", 2),
     ]);
   });
 
@@ -47,7 +47,8 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("300", "100", "Very Swift change"),
+      createFinding("10", "100", "Decrease in PPS", 1),
+      createFinding("10", "100", "Very Swift change", 2),
     ]);
   });
 });

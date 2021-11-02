@@ -13,11 +13,16 @@ import abi from "./vault.abi";
 
 const web3 = new Web3(getJsonRpcUrl());
 
-export const createFinding = (ppo: string, tracker: string, reason: string) => {
+export const createFinding = (
+  ppo: string,
+  tracker: string,
+  reason: string,
+  id: number
+) => {
   return Finding.fromObject({
     name: "Yearn PPS Agent",
     description: `Year PPS value: ${reason}`,
-    alertId: "Yearn-3",
+    alertId: `Yearn-7-${id}`,
     severity: FindingSeverity.High,
     type: FindingType.Unknown,
     metadata: {
@@ -44,19 +49,30 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
       // pps should increase only
       if (pps.isLessThan(tracker)) {
         findings.push(
-          createFinding(pps.toString(), tracker.toString(), "Decrese in PPS")
+          createFinding(
+            pps.toString(),
+            tracker.toString(),
+            "Decrease in PPS",
+            1
+          )
         );
       }
 
       // swift change in pps
       if (Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > 0.1) {
         findings.push(
-          createFinding(pps.toString(), tracker.toString(), "Very Swift change")
+          createFinding(
+            pps.toString(),
+            tracker.toString(),
+            "Very Swift change",
+            2
+          )
         );
       }
 
       tracker = pps;
     }
+
     return findings;
   };
 };

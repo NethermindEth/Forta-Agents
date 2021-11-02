@@ -5,7 +5,7 @@ mockPrice
   .mockReturnValueOnce(1.1) // First call. Tracker = 101
   .mockReturnValueOnce(1) // Second test. Tracker = 100  (<101)
   .mockReturnValueOnce(100) // Third test. Tracker = 200. ( > 100 )
-  .mockReturnValueOnce(300); // Fourth test.
+  .mockReturnValueOnce(10); // Fourth test.
 
 const build_Mock = () =>
   class MockContract {
