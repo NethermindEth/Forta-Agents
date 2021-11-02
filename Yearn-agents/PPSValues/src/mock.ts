@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { createAddress } from "forta-agent-tools";
 
 const mockPrice = jest.fn();
 mockPrice
@@ -9,19 +10,22 @@ mockPrice
 
 const build_Mock = () =>
   class MockContract {
-    private addr: string;
-
     public methods = {
       getPricePerFullShare: this.getPricePerFullShare,
+      assetsAddresses: this.assetsAddresses,
     };
 
-    constructor(_: any, address: string) {
-      this.addr = address;
-    }
+    constructor(_: any, address: string) {}
 
     private getPricePerFullShare() {
       return {
         call: mockPrice,
+      };
+    }
+
+    private assetsAddresses() {
+      return {
+        call: () => [createAddress("0x01")],
       };
     }
   };

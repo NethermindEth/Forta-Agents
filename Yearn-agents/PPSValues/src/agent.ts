@@ -8,6 +8,7 @@ import {
   getJsonRpcUrl,
 } from "forta-agent";
 import Web3 from "web3";
+import { getYearnVaults } from "./utils";
 import abi from "./vault.abi";
 
 const web3 = new Web3(getJsonRpcUrl());
@@ -27,34 +28,35 @@ export const createFinding = (ppo: string, tracker: string, reason: string) => {
 };
 
 const provideHandleFunction = (web3: Web3): HandleBlock => {
-  const vault = new web3.eth.Contract(
-    abi as any,
-    "0xe1237aA7f535b0CC33Fd973D66cBf830354D16c7"
-  );
   let tracker = new BigNumber(1);
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
+    const vaults = await getYearnVaults(web3, blockEvent.blockNumber);
 
-    const pps = new BigNumber(
-      await vault.methods.getPricePerFullShare().call()
-    );
+    for (let i = 0; i < vaults.length; i++) {
+      const vault = new web3.eth.Contract(abi as any, vaults[i]);
 
-    // pps should increase only
-    if (pps.isLessThan(tracker)) {
-      findings.push(
-        createFinding(pps.toString(), tracker.toString(), "Decrese in PPS")
+      const pps = new BigNumber(
+        await vault.methods.getPricePerFullShare().call()
       );
-    }
 
-    // swift change in pps
-    if (Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > 0.1) {
-      findings.push(
-        createFinding(pps.toString(), tracker.toString(), "Very Swift change")
-      );
-    }
+      // pps should increase only
+      if (pps.isLessThan(tracker)) {
+        findings.push(
+          createFinding(pps.toString(), tracker.toString(), "Decrese in PPS")
+        );
+      }
 
-    tracker = pps;
+      // swift change in pps
+      if (Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > 0.1) {
+        findings.push(
+          createFinding(pps.toString(), tracker.toString(), "Very Swift change")
+        );
+      }
+
+      tracker = pps;
+    }
     return findings;
   };
 };
