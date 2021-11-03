@@ -17,22 +17,20 @@ export default class MakerFetcher {
     this.web3 = web3;
   }
 
-  public getActiveMakers = async (blockNumber: string | number) => {
+  public getActiveMakers = async (blockNumber: string | number = 'latest') => {
     const activeMakers: string[] = [];
     const vaults = await this.getVaults(blockNumber);
 
     for (const vault of vaults) {
       const makers = await this.filterMakerStrategy(vault, blockNumber);
 
-      makers.map(async (strategy) => {
+      for (const strategy of makers) {
         await this.filterInActives(vault, strategy, blockNumber);
-      });
 
-      const actives = makers.filter((strategy) => {
-        return this.isActive(vault, strategy);
-      });
-
-      activeMakers.push(...actives);
+        if (this.isActive(vault, strategy)) {
+          activeMakers.push(strategy);
+        }
+      }
     }
 
     return activeMakers;
@@ -101,7 +99,7 @@ export default class MakerFetcher {
     vault: string,
     strategy: string,
     blockNumber: string | number
-  ): Promise<boolean> => {
+  ) => {
     if (!this.cache.get(vault)?.includes(strategy)) {
       const strategyContract = new this.web3.eth.Contract(
         StrategyABI,
@@ -121,10 +119,8 @@ export default class MakerFetcher {
         } else {
           this.cache.set(vault, [strategy]);
         }
-
-        return false;
-      } else return true;
-    } else return false;
+      }
+    }
   };
 
   private isActive = (vault: string, strategy: string): boolean | undefined => {

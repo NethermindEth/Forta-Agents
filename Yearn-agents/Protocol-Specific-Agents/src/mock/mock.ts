@@ -2,13 +2,24 @@ import { createAddress } from 'forta-agent-tools';
 
 const VAULTS: string[] = [createAddress('0x1')];
 
-export type Args = [vaults: string[], name: string];
+export type Args = [name: string];
 
 export const STRATEGIES = jest.fn();
-
 STRATEGIES.mockReturnValueOnce(createAddress('0x2'))
   .mockReturnValueOnce(createAddress('0x3'))
   .mockReturnValueOnce(createAddress('0x4'));
+
+export const isActive = jest.fn();
+isActive
+  .mockReturnValueOnce(true)
+  .mockReturnValueOnce(true)
+  .mockReturnValueOnce(false);
+
+export const name = jest.fn();
+name
+  .mockReturnValueOnce('Maker')
+  .mockReturnValueOnce('Maker')
+  .mockReturnValueOnce('Curve');
 
 const build_Mock = () =>
   class MockContract {
@@ -28,7 +39,7 @@ const build_Mock = () =>
 
     private NAME() {
       return {
-        call: () => 'Maker',
+        call: () => name(),
       };
     }
 
@@ -53,7 +64,7 @@ const build_Mock = () =>
 
     private isActive() {
       return {
-        call: () => true,
+        call: () => isActive(),
       };
     }
   };

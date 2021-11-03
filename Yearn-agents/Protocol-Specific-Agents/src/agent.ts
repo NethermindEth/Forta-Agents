@@ -15,16 +15,18 @@ import {
 } from './utils';
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
+const fetcher = new MakerFetcher(web3);
 
-export const provideHandleTransaction = (web3: Web3) => {
+export const provideHandleTransaction = (web3: Web3, fetcher: MakerFetcher) => {
   return async (txEvent: TransactionEvent) => {
-    const fetcher = new MakerFetcher(web3);
-
     const findings: Finding[] = [];
 
+    if (!txEvent.status) return findings;
     const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
     for (const strategy of makers) {
+      console.log(txEvent);
+
       const collateralType = await getCollateralType(
         web3,
         strategy,
@@ -36,7 +38,7 @@ export const provideHandleTransaction = (web3: Web3) => {
       };
 
       const agentHandler = provideFunctionCallsDetectorHandler(
-        createFindingStabilityFee(strategy),
+        createFindingStabilityFee(strategy.toString()),
         JUG_DRIP_FUNCTION_SIGNATURE,
         { to: JUG_CONTRACT, filterOnArguments }
       );
@@ -49,6 +51,6 @@ export const provideHandleTransaction = (web3: Web3) => {
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(web3),
+  handleTransaction: provideHandleTransaction(web3, fetcher),
   provideHandleTransaction,
 };

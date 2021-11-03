@@ -14,6 +14,7 @@ import {
 import Mock, { Args } from './mock/mock';
 import { provideHandleTransaction } from './agent';
 import { JUG_CONTRACT, JUG_DRIP_FUNCTION_SIGNATURE } from './utils';
+import MakerFetcher from './maker.fetcher';
 
 const createMock = () => {
   return {
@@ -41,43 +42,45 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
 describe('Protocol Alerts Agent Test Suite', () => {
   let handleTransaction: HandleTransaction;
 
-  /*   it('should return empty findings ', async () => {
+  it('should return empty findings ', async () => {
     const mockWeb3 = createMock();
+    const fetcher = new MakerFetcher(mockWeb3);
 
-    handleTransaction = provideHandleTransaction(mockWeb3);
+    let findings: Finding[] = [];
 
-    const txEvent: any = new TestTransactionEvent();
+    handleTransaction = provideHandleTransaction(mockWeb3, fetcher);
 
-    let findings: Finding[];
+    const txEvent: any = new TestTransactionEvent().setStatus(true);
+
     findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
-  }); */
+  });
 
-  it('should return findings', async () => {
+  it('should return findings ', async () => {
+    const mockWeb3 = createMock();
+    const fetcher = new MakerFetcher(mockWeb3);
+
+    let findings: Finding[] = [];
+
     const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
     const collateralType =
       '4554482d43000000000000000000000000000000000000000000000000000000';
     const INPUT = selector + collateralType;
 
-    const mockWeb3 = createMock();
+    handleTransaction = provideHandleTransaction(mockWeb3, fetcher);
 
-    handleTransaction = provideHandleTransaction(mockWeb3);
-
-    const txnEvent: any = new TestTransactionEvent()
+    const txEvent: any = new TestTransactionEvent()
       .addTraces({
         to: JUG_CONTRACT,
         input: INPUT,
       })
       .setStatus(true);
 
-    let findings: Finding[];
-    findings = await handleTransaction(txnEvent);
+    findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       createFindingSF(createAddress('0x2'), '0x' + collateralType),
-      createFindingSF(createAddress('0x3'), '0x' + collateralType),
-      createFindingSF(createAddress('0x4'), '0x' + collateralType),
     ]);
   });
 });
