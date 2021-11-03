@@ -1,44 +1,59 @@
 import { createAddress } from 'forta-agent-tools';
 
-const VAULTS: string[] = [createAddress('0x1'), createAddress('0x2')];
-
-const STRATEGIES: string[] = [createAddress('0x3'), createAddress('0x4')];
+const VAULTS: string[] = [createAddress('0x1')];
 
 export type Args = [vaults: string[], name: string];
 
-const build_Mock = (args: Args) =>
+export const STRATEGIES = jest.fn();
+
+STRATEGIES.mockReturnValueOnce(createAddress('0x2'))
+  .mockReturnValueOnce(createAddress('0x3'))
+  .mockReturnValueOnce(createAddress('0x4'));
+
+const build_Mock = () =>
   class MockContract {
+    private addr: string;
+
     public methods = {
       name: this.NAME,
-      getStrategies: this.getStrategies,
-      vaults: this.vaults,
-      collateralType: this.collateralType,
+      withdrawalQueue: this.withdrawalQueue,
+      assetsAddresses: this.assetsAddresses,
+      ilk: this.ilk,
+      isActive: this.isActive,
     };
 
-    constructor() {}
+    constructor(_: any, addr: string) {
+      this.addr = addr;
+    }
 
     private NAME() {
       return {
-        call: () => args[1],
+        call: () => 'Maker',
       };
     }
 
-    private getStrategies() {
+    private ilk() {
       return {
-        call: () => STRATEGIES,
+        call: () =>
+          '0x4554482d43000000000000000000000000000000000000000000000000000000',
       };
     }
 
-    private vaults() {
+    private withdrawalQueue() {
+      return {
+        call: () => STRATEGIES(),
+      };
+    }
+
+    private assetsAddresses() {
       return {
         call: () => VAULTS,
       };
     }
 
-    private collateralType() {
+    private isActive() {
       return {
-        call: () =>
-          '0x4554482d43000000000000000000000000000000000000000000000000000000',
+        call: () => true,
       };
     }
   };

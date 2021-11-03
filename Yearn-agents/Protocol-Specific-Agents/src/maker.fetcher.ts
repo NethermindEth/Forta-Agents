@@ -21,15 +21,20 @@ export default class MakerFetcher {
     const activeMakers: string[] = [];
     const vaults = await this.getVaults(blockNumber);
 
-    vaults.forEach(async (vault) => {
+    for (const vault of vaults) {
       const makers = await this.filterMakerStrategy(vault, blockNumber);
 
-      const actives = makers.filter(async (strategy) => {
-        return await this.filterInActives(vault, strategy, blockNumber);
+      makers.map(async (strategy) => {
+        await this.filterInActives(vault, strategy, blockNumber);
+      });
+
+      const actives = makers.filter((strategy) => {
+        return this.isActive(vault, strategy);
       });
 
       activeMakers.push(...actives);
-    });
+    }
+
     return activeMakers;
   };
 
@@ -48,10 +53,11 @@ export default class MakerFetcher {
   private filterMakerStrategy = async (
     vault: string,
     blockNumber: string | number
-  ) => {
+  ): Promise<string[]> => {
     const strategies = await this.getStrategies(vault, blockNumber);
+    const makerStrategies: string[] = [];
 
-    const makerStrategies = strategies.filter(async (strategy) => {
+    for (const strategy of strategies) {
       const strategyContract = new this.web3.eth.Contract(
         StrategyABI,
         strategy
@@ -61,8 +67,10 @@ export default class MakerFetcher {
         .name()
         .call({}, blockNumber);
 
-      return name.includes('Maker');
-    });
+      if (name.includes('Maker')) {
+        makerStrategies.push(strategy);
+      }
+    }
 
     return makerStrategies;
   };
@@ -74,18 +82,15 @@ export default class MakerFetcher {
     const strategies: string[] = [];
     const vaultContract = new this.web3.eth.Contract(VaultABI, vault);
 
-    let counter = 0;
-    let isDone = false;
-    while (!isDone) {
+    for (let i = 0; i < 20; i++) {
       const strategy = await vaultContract.methods
-        .withdrawalQueue(counter)
+        .withdrawalQueue(i)
         .call({}, blockNumber);
 
-      if (!isZeroAddress(strategy)) {
+      if (strategy && !isZeroAddress(strategy)) {
         strategies.push(strategy);
-        counter++;
       } else {
-        isDone = true;
+        break;
       }
     }
 
@@ -103,12 +108,12 @@ export default class MakerFetcher {
         strategy
       );
 
-      const isActive = await strategyContract.methods
+      const isActive: boolean = await strategyContract.methods
         .isActive()
         .call({}, blockNumber);
 
       if (!isActive) {
-        const inActives = this.cache.get(vault);
+        let inActives = this.cache.get(vault);
 
         if (inActives !== undefined) {
           inActives.push(strategy);
@@ -116,17 +121,13 @@ export default class MakerFetcher {
         } else {
           this.cache.set(vault, [strategy]);
         }
+
         return false;
       } else return true;
     } else return false;
   };
 
-  /*   private isActive = async (
-    vault: string,
-    strategy: string
-  ): Promise<boolean> => {
-    if (this.cache.get(vault)?.includes(strategy)) {
-      return false;
-    } else return true;
-  }; */
+  private isActive = (vault: string, strategy: string): boolean | undefined => {
+    return !this.cache.get(vault)?.includes(strategy);
+  };
 }

@@ -15,37 +15,35 @@ import {
 } from './utils';
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
-const fetcher = new MakerFetcher(web3);
 
-const provideHandleTransaction = (web3: Web3): HandleTransaction => {
+export const provideHandleTransaction = (web3: Web3) => {
   return async (txEvent: TransactionEvent) => {
+    const fetcher = new MakerFetcher(web3);
+
     const findings: Finding[] = [];
 
-    if (txEvent.status) {
-      const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
+    const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
-      makers.forEach(async (strategy) => {
-        const collateralType = await getCollateralType(
-          web3,
-          strategy,
-          txEvent.blockNumber
-        );
+    for (const strategy of makers) {
+      const collateralType = await getCollateralType(
+        web3,
+        strategy,
+        txEvent.blockNumber
+      );
 
-        const filterOnArguments = (args: { [key: string]: any }): boolean => {
-          return args[0] === collateralType;
-        };
+      const filterOnArguments = (args: { [key: string]: any }): boolean => {
+        return args[0] === collateralType;
+      };
 
-        const agentHandler = provideFunctionCallsDetectorHandler(
-          createFindingStabilityFee(strategy.toString()),
-          JUG_DRIP_FUNCTION_SIGNATURE,
-          { to: JUG_CONTRACT, filterOnArguments }
-        );
+      const agentHandler = provideFunctionCallsDetectorHandler(
+        createFindingStabilityFee(strategy),
+        JUG_DRIP_FUNCTION_SIGNATURE,
+        { to: JUG_CONTRACT, filterOnArguments }
+      );
 
-        findings.push(...(await agentHandler(txEvent)));
-      });
-
-      return findings;
+      findings.push(...(await agentHandler(txEvent)));
     }
+
     return findings;
   };
 };
