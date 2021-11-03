@@ -12,11 +12,11 @@ export const createFindingStabilityFee = (
   return (metadata): Finding => {
     return Finding.fromObject({
       name: 'Stability Fee Update Detection',
-      description: "stability Fee is changed for related strategy's collateral",
+      description: "stability Fee is changed for MAKER strategy's collateral",
       severity: FindingSeverity.High,
       type: FindingType.Info,
-      alertId: 'Vesper-1-2',
-      protocol: 'Vesper',
+      alertId: 'Maker-3',
+      protocol: 'Maker',
       metadata: {
         strategy: _strategy,
         collateralType: metadata?.arguments[0],
