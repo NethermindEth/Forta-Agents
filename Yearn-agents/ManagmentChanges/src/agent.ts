@@ -1,7 +1,4 @@
-import {
-    getJsonRpcUrl,
-  HandleTransaction,
-} from "forta-agent";
+import { getJsonRpcUrl, HandleTransaction } from "forta-agent";
 import { provideEventCheckerHandler } from "forta-agent-tools";
 import {
   updateManagementSignature,
@@ -12,48 +9,46 @@ import {
   createUpdatePerformanceFeeFindingGenerator,
   getYearnVaults,
 } from "./utils";
-import Web3 from "web3";
+import { ethers } from "ethers";
 
-const web3 = new Web3(getJsonRpcUrl());
+const etherProvider = new ethers.providers.JsonRpcProvider(getJsonRpcUrl());
 
-
-
-export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
+export const provideHandleTransaction = (etherProvider: ethers.providers.JsonRpcProvider): HandleTransaction => {
   return async (txEvent) => {
-  const yearnVaults: string[] = getYearnVaults(web3, txEvent.blockNumber);
+    const yearnVaults: string[] = await getYearnVaults(etherProvider, txEvent.blockNumber);
 
-  const updateManagementHandlers = yearnVaults.map((yearnVault: string) =>
-    provideEventCheckerHandler(
-      createUpdateManagementFindingGenerator(yearnVault),
-      updateManagementSignature,
-      yearnVault
-    )
-  );
+    const updateManagementHandlers = yearnVaults.map((yearnVault: string) =>
+      provideEventCheckerHandler(
+        createUpdateManagementFindingGenerator(yearnVault),
+        updateManagementSignature,
+        yearnVault
+      )
+    );
 
-  const updateManagementFeeHandlers = yearnVaults.map((yearnVault: string) =>
-    provideEventCheckerHandler(
-      createUpdateManagementFeeFindingGenerator(yearnVault),
-      updateManagementFeeSignature,
-      yearnVault
-    )
-  );
+    const updateManagementFeeHandlers = yearnVaults.map((yearnVault: string) =>
+      provideEventCheckerHandler(
+        createUpdateManagementFeeFindingGenerator(yearnVault),
+        updateManagementFeeSignature,
+        yearnVault
+      )
+    );
 
-  const updatePerformanceFeeHandlers = yearnVaults.map((yearnVault: string) =>
-    provideEventCheckerHandler(
-      createUpdatePerformanceFeeFindingGenerator(yearnVault),
-      updatePerformanceFeeSignature,
-      yearnVault
-    )
-  );
+    const updatePerformanceFeeHandlers = yearnVaults.map((yearnVault: string) =>
+      provideEventCheckerHandler(
+        createUpdatePerformanceFeeFindingGenerator(yearnVault),
+        updatePerformanceFeeSignature,
+        yearnVault
+      )
+    );
 
-  const handlers = updateManagementHandlers.concat(updateManagementFeeHandlers, updatePerformanceFeeHandlers);
+    const handlers = updateManagementHandlers.concat(updateManagementFeeHandlers, updatePerformanceFeeHandlers);
 
-  const findings = await Promise.all(handlers.map((handler) => handler(txEvent)));
+    const findings = await Promise.all(handlers.map((handler) => handler(txEvent)));
 
-  return findings.flat();
-  }
-}
+    return findings.flat();
+  };
+};
 
 export default {
-  handleTransaction: provideHandleTransaction(web3),
+  handleTransaction: provideHandleTransaction(etherProvider),
 };
