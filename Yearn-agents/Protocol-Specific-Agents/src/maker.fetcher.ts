@@ -17,30 +17,54 @@ export default class MakerFetcher {
     this.web3 = web3;
   }
 
-  private getAssets = async (
+  public getActiveMakers = async (blockNumber: string | number) => {
+    const activeMakers: string[] = [];
+    const vaults = await this.getVaults(blockNumber);
+
+    vaults.forEach(async (vault) => {
+      const makers = await this.filterMakerStrategy(vault, blockNumber);
+
+      const actives = makers.filter(async (strategy) => {
+        return await this.filterInActives(vault, strategy, blockNumber);
+      });
+
+      activeMakers.push(...actives);
+    });
+    return activeMakers;
+  };
+
+  private getVaults = async (
     blockNumber: string | number
   ): Promise<string[]> => {
     const helperContract = new this.web3.eth.Contract(HelperABI, HELPER);
 
-    const assets: string[] = await helperContract.methods
+    const vaults: string[] = await helperContract.methods
       .assetsAddresses()
       .call({}, blockNumber);
 
-    return assets;
+    return vaults;
   };
 
-  public getVaults = async (blockNumber: string | number) => {
-    const vaults: string[] = await this.getAssets(blockNumber);
+  private filterMakerStrategy = async (
+    vault: string,
+    blockNumber: string | number
+  ) => {
+    const strategies = await this.getStrategies(vault, blockNumber);
 
-    vaults.forEach(async (vault) => {
-      const strategies = await this.getStrategies(vault, blockNumber);
-      console.log(this.cache.get(vault));
-      strategies.map(async (strategy) => {
-        await this.filterInActives(vault, strategy, blockNumber);
-      });
+    const makerStrategies = strategies.filter(async (strategy) => {
+      const strategyContract = new this.web3.eth.Contract(
+        StrategyABI,
+        strategy
+      );
+
+      const name: string = await strategyContract.methods
+        .name()
+        .call({}, blockNumber);
+
+      return name.includes('Maker');
     });
 
-    return vaults;
+    return makerStrategies;
   };
 
   private getStrategies = async (
@@ -72,7 +96,7 @@ export default class MakerFetcher {
     vault: string,
     strategy: string,
     blockNumber: string | number
-  ) => {
+  ): Promise<boolean> => {
     if (!this.cache.get(vault)?.includes(strategy)) {
       const strategyContract = new this.web3.eth.Contract(
         StrategyABI,
@@ -92,7 +116,17 @@ export default class MakerFetcher {
         } else {
           this.cache.set(vault, [strategy]);
         }
-      }
-    }
+        return false;
+      } else return true;
+    } else return false;
   };
+
+  /*   private isActive = async (
+    vault: string,
+    strategy: string
+  ): Promise<boolean> => {
+    if (this.cache.get(vault)?.includes(strategy)) {
+      return false;
+    } else return true;
+  }; */
 }
