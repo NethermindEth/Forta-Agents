@@ -8,12 +8,12 @@ import {
   getJsonRpcUrl,
 } from "forta-agent";
 import Web3 from "web3";
-import { abi, getYearnVaults } from "./utils";
+import { vaultAbi, getYearnVaults } from "./utils";
 
 const web3 = new Web3(getJsonRpcUrl());
 
 export const createFinding = (
-  ppo: string,
+  pps: string,
   tracker: string,
   reason: string,
   id: number
@@ -25,7 +25,7 @@ export const createFinding = (
     severity: FindingSeverity.High,
     type: FindingType.Unknown,
     metadata: {
-      ppo,
+      pps,
       tracker,
     },
   });
@@ -33,13 +33,14 @@ export const createFinding = (
 
 const provideHandleFunction = (web3: Web3): HandleBlock => {
   let tracker = new BigNumber(1);
+  const threshold = 0.1;
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const vaults = await getYearnVaults(web3, blockEvent.blockNumber);
 
     for (let i = 0; i < vaults.length; i++) {
-      const vault = new web3.eth.Contract(abi as any, vaults[i]);
+      const vault = new web3.eth.Contract(vaultAbi as any, vaults[i]);
 
       const pps = new BigNumber(
         await vault.methods.getPricePerFullShare().call()
@@ -58,7 +59,9 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
       }
 
       // swift change in pps
-      if (Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > 0.1) {
+      if (
+        Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > threshold
+      ) {
         findings.push(
           createFinding(
             pps.toString(),

@@ -24,7 +24,7 @@ export const getYearnVaults = async (
   return await yearnHelper.methods.assetsAddresses().call({}, blockNumber);
 };
 
-export const abi = [
+export const vaultAbi = [
   {
     constant: true,
     inputs: [],

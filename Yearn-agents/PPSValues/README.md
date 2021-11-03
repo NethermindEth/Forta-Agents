@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent ambiguity in PPS ( Price per share )
+This agent detects anomalies in PPS ( Price per share )
 
 ## Supported Chains
 
@@ -18,13 +18,13 @@ Describe each of the type of alerts fired by this agent
   - Severity is always set to "high"
   - Type is always set to "info"
   - Metadata contains:
-  - `ppo`: Current Value of ppo,
-  - `tracker`: Older Value of ppo.
+  - `pps`: Current Value of pps,
+  - `tracker`: Older Value of pps.
 
 - YEARN-8-2
-  - Fired when pps value change swiftly.
+  - Fired when pps value change swiftly (change >10%).
   - Severity is always set to "high"
   - Type is always set to "info"
   - Metadata contains:
-    - `ppo`: Current Value of ppo,
-    - `tracker`: Older Value of ppo.
+    - `pps`: Current Value of pps,
+    - `tracker`: Older Value of pps.
