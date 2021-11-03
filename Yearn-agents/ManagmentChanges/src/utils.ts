@@ -12,7 +12,7 @@ export const updatePerformanceFeeSignature = "UpdatePerformanceFee(uint256)";
 
 export const createUpdateManagementFindingGenerator = (vaultAddress: string): FindingGenerator => {
   return (metadata) => {
-    const setManager = decodeParameter("address", metadata?.data);
+    const setManagement = decodeParameter("address", metadata?.data);
 
     return Finding.fromObject({
       name: "Updated Management",
@@ -23,7 +23,7 @@ export const createUpdateManagementFindingGenerator = (vaultAddress: string): Fi
       protocol: "Yearn",
       metadata: {
         vaultAddress: vaultAddress,
-        setManger: setManager,
+        setManagement: setManagement,
       },
     });
   };
@@ -36,7 +36,7 @@ export const createUpdateManagementFeeFindingGenerator = (vaultAddress: string):
     return Finding.fromObject({
       name: "Updated Management Fee",
       description: "A Yearn Vault has updated its management fee",
-      alertId: "Yearn-9-1",
+      alertId: "Yearn-9-2",
       type: FindingType.Info,
       severity: FindingSeverity.Info,
       protocol: "Yearn",
@@ -55,7 +55,7 @@ export const createUpdatePerformanceFeeFindingGenerator = (vaultAddress: string)
     return Finding.fromObject({
       name: "Updated Performance Fee",
       description: "A Yearn Vault has updated its performance fee",
-      alertId: "Yearn-9-1",
+      alertId: "Yearn-9-3",
       type: FindingType.Info,
       severity: FindingSeverity.Info,
       protocol: "Yearn",

@@ -23,7 +23,7 @@ const yearnGovernor = "0xfeb4acf3df3cdea7399794d0869ef76a6efaff52";
 // Multicall Contract from MakerDAO on mainnet
 const multicallContractAddress = "0xeefBa1e63905eF1D7ACbA5a8513c70307C1cE441";
 
-const createUpdateManagementFinding = (vaultAddress: string, manager: string) => {
+const createUpdateManagementFinding = (vaultAddress: string, management: string) => {
   return Finding.fromObject({
     name: "Updated Management",
     description: "A Yearn Vault has updated its manager",
@@ -33,7 +33,7 @@ const createUpdateManagementFinding = (vaultAddress: string, manager: string) =>
     protocol: "Yearn",
     metadata: {
       vaultAddress: vaultAddress,
-      setManger: manager,
+      setManagement: management,
     },
   });
 };
@@ -42,7 +42,7 @@ const createUpdateManagementFeeFinding = (vaultAddress: string, fee: string) => 
   return Finding.fromObject({
     name: "Updated Management Fee",
     description: "A Yearn Vault has updated its management fee",
-    alertId: "Yearn-9-1",
+    alertId: "Yearn-9-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     protocol: "Yearn",
@@ -57,7 +57,7 @@ const createUpdatePerformanceFeeFinding = (vaultAddress: string, fee: string) =>
   return Finding.fromObject({
     name: "Updated Performance Fee",
     description: "A Yearn Vault has updated its performance fee",
-    alertId: "Yearn-9-1",
+    alertId: "Yearn-9-3",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     protocol: "Yearn",
