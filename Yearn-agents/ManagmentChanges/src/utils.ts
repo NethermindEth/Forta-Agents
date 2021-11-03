@@ -71,8 +71,7 @@ export const getYearnVaults = async (
   etherProvider: ethers.providers.JsonRpcProvider,
   blockNumber: string | number
 ): Promise<string[]> => {
-  const signer = etherProvider.getSigner(0);
-  const yearnHelper = new ethers.Contract(yearnDataProvider, helperAbi, signer);
+  const yearnHelper = new ethers.Contract(yearnDataProvider, helperAbi, etherProvider);
   return yearnHelper.assetsAddresses({ blockTag: blockNumber });
 };
 
