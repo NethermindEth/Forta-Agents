@@ -25,8 +25,6 @@ export const provideHandleTransaction = (web3: Web3, fetcher: MakerFetcher) => {
     const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
     for (const strategy of makers) {
-      console.log(txEvent);
-
       const collateralType = await getCollateralType(
         web3,
         strategy,

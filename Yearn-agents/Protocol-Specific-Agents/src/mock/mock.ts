@@ -4,22 +4,9 @@ const VAULTS: string[] = [createAddress('0x1')];
 
 export type Args = [name: string];
 
-export const STRATEGIES = jest.fn();
-STRATEGIES.mockReturnValueOnce(createAddress('0x2'))
-  .mockReturnValueOnce(createAddress('0x3'))
-  .mockReturnValueOnce(createAddress('0x4'));
-
+export const strategies = jest.fn();
 export const isActive = jest.fn();
-isActive
-  .mockReturnValueOnce(true)
-  .mockReturnValueOnce(true)
-  .mockReturnValueOnce(false);
-
 export const name = jest.fn();
-name
-  .mockReturnValueOnce('Maker')
-  .mockReturnValueOnce('Maker')
-  .mockReturnValueOnce('Curve');
 
 const build_Mock = () =>
   class MockContract {
@@ -35,6 +22,15 @@ const build_Mock = () =>
 
     constructor(_: any, addr: string) {
       this.addr = addr;
+
+      strategies
+        .mockReturnValueOnce(createAddress('0x2'))
+        .mockReturnValueOnce(createAddress('0x3'))
+        .mockReturnValueOnce(createAddress('0x'));
+
+      isActive.mockReturnValueOnce(true).mockReturnValueOnce(true);
+
+      name.mockReturnValueOnce('Maker').mockReturnValueOnce('Curve');
     }
 
     private NAME() {
@@ -52,7 +48,7 @@ const build_Mock = () =>
 
     private withdrawalQueue() {
       return {
-        call: () => STRATEGIES(),
+        call: () => strategies(),
       };
     }
 
@@ -72,5 +68,5 @@ const build_Mock = () =>
 export default {
   build_Mock,
   VAULTS,
-  STRATEGIES,
+  strategies,
 };
