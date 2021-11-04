@@ -21,7 +21,7 @@ export const getYearnVaults = async (
   blockNumber: string | number
 ): Promise<string[]> => {
   const yearnHelper = new web3.eth.Contract(helperAbi, yearnDataProvider);
-  return await yearnHelper.methods.assetsAddresses().call({}, blockNumber);
+  return yearnHelper.methods.assetsAddresses().call({}, blockNumber);
 };
 
 export const vaultAbi = [

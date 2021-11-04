@@ -44,14 +44,22 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
     const blockNumber = blockEvent.blockNumber;
     const vaults = await getYearnVaults(web3, blockNumber);
 
-    for (let i = 0; i < vaults.length; i++) {
-      const vaultAddress = vaults[i];
-      const vaultPrevValue = tracker[vaultAddress];
-      const vault = new web3.eth.Contract(vaultAbi as any, vaultAddress);
+    let promises = [];
 
-      const pps = new BigNumber(
-        await vault.methods.getPricePerFullShare().call({}, blockNumber)
-      );
+    for (let i of vaults) {
+      const vault = new web3.eth.Contract(vaultAbi as any, i);
+
+      promises.push(vault.methods.getPricePerFullShare().call({}, blockNumber));
+    }
+
+    promises = await Promise.all(promises);
+
+    console.log(promises);
+
+    promises.forEach((pps, index) => {
+      const vaultAddress = vaults[index];
+      const vaultPrevValue = tracker[vaultAddress];
+      console.log(vaultAddress, vaultPrevValue, tracker);
 
       // pps should increase only
       if (pps.isLessThan(vaultPrevValue)) {
@@ -82,7 +90,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
       }
 
       tracker[vaultAddress] = pps;
-    }
+    });
 
     return findings;
   };
