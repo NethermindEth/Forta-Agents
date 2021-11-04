@@ -54,12 +54,10 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
 
     promises = await Promise.all(promises);
 
-    console.log(promises);
-
     promises.forEach((pps, index) => {
       const vaultAddress = vaults[index];
       const vaultPrevValue = tracker[vaultAddress];
-      console.log(vaultAddress, vaultPrevValue, tracker);
+      pps = new BigNumber(pps);
 
       // pps should increase only
       if (pps.isLessThan(vaultPrevValue)) {
@@ -88,7 +86,6 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
           )
         );
       }
-
       tracker[vaultAddress] = pps;
     });
 
