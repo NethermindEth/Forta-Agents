@@ -5,7 +5,7 @@ import provideBigQueuedPriceDeviationHandler, {
 import {
   TestTransactionEvent,
   createAddress,
-} from "@nethermindeth/general-agents-module";
+} from "forta-agent-tools";
 import Web3 from "web3";
 
 const CONTRACT_ADDRESSES = [
@@ -38,7 +38,7 @@ describe("Big deviation queued price Tests", () => {
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [107, true]),
@@ -46,7 +46,6 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
@@ -62,7 +61,7 @@ describe("Big deviation queued price Tests", () => {
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [105, true]),
@@ -70,7 +69,6 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
@@ -85,7 +83,7 @@ describe("Big deviation queued price Tests", () => {
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
@@ -93,7 +91,6 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[1],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
@@ -106,7 +103,7 @@ describe("Big deviation queued price Tests", () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().addTrace({
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: CONTRACT_ADDRESSES[0],
       input: "0x11111111",
       output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
@@ -121,7 +118,7 @@ describe("Big deviation queued price Tests", () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().addTrace({
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: CONTRACT_ADDRESSES[0],
       input: PEEK_FUNCTION_SELECTOR,
       output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, false]),
@@ -137,7 +134,7 @@ describe("Big deviation queued price Tests", () => {
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
@@ -145,13 +142,11 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[1],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 105)
       );
 
@@ -165,7 +160,7 @@ describe("Big deviation queued price Tests", () => {
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
@@ -173,10 +168,9 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [118, true]),
@@ -184,7 +178,6 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[1],
-        [],
         web3.eth.abi.encodeParameter("uint128", 90)
       );
 
@@ -201,7 +194,7 @@ describe("Big deviation queued price Tests", () => {
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
@@ -209,10 +202,9 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [118, true]),
@@ -220,10 +212,9 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[1],
-        [],
         web3.eth.abi.encodeParameter("uint128", 90)
       )
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[2],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(["uint128", "bool"], [105, true]),
@@ -231,10 +222,9 @@ describe("Big deviation queued price Tests", () => {
       .addEventLog(
         "LogValue(bytes32)",
         CONTRACT_ADDRESSES[2],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
-      .addTrace({
+      .addTraces({
         from: CONTRACT_ADDRESSES[3],
         input: PEEK_FUNCTION_SELECTOR,
         output: web3.eth.abi.encodeParameters(

@@ -5,18 +5,16 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
-import { provideFunctionCallsDetectorAgent } from "@nethermindeth/general-agents-module";
-import { extractReliedAddress } from "./utils";
+import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 
 export const RELY_FUNCTION_SIG = "rely(address)";
 
 export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
-  const reliedAddress: string = extractReliedAddress(
-    metadata ? metadata.input : ""
-  );
-  return Finding.fromObject({
+  const reliedAddress: string = metadata?.arguments[0];
+
+    return Finding.fromObject({
     name: "Maker OSM Contract RELY Function",
     description: "RELY Function is called",
     alertId: "MakerDAO-OSM-3",
@@ -31,7 +29,7 @@ export const createFinding = (
 };
 
 const createAgentHandler = (_contract: string): HandleTransaction => {
-  return provideFunctionCallsDetectorAgent(createFinding, RELY_FUNCTION_SIG, {
+  return provideFunctionCallsDetectorHandler(createFinding, RELY_FUNCTION_SIG, {
     to: _contract,
   });
 };
