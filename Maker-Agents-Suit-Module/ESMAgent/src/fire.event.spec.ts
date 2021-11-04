@@ -12,7 +12,7 @@ import provideESMFireEventAgent, {
 import {
   createAddress,
   TestTransactionEvent,
-} from '@nethermindeth/general-agents-module';
+} from 'forta-agent-tools';
 
 const ADDRESS = createAddress('0x1');
 const USER = createAddress('0x2');

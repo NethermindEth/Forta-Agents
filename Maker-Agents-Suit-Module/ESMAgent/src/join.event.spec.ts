@@ -1,7 +1,7 @@
 import {
   TestTransactionEvent,
   createAddress,
-} from '@nethermindeth/general-agents-module';
+} from 'forta-agent-tools';
 import {
   Finding,
   HandleTransaction,
@@ -34,8 +34,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [encodeParam('address', USER)],
       encodeParam('uint256', AMOUNT_3), // 3
+      encodeParam('address', USER),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -61,8 +61,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      [encodeParam('address', USER)],
       encodeParam('uint256', AMOUNT_1), //1
+      encodeParam('address', USER),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -74,8 +74,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       'bad sig',
       ADDRESS,
-      [encodeParam('address', USER)],
       encodeParam('uint256', AMOUNT_3), // 3
+      encodeParam('address', USER),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -87,8 +87,8 @@ describe('ESM Join Event Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       '0x1',
-      [encodeParam('address', USER)],
       encodeParam('uint256', AMOUNT_1), // 3
+      encodeParam('address', USER),
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);

@@ -1,7 +1,7 @@
 import {
   FindingGenerator,
   provideEventCheckerHandler,
-} from '@nethermindeth/general-agents-module';
+} from 'forta-agent-tools';
 import {
   Finding,
   HandleTransaction,
