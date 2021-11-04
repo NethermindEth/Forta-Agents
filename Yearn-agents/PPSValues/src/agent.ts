@@ -23,7 +23,7 @@ export const createFinding = (
     description: `Year PPS value: ${reason}`,
     alertId: `Yearn-8-${id}`,
     severity: FindingSeverity.High,
-    type: FindingType.Unknown,
+    type: FindingType.Suspicious,
     metadata: {
       pps,
       tracker,
@@ -31,27 +31,34 @@ export const createFinding = (
   });
 };
 
+interface Tracker {
+  [key: string]: BigNumber;
+}
+
 const provideHandleFunction = (web3: Web3): HandleBlock => {
-  let tracker = new BigNumber(1);
   const threshold = 0.1;
+  let tracker: Tracker = {};
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-    const vaults = await getYearnVaults(web3, blockEvent.blockNumber);
+    const blockNumber = blockEvent.blockNumber;
+    const vaults = await getYearnVaults(web3, blockNumber);
 
     for (let i = 0; i < vaults.length; i++) {
-      const vault = new web3.eth.Contract(vaultAbi as any, vaults[i]);
+      const vaultAddress = vaults[i];
+      const vaultPrevValue = tracker[vaultAddress];
+      const vault = new web3.eth.Contract(vaultAbi as any, vaultAddress);
 
       const pps = new BigNumber(
-        await vault.methods.getPricePerFullShare().call()
+        await vault.methods.getPricePerFullShare().call({}, blockNumber)
       );
 
       // pps should increase only
-      if (pps.isLessThan(tracker)) {
+      if (pps.isLessThan(vaultPrevValue)) {
         findings.push(
           createFinding(
             pps.toString(),
-            tracker.toString(),
+            vaultPrevValue.toString(),
             "Decrease in PPS",
             1
           )
@@ -60,19 +67,21 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
 
       // swift change in pps
       if (
-        Math.abs(pps.minus(tracker).dividedBy(tracker).toNumber()) > threshold
+        Math.abs(
+          pps.minus(vaultPrevValue).dividedBy(vaultPrevValue).toNumber()
+        ) > threshold
       ) {
         findings.push(
           createFinding(
             pps.toString(),
-            tracker.toString(),
+            vaultPrevValue.toString(),
             "Very Swift change",
             2
           )
         );
       }
 
-      tracker = pps;
+      tracker[vaultAddress] = pps;
     }
 
     return findings;
