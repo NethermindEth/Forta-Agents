@@ -120,9 +120,10 @@ export const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent 
 
 export const createTestBlockEvent = (blockNumber: number): BlockEvent =>
   createBlockEvent({
-    blockNumber: blockNumber,
-    blockHash: "0x0",
-    block: {} as Block,
+    block: {
+      hash: "0x0",
+      number: blockNumber,
+    } as Block,
   });
 
 export const propertyFetcher = (

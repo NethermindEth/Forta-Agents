@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "maker-gm",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta Agents for monitoring MakerDAO Governance Module",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.21",
-    "forta-agent-tools": "^1.0.18",
+    "forta-agent": "^0.0.28",
+    "forta-agent-tools": "^1.0.26",
     "rlp": "^2.2.7"
   },
   "devDependencies": {
