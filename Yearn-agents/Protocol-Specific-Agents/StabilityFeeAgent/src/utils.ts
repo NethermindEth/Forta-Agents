@@ -15,7 +15,7 @@ export const createFindingStabilityFee = (
       description: "stability Fee is changed for MAKER strategy's collateral",
       severity: FindingSeverity.High,
       type: FindingType.Info,
-      alertId: 'Maker-3',
+      alertId: 'Maker-3-1',
       protocol: 'Maker',
       metadata: {
         strategy: _strategy,
