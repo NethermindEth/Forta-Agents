@@ -39,9 +39,9 @@ This agent detect multiple management actions in Yearn Vaults. It detects:
 
 ## Test Data
 
-The test of this agent use a hardhat node forked from mainnet. For running test test you'll need to create a `.env` with the following format
+The test of this agent use a hardhat node forked from mainnet. For running the tests you'll need to create a `.env` file with the following format
 ```
 jsonRPC=<json-rpc-endpoint>
 ```
 In json RPC endpoint you'll need to set an endpoint to a node able to provide state info at block 13546171.
-After setting this run the hardhat node using `npx hardhat node` and after that run `npm test`.
+After setting this run the hardhat node using `npm run forked-node` and after that run `npm test`.

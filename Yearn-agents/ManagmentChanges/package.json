@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "vesper-9",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Agent for checking if Management or Fees change in Yearn Vault",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -11,6 +11,7 @@
     "block": "npm run build && forta-agent run --block",
     "range": "npm run build && forta-agent run --range",
     "file": "npm run build && forta-agent run --file",
+    "forked-node": "npx hardhat node",
     "publish": "forta-agent publish",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
