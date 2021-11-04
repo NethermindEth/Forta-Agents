@@ -163,4 +163,34 @@ describe('Protocol Alerts Agent Test Suite', () => {
       createFindingSF(createAddress('0x3'), '0x' + collateralType2),
     ]);
   });
+
+  it('should return empy finding for failed txn ', async () => {
+    const args = [true, true];
+
+    const mockWeb3 = createMock(args);
+    const fetcher = new MakerFetcher(mockWeb3);
+
+    let findings: Finding[] = [];
+
+    const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
+    const collateralType =
+      '4554482d43000000000000000000000000000000000000000000000000000000';
+    const INPUT = selector + collateralType;
+
+    handleTransaction = provideHandleTransaction(mockWeb3, fetcher);
+
+    const txEvent: any = new TestTransactionEvent()
+      .addTraces({
+        to: JUG_CONTRACT,
+        input: INPUT,
+      })
+      .setStatus(false);
+
+    findings = await handleTransaction(txEvent);
+
+    expect(strategies).toBeCalledTimes(0);
+    expect(isActive).toBeCalledTimes(0);
+    expect(name).toBeCalledTimes(0);
+    expect(findings).toStrictEqual([]);
+  });
 });
