@@ -31,7 +31,7 @@ export const providehandleTransaction = (
     const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
     const collaterals = makers.map((strategy) => {
-      getCollateralType(web3, strategy, txEvent.blockNumber);
+      return getCollateralType(web3, strategy, txEvent.blockNumber);
     });
 
     const types = (await Promise.all(collaterals)).flat();
@@ -85,49 +85,3 @@ export default {
   handleTransaction: providehandleTransaction(web3, fetcher),
   providehandleTransaction,
 };
-
-/* 
-const types = (await Promise.all(collaterals)).flat();
-for (const type of types) {
-  const filterEvents = (log: Log) => {
-    const parameters = decodeParameters(
-      ['bytes32', 'bytes32', 'uint256'],
-      log.data
-    );
-
-    return parameters[0] === type;
-  };
-
-  const handler = provideEventCheckerHandler(
-    () => {
-      return {} as Finding;
-    },
-    eventSignature,
-    address,
-    filterEvents
-  );
-
-  if (timeTracker.isOutOf3Hours(timestamp)) {
-    timeTracker.updateFindingReport(false);
-    timeTracker.updateFunctionWasCalled(false);
-  }
-
-  if (
-    (await handler(txEvent)).length !== 0 &&
-    timeTracker.isIn3Hours(timestamp)
-  ) {
-    timeTracker.updateFunctionWasCalled(true);
-  }
-
-  if (
-    !timeTracker.isIn3Hours(timestamp) &&
-    !timeTracker.isFirstHour(timestamp) &&
-    !timeTracker.functionWasCalled &&
-    !timeTracker.findingReported
-  ) {
-    timeTracker.updateFindingReport(true);
-    findings.push(createFinding());
-  }
-
-  timeTracker.updateHour(timestamp);
-} */
