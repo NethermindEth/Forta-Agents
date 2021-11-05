@@ -11,11 +11,12 @@ export default class TimeTracker {
     this.findingReported = false;
   }
 
-  isDifferentHour(timestamp: number): boolean {
+  isOutOf3Hours(timestamp: number): boolean {
     if (this.hour === -1) {
       return false;
     }
-    return this.hour !== this.getHour(timestamp);
+
+    return this.getHour(timestamp) - this.hour > 3;
   }
 
   updateFunctionWasCalled(status: boolean): void {
@@ -29,11 +30,6 @@ export default class TimeTracker {
   getHour(timestamp: number): number {
     const nd = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds
     return nd.getUTCHours();
-  }
-
-  getMinute(timestamp: number): number {
-    var d = new Date(timestamp * 1000); //x1000 to convert from seconds to milliseconds
-    return d.getUTCMinutes();
   }
 
   isIn3Hours(timestamp: number): boolean {
