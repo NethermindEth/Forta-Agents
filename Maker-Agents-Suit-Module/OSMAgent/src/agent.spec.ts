@@ -3,12 +3,13 @@ import { provideAgentHandler } from "./agent";
 import {
   createAddress,
   TestTransactionEvent,
-} from "@nethermindeth/general-agents-module";
+} from "forta-agent-tools";
 import Web3 from "web3";
 import { createFinding as deviationFinding } from "./big.queued.price.deviation";
 import { createFinding as priceUpdateFinding } from "./price.update.check";
-import { createFinding as relyFinding } from "./rely.function";
-import { createFinding as denyFinding } from "./deny.function";
+import { createFinding as relyFinding } from "./rely.function.spec";
+import { createFinding as denyFinding } from "./deny.function.spec";
+
 
 const testAddresses = [
   createAddress("0x1"),
@@ -52,7 +53,7 @@ describe("OSM Agent Test Suite", () => {
     );
     const txEvent3 = new TestTransactionEvent()
       .setTimestamp(greaterThanTenMinutes)
-      .addTrace({
+      .addTraces({
         from: testAddresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
@@ -60,7 +61,6 @@ describe("OSM Agent Test Suite", () => {
       .addEventLog(
         "LogValue(bytes32)",
         testAddresses[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
@@ -95,7 +95,7 @@ describe("OSM Agent Test Suite", () => {
     );
 
     const txEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         to: _to,
         from: _from,
         input: _input,
@@ -104,7 +104,7 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
     expect(findings).toStrictEqual([
-      relyFinding({ to: testAddresses[0], input: _input }),
+      relyFinding(testAddresses[0], createAddress("0x5")),
     ]);
   });
 
@@ -129,7 +129,7 @@ describe("OSM Agent Test Suite", () => {
     );
 
     const txEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         to: _to,
         from: _from,
         input: _input,
@@ -138,7 +138,7 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
     expect(findings).toStrictEqual([
-      denyFinding({ to: testAddresses[0], input: _input }),
+      denyFinding(testAddresses[0], createAddress("0x5")),
     ]);
   });
 
@@ -164,7 +164,7 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const txEvent = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: testAddresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
@@ -172,7 +172,6 @@ describe("OSM Agent Test Suite", () => {
       .addEventLog(
         "LogValue(bytes32)",
         testAddresses[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
       .setTimestamp(lessThanTenMinutes);
@@ -189,10 +188,10 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const txEvent1 = new TestTransactionEvent()
-      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
       .setTimestamp(lessThanTenMinutes);
     const txEvent2 = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         from: testAddresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
@@ -200,7 +199,6 @@ describe("OSM Agent Test Suite", () => {
       .addEventLog(
         "LogValue(bytes32)",
         testAddresses[0],
-        [],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
       .setTimestamp(greaterThanTenMinutes);
@@ -222,7 +220,7 @@ describe("OSM Agent Test Suite", () => {
     );
 
     const txEvent3 = new TestTransactionEvent()
-      .addTrace({
+      .addTraces({
         to: _to,
         from: _from,
         input: _input,
@@ -235,7 +233,7 @@ describe("OSM Agent Test Suite", () => {
 
     expect(findings).toStrictEqual([
       deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
-      denyFinding({ to: testAddresses[0], input: _input }),
+      denyFinding(testAddresses[0], createAddress("0x5")),
     ]);
   });
 });

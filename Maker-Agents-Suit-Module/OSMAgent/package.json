@@ -15,9 +15,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "@nethermindeth/general-agents-module": "^1.0.9",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.18"
+    "forta-agent": "^0.0.28",
+    "forta-agent-tools": "^1.0.27"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

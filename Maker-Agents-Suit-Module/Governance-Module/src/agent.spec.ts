@@ -72,7 +72,7 @@ describe("Governance Module agent tests suite", () => {
     mockWebGetTxCount.mockReturnValueOnce(2);
 
     const tx: TransactionEvent = new TestTransactionEvent();
-    const block: BlockEvent = new TestBlockEvent(2).addTransactions(tx);
+    const block: BlockEvent = new TestBlockEvent().setNumber(2).addTransactions(tx);
 
     const findings: Finding[] = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([]);
@@ -85,7 +85,7 @@ describe("Governance Module agent tests suite", () => {
     mockWebGetTxCount.mockReturnValueOnce(2);
 
     const tx: TransactionEvent = new TestTransactionEvent();
-    let block: BlockEvent = new TestBlockEvent(4).addTransactions(tx);
+    const block: TestBlockEvent = new TestBlockEvent().setNumber(4).addTransactions(tx);
 
     let findings: Finding[] = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([
@@ -97,7 +97,7 @@ describe("Governance Module agent tests suite", () => {
     mockWeb3Call.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
     mockWebGetTxCount.mockReturnValueOnce(3);
 
-    block = new TestBlockEvent(5).addTransactions(tx);
+    block.setNumber(5);
 
     findings = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([]);
@@ -111,7 +111,7 @@ describe("Governance Module agent tests suite", () => {
     mockWebGetTxCount.mockReturnValueOnce(8);
 
     const tx: TransactionEvent = new TestTransactionEvent();
-    const block: BlockEvent = new TestBlockEvent(7).addTransactions(tx);
+    const block: BlockEvent = new TestBlockEvent().setNumber(7).addTransactions(tx);
 
     const findings: Finding[] = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([
@@ -140,7 +140,7 @@ describe("Governance Module agent tests suite", () => {
       .addAnonymousEventLog(chiefInLower, "", LIFT_EVENT, deadContractsEncoded[2], deadContractsEncoded[3])
       .addInvolvedAddresses(chiefInLower);
 
-    const block: BlockEvent = new TestBlockEvent(4).addTransactions(tx);
+    const block: BlockEvent = new TestBlockEvent().setNumber(4).addTransactions(tx);
 
     const findings: Finding[] = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([
@@ -168,7 +168,7 @@ describe("Governance Module agent tests suite", () => {
         .addAnonymousEventLog(chiefInLower, "", LIFT_EVENT, deadContractsEncoded[6], deadContractsEncoded[4]),
     ];
 
-    const block: BlockEvent = new TestBlockEvent(10).addTransactions(...txs);
+    const block: BlockEvent = new TestBlockEvent().setNumber(10).addTransactions(...txs);
 
     const findings: Finding[] = await runBlock(agent, block, ...txs);
     expect(findings).toStrictEqual([

@@ -8,7 +8,7 @@ import providePriceUpdateCheckHandler, {
   createFinding,
 } from "./price.update.check";
 
-import { TestTransactionEvent } from "@nethermindeth/general-agents-module";
+import { TestTransactionEvent } from "forta-agent-tools";
 
 const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const pokeFunctionSelector = "0x18178358";
@@ -58,7 +58,7 @@ describe("Poker Method", () => {
       previousHourForActivatingAgent
     );
     const txEvent2 = new TestTransactionEvent()
-      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
       .setTimestamp(lessThanTenMinutes);
     const txEvent3 = new TestTransactionEvent().setTimestamp(
       greaterThanTenMinutes
@@ -103,7 +103,7 @@ describe("Poker Method", () => {
       lessThanTenMinutes
     );
     const txEvent3 = new TestTransactionEvent()
-      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
@@ -124,7 +124,7 @@ describe("Poker Method", () => {
       lessThanTenMinutes
     );
     const txEvent3 = new TestTransactionEvent()
-      .addTrace({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
     const txEvent4 = new TestTransactionEvent().setTimestamp(differentHour);
 
