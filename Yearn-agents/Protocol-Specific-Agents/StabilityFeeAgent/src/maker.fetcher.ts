@@ -113,7 +113,7 @@ export default class MakerFetcher {
       if (!isActive) {
         let inActives = this.cache.get(vault);
 
-        if (inActives !== undefined) {
+        if (inActives) {
           inActives.push(strategy);
           this.cache.set(vault, inActives);
         } else {

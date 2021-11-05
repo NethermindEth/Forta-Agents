@@ -1,8 +1,8 @@
 import {
   Finding,
-  HandleTransaction,
   TransactionEvent,
   getJsonRpcUrl,
+  HandleTransaction,
 } from 'forta-agent';
 import { provideFunctionCallsDetectorHandler } from 'forta-agent-tools';
 import Web3 from 'web3';
@@ -17,7 +17,10 @@ import {
 const web3: Web3 = new Web3(getJsonRpcUrl());
 const fetcher = new MakerFetcher(web3);
 
-export const provideHandleTransaction = (web3: Web3, fetcher: MakerFetcher) => {
+export const provideHandleTransaction = (
+  web3: Web3,
+  fetcher: MakerFetcher
+): HandleTransaction => {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
