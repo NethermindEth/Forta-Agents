@@ -3,6 +3,7 @@ import {
   TransactionEvent,
   getJsonRpcUrl,
   Log,
+  HandleTransaction,
 } from 'forta-agent';
 import {
   decodeParameters,
