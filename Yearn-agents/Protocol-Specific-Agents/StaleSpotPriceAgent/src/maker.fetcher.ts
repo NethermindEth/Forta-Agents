@@ -36,6 +36,16 @@ export default class MakerFetcher {
     return activeMakers;
   };
 
+  public getCollateralType = async (
+    address: string,
+    blockNumber: string | number = 'latest'
+  ): Promise<string> => {
+    const Strategy = new this.web3.eth.Contract(StrategyABI, address);
+    const collateralType = await Strategy.methods.ilk().call({}, blockNumber);
+
+    return collateralType;
+  };
+
   private getVaults = async (
     blockNumber: string | number
   ): Promise<string[]> => {

@@ -16,7 +16,7 @@ export default class TimeTracker {
       return false;
     }
 
-    return this.getHour(timestamp) - this.hour > 3;
+    return this.getHour(timestamp) - this.hour >= 3;
   }
 
   updateFunctionWasCalled(status: boolean): void {
@@ -34,7 +34,7 @@ export default class TimeTracker {
 
   isIn3Hours(timestamp: number): boolean {
     const hour = this.getHour(timestamp);
-    return hour < 3;
+    return hour - this.hour < 3;
   }
 
   isFirstHour(timestamp: number): boolean {
