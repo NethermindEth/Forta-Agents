@@ -1,6 +1,5 @@
 import {
   Finding,
-  HandleTransaction,
   TransactionEvent,
   getJsonRpcUrl,
   Log,
