@@ -103,8 +103,7 @@ const provideStaleSpotPriceHandler = async (
     }
 
     if (
-      (!timeTracker.isIn3Hours(timestamp) &&
-        !timeTracker.isFirstHour(timestamp) &&
+      (!timeTracker.isFirstHour(timestamp) &&
         !timeTracker.functionWasCalled &&
         !timeTracker.findingReported) ||
       !txEvent.status
@@ -112,11 +111,11 @@ const provideStaleSpotPriceHandler = async (
       timeTracker.updateFindingReport(true);
       findings.push(createStaleSpotFinding(SPOT_ADDRESS, strategy));
     }
-
-    timeTracker.updateHour(timestamp);
-    return findings;
+    timeTracker.updateFindingReport(false);
+    timeTracker.updateFunctionWasCalled(false);
   }
 
+  timeTracker.updateHour(timestamp);
   return findings;
 };
 
