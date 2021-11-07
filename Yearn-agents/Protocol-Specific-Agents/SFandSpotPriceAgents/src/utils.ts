@@ -18,8 +18,8 @@ export const createFindingStabilityFee = (
       description: "stability Fee is changed for MAKER strategy's collateral",
       severity: FindingSeverity.High,
       type: FindingType.Info,
-      alertId: 'Maker-3-1',
-      protocol: 'Maker',
+      alertId: 'Yearn-3-1',
+      protocol: 'Yearn',
       metadata: {
         strategy: _strategy,
         collateralType: metadata?.arguments[0],
@@ -33,7 +33,7 @@ export const createStaleSpotFinding = (
   strategy: string
 ): Finding => {
   return Finding.fromObject({
-    name: 'poke() NOT called detection',
+    name: 'Stale Spot Price In Vat detection',
     description:
       "poke() function is not called for several hours with MAKER strategy's ilk",
     severity: FindingSeverity.High,
