@@ -4,16 +4,16 @@ import { isZeroAddress } from 'ethereumjs-util';
 import { HelperABI, StrategyABI, VaultABI } from './abi';
 
 type blockNumber = string | number;
-type data = string[];
+type strategies = string[];
 
 const HELPER = '0x437758D475F70249e03EDa6bE23684aD1FC375F0';
 
 export default class MakerFetcher {
-  private cache: LRU<blockNumber, data>;
+  private cache: LRU<blockNumber, strategies>;
   private web3: Web3;
 
   constructor(web3: Web3) {
-    this.cache = new LRU<blockNumber, data>({ max: 10_000 });
+    this.cache = new LRU<blockNumber, strategies>({ max: 10_000 });
     this.web3 = web3;
   }
 
@@ -30,7 +30,7 @@ export default class MakerFetcher {
       const makers = await this.filterMakerStrategy(vault, blockNumber);
 
       for (const strategy of makers) {
-        if (await this.isActive(vault, strategy, blockNumber)) {
+        if (await this.isActive(strategy, blockNumber)) {
           activeMakers.push(strategy);
         }
       }
@@ -99,7 +99,6 @@ export default class MakerFetcher {
   };
 
   private isActive = async (
-    vault: string,
     strategy: string,
     blockNumber: string | number
   ): Promise<boolean> => {
