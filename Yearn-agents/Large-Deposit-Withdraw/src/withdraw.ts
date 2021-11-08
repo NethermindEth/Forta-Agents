@@ -24,16 +24,16 @@ const createFinding = (metadata: any): Finding => {
     severity: FindingSeverity.Info,
     protocol: "Yearn",
     metadata: {
-      Valut: metadata?.address,
+      Vault: metadata?.address,
       From: from,
       Amount: value.toString(),
     }
-  })
+  });
 };
 
 
-const provideLargeWithdrawDetector = (vaultAddr: string, largeAmout: BigNumber) => {
-  return provideEventCheckerHandler(
+const provideLargeWithdrawDetector = (vaultAddr: string, largeAmout: BigNumber) =>
+  provideEventCheckerHandler(
     createFinding,
     TRANSFER_SIGNATURE,
     vaultAddr,
@@ -43,8 +43,7 @@ const provideLargeWithdrawDetector = (vaultAddr: string, largeAmout: BigNumber) 
 
       return isZeroAddress(to) && largeAmout.lte(value);
     },
-  )
-};
+  );
 
 
 export default {
