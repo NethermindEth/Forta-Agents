@@ -125,18 +125,20 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   const timeTracker = new TimeTracker();
   return async (txEvent: TransactionEvent) => {
+    let findings: Finding[] = [];
     const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
-    const findings = [
-      ...(await provideStabilityFeeHandler(web3, makers, txEvent)),
-      ...(await provideStaleSpotPriceHandler(
-        web3,
-        makers,
-        txEvent,
-        timeTracker
-      )),
-    ];
-
+    makers
+      ? (findings = [
+          ...(await provideStabilityFeeHandler(web3, makers, txEvent)),
+          ...(await provideStaleSpotPriceHandler(
+            web3,
+            makers,
+            txEvent,
+            timeTracker
+          )),
+        ])
+      : [];
     return findings;
   };
 };
