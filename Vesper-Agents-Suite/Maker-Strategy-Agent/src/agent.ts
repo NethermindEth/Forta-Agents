@@ -29,38 +29,54 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
     );
 
     for (let strategy of makerStrategies) {
-      const collateralRatio: { collateralRatio: string } =
-        await getCollateralRatio(web3, strategy, blockEvent.blockNumber);
-      const lowWater = await getLowWater(
+      const collateralRatio: Promise<{ collateralRatio: string }> =
+        getCollateralRatio(web3, strategy, blockEvent.blockNumber);
+      const lowWater: Promise<number> = getLowWater(
         web3,
         strategy,
         blockEvent.blockNumber
       );
-      const highWater = await getHighWater(
+      const highWater: Promise<number> = getHighWater(
+        web3,
+        strategy,
+        blockEvent.blockNumber
+      );
+      const isUnderWater: Promise<boolean> = checkIsUnderWaterTrue(
         web3,
         strategy,
         blockEvent.blockNumber
       );
 
-      if (await checkIsUnderWaterTrue(web3, strategy, blockEvent.blockNumber)) {
-        findings.push(createFindingIsUnderWater(strategy.toString()));
-      }
-      if (BigInt(collateralRatio.collateralRatio) < BigInt(lowWater)) {
-        findings.push(
-          createFindingLowWater(
-            strategy.toString(),
-            collateralRatio.collateralRatio,
-            lowWater.toString()
-          )
-        );
-      } else if (BigInt(collateralRatio.collateralRatio) > BigInt(highWater))
-        findings.push(
-          createFindingHighWater(
-            strategy.toString(),
-            collateralRatio.collateralRatio,
-            highWater.toString()
-          )
-        );
+      await Promise.all([
+        collateralRatio,
+        lowWater,
+        highWater,
+        isUnderWater
+      ]).then((values) => {
+        const collateralRatio = values[0].collateralRatio;
+        const lowWater = values[1];
+        const highWater = values[2];
+        const isUnderWater = values[3];
+        if (isUnderWater) {
+          findings.push(createFindingIsUnderWater(strategy.toString()));
+        }
+        if (BigInt(collateralRatio) < BigInt(lowWater)) {
+          findings.push(
+            createFindingLowWater(
+              strategy.toString(),
+              collateralRatio,
+              lowWater.toString()
+            )
+          );
+        } else if (BigInt(collateralRatio) > BigInt(highWater))
+          findings.push(
+            createFindingHighWater(
+              strategy.toString(),
+              collateralRatio,
+              highWater.toString()
+            )
+          );
+      });
     }
 
     return findings;

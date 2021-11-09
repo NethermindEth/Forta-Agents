@@ -94,6 +94,7 @@ export const getPools = async (
   blockNumber: string | number = "latest"
 ): Promise<Set<string>> => {
   const pools: Set<string> = new Set();
+  const poolCalls = [];
 
   const controllerContract = new web3.eth.Contract(
     CONTROLLER_ABI,
@@ -112,11 +113,16 @@ export const getPools = async (
   );
 
   for (let i = 0; i < poolsLength; i++) {
-    const [poolAddress, _] = await addressListContract.methods
-      .at(i)
-      .call({}, blockNumber);
-    pools.add(poolAddress);
+    poolCalls.push(addressListContract.methods.at(i).call({}, blockNumber));
   }
+
+  await Promise.all(poolCalls).then((res) => {
+    res.forEach((pool) => {
+      if (!isZeroAddress(pool)) {
+        pools.add(pool);
+      }
+    });
+  });
 
   return pools;
 };
@@ -126,18 +132,22 @@ export const getPoolAccountants = async (
   blockNumber: string | number
 ): Promise<Set<string>> => {
   const poolAccountants: Set<string> = new Set();
-
   const pools: Set<string> = await getPools(web3, blockNumber);
 
-  for (let pool of Array.from(pools)) {
+  const poolAccountantCalls = Array.from(pools).map((pool) => {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      const poolAccountant = await poolContract.methods
-        .poolAccountant()
-        .call({}, blockNumber);
-      poolAccountants.add(poolAccountant);
+      return poolContract.methods.poolAccountant().call({}, blockNumber);
     } catch {}
-  }
+  });
+
+  await Promise.all(poolAccountantCalls).then((res) => {
+    res.forEach((poolAccountant) => {
+      if (!isZeroAddress(poolAccountant)) {
+        poolAccountants.add(poolAccountant);
+      }
+    });
+  });
 
   return poolAccountants;
 };
@@ -154,12 +164,17 @@ export const getV2Strategies = async (
     CONTROLLER_CONTRACT
   );
 
-  for (let pool of Array.from(pools)) {
-    const strategy = await controllerContract.methods
-      .strategy(pool)
-      .call({}, blockNumber);
-    if (!isZeroAddress(strategy)) v2Strategies.add(strategy);
-  }
+  const v2StrategyCalls = Array.from(pools).map((pool) => {
+    return controllerContract.methods.strategy(pool).call({}, blockNumber);
+  });
+
+  await Promise.all(v2StrategyCalls).then((res) => {
+    res.forEach((strategy) => {
+      if (!isZeroAddress(strategy)) {
+        v2Strategies.add(strategy);
+      }
+    });
+  });
 
   return v2Strategies;
 };
@@ -173,15 +188,19 @@ export const getV3Strategies = async (
     web3,
     blockNumber
   );
-
-  for (let accountant of Array.from(poolAccountants)) {
-    const acc = new web3.eth.Contract(Accountant_ABI, accountant);
-
-    const strategyList: string[] = await acc.methods
+  const v3StrategyCalls = Array.from(poolAccountants).map((accountant) => {
+    return new web3.eth.Contract(Accountant_ABI, accountant).methods
       .getStrategies()
       .call({}, blockNumber);
-    strategyList.forEach((item) => v3Strategies.add(item));
-  }
+  });
+
+  await Promise.all(v3StrategyCalls).then((res) => {
+    res.forEach((strategy) => {
+      if (!isZeroAddress(strategy)) {
+        v3Strategies.add(strategy);
+      }
+    });
+  });
 
   return v3Strategies;
 };
@@ -192,10 +211,16 @@ export const getAllStrategies = async (
 ): Promise<Set<string>> => {
   let strategies: Set<string> = new Set();
 
-  strategies = new Set([
-    ...(await getV2Strategies(web3, blockNumber)),
-    ...(await getV3Strategies(web3, blockNumber))
-  ]);
+  const strategyCalls = [
+    getV2Strategies(web3, blockNumber),
+    getV3Strategies(web3, blockNumber)
+  ];
+
+  await Promise.all(strategyCalls).then((res) => {
+    res.forEach((strategy) => {
+      strategies = new Set([...strategies, ...strategy]);
+    });
+  });
 
   return strategies;
 };
@@ -203,7 +228,7 @@ export const getAllStrategies = async (
 export const getMakerStrategies = async (
   web3: Web3,
   blockNumber: string | number = "latest"
-): Promise<Set<string>> => {
+): Promise<string[]> => {
   let MakerStrategies: Set<string> = new Set();
 
   const strategies = await getAllStrategies(web3, blockNumber);
@@ -215,7 +240,7 @@ export const getMakerStrategies = async (
     if (name.includes("Maker")) MakerStrategies.add(strategy);
   }
 
-  return MakerStrategies;
+  return Array.from(MakerStrategies);
 };
 
 export const checkIsUnderWaterTrue = async (
