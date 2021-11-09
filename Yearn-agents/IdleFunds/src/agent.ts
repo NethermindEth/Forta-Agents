@@ -44,12 +44,8 @@ export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
       if (shouldReport(vaults[i], idleFundPercent, lastBlockReports, blockEvent.blockNumber)) {
         findings.push(createFinding(vaults[i], idleFundPercent.toString()));
       }
-      // if (idleFundPercent.gte(25)) {
-      //   findings.push(createFinding(vaults[i], idleFundPercent.toString()));
-      // }
     }
 
-    // findings = filterAlreadyReported(findings, lastBlockReports, blockEvent.blockNumber);
     return findings;
   };
 };
