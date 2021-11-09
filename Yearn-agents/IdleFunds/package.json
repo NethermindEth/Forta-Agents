@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "yearn-5",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta agent detecting Yearn Vaults with idle funds",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -18,10 +18,13 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.22"
+    "forta-agent": "^0.0.27",
+    "forta-agent-tools": "^1.0.27",
+    "jest-when": "^3.4.2"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/jest-when": "^2.7.3",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
