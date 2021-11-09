@@ -15,7 +15,6 @@ import {
   shouldReport,
 } from "./utils";
 
-
 export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
   const lastBlockReports: LastBlockReports = {};
 
@@ -41,7 +40,14 @@ export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
 
       const idleFundPercent = computeIdlePercent(totalAssets[i], totalDebts[i]);
 
-      if (shouldReport(vaults[i], idleFundPercent, lastBlockReports, blockEvent.blockNumber)) {
+      if (
+        shouldReport(
+          vaults[i],
+          idleFundPercent,
+          lastBlockReports,
+          blockEvent.blockNumber
+        )
+      ) {
         findings.push(createFinding(vaults[i], idleFundPercent.toString()));
       }
     }

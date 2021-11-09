@@ -116,25 +116,19 @@ describe("Yearn Vault Idle Funds Tests", () => {
     // set mocks values
     when(callMock)
       .calledWith(isCallToAssetsAddresses, expect.anything())
-      .mockResolvedValue(
-        encodeParameter("address[]", [
-          createAddress("0x1"),
-        ])
-      );
+      .mockResolvedValue(encodeParameter("address[]", [createAddress("0x1")]));
     when(callMock)
       .calledWith(isCallToTotalAssets, expect.anything())
       .mockResolvedValue(encodeParameter("uint256", 100));
     when(callMock)
       .calledWith(isCallToTotalDebt, expect.anything())
-      .mockResolvedValue(encodeParameter("uint256", 70))
+      .mockResolvedValue(encodeParameter("uint256", 70));
 
     let blockEvent = new TestBlockEvent().setNumber(10);
 
     let findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(createAddress("0x1"), "30"),
-    ]);
+    expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "30")]);
 
     blockEvent = new TestBlockEvent().setNumber(12);
 
@@ -153,11 +147,7 @@ describe("Yearn Vault Idle Funds Tests", () => {
     // set mocks values
     when(callMock)
       .calledWith(isCallToAssetsAddresses, expect.anything())
-      .mockResolvedValue(
-        encodeParameter("address[]", [
-          createAddress("0x1"),
-        ])
-      );
+      .mockResolvedValue(encodeParameter("address[]", [createAddress("0x1")]));
     when(callMock)
       .calledWith(isCallToTotalAssets, expect.anything())
       .mockResolvedValue(encodeParameter("uint256", 100));
@@ -171,9 +161,7 @@ describe("Yearn Vault Idle Funds Tests", () => {
 
     let findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(createAddress("0x1"), "30"),
-    ]);
+    expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "30")]);
 
     blockEvent = new TestBlockEvent().setNumber(11);
 
@@ -185,5 +173,4 @@ describe("Yearn Vault Idle Funds Tests", () => {
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "25")]);
   });
-
 });

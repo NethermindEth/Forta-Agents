@@ -74,16 +74,24 @@ export const computeIdlePercent = (
   return BigNumber.from(100).sub(debtPercent);
 };
 
-export const shouldReport = (vault: string, idlePercent: BigNumber, lastBlockReports: LastBlockReports, blockNumber: number): boolean => {
+export const shouldReport = (
+  vault: string,
+  idlePercent: BigNumber,
+  lastBlockReports: LastBlockReports,
+  blockNumber: number
+): boolean => {
   if (idlePercent.lt(25)) {
     delete lastBlockReports[vault];
     return false;
   }
 
   const lastBlockReport = lastBlockReports[vault];
-  if (lastBlockReport === undefined || lastBlockReport + BLOCKS_LAPSE < blockNumber) {
+  if (
+    lastBlockReport === undefined ||
+    lastBlockReport + BLOCKS_LAPSE < blockNumber
+  ) {
     lastBlockReports[vault] = blockNumber;
     return true;
   }
   return false;
-}
+};
