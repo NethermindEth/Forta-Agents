@@ -1,39 +1,59 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  BlockEvent,
+  Finding,
+  HandleBlock,
+  getEthersProvider,
+} from "forta-agent";
+import {
+  getYearnVaults,
+  getTotalAssets,
+  getTotalDebt,
+  Provider,
+  createFinding,
+  computeIdlePercent,
+  LastBlockReports,
+  shouldReport,
+} from "./utils";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-  }
+export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
+  const lastBlockReports: LastBlockReports = {};
 
-  return findings
-}
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    let findings: Finding[] = [];
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    const vaults = await getYearnVaults(blockEvent.blockNumber, etherProvider);
+
+    const totalAssetsPromises = vaults.map((vault: string) =>
+      getTotalAssets(vault, blockEvent.blockNumber, etherProvider)
+    );
+    const totalDebtsPromises = vaults.map((vault: string) =>
+      getTotalDebt(vault, blockEvent.blockNumber, etherProvider)
+    );
+
+    const totalAssets = await Promise.all(totalAssetsPromises);
+    const totalDebts = await Promise.all(totalDebtsPromises);
+
+    for (let i = 0; i < vaults.length; i++) {
+      if (totalAssets[i].eq(0)) {
+        continue;
+      }
+
+      const idleFundPercent = computeIdlePercent(totalAssets[i], totalDebts[i]);
+
+      if (shouldReport(vaults[i], idleFundPercent, lastBlockReports, blockEvent.blockNumber)) {
+        findings.push(createFinding(vaults[i], idleFundPercent.toString()));
+      }
+      // if (idleFundPercent.gte(25)) {
+      //   findings.push(createFinding(vaults[i], idleFundPercent.toString()));
+      // }
+    }
+
+    // findings = filterAlreadyReported(findings, lastBlockReports, blockEvent.blockNumber);
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleBlock: provideHandlerBlock(getEthersProvider()),
+};
