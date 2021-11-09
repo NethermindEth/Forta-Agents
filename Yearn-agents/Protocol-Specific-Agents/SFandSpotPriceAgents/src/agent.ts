@@ -4,6 +4,8 @@ import {
   getJsonRpcUrl,
   Log,
   HandleTransaction,
+  HandleBlock,
+  BlockEvent,
 } from 'forta-agent';
 import {
   decodeParameters,
@@ -14,11 +16,13 @@ import Web3 from 'web3';
 import MakerFetcher from './maker.fetcher';
 import TimeTracker from './time.tracker';
 import {
+  checkOSMContracts,
   createFindingStabilityFee,
   createStaleSpotFinding,
   getCollateralType,
   JUG_CONTRACT,
   JUG_DRIP_FUNCTION_SIGNATURE,
+  OSM_CONTRACTS,
   POKE_SIGNATURE,
   SPOT_ADDRESS,
 } from './utils';
@@ -119,6 +123,27 @@ const provideStaleSpotPriceHandler = async (
   return findings;
 };
 
+export const provideOSMPriceHandler = (
+  web3: Web3,
+  contracts: string[]
+): HandleBlock => {
+  return async (blockEvent: BlockEvent) => {
+    let findings: Finding[] = [];
+
+    const contractCalls = contracts.map((contract) => {
+      return checkOSMContracts(web3, contract, blockEvent.blockNumber);
+    });
+
+    const responses = (await Promise.all(contractCalls)).flat();
+
+    responses.map((res) => {
+      //console.log(res);
+    });
+
+    return findings;
+  };
+};
+
 export const provideHandleTransaction = (
   web3: Web3,
   fetcher: MakerFetcher
@@ -145,5 +170,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(web3, fetcher),
+  handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
   provideHandleTransaction,
+  provideOSMPriceHandler,
 };

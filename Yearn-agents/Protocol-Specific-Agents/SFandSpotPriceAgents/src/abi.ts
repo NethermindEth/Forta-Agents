@@ -59,3 +59,18 @@ export const StrategyABI = [
     type: 'function',
   },
 ] as AbiItem[];
+
+export const OSM_ABI = [
+  {
+    constant: true,
+    inputs: [],
+    name: 'peek',
+    outputs: [
+      { internalType: 'bytes32', name: '', type: 'bytes32' },
+      { internalType: 'bool', name: '', type: 'bool' },
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as AbiItem[];
