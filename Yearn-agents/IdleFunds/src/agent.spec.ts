@@ -1,48 +1,189 @@
+import { HandleBlock } from "forta-agent";
+import { provideHandlerBlock } from "./agent";
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  TestBlockEvent,
+  createAddress,
+  encodeParameter,
+} from "forta-agent-tools";
+import { when } from "jest-when";
+import { helperInterface, vaultInterface } from "./abi";
+import { ethers } from "ethers";
+import { createFinding } from "./utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const isCallMethod = (
+  data: string,
+  contractInterface: ethers.utils.Interface,
+  functionName: string
+): boolean => {
+  const selector = data.slice(0, 10);
+  return selector === contractInterface.getSighash(functionName);
+};
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const isCallToAssetsAddresses = when(({ data }) =>
+  isCallMethod(data, helperInterface, "assetsAddresses")
+);
+const isCallToTotalAssets = when(({ data }) =>
+  isCallMethod(data, vaultInterface, "totalAssets")
+);
+const isCallToTotalDebt = when(({ data }) =>
+  isCallMethod(data, vaultInterface, "totalDebt")
+);
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const callMock = jest.fn();
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+const ethersProviderMock = {
+  call: callMock,
+  _isProvider: true, // Necessary for ethers accepting the mock as a Provider
+};
 
-      const findings = await handleTransaction(txEvent)
+describe("Yearn Vault Idle Funds Tests", () => {
+  let handleBlock: HandleBlock;
 
-      expect(findings).toStrictEqual([])
-    })
+  it("should return empty finding if idle funds are below 25%", async () => {
+    handleBlock = provideHandlerBlock(ethersProviderMock as any);
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    // set mock values
+    when(callMock)
+      .calledWith(isCallToAssetsAddresses, expect.anything())
+      .mockResolvedValue(encodeParameter("address[]", [createAddress("0x1")]));
+    when(callMock)
+      .calledWith(isCallToTotalAssets, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 100));
+    when(callMock)
+      .calledWith(isCallToTotalDebt, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 80));
 
-      const findings = await handleTransaction(txEvent)
+    const blockEvent = new TestBlockEvent();
+    const findings = await handleBlock(blockEvent);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding if the idle funds are above 25%", async () => {
+    handleBlock = provideHandlerBlock(ethersProviderMock as any);
+
+    // set mock values
+    when(callMock)
+      .calledWith(isCallToAssetsAddresses, expect.anything())
+      .mockResolvedValue(encodeParameter("address[]", [createAddress("0x1")]));
+    when(callMock)
+      .calledWith(isCallToTotalAssets, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 100));
+    when(callMock)
+      .calledWith(isCallToTotalDebt, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 70));
+
+    const blockEvent = new TestBlockEvent();
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "30")]);
+  });
+
+  it("should return a finding per vault where idle funds are above 25%", async () => {
+    handleBlock = provideHandlerBlock(ethersProviderMock as any);
+
+    // set mocks values
+    when(callMock)
+      .calledWith(isCallToAssetsAddresses, expect.anything())
+      .mockResolvedValue(
+        encodeParameter("address[]", [
+          createAddress("0x1"),
+          createAddress("0x2"),
+          createAddress("0x3"),
+        ])
+      );
+    when(callMock)
+      .calledWith(isCallToTotalAssets, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 100));
+    when(callMock)
+      .calledWith(isCallToTotalDebt, expect.anything())
+      .mockResolvedValueOnce(encodeParameter("uint256", 70))
+      .mockResolvedValueOnce(encodeParameter("uint256", 60))
+      .mockResolvedValueOnce(encodeParameter("uint256", 90));
+
+    const blockEvent = new TestBlockEvent();
+    const findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x1"), "30"),
+      createFinding(createAddress("0x2"), "40"),
+    ]);
+  });
+
+  // BLOCK_LAPSE = 265
+  it("should return a findings from the same only once per BLOCK_LAPSE", async () => {
+    handleBlock = provideHandlerBlock(ethersProviderMock as any);
+
+    // set mocks values
+    when(callMock)
+      .calledWith(isCallToAssetsAddresses, expect.anything())
+      .mockResolvedValue(
+        encodeParameter("address[]", [
+          createAddress("0x1"),
+        ])
+      );
+    when(callMock)
+      .calledWith(isCallToTotalAssets, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 100));
+    when(callMock)
+      .calledWith(isCallToTotalDebt, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 70))
+
+    let blockEvent = new TestBlockEvent().setNumber(10);
+
+    let findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x1"), "30"),
+    ]);
+
+    blockEvent = new TestBlockEvent().setNumber(12);
+
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+
+    blockEvent = new TestBlockEvent().setNumber(300);
+
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "30")]);
+  });
+
+  it("should return finding if the vault had idle funds, had correct state after and had idle funds again", async () => {
+    handleBlock = provideHandlerBlock(ethersProviderMock as any);
+
+    // set mocks values
+    when(callMock)
+      .calledWith(isCallToAssetsAddresses, expect.anything())
+      .mockResolvedValue(
+        encodeParameter("address[]", [
+          createAddress("0x1"),
+        ])
+      );
+    when(callMock)
+      .calledWith(isCallToTotalAssets, expect.anything())
+      .mockResolvedValue(encodeParameter("uint256", 100));
+    when(callMock)
+      .calledWith(isCallToTotalDebt, expect.anything())
+      .mockResolvedValueOnce(encodeParameter("uint256", 70))
+      .mockResolvedValueOnce(encodeParameter("uint256", 90))
+      .mockResolvedValueOnce(encodeParameter("uint256", 75));
+
+    let blockEvent = new TestBlockEvent().setNumber(10);
+
+    let findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x1"), "30"),
+    ]);
+
+    blockEvent = new TestBlockEvent().setNumber(11);
+
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+
+    blockEvent = new TestBlockEvent().setNumber(12);
+
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([createFinding(createAddress("0x1"), "25")]);
+  });
+
+});
