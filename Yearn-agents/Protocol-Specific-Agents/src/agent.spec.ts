@@ -67,7 +67,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
   });
 };
 
-/* describe('Stability Fee Handler Test Suit', () => {
+describe('Stability Fee Handler Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   afterEach(() => {
@@ -514,7 +514,7 @@ describe('Stale Spot Price Handler Test Suit', () => {
 
     expect(findings).toStrictEqual([]);
   });
-}); */
+});
 
 describe('OSM Returned Price Handler Test Suit', () => {
   let handleBlock: HandleBlock;
