@@ -33,7 +33,7 @@ export default class MakerFetcher {
     await Promise.all(makerCalls).then((res) => {
       res.forEach((maker) => {
         if (maker.length !== 0) {
-          allMakers.push(maker.toString());
+          allMakers.push(...maker);
         }
       });
     });
@@ -91,21 +91,18 @@ export default class MakerFetcher {
   ): Promise<string[]> => {
     const strategies: string[] = [];
     const vaultContract = new this.web3.eth.Contract(VaultABI, vault);
-    const strategyCalls: string[] = [];
 
     for (let i = 0; i < 20; i++) {
-      strategyCalls.push(
-        vaultContract.methods.withdrawalQueue(i).call({}, blockNumber)
-      );
-    }
+      const strategy = await vaultContract.methods
+        .withdrawalQueue(i)
+        .call({}, blockNumber);
 
-    await Promise.all(strategyCalls).then((res) => {
-      res.forEach((strategy) => {
-        if (!isZeroAddress(strategy)) {
-          strategies.push(strategy.toString());
-        }
-      });
-    });
+      if (strategy && !isZeroAddress(strategy)) {
+        strategies.push(strategy);
+      } else {
+        break;
+      }
+    }
 
     return strategies;
   };

@@ -39,22 +39,30 @@ const provideStabilityFeeHandler = async (
   txEvent: TransactionEvent
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
+  const promises: any = [];
 
   if (!txEvent.status) return [];
 
-  for (const strategy of makers) {
-    const collateralType = await getCollateralType(
-      web3,
-      strategy,
-      txEvent.blockNumber
+  makers.forEach((strategy) => {
+    promises.push(
+      getCollateralType(web3, strategy, txEvent.blockNumber).then((res) => {
+        return {
+          strategy: strategy,
+          collateralType: res,
+        };
+      })
     );
+  });
 
+  const collaterals: any = await (await Promise.all(promises)).flat();
+
+  for (const res of collaterals) {
     const filterOnArguments = (args: { [key: string]: any }): boolean => {
-      return args[0] === collateralType;
+      return args[0] === res.collateralType;
     };
 
     const agentHandler = provideFunctionCallsDetectorHandler(
-      createFindingStabilityFee(strategy.toString()),
+      createFindingStabilityFee(res.strategy),
       JUG_DRIP_FUNCTION_SIGNATURE,
       { to: JUG_CONTRACT, filterOnArguments }
     );
@@ -171,17 +179,17 @@ export const provideHandleTransaction = (
     let findings: Finding[] = [];
     const makers = await fetcher.getActiveMakers(txEvent.blockNumber);
 
-    makers
-      ? (findings = [
-          ...(await provideStabilityFeeHandler(web3, makers, txEvent)),
-          ...(await provideStaleSpotPriceHandler(
-            web3,
-            makers,
-            txEvent,
-            timeTracker
-          )),
-        ])
-      : [];
+    if (makers) {
+      const handlerCalls = [
+        provideStabilityFeeHandler(web3, makers, txEvent),
+        provideStaleSpotPriceHandler(web3, makers, txEvent, timeTracker),
+      ];
+
+      await Promise.all(handlerCalls).then((res) => {
+        findings = findings.concat(...res);
+      });
+    }
+
     return findings;
   };
 };

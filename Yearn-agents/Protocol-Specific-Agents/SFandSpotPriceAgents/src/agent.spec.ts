@@ -48,7 +48,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
   });
 };
 
-/* describe('Stability Fee Handler Test Suit', () => {
+describe('Stability Fee Handler Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   afterEach(() => {
@@ -148,7 +148,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
     const INPUT1 = selector + collateralType;
 
     const collateralType2 =
-      '3554482d43000000000000000000000000000000000000000000000000000000';
+      '5946492d41000000000000000000000000000000000000000000000000000000';
     const INPUT2 = selector + collateralType2;
 
     handleTransaction = provideHandleTransaction(mockWeb3, fetcher);
@@ -174,7 +174,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
       createFindingSF(createAddress('0x3'), '0x' + collateralType2),
     ]);
   });
-}); */
+});
 
 //////////////////////////////////////////////////////////////////////////////
 /////////////// Spot Price Test Suit ////////////////////////////////////////
