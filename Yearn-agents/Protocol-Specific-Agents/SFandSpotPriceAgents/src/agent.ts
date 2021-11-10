@@ -170,7 +170,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(web3, fetcher),
-  handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
+  //handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
   provideHandleTransaction,
-  provideOSMPriceHandler,
+  //provideOSMPriceHandler,
 };

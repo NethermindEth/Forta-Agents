@@ -20,21 +20,30 @@ export default class MakerFetcher {
   public getActiveMakers = async (
     blockNumber: string | number = 'latest'
   ): Promise<string[] | undefined> => {
-    if (blockNumber != 'latest' || this.cache.get(blockNumber) !== undefined)
+    if (blockNumber != 'latest' && this.cache.get(blockNumber) !== undefined)
       return this.cache.get(blockNumber);
-
+    const allMakers: string[] = [];
     const activeMakers: string[] = [];
     const vaults = await this.getVaults(blockNumber);
 
-    for (const vault of vaults) {
-      const makers = await this.filterMakerStrategy(vault, blockNumber);
+    const makerCalls = vaults.map((vault) => {
+      return this.filterMakerStrategy(vault, blockNumber);
+    });
 
-      for (const strategy of makers) {
-        if (await this.isActive(strategy, blockNumber)) {
-          activeMakers.push(strategy);
+    await Promise.all(makerCalls).then((res) => {
+      res.forEach((maker) => {
+        if (maker.length !== 0) {
+          allMakers.push(maker.toString());
         }
+      });
+    });
+
+    for (const strategy of allMakers) {
+      if (await this.isActive(strategy, blockNumber)) {
+        activeMakers.push(strategy);
       }
     }
+
     this.cache.set(blockNumber, activeMakers);
     return activeMakers;
   };
@@ -82,18 +91,21 @@ export default class MakerFetcher {
   ): Promise<string[]> => {
     const strategies: string[] = [];
     const vaultContract = new this.web3.eth.Contract(VaultABI, vault);
+    const strategyCalls: string[] = [];
 
     for (let i = 0; i < 20; i++) {
-      const strategy = await vaultContract.methods
-        .withdrawalQueue(i)
-        .call({}, blockNumber);
-
-      if (strategy && !isZeroAddress(strategy)) {
-        strategies.push(strategy);
-      } else {
-        break;
-      }
+      strategyCalls.push(
+        vaultContract.methods.withdrawalQueue(i).call({}, blockNumber)
+      );
     }
+
+    await Promise.all(strategyCalls).then((res) => {
+      res.forEach((strategy) => {
+        if (!isZeroAddress(strategy)) {
+          strategies.push(strategy.toString());
+        }
+      });
+    });
 
     return strategies;
   };
