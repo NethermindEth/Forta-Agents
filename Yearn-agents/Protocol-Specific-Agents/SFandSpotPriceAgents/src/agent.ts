@@ -18,7 +18,9 @@ import TimeTracker from './time.tracker';
 import {
   checkOSMContracts,
   createFindingStabilityFee,
+  createOSMPriceFinding,
   createStaleSpotFinding,
+  decodeNumber,
   getCollateralType,
   JUG_CONTRACT,
   JUG_DRIP_FUNCTION_SIGNATURE,
@@ -123,21 +125,46 @@ const provideStaleSpotPriceHandler = async (
   return findings;
 };
 
+const getPromise = (
+  web3: Web3,
+  contract: string,
+  blockNumber: string | number
+) => {
+  return new Promise((resolve, reject) => {
+    resolve(checkOSMContracts(web3, contract, blockNumber));
+  });
+};
+
 export const provideOSMPriceHandler = (
   web3: Web3,
   contracts: string[]
 ): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     let findings: Finding[] = [];
+    const promises: any = [];
 
-    const contractCalls = contracts.map((contract) => {
-      return checkOSMContracts(web3, contract, blockEvent.blockNumber);
+    contracts.map((contract) => {
+      promises.push(
+        checkOSMContracts(web3, contract, blockEvent.blockNumber).then(
+          (res) => {
+            return {
+              contract: contract,
+              peek: res,
+            };
+          }
+        )
+      );
     });
 
-    const responses = (await Promise.all(contractCalls)).flat();
+    const data = await Promise.all(promises).then((res) => {
+      res.forEach((res: any) => {
+        const value = decodeNumber(web3, res.peek[0]);
+        const isValid = res.peek[1];
 
-    responses.map((res) => {
-      //console.log(res);
+        if (value === '0' || !isValid) {
+          findings.push(createOSMPriceFinding(res.contract, value));
+        }
+      });
     });
 
     return findings;
@@ -170,7 +197,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(web3, fetcher),
-  //handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
+  handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
   provideHandleTransaction,
-  //provideOSMPriceHandler,
+  provideOSMPriceHandler,
 };

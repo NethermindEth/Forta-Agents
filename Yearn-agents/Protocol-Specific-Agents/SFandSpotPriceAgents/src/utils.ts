@@ -16,8 +16,8 @@ export const POKE_SIGNATURE = 'Poke(bytes32,bytes32,uint256)';
 export const SPOT_ADDRESS = '0x65C79fcB50Ca1594B025960e539eD7A9a6D434A3';
 
 export const OSM_CONTRACTS = [
+  '0x81FE72B5A8d1A857d176C3E7d5Bd2679A9B85763',
   '0xb4eb54af9cc7882df0121d26c5b97e802915abe6',
-  '0x81fe72b5a8d1a857d176c3e7d5bd2679a9b85763',
   '0xf185d0682d50819263941e5f4eacc763cc5c6c42',
   '0xf36b79bd4c0904a5f350f1e4f776b81208c13069',
   '0x7382c066801e7acb2299ac8562847b9883f5cd3c',
@@ -41,7 +41,6 @@ export const OSM_CONTRACTS = [
   '0x5bb72127a196392cf4ac00cf57ab278394d24e55',
   '0x32d8416e8538ac36272c44b0cd962cd7e0198489',
   '0x9a1cd705dc7ac64b50777bceca3529e58b1292f1',
-  '0x65c79fcb50ca1594b025960e539ed7a9a6d434a3',
 ];
 
 export const createFindingStabilityFee = (
@@ -82,6 +81,21 @@ export const createStaleSpotFinding = (
   });
 };
 
+export const createOSMPriceFinding = (OSM: string, price: string): Finding => {
+  return Finding.fromObject({
+    name: 'OSM Returned Price of Zero Detection ',
+    description: 'Price of Zero is returned from Oracle security module',
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    alertId: 'Yearn-3-3',
+    protocol: 'Yearn',
+    metadata: {
+      OSM: OSM,
+      price: price,
+    },
+  });
+};
+
 export const getCollateralType = async (
   web3: Web3,
   address: string,
@@ -98,40 +112,14 @@ export const checkOSMContracts = async (
   address: string,
   blockNumber: string | number = 'latest'
 ) => {
-  const slot3 = await web3.eth.getStorageAt(address, 3, 'latest');
-  console.log(slot3);
+  const contract = new web3.eth.Contract(OSM_ABI, address);
+  const peek = await contract.methods
+    .peek()
+    .call({ from: '0x65c79fcb50ca1594b025960e539ed7a9a6d434a3' }, blockNumber);
 
-  const value = slot3.slice(-15);
-  const has = slot3.slice(33, -15);
-  console.log(has);
-  console.log(value);
-  console.log(
-    '****************************************************************'
-  );
-
-  return {
-    address,
-  };
+  return peek;
 };
 
-const getAllSimpleStorage = async (web3: Web3, addr: string) => {
-  let slot = 0;
-  let zeroCounter = 0;
-  const simpleStorage = [];
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const data = await web3.eth.getStorageAt(addr, slot);
-    if (new BigNumber(data).eq(0)) {
-      zeroCounter++;
-    }
-
-    simpleStorage.push({ slot, data });
-    slot++;
-
-    if (zeroCounter > 10) {
-      break;
-    }
-  }
-
-  return simpleStorage;
+export const decodeNumber = (web3: Web3, data: string) => {
+  return web3.utils.hexToNumberString(data);
 };
