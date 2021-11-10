@@ -125,16 +125,7 @@ const provideStaleSpotPriceHandler = async (
   return findings;
 };
 
-const getPromise = (
-  web3: Web3,
-  contract: string,
-  blockNumber: string | number
-) => {
-  return new Promise((resolve, reject) => {
-    resolve(checkOSMContracts(web3, contract, blockNumber));
-  });
-};
-
+// The Handler that checks if OSM contract are returning Price of 0
 export const provideOSMPriceHandler = (
   web3: Web3,
   contracts: string[]
@@ -143,7 +134,7 @@ export const provideOSMPriceHandler = (
     let findings: Finding[] = [];
     const promises: any = [];
 
-    contracts.map((contract) => {
+    contracts.forEach((contract) => {
       promises.push(
         checkOSMContracts(web3, contract, blockEvent.blockNumber).then(
           (res) => {
@@ -156,7 +147,7 @@ export const provideOSMPriceHandler = (
       );
     });
 
-    const data = await Promise.all(promises).then((res) => {
+    await Promise.all(promises).then((res) => {
       res.forEach((res: any) => {
         const value = decodeNumber(web3, res.peek[0]);
         const isValid = res.peek[1];
