@@ -14,6 +14,7 @@ export const JUG_CONTRACT = '0x19c0976f590D67707E62397C87829d896Dc0f1F1';
 
 export const POKE_SIGNATURE = 'Poke(bytes32,bytes32,uint256)';
 export const SPOT_ADDRESS = '0x65C79fcB50Ca1594B025960e539eD7A9a6D434A3';
+// "0x65c79fcb50ca1594b025960e539ed7a9a6d434a3"
 
 export const OSM_CONTRACTS = [
   '0x81FE72B5A8d1A857d176C3E7d5Bd2679A9B85763',
@@ -115,7 +116,7 @@ export const checkOSMContracts = async (
   const contract = new web3.eth.Contract(OSM_ABI, address);
   const peek = await contract.methods
     .peek()
-    .call({ from: '0x65c79fcb50ca1594b025960e539ed7a9a6d434a3' }, blockNumber);
+    .call({ from: SPOT_ADDRESS }, blockNumber);
 
   return peek;
 };

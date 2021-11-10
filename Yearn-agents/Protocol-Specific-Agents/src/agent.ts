@@ -110,6 +110,7 @@ const provideStaleSpotPriceHandler = async (
     }
 
     if (
+      txEvent.status &&
       (await handler(txEvent)).length !== 0 &&
       timeTracker.isIn3Hours(timestamp)
     ) {
