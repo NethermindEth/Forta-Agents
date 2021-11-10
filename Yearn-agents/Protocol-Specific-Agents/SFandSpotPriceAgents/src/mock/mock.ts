@@ -6,10 +6,12 @@ export const strategies = jest.fn();
 export const isActive = jest.fn();
 export const name = jest.fn();
 export const ilk = jest.fn();
+export const peek = jest.fn();
 
 export type Args = boolean[];
+export type PriceOfZero = { has: boolean; val: string }[];
 
-const build_Mock = (args: Args) =>
+const build_Mock = (args: Args, priceOfZero?: PriceOfZero) =>
   class MockContract {
     private addr: string;
 
@@ -19,6 +21,7 @@ const build_Mock = (args: Args) =>
       assetsAddresses: this.assetsAddresses,
       ilk: this.ilk,
       isActive: this.isActive,
+      peek: this.peek,
     };
 
     constructor(_: any, addr: string) {
@@ -45,6 +48,15 @@ const build_Mock = (args: Args) =>
         .mockReturnValueOnce(
           '0x5946492d41000000000000000000000000000000000000000000000000000000'
         );
+      peek
+        .mockReturnValueOnce({
+          '0': priceOfZero?.[0].val,
+          '1': priceOfZero?.[0].has,
+        })
+        .mockReturnValueOnce({
+          '0': priceOfZero?.[1].val,
+          '1': priceOfZero?.[1].has,
+        });
     }
 
     private NAME() {
@@ -74,6 +86,12 @@ const build_Mock = (args: Args) =>
     private isActive() {
       return {
         call: () => isActive(),
+      };
+    }
+
+    private peek() {
+      return {
+        call: () => peek(),
       };
     }
   };

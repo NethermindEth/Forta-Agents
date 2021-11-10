@@ -157,11 +157,11 @@ export const provideOSMPriceHandler = (
 
     await Promise.all(promises).then((res) => {
       res.forEach((res: any) => {
-        const value = decodeNumber(web3, res.peek[0]);
+        const value = decodeNumber(web3, res.peek[0]).toString();
         const isValid = res.peek[1];
 
-        if (value === '0' || !isValid) {
-          findings.push(createOSMPriceFinding(res.contract, value));
+        if (value === '0' && !isValid) {
+          findings.push(createOSMPriceFinding(res.contract, value.toString()));
         }
       });
     });

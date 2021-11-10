@@ -3,20 +3,30 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
+  HandleBlock,
 } from 'forta-agent';
 import {
   createAddress,
   encodeFunctionSignature,
+  TestBlockEvent,
   TestTransactionEvent,
 } from 'forta-agent-tools';
-import Mock, { strategies, isActive, name, Args } from './mock/mock';
-import { provideHandleTransaction } from './agent';
+import Mock, {
+  strategies,
+  isActive,
+  name,
+  Args,
+  PriceOfZero,
+} from './mock/mock';
+import { provideHandleTransaction, provideOSMPriceHandler } from './agent';
 import {
   JUG_CONTRACT,
   JUG_DRIP_FUNCTION_SIGNATURE,
   POKE_SIGNATURE,
   SPOT_ADDRESS,
   createStaleSpotFinding,
+  OSM_CONTRACTS,
+  createOSMPriceFinding,
 } from './utils';
 import MakerFetcher from './maker.fetcher';
 
@@ -25,10 +35,19 @@ const lessThan3Hours = 1609488316; // Fri Jan 01 2021 08:05:16 GMT"
 const greaterThan3hours = 1609499416; // Fri Jan 01 2021 11:10:16 GMT"
 const differentHour = 1609513816; // Fri Jan 01 2021 15:10:16 GMT
 
-const createMock = (args: Args) => {
+const createMock = (args: Args, priceOfZero?: PriceOfZero) => {
   return {
     eth: {
-      Contract: Mock.build_Mock(args),
+      Contract: Mock.build_Mock(args, priceOfZero),
+    },
+    utils: {
+      hexToNumberString: (hex: string) => {
+        if (hex !== '0') {
+          return 1;
+        } else {
+          return 0;
+        }
+      },
     },
   } as any;
 };
@@ -48,7 +67,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
   });
 };
 
-describe('Stability Fee Handler Test Suit', () => {
+/* describe('Stability Fee Handler Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   afterEach(() => {
@@ -494,5 +513,82 @@ describe('Stale Spot Price Handler Test Suit', () => {
     findings = findings.concat(await handleTransaction(txEvent2));
 
     expect(findings).toStrictEqual([]);
+  });
+}); */
+
+describe('OSM Returned Price Handler Test Suit', () => {
+  let handleBlock: HandleBlock;
+
+  const CONTRACTS = [createAddress('0x1'), createAddress('0x2')];
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('should return empty findings', async () => {
+    const priceOfZero: PriceOfZero = [
+      {
+        val: '0x000000000000000000000000000000000000000000000100248c21e088b40000',
+        has: true,
+      },
+      {
+        val: '0x000000000000000000000000000000000000000000000000101c6a0245e72448',
+        has: true,
+      },
+    ];
+    const mockWeb3 = createMock([true, true], priceOfZero);
+    handleBlock = provideOSMPriceHandler(mockWeb3, CONTRACTS);
+
+    let findings: Finding[] = [];
+
+    const blockEvent = new TestBlockEvent();
+
+    findings = findings.concat(await handleBlock(blockEvent));
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return findings if one of the price returning 0', async () => {
+    const priceOfZero: PriceOfZero = [
+      {
+        val: '0',
+        has: false,
+      },
+      {
+        val: '0x000000000000000000000000000000000000000000000000101c6a0245e72448',
+        has: true,
+      },
+    ];
+    const mockWeb3 = createMock([true, true], priceOfZero);
+    handleBlock = provideOSMPriceHandler(mockWeb3, CONTRACTS);
+
+    const blockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([
+      createOSMPriceFinding(createAddress('0x1'), '0'),
+    ]);
+  });
+
+  it('should return findings if 2 of the price returning 0', async () => {
+    const priceOfZero: PriceOfZero = [
+      {
+        val: '0',
+        has: false,
+      },
+      {
+        val: '0',
+        has: false,
+      },
+    ];
+    const mockWeb3 = createMock([true, true], priceOfZero);
+    handleBlock = provideOSMPriceHandler(mockWeb3, CONTRACTS);
+
+    const blockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([
+      createOSMPriceFinding(createAddress('0x1'), '0'),
+      createOSMPriceFinding(createAddress('0x2'), '0'),
+    ]);
   });
 });
