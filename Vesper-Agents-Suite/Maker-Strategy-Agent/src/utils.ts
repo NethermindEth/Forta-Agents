@@ -92,8 +92,8 @@ export const createFindingHighWater = (
 export const getPools = async (
   web3: Web3,
   blockNumber: string | number = "latest"
-): Promise<Set<string>> => {
-  const pools: Set<string> = new Set();
+): Promise<string[]> => {
+  const pools: string[] = [];
   const poolCalls = [];
 
   const controllerContract = new web3.eth.Contract(
@@ -117,9 +117,9 @@ export const getPools = async (
   }
 
   await Promise.all(poolCalls).then((res) => {
-    res.forEach((pool) => {
+    res.forEach(([pool, _]) => {
       if (!isZeroAddress(pool)) {
-        pools.add(pool);
+        pools.push(pool);
       }
     });
   });
@@ -127,24 +127,28 @@ export const getPools = async (
   return pools;
 };
 
+const getPromise = (web3: Web3, pool: string, blockNumber: string | number) => {
+  const contract = new web3.eth.Contract(PoolABI, pool);
+  return new Promise((resolve, reject) => {
+    resolve(contract.methods.poolAccountant().call({}, blockNumber));
+  });
+};
+
 export const getPoolAccountants = async (
   web3: Web3,
   blockNumber: string | number
-): Promise<Set<string>> => {
-  const poolAccountants: Set<string> = new Set();
-  const pools: Set<string> = await getPools(web3, blockNumber);
+): Promise<string[]> => {
+  const poolAccountants: string[] = [];
+  const pools: string[] = await getPools(web3, blockNumber);
 
-  const poolAccountantCalls = Array.from(pools).map((pool) => {
-    try {
-      const poolContract = new web3.eth.Contract(PoolABI, pool);
-      return poolContract.methods.poolAccountant().call({}, blockNumber);
-    } catch {}
+  const poolAccountantCalls = pools.map((pool) => {
+    return getPromise(web3, pool, blockNumber).catch(() => {});
   });
 
   await Promise.all(poolAccountantCalls).then((res) => {
-    res.forEach((poolAccountant) => {
-      if (!isZeroAddress(poolAccountant)) {
-        poolAccountants.add(poolAccountant);
+    res.forEach((poolAccountant: any) => {
+      if (poolAccountant && !isZeroAddress(poolAccountant)) {
+        poolAccountants.push(poolAccountant);
       }
     });
   });
@@ -155,23 +159,23 @@ export const getPoolAccountants = async (
 export const getV2Strategies = async (
   web3: Web3,
   blockNumber: string | number
-) => {
-  let v2Strategies: Set<string> = new Set();
-  const pools: Set<string> = await getPools(web3, blockNumber);
+): Promise<string[]> => {
+  let v2Strategies: string[] = [];
+  const pools: string[] = await getPools(web3, blockNumber);
 
   const controllerContract = new web3.eth.Contract(
     CONTROLLER_ABI,
     CONTROLLER_CONTRACT
   );
 
-  const v2StrategyCalls = Array.from(pools).map((pool) => {
+  const v2StrategyCalls = pools.map((pool) => {
     return controllerContract.methods.strategy(pool).call({}, blockNumber);
   });
 
   await Promise.all(v2StrategyCalls).then((res) => {
     res.forEach((strategy) => {
       if (!isZeroAddress(strategy)) {
-        v2Strategies.add(strategy);
+        v2Strategies.push(strategy);
       }
     });
   });
@@ -183,24 +187,24 @@ export const getV3Strategies = async (
   web3: Web3,
   blockNumber: string | number
 ) => {
-  let v3Strategies: Set<string> = new Set();
-  const poolAccountants: Set<string> = await getPoolAccountants(
-    web3,
-    blockNumber
-  );
-  const v3StrategyCalls = Array.from(poolAccountants).map((accountant) => {
+  let v3Strategies: string[] = [];
+  const poolAccountants: string[] = await getPoolAccountants(web3, blockNumber);
+
+  const v3StrategyCalls = poolAccountants.map((accountant) => {
     return new web3.eth.Contract(Accountant_ABI, accountant).methods
       .getStrategies()
       .call({}, blockNumber);
   });
 
-  await Promise.all(v3StrategyCalls).then((res) => {
-    res.forEach((strategy) => {
-      if (!isZeroAddress(strategy)) {
-        v3Strategies.add(strategy);
-      }
+  try {
+    await Promise.all(v3StrategyCalls).then((res) => {
+      res.forEach((strategy) => {
+        if (!isZeroAddress(strategy)) {
+          v3Strategies.push(...strategy);
+        }
+      });
     });
-  });
+  } catch {}
 
   return v3Strategies;
 };
@@ -208,17 +212,17 @@ export const getV3Strategies = async (
 export const getAllStrategies = async (
   web3: Web3,
   blockNumber: string | number
-): Promise<Set<string>> => {
-  let strategies: Set<string> = new Set();
+): Promise<string[]> => {
+  let strategies: string[] = [];
 
   const strategyCalls = [
     getV2Strategies(web3, blockNumber),
     getV3Strategies(web3, blockNumber)
   ];
 
-  await Promise.all(strategyCalls).then((res) => {
+  await Promise.all(strategyCalls.flat()).then((res) => {
     res.forEach((strategy) => {
-      strategies = new Set([...strategies, ...strategy]);
+      strategies.push(...strategy);
     });
   });
 
@@ -233,7 +237,7 @@ export const getMakerStrategies = async (
 
   const strategies = await getAllStrategies(web3, blockNumber);
 
-  for (let strategy of Array.from(strategies)) {
+  for (let strategy of strategies) {
     const str = new web3.eth.Contract(Strategy_ABI, strategy);
     const name: string = await str.methods.NAME().call({}, blockNumber);
 
