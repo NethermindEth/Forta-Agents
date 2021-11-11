@@ -9,6 +9,8 @@ import {
 } from "forta-agent";
 import Web3 from "web3";
 import { vaultAbi, getYearnVaults } from "./utils";
+import { CacheContainer } from "node-ts-cache";
+import { MemoryStorage } from "node-ts-cache-storage-memory";
 
 const web3 = new Web3(getJsonRpcUrl());
 
@@ -31,20 +33,21 @@ export const createFinding = (
   });
 };
 
-interface Tracker {
+interface CacheObject {
   [key: string]: BigNumber;
 }
 
 const provideHandleFunction = (web3: Web3): HandleBlock => {
   const threshold = 0.1;
-  let tracker: Tracker = {};
+  const cache = new CacheContainer(new MemoryStorage());
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const blockNumber = blockEvent.blockNumber;
+
     const vaults = await getYearnVaults(web3, blockNumber);
 
-    let promises = [];
+    let promises: BigNumber[] = [];
 
     for (let i of vaults) {
       const vault = new web3.eth.Contract(vaultAbi as any, i);
@@ -54,9 +57,27 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
 
     promises = await Promise.all(promises);
 
+    const storage: CacheObject = {};
+
+    promises.map((value, index) => {
+      storage[vaults[index]] = value;
+    });
+
+    await cache.setItem(blockNumber.toString(), storage, { ttl: 40 });
+
+    let previous = await cache.getItem<CacheObject>(
+      (blockNumber - 1).toString()
+    );
+
+    if (!previous) {
+      return findings;
+    }
+
     promises.forEach((pps, index) => {
       const vaultAddress = vaults[index];
-      const vaultPrevValue = tracker[vaultAddress];
+
+      // @ts-ignore
+      const vaultPrevValue = previous[vaultAddress as any];
       pps = new BigNumber(pps);
 
       // pps should increase only
@@ -86,7 +107,6 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
           )
         );
       }
-      tracker[vaultAddress] = pps;
     });
 
     return findings;

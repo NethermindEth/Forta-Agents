@@ -16,7 +16,7 @@ describe("PPS ( Price per share ) agent", () => {
   });
 
   it("returns empty findings if pps increases", async () => {
-    const blockEvent = new TestBlockEvent();
+    const blockEvent = new TestBlockEvent().setNumber(1);
     mockPrice.mockReturnValueOnce(1.1);
 
     const findings = await handleBlock(blockEvent);
@@ -25,7 +25,7 @@ describe("PPS ( Price per share ) agent", () => {
   });
 
   it("Returns nothing if pps remain the same", async () => {
-    const blockEvent = new TestBlockEvent();
+    const blockEvent = new TestBlockEvent().setNumber(2);
 
     mockPrice.mockReturnValueOnce(1.1);
     const findings = await handleBlock(blockEvent);
@@ -33,7 +33,7 @@ describe("PPS ( Price per share ) agent", () => {
     expect(findings).toStrictEqual([]);
   });
   it("Returns findings if pps decreases", async () => {
-    const blockEvent = new TestBlockEvent();
+    const blockEvent = new TestBlockEvent().setNumber(3);
 
     mockPrice.mockReturnValueOnce(1);
     const findings = await handleBlock(blockEvent);
@@ -43,7 +43,7 @@ describe("PPS ( Price per share ) agent", () => {
   });
 
   it("Returns findings if swift change in pps", async () => {
-    const blockEvent = new TestBlockEvent();
+    const blockEvent = new TestBlockEvent().setNumber(4);
     mockPrice.mockReturnValueOnce(100);
     const findings = await handleBlock(blockEvent);
 
@@ -53,7 +53,7 @@ describe("PPS ( Price per share ) agent", () => {
   });
 
   it("Returns findings when swift change +  pps decrease", async () => {
-    const blockEvent = new TestBlockEvent();
+    const blockEvent = new TestBlockEvent().setNumber(5);
     mockPrice.mockReturnValueOnce(10);
     const findings = await handleBlock(blockEvent);
 
