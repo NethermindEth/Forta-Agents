@@ -54,7 +54,7 @@ const provideStabilityFeeHandler = async (
     );
   });
 
-  const collaterals: any = await (await Promise.all(promises)).flat();
+  const collaterals: any = (await Promise.all(promises)).flat();
 
   for (const res of collaterals) {
     const filterOnArguments = (args: { [key: string]: any }): boolean => {
@@ -81,18 +81,30 @@ const provideStaleSpotPriceHandler = async (
   timeTracker: TimeTracker
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
+  const promises: any = [];
   const timestamp = txEvent.block.timestamp;
 
-  for (const strategy of makers) {
-    const ilk = await getCollateralType(web3, strategy, txEvent.blockNumber);
+  makers.forEach((strategy) => {
+    promises.push(
+      getCollateralType(web3, strategy, txEvent.blockNumber).then((res) => {
+        return {
+          strategy: strategy,
+          ilk: res,
+        };
+      })
+    );
+  });
 
+  const collaterals: any = (await Promise.all(promises)).flat();
+
+  for (const res of collaterals) {
     const filterEvents = (log: Log) => {
       const parameters = decodeParameters(
         ['bytes32', 'bytes32', 'uint256'],
         log.data
       );
 
-      return ilk === parameters[0];
+      return res.ilk === parameters[0];
     };
 
     const handler = provideEventCheckerHandler(
@@ -124,7 +136,7 @@ const provideStaleSpotPriceHandler = async (
       !txEvent.status
     ) {
       timeTracker.updateFindingReport(true);
-      findings.push(createStaleSpotFinding(SPOT_ADDRESS, strategy));
+      findings.push(createStaleSpotFinding(SPOT_ADDRESS, res.strategy));
     }
     timeTracker.updateFindingReport(false);
     timeTracker.updateFunctionWasCalled(false);

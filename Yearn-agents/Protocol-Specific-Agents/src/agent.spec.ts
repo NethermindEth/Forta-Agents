@@ -18,16 +18,15 @@ import Mock, {
   Args,
   PriceOfZero,
 } from './mock/mock';
-import { provideHandleTransaction, provideOSMPriceHandler } from './agent';
 import {
   JUG_CONTRACT,
   JUG_DRIP_FUNCTION_SIGNATURE,
   POKE_SIGNATURE,
   SPOT_ADDRESS,
   createStaleSpotFinding,
-  OSM_CONTRACTS,
   createOSMPriceFinding,
 } from './utils';
+import { provideHandleTransaction, provideOSMPriceHandler } from './agent';
 import MakerFetcher from './maker.fetcher';
 
 const previousHourForActivatingAgent = 1609480876; //Fri Jan 01 2021 06:01:16 GMT
