@@ -1,17 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { isZeroAddress } from "ethereumjs-util";
 import Web3 from "web3";
-import {
-  CONTROLLER_ABI,
-  AddressListABI,
-  PoolABI,
-  Accountant_ABI,
-  Strategy_ABI,
-  CM_ABI
-} from "./abi";
+import { Strategy_ABI, CM_ABI } from "./abi";
 import { FindingGenerator } from "forta-agent-tools";
-
-const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const JUG_DRIP_FUNCTION_SIGNATURE = "drip(bytes32)";
 export const JUG_CONTRACT = "0x19c0976f590D67707E62397C87829d896Dc0f1F1";
