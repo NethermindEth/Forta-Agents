@@ -18,7 +18,6 @@ import {
   createFindingIsUnderWater,
   createFindingLowWater,
   createFindingHighWater,
-  createFindingStabilityFee,
   JUG_DRIP_FUNCTION_SIGNATURE,
   JUG_CONTRACT
 } from "./utils";
@@ -42,7 +41,7 @@ const createFindingSF = (
     description: "stability Fee is changed for related strategy's collateral",
     severity: FindingSeverity.High,
     type: FindingType.Info,
-    alertId: "Vesper-1-2",
+    alertId: "Vesper-1-3",
     protocol: "Vesper",
     metadata: {
       strategy: _strategy,
