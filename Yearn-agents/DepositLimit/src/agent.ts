@@ -1,39 +1,53 @@
-import BigNumber from 'bignumber.js'
 import { 
   BlockEvent, 
   Finding, 
   HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
+  getEthersProvider,
 } from 'forta-agent'
+import {
+  Provider,
+  getYearnVaults,
+  getTotalAssets,
+  getDepositLimit,
+  createFinding,
+  shouldReport,
+  LastBlockReports,
+} from "./utils";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandlerBlock = (ethersProvider: Provider): HandleBlock => {
+  const lastBlockReports: LastBlockReports = {};
+  let lastBlockAnalyzed = 0;
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-  }
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    if (blockEvent.blockNumber < lastBlockAnalyzed) return [];
 
-  return findings
-}
+    lastBlockAnalyzed = blockEvent.blockNumber;
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    const findings: Finding[] = [];
+
+    const vaults = await getYearnVaults(blockEvent.blockNumber, ethersProvider); 
+    const totalAssetsPromises = vaults.map((vault: string) => getTotalAssets(vault, blockEvent.blockNumber, ethersProvider));
+    const depositLimitPromises = vaults.map((vault: string) => getDepositLimit(vault, blockEvent.blockNumber, ethersProvider));
+
+    const totalAssets = await Promise.all(totalAssetsPromises);
+    const depositLimits = await Promise.all(depositLimitPromises);
+
+    for (let i = 0; i < vaults.length; i++) {
+      if (depositLimits[i].eq(0)) {
+        continue;
+      }
+      
+      const utilizationPercent = totalAssets[i].mul(100).div(depositLimits[i]);
+
+      if (shouldReport(vaults[i], utilizationPercent, lastBlockReports, blockEvent.blockNumber)) {
+        findings.push(createFinding(vaults[i], depositLimits[i].toString(), totalAssets[i].toString()));
+      }
+    }
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleBlock: provideHandlerBlock(getEthersProvider()),
+};
