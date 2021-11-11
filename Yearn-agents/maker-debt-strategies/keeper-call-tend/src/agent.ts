@@ -15,7 +15,7 @@ const fetcher: MakerFetcher = new MakerFetcher(web3)
 
 const createFindingTendCall: FindingGenerator = (metadata?: ({[key: string]: any}) | undefined) => {
   return Finding.fromObject({
-    name: "MAKER - Keeper called tend",
+    name: "MAKER Strategy - Keeper called tend",
     description: "A Maker strategy is called by its keeper",
     severity: FindingSeverity.Info, 
     type: FindingType.Info, 
@@ -33,23 +33,43 @@ export const provideHandleTransaction = ( fetcher: MakerFetcher) => {
 
     if (!txEvent.status) return findings;
 
-    const makersWithKeepers = await fetcher.getActiveMakers(txEvent.blockNumber);
+    const activeMakersInfo = await fetcher.getActiveMakersInfo(txEvent.blockNumber);
     
-    if (makersWithKeepers)
-      for (let maker_keeper of makersWithKeepers)
-      {
+    if (activeMakersInfo)
+    {
+      for (let maker of activeMakersInfo)
+      {        
+        if (!maker.checkedRatio) {
+          if (maker.currentMakerVaultRatio.comparedTo(maker.collateralizationRatio.minus(maker.rebalanceTolerance)) < 0){
+            findings.push(
+              Finding.fromObject({
+                name: "MAKER Strategy - MakerVaultRatio is less than acceptable ratio",
+                description: "strategy.getCurrentMakerVaultRatio() < strategy.collateralizationRatio() - strategy.rebalanceTolerance()",
+                severity: FindingSeverity.Medium, 
+                type: FindingType.Info, 
+                alertId: "Yearn-2-1",
+                protocol: "Yearn", 
+                metadata: {
+                  strategy: maker.address
+                }
+              })
+            )
+          }
+          maker.checkedRatio = true
+        }
+
         findings = findings.concat(
           await provideFunctionCallsDetectorHandler(
             createFindingTendCall,
             tendABI,
             {
-              from: maker_keeper[1],
-              to: maker_keeper[0]
+              from: maker.keeper,
+              to: maker.address
             }
           )(txEvent)
         )
-      } 
-    
+      }      
+    }
     return findings;
   }
 }
