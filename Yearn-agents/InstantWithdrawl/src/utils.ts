@@ -31,15 +31,16 @@ export const getAccounts = async () => {
       id, account{
         id
       },
-      balancePosition
+      balancePosition,
+      vault{
+        id
+      }
     }
   }`;
 
   var data = JSON.stringify({
     query,
   });
-
-  console.log(data);
 
   var config = {
     method: "post",
@@ -50,11 +51,6 @@ export const getAccounts = async () => {
     data,
   };
 
-  axios(config as any)
-    .then(function (response) {
-      console.log(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+  const res = await axios(config as any);
+  return res.data;
 };

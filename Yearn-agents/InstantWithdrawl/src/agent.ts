@@ -22,13 +22,14 @@ const providerHandleBlock = (web3: Web3): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    // spin up ganache fork with mainnet
-    // unlock a participating account
-    // call withdraw function on the cli
     const getAccount = await getAccounts();
 
     console.log(getAccount);
     // const vaults = await getYearnVaults(web3, blockEvent.blockNumber);
+
+    // mock vaults and axios
+    // now just init a withdraw event from the corresponding address from the axios respose
+    // if its greater than X%.
 
     // vaults.forEach((value, index) => {
     //   const contract = new web3.eth.Contract(abi as any, value);
