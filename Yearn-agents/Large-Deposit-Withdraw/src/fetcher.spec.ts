@@ -1,57 +1,109 @@
-import VaultsFetcher, { VAULT_ABI } from './fetcher';
-import { createAddress, encodeFunctionCall, encodeParameter } from 'forta-agent-tools';
-import { when } from 'jest-when';
+import abi from './abi';
+import Mock from './mock';
+import VaultsFetcher from './fetcher';
+import { createAddress } from 'forta-agent-tools';
+import BigNumber from 'bignumber.js';
 
 
 const provider: string = createAddress("0xdead");
-const param = {
-  to: provider,
-  data: encodeFunctionCall(VAULT_ABI, []),
-}
-
-
-const updateMock = (mock:any, block: any, output:string[]): void => {
-  when(mock)
-    .calledWith(param, block)
-    .mockReturnValue(encodeParameter("address[]", output));
-};
 
 
 describe("Valuts fetcher tests suite", () => {
-  const mockCall: any = jest.fn();
-  const mockWeb3: any = {
-    call: mockCall,
-  }
-  const fetcher: VaultsFetcher = new VaultsFetcher(provider, mockWeb3);
+  const mockWeb3: Mock = new Mock();
+  const fetcher: VaultsFetcher = new VaultsFetcher(mockWeb3);
 
-  it("should return expected values", async () => {
-    const vaults0: string[] = [
-      createAddress("0x0"),
-      createAddress("0x1"),
-      createAddress("0x2"),
-    ];
-    const vaults1: string[] = [
-      createAddress("0xcafe"),
-    ];
-    const vaults2: string[] = [
-      createAddress("0xa0"),
-      createAddress("0xa1"),
-    ];
+  it("should return expected vaults", async () => {
+    const vaults: string[][] = [[
+        createAddress("0x0"),
+        createAddress("0x1"),
+        createAddress("0x2"),
+      ],[
+        createAddress("0xcafe"),
+      ],[
+        createAddress("0xa0"),
+        createAddress("0xa1"),
+    ]];
 
-    // initialize mock
-    updateMock(mockCall, 1, vaults0);
-    updateMock(mockCall, 2, vaults1);
-    updateMock(mockCall, 3, vaults2);
+    for(let i = 0; i < 3; ++i){
+      mockWeb3
+        .registerContract(abi.PROVIDER, provider)
+        .registerCall("assetsAddresses", vaults[i]);
 
-    expect(await fetcher.getVaults(1)).toStrictEqual(vaults0);
-    expect(await fetcher.getVaults(2)).toStrictEqual(vaults1);
-    expect(await fetcher.getVaults(3)).toStrictEqual(vaults2);
+      expect(await fetcher.getVaults(provider, i)).toStrictEqual(vaults[i]);
+      // using cached value
+      expect(await fetcher.getVaults(provider, i)).toStrictEqual(vaults[i]);
+    }   
+  });
 
-    // update block #1
-    updateMock(mockCall, 1, vaults2);
-    // using cache value
-    expect(await fetcher.getVaults(1)).toStrictEqual(vaults0);
-    
+  it("should return expected max withdraw limit", async () => {
+    const testData: any[] = [{
+        vault: createAddress("0x1"),
+        block: 10,
+        supply: 50,
+        expected: new BigNumber(50),
+      },{
+        vault: createAddress("0xa2"),
+        block: 5,
+        supply: 1230,
+        expected: new BigNumber(1230),
+      },{
+        vault: createAddress("0xcafe"),
+        block: 42,
+        supply: 1,
+        expected: new BigNumber(1),
+    }];
+
+    for(let test of testData){
+      mockWeb3
+        .registerContract(abi.VAULT, test.vault)
+        .registerCall("totalSupply", test.supply);
+
+      expect(await fetcher.getMaxWithdraw(test.vault, test.block)).toStrictEqual(test.expected);
+      // using cached value
+      expect(await fetcher.getMaxWithdraw(test.vault, test.block)).toStrictEqual(test.expected);
+    }   
+  });
+
+  it("should return expected max deposit limit", async () => {
+    const testData: any[] = [{
+        vault: createAddress("0x1"),
+        block: 10,
+        deposit: 50,
+        debt: 5,
+        balance: 3, 
+        expected: new BigNumber(42),
+        token: createAddress("0xc1"),
+      },{
+        vault: createAddress("0xa2"),
+        block: 5,
+        deposit: 1230,
+        debt: 200,
+        balance: 1000,
+        expected: new BigNumber(30),
+        token: createAddress("0xc2"),
+      },{
+        vault: createAddress("0xcafe"),
+        block: 42,
+        deposit: 1,
+        debt: 0,
+        balance: 0,
+        expected: new BigNumber(1),
+        token: createAddress("0xc3"),
+    }];
+
+    for(let test of testData){
+      mockWeb3
+        .registerContract(abi.VAULT, test.vault)
+        .registerContract(abi.TOKEN, test.token)
+        .registerCall("depositLimit", test.deposit)
+        .registerCall("token", test.token)
+        .registerCall("totalDebt", test.debt)
+        .registerCall("balanceOf", test.balance, test.vault);
+
+      expect(await fetcher.getMaxDeposit(test.vault, test.block)).toStrictEqual(test.expected);
+      // using cached value
+      expect(await fetcher.getMaxDeposit(test.vault, test.block)).toStrictEqual(test.expected);
+    }   
   });
 
 });

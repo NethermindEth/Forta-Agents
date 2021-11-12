@@ -1,42 +1,68 @@
+import abi from './abi';
 import LRU from 'lru-cache';
-import { AbiItem } from "web3-utils";
-import { decodeParameters, encodeFunctionCall } from "forta-agent-tools";
+import BigNumber from 'bignumber.js';
 
 type BlockId = string | number; 
+type CacheValues = string[] | BigNumber;
 
-export const VAULT_ABI: AbiItem = {
-  name: "assetsAddresses",
-  type: "function",
-  inputs: [],
-  outputs: [{
-    name: "vaults",
-    type: "address[]",
-  }],
-};
-
-export default class ValutsFetcher {
-  private cache: LRU<BlockId, string[]>;
-  private provider: string;
+export default class DataFetcher {
+  private cache: LRU<string, CacheValues>;
   private web3: any;
 
-  constructor(provider: string, web3: any) {
-    this.cache = new LRU<BlockId, string[]>({max: 10_000});
-    this.provider = provider;
+  constructor(web3: any) {
+    this.cache = new LRU<string, CacheValues>({max: 10_000});
     this.web3 = web3;
   }
 
-  public async getVaults(block: BlockId = "latest"): Promise<string[]> {
-    if(block !== "latest" && this.cache.get(block) !== undefined)
-      return this.cache.get(block) as string[];
+  public async getVaults(provider: string, block: BlockId = "latest"): Promise<string[]> {
+    const cacheKey: string = `${block}-${provider}-1`;
+    if(block !== "latest" && this.cache.get(cacheKey) !== undefined)
+      return this.cache.get(cacheKey) as string[];
     
-    const encodedData = await this.web3.call({
-      to: this.provider,
-      data: encodeFunctionCall(VAULT_ABI, []),
-    }, block);
+    const providerContract = new this.web3.eth.Contract(abi.PROVIDER, provider);
 
-    const { vaults } = decodeParameters(VAULT_ABI.outputs as any[], encodedData);
+    const vaults: string[] = await providerContract.methods.assetsAddresses();
     const vaultsInLower: string[] = vaults.map((v: string) => v.toLowerCase());
-    this.cache.set(block, vaultsInLower);
+    this.cache.set(cacheKey, vaultsInLower);
     return vaultsInLower;
   } 
+
+  public async getMaxDeposit(vault: string, block: BlockId = "latest"): Promise<BigNumber> {
+    const cacheKey: string = `${block}-${vault}-2`;
+    if(block !== "latest" && this.cache.get(cacheKey) !== undefined)
+      return this.cache.get(cacheKey) as BigNumber;
+
+    const vaultContract = new this.web3.eth.Contract(abi.VAULT, vault);
+  
+    const [
+      depositLimit,
+      token,
+      debt,
+    ] = await Promise.all([
+      vaultContract.methods.depositLimit(),
+      vaultContract.methods.token(),
+      vaultContract.methods.totalDebt(),
+    ]);
+
+    const tokenContract = new this.web3.eth.Contract(abi.TOKEN, token);    
+
+    const balance: BigNumber = new BigNumber(await tokenContract.methods.balanceOf(vault));
+
+    const maxDeposit: BigNumber = (new BigNumber(depositLimit)).minus(balance).minus(new BigNumber(debt));
+    this.cache.set(cacheKey, maxDeposit);
+    return maxDeposit;
+  }
+
+  public async getMaxWithdraw(vault: string, block: BlockId = "latest"): Promise<BigNumber> {
+    const cacheKey: string = `${block}-${vault}-3`;
+    if(block !== "latest" && this.cache.get(cacheKey) !== undefined)
+      return this.cache.get(cacheKey) as BigNumber;
+
+    const vaultContract = new this.web3.eth.Contract(abi.VAULT, vault);
+  
+    const supply: BigNumber = new BigNumber(await vaultContract.methods.totalSupply());
+
+    this.cache.set(cacheKey, supply);
+    return supply;
+  }
 };
