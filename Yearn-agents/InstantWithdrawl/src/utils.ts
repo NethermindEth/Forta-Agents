@@ -26,12 +26,6 @@ export const getYearnVaults = async (
 };
 
 export const getAccounts = async () => {
-  //  {
-  //   accountVaultPositions(first: 5, orderDirection: desc, orderBy: balanceShares) {
-  //     id,
-  //     balancePosition
-  //   }
-  // }
   const query = `{
     accountVaultPositions (orderBy:balancePosition, orderDirection:desc, first:5){
       id, account{
