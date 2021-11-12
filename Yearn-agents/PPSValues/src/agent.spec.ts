@@ -18,6 +18,7 @@ describe("PPS ( Price per share ) agent", () => {
   it("returns empty findings if pps increases", async () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
     mockPrice.mockReturnValueOnce(1.1);
+    mockPrice.mockReturnValueOnce(1.05);
 
     const findings = await handleBlock(blockEvent);
 
@@ -28,6 +29,7 @@ describe("PPS ( Price per share ) agent", () => {
     const blockEvent = new TestBlockEvent().setNumber(2);
 
     mockPrice.mockReturnValueOnce(1.1);
+
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);

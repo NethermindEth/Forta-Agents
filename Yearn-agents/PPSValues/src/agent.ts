@@ -43,7 +43,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-    const blockNumber = blockEvent.blockNumber;
+    let blockNumber = blockEvent.blockNumber;
 
     const vaults = await getYearnVaults(web3, blockNumber);
 
@@ -70,7 +70,28 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
     );
 
     if (!previous) {
-      return findings;
+      blockNumber -= 1;
+      let promises: BigNumber[] = [];
+
+      for (let i of vaults) {
+        const vault = new web3.eth.Contract(vaultAbi as any, i);
+
+        promises.push(
+          vault.methods.getPricePerFullShare().call({}, blockNumber)
+        );
+      }
+
+      promises = await Promise.all(promises);
+
+      const storage: CacheObject = {};
+
+      promises.map((value, index) => {
+        storage[vaults[index]] = value;
+      });
+
+      await cache.setItem(blockNumber.toString(), storage, { ttl: 40 });
+
+      previous = storage;
     }
 
     promises.forEach((pps, index) => {
