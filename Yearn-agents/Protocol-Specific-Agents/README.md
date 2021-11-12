@@ -6,6 +6,7 @@ This agent detect two different cases in active maker strategies for Yearn.
 
 - Stability Fee changes for collateral types
 - Stale Spot Price in Vat
+- OSM Returned Price of Zero
 
 ## Supported Chains
 
@@ -30,6 +31,15 @@ This agent detect two different cases in active maker strategies for Yearn.
   - In the metadata you can find:
     - `spot`: Address of the Spot Contract.
     - `strategy`: The address of the strategy.
+
+- Yearn-3-3
+
+  - Fired when OSM returns price of zero and false value which signifies that do not trust returned price.
+  - Severity is always set to "Critical".
+  - Type is always set to "Suspicious".
+  - In the metadata you can find:
+    - `OSM`: Address of the Oracle Security module contract.
+    - `price`: The returned price.
 
 ## Test Data
 
