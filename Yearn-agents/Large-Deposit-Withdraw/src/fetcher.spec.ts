@@ -1,5 +1,5 @@
 import abi from './abi';
-import Mock from './mock';
+import Mock, { Methods } from './mock';
 import VaultsFetcher from './fetcher';
 import { createAddress } from 'forta-agent-tools';
 import BigNumber from 'bignumber.js';
@@ -27,7 +27,7 @@ describe("Valuts fetcher tests suite", () => {
     for(let i = 0; i < 3; ++i){
       mockWeb3
         .registerContract(abi.PROVIDER, provider)
-        .registerCall("assetsAddresses", vaults[i]);
+        .registerCall(Methods.ASSETS, vaults[i], i);
 
       expect(await fetcher.getVaults(provider, i)).toStrictEqual(vaults[i]);
       // using cached value
@@ -56,7 +56,7 @@ describe("Valuts fetcher tests suite", () => {
     for(let test of testData){
       mockWeb3
         .registerContract(abi.VAULT, test.vault)
-        .registerCall("totalSupply", test.supply);
+        .registerCall(Methods.SUPPLY, test.supply, test.block);
 
       expect(await fetcher.getMaxWithdraw(test.vault, test.block)).toStrictEqual(test.expected);
       // using cached value
@@ -95,10 +95,10 @@ describe("Valuts fetcher tests suite", () => {
       mockWeb3
         .registerContract(abi.VAULT, test.vault)
         .registerContract(abi.TOKEN, test.token)
-        .registerCall("depositLimit", test.deposit)
-        .registerCall("token", test.token)
-        .registerCall("totalDebt", test.debt)
-        .registerCall("balanceOf", test.balance, test.vault);
+        .registerCall(Methods.DEPOSIT, test.deposit, test.block)
+        .registerCall(Methods.TOKEN, test.token, test.block)
+        .registerCall(Methods.DEBT, test.debt, test.block)
+        .registerCall(Methods.BALANCE, test.balance, test.block, test.vault);
 
       expect(await fetcher.getMaxDeposit(test.vault, test.block)).toStrictEqual(test.expected);
       // using cached value

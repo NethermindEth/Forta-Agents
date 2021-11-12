@@ -21,7 +21,9 @@ export default class DataFetcher {
     
     const providerContract = new this.web3.eth.Contract(abi.PROVIDER, provider);
 
-    const vaults: string[] = await providerContract.methods.assetsAddresses();
+    const vaults: string[] = await providerContract.methods
+      .assetsAddresses()
+      .call({}, block);
     const vaultsInLower: string[] = vaults.map((v: string) => v.toLowerCase());
     this.cache.set(cacheKey, vaultsInLower);
     return vaultsInLower;
@@ -39,14 +41,18 @@ export default class DataFetcher {
       token,
       debt,
     ] = await Promise.all([
-      vaultContract.methods.depositLimit(),
-      vaultContract.methods.token(),
-      vaultContract.methods.totalDebt(),
+      vaultContract.methods.depositLimit().call({}, block),
+      vaultContract.methods.token().call({}, block),
+      vaultContract.methods.totalDebt().call({}, block),
     ]);
 
     const tokenContract = new this.web3.eth.Contract(abi.TOKEN, token);    
 
-    const balance: BigNumber = new BigNumber(await tokenContract.methods.balanceOf(vault));
+    const balance: BigNumber = new BigNumber(
+      await tokenContract.methods
+        .balanceOf(vault)
+        .call({}, block)
+    );
 
     const maxDeposit: BigNumber = (new BigNumber(depositLimit)).minus(balance).minus(new BigNumber(debt));
     this.cache.set(cacheKey, maxDeposit);
@@ -60,7 +66,11 @@ export default class DataFetcher {
 
     const vaultContract = new this.web3.eth.Contract(abi.VAULT, vault);
   
-    const supply: BigNumber = new BigNumber(await vaultContract.methods.totalSupply());
+    const supply: BigNumber = new BigNumber(
+      await vaultContract.methods
+        .totalSupply()
+        .call({}, block)
+    );
 
     this.cache.set(cacheKey, supply);
     return supply;
