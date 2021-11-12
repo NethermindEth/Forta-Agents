@@ -1,19 +1,19 @@
 import {
   Finding,
-  FindingSeverity,
-  FindingType,
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
 import { 
   createAddress, 
-  encodeFunctionCall, 
-  encodeParameters, 
   TestTransactionEvent 
 } from "forta-agent-tools";
 import deposit from "./deposit";
 import BigNumber from "bignumber.js";
-import { AbiItem } from "web3-utils"; 
+import { 
+  traceData, 
+  traceBadData,
+  createDepositFinding as createFinding,
+} from "./utils";
 
 
 const cafeVault: string = createAddress("0xcafe");
@@ -23,71 +23,6 @@ const sender2: string = createAddress("0xa2");
 const recipient: string = createAddress("0xb1");
 const large: BigNumber = new BigNumber(20);
 
-
-const depositABI: AbiItem = {
-  name: "deposit",
-  type: "function",
-  inputs: [{
-    name: "amount",
-    type: "uint256",
-  },{
-    name: "recipient",
-    type: "address",
-  }],
-  outputs: [{
-    name: "shares",
-    type: "uint256",
-  }]
-};
-
-const wrongABI: AbiItem = {
-  name: "depoosit",
-  type: "function",
-  inputs: [{
-    name: "amount",
-    type: "uint256",
-  },{
-    name: "recipient",
-    type: "address",
-  }],
-  outputs: [{
-    name: "shares",
-    type: "uint256",
-  }]
-}
-
-
-const createFinding = (vault: string, from: string, to: string, value: string) => 
-  Finding.fromObject({
-    name: "Yearn Vaults deposit",
-    description: "Large deposit detected",
-    alertId: "Yearn-6-2",
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
-    protocol: "Yearn",
-    metadata: {
-      Vault: vault,
-      From: from,
-      To: to,
-      Amount: value,
-    },
-  });
-
-const traceData = (
-  to: string, 
-  from: string, 
-  amount: string, 
-  addr: string, 
-  signature: AbiItem=depositABI
-) => {
-  return {
-    to: to,
-    from: from,
-    input: encodeFunctionCall(signature, [amount, addr]),
-    output: encodeParameters(signature.outputs as any, [amount]),
-  }
-}
-  
 
 describe("Withdraw handler test suite", () => {
   const handler: HandleTransaction = deposit.provideLargeDepositDetector(fakeVault, large);
@@ -128,10 +63,10 @@ describe("Withdraw handler test suite", () => {
   it("should ignore calls with wrong signature", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addTraces(
-        traceData(fakeVault, sender1, "20", recipient, wrongABI),
-        traceData(fakeVault, sender1, "2", recipient, wrongABI),
-        traceData(fakeVault, sender2, "100", recipient, wrongABI),
-        traceData(fakeVault, cafeVault, "4123", sender2, wrongABI),
+        traceBadData(fakeVault, sender1, "20", recipient),
+        traceBadData(fakeVault, sender1, "2", recipient),
+        traceBadData(fakeVault, sender2, "100", recipient),
+        traceBadData(fakeVault, cafeVault, "4123", sender2),
       )
 
     const findings: Finding[] = await handler(tx);
@@ -145,7 +80,7 @@ describe("Withdraw handler test suite", () => {
         traceData(fakeVault, sender1, "20", recipient),
         traceData(fakeVault, sender2, "3123", recipient),
         traceData(fakeVault, cafeVault, "42", sender2),
-      )
+      );
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([

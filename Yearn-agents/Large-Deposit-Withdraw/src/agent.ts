@@ -6,21 +6,19 @@ import {
 } from 'forta-agent';
 import deposit from './deposit';
 import withdraw from './withdraw';
-import VaultFetcher from './fetcher';
+import DataFetcher from './fetcher';
 import BigNumber from 'bignumber.js';
 import Web3 from 'web3';
 
 const PERCENT: number = 40 // % that define what large means
 const YEARN_PROVIDER: string = '0x437758d475f70249e03eda6be23684ad1fc375f0';  
 
-const provideHandleTransaction = (
+export const provideHandleTransaction = (
   provider: string, 
   percent: number, 
-  fetcher: VaultFetcher,
+  fetcher: DataFetcher,
 ): HandleTransaction => 
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
     const vaults: string[] = await fetcher.getVaults(provider, txEvent.blockNumber);
     const depositLimit: BigNumber[] = await Promise.all(
       vaults.map((v: string) => fetcher.getMaxDeposit(v, txEvent.blockNumber - 1)),
@@ -49,11 +47,10 @@ const provideHandleTransaction = (
   };
 
 
-
 export default {
-  handleTransction: provideHandleTransaction(
+  handleTransaction: provideHandleTransaction(
     YEARN_PROVIDER, 
     PERCENT, 
-    new VaultFetcher(new Web3(getJsonRpcUrl())),
+    new DataFetcher(new Web3(getJsonRpcUrl())),
   ),
 };

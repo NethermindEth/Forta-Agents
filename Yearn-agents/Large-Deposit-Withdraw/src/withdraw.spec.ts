@@ -1,7 +1,5 @@
 import {
   Finding,
-  FindingSeverity,
-  FindingType,
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
@@ -12,28 +10,11 @@ import {
 } from "forta-agent-tools";
 import withdraw from "./withdraw";
 import BigNumber from "bignumber.js";
-
+import { createWithdrawFinding as createFinding } from "./utils";
 
 const zeroAddr: string = createAddress("0x0");
 const fakeVault: string = createAddress("0xdead");
 const large: BigNumber = new BigNumber(20);
-
-
-const createFinding = (vault: string, from: string, value: BigNumber) => 
-  Finding.fromObject({
-    name: "Yearn Vaults withdrawal",
-    description: "Large withdrawal detected",
-    alertId: "Yearn-6-1",
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
-    protocol: "Yearn",
-    metadata: {
-      Vault: vault,
-      From: from,
-      Amount: value.toString(),
-    }
-  });
-
 
 describe("Withdraw handler test suite", () => {
   const handler: HandleTransaction = withdraw.provideLargeWithdrawDetector(fakeVault, large);

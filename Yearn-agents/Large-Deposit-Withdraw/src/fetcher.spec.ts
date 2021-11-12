@@ -12,6 +12,8 @@ describe("Valuts fetcher tests suite", () => {
   const mockWeb3: Mock = new Mock();
   const fetcher: VaultsFetcher = new VaultsFetcher(mockWeb3);
 
+  beforeEach(() => mockWeb3.clear());
+
   it("should return expected vaults", async () => {
     const vaults: string[][] = [[
         createAddress("0x0"),
