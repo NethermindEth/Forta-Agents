@@ -2,14 +2,7 @@ import { Finding, getJsonRpcUrl, BlockEvent, HandleBlock } from "forta-agent";
 import BigNumber from "bignumber.js";
 import abi from "./pool.abi";
 import Web3 from "web3";
-import {
-  getBPSValue,
-  getTokensHere,
-  getTotalDebtRatio,
-  getTotalValue,
-  createFinding,
-  getPools,
-} from "./utils";
+import { getTokensHere, getTotalValue, createFinding, getPools } from "./utils";
 
 const web3 = new Web3(getJsonRpcUrl());
 
@@ -21,20 +14,24 @@ function provideHandleFunction(web3: Web3): HandleBlock {
     const blockNumber = blockEvent.blockNumber;
 
     const pools: any = await getPools(web3, blockNumber);
+    const promises: Promise<[any, any]>[] = [];
+    pools.forEach((value: string) => {
+      const contract = new web3.eth.Contract(abi as any, value);
+      const totalValue = getTotalValue(contract, blockNumber);
+      const tokenHere = getTokensHere(contract, blockNumber);
+      promises.push(Promise.all([totalValue, tokenHere]));
+    });
 
-    for (let x = 0; x < pools.length; x++) {
-      const contract = new web3.eth.Contract(abi as any, pools[x]);
-      const totalValue = new BigNumber(
-        await getTotalValue(contract, blockNumber)
-      );
-      const tokenHere = new BigNumber(
-        await getTokensHere(contract, blockNumber)
-      );
+    const result = await Promise.all(promises as any);
+
+    result.forEach((value: any) => {
+      const totalValue = new BigNumber(value[0]);
+      const tokenHere = new BigNumber(value[1]);
 
       if (tokenHere.isGreaterThan(totalValue.multipliedBy(0.2))) {
         findings.push(createFinding(tokenHere.toNumber()));
       }
-    }
+    });
 
     return findings;
   };
