@@ -17,8 +17,13 @@ import {
 
 export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
   const lastBlockReports: LastBlockReports = {};
+  let lastBlockAnalyzed: number = 0;
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    if (blockEvent.blockNumber < lastBlockAnalyzed) return [];
+
+    lastBlockAnalyzed = blockEvent.blockNumber;
+
     let findings: Finding[] = [];
 
     const vaults = await getYearnVaults(blockEvent.blockNumber, etherProvider);
