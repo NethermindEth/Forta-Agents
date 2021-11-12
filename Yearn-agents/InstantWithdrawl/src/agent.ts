@@ -7,24 +7,35 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
+  getJsonRpcUrl,
 } from "forta-agent";
-import child from "child_process";
-
-// @ts-ignore
-import ganache from "ganache-cli";
+import { getYearnVaults } from "./utils";
+import Web3 from "web3";
+import abi from "./abi";
+const web3 = new Web3(getJsonRpcUrl());
 
 let findingsCount = 0;
 
-const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-  const findings: Finding[] = [];
+const withdrawPermittedValues = {};
 
-  // spin up ganache fork with mainnet
-  // unlock a participating account
-  // call withdraw function on the cli
+const providerHandleBlock = async (web3: Web3) => {
+  return async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
 
-  return findings;
+    // spin up ganache fork with mainnet
+    // unlock a participating account
+    // call withdraw function on the cli
+
+    const vaults = await getYearnVaults(web3, blockEvent.blockNumber);
+
+    vaults.forEach((value, index) => {
+      const contract = new web3.eth.Contract(abi as any, value);
+    });
+
+    return findings;
+  };
 };
 
 export default {
-  handleBlock,
+  handleBlock: providerHandleBlock(web3),
 };
