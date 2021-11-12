@@ -1,6 +1,6 @@
-import { ApolloClient, gql } from "@apollo/client";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
+import axios from "axios";
 
 export const yearnDataProvider = "0x437758D475F70249e03EDa6bE23684aD1FC375F0";
 export const helperAbi = [
@@ -25,21 +25,42 @@ export const getYearnVaults = async (
   return yearnHelper.methods.assetsAddresses().call({}, blockNumber);
 };
 
-// export const getTopLiquidityBalanceAccounts = async () {
-//   const yearnQueryUrl = "";
+export const getAccounts = async () => {
+  //  {
+  //   accountVaultPositions(first: 5, orderDirection: desc, orderBy: balanceShares) {
+  //     id,
+  //     balancePosition
+  //   }
+  // }
+  const query = `{
+    accountVaultPositions (orderBy:balancePosition, orderDirection:desc, first:5){
+      id, account{
+        id
+      },
+      balancePosition
+    }
+  }`;
 
-//   //  {
-//   //   accountVaultPositions(first: 5, orderDirection: desc, orderBy: balanceShares) {
-//   //     id,
-//   //     balancePosition
-//   //   }
-//   // }
-//   const query = `
-//     query {
-//       accountVaultPositions  {
-//         id,
-//         balancePosition
-//       }
-//     }
-//   `
-// }
+  var data = JSON.stringify({
+    query,
+  });
+
+  console.log(data);
+
+  var config = {
+    method: "post",
+    url: "https://api.thegraph.com/subgraphs/name/salazarguille/yearn-vaults-v2-subgraph-mainnet",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data,
+  };
+
+  axios(config as any)
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+};
