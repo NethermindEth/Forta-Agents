@@ -2,7 +2,7 @@ import {
   Finding, 
   FindingSeverity, 
   FindingType, 
-  Log
+  Log,
 } from 'forta-agent';
 import BigNumber from 'bignumber.js';
 import { isZeroAddress } from "ethereumjs-util";
