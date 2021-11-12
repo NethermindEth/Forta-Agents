@@ -3,6 +3,10 @@ import { FindingGenerator, decodeParameter } from "forta-agent-tools";
 import { ethers } from "ethers";
 import { helperAbi, yearnDataProvider } from "./yearn.metadata";
 import { TransactionEvent, EventType } from "forta-agent";
+import LRU from "lru-cache";
+
+
+const cache = new LRU<number, string[]>({ max: 10_000 });
 
 export const updateManagementSignature = "UpdateManagement(address)";
 
@@ -69,10 +73,16 @@ export const createUpdatePerformanceFeeFindingGenerator = (vaultAddress: string)
 
 export const getYearnVaults = async (
   etherProvider: ethers.providers.JsonRpcProvider,
-  blockNumber: string | number
+  blockNumber: number
 ): Promise<string[]> => {
-  const yearnHelper = new ethers.Contract(yearnDataProvider, helperAbi, etherProvider);
-  return yearnHelper.assetsAddresses({ blockTag: blockNumber });
+  if (cache.get(blockNumber) === undefined) {
+    const yearnHelper = new ethers.Contract(yearnDataProvider, helperAbi, etherProvider);
+    const vaults = yearnHelper.assetsAddresses({ blockTag: blockNumber });
+
+    cache.set(blockNumber, vaults);
+  }
+
+  return cache.get(blockNumber) as any;
 };
 
 // This functions was copied from forta-agent cli
