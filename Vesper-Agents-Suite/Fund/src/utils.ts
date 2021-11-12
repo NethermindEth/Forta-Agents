@@ -19,12 +19,6 @@ const getTotalValue = async (contract: any, blockNumber: number) => {
 const getTokensHere = async (contract: any, blockNumber: number) => {
   return await contract.methods.tokensHere().call({}, blockNumber);
 };
-const getBPSValue = async (contract: any, blockNumber: number) => {
-  return await contract.methods.MAX_BPS().call({}, blockNumber);
-};
-const getTotalDebtRatio = async (contract: any, blockNumber: number) => {
-  return await contract.methods.totalDebtRatio().call({}, blockNumber);
-};
 
 const createFinding = (tokenfunds = 0): Finding => {
   return Finding.fromObject({
@@ -70,12 +64,4 @@ const getPools = async (
   return pools;
 };
 
-export {
-  mockList,
-  getTotalValue,
-  getTokensHere,
-  getBPSValue,
-  getTotalDebtRatio,
-  createFinding,
-  getPools,
-};
+export { mockList, getTotalValue, getTokensHere, createFinding, getPools };
