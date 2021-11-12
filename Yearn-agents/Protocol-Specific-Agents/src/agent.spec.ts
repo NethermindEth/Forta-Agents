@@ -66,7 +66,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
   });
 };
 
-/* describe('Stability Fee Handler Test Suit', () => {
+describe('Stability Fee Handler Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   afterEach(() => {
@@ -192,7 +192,7 @@ const createFindingSF = (_strategy: any, collateralType: string): Finding => {
       createFindingSF(createAddress('0x3'), '0x' + collateralType2),
     ]);
   });
-}); */
+});
 
 //////////////////////////////////////////////////////////////////////////////
 /////////////// Spot Price Test Suit ////////////////////////////////////////
@@ -463,8 +463,13 @@ describe('Stale Spot Price Handler Test Suit', () => {
       .setTimestamp(lessThan3Hours)
       .addEventLog(POKE_SIGNATURE, SPOT_ADDRESS, INPUT) as any;
 
+    const txEvent3 = new TestTransactionEvent().setTimestamp(
+      greaterThan3hours
+    ) as any;
+
     findings = findings.concat(await handleTransaction(txEvent));
     findings = findings.concat(await handleTransaction(txEvent2));
+    findings = findings.concat(await handleTransaction(txEvent3));
 
     expect(findings).toStrictEqual([
       createStaleSpotFinding(SPOT_ADDRESS, createAddress('0x2')),
@@ -504,7 +509,7 @@ describe('Stale Spot Price Handler Test Suit', () => {
   });
 });
 
-/* describe('OSM Returned Price Handler Test Suit', () => {
+describe('OSM Returned Price Handler Test Suit', () => {
   let handleBlock: HandleBlock;
 
   const CONTRACTS = [createAddress('0x1'), createAddress('0x2')];
@@ -580,4 +585,3 @@ describe('Stale Spot Price Handler Test Suit', () => {
     ]);
   });
 });
- */

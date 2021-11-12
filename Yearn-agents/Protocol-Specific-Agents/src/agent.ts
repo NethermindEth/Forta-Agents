@@ -193,7 +193,7 @@ export const provideHandleTransaction = (
 
     if (makers) {
       const handlerCalls = [
-        //provideStabilityFeeHandler(web3, makers, txEvent),
+        provideStabilityFeeHandler(web3, makers, txEvent),
         provideStaleSpotPriceHandler(web3, makers, txEvent, timeTracker),
       ];
 
@@ -208,7 +208,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(web3, fetcher),
-  //handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
+  handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
   provideHandleTransaction,
-  //provideOSMPriceHandler,
+  provideOSMPriceHandler,
 };
