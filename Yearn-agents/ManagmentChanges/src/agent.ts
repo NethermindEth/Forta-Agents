@@ -4,9 +4,11 @@ import {
   updateManagementSignature,
   updatePerformanceFeeSignature,
   updateManagementFeeSignature,
+  strategyAddedSignature,
   createUpdateManagementFindingGenerator,
   createUpdateManagementFeeFindingGenerator,
   createUpdatePerformanceFeeFindingGenerator,
+  createAddStrategyFindingGenerator,
   getYearnVaults,
 } from "./utils";
 import { ethers } from "ethers";
@@ -41,7 +43,15 @@ export const provideHandleTransaction = (etherProvider: ethers.providers.JsonRpc
       )
     );
 
-    const handlers = updateManagementHandlers.concat(updateManagementFeeHandlers, updatePerformanceFeeHandlers);
+    const addedStrategyHandlers = yearnVaults.map((yearnVault: string) =>
+      provideEventCheckerHandler(createAddStrategyFindingGenerator(yearnVault), strategyAddedSignature, yearnVault)
+    );
+
+    const handlers = updateManagementHandlers.concat(
+      updateManagementFeeHandlers,
+      updatePerformanceFeeHandlers,
+      addedStrategyHandlers
+    );
 
     const findings = await Promise.all(handlers.map((handler) => handler(txEvent)));
 

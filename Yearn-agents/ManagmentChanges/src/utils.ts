@@ -5,7 +5,6 @@ import { helperAbi, yearnDataProvider } from "./yearn.metadata";
 import { TransactionEvent, EventType } from "forta-agent";
 import LRU from "lru-cache";
 
-
 const cache = new LRU<number, string[]>({ max: 10_000 });
 
 export const updateManagementSignature = "UpdateManagement(address)";
@@ -13,6 +12,8 @@ export const updateManagementSignature = "UpdateManagement(address)";
 export const updateManagementFeeSignature = "UpdateManagementFee(uint256)";
 
 export const updatePerformanceFeeSignature = "UpdatePerformanceFee(uint256)";
+
+export const strategyAddedSignature = "StrategyAdded(address,uint256,uint256,uint256,uint256)";
 
 export const createUpdateManagementFindingGenerator = (vaultAddress: string): FindingGenerator => {
   return (metadata) => {
@@ -66,6 +67,25 @@ export const createUpdatePerformanceFeeFindingGenerator = (vaultAddress: string)
       metadata: {
         vaultAddress: vaultAddress,
         setFee: setFee.toString(),
+      },
+    });
+  };
+};
+
+export const createAddStrategyFindingGenerator = (vaultAddress: string): FindingGenerator => {
+  return (metadata) => {
+    const strategyAddress = decodeParameter("address", metadata?.topics[1]);
+
+    return Finding.fromObject({
+      name: "New Strategy",
+      description: "A Yearn Vault has added a new strategy",
+      alertId: "Yearn-9-4",
+      type: FindingType.Info,
+      severity: FindingSeverity.Info,
+      protocol: "Yearn",
+      metadata: {
+        vaultAddress: vaultAddress,
+        strategyAddress: strategyAddress,
       },
     });
   };
