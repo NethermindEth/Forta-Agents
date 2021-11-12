@@ -37,6 +37,14 @@ This agent detect multiple management actions in Yearn Vaults. It detects:
     - `vaultAddress`: Address of the Yearn Vault emiting the event.
     - `setFee`: The new fee set.
 
+- Yearn-9-4
+  - Fired when the event `StrategyAdded` is emited from a Yearn Vault.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - In the metadata you can find:
+    - `vaultAddress`: Address of the Yearn Vault emiting the event.
+    - `strategyAdded`: The new fee set.
+
 ## Test Data
 
 The test of this agent use a hardhat node forked from mainnet. For running the tests you'll need to create a `.env` file with the following format
