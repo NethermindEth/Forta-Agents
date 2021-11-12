@@ -2,14 +2,15 @@ import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-
 import { provideHandleTransaction } from "./agent";
 import { ethers } from "ethers";
 import { multicallAbi, vaultAbi } from "./yearn.metadata";
-import { createAddress } from "forta-agent-tools";
-import { createTransactionEvent } from "./utils";
+import { createAddress, TestTransactionEvent, encodeParameter } from "forta-agent-tools";
+import { createTransactionEvent, strategyAddedSignature } from "./utils";
 
 const someYearnVaults = [
   "0x528D50dC9a333f01544177a924893FA1F5b9F748",
   "0x595a68a8c9D5C230001848B69b1947ee2A607164",
   "0x1b905331F7dE2748F4D6a0678e1521E20347643F",
   "0x490bD0886F221A5F79713D3E84404355A9293C50",
+  "0xb4D1Be44BfF40ad6e506edf43156577a3f8672eC",
 ];
 
 // Yearn Governance address
@@ -59,6 +60,21 @@ const createUpdatePerformanceFeeFinding = (vaultAddress: string, fee: string) =>
     metadata: {
       vaultAddress: vaultAddress,
       setFee: fee,
+    },
+  });
+};
+
+const createStrategyAddedFinding = (vaultAddress: string, strategyAddress: string) => {
+  return Finding.fromObject({
+    name: "New Strategy",
+    description: "A Yearn Vault has added a new strategy",
+    alertId: "Yearn-9-4",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Yearn",
+    metadata: {
+      vaultAddress: vaultAddress,
+      strategyAddress: strategyAddress,
     },
   });
 };
@@ -138,6 +154,20 @@ describe("Vault Managment Tests", () => {
     const findings = await handleTransaction(txEvent as any);
 
     expect(findings).toStrictEqual([createUpdatePerformanceFeeFinding(someYearnVaults[2], "10")]);
+  });
+
+  it("should return a finding if a Strategy is added", async () => {
+    handleTransaction = provideHandleTransaction(provider);
+
+    const txEvent = new TestTransactionEvent().addEventLog(
+      strategyAddedSignature,
+      someYearnVaults[1],
+      "",
+      encodeParameter("address", createAddress("0x3"))
+    );
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([createStrategyAddedFinding(someYearnVaults[1], createAddress("0x3"))]);
   });
 
   it("should return multiple findings multiple events are emited", async () => {
