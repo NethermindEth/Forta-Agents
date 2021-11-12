@@ -1,5 +1,6 @@
 export default class TimeTracker {
   private hour: number; // keeps track of the hour
+  private lastCall = new Map<string, number>();
   private firstHour: number;
   functionWasCalled: boolean;
   findingReported: boolean;
@@ -32,9 +33,20 @@ export default class TimeTracker {
     return nd.getUTCHours();
   }
 
-  isIn3Hours(timestamp: number): boolean {
+  isIn3Hours(strategy: string, timestamp: number): boolean {
     const hour = this.getHour(timestamp);
-    return hour - this.hour < 3;
+    const lastCall = this.lastCall.get(strategy);
+
+    if (this.hour === -1) {
+      this.updatelastCall(strategy, timestamp);
+      return true;
+    }
+
+    if (lastCall === undefined) {
+      return true;
+    }
+
+    return hour - this.getHour(lastCall) < 3;
   }
 
   isFirstHour(timestamp: number): boolean {
@@ -45,6 +57,11 @@ export default class TimeTracker {
     if (this.hour === -1) {
       this.firstHour = this.getHour(timestamp);
     }
+
     this.hour = this.getHour(timestamp);
+  }
+
+  updatelastCall(strategy: string, timestamp: number): void {
+    this.lastCall.set(strategy, timestamp);
   }
 }

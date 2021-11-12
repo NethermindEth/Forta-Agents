@@ -116,7 +116,7 @@ const provideStaleSpotPriceHandler = async (
       filterEvents
     );
 
-    if (timeTracker.isOutOf3Hours(timestamp)) {
+    if (!timeTracker.isIn3Hours(res.strategy, timestamp)) {
       timeTracker.updateFindingReport(false);
       timeTracker.updateFunctionWasCalled(false);
     }
@@ -124,22 +124,21 @@ const provideStaleSpotPriceHandler = async (
     if (
       txEvent.status &&
       (await handler(txEvent)).length !== 0 &&
-      timeTracker.isIn3Hours(timestamp)
+      timeTracker.isIn3Hours(res.strategy, timestamp)
     ) {
       timeTracker.updateFunctionWasCalled(true);
+      timeTracker.updatelastCall(res.strategy, timestamp);
     }
 
     if (
-      (!timeTracker.isFirstHour(timestamp) &&
-        !timeTracker.functionWasCalled &&
-        !timeTracker.findingReported) ||
-      !txEvent.status
+      !timeTracker.isIn3Hours(res.strategy, timestamp) &&
+      !timeTracker.isFirstHour(timestamp) &&
+      !timeTracker.functionWasCalled &&
+      !timeTracker.findingReported
     ) {
       timeTracker.updateFindingReport(true);
       findings.push(createStaleSpotFinding(SPOT_ADDRESS, res.strategy));
     }
-    timeTracker.updateFindingReport(false);
-    timeTracker.updateFunctionWasCalled(false);
   }
 
   timeTracker.updateHour(timestamp);
@@ -194,7 +193,7 @@ export const provideHandleTransaction = (
 
     if (makers) {
       const handlerCalls = [
-        provideStabilityFeeHandler(web3, makers, txEvent),
+        //provideStabilityFeeHandler(web3, makers, txEvent),
         provideStaleSpotPriceHandler(web3, makers, txEvent, timeTracker),
       ];
 
@@ -209,7 +208,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(web3, fetcher),
-  handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
+  //handleBlock: provideOSMPriceHandler(web3, OSM_CONTRACTS),
   provideHandleTransaction,
-  provideOSMPriceHandler,
+  //provideOSMPriceHandler,
 };
