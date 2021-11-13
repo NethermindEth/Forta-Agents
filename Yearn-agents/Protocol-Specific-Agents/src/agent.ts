@@ -116,11 +116,6 @@ const provideStaleSpotPriceHandler = async (
       filterEvents
     );
 
-    if (!timeTracker.isIn3Hours(res.strategy, timestamp)) {
-      timeTracker.updateFindingReport(false);
-      timeTracker.updateFunctionWasCalled(false);
-    }
-
     if (
       txEvent.status &&
       (await handler(txEvent)).length !== 0 &&
@@ -132,9 +127,7 @@ const provideStaleSpotPriceHandler = async (
 
     if (
       !timeTracker.isIn3Hours(res.strategy, timestamp) &&
-      !timeTracker.isFirstHour(timestamp) &&
-      !timeTracker.functionWasCalled &&
-      !timeTracker.findingReported
+      !timeTracker.isFirstHour(timestamp)
     ) {
       timeTracker.updateFindingReport(true);
       findings.push(createStaleSpotFinding(SPOT_ADDRESS, res.strategy));

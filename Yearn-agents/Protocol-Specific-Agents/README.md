@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detect two different cases in active maker strategies for Yearn.
+This agent detect three different cases in active maker strategies for Yearn.
 
 - Stability Fee changes for collateral types
 - Stale Spot Price in Vat
@@ -40,14 +40,3 @@ This agent detect two different cases in active maker strategies for Yearn.
   - In the metadata you can find:
     - `OSM`: Address of the Oracle Security module contract.
     - `price`: The returned price.
-
-## Test Data
-
-The test of this agent use a hardhat node forked from mainnet. For running the tests you'll need to create a `.env` file with the following format
-
-```
-jsonRPC=<json-rpc-endpoint>
-```
-
-In json RPC endpoint you'll need to set an endpoint to a node able to provide state info at block 13546171.
-After setting this run the hardhat node using `npm run forked-node` and after that run `npm test`.

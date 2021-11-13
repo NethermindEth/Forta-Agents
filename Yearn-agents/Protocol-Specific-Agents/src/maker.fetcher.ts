@@ -24,6 +24,7 @@ export default class MakerFetcher {
       return this.cache.get(blockNumber);
     const allMakers: string[] = [];
     const activeMakers: string[] = [];
+    const isActiveCalls: any = [];
     const vaults = await this.getVaults(blockNumber);
 
     const makerCalls = vaults.map((vault) => {
@@ -38,11 +39,24 @@ export default class MakerFetcher {
       });
     });
 
-    for (const strategy of allMakers) {
-      if (await this.isActive(strategy, blockNumber)) {
-        activeMakers.push(strategy);
-      }
-    }
+    allMakers.forEach((maker) => {
+      isActiveCalls.push(
+        this.isActive(maker, blockNumber).then((res) => {
+          return {
+            strategy: maker,
+            isActive: res,
+          };
+        })
+      );
+    });
+
+    await Promise.all(isActiveCalls).then((res) => {
+      res.forEach((result: any) => {
+        if (result.isActive) {
+          activeMakers.push(result.strategy);
+        }
+      });
+    });
 
     this.cache.set(blockNumber, activeMakers);
     return activeMakers;
@@ -66,23 +80,34 @@ export default class MakerFetcher {
   ): Promise<string[]> => {
     const strategies = await this.getStrategies(vault, blockNumber);
     const makerStrategies: string[] = [];
+    const nameCalls: any = [];
 
-    for (const strategy of strategies) {
-      const strategyContract = new this.web3.eth.Contract(
-        StrategyABI,
-        strategy
+    strategies.forEach((strategy) => {
+      nameCalls.push(
+        this.getName(strategy, blockNumber).then((res: string) => {
+          return {
+            strategy: strategy,
+            name: res,
+          };
+        })
       );
+    });
 
-      const name: string = await strategyContract.methods
-        .name()
-        .call({}, blockNumber);
-
-      if (name.includes('Maker')) {
-        makerStrategies.push(strategy);
-      }
-    }
+    await Promise.all(nameCalls).then((res) => {
+      res.forEach((result: any) => {
+        if (result.name.includes('Maker')) {
+          makerStrategies.push(result.strategy);
+        }
+      });
+    });
 
     return makerStrategies;
+  };
+
+  private getName = async (strategy: string, blockNumber: string | number) => {
+    const contract = new this.web3.eth.Contract(StrategyABI, strategy);
+    const name = await contract.methods.name().call({}, blockNumber);
+    return name;
   };
 
   private getStrategies = async (
