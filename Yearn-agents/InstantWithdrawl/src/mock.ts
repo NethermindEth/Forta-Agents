@@ -35,7 +35,6 @@ const build_Mock = () =>
   class MockContract {
     public methods = {
       getPricePerFullShare: this.getPricePerFullShare,
-      assetsAddresses: this.assetsAddresses,
     };
 
     constructor(_: any, address: string) {}
