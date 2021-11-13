@@ -25,7 +25,8 @@
     "forta-agent": "^0.0.28",
     "forta-agent-tools": "^1.0.31",
     "ganache-cli": "^6.12.2",
-    "graphql": "^16.0.1"
+    "graphql": "^16.0.1",
+    "hardhat": "^2.6.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
