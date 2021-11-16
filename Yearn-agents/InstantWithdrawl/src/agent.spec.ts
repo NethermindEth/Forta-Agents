@@ -7,28 +7,39 @@ import {
   HandleBlock,
   createBlockEvent,
 } from "forta-agent";
+import mockAxios from "jest-mock-axios";
 import { TestBlockEvent } from "forta-agent-tools";
 import agent from "./agent";
+import { build_Mock, mockResponse } from "./mock";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleBlock;
+describe("Yearn: Instant Withdraw Agent", () => {
+  let handleBlock: HandleBlock;
 
-  const createTxEventWithGasUsed = (gasUsed: string) =>
-    createTransactionEvent({
-      transaction: {} as any,
-      receipt: { gasUsed } as any,
-      block: {} as any,
-    });
-
-  beforeAll(async () => {
-    const mockWeb3 = {};
-    handleTransaction = await agent.providerHandleBlock(mockWeb3 as any);
+  beforeEach(async () => {
+    const mockWeb3 = {
+      eth: {
+        Contract: build_Mock(),
+      },
+    };
+    mockAxios.reset();
+    handleBlock = await agent.providerHandleBlock(mockWeb3 as any, mockAxios);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
+  describe("Finding if withdraw possible", () => {
+    it("If the withdraw is working, dont return any findings", async () => {
       const blockEvent = new TestBlockEvent();
-      handleTransaction(blockEvent);
+
+      mockAxios.mockResponse(mockResponse);
+
+      handleBlock(blockEvent);
+    });
+
+    it(" If the withdraw is not working, return an alert", async () => {
+      const blockEvent = new TestBlockEvent();
+
+      mockAxios.mockResponse(mockResponse);
+
+      handleBlock(blockEvent);
     });
   });
 });

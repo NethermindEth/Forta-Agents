@@ -10,6 +10,7 @@ import {
   getJsonRpcUrl,
 } from "forta-agent";
 import hre = require("hardhat");
+import axios from "axios";
 import { getYearnVaults, getAccounts } from "./utils";
 import Web3 from "web3";
 import abi from "./abi";
@@ -39,17 +40,15 @@ const impersonateAccount = async (address: string) => {
   });
 };
 
-const providerHandleBlock = (web3: Web3): HandleBlock => {
+const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    const accountVaultPositions: accountVaultPosition[] = await getAccounts();
+    const accountVaultPositions: accountVaultPosition[] = await getAccounts(
+      axios
+    );
 
     console.log(accountVaultPositions);
-
-    // mock vaults and axios
-    // now just init a withdraw event from the corresponding address from the axios respose
-    // if its greater than X%.
 
     accountVaultPositions.forEach(async (value) => {
       const userAddress = value.account.id;
@@ -59,9 +58,29 @@ const providerHandleBlock = (web3: Web3): HandleBlock => {
       await impersonateAccount(userAddress);
       const contract = new web3.eth.Contract(abi as any, vaultAddress);
 
-      await contract.methods.withdraw(balance.multipliedBy(0.3)); // assuming 30# withdrawl feasible
-
-      // check balanceOf to infer the result
+      contract.methods
+        .withdraw(balance.multipliedBy(0.3))
+        .on("transactionHash", (hash: string) => {
+          console.log("TX Hash", hash);
+        })
+        .then((receipt: any) => {
+          console.log("Mined", receipt);
+          if (receipt.status == "0x1" || receipt.status == 1) {
+            console.log("Transaction Success");
+          } else
+            findings.push(
+              Finding.fromObject({
+                name: "Yearn-agent-7",
+                description: "30% of amount couldnt be withdrawn",
+                severity: FindingSeverity.Info,
+                type: FindingType.Unknown,
+                alertId: "Yearn-agent-7",
+              })
+            );
+        })
+        .catch((err: any) => {
+          console.log("Error", err);
+        });
     });
 
     return findings;
@@ -69,6 +88,6 @@ const providerHandleBlock = (web3: Web3): HandleBlock => {
 };
 
 export default {
-  handleBlock: providerHandleBlock(web3),
+  handleBlock: providerHandleBlock(web3, axios),
   providerHandleBlock,
 };

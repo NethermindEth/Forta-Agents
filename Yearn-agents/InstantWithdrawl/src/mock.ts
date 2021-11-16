@@ -2,7 +2,7 @@ import { createAddress } from "forta-agent-tools";
 
 export const mockPrice = jest.fn();
 
-export const mockRespone = {
+export const mockResponse = {
   data: {
     accountVaultPositions: [
       {
@@ -31,6 +31,9 @@ export const mockRespone = {
   },
 };
 
+const mockResult = jest.fn();
+mockResult.mockReturnValue({}); // todo
+
 const build_Mock = () =>
   class MockContract {
     public methods = {
@@ -44,8 +47,10 @@ const build_Mock = () =>
         call: mockPrice,
       };
     }
-  };
 
-export default {
-  build_Mock,
-};
+    private withdraw() {
+      return {
+        send: mockResult,
+      };
+    }
+  };
