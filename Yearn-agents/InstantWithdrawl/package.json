@@ -25,6 +25,7 @@
     "dotenv": "^10.0.0",
     "forta-agent": "^0.0.28",
     "forta-agent-tools": "^1.0.31",
+    "ganache": "^6.4.5",
     "ganache-cli": "^6.12.2",
     "graphql": "^16.0.1",
     "hardhat": "^2.6.8"

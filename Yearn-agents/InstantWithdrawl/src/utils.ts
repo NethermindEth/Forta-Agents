@@ -42,6 +42,7 @@ export const getAccounts = async () => {
 
   const positions = res.data.data.accountVaultPositions;
   const mapping: Mapping = {};
+  const users = new Set();
 
   positions.forEach((value: any) => {
     const address: string = value.vault.id;
@@ -50,9 +51,10 @@ export const getAccounts = async () => {
       account: value.account.id,
       balance: new BigNumber(value.balanceShares),
     });
+    users.add(address);
     mapping[address] = values;
   });
-  return mapping;
+  return { mapping, users };
 };
 
 export function generateReceipt(status: string | number) {
@@ -75,10 +77,10 @@ export function generateReceipt(status: string | number) {
   };
 }
 
-export function generateFinding(balance: string) {
+export function generateFinding(balance: string, index: number) {
   return Finding.fromObject({
     name: "Yearn-agent-7",
-    description: "30% of amount couldnt be withdrawn",
+    description: `The ${index} account wasn't able to make the withdraw`,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,
     alertId: "Yearn-agent-7",
