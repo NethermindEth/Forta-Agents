@@ -11,7 +11,7 @@ import {
 } from "forta-agent";
 import hre = require("hardhat");
 import axios from "axios";
-import { getYearnVaults, getAccounts } from "./utils";
+import { getAccounts } from "./utils";
 import Web3 from "web3";
 import abi from "./abi";
 const web3 = new Web3(getJsonRpcUrl());

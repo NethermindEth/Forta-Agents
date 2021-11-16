@@ -34,7 +34,7 @@ export const mockResponse = {
 const mockResult = jest.fn();
 mockResult.mockReturnValue({}); // todo
 
-const build_Mock = () =>
+export const build_Mock = () =>
   class MockContract {
     public methods = {
       getPricePerFullShare: this.getPricePerFullShare,
