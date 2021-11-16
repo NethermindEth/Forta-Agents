@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "yearn-2",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Debt Strategies Agent",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
