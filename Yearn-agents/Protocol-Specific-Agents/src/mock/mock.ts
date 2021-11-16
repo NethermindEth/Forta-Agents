@@ -32,7 +32,22 @@ const build_Mock = (args: Args, priceOfZero?: PriceOfZero) =>
         .mockReturnValueOnce(createAddress('0x3'))
         .mockReturnValueOnce(createAddress('0x4'))
         .mockReturnValueOnce(createAddress('0x5'))
-        .mockReturnValueOnce(createAddress('0x'));
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'))
+        .mockReturnValueOnce(createAddress('0x0'));
 
       isActive.mockReturnValueOnce(args[0]).mockReturnValueOnce(args[1]);
       name

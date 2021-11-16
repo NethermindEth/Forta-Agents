@@ -115,19 +115,22 @@ export default class MakerFetcher {
     blockNumber: string | number
   ): Promise<string[]> => {
     const strategies: string[] = [];
+    const strategyCalls: any = [];
     const vaultContract = new this.web3.eth.Contract(VaultABI, vault);
 
     for (let i = 0; i < 20; i++) {
-      const strategy = await vaultContract.methods
-        .withdrawalQueue(i)
-        .call({}, blockNumber);
-
-      if (strategy && !isZeroAddress(strategy)) {
-        strategies.push(strategy);
-      } else {
-        break;
-      }
+      strategyCalls.push(
+        vaultContract.methods.withdrawalQueue(i).call({}, blockNumber)
+      );
     }
+
+    await Promise.all(strategyCalls).then((res: any) => {
+      res.forEach((strategy: string) => {
+        if (strategy && !isZeroAddress(strategy)) {
+          strategies.push(strategy);
+        }
+      });
+    });
 
     return strategies;
   };

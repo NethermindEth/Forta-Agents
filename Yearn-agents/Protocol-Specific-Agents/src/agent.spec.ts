@@ -114,7 +114,7 @@ describe('Stability Fee Handler Test Suit', () => {
 
     findings = await handleTransaction(txEvent);
 
-    expect(strategies).toBeCalledTimes(5);
+    expect(strategies).toBeCalledTimes(20);
     expect(isActive).toBeCalledTimes(2);
     expect(name).toBeCalledTimes(4);
     expect(findings).toStrictEqual([
@@ -146,7 +146,7 @@ describe('Stability Fee Handler Test Suit', () => {
 
     findings = await handleTransaction(txEvent);
 
-    expect(strategies).toBeCalledTimes(5);
+    expect(strategies).toBeCalledTimes(20);
     expect(isActive).toBeCalledTimes(2);
     expect(name).toBeCalledTimes(4);
     expect(findings).toStrictEqual([]);
@@ -184,7 +184,7 @@ describe('Stability Fee Handler Test Suit', () => {
 
     findings = await handleTransaction(txEvent);
 
-    expect(strategies).toBeCalledTimes(5);
+    expect(strategies).toBeCalledTimes(20);
     expect(isActive).toBeCalledTimes(2);
     expect(name).toBeCalledTimes(4);
     expect(findings).toStrictEqual([
