@@ -54,18 +54,13 @@ export default class MakerFetcher {
 
       if (isActive)
       { 
-        const keeper: string = await strategyContract.methods
-            .keeper()
-            .call({},blockNumber);
-        const currentMakerVaultRatio: BigNumber = new BigNumber(await strategyContract.methods
-          .getCurrentMakerVaultRatio()
-          .call({}, blockNumber));
-        const collateralizationRatio: BigNumber = new BigNumber(await strategyContract.methods
-            .collateralizationRatio()
-            .call({}, blockNumber));
-        const rebalanceTolerance: BigNumber = new BigNumber(await strategyContract.methods
-            .rebalanceTolerance()
-            .call({}, blockNumber));
+        const [keeper, currentMakerVaultRatio, collateralizationRatio, rebalanceTolerance] : any[]
+            = await Promise.all([strategyContract.methods.keeper().call({},blockNumber),
+                                 strategyContract.methods.getCurrentMakerVaultRatio().call({}, blockNumber),
+                                 strategyContract.methods.collateralizationRatio().call({}, blockNumber),
+                                 strategyContract.methods.rebalanceTolerance().call({}, blockNumber)])
+                            .then(result => result.map((element,index) => 
+                                                        index>0 ? new BigNumber(element) : element))
         const info: MakerInfo = { address: strategy, keeper, currentMakerVaultRatio,
                                 collateralizationRatio, rebalanceTolerance, checkedRatio: false }
         activeMakersInfo.push(info);
@@ -82,8 +77,8 @@ export default class MakerFetcher {
     const helperContract = new this.web3.eth.Contract(HelperABI, HELPER);
 
     const vaults: string[] = await helperContract.methods
-      .assetsAddresses()
-      .call({}, blockNumber);
+                                                 .assetsAddresses()
+                                                 .call({}, blockNumber);
 
     return vaults;
   };
@@ -93,7 +88,8 @@ export default class MakerFetcher {
     blockNumber: string | number
   ): Promise<string[]> => {
     const strategies = await this.getStrategies(vault, blockNumber);
-    const makerStrategies: string[] = [];
+    let makerStrategies: string[] = [];
+    let strategyNameCalls: Promise<any>[] = [];
 
     for (const strategy of strategies) {
       const strategyContract = new this.web3.eth.Contract(
@@ -101,14 +97,17 @@ export default class MakerFetcher {
         strategy
       );
 
-      const name: string = await strategyContract.methods
-        .name()
-        .call({}, blockNumber);
-
-      if (name.includes('Maker')) {
-        makerStrategies.push(strategy);
-      }
+      strategyNameCalls.push(strategyContract.methods.name().call({}, blockNumber)
+                                                     .then((name :any) => {return {strategy,name}}))
     }
+
+    await Promise.all(strategyNameCalls)
+           .then(lst_of_strategy_name => { lst_of_strategy_name
+                                           .forEach(strategy_name => 
+                                                    { if (strategy_name.name.includes('Maker')) 
+                                                         makerStrategies.push(strategy_name.strategy)
+                                                    })
+                                          })
 
     return makerStrategies;
   };

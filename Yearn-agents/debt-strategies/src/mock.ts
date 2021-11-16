@@ -33,7 +33,7 @@ const build_Mock = () =>
 
     private NAME() {
       return {
-        call: () => name(),
+        call: () => Promise.resolve(name()),
       };
     }
 
