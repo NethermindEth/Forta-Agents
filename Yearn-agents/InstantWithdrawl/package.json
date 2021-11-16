@@ -22,6 +22,7 @@
   "dependencies": {
     "@apollo/client": "^3.4.17",
     "bignumber.js": "^9.0.1",
+    "dotenv": "^10.0.0",
     "forta-agent": "^0.0.28",
     "forta-agent-tools": "^1.0.31",
     "ganache-cli": "^6.12.2",

@@ -1,14 +1,19 @@
-import {
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const getAccounts = async (axios: any) => {
+import axios from "axios";
+import { BigNumber } from "bignumber.js";
+
+export type UserDetails = {
+  account: string;
+  balance: BigNumber;
+};
+export type Mapping = {
+  [key: string]: Array<UserDetails>;
+};
+
+export const getAccounts = async () => {
   const query = `{
-    accountVaultPositions (orderBy:balancePosition, orderDirection:desc, first:5){
+    accountVaultPositions (orderBy:balancePosition, orderDirection:desc, first:150){
       id, account{
         id
       },
@@ -34,7 +39,20 @@ export const getAccounts = async (axios: any) => {
   };
 
   const res = await axios(config as any);
-  return res.data.accountVaultPositions;
+
+  const positions = res.data.data.accountVaultPositions;
+  const mapping: Mapping = {};
+
+  positions.forEach((value: any) => {
+    const address: string = value.vault.id;
+    const values = mapping[address] || [];
+    values.push({
+      account: value.account.id,
+      balance: new BigNumber(value.balanceShares),
+    });
+    mapping[address] = values;
+  });
+  return mapping;
 };
 
 export function generateReceipt(status: string | number) {

@@ -1,10 +1,12 @@
-import BigNumber from "bignumber.js";
 import { BlockEvent, Finding, HandleBlock, getJsonRpcUrl } from "forta-agent";
-import hre = require("hardhat");
+import hre from "hardhat";
+
 import axios from "axios";
-import { generateFinding, getAccounts } from "./utils";
+import { generateFinding, getAccounts, Mapping } from "./utils";
 import Web3 from "web3";
-import abi from "./abi";
+import child_process from "child_process";
+import ganacheCli from "ganache-cli";
+import { withdrawAbi } from "./abi";
 const web3 = new Web3(getJsonRpcUrl());
 
 type accountVaultPosition = {
@@ -22,7 +24,7 @@ type accountVaultPosition = {
 const impersonateAccount = async (address: string) => {
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
-    params: ["0x364d6D0333432C3Ac016Ca832fb8594A8cE43Ca6"],
+    params: [address],
   });
 };
 
@@ -30,40 +32,33 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    const accountVaultPositions: accountVaultPosition[] = await getAccounts(
-      axios
-    );
+    const accountVaultPositions: Mapping = await getAccounts();
 
-    console.log(accountVaultPositions);
+    const vaults = Object.keys(accountVaultPositions);
 
-    accountVaultPositions.forEach(async (value) => {
-      const userAddress = value.account.id;
-      const balance = new BigNumber(value.balanceShares);
-      const vaultAddress = value.vault.id;
+    vaults.forEach(async (vaultAddress: string) => {
+      const vault = accountVaultPositions[vaultAddress];
 
-      await impersonateAccount(userAddress);
-      const contract = new web3.eth.Contract(abi as any, vaultAddress);
+      vault.forEach(async (obj) => {
+        const userAddress = obj.account;
+        const balance = obj.balance;
+        await impersonateAccount(obj.account);
 
-      try {
-        await contract.methods
-          .withdraw(balance.multipliedBy(0.3))
-          .send({ from: userAddress });
-      } catch (e) {
-        findings.push(generateFinding(balance.toString()));
-      }
+        await impersonateAccount(userAddress);
+        const contract = new web3.eth.Contract(
+          withdrawAbi as any,
+          vaultAddress
+        );
 
-      // .on("transactionHash", (hash: string) => {
-      //   console.log("TX Hash", hash);
-      // })
-      // .then((receipt: any) => {
-      //   console.log("Mined", receipt);
-      //   if (receipt.status == "0x1" || receipt.status == 1) {
-      //     console.log("Transaction Success");
-      //   } else findings.push(generateFinding(balance.toString()));
-      // })
-      // .catch((err: any) => {
-      //   console.log("Error", err);
-      // });
+        try {
+          await contract.methods
+            .withdraw(balance, userAddress, 0)
+            .send({ from: userAddress });
+        } catch (e) {
+          // if the contract call fails, returns an error.
+          findings.push(generateFinding(balance.toString()));
+        }
+      });
     });
 
     return findings;

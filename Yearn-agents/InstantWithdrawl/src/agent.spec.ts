@@ -30,7 +30,7 @@ describe("Yearn: Instant Withdraw Agent", () => {
     it("If the withdraw is working, dont return any findings", async () => {
       const blockEvent = new TestBlockEvent();
 
-      mockAxios.mockResponse(mockResponse);
+      // mockAxios.mockResponse(mockResponse);
 
       const findings = await handleBlock(blockEvent);
       expect(findings).toStrictEqual([]);
