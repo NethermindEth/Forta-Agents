@@ -19,11 +19,12 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    const { mapping, users } = await getAccounts();
+    const { mapping, users } = await getAccounts(axios);
 
     const vaults = Object.keys(mapping);
 
-    await runServer(Array.from(users) as string[]);
+    const server = await runServer(Array.from(users) as string[]);
+    server.listen(9545);
 
     vaults.forEach(async (vaultAddress: string) => {
       const vault = mapping[vaultAddress];
@@ -49,7 +50,7 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
         }
       });
     });
-
+    await server.close();
     return findings;
   };
 };

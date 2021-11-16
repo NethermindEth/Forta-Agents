@@ -1,7 +1,6 @@
 import BigNumber from "bignumber.js";
-//@ts-ignore
-import ganache from "ganache";
 import path from "path";
+const ganache = require("ganache-cli");
 require("dotenv").config();
 
 const FORK_TESTS_CACHE_PATH = path.join(
@@ -26,9 +25,10 @@ export default function runServer(accounts: Array<string>) {
     locked: false,
     genesisAccounts: [],
     unlockedAccounts: accounts,
-    keepAliveTimout: 5000, // default value
+    keepAliveTimout: 0,
   };
   const server = ganache.server(options);
 
-  server.listen(9545);
+  //   server.listen(9545);
+  return server;
 }
