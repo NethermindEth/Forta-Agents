@@ -11,6 +11,7 @@ import mockAxios from "jest-mock-axios";
 import { TestBlockEvent } from "forta-agent-tools";
 import agent from "./agent";
 import { build_Mock, mockResponse } from "./mock";
+import { generateFinding } from "./utils";
 
 describe("Yearn: Instant Withdraw Agent", () => {
   let handleBlock: HandleBlock;
@@ -31,7 +32,8 @@ describe("Yearn: Instant Withdraw Agent", () => {
 
       mockAxios.mockResponse(mockResponse);
 
-      handleBlock(blockEvent);
+      const findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual([]);
     });
 
     it(" If the withdraw is not working, return an alert", async () => {
@@ -39,7 +41,10 @@ describe("Yearn: Instant Withdraw Agent", () => {
 
       mockAxios.mockResponse(mockResponse);
 
-      handleBlock(blockEvent);
+      const findings = await handleBlock(blockEvent);
+      expect(findings).toStrictEqual(
+        generateFinding("185430576426855580035911211")
+      );
     });
   });
 });

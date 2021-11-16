@@ -1,3 +1,11 @@
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
+
 export const getAccounts = async (axios: any) => {
   const query = `{
     accountVaultPositions (orderBy:balancePosition, orderDirection:desc, first:5){
@@ -47,4 +55,17 @@ export function generateReceipt(status: string | number) {
       transactionIndex: 0,
     },
   };
+}
+
+export function generateFinding(balance: string) {
+  return Finding.fromObject({
+    name: "Yearn-agent-7",
+    description: "30% of amount couldnt be withdrawn",
+    severity: FindingSeverity.Info,
+    type: FindingType.Unknown,
+    alertId: "Yearn-agent-7",
+    metadata: {
+      balance,
+    },
+  });
 }

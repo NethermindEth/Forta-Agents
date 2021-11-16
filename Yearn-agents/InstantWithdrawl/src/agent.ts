@@ -1,23 +1,11 @@
 import BigNumber from "bignumber.js";
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-  getJsonRpcUrl,
-} from "forta-agent";
+import { BlockEvent, Finding, HandleBlock, getJsonRpcUrl } from "forta-agent";
 import hre = require("hardhat");
 import axios from "axios";
-import { getAccounts } from "./utils";
+import { generateFinding, getAccounts } from "./utils";
 import Web3 from "web3";
 import abi from "./abi";
 const web3 = new Web3(getJsonRpcUrl());
-
-let findingsCount = 0;
-const exponent = 1e18;
 
 type accountVaultPosition = {
   account: {
@@ -30,8 +18,6 @@ type accountVaultPosition = {
     id: string;
   };
 };
-
-const withdrawPermittedValues = {};
 
 const impersonateAccount = async (address: string) => {
   await hre.network.provider.request({
@@ -58,29 +44,26 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
       await impersonateAccount(userAddress);
       const contract = new web3.eth.Contract(abi as any, vaultAddress);
 
-      contract.methods
-        .withdraw(balance.multipliedBy(0.3))
-        .on("transactionHash", (hash: string) => {
-          console.log("TX Hash", hash);
-        })
-        .then((receipt: any) => {
-          console.log("Mined", receipt);
-          if (receipt.status == "0x1" || receipt.status == 1) {
-            console.log("Transaction Success");
-          } else
-            findings.push(
-              Finding.fromObject({
-                name: "Yearn-agent-7",
-                description: "30% of amount couldnt be withdrawn",
-                severity: FindingSeverity.Info,
-                type: FindingType.Unknown,
-                alertId: "Yearn-agent-7",
-              })
-            );
-        })
-        .catch((err: any) => {
-          console.log("Error", err);
-        });
+      try {
+        await contract.methods
+          .withdraw(balance.multipliedBy(0.3))
+          .send({ from: userAddress });
+      } catch (e) {
+        findings.push(generateFinding(balance.toString()));
+      }
+
+      // .on("transactionHash", (hash: string) => {
+      //   console.log("TX Hash", hash);
+      // })
+      // .then((receipt: any) => {
+      //   console.log("Mined", receipt);
+      //   if (receipt.status == "0x1" || receipt.status == 1) {
+      //     console.log("Transaction Success");
+      //   } else findings.push(generateFinding(balance.toString()));
+      // })
+      // .catch((err: any) => {
+      //   console.log("Error", err);
+      // });
     });
 
     return findings;
