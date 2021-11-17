@@ -3,7 +3,7 @@
 ## Description
 
 This agent detects transactions with large Deposit/Withdrawals from Yearn Vaults
-> Large is defined as a percentage of the maximun possible deposit and withdrwan.
+> Large is defined as a percentage of the maximum possible deposit and withdrawn.
 
 ## Supported Chains
 
