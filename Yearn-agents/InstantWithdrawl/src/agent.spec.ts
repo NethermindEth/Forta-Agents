@@ -25,7 +25,7 @@ describe("Yearn: Instant Withdraw Agent", () => {
   });
 
   describe("Finding if withdraw possible", () => {
-    it("If the withdraw is working, dont return any findings", async () => {
+    it("Account withdraws: If the withdraw is working, dont return any findings", async () => {
       const blockEvent = new TestBlockEvent();
 
       const findings = await handleBlock(blockEvent);
@@ -33,16 +33,16 @@ describe("Yearn: Instant Withdraw Agent", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it(" If the withdraw is not working, return an alert", async () => {
+    it("Another account withdraws: If the withdraw is not working, return an alert", async () => {
       const blockEvent = new TestBlockEvent();
 
       const findings = await handleBlock(blockEvent);
 
       expect(findings).toStrictEqual([
         generateFinding(
-          "1.85430576426855580035911211e+26",
+          "2.89584189215485306814849565e+26",
           0,
-          "0xda816459f1ab5631232fe5e97a05bbbb94970c95"
+          "0x59518884eebfb03e90a18adbaaab770d4666471e"
         ),
       ]);
     });
