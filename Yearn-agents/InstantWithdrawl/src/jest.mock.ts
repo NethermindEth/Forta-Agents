@@ -13,17 +13,6 @@ export const mockResponse = {
             id: "0xda816459f1ab5631232fe5e97a05bbbb94970c95",
           },
         },
-        {
-          account: {
-            id: "0xb698f815918e0a11cf802184f36f02cd4602ebd4",
-          },
-          balancePosition: "51833418246178329667517388",
-          balanceShares: "51040690824615588219939274",
-          id: "0xb698f815918e0a11cf802184f36f02cd4602ebd4-0xda816459f1ab5631232fe5e97a05bbbb94970c95",
-          vault: {
-            id: "0xda816459f1ab5631232fe5e97a05bbbb94970c95",
-          },
-        },
       ],
     },
   },

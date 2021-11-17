@@ -1,21 +1,11 @@
 import { BlockEvent, Finding, HandleBlock, getJsonRpcUrl } from "forta-agent";
-import hre from "hardhat";
-
 import axios from "axios";
 import { generateFinding, getAccounts, Mapping } from "./utils";
 import Web3 from "web3";
 import runServer from "./blockchain";
 import { withdrawAbi } from "./abi";
-const web3 = new Web3(getJsonRpcUrl());
 
-const impersonateAccount = async (address: string) => {
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [address],
-  });
-};
-
-const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
+const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
@@ -25,6 +15,9 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
 
     const server = await runServer(Array.from(users) as string[]);
     server.listen(9545);
+    const provider = server.provider;
+
+    const web3 = new Web3(provider);
 
     vaults.forEach(async (vaultAddress: string) => {
       const vault = mapping[vaultAddress];
@@ -32,9 +25,7 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
       vault.forEach(async (obj, index) => {
         const userAddress = obj.account;
         const balance = obj.balance;
-        await impersonateAccount(obj.account);
 
-        await impersonateAccount(userAddress);
         const contract = new web3.eth.Contract(
           withdrawAbi as any,
           vaultAddress
@@ -46,7 +37,10 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
             .send({ from: userAddress });
         } catch (e) {
           // if the contract call fails, returns an error.
-          findings.push(generateFinding(balance.toString(), index));
+          console.log(e);
+          findings.push(
+            generateFinding(balance.toString(), index, vaultAddress)
+          );
         }
       });
     });
@@ -56,6 +50,6 @@ const providerHandleBlock = (web3: Web3, axios: any): HandleBlock => {
 };
 
 export default {
-  handleBlock: providerHandleBlock(web3, axios),
+  handleBlock: providerHandleBlock(Web3, axios),
   providerHandleBlock,
 };

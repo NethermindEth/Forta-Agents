@@ -3,25 +3,29 @@ import { createAddress } from "forta-agent-tools";
 export const mockPrice = jest.fn();
 
 const mockResult = jest.fn();
-mockResult.mockReturnValue({}); // todo
+mockResult
+  .mockImplementationOnce(() => Promise.resolve("success"))
+  .mockImplementationOnce(() => Promise.reject("failed"));
 
 export const build_Mock = () =>
   class MockContract {
     public methods = {
-      getPricePerFullShare: this.getPricePerFullShare,
+      withdraw: this.withdraw,
     };
 
     constructor(_: any, address: string) {}
-
-    private getPricePerFullShare() {
-      return {
-        call: mockPrice,
-      };
-    }
 
     private withdraw() {
       return {
         send: mockResult,
       };
     }
+  };
+
+export const buildWeb3 = () =>
+  class Web3 {
+    eth = {
+      Contract: build_Mock(),
+    };
+    constructor(provider: any) {}
   };

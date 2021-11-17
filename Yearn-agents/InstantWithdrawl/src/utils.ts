@@ -75,10 +75,14 @@ export const getAccounts = async (axios: any) => {
 //   };
 // }
 
-export function generateFinding(balance: string, index: number) {
+export function generateFinding(
+  balance: string,
+  index: number,
+  vaultAddress: string
+) {
   return Finding.fromObject({
     name: "Yearn-agent-7",
-    description: `The ${index} account wasn't able to make the withdraw`,
+    description: `The ${index} account wasn't able to make the withdraw on vault ${vaultAddress}`,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,
     alertId: "Yearn-agent-7",
