@@ -2,7 +2,7 @@
 
 ## Description
 
-Max amount that can be instantly withdrawn (requires simulation - e.g: it is possible to withdraw 30% of funds from yvDAI right now). This is helpful for debt strategies that deposit their investment to another yVault and might require funds to be more liquid but also to detect locked vaults in general.
+To detect vaults that do not allow to withdraw a certain amount of funds and having a more precise idea of vault liquidity. Tris requires simulations where say we take holders that make up X% of vault assets and force them to withdraw their shares to see if the operation is doable in current conditions. DOes not need to be exact, but in the direction of "top 3 holders make 50% of the vault and can withdraw their funds" or "holder with 10% of vault assets cannot withdraw."
 
 ## Supported Chains
 
@@ -12,8 +12,8 @@ Max amount that can be instantly withdrawn (requires simulation - e.g: it is pos
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-7
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- Year-agent-7
+  - Fired when an account isn't able to withdraw.
+  - Severity is always set to "info"
+  - Type is always set to "Unknown"
+  - metadata - gives the balance information of the target address
