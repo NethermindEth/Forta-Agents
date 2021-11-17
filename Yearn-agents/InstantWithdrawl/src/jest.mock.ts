@@ -30,7 +30,7 @@ export const generateMockResponseArray = (values: Array<any>) => {
 
 const mockAxios = jest.fn();
 mockAxios
-  .mockResolvedValue(
+  .mockResolvedValueOnce(
     generateMockResponseArray([
       {
         vault: "0x59518884eebfb03e90a18adbaaab770d4666471e",
@@ -39,7 +39,7 @@ mockAxios
       },
     ])
   )
-  .mockResolvedValue(
+  .mockResolvedValueOnce(
     generateMockResponseArray([
       {
         vault: "0x59518884eebfb03e90a18adbaaab770d4666471e",
@@ -47,6 +47,19 @@ mockAxios
         balanceShares: "289584189215485306814849565",
       },
     ])
+  )
+  .mockResolvedValueOnce(
+    generateMockResponseArray([
+      {
+        vault: "0x59518884eebfb03e90a18adbaaab770d4666471e",
+        id: "0xfdcd5daf992a68f297647074221cf51a3c23e4ed", // this account will get it withdrawl done
+        balanceShares: "289584189215485306814849565",
+      },
+      {
+        vault: "0x59518884eebfb03e90a18adbaaab770d4666471e",
+        id: "0xcccd5daf992a68f297647074221cf51a3c23e4ed", // this one wont be able to make the withdraw
+        balanceShares: "149584189215485306814849565",
+      },
+    ])
   );
-
 export default mockAxios;

@@ -46,5 +46,19 @@ describe("Yearn: Instant Withdraw Agent", () => {
         ),
       ]);
     });
+
+    it("Another account withdraws: If the withdraw is not working, return an alert", async () => {
+      const blockEvent = new TestBlockEvent();
+
+      const findings = await handleBlock(blockEvent);
+
+      expect(findings).toStrictEqual([
+        generateFinding(
+          "1.49584189215485306814849565e+26",
+          1,
+          "0x59518884eebfb03e90a18adbaaab770d4666471e"
+        ),
+      ]);
+    });
   });
 });

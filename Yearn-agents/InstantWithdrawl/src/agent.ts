@@ -19,6 +19,8 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
 
     const web3 = new Web3(provider);
 
+    const promises: Promise<any>[] = [];
+
     vaults.forEach(async (vaultAddress: string) => {
       const vault = mapping[vaultAddress];
 
@@ -31,19 +33,19 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
           vaultAddress
         );
 
-        try {
-          await contract.methods
-            .withdraw(balance, userAddress, 0)
-            .send({ from: userAddress });
-        } catch (e) {
-          // if the contract call fails, returns an error.
-          console.log(e);
-          findings.push(
-            generateFinding(balance.toString(), index, vaultAddress)
-          );
-        }
+        return contract.methods
+          .withdraw(balance, userAddress, 0)
+          .send({ from: userAddress })
+          .catch(() => {
+            // if the contract call fails, returns an error.
+            findings.push(
+              generateFinding(balance.toString(), index, vaultAddress)
+            );
+          });
       });
     });
+
+    await Promise.all(promises);
     await server.close();
     return findings;
   };

@@ -1,11 +1,11 @@
-import { createAddress } from "forta-agent-tools";
-
 export const mockPrice = jest.fn();
 
 const mockResult = jest.fn();
 mockResult
   .mockImplementationOnce(() => Promise.resolve("success"))
-  .mockImplementationOnce(() => Promise.reject("failed"));
+  .mockImplementationOnce(() => Promise.reject("failed"))
+  .mockImplementationOnce(() => Promise.resolve())
+  .mockImplementationOnce(() => Promise.reject());
 
 export const build_Mock = () =>
   class MockContract {

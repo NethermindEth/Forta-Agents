@@ -28,7 +28,5 @@ export default function runServer(accounts: Array<string>) {
     keepAliveTimout: 0,
   };
   const server = ganache.server(options);
-
-  //   server.listen(9545);
   return server;
 }
