@@ -1,13 +1,5 @@
 jest.useFakeTimers();
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  HandleBlock,
-  createBlockEvent,
-} from "forta-agent";
+import { HandleBlock } from "forta-agent";
 import { TestBlockEvent } from "forta-agent-tools";
 import agent from "./agent";
 import { buildWeb3, build_Mock } from "./contract.mock";
