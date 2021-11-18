@@ -20,12 +20,13 @@ export const provideHandleTransaction = (
 ): HandleTransaction => 
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const vaults: string[] = await fetcher.getVaults(provider, txEvent.blockNumber);
-    const depositLimit: BigNumber[] = await Promise.all(
-      vaults.map((v: string) => fetcher.getMaxDeposit(v, txEvent.blockNumber - 1)),
-    );
-    const withdrawLimit: BigNumber[] = await Promise.all(
-      vaults.map((v: string) => fetcher.getMaxWithdraw(v, txEvent.blockNumber - 1)),
-    );
+
+    const limits: BigNumber[] = await Promise.all([
+      ...vaults.map((v: string) => fetcher.getMaxDeposit(v, txEvent.blockNumber - 1)),
+      ...vaults.map((v: string) => fetcher.getMaxWithdraw(v, txEvent.blockNumber - 1)),
+    ]);
+    const depositLimit: BigNumber[] = limits.slice(0, vaults.length);
+    const withdrawLimit: BigNumber[] = limits.slice(vaults.length);
 
     const handlers: HandleTransaction[] = [];
     for(let i = 0; i < vaults.length; ++i){
