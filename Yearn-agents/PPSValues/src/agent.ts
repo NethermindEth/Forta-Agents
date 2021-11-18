@@ -54,7 +54,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
 
     for (let i of vaults) {
       const vault = new web3.eth.Contract(vaultAbi as any, i);
-
+      // fetching price per share for each vault
       promises.push(vault.methods.getPricePerFullShare().call({}, blockNumber));
     }
 
@@ -66,12 +66,14 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
       storage[vaults[index]] = new BigNumber(value);
     });
 
+    // to check if the previous block was already scanned and the value was stored in the cache
     await cache.setItem(blockNumber.toString(), storage, { ttl: 40 });
 
     let previous = await cache.getItem<CacheObject>(
       (blockNumber - 1).toString()
     );
 
+    // if the item is not in the cache, query it.
     if (!previous) {
       blockNumber -= 1;
       let promises: BigNumber[] = [];
@@ -104,7 +106,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
       const vaultPrevValue = previous[vaultAddress as any];
       pps = new BigNumber(pps);
 
-      // pps should increase only
+      // pps should increase only, if decreases send an alert
       if (pps.isLessThan(vaultPrevValue)) {
         findings.push(
           createFinding(
@@ -122,7 +124,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
         );
       }
 
-      // swift change in ppsc
+      // swift change in pps: throw an alert
       const thresholdCheck = pps
         .minus(vaultPrevValue)
         .dividedBy(vaultPrevValue);
