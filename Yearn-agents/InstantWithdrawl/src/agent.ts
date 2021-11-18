@@ -33,15 +33,17 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
           vaultAddress
         );
 
-        return contract.methods
-          .withdraw(balance, userAddress, 0)
-          .send({ from: userAddress })
-          .catch(() => {
-            // if the contract call fails, returns an error.
-            findings.push(
-              generateFinding(balance.toString(), index, vaultAddress)
-            );
-          });
+        promises.push(
+          contract.methods
+            .withdraw(balance, userAddress, 0)
+            .send({ from: userAddress })
+            .catch(() => {
+              // if the contract call fails, returns an error.
+              findings.push(
+                generateFinding(balance.toString(), index, vaultAddress)
+              );
+            })
+        );
       });
     });
 
