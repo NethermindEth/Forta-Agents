@@ -2,7 +2,7 @@
 
 ## Description
 
-To detect vaults that do not allow to withdraw a certain amount of funds and having a more precise idea of vault liquidity. Tris requires simulations where say we take holders that make up X% of vault assets and force them to withdraw their shares to see if the operation is doable in current conditions. DOes not need to be exact, but in the direction of "top 3 holders make 50% of the vault and can withdraw their funds" or "holder with 10% of vault assets cannot withdraw."
+To detect vaults that do not allow to withdraw a certain amount of funds and having a more precise idea of vault liquidity. Tris requires simulations where say we take holders that make up X% of vault assets and force them to withdraw their shares to see if the operation is doable in current conditions. Does not need to be exact, but in the direction of "top 3 holders make 50% of the vault and can withdraw their funds" or "holder with 10% of vault assets cannot withdraw."
 
 ## Supported Chains
 

@@ -1,5 +1,5 @@
 import { BlockEvent, Finding, HandleBlock, getJsonRpcUrl } from "forta-agent";
-import axios from "axios";
+import axios, { AxiosPromise } from "axios";
 import { generateFinding, getAccounts, Mapping } from "./utils";
 import Web3 from "web3";
 import runServer from "./blockchain";
