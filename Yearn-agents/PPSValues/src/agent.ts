@@ -18,11 +18,14 @@ export const createFinding = (
   pps: string,
   tracker: string,
   reason: string,
-  id: number
+  id: number,
+  percentageChange: number
 ) => {
   return Finding.fromObject({
-    name: "Yearn PPS Agent",
-    description: `Year PPS value: ${reason}`,
+    name: "Yearn Price Per Share Ambiguity",
+    description: `Yearn PPS value: ${reason} by ${percentageChange.toFixed(
+      2
+    )}%`,
     alertId: `Yearn-8-${id}`,
     severity: FindingSeverity.High,
     type: FindingType.Suspicious,
@@ -60,7 +63,7 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
     const storage: CacheObject = {};
 
     promises.map((value, index) => {
-      storage[vaults[index]] = value;
+      storage[vaults[index]] = new BigNumber(value);
     });
 
     await cache.setItem(blockNumber.toString(), storage, { ttl: 40 });
@@ -108,23 +111,30 @@ const provideHandleFunction = (web3: Web3): HandleBlock => {
             pps.toString(),
             vaultPrevValue.toString(),
             "Decrease in PPS",
-            1
+            1,
+            vaultPrevValue
+              .minus(pps)
+              .abs()
+              .dividedBy(vaultPrevValue)
+              .multipliedBy(100)
+              .toNumber()
           )
         );
       }
 
-      // swift change in pps
-      if (
-        Math.abs(
-          pps.minus(vaultPrevValue).dividedBy(vaultPrevValue).toNumber()
-        ) > threshold
-      ) {
+      // swift change in ppsc
+      const thresholdCheck = pps
+        .minus(vaultPrevValue)
+        .dividedBy(vaultPrevValue);
+
+      if (Math.abs(thresholdCheck.toNumber()) > threshold) {
         findings.push(
           createFinding(
             pps.toString(),
             vaultPrevValue.toString(),
             "Very Swift change",
-            2
+            2,
+            thresholdCheck.abs().multipliedBy(100).toNumber()
           )
         );
       }

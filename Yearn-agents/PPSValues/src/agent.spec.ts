@@ -40,7 +40,7 @@ describe("PPS ( Price per share ) agent", () => {
     mockPrice.mockReturnValueOnce(1);
     const findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding("1", "1.1", "Decrease in PPS", 1),
+      createFinding("1", "1.1", "Decrease in PPS", 1, 9.09),
     ]);
   });
 
@@ -50,7 +50,7 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("100", "1", "Very Swift change", 2),
+      createFinding("100", "1", "Very Swift change", 2, 9900),
     ]);
   });
 
@@ -60,8 +60,8 @@ describe("PPS ( Price per share ) agent", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createFinding("10", "100", "Decrease in PPS", 1),
-      createFinding("10", "100", "Very Swift change", 2),
+      createFinding("10", "100", "Decrease in PPS", 1, 90),
+      createFinding("10", "100", "Very Swift change", 2, 90),
     ]);
   });
 });
