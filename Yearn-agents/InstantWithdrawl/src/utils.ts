@@ -62,12 +62,13 @@ export function generateFinding(
 ) {
   return Finding.fromObject({
     name: "Yearn-agent-7",
-    description: `The ${index} account wasn't able to make the withdraw on vault ${vaultAddress}`,
+    description: `The ${index} account wasn't able to make the withdraw on vault`,
     severity: FindingSeverity.Info,
     type: FindingType.Unknown,
     alertId: "Yearn-agent-7",
     metadata: {
       balance,
+      vaultAddress,
     },
   });
 }

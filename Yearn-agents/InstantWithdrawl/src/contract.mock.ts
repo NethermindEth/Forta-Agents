@@ -7,7 +7,7 @@ mockResult
   .mockImplementationOnce(() => Promise.resolve())
   .mockImplementationOnce(() => Promise.reject());
 
-export const build_Mock = () =>
+export const buildMockClass = () =>
   class MockContract {
     public methods = {
       withdraw: this.withdraw,
@@ -22,10 +22,10 @@ export const build_Mock = () =>
     }
   };
 
-export const buildWeb3 = () =>
+export const buildWeb3Mock = () =>
   class Web3 {
     eth = {
-      Contract: build_Mock(),
+      Contract: buildMockClass(),
     };
     constructor(provider: any) {}
   };

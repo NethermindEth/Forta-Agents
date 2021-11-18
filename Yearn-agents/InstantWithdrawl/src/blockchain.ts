@@ -1,7 +1,7 @@
-import BigNumber from "bignumber.js";
 import path from "path";
+import dotenv from "dotenv";
 const ganache = require("ganache-cli");
-require("dotenv").config();
+dotenv.config();
 
 const FORK_TESTS_CACHE_PATH = path.join(
   __dirname,
