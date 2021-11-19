@@ -31,12 +31,11 @@ export default class MakerFetcher {
       return this.filterMakerStrategy(vault, blockNumber);
     });
 
-    await Promise.all(makerCalls).then((res) => {
-      res.forEach((maker) => {
-        if (maker.length !== 0) {
-          allMakers.push(...maker);
-        }
-      });
+    const res = await Promise.all(makerCalls);
+    res.forEach((maker) => {
+      if (maker.length !== 0) {
+        allMakers.push(...maker);
+      }
     });
 
     allMakers.forEach((maker) => {
@@ -50,12 +49,11 @@ export default class MakerFetcher {
       );
     });
 
-    await Promise.all(isActiveCalls).then((res) => {
-      res.forEach((result: any) => {
-        if (result.isActive) {
-          activeMakers.push(result.strategy);
-        }
-      });
+    const activeCalls = await Promise.all(isActiveCalls);
+    activeCalls.forEach((result: any) => {
+      if (result.isActive) {
+        activeMakers.push(result.strategy);
+      }
     });
 
     this.cache.set(blockNumber, activeMakers);
@@ -93,12 +91,11 @@ export default class MakerFetcher {
       );
     });
 
-    await Promise.all(nameCalls).then((res) => {
-      res.forEach((result: any) => {
-        if (result.name.includes('Maker')) {
-          makerStrategies.push(result.strategy);
-        }
-      });
+    const res = await Promise.all(nameCalls);
+    res.forEach((result: any) => {
+      if (result.name.includes('Maker')) {
+        makerStrategies.push(result.strategy);
+      }
     });
 
     return makerStrategies;
@@ -124,12 +121,11 @@ export default class MakerFetcher {
       );
     }
 
-    await Promise.all(strategyCalls).then((res: any) => {
-      res.forEach((strategy: string) => {
-        if (strategy && !isZeroAddress(strategy)) {
-          strategies.push(strategy);
-        }
-      });
+    const res: any = await Promise.all(strategyCalls);
+    res.forEach((strategy: string) => {
+      if (strategy && !isZeroAddress(strategy)) {
+        strategies.push(strategy);
+      }
     });
 
     return strategies;

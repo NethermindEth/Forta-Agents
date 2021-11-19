@@ -26,8 +26,9 @@ import {
   createStaleSpotFinding,
   createOSMPriceFinding,
 } from './utils';
-import { provideHandleTransaction, provideOSMPriceHandler } from './agent';
+import { provideHandleTransaction } from './agent';
 import MakerFetcher from './maker.fetcher';
+import provideOSMPriceHandler from './OSM.price.handler';
 
 const previousHourForActivatingAgent = 1609480876; //Fri Jan 01 2021 06:01:16 GMT
 const lessThan3Hours = 1609488316; // Fri Jan 01 2021 08:05:16 GMT"
