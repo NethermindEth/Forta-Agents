@@ -16,7 +16,7 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Yearn Vault idle funds",
-    description: "Detects Yearn Vaults with too much idle funds",
+    description: "Yearn Vaults with 25% of Idle Funds",
     alertId: "Yearn-5",
     type: FindingType.Info,
     severity: FindingSeverity.Info,

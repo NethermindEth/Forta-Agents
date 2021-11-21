@@ -35,8 +35,9 @@ export const provideHandlerBlock = (etherProvider: Provider): HandleBlock => {
       getTotalDebt(vault, blockEvent.blockNumber, etherProvider)
     );
 
-    const totalAssets = await Promise.all(totalAssetsPromises);
-    const totalDebts = await Promise.all(totalDebtsPromises);
+    const responses = await Promise.all(totalAssetsPromises.concat(totalDebtsPromises));
+    const totalAssets = responses.slice(0, vaults.length);
+    const totalDebts = responses.slice(vaults.length);
 
     for (let i = 0; i < vaults.length; i++) {
       if (totalAssets[i].eq(0)) {
