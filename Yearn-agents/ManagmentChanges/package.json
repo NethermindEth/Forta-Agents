@@ -1,5 +1,5 @@
 {
-  "name": "vesper-9",
+  "name": "yearn-9",
   "version": "0.0.1",
   "description": "Agent for checking if Management or Fees change in Yearn Vault",
   "scripts": {
