@@ -29,8 +29,9 @@ export const provideHandlerBlock = (ethersProvider: Provider): HandleBlock => {
     const totalAssetsPromises = vaults.map((vault: string) => getTotalAssets(vault, blockEvent.blockNumber, ethersProvider));
     const depositLimitPromises = vaults.map((vault: string) => getDepositLimit(vault, blockEvent.blockNumber, ethersProvider));
 
-    const totalAssets = await Promise.all(totalAssetsPromises);
-    const depositLimits = await Promise.all(depositLimitPromises);
+    const responses = await Promise.all(totalAssetsPromises.concat(depositLimitPromises));
+    const totalAssets = responses.slice(0, vaults.length);
+    const depositLimits = responses.slice(vaults.length);
 
     for (let i = 0; i < vaults.length; i++) {
       if (depositLimits[i].eq(0)) {

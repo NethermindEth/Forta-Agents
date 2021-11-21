@@ -17,8 +17,8 @@ export const createFinding = (
   totalAssets: string,
 ): Finding => {
   return Finding.fromObject({
-    name: "Yearn Vault Deposit Limit ",
-    description: "Detects Yearn Vaults too close to reach deposit limit",
+    name: "Yearn Vault Deposit Limit",
+    description: "Yearn Vault close to deposit limit",
     alertId: "Yearn-4",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
