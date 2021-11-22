@@ -14,7 +14,7 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
     const vaults = Object.keys(mapping);
 
     const server = await runServer(Array.from(users) as string[]);
-    server.listen(9545);
+
     const provider = server.provider;
 
     const web3 = new Web3(provider);
@@ -39,6 +39,7 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
             .send({ from: userAddress })
             .catch(() => {
               // if the contract call fails, returns an error.
+              // fetch the event and compare it to the max amount
               findings.push(
                 generateFinding(balance.toString(), index, vaultAddress)
               );
@@ -48,7 +49,7 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
     });
 
     await Promise.all(promises);
-    await server.close();
+    // await server.close();
     return findings;
   };
 };
