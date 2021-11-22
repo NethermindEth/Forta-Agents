@@ -24,7 +24,7 @@ export default function runServer(accounts: Array<string>) {
     blockGasLimit: 210000,
     locked: false,
     genesisAccounts: [],
-    unlockedAccounts: accounts,
+    unlocked_accounts: accounts,
     keepAliveTimout: 0,
   };
   const server = ganache.server(options);
