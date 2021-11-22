@@ -2,16 +2,16 @@ import Web3 from 'web3';
 import LRU from 'lru-cache';
 import { isZeroAddress } from 'ethereumjs-util';
 import { HelperABI, StrategyABI, VaultABI } from './abi';
-import BigNumber from 'bignumber.js'
+import BigNumber from 'bignumber.js';
 
 type MakerInfo = {
-  address: string,
-  keeper: string,
-  currentMakerVaultRatio: BigNumber,
-  collateralizationRatio: BigNumber,
-  rebalanceTolerance: BigNumber,
-  checkedRatio: boolean, // to denote whether we have checked "makervaultratio < threshold" for the strategy at a specific block
-}
+  address: string;
+  keeper: string;
+  currentMakerVaultRatio: BigNumber;
+  collateralizationRatio: BigNumber;
+  rebalanceTolerance: BigNumber;
+  checkedRatio: boolean; // to denote whether we have checked "makervaultratio < threshold" for the strategy at a specific block
+};
 
 const HELPER = '0x437758D475F70249e03EDa6bE23684aD1FC375F0';
 export default class MakerFetcher {
@@ -23,8 +23,10 @@ export default class MakerFetcher {
     this.web3 = web3;
   }
 
-  public getActiveMakersInfo = async (blockNumber: string | number = 'latest'): Promise<MakerInfo[] | undefined> => {
-    if (blockNumber !== 'latest' && this.cache.get(blockNumber) !== undefined) 
+  public getActiveMakersInfo = async (
+    blockNumber: string | number = 'latest'
+  ): Promise<MakerInfo[] | undefined> => {
+    if (blockNumber !== 'latest' && this.cache.get(blockNumber) !== undefined)
       return this.cache.get(blockNumber);
 
     const activeMakersInfo: MakerInfo[] = [];
@@ -34,40 +36,57 @@ export default class MakerFetcher {
       return this.filterMakerStrategy(vault, blockNumber);
     });
 
-    await Promise.all(makerCalls).then((res) => {
-      res.forEach((maker) => {
-        if (maker.length !== 0) {
-          makers = makers.concat(maker)
-        }
-      });
+    const res = await Promise.all(makerCalls);
+
+    res.forEach((maker) => {
+      if (maker.length !== 0) {
+        makers = makers.concat(maker);
+      }
     });
 
     for (const strategy of makers) {
       const strategyContract = new this.web3.eth.Contract(
-          StrategyABI,
-          strategy
+        StrategyABI,
+        strategy
       );
 
       const isActive: boolean = await strategyContract.methods
         .isActive()
         .call({}, blockNumber);
 
-      if (isActive)
-      { 
-        const [keeper, currentMakerVaultRatio, collateralizationRatio, rebalanceTolerance] : any[]
-            = await Promise.all([strategyContract.methods.keeper().call({},blockNumber),
-                                 strategyContract.methods.getCurrentMakerVaultRatio().call({}, blockNumber),
-                                 strategyContract.methods.collateralizationRatio().call({}, blockNumber),
-                                 strategyContract.methods.rebalanceTolerance().call({}, blockNumber)])
-                            .then(result => result.map((element,index) => 
-                                                        index>0 ? new BigNumber(element) : element))
-        const info: MakerInfo = { address: strategy, keeper, currentMakerVaultRatio,
-                                collateralizationRatio, rebalanceTolerance, checkedRatio: false }
+      if (isActive) {
+        const [
+          keeper,
+          currentMakerVaultRatio,
+          collateralizationRatio,
+          rebalanceTolerance,
+        ]: any[] = await Promise.all([
+          strategyContract.methods.keeper().call({}, blockNumber),
+          strategyContract.methods
+            .getCurrentMakerVaultRatio()
+            .call({}, blockNumber),
+          strategyContract.methods
+            .collateralizationRatio()
+            .call({}, blockNumber),
+          strategyContract.methods.rebalanceTolerance().call({}, blockNumber),
+        ]).then((result) =>
+          result.map((element, index) =>
+            index > 0 ? new BigNumber(element) : element
+          )
+        );
+        const info: MakerInfo = {
+          address: strategy,
+          keeper,
+          currentMakerVaultRatio,
+          collateralizationRatio,
+          rebalanceTolerance,
+          checkedRatio: false,
+        };
         activeMakersInfo.push(info);
       }
     }
 
-    this.cache.set(blockNumber,activeMakersInfo);
+    this.cache.set(blockNumber, activeMakersInfo);
     return activeMakersInfo;
   };
 
@@ -77,8 +96,8 @@ export default class MakerFetcher {
     const helperContract = new this.web3.eth.Contract(HelperABI, HELPER);
 
     const vaults: string[] = await helperContract.methods
-                                                 .assetsAddresses()
-                                                 .call({}, blockNumber);
+      .assetsAddresses()
+      .call({}, blockNumber);
 
     return vaults;
   };
@@ -97,17 +116,22 @@ export default class MakerFetcher {
         strategy
       );
 
-      strategyNameCalls.push(strategyContract.methods.name().call({}, blockNumber)
-                                                     .then((name :any) => {return {strategy,name}}))
+      strategyNameCalls.push(
+        strategyContract.methods
+          .name()
+          .call({}, blockNumber)
+          .then((name: any) => {
+            return { strategy, name };
+          })
+      );
     }
 
-    await Promise.all(strategyNameCalls)
-           .then(lst_of_strategy_name => { lst_of_strategy_name
-                                           .forEach(strategy_name => 
-                                                    { if (strategy_name.name.includes('Maker')) 
-                                                         makerStrategies.push(strategy_name.strategy)
-                                                    })
-                                          })
+    await Promise.all(strategyNameCalls).then((lst_of_strategy_name) => {
+      lst_of_strategy_name.forEach((strategy_name) => {
+        if (strategy_name.name.includes('Maker'))
+          makerStrategies.push(strategy_name.strategy);
+      });
+    });
 
     return makerStrategies;
   };
@@ -134,4 +158,3 @@ export default class MakerFetcher {
     return strategies;
   };
 }
-
