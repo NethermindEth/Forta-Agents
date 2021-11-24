@@ -6,6 +6,7 @@ import {
   HandleTransaction,
 } from "forta-agent";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
+import AddressesFetcher from "./addresses.fetcher";
 
 export const DENY_FUNCTION_SIG = "deny(address)";
 
@@ -28,27 +29,21 @@ export const createFinding = (
   });
 };
 
-const createAgentHandler = (_contract: string): HandleTransaction => {
-  return provideFunctionCallsDetectorHandler(createFinding, DENY_FUNCTION_SIG, {
+const createAgentHandler = (_contract: string): HandleTransaction =>
+  provideFunctionCallsDetectorHandler(createFinding, DENY_FUNCTION_SIG, {
     to: _contract,
   });
-};
 
 export default function provideDenyFunctionHandler(
-  contracts: string[]
+  fetcher: AddressesFetcher,
 ): HandleTransaction {
-  const handlers: HandleTransaction[] = contracts.map((contract: string) =>
-    createAgentHandler(contract.toLowerCase())
-  );
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    const contracts: string[] = await fetcher.get(txEvent.timestamp);
 
-    for (let handler of handlers) {
-      const finding = await handler(txEvent);
-      findings.push(...finding);
-    }
+    const promises: Promise<Finding[]>[] = contracts.map((contract: string) =>
+      createAgentHandler(contract.toLowerCase())(txEvent)
+    );
 
-    return findings;
+    return Promise.all(promises).then((result: Finding[][]) => result.flat());
   };
-}
+};
