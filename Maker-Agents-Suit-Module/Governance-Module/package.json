@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.28",
-    "forta-agent-tools": "^1.0.26",
+    "forta-agent": "^0.0.29",
+    "forta-agent-tools": "^1.0.31",
     "rlp": "^2.2.7"
   },
   "devDependencies": {

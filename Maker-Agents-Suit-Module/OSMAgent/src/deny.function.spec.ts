@@ -11,7 +11,7 @@ import {
   createAddress,
   TestTransactionEvent,
 } from "forta-agent-tools";
-import { when,  } from "jest-when";
+import { when } from "jest-when";
 
 const CONTRACTS: string[][] = [ // index represent a timestamp
   [], // no contracts at timestamp 0
