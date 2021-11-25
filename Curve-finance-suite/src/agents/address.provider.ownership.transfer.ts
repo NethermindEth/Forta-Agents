@@ -4,39 +4,42 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-  Log,
 } from 'forta-agent';
-import { keccak256 } from 'forta-agent/dist/sdk/utils';
-import { decodeParameter } from 'nethermindeth-general-agents-module';
+import { decodeParameters, FindingGenerator, provideEventCheckerHandler } from 'forta-agent-tools';
 
 export const COMMIT_NEW_ADMIN_SIGNATURE = 'CommitNewAdmin(uint256,address)';
 
 
-export const createFinding = (alertID: string, newAdmin: string) => {
-  return Finding.fromObject({
-    name: 'Curve Admin Event Detected',
-    description: 'New Admin Committed.',
-    alertId: alertID,
-    severity: FindingSeverity.Medium,
-    type: FindingType.Unknown,
-    metadata: {
-      newAdmin: newAdmin,
-    },
-  });
-};
+const createFindingGenerator = (alertID:string): FindingGenerator => {
+  return (metadata: { [key: string]: any } | undefined) => {
+    const { 1: newAdmin } = decodeParameters(
+      ['uint256', 'address'],
+      metadata?.data,
+    );
+    return Finding.fromObject({
+      name: 'Curve Admin Event Detected',
+      description: 'New Admin Committed.',
+      alertId: alertID,
+      severity: FindingSeverity.Medium,
+      type: FindingType.Unknown,
+      metadata: {
+        newAdmin: newAdmin.toLowerCase(),
+      }
+    })
+  }
+}
 
 const provideCommitNewAdminEvent = (
   alertID: string,
   address: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-    if (!txEvent.addresses[address]) return findings;
-
-    txEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map((log: Log) => {
-      const decodedAddress = decodeParameter('address', log.topics[2]);
-      findings.push(createFinding(alertID, decodedAddress.toLowerCase()));
-    });
+    const agentHandler = provideEventCheckerHandler(
+      createFindingGenerator(alertID), 
+      COMMIT_NEW_ADMIN_SIGNATURE,
+      address,  
+    );
+    const findings: Finding[] = await agentHandler(txEvent);
 
     return findings;
   };

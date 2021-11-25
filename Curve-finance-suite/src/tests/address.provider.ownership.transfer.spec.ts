@@ -5,13 +5,11 @@ import {
   FindingType,
   TransactionEvent,
 } from 'forta-agent';
-import { encodeParameter } from 'nethermindeth-general-agents-module';
+import { TestTransactionEvent, encodeParameters } from 'forta-agent-tools';
 
 import provideCommitNewAdminEvent, {
   COMMIT_NEW_ADMIN_SIGNATURE,
 } from '../agents/address.provider.ownership.transfer';
-
-import createTxEventWithLog from '../utils/create.event.log';
 
 const ADDRESS = '0x1212';
 const ALERT_ID = 'test';
@@ -26,20 +24,23 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
   });
 
   it('should return a finding', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog(
+    const data = encodeParameters(
+      ['uint256','address'],
+      [DURATION, NEW_ADMIN]
+    )
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+    .addEventLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       ADDRESS,
-      [
-        encodeParameter('uint256', DURATION),
-        encodeParameter('address', NEW_ADMIN),
-      ]
-    );
+      data,
+    )
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Commit New Admin Event',
+        name: 'Curve Admin Event Detected',
         description: 'New Admin Committed.',
         alertId: ALERT_ID,
         severity: FindingSeverity.Medium,
@@ -50,26 +51,37 @@ describe('Transfer Ownership Agent for Registry Contract', () => {
       }),
     ]);
   });
-  it('should return empty finding because of wrong SIG', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog('bad sig', ADDRESS, [
-      encodeParameter('uint256', DURATION),
-      encodeParameter('address', NEW_ADMIN),
-    ]);
 
+  it('should return empty finding because of wrong SIG', async () => {
+const data = encodeParameters(
+      ['uint256','address'],
+      [DURATION, NEW_ADMIN]
+    )
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+    .addEventLog(
+      'bad sig',
+      ADDRESS,
+      data,
+    )
+  
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
 
   it('should return empty finding because of wrong address', async () => {
-    const txEvent: TransactionEvent = createTxEventWithLog(
+    const data = encodeParameters(
+      ['uint256','address'],
+      [DURATION, NEW_ADMIN]
+    )
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+    .addEventLog(
       COMMIT_NEW_ADMIN_SIGNATURE,
       '0x',
-      [
-        encodeParameter('uint256', DURATION),
-        encodeParameter('address', NEW_ADMIN),
-      ]
-    );
+      data,
+    )
 
     const findings = await handleTransaction(txEvent);
 
