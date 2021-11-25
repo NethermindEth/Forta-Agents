@@ -11,11 +11,13 @@ import { createFinding as relyFinding } from "./rely.function.spec";
 import { createFinding as denyFinding } from "./deny.function.spec";
 
 
-const testAddresses = [
+const addresses: string[] = [
   createAddress("0x1"),
   createAddress("0x2"),
   createAddress("0x3"),
 ];
+const testAddresses: any = { get: () => addresses};
+
 const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 
 const pokeFunctionSelector = "0x18178358";
@@ -54,13 +56,13 @@ describe("OSM Agent Test Suite", () => {
     const txEvent3 = new TestTransactionEvent()
       .setTimestamp(greaterThanTenMinutes)
       .addTraces({
-        from: testAddresses[0],
+        from: addresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
       })
       .addEventLog(
         "LogValue(bytes32)",
-        testAddresses[0],
+        addresses[0],
         web3.eth.abi.encodeParameter("uint128", 100)
       );
 
@@ -69,7 +71,7 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent3));
 
     expect(findings).toStrictEqual([
-      deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
+      deviationFinding(addresses[0], BigInt(100), BigInt(107)),
       priceUpdateFinding(),
     ]);
   });
@@ -79,7 +81,7 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const _from = createAddress("0x5");
-    const _to = testAddresses[0];
+    const _to = addresses[0];
     const _input: string = web3.eth.abi.encodeFunctionCall(
       {
         name: "rely",
@@ -104,7 +106,7 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
     expect(findings).toStrictEqual([
-      relyFinding(testAddresses[0], createAddress("0x5")),
+      relyFinding(addresses[0], createAddress("0x5")),
     ]);
   });
 
@@ -113,7 +115,7 @@ describe("OSM Agent Test Suite", () => {
     transactionHandler = provideAgentHandler(testAddresses);
 
     const _from = createAddress("0x2");
-    const _to = testAddresses[0];
+    const _to = addresses[0];
     const _input: string = web3.eth.abi.encodeFunctionCall(
       {
         name: "deny",
@@ -138,7 +140,7 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
     expect(findings).toStrictEqual([
-      denyFinding(testAddresses[0], createAddress("0x5")),
+      denyFinding(addresses[0], createAddress("0x5")),
     ]);
   });
 
@@ -165,13 +167,13 @@ describe("OSM Agent Test Suite", () => {
 
     const txEvent = new TestTransactionEvent()
       .addTraces({
-        from: testAddresses[0],
+        from: addresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
       })
       .addEventLog(
         "LogValue(bytes32)",
-        testAddresses[0],
+        addresses[0],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
       .setTimestamp(lessThanTenMinutes);
@@ -179,7 +181,7 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent));
 
     expect(findings).toStrictEqual([
-      deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
+      deviationFinding(addresses[0], BigInt(100), BigInt(107)),
     ]);
   });
 
@@ -192,19 +194,19 @@ describe("OSM Agent Test Suite", () => {
       .setTimestamp(lessThanTenMinutes);
     const txEvent2 = new TestTransactionEvent()
       .addTraces({
-        from: testAddresses[0],
+        from: addresses[0],
         input: peekFunctionSelector,
         output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
       })
       .addEventLog(
         "LogValue(bytes32)",
-        testAddresses[0],
+        addresses[0],
         web3.eth.abi.encodeParameter("uint128", 100)
       )
       .setTimestamp(greaterThanTenMinutes);
 
     const _from = createAddress("0x2");
-    const _to = testAddresses[0];
+    const _to = addresses[0];
     const _input: string = web3.eth.abi.encodeFunctionCall(
       {
         name: "deny",
@@ -232,8 +234,8 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent3));
 
     expect(findings).toStrictEqual([
-      deviationFinding(testAddresses[0], BigInt(100), BigInt(107)),
-      denyFinding(testAddresses[0], createAddress("0x5")),
+      deviationFinding(addresses[0], BigInt(100), BigInt(107)),
+      denyFinding(addresses[0], createAddress("0x5")),
     ]);
   });
 });

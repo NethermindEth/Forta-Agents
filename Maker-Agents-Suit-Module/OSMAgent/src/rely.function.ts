@@ -6,6 +6,7 @@ import {
   HandleTransaction,
 } from "forta-agent";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
+import AddressesFetcher from "./addresses.fetcher";
 
 export const RELY_FUNCTION_SIG = "rely(address)";
 
@@ -28,26 +29,21 @@ export const createFinding = (
   });
 };
 
-const createAgentHandler = (_contract: string): HandleTransaction => {
-  return provideFunctionCallsDetectorHandler(createFinding, RELY_FUNCTION_SIG, {
+const createAgentHandler = (_contract: string): HandleTransaction =>
+  provideFunctionCallsDetectorHandler(createFinding, RELY_FUNCTION_SIG, {
     to: _contract,
   });
-};
 
 export default function provideRelyFunctionHandler(
-  contracts: string[]
+  fetcher: AddressesFetcher,
 ): HandleTransaction {
-  const handlers: HandleTransaction[] = contracts.map((contract: string) =>
-    createAgentHandler(contract.toLowerCase())
-  );
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    let findings: Finding[] = [];
+    const contracts: string[] = await fetcher.get(txEvent.timestamp);
 
-    for (let handler of handlers) {
-      const finding = await handler(txEvent);
-      findings.push(...finding);
-    }
-    return findings;
+    const promises: Promise<Finding[]>[] = contracts.map((contract: string) =>
+      createAgentHandler(contract.toLowerCase())(txEvent)
+    );
+
+    return Promise.all(promises).then((result: Finding[][]) => result.flat());
   };
-}
+};

@@ -6,11 +6,11 @@ import {
 } from "forta-agent";
 import providePriceUpdateCheckHandler, {
   createFinding,
+  MEGAPOKER_CONTRACT,
 } from "./price.update.check";
 
 import { TestTransactionEvent } from "forta-agent-tools";
 
-const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 const pokeFunctionSelector = "0x18178358";
 const previousHourForActivatingAgent = 1467018381;
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
@@ -58,7 +58,7 @@ describe("Poker Method", () => {
       previousHourForActivatingAgent
     );
     const txEvent2 = new TestTransactionEvent()
-      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(lessThanTenMinutes);
     const txEvent3 = new TestTransactionEvent().setTimestamp(
       greaterThanTenMinutes
@@ -103,7 +103,7 @@ describe("Poker Method", () => {
       lessThanTenMinutes
     );
     const txEvent3 = new TestTransactionEvent()
-      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
@@ -124,7 +124,7 @@ describe("Poker Method", () => {
       lessThanTenMinutes
     );
     const txEvent3 = new TestTransactionEvent()
-      .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
+      .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
     const txEvent4 = new TestTransactionEvent().setTimestamp(differentHour);
 

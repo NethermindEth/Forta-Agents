@@ -8,6 +8,7 @@ import {
   FindingSeverity,
 } from "forta-agent";
 import Web3 from "web3";
+import AddressesFetcher from "./addresses.fetcher";
 
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
 const LOG_VALUE_EVENT_SIGNATURE = "LogValue(bytes32)";
@@ -55,20 +56,16 @@ const decodeNextValue = (trace: Trace): bigint => {
   return BigInt(results[0]);
 };
 
-const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) => {
-  return traces
-    .filter(
-      (trace) =>
-        trace.action.from === contractAddress &&
-        correctFunctionCalled(trace) &&
-        callWasSuccessful(trace)
-    )
-    .map(decodeNextValue);
-};
+const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
+  traces.filter((trace) =>
+    trace.action.from === contractAddress &&
+    correctFunctionCalled(trace) &&
+    callWasSuccessful(trace)
+  ).map(decodeNextValue);
 
-const decodeCurrentValue = (log: Log): bigint => {
-  return BigInt(new Web3().eth.abi.decodeParameter("uint128", log.data) as any);
-};
+
+const decodeCurrentValue = (log: Log): bigint =>
+  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.data) as any);
 
 const getCurrentValues = (
   contractAddress: string,
@@ -79,9 +76,7 @@ const getCurrentValues = (
     .map(decodeCurrentValue);
 };
 
-const abs = (a: bigint): bigint => {
-  return a < 0 ? -a : a;
-};
+const abs = (a: bigint): bigint => a < 0 ? -a : a;
 
 const needToReport = (currentValue: bigint, nextValue: bigint): boolean => {
   const bigDeviation: bigint = (BigInt(6) * currentValue) / BigInt(100);
@@ -113,10 +108,11 @@ const checkOSMContract = (
 };
 
 export default function provideBigQueuedPriceDeviationHandler(
-  contractAddressesList: string[]
+  fetcher: AddressesFetcher,
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    const contractAddressesList: string[] = await fetcher.get(txEvent.timestamp);
     for (let i = 0; i < contractAddressesList.length; i++) {
       const finding: Finding | null = checkOSMContract(
         contractAddressesList[i],
@@ -128,4 +124,4 @@ export default function provideBigQueuedPriceDeviationHandler(
     }
     return findings;
   };
-}
+};

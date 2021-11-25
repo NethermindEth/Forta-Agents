@@ -11,8 +11,14 @@ import {
   createAddress,
   TestTransactionEvent,
 } from "forta-agent-tools";
-import { OSM_CONTRACTS } from "./utils";
+import { when } from "jest-when";
 
+const CONTRACTS: string[][] = [ // index represent a timestamp
+  [], // no contracts at timestamp 0
+  [createAddress("0xa0"), createAddress("0xa1")],
+  [createAddress("0xb0"), createAddress("0xb1"), createAddress("0xb2")],
+  [createAddress("0xc0")],
+]
 const ADDRESS = createAddress("0x1");
 const ABI = new Web3().eth.abi;
 
@@ -35,12 +41,17 @@ describe("OSM Rely Function Agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideDenyFunctionHandler(OSM_CONTRACTS);
+    const mockFetcher: any = { get: jest.fn() };
+    handleTransaction = provideDenyFunctionHandler(mockFetcher);
+
+    when(mockFetcher.get).calledWith(1).mockReturnValue(CONTRACTS[1]);
+    when(mockFetcher.get).calledWith(2).mockReturnValue(CONTRACTS[2]);
+    when(mockFetcher.get).calledWith(3).mockReturnValue(CONTRACTS[3]);
   });
 
   it("should return a finding for one of the OSM contract", async () => {
     const _from = createAddress("0x2");
-    const _to = "0x81fe72b5a8d1a857d176c3e7d5bd2679a9b85763"; // PIP_ETH
+    const _to = CONTRACTS[1][0]; 
     const _input: string = ABI.encodeFunctionCall(
       {
         name: "deny",
@@ -55,19 +66,20 @@ describe("OSM Rely Function Agent", () => {
       [ADDRESS]
     );
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
-      to: _to,
-      from: _from,
-      input: _input,
-    });
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTimestamp(1)
+      .addTraces({
+        to: _to,
+        from: _from,
+        input: _input,
+      });
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([createFinding(_to, ADDRESS)]);
   });
 
-  it("should return empty finding when OSM contract address does found", async () => {
+  it("should return multiple findings", async () => {
     const _from = createAddress("0x2");
-    const _to = "0x1"; // BAD ADDRESS
     const _input: string = ABI.encodeFunctionCall(
       {
         name: "deny",
@@ -82,11 +94,49 @@ describe("OSM Rely Function Agent", () => {
       [ADDRESS]
     );
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
-      to: _to,
-      from: _from,
-      input: _input,
-    });
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTimestamp(2)
+      .addTraces({
+        to: CONTRACTS[2][2],
+        from: _from,
+        input: _input,
+      },{
+        to: CONTRACTS[2][1],
+        from: _from,
+        input: _input,
+      });
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      createFinding(CONTRACTS[2][1], ADDRESS),
+      createFinding(CONTRACTS[2][2], ADDRESS),
+    ]);
+  });
+
+  it("should return empty finding when OSM contract address does found", async () => {
+    const _from = createAddress("0x2");
+    const _to = createAddress("0x1"); // BAD ADDRESS
+    const _input: string = ABI.encodeFunctionCall(
+      {
+        name: "deny",
+        type: "function",
+        inputs: [
+          {
+            type: "address",
+            name: "_operator",
+          },
+        ],
+      },
+      [ADDRESS]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTimestamp(3)
+      .addTraces({
+        to: _to,
+        from: _from,
+        input: _input,
+      });
 
     const findings: Finding[] = await handleTransaction(txEvent);
 

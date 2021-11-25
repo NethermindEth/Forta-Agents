@@ -8,7 +8,7 @@ import {
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import TimeTracker from "./time.tracker";
 
-const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
+export const MEGAPOKER_CONTRACT = "0x1cfd93a4864bec32c12c77594c2ec79deec16038";
 const functionSignature = "poke()";
 
 const functionCallDetector = provideFunctionCallsDetectorHandler(
@@ -16,7 +16,7 @@ const functionCallDetector = provideFunctionCallsDetectorHandler(
     return {} as Finding;
   },
   functionSignature,
-  { to: address }
+  { to: MEGAPOKER_CONTRACT }
 );
 
 export const createFinding = (): Finding => {
@@ -28,7 +28,7 @@ export const createFinding = (): Finding => {
     type: FindingType.Info,
     everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
-      MegaPokerContractAddress: address,
+      MegaPokerContractMEGAPOKER_CONTRACT: MEGAPOKER_CONTRACT,
     },
   });
 };
