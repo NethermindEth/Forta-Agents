@@ -8,7 +8,7 @@ import {
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import TimeTracker from "./time.tracker";
 
-const address = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
+const address = "0x1cfd93a4864bec32c12c77594c2ec79deec16038";
 const functionSignature = "poke()";
 
 const functionCallDetector = provideFunctionCallsDetectorHandler(
