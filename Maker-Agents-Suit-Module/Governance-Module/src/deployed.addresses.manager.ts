@@ -33,7 +33,7 @@ export default class DeployedAddressesManager implements AddressManager {
     return this.deployedAddresses.has(addr);
   }
 
-  // Implemented as arrow function to preserve the context inside the function
-  public isKnownAddress = (addr: string): boolean =>
-    this.isDeployedAddress(addr);
+  public isKnownAddress(addr: string): boolean {
+    return this.isDeployedAddress(addr);
+  }
 };
