@@ -12,10 +12,6 @@ import { decodeParameter } from 'nethermindeth-general-agents-module';
 
 export const COMMIT_NEW_ADMIN_SIGNATURE = 'CommitNewAdmin(uint256,address)';
 
-export const generateHash = (signature: string): string => {
-  const hash = keccak256(signature);
-  return '0x' + hash;
-};
 
 export const createFinding = (alertID: string, newAdmin: string) => {
   return Finding.fromObject({
