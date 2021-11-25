@@ -15,7 +15,7 @@ export const COMMIT_NEW_ADMIN_SIGNATURE = 'CommitNewAdmin(uint256,address)';
 
 export const createFinding = (alertID: string, newAdmin: string) => {
   return Finding.fromObject({
-    name: 'Commit New Admin Event',
+    name: 'Curve Admin Event Detected',
     description: 'New Admin Committed.',
     alertId: alertID,
     severity: FindingSeverity.Medium,
