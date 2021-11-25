@@ -7,7 +7,6 @@ import {
   Log,
 } from 'forta-agent';
 import { keccak256 } from 'forta-agent/dist/sdk/utils';
-import { addHexPrefix } from 'ethereumjs-util';
 import { decodeParameter } from 'nethermindeth-general-agents-module';
 
 export const COMMIT_NEW_ADMIN_SIGNATURE = 'CommitNewAdmin(uint256,address)';
