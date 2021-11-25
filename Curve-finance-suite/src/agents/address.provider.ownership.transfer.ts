@@ -35,10 +35,8 @@ const provideCommitNewAdminEvent = (
     if (txEvent.addresses[address] == false) return findings;
 
     txEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map((log: Log) => {
-      const decoded_Address = decodeParameter('address', log.topics[2]);
-
-      const newOwner: string = addHexPrefix(decoded_Address);
-      findings.push(createFinding(alertID, newOwner.toLowerCase()));
+      const decodedAddress = decodeParameter('address', log.topics[2]);
+      findings.push(createFinding(alertID, decodedAddress.toLowerCase()));
     });
 
     return findings;
