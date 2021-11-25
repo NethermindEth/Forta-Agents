@@ -31,7 +31,7 @@ const provideCommitNewAdminEvent = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    if (txEvent.addresses[address] == false) return findings;
+    if (!txEvent.addresses[address]) return findings;
 
     txEvent.filterEvent(COMMIT_NEW_ADMIN_SIGNATURE, address).map((log: Log) => {
       const decodedAddress = decodeParameter('address', log.topics[2]);
