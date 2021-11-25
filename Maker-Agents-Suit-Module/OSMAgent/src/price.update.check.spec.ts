@@ -10,7 +10,7 @@ import providePriceUpdateCheckHandler, {
 
 import { TestTransactionEvent } from "forta-agent-tools";
 
-const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
+const megaPokerAddress = "0x1cfd93a4864bec32c12c77594c2ec79deec16038";
 const pokeFunctionSelector = "0x18178358";
 const previousHourForActivatingAgent = 1467018381;
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
