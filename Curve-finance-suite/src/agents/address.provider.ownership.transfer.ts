@@ -15,7 +15,6 @@ export const COMMIT_NEW_ADMIN_SIGNATURE = "CommitNewAdmin(uint256,address)";
 
 const createFindingGenerator = (alertID: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) => {
-    console.log(metadata);
     const { 1: newAdmin } = decodeParameters(
       ["uint256", "address"],
       metadata?.data
