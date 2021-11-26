@@ -17,7 +17,7 @@
   "dependencies": {
     "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.21",
+    "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.18",
     "nethermindeth-general-agents-module": "^1.0.11"
   },
