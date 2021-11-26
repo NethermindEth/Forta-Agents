@@ -4,30 +4,34 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-} from 'forta-agent';
-import { decodeParameters, FindingGenerator, provideEventCheckerHandler } from 'forta-agent-tools';
+} from "forta-agent";
+import {
+  decodeParameters,
+  FindingGenerator,
+  provideEventCheckerHandler,
+} from "forta-agent-tools";
 
-export const COMMIT_NEW_ADMIN_SIGNATURE = 'CommitNewAdmin(uint256,address)';
+export const COMMIT_NEW_ADMIN_SIGNATURE = "CommitNewAdmin(uint256,address)";
 
-
-const createFindingGenerator = (alertID:string): FindingGenerator => {
+const createFindingGenerator = (alertID: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) => {
+    console.log(metadata);
     const { 1: newAdmin } = decodeParameters(
-      ['uint256', 'address'],
-      metadata?.data,
+      ["uint256", "address"],
+      metadata?.data
     );
     return Finding.fromObject({
-      name: 'Curve Admin Event Detected',
-      description: 'New Admin Committed.',
+      name: "Curve Admin Event Detected",
+      description: "New Admin Committed.",
       alertId: alertID,
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata: {
         newAdmin: newAdmin.toLowerCase(),
-      }
-    })
-  }
-}
+      },
+    });
+  };
+};
 
 const provideCommitNewAdminEvent = (
   alertID: string,
@@ -35,9 +39,9 @@ const provideCommitNewAdminEvent = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideEventCheckerHandler(
-      createFindingGenerator(alertID), 
+      createFindingGenerator(alertID),
       COMMIT_NEW_ADMIN_SIGNATURE,
-      address,  
+      address
     );
     const findings: Finding[] = await agentHandler(txEvent);
 
