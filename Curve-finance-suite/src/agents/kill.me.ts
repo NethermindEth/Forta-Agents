@@ -8,23 +8,7 @@ import {
 import { FindingGenerator, provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 export const KILL_ME_SIGNATURE = 'kill_me()';
 
-import Web3 from 'web3';
-import abi from '../utils/stable.swap.abi';
 
-// @ts-ignore
-import abiDecoder from 'abi-decoder';
-abiDecoder.addABI(abi);
-
-export const web3 = new Web3();
-
-export const killme = {
-  name: 'kill_me',
-  outputs: [],
-  inputs: [],
-  stateMutability: 'nonpayable',
-  type: 'function',
-  gas: 38058,
-};
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return () => {
