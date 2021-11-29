@@ -5,6 +5,8 @@ import {
   FindingSeverity,
   FindingType,
 } from 'forta-agent';
+import { FindingGenerator, provideFunctionCallsDetectorHandler } from "forta-agent-tools";
+export const KILL_ME_SIGNATURE = 'kill_me()';
 
 import Web3 from 'web3';
 import abi from '../utils/stable.swap.abi';
@@ -24,7 +26,8 @@ export const killme = {
   gas: 38058,
 };
 
-const createFinding = (alertId: string): Finding => {
+const createFindingGenerator = (alertId: string): FindingGenerator => {
+  return () => {
   return Finding.fromObject({
     name: 'Kill Me funciton called',
     description: 'Kill Me funciton called on pool',
@@ -32,24 +35,20 @@ const createFinding = (alertId: string): Finding => {
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
   });
+  }
 };
 
 export default function provideKillMeAgent(
   alertID: string,
   address: string
 ): HandleTransaction {
+  const agentHandler = provideFunctionCallsDetectorHandler(
+    createFindingGenerator(alertID), 
+    KILL_ME_SIGNATURE, 
+  );
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
-    if (txEvent.addresses[address] == false) return findings;
-
-    const data = abiDecoder.decodeMethod(txEvent.transaction.data);
-    if (!data) return findings;
-
-    if (data.name === 'kill_me') {
-      findings.push(createFinding(alertID));
-    }
-
+    const findings: Finding[] = await agentHandler(txEvent);
     return findings;
   };
-}
+  };
+
