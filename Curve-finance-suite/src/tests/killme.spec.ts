@@ -4,11 +4,12 @@ import {
   createTransactionEvent,
 } from 'forta-agent';
 import provideKillMeAgent, { web3, killme } from '../agents/kill.me';
+import KILL_ME_SIGNATURE from '../agents/kill.me';
 
 const ADDRESS = '0x1111';
 const ALERTID = 'test';
 
-describe('high gas agent', () => {
+describe('Kill me agent for Curve StableSwap contract', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
@@ -23,7 +24,7 @@ describe('high gas agent', () => {
       block: {} as any,
     });
 
-  it('create and send a tx with the tx event', async () => {
+  it('should return kill_me function call finding', async () => {
     const signature = web3.eth.abi.encodeFunctionCall(killme as any, []);
     const tx = createTxEvent(signature);
     const findings = await handleTransaction(tx);
