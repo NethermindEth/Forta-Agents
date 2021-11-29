@@ -13,8 +13,8 @@ export const KILL_ME_SIGNATURE = 'kill_me()';
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return () => {
   return Finding.fromObject({
-    name: 'Kill Me funciton called',
-    description: 'Kill Me funciton called on pool',
+    name: 'Kill Me function call Detected',
+    description: 'Kill Me function called on pool',
     alertId: alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,

@@ -32,8 +32,8 @@ describe('Kill me agent for Curve StableSwap contract', () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Kill Me funciton called',
-        description: 'Kill Me funciton called on pool',
+        name: 'Kill Me function call Detected',
+        description: 'Kill Me function called on pool',
         alertId: ALERTID,
         protocol: 'ethereum',
         severity: 2,
