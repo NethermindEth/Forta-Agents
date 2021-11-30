@@ -15,9 +15,9 @@ const addNft: FndingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     alertId: "NAFTA-OP-1",
     metadata: {
-      nft: log.args["nftAddress"],
+      nft: log.args["nftAddress"].toLowerCase(),
       id: `${log.args["nftId"]}`,
-      sender: log.args["msgSender"],
+      sender: log.args["msgSender"].toLowerCase(),
       flashFee: `${log.args["flashFee"]}`,
       longtermFee: `${log.args["pricePerBlock"]}`,
       maxBlocks: `${log.args["maxLongtermBlocks"]}`,
@@ -25,7 +25,7 @@ const addNft: FndingGenerator = (log: LogDescription): Finding =>
     }
   });
 
-const editNFT: FndingGenerator = (log: LogDescription): Finding =>     
+const editNft: FndingGenerator = (log: LogDescription): Finding =>     
   Finding.fromObject({
     name: "NAFTA Operations",
     description: "EditNFT event emitted",
@@ -33,9 +33,9 @@ const editNFT: FndingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     alertId: "NAFTA-OP-2",
     metadata: {
-      nft: log.args["nftAddress"],
+      nft: log.args["nftAddress"].toLowerCase(),
       id: `${log.args["nftId"]}`,
-      sender: log.args["msgSender"],
+      sender: log.args["msgSender"].toLowerCase(),
       flashFee: `${log.args["flashFee"]}`,
       longtermFee: `${log.args["pricePerBlock"]}`,
       maxBlocks: `${log.args["maxLongtermBlocks"]}`,
@@ -51,16 +51,16 @@ const removeNft: FndingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     alertId: "NAFTA-OP-3",
     metadata: {
-      nft: log.args["nftAddress"],
+      nft: log.args["nftAddress"].toLowerCase(),
       id: `${log.args["nftId"]}`,
-      sender: log.args["msgSender"],
+      sender: log.args["msgSender"].toLowerCase(),
       lenderNFT: `${log.args["lenderNFTId"]}`,
     }
   });
 
 const functions: Record<string, FndingGenerator> = {
   "AddNFT": addNft,
-  "EditNFT": editNFT,
+  "EditNFT": editNft,
   "RemoveNFT": removeNft,
 }
 
@@ -68,7 +68,7 @@ const resolver: FndingGenerator = (log: LogDescription) => functions[log.name](l
 
 export default {
   addNft,
-  editNFT,
+  editNft,
   removeNft,
   resolver,
 };
