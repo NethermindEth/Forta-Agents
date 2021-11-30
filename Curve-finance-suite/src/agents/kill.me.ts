@@ -10,7 +10,7 @@ export const KILL_ME_SIGNATURE = 'kill_me()';
 
 
 
-const createFindingGenerator = (alertId: string): FindingGenerator => {
+const createFindingGenerator = (alertId: string, address: string): FindingGenerator => {
   return () => {
   return Finding.fromObject({
     name: 'Kill Me function call Detected',
@@ -18,6 +18,9 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
     alertId: alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
+    metadata: {
+      contractAddr: address,
+    },
   });
   }
 };
@@ -25,14 +28,19 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
 export default function provideKillMeAgent(
   alertID: string,
   address: string
+
 ): HandleTransaction {
   const agentHandler = provideFunctionCallsDetectorHandler(
-    createFindingGenerator(alertID), 
-    KILL_ME_SIGNATURE, 
-  );
+    createFindingGenerator(alertID, address), 
+    KILL_ME_SIGNATURE, {
+      to: address,
+    });
+  ;
+  
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = await agentHandler(txEvent);
     return findings;
+  
   };
   };
 
