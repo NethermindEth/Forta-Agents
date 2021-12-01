@@ -11,8 +11,10 @@ import {
   FindingGenerator,
 } from 'nethermindeth-general-agents-module';
 
+// Function signature found in PoolMigrator.vy in Curve repo
 export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
 
+// TODO: create and import a `createFindingGenerator` function?
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     return Finding.fromObject({
@@ -30,6 +32,7 @@ export default function provideMıgratePoolAgent(
   alertID: string,
   contractAddress: string
 ): HandleTransaction {
+  // TODO: import following anonymous function?
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideFunctionCallsDetectorAgent(
       createFindingGenerator(alertID),
