@@ -35,7 +35,7 @@ describe('Cross Swap Agent', () => {
         severity: FindingSeverity.Low,
         type: FindingType.Suspicious,
         metadata: {
-          address: ADDRESS,
+          data: ADDRESS,
         },
       }),
     ]);

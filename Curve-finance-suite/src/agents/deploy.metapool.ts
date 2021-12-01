@@ -33,7 +33,13 @@ export default function provideMetaPoolDeployment(
     if (txEvent.addresses[address] == false) return findings;
 
     if (txEvent.filterEvent(DEPLOY_META_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding("Deploy Meta Pool Event", "New meta pool is deployed", alertID));
+      findings.push(createFinding(
+        "Deploy Meta Pool Event",
+        "New meta pool is deployed",
+        alertID,
+        FindingSeverity.Info,
+        FindingType.Unknown
+      ));
     }
 
     return findings;
