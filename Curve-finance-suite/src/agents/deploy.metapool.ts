@@ -5,10 +5,13 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
+import createFinding from "../utils/create.finding";
 
+// Event signature found in Factory.vy in Curve repo
 export const DEPLOY_META_POOL_SIGNATURE =
   "MetaPoolDeployed(address,address,uint256,uint256,address)";
 
+/*
 const createFinding = (alertID: string): Finding => {
   return Finding.fromObject({
     name: "Deploy Meta Pool Event",
@@ -18,6 +21,7 @@ const createFinding = (alertID: string): Finding => {
     type: FindingType.Unknown,
   });
 };
+*/
 
 export default function provideMetaPoolDeployment(
   alertID: string,
@@ -29,7 +33,7 @@ export default function provideMetaPoolDeployment(
     if (txEvent.addresses[address] == false) return findings;
 
     if (txEvent.filterEvent(DEPLOY_META_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding(alertID));
+      findings.push(createFinding("Deploy Meta Pool Event", "New meta pool is deployed", alertID));
     }
 
     return findings;

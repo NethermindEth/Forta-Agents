@@ -5,9 +5,11 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
+import createFinding from "../utils/create.finding";
 
 export const ADD_POOL_SIGNATURE = "PoolAdded(address,bytes)";
 
+/*
 export const createFinding = (alertID: string) => {
   return Finding.fromObject({
     name: "Add Pool",
@@ -17,6 +19,7 @@ export const createFinding = (alertID: string) => {
     type: FindingType.Unknown,
   });
 };
+*/
 
 const provideAddPoolAgent = (
   alertID: string,
@@ -27,7 +30,7 @@ const provideAddPoolAgent = (
     if (TextEvent.addresses[address] == false) return findings;
 
     if (TextEvent.filterEvent(ADD_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding(alertID));
+      findings.push(createFinding("Add Pool", "New Pool Added", alertID));
     }
     return findings;
   };
