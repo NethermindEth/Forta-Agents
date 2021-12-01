@@ -5,9 +5,11 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
+import createFinding from "../utils/create.finding";
 
 export const RAMPSIGNATURE = "StopRampA(uint256,uint256)";
 
+/*
 export const createFinding = (alertID: string, address: string) => {
   return Finding.fromObject({
     name: "Stop Ramp",
@@ -17,6 +19,7 @@ export const createFinding = (alertID: string, address: string) => {
     type: FindingType.Unknown,
   });
 };
+*/
 
 const provideStompRampAgent = (
   alertID: string,
@@ -27,7 +30,13 @@ const provideStompRampAgent = (
     if (TextEvent.addresses[address] == false) return findings;
 
     if (TextEvent.filterEvent(RAMPSIGNATURE, address).length > 0) {
-      findings.push(createFinding(alertID, address));
+      findings.push(createFinding(
+        "Stop Ramp",
+        "Stop Ramp Called",
+        alertID,
+        FindingSeverity.Info,
+        FindingType.Unknown
+      ));
     }
     return findings;
   };

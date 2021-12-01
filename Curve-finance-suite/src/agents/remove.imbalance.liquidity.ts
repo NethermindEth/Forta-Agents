@@ -7,6 +7,7 @@ import {
 } from 'forta-agent';
 
 import abi from '../utils/stable.swap.abi';
+import createFinding from "../utils/create.finding";
 
 // @ts-ignore
 import abiDecoder from 'abi-decoder';
@@ -15,6 +16,7 @@ abiDecoder.addABI(abi);
 export const REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE =
   'RemoveLiquidiityImbalance(address, uint256[3], uint256[3],uint256, uint256)';
 
+/*
 const createFinding = (alertID: string, address: string): Finding => {
   return Finding.fromObject({
     name: 'RemoveLiquidityImbalance funciton called',
@@ -27,6 +29,7 @@ const createFinding = (alertID: string, address: string): Finding => {
     },
   });
 };
+*/
 
 export default function provideRemoveLiquidityImbalanceAgent(
   alertID: string,
@@ -41,7 +44,14 @@ export default function provideRemoveLiquidityImbalanceAgent(
       txEvent.filterEvent(REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE, address)
         .length > 0
     ) {
-      findings.push(createFinding(alertID, address));
+      findings.push(createFinding(
+        "RemoveLiquidityImbalance funciton called",
+        "RemoveLiquidityImbalance funciton called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious,
+        { data: address }
+      ));
     }
 
     return findings;

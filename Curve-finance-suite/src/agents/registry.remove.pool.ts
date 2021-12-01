@@ -32,7 +32,13 @@ const provideRemovePoolAgent = (
     if (TextEvent.addresses[address] == false) return findings;
 
     if (TextEvent.filterEvent(REMOVE_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding("Remove Pool", "Pool Removed", alertID));
+      findings.push(createFinding(
+        "Remove Pool",
+        "Pool Removed",
+        alertID,
+        FindingSeverity.Info,
+        FindingType.Unknown
+      ));
     }
     return findings;
   };

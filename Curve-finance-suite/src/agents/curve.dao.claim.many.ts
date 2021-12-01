@@ -8,6 +8,7 @@ import {
 
 import Web3 from 'web3';
 import abi from '../utils/fee.distribution';
+import createFinding from "../utils/create.finding";
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
@@ -28,6 +29,7 @@ export const claimMany = {
   gas: 26281905,
 };
 
+/*
 const createFinding = (alertId: string): Finding =>
   Finding.fromObject({
     name: 'Claim Rewards function called',
@@ -36,10 +38,17 @@ const createFinding = (alertId: string): Finding =>
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
   });
+*/
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
-    return createFinding(alertId);
+    return createFinding(
+      "Claim Rewards function called",
+      "Claim Rewards function called on pool",
+      alertId,
+      FindingSeverity.Low,
+      FindingType.Suspicious
+    );
   };
 };
 
@@ -61,7 +70,13 @@ export default function provideclaimManyAgent(
     const data = abiDecoder.decodeMethod(txEvent.transaction.data);
     if (!data) return findings;
 
-    findings.push(createFinding(alertID));
+    findings.push(createFinding(
+      "Claim Rewards function called",
+      "Claim Rewards function called on pool",
+      alertID,
+      FindingSeverity.Low,
+      FindingType.Suspicious
+    ));
 
     return findings;
   };

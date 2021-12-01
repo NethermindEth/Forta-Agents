@@ -8,6 +8,7 @@ import {
 
 import Web3 from 'web3';
 import abi from '../utils/curve.dao.abi';
+import createFinding from "../utils/create.finding";
 
 // @ts-ignore
 import abiDecoder from 'abi-decoder';
@@ -27,6 +28,7 @@ export const createLock = {
   gas: 74281465,
 };
 
+/*
 const createFinding = (alertId: string): Finding => {
   return Finding.fromObject({
     name: 'Create Lock Event called',
@@ -36,6 +38,7 @@ const createFinding = (alertId: string): Finding => {
     type: FindingType.Suspicious,
   });
 };
+*/
 
 export default function providecreateLockAgent(
   alertID: string,
@@ -50,7 +53,13 @@ export default function providecreateLockAgent(
     if (!data) return findings;
 
     if (data.name === 'create_lock') {
-      findings.push(createFinding(alertID));
+      findings.push(createFinding(
+        "Create Lock Event called",
+        "Create Lock Event funciton called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious
+      ));
     }
 
     return findings;

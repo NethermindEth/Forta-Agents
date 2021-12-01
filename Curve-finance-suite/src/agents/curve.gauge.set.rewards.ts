@@ -8,6 +8,7 @@ import {
 
 import Web3 from "web3";
 import abi from "../utils/curve-gauge";
+import createFinding from "../utils/create.finding";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -28,6 +29,7 @@ export const setRewards = {
   gas: 2304194,
 };
 
+/*
 const createFinding = (alertId: string): Finding => {
   return Finding.fromObject({
     name: "Set Rewards funciton called",
@@ -37,6 +39,7 @@ const createFinding = (alertId: string): Finding => {
     type: FindingType.Suspicious,
   });
 };
+*/
 
 export default function providesetRewardsAgent(
   alertID: string,
@@ -51,7 +54,13 @@ export default function providesetRewardsAgent(
     if (!data) return findings;
 
     if (data.name === "set_rewards") {
-      findings.push(createFinding(alertID));
+      findings.push(createFinding(
+        "Set Rewards funciton called",
+        "Set Rewards funciton called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious
+      ));
     }
 
     return findings;

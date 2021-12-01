@@ -7,6 +7,7 @@ import {
 } from "forta-agent";
 import createFinding from "../utils/create.finding";
 
+// Event signature found in Registry.vy in Curve repo
 export const ADD_POOL_SIGNATURE = "PoolAdded(address,bytes)";
 
 /*
@@ -30,7 +31,13 @@ const provideAddPoolAgent = (
     if (TextEvent.addresses[address] == false) return findings;
 
     if (TextEvent.filterEvent(ADD_POOL_SIGNATURE, address).length > 0) {
-      findings.push(createFinding("Add Pool", "New Pool Added", alertID));
+      findings.push(createFinding(
+        "Add Pool",
+        "New Pool Added",
+        alertID,
+        FindingSeverity.Info,
+        FindingType.Unknown
+      ));
     }
     return findings;
   };

@@ -8,6 +8,7 @@ import {
 
 import Web3 from "web3";
 import abi from "../utils/curve-gauge";
+import createFinding from "../utils/create.finding";
 
 // @ts-ignore
 import abiDecoder from "abi-decoder";
@@ -24,6 +25,7 @@ export const setKilled = {
   gas: 36878,
 };
 
+/*
 const createFinding = (alertId: string): Finding => {
   return Finding.fromObject({
     name: "Set Killed funciton called",
@@ -33,6 +35,7 @@ const createFinding = (alertId: string): Finding => {
     type: FindingType.Suspicious,
   });
 };
+*/
 
 export default function providesetKilledAgent(
   alertID: string,
@@ -47,7 +50,13 @@ export default function providesetKilledAgent(
     if (!data) return findings;
 
     if (data.name === "set_killed") {
-      findings.push(createFinding(alertID));
+      findings.push(createFinding(
+        "Set Killed funciton called",
+        "Set Killed funciton called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious
+      ));
     }
 
     return findings;
