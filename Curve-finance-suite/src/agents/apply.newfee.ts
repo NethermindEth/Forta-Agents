@@ -6,31 +6,39 @@ import {
   HandleTransaction,
 } from "forta-agent";
 
-export const NEWFEE = "NewFee(uint256,uint256,uint256)";
+import { provideEventCheckerHandler } from "forta-agent-tools";
 
-export const createFinding = (alertID: string, address: string) => {
-  return Finding.fromObject({
-    name: "New Fee",
-    description: "New Fee Function Called",
-    alertId: alertID,
-    severity: FindingSeverity.Info,
-    type: FindingType.Unknown,
-  });
-};
+import createFindingGenerator from "../utils/create.finding.generator";
 
-const provideApplyNewFeesAgent = (
+export const NEW_FEE_EVENT_SIG = "NewFee(uint256,uint256)";
+
+export default function provideApplyNewFeesAgent(
   alertID: string,
-  address: string
-): HandleTransaction => {
-  return async (TextEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-    if (TextEvent.addresses[address] == false) return findings;
+  curveDaoAddress: string
+): HandleTransaction {
+  return async(txEvent: TransactionEvent): Promise<Finding[]> => {
 
-    if (TextEvent.filterEvent(NEWFEE, address).length > 0) {
-      findings.push(createFinding(alertID, address));
+    let findings: Finding[] = [];
+
+    // Filter only for TXs that involve the Curve DAO address
+    if (txEvent.addresses[curveDaoAddress] == false) {
+      return findings;
     }
+
+    // Set up a handler to search for `NewFee` events
+    const handler = provideEventCheckerHandler(
+      createFindingGenerator(
+        "NewFee set",
+        "DAO has assigned a new fee to a pool",
+        alertID,
+        FindingSeverity.Info,
+        FindingType.Info
+      ),
+      NEW_FEE_EVENT_SIG
+    );
+
+    // Execute the handler to create findings for each NewFee event
+    findings = await handler(txEvent);
     return findings;
   };
-};
-
-export default provideApplyNewFeesAgent;
+}
