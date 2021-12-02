@@ -10,18 +10,6 @@ import createFinding from "../utils/create.finding";
 // Event signature found in Registry.vy in Curve repo
 export const ADD_POOL_SIGNATURE = "PoolAdded(address,bytes)";
 
-/*
-export const createFinding = (alertID: string) => {
-  return Finding.fromObject({
-    name: "Add Pool",
-    description: "New Pool Added",
-    alertId: alertID,
-    severity: FindingSeverity.Info,
-    type: FindingType.Unknown,
-  });
-};
-*/
-
 const provideAddPoolAgent = (
   alertID: string,
   address: string

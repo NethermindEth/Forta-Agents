@@ -77,8 +77,8 @@ describe('Pool Migration Agent', () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Pool Migration Finding',
-        description: 'Pool migrated to new address',
+        name: "Pool Migration Finding",
+        description: "Pool migrated to new address",
         alertId: ALERT_ID,
         severity: FindingSeverity.Medium,
         type: FindingType.Unknown,

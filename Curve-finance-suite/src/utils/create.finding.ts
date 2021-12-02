@@ -1,13 +1,14 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-// TODO: figure out how to have "severity" and "type" as parameters
+// TODO: Confirm L11 works
+// as expected
 const createFinding = (
     name: string,
     description: string,
     alertID: string,
     severity: FindingSeverity,
     type: FindingType,
-    metadata?: { data: string }
+    metadata?: { [key: string]: any }
 ): Finding => {
     return Finding.fromObject({
         name,

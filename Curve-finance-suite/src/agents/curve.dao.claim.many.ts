@@ -9,10 +9,8 @@ import {
 import Web3 from 'web3';
 import abi from '../utils/fee.distribution';
 import createFinding from "../utils/create.finding";
-import {
-  provideFunctionCallsDetectorAgent,
-  FindingGenerator,
-} from 'nethermindeth-general-agents-module';
+import createFindingGenerator from "../utils/create.finding.generator";
+import { provideFunctionCallsDetectorAgent } from 'nethermindeth-general-agents-module';
 
 // @ts-ignore
 import abiDecoder from 'abi-decoder';
@@ -29,36 +27,19 @@ export const claimMany = {
   gas: 26281905,
 };
 
-/*
-const createFinding = (alertId: string): Finding =>
-  Finding.fromObject({
-    name: 'Claim Rewards function called',
-    description: 'Claim Rewards function called on pool',
-    alertId: alertId,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-  });
-*/
-
-const createFindingGenerator = (alertId: string): FindingGenerator => {
-  return (metadata: { [key: string]: any } | undefined): Finding => {
-    return createFinding(
-      "Claim Rewards function called",
-      "Claim Rewards function called on pool",
-      alertId,
-      FindingSeverity.Low,
-      FindingType.Suspicious
-    );
-  };
-};
-
 export default function provideclaimManyAgent(
   alertID: string,
   address: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideFunctionCallsDetectorAgent(
-      createFindingGenerator(alertID),
+      createFindingGenerator(
+        "Claim Rewards function called",
+        "Claim Rewards function called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious
+      ),
       claimMany as any,
       { to: address }
     );
