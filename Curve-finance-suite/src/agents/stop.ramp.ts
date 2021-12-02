@@ -9,18 +9,6 @@ import createFinding from "../utils/create.finding";
 
 export const RAMPSIGNATURE = "StopRampA(uint256,uint256)";
 
-/*
-export const createFinding = (alertID: string, address: string) => {
-  return Finding.fromObject({
-    name: "Stop Ramp",
-    description: "Stop Ramp Called",
-    alertId: alertID,
-    severity: FindingSeverity.Info,
-    type: FindingType.Unknown,
-  });
-};
-*/
-
 const provideStompRampAgent = (
   alertID: string,
   address: string

@@ -29,18 +29,6 @@ export const setRewards = {
   gas: 2304194,
 };
 
-/*
-const createFinding = (alertId: string): Finding => {
-  return Finding.fromObject({
-    name: "Set Rewards funciton called",
-    description: "Set Rewards funciton called on pool",
-    alertId: alertId,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-  });
-};
-*/
-
 export default function providesetRewardsAgent(
   alertID: string,
   address: string

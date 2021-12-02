@@ -16,21 +16,6 @@ abiDecoder.addABI(abi);
 export const REMOVE_LIQUIDITY_IMBALANCE_SIGNATURE =
   'RemoveLiquidiityImbalance(address, uint256[3], uint256[3],uint256, uint256)';
 
-/*
-const createFinding = (alertID: string, address: string): Finding => {
-  return Finding.fromObject({
-    name: 'RemoveLiquidityImbalance funciton called',
-    description: 'RemoveLiquidityImbalance funciton called on pool',
-    alertId: alertID,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-    metadata: {
-      data: address,
-    },
-  });
-};
-*/
-
 export default function provideRemoveLiquidityImbalanceAgent(
   alertID: string,
   address: string

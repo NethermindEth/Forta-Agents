@@ -8,6 +8,7 @@ import {
 import Web3 from "web3";
 import abi from "../utils/stable.swap.abi";
 import createFinding from "../utils/create.finding";
+import createFindingGenerator from "../utils/create.finding.generator";
 import {
   provideFunctionCallsDetectorAgent,
   FindingGenerator,
@@ -28,37 +29,19 @@ export const unkill = {
   gas: 22195,
 };
 
-/*
-const createFinding = (alertID: string): Finding => {
-  return Finding.fromObject({
-    name: "UnKill Me funciton called",
-    description: "UnKill Me funciton called on pool",
-    alertId: alertID,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-  });
-};
-*/
-
-const createFindingGenerator = (alertId: string): FindingGenerator => {
-  return (metadata: { [key: string]: any } | undefined): Finding => {
-    return createFinding(
-      "UnKill Me funciton called",
-      "UnKill Me funciton called on pool",
-      alertId,
-      FindingSeverity.Low,
-      FindingType.Suspicious
-    );
-  };
-};
-
 export default function provideUnkillAgent(
   alertID: string,
   address: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideFunctionCallsDetectorAgent(
-      createFindingGenerator(alertID),
+      createFindingGenerator(
+        "UnKill Me funciton called",
+        "UnKill Me funciton called on pool",
+        alertID,
+        FindingSeverity.Low,
+        FindingType.Suspicious
+      ),
       unkill as any,
       { to: address }
     );

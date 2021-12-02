@@ -25,18 +25,6 @@ export const setKilled = {
   gas: 36878,
 };
 
-/*
-const createFinding = (alertId: string): Finding => {
-  return Finding.fromObject({
-    name: "Set Killed funciton called",
-    description: "Set Killed funciton called on pool",
-    alertId: alertId,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-  });
-};
-*/
-
 export default function providesetKilledAgent(
   alertID: string,
   address: string

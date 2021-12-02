@@ -28,18 +28,6 @@ export const createLock = {
   gas: 74281465,
 };
 
-/*
-const createFinding = (alertId: string): Finding => {
-  return Finding.fromObject({
-    name: 'Create Lock Event called',
-    description: 'Create Lock Event funciton called on pool',
-    alertId: alertId,
-    severity: FindingSeverity.Low,
-    type: FindingType.Suspicious,
-  });
-};
-*/
-
 export default function providecreateLockAgent(
   alertID: string,
   address: string
