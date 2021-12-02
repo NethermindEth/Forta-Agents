@@ -1,6 +1,6 @@
 import provideCrossAssetSwap from "./agents/cross.asset.swap";
 import provideKillMeAgent from "./agents/kill.me"; // Yasmine doing this
-import provideRemoveLiquidityImbalanceAgent from "./agents/remove.imbalance.liquidity";
+import provideRemoveLiquidityImbalanceAgent from "./agents/remove.imbalance.liquidity"; // Yasmine doing this
 import provideUnkillAgent from "./agents/unkill";
 import provideAddPoolAgent from "./agents/registry.add.pool"; // Curve Agent 04 // Me doing this (import create.finding.ts)
 import provideRemovePoolAgent from "./agents/registry.remove.pool"; // Curve Agent 05 // Me doing this (import create.finding.ts)
@@ -33,3 +33,9 @@ export {
   provideRampAgent,
   provideStompRampAgent,
 };
+export default {
+  handleTransaction: provideApplyNewFeesAgent(
+    "SomeId",
+    "0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5"
+ ),
+}
