@@ -32,7 +32,11 @@ export default function provideApplyNewFeesAgent(
         "DAO has assigned a new fee to a pool",
         alertID,
         FindingSeverity.Info,
-        FindingType.Info
+        FindingType.Info,
+        [{
+          type: 'address',
+          name: 'address'
+      },]
       ),
       NEW_FEE_EVENT_SIG
     );
