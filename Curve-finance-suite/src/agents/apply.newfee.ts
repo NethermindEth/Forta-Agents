@@ -33,10 +33,12 @@ export default function provideApplyNewFeesAgent(
         alertID,
         FindingSeverity.Info,
         FindingType.Info,
-        [{
-          type: 'address',
-          name: 'address'
-      },]
+        [
+          {
+            type: 'address',
+            name: 'address'
+          },
+        ]
       ),
       NEW_FEE_EVENT_SIG
     );
