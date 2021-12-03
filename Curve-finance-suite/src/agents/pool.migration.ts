@@ -13,6 +13,7 @@ import createFindingGenerator from "../utils/create.finding.generator";
 // Function signature found in PoolMigrator.vy in Curve repo
 export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
 
+// NOTE: "ı" in migrate not a standard "i". Why?
 export default function provideMıgratePoolAgent(
   alertID: string,
   contractAddress: string
@@ -24,7 +25,19 @@ export default function provideMıgratePoolAgent(
         "Pool migrated to new address",
         alertID,
         FindingSeverity.Medium,
-        FindingType.Unknown
+        FindingType.Unknown,
+        [{
+          type: "address",
+          name: "from"
+        },
+        {
+          type: "string",
+          name: "input"
+        },
+        {
+          type: "address",
+          name: "to"
+        }]
       ),
       MIGRATE_POOL_SIG,
       { to: contractAddress }

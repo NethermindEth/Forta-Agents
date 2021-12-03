@@ -22,6 +22,7 @@ interface TraceInfo {
 
 // TODO: leave as is? There is `createTransactionEvent`
 // in `utils.ts` in Forta SDK repo, but doesn't use traces.
+// Look further into this.
 const createTxEvent = (data: TraceInfo[]): TransactionEvent => {
   const traces: Trace[] = data.map((traceInfo: TraceInfo) => {
     return {
