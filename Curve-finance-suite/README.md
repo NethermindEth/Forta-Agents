@@ -22,6 +22,6 @@ This module provides a list of agents related to Curve contracts.
 - Detect when a new LockEvent is emmitted on creating a new lock.
 - Detect call to `kill_me` function on Curve-Stable-Swap contract.
 - Detect if the `ramp` function got called on Curve-Dao which ramps up the payout amount of a token.
-- Detect if the function to remove imbalance of liquiidity got called on StableSwap Exchange contract.
+- Detect if the event to remove imbalance of liquidity is emitted on StableSwap Exchange contract.
 - Detect if `stop_ramp` got called on Curve-Dao.
 - Detect if the unkill method got called on Stable-swap contract.
