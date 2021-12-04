@@ -1,3 +1,4 @@
+
 import provideCrossAssetSwap from "./agents/cross.asset.swap";
 import provideKillMeAgent from "./agents/kill.me"; // Yasmine doing this
 import provideRemoveLiquidityImbalanceAgent from "./agents/remove.imbalance.liquidity"; // Yasmine doing this
@@ -9,11 +10,11 @@ import providecreateLockAgent from "./agents/curve.dao.create.lockevent";
 import providesetKilledAgent from "./agents/curve.dao.killing.gauge";
 import providesetRewardsAgent from "./agents/curve.gauge.set.rewards";
 import provideCommitNewAdminEvent from "./agents/address.provider.ownership.transfer";
-import provideclaimManyAgent from "./agents/curve.dao.claim.many";
 // import provideMıgratePoolAgent from "./agents/pool.migration";
 import provideApplyNewFeesAgent from "./agents/apply.newfee";
 import provideRampAgent from "./agents/ramp";
 import provideStompRampAgent from "./agents/stop.ramp";
+
 
 export {
   provideCrossAssetSwap,
@@ -28,7 +29,6 @@ export {
   providesetRewardsAgent,
   provideCommitNewAdminEvent,
   // provideMıgratePoolAgent,
-  provideclaimManyAgent,
   provideApplyNewFeesAgent,
   provideRampAgent,
   provideStompRampAgent,
