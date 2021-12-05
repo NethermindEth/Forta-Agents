@@ -1,7 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-// TODO: Confirm L11 works
-// as expected
 const createFinding = (
     name: string,
     description: string,

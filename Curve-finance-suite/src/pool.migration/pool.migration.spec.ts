@@ -1,3 +1,6 @@
+// NOTE: Was going to move to `pool.migration/`
+// but running `npm run test` would run
+// `tests/` and not this one if moved.
 import {
   Finding,
   HandleTransaction,
@@ -7,7 +10,7 @@ import {
   Trace,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideMıgratePoolAgent from './pool.migration';
+import provideMıgratePoolAgent from '../pool.migration/agent';
 import { createAddress } from "forta-agent-tools";
 
 const abi = new Web3().eth.abi;

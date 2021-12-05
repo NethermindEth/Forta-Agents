@@ -1,5 +1,4 @@
 import {
-    Finding,
     FindingSeverity,
     FindingType,
 } from 'forta-agent';
@@ -26,19 +25,21 @@ const createFindingGenerator = (
             )
         } /*else if (metadata?.to && metadata?.from && metadata?.input) {
             // NOTE: `else if` for pool.migration agent since it does not
-            // have `data` key but `traces : { action : {...} }
+            // have `data` key but `traces : { action : {...} }`
             // NOTE 02: Commented out because `pool.migration.ts` params
             // are being compared encoded to encoded in the test,
-            // thus does not need to be decoded. Should they be tested
-            // before encoding to decoded?
+            // thus does not need to be decoded. (Should they be tested
+            // before encoding to decoded?)
         } else {
             metadata = undefined
-            // NOTE 03: Commented out above line because was setting
-            // `pool.migration` metadata to undefined
+            // NOTE: Commented out above line because was setting
+            // `pool.migration` metadata to undefined since it has
+            // no `data` key.
         }*/
 
 
-        // metadata contains additional inputs, so we create filtredMetadata to only include the specified keys
+        // *Yasmine note: metadata contains additional inputs,
+        // so we create filtredMetadata to only include the specified keys
         // NOTE: metadata from `pool.migration` does not have
         // additional keys
         let filtredMetadata = {};
@@ -70,7 +71,7 @@ const createFindingGenerator = (
                 alertId,
                 severity,
                 type,
-                filtredMetadata // return finding with the filtred metadata
+                filtredMetadata // *Yasmine note: return finding with the filtred metadata
             );
         } else {
             return createFinding(
