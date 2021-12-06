@@ -1,13 +1,11 @@
 import {
   Finding,
-  TransactionEvent,
   FindingSeverity,
   FindingType,
   HandleTransaction,
   ethers,
 } from "forta-agent";
 import {
-  decodeParameters,
   FindingGenerator,
   provideEventCheckerHandler,
 } from "forta-agent-tools";

@@ -5,7 +5,7 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import { TestTransactionEvent, encodeParameters, createAddress } from "forta-agent-tools";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools";
 
 import {provideCommitNewAdminEvent, iface } from "./agent";
 
