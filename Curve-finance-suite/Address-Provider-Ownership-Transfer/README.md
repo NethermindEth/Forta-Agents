@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects `CommitNewAdmin` event emission in Registry contract. 
+This agent detects `CommitNewAdmin` event emission in the address provider contract. 
 
 ## Supported Chains
 
@@ -12,8 +12,8 @@ This agent detects `CommitNewAdmin` event emission in Registry contract.
 
 Describe each of the type of alerts fired by this agent
 
-- CURVE-3
-  - Fired when a transaction consumes more gas than 1,000,000 gas
+- CURVE-4
+  - Fired when `CommitNewAdmin` event is emitted in the address provider contract. 
   - Severity is always set to "Medium" 
   - Type is always set to "Info" 
   - Metadata includes: 

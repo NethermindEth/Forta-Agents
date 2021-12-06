@@ -10,13 +10,12 @@ import {
   provideEventCheckerHandler,
 } from "forta-agent-tools";
 
-export const ADDRESS = "0x0000000022d53366457f9d5e68ec105046fc4383"; // Registry Address Provider contract address
-const abi = ["event CommitNewAdmin(uint256,address)",]
+export const ADDRESS = "0x0000000022d53366457f9d5e68ec105046fc4383"; // Address Provider contract address
+const abi = ["event CommitNewAdmin(uint256,address)"];
 export const iface = new ethers.utils.Interface(abi); 
 
 const createFindingGenerator = (alertID: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined) => {
-   
     return Finding.fromObject({
       name: "Curve Admin Event Detected",
       description: "An ownership transfer has been initiated",
@@ -39,10 +38,9 @@ export const provideCommitNewAdminEvent = (
       address
     );
 
-
 export default {
   handleTransaction: provideCommitNewAdminEvent(
     "CURVE-3",
     ADDRESS
   )
-} 
+};
