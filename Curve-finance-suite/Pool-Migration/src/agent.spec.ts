@@ -7,7 +7,7 @@ import {
   Trace,
 } from 'forta-agent';
 import Web3 from 'web3';
-import provideMıgratePoolAgent from './agent';
+import { provideMıgratePoolAgent } from './agent';
 import { createAddress } from "forta-agent-tools";
 
 const abi = new Web3().eth.abi;

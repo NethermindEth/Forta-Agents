@@ -36,8 +36,8 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
 
 // NOTE: "ı" in migrate not a standard "i". Why?
 // NOTE 02: `provideFunctionCallsDetectorHandler` is
-// what has been giving me problems (check note on L9)
-export default function provideMıgratePoolAgent(
+// what has been giving me problems (check note on L13)
+export function provideMıgratePoolAgent(
   alertID: string,
   contractAddress: string
 ): HandleTransaction {
@@ -46,7 +46,6 @@ export default function provideMıgratePoolAgent(
     // `provideMıgratePoolAgent` but couldn't figure out how
     // to pass arguments `alertID` and `contractAddress` to
     // be used by `createFindingGenerator`.
-    // Current implementation follows docs.
     const agentHandler = provideFunctionCallsDetectorAgent(
       createFindingGenerator(alertID),
       MIGRATE_POOL_SIG,
@@ -55,4 +54,11 @@ export default function provideMıgratePoolAgent(
     const findings: Finding[] = await agentHandler(txEvent);
     return findings;
   };
+}
+
+export default {
+  handleTransaction: provideMıgratePoolAgent(
+    "CURVE-3",
+    POOL_MIGRATION_ADDRESS
+  )
 }
