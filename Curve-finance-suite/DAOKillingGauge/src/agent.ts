@@ -2,6 +2,8 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import { gaugeInterface } from "./abi";
 
+const curveDAO = "0x519AFB566c05E00cfB9af73496D00217A630e4D5";
+
 export const createFinding = (callInfo: any) => {
   return Finding.fromObject({
     name: "DAO killing Gauge",
@@ -27,5 +29,5 @@ export const providerHandleTransaction = (daoAddress: string) =>
   );
 
 export default {
-  handleTransaction: providerHandleTransaction(""),
+  handleTransaction: providerHandleTransaction(curveDAO),
 };
