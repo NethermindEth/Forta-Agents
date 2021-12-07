@@ -1,48 +1,88 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+import { HandleTransaction } from "forta-agent";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools";
+import { providerHandleTransaction, createFinding } from "./agent";
+import { gaugeInterface } from "./abi";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const curveDAOAddress = createAddress("0x1");
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+describe("Curve DAO Kill a Gauge Test Suite", () => {
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = providerHandleTransaction(curveDAOAddress);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  it("should return empty findings method was not called", async () => {
+    const txEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it("should return a finding method set_killed was called from DAO", async () => {
+    const gaugeAddress = createAddress("0x2");
 
-      const findings = await handleTransaction(txEvent)
+    const txEvent = new TestTransactionEvent().addTraces({
+      to: gaugeAddress,
+      from: curveDAOAddress,
+      input: gaugeInterface.encodeFunctionData("set_killed", [true]),
+    });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([createFinding({ to: gaugeAddress })]);
+  });
+
+  it("should return empty findings if method set_killed was called for not killing", async () => {
+    const gaugeAddress = createAddress("0x2");
+
+    const txEvent = new TestTransactionEvent().addTraces({
+      to: gaugeAddress,
+      from: curveDAOAddress,
+      input: gaugeInterface.encodeFunctionData("set_killed", [false]),
+    });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return empty findings if method set_killed is not called from DAO", async () => {
+    const gaugeAddress = createAddress("0x2");
+
+    const txEvent = new TestTransactionEvent().addTraces({
+      to: gaugeAddress,
+      from: createAddress("0x3"),
+      input: gaugeInterface.encodeFunctionData("set_killed", [true]),
+    });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect multiple kill attempts", async () => {
+    const gaugeAddress1 = createAddress("0x2");
+    const gaugeAddress2 = createAddress("0x3");
+
+    const txEvent = new TestTransactionEvent()
+      .addTraces({
+        to: gaugeAddress1,
+        from: curveDAOAddress,
+        input: gaugeInterface.encodeFunctionData("set_killed", [true]),
+      })
+      .addTraces({
+        to: gaugeAddress2,
+        from: curveDAOAddress,
+        input: gaugeInterface.encodeFunctionData("set_killed", [true]),
+      });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding({ to: gaugeAddress1 }),
+      createFinding({ to: gaugeAddress2 }),
+    ]);
+  });
+});
