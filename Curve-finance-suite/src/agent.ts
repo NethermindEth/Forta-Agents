@@ -11,7 +11,7 @@ import providesetRewardsAgent from "./agents/curve.gauge.set.rewards";
 import provideCommitNewAdminEvent from "./agents/address.provider.ownership.transfer";
 import provideclaimManyAgent from "./agents/curve.dao.claim.many";
 // import provideMıgratePoolAgent from "./agents/pool.migration";
-import provideApplyNewFeesAgent from "./agents/apply.newfee";
+// import provideApplyNewFeesAgent from "./agents/apply.newfee";
 import provideRampAgent from "./agents/ramp";
 import provideStompRampAgent from "./agents/stop.ramp";
 
@@ -27,15 +27,9 @@ export {
   providecreateLockAgent,
   providesetRewardsAgent,
   provideCommitNewAdminEvent,
-  // provideMıgratePoolAgent,
   provideclaimManyAgent,
-  provideApplyNewFeesAgent,
+  // provideMıgratePoolAgent,
+  // provideApplyNewFeesAgent,
   provideRampAgent,
   provideStompRampAgent,
 };
-export default {
-  handleTransaction: provideApplyNewFeesAgent(
-    "SomeId",
-    "0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5"
- ),
-}
