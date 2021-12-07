@@ -8,7 +8,7 @@ export const createFinding = (callInfo: any) => {
   return Finding.fromObject({
     name: "DAO killing Gauge",
     description: "DAO account killed a Gauge",
-    alertId: "curve-6",
+    alertId: "CURVE-8",
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     protocol: "Curve Finance",
