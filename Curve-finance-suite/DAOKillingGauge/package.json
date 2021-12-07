@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "curve-dao-kill-gauge",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detects when Curve DAO tries to kill a Gauge",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
