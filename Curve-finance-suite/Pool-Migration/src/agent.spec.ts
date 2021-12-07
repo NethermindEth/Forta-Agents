@@ -90,7 +90,6 @@ describe('Pool Migration Agent', () => {
     ]);
   });
 
-  /*
   it('should return empty finding cause bad input', async () => {
     const _from = createAddress('0x3');
     const _input: string = 'bad sig';
@@ -137,5 +136,4 @@ describe('Pool Migration Agent', () => {
 
     expect(findings).toStrictEqual([]);
   });
-  */
 });
