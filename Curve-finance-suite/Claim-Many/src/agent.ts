@@ -26,9 +26,9 @@ const createFindingGenerator = (alertId: string): FindingGenerator =>
       type: FindingType.Info,
       protocol: "Curve Finance",
       metadata:{
-        from: metadata!.from,
+        from: metadata?.from,
         receivers: JSON.stringify(
-          metadata!.arguments[0].map(
+          metadata?.arguments[0].map(
             (addr: string) => addr.toLowerCase(),
           ),
         ),
