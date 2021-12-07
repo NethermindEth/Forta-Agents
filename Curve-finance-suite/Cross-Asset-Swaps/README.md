@@ -19,7 +19,7 @@ event TokenUpdate:
 ## Alerts
 
 - CURVE-5
-  - Fired when a transaction consumes more gas than 1,000,000 gas
+  - Fired when `TokenUpdate` event is emitted
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata contains all the event parameters
@@ -28,5 +28,5 @@ event TokenUpdate:
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+- 0x79ba1cd497aca70928092692f79910233b05437f31aeb2042c7d6ab48437f767
+- 0x1e7c5090c554c3e4b39311fdb58db799d8469675088ca9fecfac167d5492c597  
