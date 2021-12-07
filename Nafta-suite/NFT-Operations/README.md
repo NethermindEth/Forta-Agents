@@ -1,4 +1,4 @@
-# High Gas Agent
+# Nafta NFT operations monitor
 
 ## Description
 
