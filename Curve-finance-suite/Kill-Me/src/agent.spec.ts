@@ -12,9 +12,10 @@ import {
   createAddress
 } from "forta-agent-tools";
 
-const ADDRESS = createAddress('0x1');
+const CONTRACT_ADDRESS = createAddress('0x1');
 const ALERT_ID = 'Kill me Agent test';
-const sender_address = createAddress('0x5');
+const SENDER_ADDRESS = createAddress('0x5');
+
 const createFinding = (from: string, contract_address: string) => Finding.fromObject({
   name: 'Kill Me function call Detected',
   description: 'Kill Me function called on Curve-Stable-Swap contract.',
@@ -24,12 +25,11 @@ const createFinding = (from: string, contract_address: string) => Finding.fromOb
   metadata: {
     from: from,
     contract_address: contract_address,    
-
 },
 });
 
 describe('Kill me agent for Curve StableSwap contract tests suite', () => {
-  let handleTransaction: HandleTransaction = provideKillMeAgent(ALERT_ID, ADDRESS);
+  let handleTransaction: HandleTransaction = provideKillMeAgent(ALERT_ID, CONTRACT_ADDRESS);
   let selector: string ;
   let wrongSelector: string;
   beforeAll(() => {
@@ -41,13 +41,13 @@ describe('Kill me agent for Curve StableSwap contract tests suite', () => {
   it('should return kill_me function call finding', async () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: sender_address,
-      to: ADDRESS,
+      from: SENDER_ADDRESS,
+      to: CONTRACT_ADDRESS,
       input: selector,
     });
 
     const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([createFinding(sender_address, ADDRESS)]);
+    expect(findings).toStrictEqual([createFinding(SENDER_ADDRESS, CONTRACT_ADDRESS)]);
 
   });
 
@@ -61,8 +61,8 @@ describe('Kill me agent for Curve StableSwap contract tests suite', () => {
   it("should return empty finding because of wrong signature", async () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: sender_address,
-      to: ADDRESS,
+      from: SENDER_ADDRESS,
+      to: CONTRACT_ADDRESS,
       input: wrongSelector,
     });
 
@@ -73,7 +73,7 @@ describe('Kill me agent for Curve StableSwap contract tests suite', () => {
   it("should ignore kill_me calls to other contracts", async () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: sender_address,
+      from: SENDER_ADDRESS,
       to: createAddress('0x2'),
       input: selector,
     });
