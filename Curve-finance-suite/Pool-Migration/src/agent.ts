@@ -1,5 +1,3 @@
-// NOTE: When testing with a legitimate
-// tx hash, it finds 0 findings.
 import {
   Finding,
   TransactionEvent,
@@ -10,28 +8,29 @@ import {
 import {
   FindingGenerator,
   provideFunctionCallsDetectorHandler,
-  decodeParameters,
+  encodeParameters,
 } from 'forta-agent-tools';
 import { utils } from 'ethers';
 
-// NOTE: String written in Solidity style, despite contract
-// written in Vyper
 // Pool Migrator interface
 export const PM_IFACE: utils.Interface = new utils.Interface([
   'function migrate_to_new_pool(address _old_pool, address _new_pool, uint256 _amount) external returns (uint256)',
 ]);
 
-// migrate_to_new_pool(_old_pool: address, _new_pool: address, _amount: uint256) -> uint256
 const POOL_MIGRATION_ADDRESS: string = "0xd6930b7f661257DA36F93160149b031735237594";
-
-// Function signature found in PoolMigrator.vy in Curve repo
-//export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
-    const {0:address} = decodeParameters(
+
+    let args: any[] = [];
+
+    for(let arg = 0; arg < metadata!.arguments.__length__; arg++) {
+      args.push(metadata!.arguments[arg]);
+    }
+
+    const input = encodeParameters(
       ["address", "address", "uint256"],
-      metadata?.data
+      args
     );
 
     return Finding.fromObject({
@@ -42,6 +41,7 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
       type: FindingType.Unknown,
       metadata:{
         from: metadata!.from,
+        input,
         to: metadata!.to,
       },
     });
@@ -55,8 +55,6 @@ export function provideMigratePoolAgent(
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
 
-    // console.log("txEvent.transaction.data is: " + JSON.stringify(txEvent.transaction.data));
-    
     // NOTE: Attempted to create `agentHandler` outside of
     // `provideMıgratePoolAgent` but couldn't figure out how
     // to pass arguments `alertID` and `contractAddress` to
