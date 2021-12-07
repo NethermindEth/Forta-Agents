@@ -22,6 +22,7 @@ const createFinding = (sender: string, addresses: string[]) => Finding.fromObjec
   alertId: ALERT_ID,
   severity: FindingSeverity.Low,
   type: FindingType.Info,
+  protocol: "Curve Finance",
   metadata:{
     from: sender,
     receivers: JSON.stringify(addresses),
