@@ -3,17 +3,16 @@ import {
   HandleTransaction,
   FindingSeverity,
   FindingType,
-  ethers
+  ethers,
 } from 'forta-agent';
 import { 
   FindingGenerator, 
-  provideFunctionCallsDetectorHandler 
+  provideFunctionCallsDetectorHandler,
 } from "forta-agent-tools";
 
 export const STABLE_SWAP_CONTRACT_ADDRESS = "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7"; //3Pool Stable Swap Contract  
-const abi = ["function kill_me()",]
+const abi = ["function kill_me()"];
 export const iface = new ethers.utils.Interface(abi); 
-
 
 const createFindingGenerator = (alertId: string, address: string): FindingGenerator => 
   (metadata: { [key: string]: any } | undefined): Finding => 
@@ -26,25 +25,23 @@ const createFindingGenerator = (alertId: string, address: string): FindingGenera
       metadata: {
         from: metadata!.from,
         contract_address: address,    
-
     },
   });
   
-
-export const provideKillMeAgent =(
+export const provideKillMeAgent = (
   alertID: string,
   address: string
-
 ): HandleTransaction => provideFunctionCallsDetectorHandler(
     createFindingGenerator(alertID, address), 
     iface.getFunction('kill_me').format('sighash'), 
     {
       to: address,
-  }
+    }
 );
   
-
-export default provideKillMeAgent(
-  "CURVE-5", 
-  STABLE_SWAP_CONTRACT_ADDRESS,
-)
+export default {
+  handleTransaction: provideKillMeAgent(
+    "CURVE-6", 
+    STABLE_SWAP_CONTRACT_ADDRESS,
+  )
+};

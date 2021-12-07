@@ -10,7 +10,7 @@ This agent detects successful `kill_me` calls on Curve-Stable-Swap contract.
 
 ## Alerts
 
-- CURVE-5
+- CURVE-6
   - Fired when `kill_me` function is called. 
   - Severity is always set to "low" 
   - Type is always set to "suspicious"
