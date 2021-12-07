@@ -1,3 +1,5 @@
+// NOTE: When testing with a legitimate
+// tx hash, it finds 0 findings.
 import {
   Finding,
   TransactionEvent,
@@ -7,48 +9,61 @@ import {
 } from 'forta-agent';
 import {
   FindingGenerator,
-  // provideFunctionCallsDetectorHandler,
+  provideFunctionCallsDetectorHandler,
+  decodeParameters,
 } from 'forta-agent-tools';
+import { utils } from 'ethers';
 
-// NOTE: Tried using using updated GAM, but could not
-// get it to continue without erroring out. May need
-// documentation for `nethermindeth-general-agents-module'
-// to compare to new `forta-agent-tools`.
-import { provideFunctionCallsDetectorAgent } from 'nethermindeth-general-agents-module';
+// NOTE: String written in Solidity style, despite contract
+// written in Vyper
+// Pool Migrator interface
+export const PM_IFACE: utils.Interface = new utils.Interface([
+  'function migrate_to_new_pool(address _old_pool, address _new_pool, uint256 _amount) external returns (uint256)',
+]);
 
+// migrate_to_new_pool(_old_pool: address, _new_pool: address, _amount: uint256) -> uint256
 const POOL_MIGRATION_ADDRESS: string = "0xd6930b7f661257DA36F93160149b031735237594";
 
 // Function signature found in PoolMigrator.vy in Curve repo
-export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
+//export const MIGRATE_POOL_SIG = 'migrate_to_new_pool(address,address,uint256)';
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
+    const {0:address} = decodeParameters(
+      ["address", "address", "uint256"],
+      metadata?.data
+    );
+
     return Finding.fromObject({
       name: 'Pool Migration Finding',
       description: 'Pool migrated to new address',
       alertId: alertId,
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
-      metadata,
+      metadata:{
+        from: metadata!.from,
+        to: metadata!.to,
+      },
     });
   };
 };
 
-// NOTE: "ı" in migrate not a standard "i". Why?
-// NOTE 02: `provideFunctionCallsDetectorHandler` is
-// what has been giving me problems (check note on L13)
-export function provideMıgratePoolAgent(
+
+export function provideMigratePoolAgent(
   alertID: string,
   contractAddress: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+
+    // console.log("txEvent.transaction.data is: " + JSON.stringify(txEvent.transaction.data));
+    
     // NOTE: Attempted to create `agentHandler` outside of
     // `provideMıgratePoolAgent` but couldn't figure out how
     // to pass arguments `alertID` and `contractAddress` to
     // be used by `createFindingGenerator`.
-    const agentHandler = provideFunctionCallsDetectorAgent(
+    const agentHandler = provideFunctionCallsDetectorHandler(
       createFindingGenerator(alertID),
-      MIGRATE_POOL_SIG,
+      PM_IFACE.getFunction('migrate_to_new_pool').format('sighash'),
       { to: contractAddress }
     );
     const findings: Finding[] = await agentHandler(txEvent);
@@ -57,7 +72,7 @@ export function provideMıgratePoolAgent(
 }
 
 export default {
-  handleTransaction: provideMıgratePoolAgent(
+  handleTransaction: provideMigratePoolAgent(
     "CURVE-3",
     POOL_MIGRATION_ADDRESS
   )
