@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "curve-2",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Agent to detect successful change in fees to a Curve BasePool or MetaPool",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

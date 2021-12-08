@@ -1,11 +1,3 @@
-/*
-The following is a transaction on the Ethereum mainnet that should create a finding
-
-https://etherscan.io/tx/0x0ccbffa23dff7d7c47dcdaed14c3d98aab5e4c63d531d8e243365745cbb1484e
-
-Run `npm run tx <TxId>` to test with a particular TX
-*/
-
 import {
   Finding,
   TransactionEvent,
@@ -15,12 +7,16 @@ import {
 } from "forta-agent";
 
 import {
-  provideEventCheckerHandler,
+  provideFunctionCallsDetectorHandler,
   FindingGenerator,
 } from "forta-agent-tools";
 
-// The signature of the NewFee event
-export const NEW_FEE_EVENT_SIG = "NewFee(uint256,uint256)";
+import { utils } from 'ethers';
+
+// Interface containing relevant functions for this agent
+export const POOL_PROXY_IFACE: utils.Interface = new utils.Interface([
+  'function apply_new_fee(address pool)',
+]);
 
 // The address of the Pool Owner (PoolProxy.vy)
 const POOL_PROXY_ADDRESS = "0xeCb456EA5365865EbAb8a2661B0c503410e9B347";
@@ -34,26 +30,25 @@ const createFindingGenerator = (alertId: string): FindingGenerator =>
       alertId: alertId,
       severity: FindingSeverity.Info,
       type: FindingType.Info,
+      protocol: 'Curve Finance',
       metadata: {
         // The pool that had its fee changed
-        affected_pool: metadata!.address,
-        // The topic
-        topic: metadata!.topics[0],
-        // The data
-        data: metadata!.data,
+        affected_pool: metadata!.arguments[0],
       },
     });
 
-// Called for every transaction
-// Returns a list of findings (may be empty if no relevant events)
+// Called for every transaction and returns a list of findings
 export const provideHandleTransaction = (
   alertId: string,
   address: string,
-): HandleTransaction => provideEventCheckerHandler(
-  createFindingGenerator(alertId),
-  NEW_FEE_EVENT_SIG,
-  address,
-);
+): HandleTransaction => 
+  provideFunctionCallsDetectorHandler(
+    createFindingGenerator(alertId),
+    POOL_PROXY_IFACE.getFunction('apply_new_fee').format('sighash'),
+    {
+      to: address,
+    }
+  );
 
 export default {
   handleTransaction: provideHandleTransaction(
