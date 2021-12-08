@@ -31,12 +31,12 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
     
     console.log("The metadata passed to createFindingGenerator is: " + JSON.stringify(metadata));
 
-    /*
-    const output = decodeParameters(
+    const decodedData = decodeParameters(
       ["address","address","uint256", "uint256", "address"],
       metadata?.data
     );
-    */
+
+    console.log("The decoded metadata.data is: " + JSON.stringify(decodedData));
 
     return Finding.fromObject({
       name: "Deploy Meta Pool Event",
@@ -45,19 +45,13 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
       severity: FindingSeverity.Info,
       type: FindingType.Unknown,
       metadata:{
-        topics: metadata?.topics[0]
+        coin: decodedData[0],
+        basePool: decodedData[1],
+        a: decodedData[2],
+        fee: decodedData[3],
+        deployer: decodedData[4]
       },
     });
-
-    /*
-    metadata:{
-        coin: output[0],
-        basePool: output[1],
-        a: output[2],
-        fee: output[3],
-        deployer: output[4]
-      }
-    */
   };
 };
 
