@@ -17,7 +17,9 @@ This agent detects successful `migrate_to_new_pool` calls to Pool Migrator Contr
   - Metadata contains:
     - `to`: Pool Migrator Contract address
     - `from`: The address calling the function
-    - `input`: Encoded function call to `migrate_to_new_pool`
+    - `oldPool`: Address of the pool to migrate from
+    - `newPool`: Address of the pool to migrate into
+    - `amount`: Number of `oldPool` LP tokens to migrate
 
 ## Test Data
 
