@@ -1,12 +1,12 @@
 import { utils } from "ethers";
 
 const PROVIDER_ABI: string[] = [
-  'function get_registry() external returns (address registry)',
+  'function get_registry() external view returns (address registry)',
 ];
 const PROVIDER_IFACE: utils.Interface = new utils.Interface(PROVIDER_ABI);
 
 const REGISTRY_ABI: string[] = [
-  'function get_pool_name(address pool) external returns (address string)',
+  'function get_pool_name(address pool) external view returns (string name)',
 ];
 const REGISTRY_IFACE: utils.Interface = new utils.Interface(REGISTRY_ABI);
 
