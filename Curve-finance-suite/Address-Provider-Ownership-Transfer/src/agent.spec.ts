@@ -25,6 +25,7 @@ const createFinding = (NEW_ADMIN: string) => Finding.fromObject({
   alertId: ALERT_ID,
   severity: FindingSeverity.Medium,
   type: FindingType.Info,
+  protocol: 'Curve Finance',
   metadata: {
     newAdmin: NEW_ADMIN,
   },

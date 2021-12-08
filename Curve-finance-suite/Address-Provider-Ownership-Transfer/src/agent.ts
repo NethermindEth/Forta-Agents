@@ -22,6 +22,7 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
       alertId: alertID,
       severity: FindingSeverity.Medium,
       type: FindingType.Info,
+      protocol: 'Curve Finance',
       metadata: {
         newAdmin: metadata!.topics[2],
       },
@@ -40,7 +41,7 @@ export const provideCommitNewAdminEvent = (
 
 export default {
   handleTransaction: provideCommitNewAdminEvent(
-    "CURVE-3",
+    "CURVE-4",
     ADDRESS
   )
 };
