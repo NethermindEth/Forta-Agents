@@ -15,14 +15,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "abi-decoder": "^2.4.0",
-    "bignumber.js": "^9.0.1",
+    "ethers": "^5.5.2",
     "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.31"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
-    "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
