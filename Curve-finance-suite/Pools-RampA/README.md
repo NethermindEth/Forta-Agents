@@ -21,7 +21,3 @@ This agent detects `RampA` & `StopRampA` event emisions in Curve Finance Pools
   - Severity is always set to "info" 
   - Type is always set to "info"
   - Metadata contains all the parameters of the event
-
-## Test Data
-
-The agent behaviour can be verified with the following transactions:

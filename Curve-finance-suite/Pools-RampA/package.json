@@ -23,6 +23,7 @@
     "@types/lru-cache": "^5.1.1",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.32",
+    "forta-agent-tools": "^1.0.31",
     "jest-when": "^3.4.2",
     "lru-cache": "^6.0.0"
   },
