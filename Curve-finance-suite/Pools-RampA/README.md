@@ -4,6 +4,18 @@
 
 This agent detects `RampA` & `StopRampA` event emisions in Curve Finance Pools
 
+```python
+event RampA:
+  old_A: uint256
+  new_A: uint256
+  initial_time: uint256
+  future_time: uint256
+
+event StopRampA:
+  A: uint256
+  t: uint256
+```
+
 ## Supported Chains
 
 - Ethereum
