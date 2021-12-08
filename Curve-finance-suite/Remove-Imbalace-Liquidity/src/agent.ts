@@ -28,6 +28,7 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
       alertId: alertID,
       severity: FindingSeverity.Low,
       type: FindingType.Info,
+      protocol: 'Curve Finance',
       metadata: {
         pool_address: metadata!.address, //address of the pool where the event was emitted
         token_supply: token_supply, // token_supply in the pool after removing liquidity

@@ -21,9 +21,9 @@ const createFinding = (pool_address: string, token_supply: string) => Finding.fr
   name: 'RemoveLiquidityImbalance event Detected',
   description: 'RemoveLiquidityImbalance event emitted',
   alertId: ALERTID,
-  protocol: 'ethereum',
   severity: 2,
   type: FindingType.Info,
+  protocol: 'Curve Finance',
   metadata: {
     pool_address: pool_address,
     token_supply: token_supply
