@@ -22,7 +22,7 @@ export default class DataFetcher {
     if(blockTag !== "latest" && this.cache.get(key) !== undefined)
       return this.cache.get(key) as string;
 
-    const registry: string = await this.apContract.get_registry({ blockTag });
+    const registry: string = (await this.apContract.get_registry({ blockTag })).toLowerCase();
     this.cache.set(key, registry);
     return registry;
   }
