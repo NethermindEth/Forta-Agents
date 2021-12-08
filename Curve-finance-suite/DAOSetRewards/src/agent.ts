@@ -7,6 +7,8 @@ import {
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import { gaugeInterface } from "./abi";
 
+const curveDAO = "0x519AFB566c05E00cfB9af73496D00217A630e4D5";
+
 export const createFinding = (callInfo: any): Finding => {
   return Finding.fromObject({
     name: "DAO Set Gauge Rewards",
@@ -32,5 +34,5 @@ export const provideHandleTransaction = (daoCurve: string): HandleTransaction =>
   );
 
 export default {
-  handleTransaction: provideHandleTransaction(""),
+  handleTransaction: provideHandleTransaction(curveDAO),
 };
