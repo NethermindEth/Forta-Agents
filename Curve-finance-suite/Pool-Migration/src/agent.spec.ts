@@ -3,37 +3,18 @@ import {
   HandleTransaction,
   FindingSeverity,
   FindingType,
-  TransactionEvent,
-  Trace,
+  TransactionEvent
 } from 'forta-agent';
 import Web3 from 'web3';
 import { provideMigratePoolAgent } from './agent';
-import { createAddress } from "forta-agent-tools";
+import {
+  createAddress,
+  TestTransactionEvent,
+} from "forta-agent-tools";
 
 const abi = new Web3().eth.abi;
-const ADDRESS = '0X1111';
+const ADDRESS = '0x1111';
 const ALERT_ID = 'test';
-
-interface TraceInfo {
-  from: string;
-  to: string;
-  input: string;
-}
-
-const createTxEvent = (data: TraceInfo[]): TransactionEvent => {
-  const traces: Trace[] = data.map((traceInfo: TraceInfo) => {
-    return {
-      action: {
-        from: traceInfo.from,
-        input: traceInfo.input,
-        to: traceInfo.to,
-      },
-    } as Trace;
-  });
-
-  const txn: TransactionEvent = { traces } as TransactionEvent;
-  return txn;
-};
 
 describe('Pool Migration Agent', () => {
   let handleTransactions: HandleTransaction;
@@ -45,6 +26,7 @@ describe('Pool Migration Agent', () => {
   it('should return a finding', async () => {
     const _old_pool = createAddress('0x1');
     const _new_pool = createAddress('0x2');
+    const _amount = '1000'
     const _from = createAddress('0x3');
     const _input: string = abi.encodeFunctionCall(
       {
@@ -65,12 +47,14 @@ describe('Pool Migration Agent', () => {
           },
         ],
       },
-      [_old_pool, _new_pool, '1000']
+      [_old_pool, _new_pool, _amount]
     );
 
-    const txEvent: TransactionEvent = createTxEvent([
-      { input: _input, to: ADDRESS, from: _from },
-    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
+      from: _from,
+      to: ADDRESS,
+      input: _input
+    });
 
     const findings = await handleTransactions(txEvent);
 
@@ -83,8 +67,10 @@ describe('Pool Migration Agent', () => {
         type: FindingType.Unknown,
         metadata: {
           from: _from,
-          input: _input,
           to: ADDRESS,
+          oldPool: _old_pool,
+          newPool: _new_pool,
+          amount: _amount
         },
       }),
     ]);
@@ -94,9 +80,12 @@ describe('Pool Migration Agent', () => {
     const _from = createAddress('0x3');
     const _input: string = 'bad sig';
 
-    const txEvent: TransactionEvent = createTxEvent([
-      { input: _input, to: ADDRESS, from: _from },
-    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
+      from: _from,
+      to: ADDRESS,
+      input: _input
+    });
+
     const findings = await handleTransactions(txEvent);
 
     expect(findings).toStrictEqual([]);
@@ -105,6 +94,7 @@ describe('Pool Migration Agent', () => {
   it('should return empty finding cause bad function selector', async () => {
     const _old_pool = createAddress('0x1');
     const _new_pool = createAddress('0x2');
+    const _amount = '1000';
     const _from = createAddress('0x3');
 
     const _input: string = abi.encodeFunctionCall(
@@ -126,12 +116,15 @@ describe('Pool Migration Agent', () => {
           },
         ],
       },
-      [_old_pool, _new_pool, '1000']
+      [_old_pool, _new_pool, _amount]
     );
 
-    const txEvent: TransactionEvent = createTxEvent([
-      { input: _input, to: ADDRESS, from: _from },
-    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
+      from: _from,
+      to: ADDRESS,
+      input: _input
+    });
+
     const findings = await handleTransactions(txEvent);
 
     expect(findings).toStrictEqual([]);

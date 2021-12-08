@@ -21,18 +21,6 @@ const POOL_MIGRATION_ADDRESS: string = "0xd6930b7f661257DA36F93160149b0317352375
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
-
-    let args: any[] = [];
-
-    for(let arg = 0; arg < metadata!.arguments.__length__; arg++) {
-      args.push(metadata!.arguments[arg]);
-    }
-
-    const input = encodeParameters(
-      ["address", "address", "uint256"],
-      args
-    );
-
     return Finding.fromObject({
       name: 'Pool Migration Finding',
       description: 'Pool migrated to new address',
@@ -41,8 +29,10 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
       type: FindingType.Unknown,
       metadata:{
         from: metadata!.from,
-        input,
         to: metadata!.to,
+        oldPool: metadata!.arguments[0],
+        newPool: metadata!.arguments[1],
+        amount: metadata!.arguments[2]
       },
     });
   };
@@ -54,11 +44,6 @@ export function provideMigratePoolAgent(
   contractAddress: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-
-    // NOTE: Attempted to create `agentHandler` outside of
-    // `provideMıgratePoolAgent` but couldn't figure out how
-    // to pass arguments `alertID` and `contractAddress` to
-    // be used by `createFindingGenerator`.
     const agentHandler = provideFunctionCallsDetectorHandler(
       createFindingGenerator(alertID),
       PM_IFACE.getFunction('migrate_to_new_pool').format('sighash'),
