@@ -27,14 +27,16 @@ export const FACTORY_IFACE: utils.Interface = new utils.Interface([
 ]);
 
 const createFindingGenerator = (alertId: string): FindingGenerator => {
-
-  console.log("Made it to the very beginning of createFindingGenerator");
-
   return (metadata: { [key: string]: any } | undefined): Finding => {
+    
+    console.log("The metadata passed to createFindingGenerator is: " + JSON.stringify(metadata));
+
+    /*
     const output = decodeParameters(
       ["address","address","uint256", "uint256", "address"],
       metadata?.data
     );
+    */
 
     return Finding.fromObject({
       name: "Deploy Meta Pool Event",
@@ -43,28 +45,46 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
       severity: FindingSeverity.Info,
       type: FindingType.Unknown,
       metadata:{
+        topics: metadata?.topics[0]
+      },
+    });
+
+    /*
+    metadata:{
         coin: output[0],
         basePool: output[1],
         a: output[2],
         fee: output[3],
         deployer: output[4]
-      },
-    });
+      }
+    */
   };
 };
+
+const eventSig: string = 'MetaPoolDeployed(address,address,uint256,uint256,address)';
 
 export function provideMetaPoolDeployment(
   alertID: string,
   address: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const handler = provideEventCheckerHandler(
-      createFindingGenerator(alertID),
-      FACTORY_IFACE.getEvent('MetaPoolDeployed').format('sighash'),
-      address
-    );
-    const findings: Finding[] = await handler(txEvent);
-    return findings;
+
+    let findings: Finding[] = [];
+
+    if(txEvent.logs[0].address == address) {
+      
+      const handler = provideEventCheckerHandler(
+        createFindingGenerator(alertID),
+        eventSig,
+        // FACTORY_IFACE.getEvent('MetaPoolDeployed').format('sighash'),
+        address
+      );
+
+      findings = await handler(txEvent);
+      return findings;
+    } else {
+      return findings;
+    }
   };
 }
 

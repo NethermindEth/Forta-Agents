@@ -13,10 +13,19 @@ import {
   createAddress,
   TestTransactionEvent,
   encodeParameters,
+  encodeEventSignature
 } from "forta-agent-tools";
 
 const TEST_FACTORY_ADDRESS = createAddress('0x1212');
 const ALERT_ID = 'test';
+
+/*
+const encodedEventSig: string = encodeEventSignature(
+  'MetaPoolDeployed(address,address,uint256,uint256,address)'
+);
+*/
+
+const eventSig: string = 'MetaPoolDeployed(address,address,uint256,uint256,address)';
 
 describe('Meta Pool Deployment Agent', () => {
   let handleTransaction: HandleTransaction;
@@ -27,10 +36,12 @@ describe('Meta Pool Deployment Agent', () => {
   const fee: number = 100;
   const msgSender: string = createAddress('0x3');
 
+  /*
   const data: string = encodeParameters(
     ["address","address","uint256", "uint256", "address"],
     [coinAddress, basePoolAddress, ampCoef, fee, msgSender]
   );
+  */
 
   beforeAll(() => {
     handleTransaction = provideMetaPoolDeployment(ALERT_ID, TEST_FACTORY_ADDRESS);
@@ -38,14 +49,15 @@ describe('Meta Pool Deployment Agent', () => {
 
   it('should return a finding', async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(TEST_FACTORY_ADDRESS, msgSender)
-      .addEventLog(metaPoolAbi,TEST_FACTORY_ADDRESS,data);
+      .setFrom(msgSender)
+      .setTo(TEST_FACTORY_ADDRESS)
+      //.addInvolvedAddresses(TEST_FACTORY_ADDRESS, msgSender)
+      .addEventLog(eventSig, TEST_FACTORY_ADDRESS);
 
-    console.log("the txEvent in the first test is: " + JSON.stringify(txEvent));
+    console.log("The texEvent passed into the handler is: " + JSON.stringify(txEvent));
 
     const findings = await handleTransaction(txEvent);
 
-    /*
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: 'Deploy Meta Pool Event',
@@ -54,14 +66,18 @@ describe('Meta Pool Deployment Agent', () => {
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
         metadata: {
+          topics: txEvent.logs[0].topics[0]
+        }
+      }),
+    ]);
+    /*
+    metadata: {
           coin: coinAddress,
           basePool: basePoolAddress,
           a: ampCoef.toString(),
           fee: fee.toString(),
           deployer: msgSender
         }
-      }),
-    ]);
     */
   });
 
