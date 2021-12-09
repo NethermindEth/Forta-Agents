@@ -5,7 +5,10 @@ import {
   FindingType,
   TransactionEvent
 } from 'forta-agent';
-import { provideMigratePoolAgent } from './agent';
+import {
+  provideMigratePoolAgent,
+  PM_IFACE
+} from './agent';
 import {
   createAddress,
   TestTransactionEvent,
@@ -15,6 +18,19 @@ import {
 const ADDRESS = createAddress('0x1111');
 const ALERT_ID = 'test';
 
+const createFinding = (oldPool: string, newPool: string, amount: string) => Finding.fromObject({
+  name: "Pool Migration Finding",
+  description: "Pool migrated to new address",
+  alertId: ALERT_ID,
+  severity: FindingSeverity.Medium,
+  type: FindingType.Unknown,
+  metadata:{
+    oldPool,
+    newPool,
+    amount
+  },
+});
+
 describe('Pool Migration Agent', () => {
   let handleTransactions: HandleTransaction;
 
@@ -23,25 +39,8 @@ describe('Pool Migration Agent', () => {
   const _amount = '1000'
   const _from = createAddress('0x3');
 
-  const _input: string = encodeFunctionCall(
-    {
-      name: 'migrate_to_new_pool',
-      type: 'function',
-      inputs: [
-        {
-          type: 'address',
-          name: '_old_pool',
-        },
-        {
-          type: 'address',
-          name: '_new_pool',
-        },
-        {
-          type: 'uint256',
-          name: '_amount',
-        },
-      ],
-    },
+  const _input = PM_IFACE.encodeFunctionData(
+    'migrate_to_new_pool',
     [_old_pool, _new_pool, _amount]
   );
 
@@ -59,20 +58,7 @@ describe('Pool Migration Agent', () => {
     const findings = await handleTransactions(txEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Pool Migration Finding",
-        description: "Pool migrated to new address",
-        alertId: ALERT_ID,
-        severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
-        metadata: {
-          from: _from,
-          to: ADDRESS,
-          oldPool: _old_pool,
-          newPool: _new_pool,
-          amount: _amount
-        },
-      }),
+      createFinding(_old_pool, _new_pool, _amount)
     ]);
   });
 
@@ -130,25 +116,8 @@ describe('Pool Migration Agent', () => {
     const _amount_two = '2000'
     const _from_two = createAddress('0x6');
 
-    const _input_two: string = encodeFunctionCall(
-      {
-        name: 'migrate_to_new_pool',
-        type: 'function',
-        inputs: [
-          {
-            type: 'address',
-            name: '_old_pool',
-          },
-          {
-            type: 'address',
-            name: '_new_pool',
-          },
-          {
-            type: 'uint256',
-            name: '_amount',
-          },
-        ],
-      },
+    const _input_two = PM_IFACE.encodeFunctionData(
+      'migrate_to_new_pool',
       [_old_pool_two , _new_pool_two, _amount_two]
     );
 
@@ -166,34 +135,8 @@ describe('Pool Migration Agent', () => {
     const findings = await handleTransactions(txEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Pool Migration Finding",
-        description: "Pool migrated to new address",
-        alertId: ALERT_ID,
-        severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
-        metadata: {
-          from: _from,
-          to: ADDRESS,
-          oldPool: _old_pool,
-          newPool: _new_pool,
-          amount: _amount
-        },
-      }),
-      Finding.fromObject({
-        name: "Pool Migration Finding",
-        description: "Pool migrated to new address",
-        alertId: ALERT_ID,
-        severity: FindingSeverity.Medium,
-        type: FindingType.Unknown,
-        metadata: {
-          from: _from_two,
-          to: ADDRESS,
-          oldPool: _old_pool_two,
-          newPool: _new_pool_two,
-          amount: _amount_two
-        }
-      }),
+      createFinding(_old_pool, _new_pool, _amount),
+      createFinding(_old_pool_two, _new_pool_two, _amount_two)
     ]);
   });
 });

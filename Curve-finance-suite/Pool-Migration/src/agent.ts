@@ -27,8 +27,6 @@ const createFindingGenerator = (alertId: string): FindingGenerator => {
       severity: FindingSeverity.Medium,
       type: FindingType.Unknown,
       metadata:{
-        from: metadata?.from,
-        to: metadata?.to,
         oldPool: metadata?.arguments[0],
         newPool: metadata?.arguments[1],
         amount: metadata?.arguments[2]
