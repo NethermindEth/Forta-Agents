@@ -12,18 +12,11 @@ import {
 import { 
   createAddress,
   TestTransactionEvent,
-  encodeParameters,
-  encodeEventSignature
+  encodeParameters
 } from "forta-agent-tools";
 
 const TEST_FACTORY_ADDRESS = createAddress('0x1212');
 const ALERT_ID = 'test';
-
-/*
-const encodedEventSig: string = encodeEventSignature(
-  'MetaPoolDeployed(address,address,uint256,uint256,address)'
-);
-*/
 
 const eventSig: string = 'MetaPoolDeployed(address,address,uint256,uint256,address)';
 
@@ -49,11 +42,7 @@ describe('Meta Pool Deployment Agent', () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(deployer)
       .setTo(TEST_FACTORY_ADDRESS)
-      //.setData(data)
-      //.addInvolvedAddresses(TEST_FACTORY_ADDRESS, msgSender)
       .addEventLog(eventSig, TEST_FACTORY_ADDRESS, data);
-
-    console.log("The texEvent passed into the handler is: " + JSON.stringify(txEvent));
 
     const findings = await handleTransaction(txEvent);
 
@@ -75,8 +64,6 @@ describe('Meta Pool Deployment Agent', () => {
     ]);
   });
 
-  // NOTE: Revisit this after figuring out if necessary to encode
-  // and decode.
   it('should return empty finding cause bad signature', async () => {
     const badData: string = encodeParameters(['string'],['badSig']);
 
