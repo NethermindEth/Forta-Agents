@@ -17,8 +17,3 @@ This agent detects successful `kill_me` calls on Curve-Stable-Swap contract.
   - Metadata includes:
     - `from`: Address that executes the`kill_me` call.
     - `contract_address`: Curve-Stable-Swap contract where the function was called.
-
-## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
