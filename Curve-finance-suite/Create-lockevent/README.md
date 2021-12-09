@@ -15,7 +15,7 @@ This agent detects lock creation in Voting Escrow contract.
   - Severity is always set to "low".
   - Type is always set to "suspicious".
   - Metadata includes: 
-    - `from`: address of the account calling the lock function.
+    - `from`: address of the account calling create lock function.
     - `value`: The amount of CRV locked.
     - `locktime`: lock duration. 
 
