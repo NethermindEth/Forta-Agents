@@ -3,46 +3,88 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+} from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { provideHandleTransaction, createFinding } from "./agent";
+import { stablePoolInterface } from "./abi";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const POOL_OWNER = createAddress("0x1");
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+describe("Unkill Agent Test Suite", () => {
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = provideHandleTransaction(POOL_OWNER);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  it("should return empty findings if nothing happens", async () => {
+    const txEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it("should return a finding unkill is called from the Curve Pool Owner", async () => {
+    const poolAddress = createAddress("0x2");
+    const txEvent = new TestTransactionEvent().addTraces({
+      from: POOL_OWNER,
+      to: poolAddress,
+      input: stablePoolInterface.encodeFunctionData("unkill_me", []),
+    });
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    expect(findings).toStrictEqual([createFinding({ to: poolAddress })]);
+  });
+
+  it("should return multiple findings if Curve Pool Owner call unkill_me multiple times", async () => {
+    const poolAddress1 = createAddress("0x2");
+    const poolAddress2 = createAddress("0x3");
+
+    const txEvent = new TestTransactionEvent()
+      .addTraces({
+        from: POOL_OWNER,
+        to: poolAddress1,
+        input: stablePoolInterface.encodeFunctionData("unkill_me", []),
+      })
+      .addTraces({
+        from: POOL_OWNER,
+        to: poolAddress2,
+        input: stablePoolInterface.encodeFunctionData("unkill_me", []),
+      });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding({ to: poolAddress1 }),
+      createFinding({ to: poolAddress2 }),
+    ]);
+  });
+
+  it("should ignore unkill_me calls if it is not from Curve Pool Owner", async () => {
+    const poolAddress = createAddress("0x2");
+    const txEvent = new TestTransactionEvent().addTraces({
+      from: createAddress("0x0"),
+      to: poolAddress,
+      input: stablePoolInterface.encodeFunctionData("unkill_me", []),
+    });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore if Curve Pool Owner does other kind of transaction", async () => {
+    const poolAddress = createAddress("0x2");
+    const txEvent = new TestTransactionEvent().addTraces({
+      from: POOL_OWNER,
+      to: poolAddress,
+      input: "0x01231204032402213",
+    });
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+});
