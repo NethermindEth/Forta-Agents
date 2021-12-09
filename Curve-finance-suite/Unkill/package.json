@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "curve-12",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This Agent detects when Curve Pool Owner calls unkill_me function",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.32"
+    "forta-agent": "^0.0.32",
+    "forta-agent-tools": "^1.0.31"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
