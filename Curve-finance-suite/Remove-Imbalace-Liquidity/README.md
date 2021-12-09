@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects `RemoveLiquidityImbalance` event emission on StableSwap Exchange contract. 
+This agent detects `RemoveLiquidityImbalance` event emission on 3Pool StableSwap Exchange contract. Note that you can change the Pool address by updating the const `CONTRACT_ADDRESS`.
 
 ## Supported Chains
 
