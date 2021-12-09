@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects successful `kill_me` calls on Curve-Stable-Swap contract.
+This agent detects successful `kill_me` calls on 3Pool Stable-Swap contract. Note that you can specify the contract to observe by changing the address on const `STABLE_SWAP_CONTRACT_ADDRESS`. 
 
 ## Supported Chains
 
