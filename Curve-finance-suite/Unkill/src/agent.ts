@@ -1,45 +1,37 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  Finding,
+  HandleTransaction,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
+import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
+import { stablePoolInterface } from "./abi";
 
-let findingsCount = 0
+const CURVE_POOL_OWNER = "0xeCb456EA5365865EbAb8a2661B0c503410e9B347";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const createFinding = (functionCallInfo: any): Finding => {
+  return Finding.fromObject({
+    name: "UnkillMe Agent",
+    description: "Pool Owner called unkill_me method",
+    alertId: "CURVE-12",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Curve Finance",
+    metadata: {
+      UnkillPool: functionCallInfo.to,
+    },
+  });
+};
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
-
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction = (
+  poolOwnerAddress: string
+): HandleTransaction =>
+  provideFunctionCallsDetectorHandler(
+    createFinding,
+    stablePoolInterface.getFunction("unkill_me").format(),
+    { from: poolOwnerAddress }
+  );
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(CURVE_POOL_OWNER),
+};
