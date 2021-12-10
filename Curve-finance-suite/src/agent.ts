@@ -4,7 +4,6 @@ import provideRemoveLiquidityImbalanceAgent from "./agents/remove.imbalance.liqu
 import provideUnkillAgent from "./agents/unkill";
 import provideAddPoolAgent from "./agents/registry.add.pool";
 import provideRemovePoolAgent from "./agents/registry.remove.pool";
-import provideMetaPoolDeployment from "./agents/deploy.metapool";
 import providecreateLockAgent from "./agents/curve.dao.create.lockevent";
 import providesetKilledAgent from "./agents/curve.dao.killing.gauge";
 import providesetRewardsAgent from "./agents/curve.gauge.set.rewards";
@@ -22,7 +21,6 @@ export {
   provideUnkillAgent,
   provideAddPoolAgent,
   provideRemovePoolAgent,
-  provideMetaPoolDeployment,
   providecreateLockAgent,
   providesetRewardsAgent,
   provideCommitNewAdminEvent,
