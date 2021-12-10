@@ -1,5 +1,7 @@
 import {
   Finding,
+  FindingSeverity,
+  FindingType,
   HandleTransaction,
   TransactionEvent,
 } from 'forta-agent';
@@ -20,8 +22,8 @@ const createFinding = (from: string, contract_address: string) => Finding.fromOb
   name: 'Kill Me function call Detected',
   description: 'Kill Me function called on Curve-Stable-Swap contract.',
   alertId: ALERT_ID,
-  severity: 2,
-  type: 2,
+  severity: FindingSeverity.Low,
+  type: FindingType.Suspicious,
   metadata: {
     from: from,
     contract_address: contract_address,    
