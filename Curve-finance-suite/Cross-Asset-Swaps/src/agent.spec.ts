@@ -78,7 +78,7 @@ describe('Cross Swap Agent tests suite', () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         'TokenUpdated(uint256,address,address,uint256)',
-        createAddress('0xcafe'),
+        TARGET,
         encodeParameter('uint256', 200),
         encodeParameter('uint256', 20),
         encodeParameter('address', createAddress("0xc1")),
@@ -86,7 +86,7 @@ describe('Cross Swap Agent tests suite', () => {
       )
       .addEventLog(
         'FooEvent(uint256,address,address,uint256)',
-        createAddress('0xffff'),
+        TARGET,
         encodeParameter('uint256', 111),
         encodeParameter('uint256', 12),
         encodeParameter('address', createAddress("0xdead")),
