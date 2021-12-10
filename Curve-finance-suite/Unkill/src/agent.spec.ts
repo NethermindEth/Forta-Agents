@@ -14,7 +14,7 @@ describe("Unkill Agent Test Suite", () => {
     handleTransaction = provideHandleTransaction(POOL_OWNER);
   });
 
-  it("should return empty findings if nothing happens", async () => {
+  it("should return empty findings because of non-relevant transactions", async () => {
     const txEvent = new TestTransactionEvent();
 
     const findings = await handleTransaction(txEvent);
