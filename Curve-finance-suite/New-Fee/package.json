@@ -1,5 +1,5 @@
 {
-  "name": "CURVE-14",
+  "name": "curve-14",
   "version": "0.0.1",
   "description": "Agent to detect successful change in fees to a Curve BasePool or MetaPool",
   "scripts": {

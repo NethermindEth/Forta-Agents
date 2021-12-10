@@ -52,7 +52,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(
-    'CURVE-14',
+    'curve-14',
     POOL_PROXY_ADDRESS,
   ),
 }
