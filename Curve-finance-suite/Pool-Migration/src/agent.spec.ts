@@ -139,4 +139,18 @@ describe('Pool Migration Agent', () => {
       createFinding(_old_pool_two, _new_pool_two, _amount_two)
     ]);
   });
+
+  it('should return no Finding because of calling wrong contract', async () => {
+    const WRONG_CONTRACT_ADDRESS: string = createAddress('0x66');
+
+    const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
+      from: _from,
+      to: WRONG_CONTRACT_ADDRESS,
+      input: _input
+    });
+
+    const findings = await handleTransactions(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  })
 });
