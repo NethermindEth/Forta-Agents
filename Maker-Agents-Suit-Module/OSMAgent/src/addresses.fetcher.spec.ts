@@ -118,7 +118,7 @@ describe("AddressesFetcher test suite", () => {
       return reject(error);
     };
 
-    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "an-error-occured")));
+    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "test-error-occured")));
 
     // should return empty address du to a failure fetching the addresses the first time
     let addresses: string[] = await fetcher.get(1);
@@ -140,7 +140,7 @@ describe("AddressesFetcher test suite", () => {
     ]);     
     
     // time passed, update needed
-    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "api-is-shutdown")));
+    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "test-api-is-shutdown")));
     addresses = await fetcher.get(50);
     // same addresses received
     expect(addresses).toStrictEqual([
@@ -154,7 +154,7 @@ describe("AddressesFetcher test suite", () => {
     expect(mockAxios.get).nthCalledWith(3, endpoint);
 
     expect(log).toBeCalledTimes(2);
-    expect(log).nthCalledWith(1, "an-error-occured");
-    expect(log).nthCalledWith(2, "api-is-shutdown");
+    expect(log).nthCalledWith(1, "test-error-occured");
+    expect(log).nthCalledWith(2, "test-api-is-shutdown");
   });
 });
