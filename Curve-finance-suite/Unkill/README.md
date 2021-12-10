@@ -10,8 +10,6 @@ This agent detects when Curve Pool Owner calls `unkill_me` functions.
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
 - CURVE-12
   - Fired when Curve Pool Owner calls `unkill_me` function.
   - Severity is always set to "info".
