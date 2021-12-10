@@ -74,7 +74,7 @@ describe('Cross Swap Agent tests suite', () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it('should ignore events other events', async () => {
+  it('should ignore other events', async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         'TokenUpdated(uint256,address,address,uint256)',
