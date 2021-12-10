@@ -73,14 +73,14 @@ describe("Pools RampA tests suite", () => {
       .mockReturnValue(false);
   });
 
-  it("should ignore empty transactions", async () => {
+  it("should return 0 findings on empty transactions", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore other events", async () => {
+  it("should return 0 findings on other events", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         "signature()",

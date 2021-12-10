@@ -1,4 +1,3 @@
-import { providers } from "ethers";
 import { createAddress } from "forta-agent-tools";
 import DataFetcher from "./data.fetcher";
 import MockProvider from "./mock.provider";
