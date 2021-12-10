@@ -50,7 +50,7 @@ describe("Curve DAO Set Gauge Rewards Test Suite", () => {
     handleTransaction = provideHandleTransaction(daoAddress);
   });
 
-  it("should return empty findings if nothing happens", async () => {
+  it("should return empty findings because of non relevant transactions", async () => {
     const txEvent = new TestTransactionEvent();
 
     const findings = await handleTransaction(txEvent);
@@ -79,7 +79,7 @@ describe("Curve DAO Set Gauge Rewards Test Suite", () => {
     ]);
   });
 
-  it("should return empyt findings if set_rewards is not called from dao", async () => {
+  it("should return empty findings if set_rewards is not called from dao", async () => {
     const gaugeAddress = createAddress("0x2");
 
     const txEvent = new TestTransactionEvent().addTraces({
