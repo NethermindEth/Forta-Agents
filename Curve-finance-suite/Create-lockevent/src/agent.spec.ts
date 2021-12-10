@@ -1,5 +1,7 @@
 import {
   Finding,
+  FindingSeverity,
+  FindingType,
   HandleTransaction,
   TransactionEvent,
 } from 'forta-agent';
@@ -7,7 +9,6 @@ import {
   provideCreateLockAgent, 
 } from './agent';
 import { 
-  encodeFunctionSignature, 
   TestTransactionEvent, 
   createAddress,
   encodeParameter,
@@ -23,8 +24,8 @@ const createFinding = (from: string, value:string, locktime: string ) => Finding
   name: 'Lock creation on Voting Escrow contract Detected',
   description: 'Deposit event with type 1 was emitted',
   alertId: ALERT_ID,
-  severity: 2,
-  type: 2,
+  severity: FindingSeverity.Low,
+  type: FindingType.Suspicious,
   protocol: 'Curve Finance',
   metadata: {
     from: from,
@@ -35,7 +36,10 @@ const createFinding = (from: string, value:string, locktime: string ) => Finding
 
 describe('Create Lock for Voting Escrow contract tests suite', () => {
   let handleTransaction: HandleTransaction = provideCreateLockAgent(ALERT_ID, CONTRACT_ADDRESS);
-  const topics: string[] = [ SENDER_ADDRESS, encodeParameter('int128', 1764806400) ];
+  const topics: string[] = [ 
+    encodeParameter('address', SENDER_ADDRESS), 
+    encodeParameter('int128', 1764806400),
+  ];
   const data: string = encodeParameters(
     ['uint256', 'int128', 'uint256'],
     [5345,1,3],

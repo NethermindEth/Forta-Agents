@@ -28,7 +28,7 @@ const createFindingGenerator = (alertID: string): FindingGenerator => {
       type: FindingType.Suspicious,
       protocol: 'Curve Finance',
       metadata: {
-        from: metadata!.topics[1],
+        from: decodeParameter('address', metadata!.topics[1]),
         value: value,
         locktime: decodeParameter('int128', metadata!.topics[2]),
       }
