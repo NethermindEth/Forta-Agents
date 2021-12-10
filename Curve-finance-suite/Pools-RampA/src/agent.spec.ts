@@ -3,13 +3,15 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent,
   TransactionEvent,
 } from "forta-agent";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { 
+  createAddress, 
+  TestTransactionEvent,
+  encodeParameters, 
+} from "forta-agent-tools";
 import agent from "./agent";
 import { when } from "jest-when";
-import { encodeParameters } from "nethermindeth-general-agents-module";
 import abi from "./abi";
 
 const POOLS: string[] = [];
@@ -94,7 +96,7 @@ describe("Pools RampA tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore report the events in Pools", async () => {
+  it("should return a finding for each Pool event", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         abi.POOL_IFACE.getEvent('RampA').format("sighash"),
