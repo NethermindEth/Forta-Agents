@@ -1,7 +1,4 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
   HandleTransaction,
 } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
