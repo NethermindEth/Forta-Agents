@@ -9,8 +9,8 @@ This agent detects when a pool has been added to the Curve Registry
 
 ## Alerts
 
-- CURVE-13
-  - Fired when `AddedPool` event is emitted by the Curve Registry contract
+- curve-13
+  - Fired when `PoolAdded` event is emitted by the Curve Registry contract
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata contains:
@@ -20,4 +20,4 @@ This agent detects when a pool has been added to the Curve Registry
 
 The agent behaviour can be verified with the following transaction:
 
-- 0x75eb300094104ad1801b75b58833b6b55be2ff4f836c43cf366594d400c69dea (event `AddedPool` emitted)
+- 0x75eb300094104ad1801b75b58833b6b55be2ff4f836c43cf366594d400c69dea (event `PoolAdded` emitted)

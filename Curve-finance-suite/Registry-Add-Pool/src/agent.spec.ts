@@ -8,7 +8,7 @@ import {
 
 import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
 
-import { provideHandleTransaction, ADD_POOL_SIGNATURE } from './agent';
+import { provideHandleTransaction, ADD_POOL_SIGNATURE, R_IFACE } from './agent';
 
 const TARGET: string = createAddress('0xdead');
 const ALERT_ID: string = 'registry-add-pool-test';
@@ -48,18 +48,45 @@ describe('Registry-Add-Pool Agent tests suite', () => {
   });
 
   it('should ignore events from other contracts', async () => {
+    // Encode the pool address value
+    let encodedTopicData = R_IFACE.encodeFilterTopics(
+      R_IFACE.getEvent('PoolAdded'),
+      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
+    );
+    const encodedPoolAddress: string = encodedTopicData[1] as string;
+
     const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(ADD_POOL_SIGNATURE, SENDERS[1], '', SENDERS[2], SENDERS[3]);
+      .addEventLog(
+        ADD_POOL_SIGNATURE,
+        // SENDERS[1] is not TARGET, so there should be no findings generated
+        SENDERS[1],
+	      // This string is the data (not relevant for this test so it is empty)
+        '',
+        encodedPoolAddress,
+    );
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
   it('should detect events from the target contract', async () => {
+    // Encode the pool address value
+    let encodedTopicData = R_IFACE.encodeFilterTopics(
+      R_IFACE.getEvent('PoolAdded'),
+      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
+    );
+    const encodedPoolAddress: string = encodedTopicData[1] as string;
+
     const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(ADD_POOL_SIGNATURE, TARGET, '', createAddress('0x1337'), SENDERS[2]);
+      .addEventLog(
+        ADD_POOL_SIGNATURE,
+        TARGET,
+	      // This string is the data (not relevant for this test so it is empty)
+        '',
+        encodedPoolAddress,
+      );
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
-      createFinding(createAddress('0x1337')),
+      createFinding('0xab5801a7d398351b8be11c439e05c5b3259aec9b'),
     ]);
   });
 });

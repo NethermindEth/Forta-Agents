@@ -1,5 +1,5 @@
 {
-  "name": "CURVE-13",
+  "name": "curve-13",
   "version": "0.0.1",
   "description": "Agent to detect a pool being added to the Curve Registry",
   "scripts": {
