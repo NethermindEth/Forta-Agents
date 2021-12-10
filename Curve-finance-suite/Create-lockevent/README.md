@@ -17,7 +17,7 @@ This agent detects lock creation in Voting Escrow contract.
   - Metadata includes: 
     - `from`: address of the account calling the lock function.
     - `value`: The amount of CRV locked.
-    - `locktime`: lock duration. 
+    - `locktime`: time when to unlock the CRV tokens. 
 
 ## Test Data
 
