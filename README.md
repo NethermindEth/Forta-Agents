@@ -23,7 +23,8 @@ Forta Agents proof of concepts from **Venice** team.
 - **Possible locked NFTs**: Detect transactions that may lock an NFT in a contract.
 - **Chainkeeper**: Detects transactions involving blacklisted addresses.
 - **Success txn with internal failures agent**: Detect transactions with internal failures.
-- **Yearn Strategy without call Harvest**:  Detects yearn strategies that haven't call harvest in too much time
+- **Yearn Strategy without call Harvest**: Detects yearn strategies that haven't call harvest in too much time
 - **Tornado Cash 1**: Detects addresses that sent more than 100 eth into Tornado Cash in one day.
 - **Reentrancy Counter**: Detects transactions with multiples nested calls to the same contract.
+- **Curve Finance Agents Suit**: Provides a list of agents that related to Curve contracts.
 - **YFI governance changes**: Detect transactions that change the YFI governance address
