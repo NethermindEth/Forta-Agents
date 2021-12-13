@@ -58,14 +58,14 @@ describe('Registry-Events Agent tests suite', () => {
     }
   });
 
-  it('should ignore empty transactions', async () => {
+  it('should return 0 findings in empty transactions', async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
-  it('should ignore events from other contracts', async () => {
+  it('should return 0 findings when events are emitted in other contracts', async () => {
     const encodedEvent = R_IFACE.encodeEventLog(
       R_IFACE.getEvent('PoolAdded'),
       [createAddress("0xffff"), "0x14"],
@@ -80,7 +80,7 @@ describe('Registry-Events Agent tests suite', () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it('should ignore irrelevant events from the target contract', async () => {
+  it('should return 0 findings when other events are emitted', async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         'PoolsAdded(address,bytes)', // extra s
