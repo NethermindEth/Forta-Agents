@@ -2,9 +2,14 @@ jest.useFakeTimers();
 import { HandleBlock } from "forta-agent";
 import { TestBlockEvent } from "forta-agent-tools";
 import agent from "./agent";
-import { buildWeb3Mock } from "./contract.mock";
+import {
+  buildWeb3Mock,
+  mockWithdrawBalance,
+  mockCallBalance,
+} from "./contract.mock";
 import { generateFinding } from "./utils";
 import mockAxios, { generateMockResponseArray } from "./jest.mock";
+import BigNumber from "bignumber.js";
 
 describe("Yearn: Instant Withdraw Agent", () => {
   let handleBlock: HandleBlock;
@@ -29,6 +34,14 @@ describe("Yearn: Instant Withdraw Agent", () => {
           },
         ])
       );
+
+      mockWithdrawBalance.mockImplementationOnce(() =>
+        Promise.resolve("success")
+      );
+
+      mockCallBalance.mockImplementationOnce(() =>
+        Promise.resolve("289584189215485306814849565")
+      );
       const findings = await handleBlock(blockEvent);
 
       expect(findings).toStrictEqual([]);
@@ -47,11 +60,17 @@ describe("Yearn: Instant Withdraw Agent", () => {
         ])
       );
 
+      mockWithdrawBalance.mockImplementationOnce(() => Promise.resolve());
+
+      mockCallBalance.mockImplementationOnce(() =>
+        Promise.resolve("189584189215485306814849565")
+      );
       const findings = await handleBlock(blockEvent);
 
       expect(findings).toStrictEqual([
         generateFinding(
-          "2.89584189215485306814849565e+26",
+          new BigNumber("189584189215485306814849565"),
+          new BigNumber("289584189215485306814849565"),
           0,
           "0x59518884eebfb03e90a18adbaaab770d4666471e"
         ),
@@ -76,11 +95,22 @@ describe("Yearn: Instant Withdraw Agent", () => {
         ])
       );
 
+      mockWithdrawBalance.mockImplementationOnce(() => Promise.resolve());
+      mockWithdrawBalance.mockImplementationOnce(() => Promise.resolve());
+
+      mockCallBalance.mockImplementationOnce(() =>
+        Promise.resolve("289584189215485306814849565")
+      );
+      mockCallBalance.mockImplementationOnce(() =>
+        Promise.resolve("129584189215485306814849565")
+      );
+
       const findings = await handleBlock(blockEvent);
 
       expect(findings).toStrictEqual([
         generateFinding(
-          "1.49584189215485306814849565e+26",
+          new BigNumber("129584189215485306814849565"),
+          new BigNumber("149584189215485306814849565"),
           1,
           "0x59518884eebfb03e90a18adbaaab770d4666471e"
         ),

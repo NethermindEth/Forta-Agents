@@ -10,4 +10,11 @@ export const withdrawAbi = [
     ],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    stateMutability: "view",
+    type: "function",
+    name: "balanceOf",
+    inputs: [{ name: "arg0", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ];

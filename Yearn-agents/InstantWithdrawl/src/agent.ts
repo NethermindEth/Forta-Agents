@@ -4,6 +4,7 @@ import { generateFinding, getAccounts, Mapping } from "./utils";
 import Web3 from "web3";
 import runServer from "./blockchain";
 import { withdrawAbi } from "./abi";
+import BigNumber from "bignumber.js";
 
 const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
@@ -37,19 +38,29 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
           contract.methods
             .withdraw(balance, userAddress, 0)
             .send({ from: userAddress })
-            .catch(() => {
-              // if the contract call fails, returns an error.
-              // fetch the event and compare it to the max amount
-              findings.push(
-                generateFinding(balance.toString(), index, vaultAddress)
-              );
+            .then(() => {
+              contract.methods
+                .balanceOf(userAddress)
+                .call({}, blockEvent.blockNumber)
+                .then((res: string) => {
+                  if (!(res === balance)) {
+                    findings.push(
+                      generateFinding(
+                        new BigNumber(res),
+                        new BigNumber(balance),
+                        index,
+                        vaultAddress
+                      )
+                    );
+                  }
+                });
             })
         );
       });
     });
 
     await Promise.all(promises);
-    // await server.close();
+    await server.close();
     return findings;
   };
 };

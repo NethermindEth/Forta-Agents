@@ -4,7 +4,7 @@ import { BigNumber } from "bignumber.js";
 
 export type UserDetails = {
   account: string;
-  balance: BigNumber;
+  balance: string;
 };
 export type Mapping = {
   [key: string]: Array<UserDetails>;
@@ -47,7 +47,7 @@ export const getAccounts = async (axios: any) => {
     const values = mapping[address] || [];
     values.push({
       account: value.account.id,
-      balance: new BigNumber(value.balanceShares),
+      balance: value.balanceShares,
     });
     users.add(address);
     mapping[address] = values;
@@ -56,7 +56,8 @@ export const getAccounts = async (axios: any) => {
 };
 
 export function generateFinding(
-  balance: string,
+  balanceInPool: BigNumber,
+  balance: BigNumber,
   index: number,
   vaultAddress: string
 ) {
@@ -67,7 +68,10 @@ export function generateFinding(
     type: FindingType.Unknown,
     alertId: "Yearn-agent-7",
     metadata: {
-      balance,
+      balancePercentageThatCanBeWithdrawn: balanceInPool
+        .dividedBy(balance)
+        .multipliedBy(100)
+        .toString(),
       vaultAddress,
     },
   });

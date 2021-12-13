@@ -1,23 +1,26 @@
 export const mockPrice = jest.fn();
 
-const mockResult = jest.fn();
-mockResult
-  .mockImplementationOnce(() => Promise.resolve("success"))
-  .mockImplementationOnce(() => Promise.reject("failed"))
-  .mockImplementationOnce(() => Promise.resolve())
-  .mockImplementationOnce(() => Promise.reject());
+export const mockWithdrawBalance = jest.fn();
+export const mockCallBalance = jest.fn();
 
 export const buildMockClass = () =>
   class MockContract {
     public methods = {
       withdraw: this.withdraw,
+      balanceOf: this.balanceOf,
     };
 
     constructor(_: any, address: string) {}
 
     private withdraw() {
       return {
-        send: mockResult,
+        send: mockWithdrawBalance,
+      };
+    }
+
+    private balanceOf() {
+      return {
+        call: mockCallBalance,
       };
     }
   };
