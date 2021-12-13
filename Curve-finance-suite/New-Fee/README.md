@@ -11,7 +11,7 @@ This agent detects a change in fees to a Curve BasePool or MetaPool by the Curve
 ## Alerts
 
 - curve-14
-  - Fired when `set_new_fee` function is called in the Curve DAO contract
+  - Fired when `apply_new_fee` function is called in the Curve DAO contract
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata contains:
@@ -21,4 +21,4 @@ This agent detects a change in fees to a Curve BasePool or MetaPool by the Curve
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x0ccbffa23dff7d7c47dcdaed14c3d98aab5e4c63d531d8e243365745cbb1484e (call to `set_new_fee`):
+- 0x0ccbffa23dff7d7c47dcdaed14c3d98aab5e4c63d531d8e243365745cbb1484e (call to `apply_new_fee`):
