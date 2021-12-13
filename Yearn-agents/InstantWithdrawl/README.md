@@ -12,8 +12,8 @@ To detect vaults that do not allow to withdraw a certain amount of funds and hav
 
 Describe each of the type of alerts fired by this agent
 
-- Year-agent-7
-  - Fired when an account isn't able to withdraw.
+- Yearn-agent-7
+  - Fired when an account isn't able to withdraw there whole liquidity.
   - Severity is always set to "info"
   - Type is always set to "Unknown"
-  - metadata - gives the balance information of the target address and the vault address.
+  - metadata - gives the balance information of what percentage of the balance can be withdrawn and the vault address.
