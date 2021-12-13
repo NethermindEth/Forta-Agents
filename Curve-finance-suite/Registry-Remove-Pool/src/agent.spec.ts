@@ -6,17 +6,15 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 
-import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
+import { createAddress, TestTransactionEvent, encodeParameter } from 'forta-agent-tools';
 
-import { provideHandleTransaction, REMOVE_POOL_SIGNATURE, R_IFACE } from './agent';
+import { provideHandleTransaction, R_IFACE } from './agent';
 
 const TARGET: string = createAddress('0xdead');
 const ALERT_ID: string = 'registry-remove-pool-test';
-const RECEIVERS: string[] = [];
-const SENDERS: string[] = [];
 
 const createFinding = ( pool: string) => Finding.fromObject({
-  name: 'Curve Registry contract called',
+  name: 'Pool Removed Event',
   description: 'Event PoolRemoved has been emitted',
   alertId: ALERT_ID,
   severity: FindingSeverity.Info,
@@ -33,33 +31,22 @@ describe('Registry-Remove-Pool Agent tests suite', () => {
     TARGET,
   );
 
-  beforeAll(() => {
-    for(let i = 0; i <= 30; ++i) {
-      RECEIVERS.push(createAddress(`0xa${i}`));
-      SENDERS.push(createAddress(`0xb${i}`));
-    }
-  });
-
-  it('should ignore empty transactions', async () => {
+  it('returns no findings on empty transactions', async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
-  it('should ignore events from other contracts', async () => {
+  it('returns no findings from events in wrong contract', async () => {
     // Encode the pool address value
-    let encodedTopicData = R_IFACE.encodeFilterTopics(
-      R_IFACE.getEvent('PoolRemoved'),
-      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
-    );
-    const encodedPoolAddress: string = encodedTopicData[1] as string;
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b')
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        REMOVE_POOL_SIGNATURE,
-        // SENDERS[1] is not TARGET, so there should be no findings generated
-        SENDERS[1],
+        R_IFACE.getEvent('PoolRemoved').format('sighash'),
+        // The provided value is not TARGET, so there should be no findings generated
+        createAddress('0x1234'),
         // This string is the data (not relevant for this test so it is empty)
         '',
         encodedPoolAddress,
@@ -68,17 +55,30 @@ describe('Registry-Remove-Pool Agent tests suite', () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it('should detect events from the target contract', async () => {
+  it('returns no findings from irrelevant events from target contract', async () => {
     // Encode the pool address value
-    let encodedTopicData = R_IFACE.encodeFilterTopics(
-      R_IFACE.getEvent('PoolRemoved'),
-      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
-    );
-    const encodedPoolAddress: string = encodedTopicData[1] as string;
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b')
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-      	REMOVE_POOL_SIGNATURE,
+        'NotPoolRemovedEventSignature(address)',
+        // The provided value is not TARGET, so there should be no findings generated
+        TARGET,
+        // This string is the data (not relevant for this test so it is empty)
+        '',
+        encodedPoolAddress,
+    );
+    const findings = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('returns findings from contract event emission', async () => {
+    // Encode the pool address value
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b')
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        R_IFACE.getEvent('PoolRemoved').format('sighash'),
         TARGET,
         // This string is the data (not relevant for this test so it is empty)
         '',

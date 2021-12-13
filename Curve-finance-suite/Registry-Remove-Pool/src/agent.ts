@@ -8,6 +8,7 @@ import {
 import  {
   provideEventCheckerHandler,
   FindingGenerator,
+  decodeParameter,
 } from 'forta-agent-tools';
 
 import { utils } from 'ethers';
@@ -27,7 +28,7 @@ const REGISTRY_ADDRESS: string = '0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5';
 const createFindingGenerator = (alertId: string): FindingGenerator =>
   (metadata: { [key: string]: any } | undefined): Finding => 
     Finding.fromObject({
-      name: 'Curve Registry contract called',
+      name: 'Pool Removed Event',
       description: 'Event PoolRemoved has been emitted',
       alertId: alertId,
       severity: FindingSeverity.Info,
@@ -35,7 +36,7 @@ const createFindingGenerator = (alertId: string): FindingGenerator =>
       protocol: 'Curve Finance',
       metadata: {
         // The address of the pool that was removed
-        pool_address: '0x' + metadata!.topics[1].substring(26,66),
+        pool_address: decodeParameter('address',metadata!.topics[1]).toLowerCase(),
       }
     });
 
@@ -47,14 +48,14 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   return provideEventCheckerHandler(
     createFindingGenerator(alertId),
-    REMOVE_POOL_SIGNATURE,
+    R_IFACE.getEvent('PoolRemoved').format('sighash'),
     address,
   );
 }
 
 export default {
   handleTransaction: provideHandleTransaction(
-    "curve-13",
+    "CURVE-13",
     REGISTRY_ADDRESS,
   )
 }
