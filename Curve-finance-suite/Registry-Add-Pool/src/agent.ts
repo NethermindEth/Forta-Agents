@@ -52,7 +52,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(
-    "curve-13",
+    "CURVE-13",
     REGISTRY_ADDRESS,
   )
 }
