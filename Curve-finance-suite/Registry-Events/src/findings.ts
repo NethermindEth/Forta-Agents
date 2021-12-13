@@ -10,7 +10,7 @@ type FndingGenerator = (log: LogDescription) => Finding;
 const poolRemoved: FndingGenerator = (log: LogDescription): Finding => 
   Finding.fromObject({
     name: 'Curve Registry contract called',
-    description: 'Event PoolAdded has been emitted',
+    description: 'Event PoolRemoved has been emitted',
     alertId: "CURVE-13-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

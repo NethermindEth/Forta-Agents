@@ -1,6 +1,6 @@
 import abi from './abi';
 import findings from './findings';
-import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent'
+import { HandleTransaction, TransactionEvent } from 'forta-agent'
 
 const REGISTRY_ADDRESS = "0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5";
 
