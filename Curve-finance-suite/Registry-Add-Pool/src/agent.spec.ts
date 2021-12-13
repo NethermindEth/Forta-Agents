@@ -6,9 +6,9 @@ import {
   TransactionEvent,
 } from 'forta-agent';
 
-import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
+import { createAddress, TestTransactionEvent, encodeParameter } from 'forta-agent-tools';
 
-import { provideHandleTransaction, ADD_POOL_SIGNATURE, R_IFACE } from './agent';
+import { provideHandleTransaction, R_IFACE } from './agent';
 
 const TARGET: string = createAddress('0xdead');
 const ALERT_ID: string = 'registry-add-pool-test';
@@ -49,18 +49,31 @@ describe('Registry-Add-Pool Agent tests suite', () => {
 
   it('should ignore events from other contracts', async () => {
     // Encode the pool address value
-    let encodedTopicData = R_IFACE.encodeFilterTopics(
-      R_IFACE.getEvent('PoolAdded'),
-      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
-    );
-    const encodedPoolAddress: string = encodedTopicData[1] as string;
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b');
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        ADD_POOL_SIGNATURE,
+        R_IFACE.getEvent('PoolAdded').format('sighash'),
         // SENDERS[1] is not TARGET, so there should be no findings generated
         SENDERS[1],
-	      // This string is the data (not relevant for this test so it is empty)
+        // This string is the data (not relevant for this test so it is empty)
+        '',
+        encodedPoolAddress,
+    );
+    const findings = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should ignore irrelevant events from the target contract', async () => {
+    // Encode the pool address value
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b');
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        'ThisIsNotPoolAdded(address,bytes)',
+        // SENDERS[1] is not TARGET, so there should be no findings generated
+        SENDERS[1],
+        // This string is the data (not relevant for this test so it is empty)
         '',
         encodedPoolAddress,
     );
@@ -70,17 +83,13 @@ describe('Registry-Add-Pool Agent tests suite', () => {
 
   it('should detect events from the target contract', async () => {
     // Encode the pool address value
-    let encodedTopicData = R_IFACE.encodeFilterTopics(
-      R_IFACE.getEvent('PoolAdded'),
-      ['0xab5801a7d398351b8be11c439e05c5b3259aec9b'],
-    );
-    const encodedPoolAddress: string = encodedTopicData[1] as string;
-
+    const encodedPoolAddress: string = encodeParameter('address','0xab5801a7d398351b8be11c439e05c5b3259aec9b');
+    
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        ADD_POOL_SIGNATURE,
+        R_IFACE.getEvent('PoolAdded').format('sighash'),
         TARGET,
-	      // This string is the data (not relevant for this test so it is empty)
+	// This string is the data (not relevant for this test so it is empty)
         '',
         encodedPoolAddress,
       );
