@@ -25,8 +25,8 @@ const poolAddedFinding = (...params: string[]) => Finding.fromObject({
   type: FindingType.Info,
   protocol: 'Curve Finance',
   metadata: {
-    poolAddress: params[0],
-    rate: params[1],
+    pool: params[0],
+    rate_method_id: params[1],
   }
 });
 
@@ -38,13 +38,15 @@ const poolRemovedFinding = (...params: string[]) => Finding.fromObject({
   type: FindingType.Info,
   protocol: 'Curve Finance',
   metadata: {
-    poolAddress: params[0],
+    pool: params[0],
   }
 });
 
 describe('Registry-Events Agent tests suite', () => {
   const R_IFACE: utils.Interface = new utils.Interface(abi.REGISTRY);
-  const handler: HandleTransaction = provideHandleTransaction(TARGET);
+  const handler: HandleTransaction = provideHandleTransaction({
+    getRegistry: () => TARGET,
+  } as any);
 
   beforeAll(() => {
     for(let i = 10; i <= 30; ++i) {

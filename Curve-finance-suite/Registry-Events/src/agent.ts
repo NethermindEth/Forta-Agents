@@ -1,14 +1,17 @@
 import abi from './abi';
 import findings from './findings';
-import { HandleTransaction, TransactionEvent } from 'forta-agent'
+import { getEthersProvider, HandleTransaction, TransactionEvent } from 'forta-agent'
+import RegistryFetcher from './registry.fetcher';
 
-const REGISTRY_ADDRESS = "0x90E00ACe148ca3b23Ac1bC8C240C2a7Dd9c2d7f5";
+const PROVIDER_ADDRESS = "0x0000000022d53366457f9d5e68ec105046fc4383";
 
-export const provideHandleTransaction = (registryAddress: string): HandleTransaction =>
+export const provideHandleTransaction = (fetcher: RegistryFetcher): HandleTransaction =>
   async (txEvent: TransactionEvent) => txEvent
-    .filterLog(abi.REGISTRY, registryAddress)
+    .filterLog(abi.REGISTRY, await fetcher.getRegistry(txEvent.blockNumber))
     .map(findings.resolver);
 
 export default {
-  handleTransaction: provideHandleTransaction(REGISTRY_ADDRESS),
+  handleTransaction: provideHandleTransaction(
+    new RegistryFetcher(PROVIDER_ADDRESS, getEthersProvider()),
+  ),
 };

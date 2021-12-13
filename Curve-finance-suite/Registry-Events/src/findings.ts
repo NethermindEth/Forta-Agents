@@ -16,7 +16,7 @@ const poolRemoved: FndingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     protocol: 'Curve Finance',
     metadata: {
-      poolAddress: log.args[0].toLowerCase(),
+      pool: log.args[0].toLowerCase(),
     }
   });
 
@@ -29,8 +29,8 @@ const poolAdded: FndingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     protocol: 'Curve Finance',
     metadata: {
-      poolAddress: log.args[0].toLowerCase(),
-      rate: log.args[1].toString(),
+      pool: log.args[0].toLowerCase(),
+      rate_method_id: log.args[1].toString(),
     }
   });
 
