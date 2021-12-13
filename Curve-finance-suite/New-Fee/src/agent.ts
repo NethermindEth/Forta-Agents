@@ -1,6 +1,5 @@
 import {
   Finding,
-  TransactionEvent,
   FindingSeverity,
   FindingType,
   HandleTransaction,
@@ -15,7 +14,7 @@ import { utils } from 'ethers';
 
 // Interface containing relevant functions for this agent
 export const POOL_PROXY_IFACE: utils.Interface = new utils.Interface([
-  'function apply_new_fee(address pool)',
+  'function apply_new_fee(address pool) external view returns ()',
 ]);
 
 // The address of the Pool Owner (PoolProxy.vy)
@@ -32,8 +31,8 @@ const createFindingGenerator = (alertId: string): FindingGenerator =>
       type: FindingType.Info,
       protocol: 'Curve Finance',
       metadata: {
-        // The pool that had its fee changed
-        affected_pool: metadata!.arguments[0],
+        affected_pool: metadata?.arguments[0],
+        sender: metadata?.from
       },
     });
 
@@ -52,7 +51,7 @@ export const provideHandleTransaction = (
 
 export default {
   handleTransaction: provideHandleTransaction(
-    'curve-14',
+    'CURVE-14',
     POOL_PROXY_ADDRESS,
   ),
 }

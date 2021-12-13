@@ -2,7 +2,8 @@
 
 ## Description
 
-This agent detects a change in fees to a Curve BasePool or MetaPool by the Curve DAO
+This agent detects calls to `apply_new_fee` function in Curve Pool Owner Proxy
+> 0xeCb456EA5365865EbAb8a2661B0c503410e9B347
 
 ## Supported Chains
 
@@ -16,6 +17,7 @@ This agent detects a change in fees to a Curve BasePool or MetaPool by the Curve
   - Type is always set to "info"
   - Metadata contains:
     - `affected_pool`: The `_pool` argument used in the call
+    - `sender`: Address of the account that call the function
 
 ## Test Data
 
