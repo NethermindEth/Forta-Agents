@@ -12,7 +12,6 @@ import { provideHandleTransaction, POOL_PROXY_IFACE } from './agent';
 
 const TARGET: string = createAddress('0xdead');
 const ALERT_ID: string = 'newfee-test';
-const RECEIVERS: string[] = [];
 const SENDERS: string[] = [];
 
 const createFinding = (pool: string) => Finding.fromObject({
@@ -34,10 +33,8 @@ describe('NewFee Agent tests suite', () => {
   );
 
   beforeAll(() => {
-    for(let i = 0; i <= 30; ++i){
-      RECEIVERS.push(createAddress(`0xa${i}`));
+    for(let i = 0; i <= 30; ++i)
       SENDERS.push(createAddress(`0xb${i}`));
-    }
   });
 
   it('should ignore empty transactions', async () => {
