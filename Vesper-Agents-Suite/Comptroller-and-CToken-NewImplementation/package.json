@@ -20,8 +20,8 @@
   "dependencies": {
     "@types/lru-cache": "^5.1.1",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.24",
-    "forta-agent-tools": "^1.0.20",
+    "forta-agent": "^0.0.32",
+    "forta-agent-tools": "^1.0.32",
     "web3": "^1.6.0"
   },
   "devDependencies": {

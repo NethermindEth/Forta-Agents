@@ -14,11 +14,6 @@ const poolAccountantsCache = new LRU({ max: 10_000 });
 const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const createFindingCallDetector: FindingGenerator = (callInfo) => {
-  const { 0: strategyAddress, 1: lossValue } = decodeFunctionCallParameters(
-    ["address", "uint256"],
-    callInfo?.input
-  );
-
   return Finding.fromObject({
     name: "Loss Reported",
     description: "A loss was reported by a V3 strategy",
@@ -27,8 +22,8 @@ export const createFindingCallDetector: FindingGenerator = (callInfo) => {
     severity: FindingSeverity.Info,
     protocol: "Vesper",
     metadata: {
-      strategyAddress: strategyAddress,
-      lossValue: lossValue,
+      strategyAddress: callInfo?.arguments[0],
+      lossValue: callInfo?.arguments[1],
     },
   });
 };

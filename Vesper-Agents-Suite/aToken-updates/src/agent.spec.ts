@@ -16,7 +16,7 @@ import { createAddress, encodeParameter, TestTransactionEvent } from "forta-agen
 const expectedFinding = (token: TokenData, implementation: string): Finding =>
   Finding.fromObject({
     name: 'Aave aToken implementation changed',
-    description: `'Token ${token.symbol} modified'`,
+    description: `Token ${token.symbol} modified`,
     alertId: "VESPER-8",
     type: FindingType.Info,
     severity: FindingSeverity.High,
