@@ -23,28 +23,6 @@ export default class MakerFetcher {
     this.web3 = web3;
   }
 
-  public getMakerStrategies = async (
-    blockNumber: string | number = "latest"
-  ): Promise<string[] | undefined> => {
-    if (blockNumber != "latest" && this.cache.get(blockNumber) !== undefined)
-      return this.cache.get(blockNumber);
-
-    let MakerStrategies: Set<string> = new Set();
-
-    const strategies = await this.getAllStrategies(this.web3, blockNumber);
-
-    for (let strategy of strategies) {
-      const str = new this.web3.eth.Contract(Strategy_ABI, strategy);
-      const name: string = await str.methods.NAME().call({}, blockNumber);
-
-      if (name.includes("Maker")) MakerStrategies.add(strategy);
-    }
-
-    this.cache.set(blockNumber, Array.from(MakerStrategies));
-
-    return Array.from(MakerStrategies);
-  };
-
   private getPools = async (
     blockNumber: string | number = "latest"
   ): Promise<string[]> => {
@@ -90,10 +68,10 @@ export default class MakerFetcher {
   };
 
   private getPoolAccountants = async (
-    blockNumber: string | number
+    blockNumber: string | number, 
+    pools: string[],
   ): Promise<string[]> => {
     const poolAccountants: string[] = [];
-    const pools: string[] = await this.getPools(blockNumber);
 
     const poolAccountantCalls = pools.map((pool) => {
       return this.getPromise(pool, blockNumber).catch(() => {});
@@ -111,10 +89,10 @@ export default class MakerFetcher {
   };
 
   private getV2Strategies = async (
-    blockNumber: string | number
+    blockNumber: string | number, 
+    pools: string[],
   ): Promise<string[]> => {
     let v2Strategies: string[] = [];
-    const pools: string[] = await this.getPools(blockNumber);
 
     const controllerContract = new this.web3.eth.Contract(
       CONTROLLER_ABI,
@@ -136,10 +114,15 @@ export default class MakerFetcher {
     return v2Strategies;
   };
 
-  private getV3Strategies = async (blockNumber: string | number) => {
+  private getV3Strategies = async (
+    blockNumber: string | number, 
+    pools: string[],
+  ) => {
     let v3Strategies: string[] = [];
+    
     const poolAccountants: string[] = await this.getPoolAccountants(
-      blockNumber
+      blockNumber,
+      pools,
     );
 
     const v3StrategyCalls = poolAccountants.map((accountant) => {
@@ -161,23 +144,54 @@ export default class MakerFetcher {
     return v3Strategies;
   };
 
-  private getAllStrategies = async (
-    web3: Web3,
+  public getMakerStrategies = async (
     blockNumber: string | number
   ): Promise<string[]> => {
-    let strategies: string[] = [];
+    if (blockNumber != "latest" && this.cache.get(blockNumber) !== undefined)
+      return this.cache.get(blockNumber) as string[];
 
-    const strategyCalls = [
-      this.getV2Strategies(blockNumber),
-      this.getV3Strategies(blockNumber)
-    ];
+    const pools: string[] = await this.getPools(blockNumber);
 
-    await Promise.all(strategyCalls.flat()).then((res) => {
-      res.forEach((strategy) => {
-        strategies.push(...strategy);
-      });
+    let [V2, V3] = await Promise.all([
+      this.getV2Strategies(blockNumber, pools),
+      this.getV3Strategies(blockNumber, pools)
+    ]);
+
+    V2 = Array.from(new Set<string>(V2));
+    V3 = Array.from(new Set<string>(V3));
+
+    const valueV2promise = V2.map(async (strat: string) => {
+      const sContract = new this.web3.eth.Contract(
+        Strategy_ABI,
+        strat,
+      );
+      const name: string = await sContract.methods.NAME().call({}, blockNumber);
+      if(!name.includes("Maker")) return BigInt(0);
+      return BigInt(await sContract.methods.totalLocked().call({}, blockNumber));
     });
 
-    return strategies;
+    const valueV3promise = V3.map(async (strat: string) => {
+      const sContract = new this.web3.eth.Contract(
+        Strategy_ABI,
+        strat,
+      );
+      const name: string = await sContract.methods.NAME().call({}, blockNumber);
+      if(!name.includes("Maker")) return BigInt(0);
+      return BigInt(await sContract.methods.totalValue().call({}, blockNumber));
+    });
+
+    const allValue = (await Promise.all([
+      valueV2promise,
+      valueV3promise,
+    ].flat()));
+
+    const allStrat: string[] = V2.concat(V3);
+
+    const makerValidStrat: string[] = allStrat.filter(
+      (_: string, idx: number) => allValue[idx] > BigInt(0),
+    );
+
+    this.cache.set(blockNumber, makerValidStrat);
+    return makerValidStrat;
   };
 }

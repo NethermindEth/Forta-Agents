@@ -1,6 +1,6 @@
 {
   "name": "vesper-1",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Vesper Maker Strategies Agent",
   "scripts": {
     "build": "tsc",

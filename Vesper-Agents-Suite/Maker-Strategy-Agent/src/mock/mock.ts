@@ -12,7 +12,8 @@ export type Args = [
   vaultInfo: { collateralRatio: string },
   lowWater: string,
   highWater: string,
-  name: string
+  name: string,
+  value: number,
 ];
 
 const build_Mock = (args: Args) =>
@@ -32,7 +33,9 @@ const build_Mock = (args: Args) =>
       length: this.length,
       at: this.at,
       poolAccountant: this.poolAccountant.bind(this),
-      collateralType: this.collateralType
+      collateralType: this.collateralType,
+      totalLocked: this.totalLocked,
+      totalValue: this.totalValue,
     };
 
     constructor(_: any, address: string) {
@@ -42,6 +45,18 @@ const build_Mock = (args: Args) =>
     private NAME() {
       return {
         call: () => args[5]
+      };
+    }
+
+    private totalValue() {
+      return {
+        call: () => args[6]
+      };
+    }
+
+    private totalLocked() {
+      return {
+        call: () => args[6]
       };
     }
 

@@ -66,7 +66,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -91,7 +92,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -115,6 +117,33 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     ]);
   });
 
+  it("should return 0 findings because strategies are blank", async () => {
+    const COLLATERAL_RATIO = "2516557646144049203";
+    const LOW_WATER = "2200000000000000000";
+    const HIGH_WATER = "2500000000000000000";
+
+    const mockWeb3 = createMock(
+      poolAccountants,
+      false,
+      {
+        collateralRatio: COLLATERAL_RATIO
+      },
+      LOW_WATER,
+      HIGH_WATER,
+      "Maker",
+      0,
+    );
+
+    handleBlock = provideMakerStrategyHandler(mockWeb3);
+
+    let findings: Finding[] = [];
+
+    const blockEvent: BlockEvent = new TestBlockEvent();
+    findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
   it("should return findings because of collateral ratio < low water", async () => {
     const COLLATERAL_RATIO = "2116557646144049203";
     const LOW_WATER = "2200000000000000000";
@@ -128,7 +157,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -165,7 +195,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -194,7 +225,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "UniSwap"
+      "UniSwap",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -220,7 +252,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -259,7 +292,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       LOW_WATER,
       HIGH_WATER,
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleBlock = provideMakerStrategyHandler(mockWeb3);
@@ -300,7 +334,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       "2200000000000000000",
       "2500000000000000000",
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleTransaction = provideHandleTransaction(mockWeb3);
@@ -334,7 +369,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       },
       "2200000000000000000",
       "2500000000000000000",
-      "Maker"
+      "Maker",
+      1,
     );
 
     handleTransaction = provideHandleTransaction(mockWeb3);
