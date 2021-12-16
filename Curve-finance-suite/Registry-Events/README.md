@@ -1,4 +1,4 @@
-# High Gas Agent
+# Curve Registry Events
 
 ## Description
 
