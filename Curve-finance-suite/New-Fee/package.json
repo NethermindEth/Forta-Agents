@@ -1,7 +1,7 @@
 {
-  "name": "curve-3",
+  "name": "curve-14",
   "version": "0.0.1",
-  "description": "Agent to detect successful migrate_to_new_pool calls",
+  "description": "Agent to detect successful change in fees to a Curve BasePool or MetaPool",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -19,12 +19,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "ethers": "^5.5.2",
     "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.31"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
