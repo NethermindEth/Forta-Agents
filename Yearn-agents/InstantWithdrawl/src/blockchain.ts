@@ -19,7 +19,6 @@ export default function runServer(accounts: Array<string>) {
     port: 9545,
     fork: process.env.jsonRPC,
     hardfork: DEFAULT_HARDFORK,
-    fork_block_number: 12628504,
     forkCachePath: FORK_TESTS_CACHE_PATH,
     blockGasLimit: 210000,
     locked: false,

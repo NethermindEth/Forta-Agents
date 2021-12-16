@@ -39,9 +39,7 @@ describe("Yearn: Instant Withdraw Agent", () => {
         Promise.resolve("success")
       );
 
-      mockCallBalance.mockImplementationOnce(() =>
-        Promise.resolve("289584189215485306814849565")
-      );
+      mockCallBalance.mockImplementationOnce(() => Promise.resolve("0"));
       const findings = await handleBlock(blockEvent);
 
       expect(findings).toStrictEqual([]);
@@ -98,9 +96,7 @@ describe("Yearn: Instant Withdraw Agent", () => {
       mockWithdrawBalance.mockImplementationOnce(() => Promise.resolve());
       mockWithdrawBalance.mockImplementationOnce(() => Promise.resolve());
 
-      mockCallBalance.mockImplementationOnce(() =>
-        Promise.resolve("289584189215485306814849565")
-      );
+      mockCallBalance.mockImplementationOnce(() => Promise.resolve("0"));
       mockCallBalance.mockImplementationOnce(() =>
         Promise.resolve("129584189215485306814849565")
       );

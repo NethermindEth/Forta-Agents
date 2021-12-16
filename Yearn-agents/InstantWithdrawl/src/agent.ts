@@ -1,5 +1,5 @@
 import { BlockEvent, Finding, HandleBlock, getJsonRpcUrl } from "forta-agent";
-import axios, { AxiosPromise } from "axios";
+import axios from "axios";
 import { generateFinding, getAccounts, Mapping } from "./utils";
 import Web3 from "web3";
 import runServer from "./blockchain";
@@ -43,7 +43,7 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
                 .balanceOf(userAddress)
                 .call({}, blockEvent.blockNumber)
                 .then((res: string) => {
-                  if (!(res === balance)) {
+                  if (new BigNumber(res).gt(0)) {
                     findings.push(
                       generateFinding(
                         new BigNumber(res),
