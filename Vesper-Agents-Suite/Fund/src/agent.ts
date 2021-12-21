@@ -14,22 +14,23 @@ function provideHandleFunction(web3: Web3): HandleBlock {
     const blockNumber = blockEvent.blockNumber;
 
     const pools: any = await getPools(web3, blockNumber);
-    const promises: Promise<[any, any]>[] = [];
+    const promises: Promise<[any, any, any]>[] = [];
     pools.forEach((value: string) => {
       const contract = new web3.eth.Contract(abi as any, value);
       const totalValue = getTotalValue(contract, blockNumber);
       const tokenHere = getTokensHere(contract, blockNumber);
-      promises.push(Promise.all([totalValue, tokenHere]));
+      promises.push(Promise.all([value, totalValue, tokenHere]));
     });
 
     const result = await Promise.all(promises as any);
 
     result.forEach((value: any) => {
-      const totalValue = new BigNumber(value[0]);
-      const tokenHere = new BigNumber(value[1]);
+      const pool = value[0];
+      const totalValue = new BigNumber(value[1]);
+      const tokenHere = new BigNumber(value[2]);
 
       if (tokenHere.isGreaterThan(totalValue.multipliedBy(0.2))) {
-        findings.push(createFinding(tokenHere.toNumber()));
+        findings.push(createFinding(pool, tokenHere.toNumber()));
       }
     });
 

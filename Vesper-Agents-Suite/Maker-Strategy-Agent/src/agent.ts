@@ -50,6 +50,8 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
           res.strategy,
           blockEvent.blockNumber
         );
+        
+         /* Commented to stop alert.
         const highWater: Promise<number> = getHighWater(
           web3,
           res.strategy,
@@ -60,16 +62,19 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
           res.strategy,
           blockEvent.blockNumber
         );
+        */
 
-        await Promise.all([lowWater, highWater, isUnderWater]).then(
+        await Promise.all([lowWater]).then(
           (values) => {
             const collateralRatio = res.collateralRatio;
             const lowWater = values[0];
+            /* Commented to stop alert.
             const highWater = values[1];
             const isUnderWater = values[2];
             if (isUnderWater) {
               findings.push(createFindingIsUnderWater(res.strategy.toString()));
             }
+            */
             if (BigInt(collateralRatio) < BigInt(lowWater)) {
               findings.push(
                 createFindingLowWater(
@@ -78,7 +83,9 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
                   lowWater.toString()
                 )
               );
-            } else if (BigInt(collateralRatio) > BigInt(highWater))
+            } 
+            /* Commented to stop alert.
+            else if (BigInt(collateralRatio) > BigInt(highWater))
               findings.push(
                 createFindingHighWater(
                   res.strategy.toString(),
@@ -86,6 +93,7 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
                   highWater.toString()
                 )
               );
+              */
           }
         );
       }

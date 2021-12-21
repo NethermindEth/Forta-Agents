@@ -13,7 +13,7 @@ export const createFindingStabilityFee = (
     return Finding.fromObject({
       name: "Stability Fee Update Detection",
       description: "stability Fee is changed for related strategy's collateral",
-      severity: FindingSeverity.High,
+      severity: FindingSeverity.Info,
       type: FindingType.Info,
       alertId: "Vesper-1-3",
       protocol: "Vesper",
@@ -29,7 +29,7 @@ export const createFindingIsUnderWater = (_strategy: string): Finding => {
   return Finding.fromObject({
     name: "Maker Type Strategy isUnderWater Detection",
     description: "IsUnderWater returned True for a Maker Strategy",
-    severity: FindingSeverity.High,
+    severity: FindingSeverity.Info,
     type: FindingType.Suspicious,
     alertId: "Vesper-1-2",
     protocol: "Vesper",

@@ -15,7 +15,7 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
   - Maker Type Strategy isUnderWater Detection:
 
     - if `isUnderWater` returns true
-    - Severity is `High`
+    - Severity is `Info`
     - Type is `Suspicious`
     - The alert metadata includes:
       - `strategy`: The address of the Maker strategy
@@ -44,7 +44,7 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
 
   - Stability Fee Updates Detection:
     - throws alert when stability fee changes in the collaterals of maker strategies
-    - Severity is `High`
+    - Severity is `Info`
     - Type is `Info`
     - The alert metadata includes:
       - `strategy`: The address of the Maker strategy

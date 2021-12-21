@@ -9,7 +9,7 @@ This agent detects Vesper strategies not rebalanced since a long time
 
 - VESPER-4
   - Fired when rebalance method is not called since two weeks in any of the vesper strategies
-  - Severity is always set to "high"
+  - Severity is always set to "info"
   - Type is always set to "info"
   - The alert metadata includes:
     - `strategy`: The address of the not rebalanced strategy

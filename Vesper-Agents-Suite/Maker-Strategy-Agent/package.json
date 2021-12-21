@@ -14,6 +14,7 @@
     "publish": "forta-agent publish",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
+    "push": "forta-agent push",
     "test": "jest"
   },
   "dependencies": {
