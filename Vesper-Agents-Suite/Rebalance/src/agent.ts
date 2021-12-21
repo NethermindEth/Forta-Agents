@@ -29,7 +29,7 @@ export const createFinding = (address: string, elapsed: number, threshold: numbe
     name: "Vesper Strategies rebalance alert",
     description: "Rebalance function not called since long",
     alertId: "VESPER-4",
-    severity: FindingSeverity.High,
+    severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Vesper",
     metadata: {

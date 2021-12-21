@@ -20,15 +20,17 @@ const getTokensHere = async (contract: any, blockNumber: number) => {
   return await contract.methods.tokensHere().call({}, blockNumber);
 };
 
-const createFinding = (tokenfunds = 0): Finding => {
+const createFinding = (pool: any, tokenfunds = 0): Finding => {
   return Finding.fromObject({
     name: "Pool Fund's Report",
     description: "The idle funds in the pool > 20% of total value",
     alertId: "Vesper-3",
-    type: FindingType.Suspicious,
-    severity: FindingSeverity.High,
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
     metadata: {
+      pool,
       tokenfunds: tokenfunds.toString(),
+
     },
   });
 };
