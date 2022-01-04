@@ -1,19 +1,23 @@
 import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
   HandleTransaction, 
   TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
+  LogDescription
 } from 'forta-agent';
+import utils from './utils';
+import { BigNumber } from 'ethers';
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+const TREASURY_CONTRACT: string = "0x31F8Cc382c9898b273eff4e0b7626a6987C846E8";
+const THRESHOLD: BigNumber = BigNumber.from("1000000");
 
-  return findings;
-};
+export const provideHandleTransaction = (
+  treasury: string,
+  threshold: BigNumber,
+): HandleTransaction =>
+  async (txEvent: TransactionEvent) => txEvent
+    .filterLog(utils.TREASURY_ABI, treasury)
+    .filter((log: LogDescription) => log.args["value"].gte(threshold))
+    .map(utils.createFinding);
 
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(TREASURY_CONTRACT, THRESHOLD),
 };
