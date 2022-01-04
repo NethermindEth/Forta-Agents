@@ -1,0 +1,44 @@
+import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
+
+const TREASURY_ABI = [
+  "event OwnershipPushed(address indexed previousOwner, address indexed newOwner)",
+  "event OwnershipPulled(address indexed previousOwner, address indexed newOwner)",
+];
+
+type FindingGenerator = (log: LogDescription) => Finding;
+
+const pushFinding: FindingGenerator = (log: LogDescription): Finding => Finding.fromObject({
+  name: "OlympusDAO Treasury Ownership event detected",
+  description: "OwnershipPushed event",
+  alertId: "olympus-treasury-4-1",
+  severity: FindingSeverity.High,
+  type: FindingType.Info,
+  metadata: {
+    currentOwner: log.args['previousOwner'],
+    proposedOwner: log.args['newOwner'],
+  }
+});
+
+const pullFinding: FindingGenerator = (log: LogDescription): Finding => Finding.fromObject({
+  name: "OlympusDAO Treasury Ownership event detected",
+  description: "OwnershipPulled event",
+  alertId: "olympus-treasury-4-2",
+  severity: FindingSeverity.Info,
+  type: FindingType.Info,
+  metadata: {
+    previousOwner: log.args['previousOwner'],
+    newOwner: log.args['newOwner'],
+  }
+});
+
+const findingsMap: Record<string, FindingGenerator> = {
+  'OwnershipPulled': pullFinding,
+  'OwnershipPushed': pushFinding,
+}
+
+const createFinding: FindingGenerator = (log: LogDescription): Finding => findingsMap[log.name](log);
+
+export default {
+  TREASURY_ABI,
+  createFinding,
+};

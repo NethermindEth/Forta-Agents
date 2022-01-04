@@ -1,18 +1,16 @@
 import { 
-  Finding, 
   HandleTransaction, 
   TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
 } from 'forta-agent';
+import utils from './utils';
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+const TREASURY_CONTRACT: string = "0x31F8Cc382c9898b273eff4e0b7626a6987C846E8";
 
-
-  return findings;
-};
+const provideHandleTransaction = (treasury: string): HandleTransaction =>
+  async (txEvent: TransactionEvent) => txEvent
+    .filterLog(utils.TREASURY_ABI, treasury)
+    .map(utils.createFinding);
 
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(TREASURY_CONTRACT),
 };
