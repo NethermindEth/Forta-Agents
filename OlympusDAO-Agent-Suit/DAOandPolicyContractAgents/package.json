@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "olympus-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Policy and Dao contracts core events detection",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
