@@ -11,7 +11,7 @@ This agent detects big changes in treasury contract `totalReserves`.
 
 ## Alerts
 
-- olympus-2-1
+- olympus-treasury-3-1
   - Fired when a big `totalReserves` increasement is detected
   - Severity is always set to "Info"
   - Type is always set to "Info"
@@ -20,7 +20,7 @@ This agent detects big changes in treasury contract `totalReserves`.
     - `changedTo`: New totalReserves value
     - `increasedBy`: Text indicating the increasement percent
 
-- olympus-2-2
+- olympus-treasury-3-2
   - Fired when a big `totalReserves` decreasement is detected
   - Severity is always set to "Info"
   - Type is always set to "Info"

@@ -12,7 +12,7 @@ const reserveIncreasement = (
 ): Finding => Finding.fromObject({
   name: "OlympusDAO Treasury totalReserves monitor",
   description: "Big increasement detected",
-  alertId: "olympus-2-1",
+  alertId: "olympus-treasury-3-1",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   metadata: {
@@ -29,7 +29,7 @@ const reserveDecreasement = (
 ): Finding => Finding.fromObject({
   name: "OlympusDAO Treasury totalReserves monitor",
   description: "Big decreasement detected",
-  alertId: "olympus-2-2",
+  alertId: "olympus-treasury-3-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   metadata: {
