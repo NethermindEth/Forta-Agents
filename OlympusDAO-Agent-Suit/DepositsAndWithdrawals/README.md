@@ -13,8 +13,8 @@ This agent detects transactions with high Deposit/Withdrawals values in OlympusD
 
 - olympus-treasury-5-1
   - Fired when a high deposit ocur
-  - Severity is always set to "info" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
+  - Severity is always set to "info" 
+  - Type is always set to "suspicious" 
   - Metadata contains:
     - `token`: Address of the deposited token
     - `amount`: Amount of tokens deposited
@@ -22,8 +22,8 @@ This agent detects transactions with high Deposit/Withdrawals values in OlympusD
 
 - olympus-treasury-5-2
   - Fired when a high withdrawal ocur
-  - Severity is always set to "info" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
+  - Severity is always set to "info" 
+  - Type is always set to "suspicious" 
   - Metadata contains:
     - `token`: Address of the token withdrawn
     - `amount`: Amount of withdrawn token
