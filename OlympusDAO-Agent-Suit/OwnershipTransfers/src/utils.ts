@@ -14,8 +14,8 @@ const pushFinding: FindingGenerator = (log: LogDescription): Finding => Finding.
   severity: FindingSeverity.High,
   type: FindingType.Info,
   metadata: {
-    currentOwner: log.args['previousOwner'],
-    proposedOwner: log.args['newOwner'],
+    currentOwner: log.args['previousOwner'].toLowerCase(),
+    proposedOwner: log.args['newOwner'].toLowerCase(),
   }
 });
 
@@ -26,8 +26,8 @@ const pullFinding: FindingGenerator = (log: LogDescription): Finding => Finding.
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   metadata: {
-    previousOwner: log.args['previousOwner'],
-    newOwner: log.args['newOwner'],
+    previousOwner: log.args['previousOwner'].toLowerCase(),
+    newOwner: log.args['newOwner'].toLowerCase(),
   }
 });
 
