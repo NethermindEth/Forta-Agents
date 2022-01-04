@@ -14,7 +14,6 @@ import {
   ADDED_OWNER_SIG,
   addresses,
   CHANGED_THRESHOLD_SIG,
-  createAddedOwnerFindingGenerator,
   REMOVED_OWNER_SIG,
 } from './utils';
 
@@ -151,7 +150,7 @@ describe('high gas agent', () => {
       createTestRemovedOwnerFinding(createAddress('0x1'), addresses[1]),
     ]);
   });
-  it('should return `ChangedThreshol` event finding', async () => {
+  it('should return `ChangedThreshold` event finding', async () => {
     const encodedData = encodeParameter('uint256', '2');
 
     const txEvent = new TestTransactionEvent()
