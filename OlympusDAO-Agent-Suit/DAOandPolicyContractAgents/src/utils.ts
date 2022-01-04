@@ -24,7 +24,7 @@ export const createAddedOwnerFindingGenerator = (
       protocol: 'OlympusDAO',
       metadata: {
         owner: addedOwner,
-        constract: contract,
+        contract: contract,
       },
     });
   };
@@ -44,7 +44,7 @@ export const createRemovedOwnerFindingGenerator = (
       protocol: 'OlympusDAO',
       metadata: {
         owner: removedOwner,
-        constract: contract,
+        contract: contract,
       },
     });
   };
@@ -55,6 +55,7 @@ export const createChangedTHFindingGenerator = (
 ): FindingGenerator => {
   return (metadata) => {
     const TH = decodeParameter('uint256', metadata?.data);
+
     return Finding.fromObject({
       name: 'Change Threshold Event Detection',
       description: 'The threshold is changed.',
@@ -64,7 +65,7 @@ export const createChangedTHFindingGenerator = (
       protocol: 'OlympusDAO',
       metadata: {
         threshold: TH,
-        constract: contract,
+        contract: contract,
       },
     });
   };
