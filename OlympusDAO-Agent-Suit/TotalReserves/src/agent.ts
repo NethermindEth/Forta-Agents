@@ -12,7 +12,7 @@ import finding from "./findings";
 const BIG_CHANGE_PERCENT: number = 20;
 const TREASURY_CONTRACT: string = "0x31F8Cc382c9898b273eff4e0b7626a6987C846E8";
 
-const provideHandleTransaction = (fetcher: ReserveFetcher) =>
+export const provideHandleTransaction = (fetcher: ReserveFetcher, percentChange: number) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
@@ -29,7 +29,7 @@ const provideHandleTransaction = (fetcher: ReserveFetcher) =>
         ...finding.checkValues(
           reserve, 
           logReserve,
-          BIG_CHANGE_PERCENT,
+          percentChange,
         )
       );
       reserve = logReserve;
@@ -47,5 +47,6 @@ export default {
       TREASURY_CONTRACT,
       getEthersProvider(),
     ),
+    BIG_CHANGE_PERCENT,
   ),
 };

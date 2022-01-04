@@ -25,4 +25,8 @@ export default class ReserveFetcher {
     this.set(block, reserve);
     return reserve;
   }
+
+  public clear() {
+    this.cache.reset();
+  }
 };
