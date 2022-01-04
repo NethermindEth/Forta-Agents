@@ -15,14 +15,6 @@ describe("ReserveFetcher tests suite", () => {
     }
   });
 
-  it("should store the contract correctly", async () => {
-    for(let i = 0; i <= 30; ++i){
-      const addr: string = createAddress(`0x${i}`);
-      const fetcher = new ReserveFetcher(addr, provider as any);
-      expect(fetcher.treasury).toStrictEqual(addr);
-    }
-  });
-
   it("should return the correct totalReserves amount", async () => {
     const treasury: string = createAddress("0xc0de");
     const fetcher = new ReserveFetcher(treasury, provider as any);
