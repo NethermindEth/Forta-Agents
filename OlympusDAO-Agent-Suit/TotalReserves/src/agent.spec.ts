@@ -21,6 +21,7 @@ const reserveIncreasement = (
   alertId: "olympus-treasury-3-1",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
@@ -37,6 +38,7 @@ const reserveDecreasement = (
   alertId: "olympus-treasury-3-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
