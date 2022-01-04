@@ -8,7 +8,6 @@ import { BigNumber } from 'ethers';
 const reserveIncreasement = (
   initialReserve: BigNumber, 
   curReserve: BigNumber, 
-  percentChange: number
 ): Finding => Finding.fromObject({
   name: "OlympusDAO Treasury totalReserves monitor",
   description: "Big increasement detected",
@@ -19,14 +18,12 @@ const reserveIncreasement = (
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
-    increasedBy: `${percentChange}% or more`,
   },
 });
 
 const reserveDecreasement = (
   initialReserve: BigNumber, 
   curReserve: BigNumber, 
-  percentChange: number
 ): Finding => Finding.fromObject({
   name: "OlympusDAO Treasury totalReserves monitor",
   description: "Big decreasement detected",
@@ -37,7 +34,6 @@ const reserveDecreasement = (
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
-    decreasedBy: `${percentChange}% or more`,
   },
 });
 
@@ -50,9 +46,9 @@ const checkValues = (
     .mul(BigNumber.from(percentChange))
     .div(BigNumber.from(100));
   if(curReserve.gte(initialReserve.add(percent)))
-    return [reserveIncreasement(initialReserve, curReserve, percentChange)];
+    return [reserveIncreasement(initialReserve, curReserve)];
   if(curReserve.lte(initialReserve.sub(percent)))
-    return [reserveDecreasement(initialReserve, curReserve, percentChange)];
+    return [reserveDecreasement(initialReserve, curReserve)];
   return [];
 };
 

@@ -25,7 +25,6 @@ const reserveIncreasement = (
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
-    increasedBy: `20% or more`,
   },
 });
 
@@ -42,7 +41,6 @@ const reserveDecreasement = (
   metadata: {
     totalReserve: initialReserve.toString(),
     changedTo: curReserve.toString(),
-    decreasedBy: `20% or more`,
   },
 });
 
