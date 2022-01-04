@@ -20,6 +20,7 @@ const depositFinding = (token: string, amount: number, value: number): Finding =
   alertId: "olympus-treasury-5-1",
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
+  protocol: "OlympusDAO",
   metadata: {
     token,
     amount: amount.toString(),
@@ -33,6 +34,7 @@ const withdrawalFinding = (token: string, amount: number, value: number): Findin
   alertId: "olympus-treasury-5-2",
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
+  protocol: "OlympusDAO",
   metadata: {
     token,
     amount: amount.toString(),

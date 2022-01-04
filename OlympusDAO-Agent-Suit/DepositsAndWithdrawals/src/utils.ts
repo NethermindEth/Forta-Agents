@@ -17,6 +17,7 @@ const depositFinding = (log: LogDescription): Finding => Finding.fromObject({
   alertId: "olympus-treasury-5-1",
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
+  protocol: "OlympusDAO",
   metadata: {
     token: log.args['token'].toLowerCase(),
     amount: log.args['amount'].toString(),
@@ -30,6 +31,7 @@ const withdrawalFinding = (log: LogDescription): Finding => Finding.fromObject({
   alertId: "olympus-treasury-5-2",
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
+  protocol: "OlympusDAO",
   metadata: {
     token: log.args['token'].toLowerCase(),
     amount: log.args['amount'].toString(),
