@@ -18,6 +18,7 @@ const pushFinding = (cur: string, prop: string): Finding => Finding.fromObject({
   alertId: "olympus-treasury-4-1",
   severity: FindingSeverity.High,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     currentOwner: createAddress(cur),
     proposedOwner: createAddress(prop),
@@ -30,6 +31,7 @@ const pullFinding = (prev: string, nnew: string): Finding => Finding.fromObject(
   alertId: "olympus-treasury-4-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     previousOwner: createAddress(prev),
     newOwner: createAddress(nnew),

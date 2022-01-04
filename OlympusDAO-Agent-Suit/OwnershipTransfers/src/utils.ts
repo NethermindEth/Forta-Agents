@@ -13,6 +13,7 @@ const pushFinding: FindingGenerator = (log: LogDescription): Finding => Finding.
   alertId: "olympus-treasury-4-1",
   severity: FindingSeverity.High,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     currentOwner: log.args['previousOwner'].toLowerCase(),
     proposedOwner: log.args['newOwner'].toLowerCase(),
@@ -25,6 +26,7 @@ const pullFinding: FindingGenerator = (log: LogDescription): Finding => Finding.
   alertId: "olympus-treasury-4-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
+  protocol: "OlympusDAO",
   metadata: {
     previousOwner: log.args['previousOwner'].toLowerCase(),
     newOwner: log.args['newOwner'].toLowerCase(),
