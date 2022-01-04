@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "OlympusDAO-6",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detects calls to management function in Stake Contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
