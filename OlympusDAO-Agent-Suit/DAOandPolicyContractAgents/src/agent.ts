@@ -1,22 +1,45 @@
-import BigNumber from 'bignumber.js';
+import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
+import { provideEventCheckerHandler } from 'forta-agent-tools';
 import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from 'forta-agent';
+  ADDED_OWNER_SIG,
+  addresses,
+  CHANGED_THRESHOLD_SIG,
+  createAddedOwnerFindingGenerator,
+  createChangedTHFindingGenerator,
+  createRemovedOwnerFindingGenerator,
+  REMOVED_OWNER_SIG,
+} from './utils';
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export const provideHandleTransaction = (): HandleTransaction => {
+  return async (transactionEvent: TransactionEvent) => {
+    const handlers: HandleTransaction[] = addresses
+      .map((addr: string) => [
+        provideEventCheckerHandler(
+          createAddedOwnerFindingGenerator(addr),
+          ADDED_OWNER_SIG,
+          addr
+        ),
+        provideEventCheckerHandler(
+          createRemovedOwnerFindingGenerator(addr),
+          REMOVED_OWNER_SIG,
+          addr
+        ),
+        provideEventCheckerHandler(
+          createChangedTHFindingGenerator(addr),
+          CHANGED_THRESHOLD_SIG,
+          addr
+        ),
+      ])
+      .flat();
 
-  return findings;
+    const findings: Finding[][] = await Promise.all(
+      handlers.map((handler) => handler(transactionEvent))
+    );
+
+    return findings.flat();
+  };
 };
 
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(),
 };
