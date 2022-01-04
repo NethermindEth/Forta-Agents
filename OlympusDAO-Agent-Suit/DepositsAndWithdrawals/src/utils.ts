@@ -1,9 +1,15 @@
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
+import { Interface } from "@ethersproject/abi";
 
 const TREASURY_ABI: string[] = [
   "event Deposit( address indexed token, uint amount, uint value )",
   "event Withdrawal( address indexed token, uint amount, uint value )",
 ];
+
+const TEST_IFACE: Interface = new Interface([
+  ...TREASURY_ABI,
+  "event TestEvent( address indexed token, uint amount, uint value )",
+]);
 
 const depositFinding = (log: LogDescription): Finding => Finding.fromObject({
   name: "OlympusDAO Treasury High tokens movement detected",
@@ -12,7 +18,7 @@ const depositFinding = (log: LogDescription): Finding => Finding.fromObject({
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
   metadata: {
-    token: log.args['token'],
+    token: log.args['token'].toLowerCase(),
     amount: log.args['amount'].toString(),
     value: log.args['value'].toString(),
   }
@@ -25,7 +31,7 @@ const withdrawalFinding = (log: LogDescription): Finding => Finding.fromObject({
   severity: FindingSeverity.Info,
   type: FindingType.Suspicious,
   metadata: {
-    token: log.args['token'],
+    token: log.args['token'].toLowerCase(),
     amount: log.args['amount'].toString(),
     value: log.args['value'].toString(),
   }
@@ -40,5 +46,6 @@ const createFinding = (log: LogDescription): Finding => findingsMap[log.name](lo
 
 export default {
   TREASURY_ABI,
+  TEST_IFACE,
   createFinding,
 };
