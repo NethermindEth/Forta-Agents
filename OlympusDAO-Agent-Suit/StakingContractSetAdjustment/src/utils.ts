@@ -7,9 +7,9 @@ export const createFinding = (
   target: string
 ): Finding => {
   return Finding.fromObject({
-    name: "af",
-    description: "s",
-    alertId: "sf",
+    name: "Stake Contract setAdjustment",
+    description: "setAdjustment was called on stake contract",
+    alertId: "OlympusDAO-5",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "OlympusDAO",
