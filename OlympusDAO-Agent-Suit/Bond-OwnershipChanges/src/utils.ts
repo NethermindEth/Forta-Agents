@@ -30,7 +30,7 @@ const pushFinding: FindingGenerator = (
   Finding.fromObject({
     name: 'OlympusDAO Bond Ownership event detected',
     description: 'OwnershipPushed event',
-    alertId: 'olympus-treasury-10-1',
+    alertId: 'olympus-10-1',
     severity: FindingSeverity.High,
     type: FindingType.Info,
     protocol: 'OlympusDAO',
@@ -48,8 +48,8 @@ const pullFinding: FindingGenerator = (
   Finding.fromObject({
     name: 'OlympusDAO Bond Ownership event detected',
     description: 'OwnershipPulled event',
-    alertId: 'olympus-treasury-10-2',
-    severity: FindingSeverity.Info,
+    alertId: 'olympus-10-2',
+    severity: FindingSeverity.High,
     type: FindingType.Info,
     protocol: 'OlympusDAO',
     metadata: {

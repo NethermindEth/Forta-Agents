@@ -1,27 +1,39 @@
-# High Gas Agent
+# BOND - Ownership Transfers
 
 ## Description
 
-This agent detects transactions with high gas consumption
+This agent detects ownership transfer on following Bond Contracts
+
+- `0x767e3459A35419122e5F6274fB1223d75881E0a9`, // CVX Bond
+- `0x575409F8d77c12B05feD8B455815f0e54797381c`, // DAI Bond
+- `0xE6295201CD1ff13CeD5f063a5421c39A1D236F1c`, // ETH Bond
+- `0x8510c8c2B6891E04864fa196693D44E6B6ec2514`, // FRAX Bond
+- `0x10C0f93f64e3C8D0a1b0f4B87d6155fd9e89D08D`, // LUSD Bond
+- `0x956c43998316b6a2F21f89a1539f73fB5B78c151`, // OHM / DAI LP Bond
+- `0xc20CffF07076858a7e642E396180EC390E5A02f7`, // OHM / FRAX LP Bond
+- `0xFB1776299E7804DD8016303Df9c07a65c80F67b6`, // OHM / LUSD LP Bond
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- olympus-10-1
 
-- FORTA-1
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when a transaction emit `OwnershipPushed` event
+  - Severity is always set to "High"
+  - Type is always set to "Info"
+  - Metadata contains:
+    - `bond`: The bond contract
+    - `previousOwner`: The current owner
+    - `newOwner`: The new owner proposed
 
-## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+- olympus-10-2
+  - Fired when a transaction emit `OwnershipPulled` event
+  - Severity is always set to "High"
+  - Type is always set to "Info"
+  - Metadata contains:
+    - `bond`: The bond contract
+    - `previousOwner`: The previous owner
+    - `newOwner`: The new owner
