@@ -62,7 +62,7 @@ const createTestChangedTHFinding = (TH: string, contract: string) => {
   });
 };
 
-describe('high gas agent', () => {
+describe('DAO and POLICY contracts core events Agent', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
