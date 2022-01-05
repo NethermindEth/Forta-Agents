@@ -72,7 +72,7 @@ describe("totalReserve Agent test suite", () => {
   
   it("should ignore transactions not emitting events", async () => {
     const tx: TransactionEvent =  new TestTransactionEvent().setBlock(1)
-    fetcher.set(1, BigNumber.from(2));
+    fetcher.update(1, BigNumber.from(2));
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
@@ -87,7 +87,7 @@ describe("totalReserve Agent test suite", () => {
         "0x",
         encodeParameter('uint256', 20),
       );
-    fetcher.set(2, BigNumber.from(234));
+    fetcher.update(2, BigNumber.from(234));
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);

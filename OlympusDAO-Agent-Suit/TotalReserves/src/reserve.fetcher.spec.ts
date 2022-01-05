@@ -36,8 +36,8 @@ describe("ReserveFetcher tests suite", () => {
       );
 
     // Fetching initial reserves
-    let block51reserve: BigNumber = await fetcher.getReserve(51);
-    let block24reserve: BigNumber = await fetcher.getReserve(24);
+    let block51reserve: BigNumber = await fetcher.getLastSeenReserve(51);
+    let block24reserve: BigNumber = await fetcher.getLastSeenReserve(24);
 
     expect(block51reserve).toStrictEqual(BigNumber.from(20));
     expect(block24reserve).toStrictEqual(BigNumber.from(200));
@@ -46,18 +46,18 @@ describe("ReserveFetcher tests suite", () => {
     provider.clear();
 
     // Fetch cached values
-    block51reserve = await fetcher.getReserve(51);
-    block24reserve = await fetcher.getReserve(24);
+    block51reserve = await fetcher.getLastSeenReserve(51);
+    block24reserve = await fetcher.getLastSeenReserve(24);
 
     expect(block51reserve).toStrictEqual(BigNumber.from(20));
     expect(block24reserve).toStrictEqual(BigNumber.from(200));
 
     // Update values
-    fetcher.set(51, BigNumber.from(123));
-    fetcher.set(24, BigNumber.from(321));
+    fetcher.update(51, BigNumber.from(123));
+    fetcher.update(24, BigNumber.from(321));
 
-    block51reserve = await fetcher.getReserve(51);
-    block24reserve = await fetcher.getReserve(24);
+    block51reserve = await fetcher.getLastSeenReserve(51);
+    block24reserve = await fetcher.getLastSeenReserve(24);
 
     expect(block51reserve).toStrictEqual(BigNumber.from(123));
     expect(block24reserve).toStrictEqual(BigNumber.from(321));

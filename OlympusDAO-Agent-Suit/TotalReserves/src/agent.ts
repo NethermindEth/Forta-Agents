@@ -21,7 +21,7 @@ export const provideHandleTransaction = (fetcher: ReserveFetcher, percentChange:
       fetcher.treasury,
     );
 
-    let reserve: BigNumber = await fetcher.getReserve(txEvent.blockNumber);
+    let reserve: BigNumber = await fetcher.getLastSeenReserve(txEvent.blockNumber);
 
     events.forEach((log: LogDescription) => {
       const logReserve: BigNumber = log.args["totalReserves"];
@@ -35,7 +35,7 @@ export const provideHandleTransaction = (fetcher: ReserveFetcher, percentChange:
       reserve = logReserve;
     });
 
-    fetcher.set(txEvent.blockNumber, reserve);
+    fetcher.update(txEvent.blockNumber, reserve);
 
     return findings;
   };

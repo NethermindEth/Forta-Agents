@@ -3,30 +3,32 @@ import LRU from "lru-cache";
 import { BigNumber, Contract, providers } from "ethers";
 
 export default class ReserveFetcher {
-  private cache: LRU<number, BigNumber>;
+  private storage: LRU<number, BigNumber>;
   readonly treasury: string;
   private tContract: Contract;
 
   constructor(contract: string, provider: providers.Provider){
     this.treasury = contract;
     this.tContract = new Contract(contract, abi.TREASURY_ABI, provider);
-    this.cache = new LRU<number, BigNumber>();
+    this.storage = new LRU<number, BigNumber>();
   }
 
-  public set(block: number, reserve: BigNumber) {
-    this.cache.set(block, reserve);
+  public update(block: number, reserve: BigNumber) {
+    this.storage.set(block, reserve);
   }
 
-  public async getReserve(block: number): Promise<BigNumber> {
-    if(this.cache.get(block) !== undefined)
-      return this.cache.get(block) as BigNumber;
+  public async getLastSeenReserve(block: number): Promise<BigNumber> {
+    // try to get the last value stored
+    if(this.storage.get(block) !== undefined)
+      return this.storage.get(block) as BigNumber;
 
+    // initialize the value with the final value of the previous block
     const reserve = await this.tContract.totalReserves({ blockTag: block - 1 });
-    this.set(block, reserve);
+    this.update(block, reserve);
     return reserve;
   }
 
   public clear() {
-    this.cache.reset();
+    this.storage.reset();
   }
 };
