@@ -1,20 +1,19 @@
 import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
   HandleTransaction, 
   TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
 } from 'forta-agent';
+import utils from './utils';
+import { utils as ethers } from "ethers";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
-
-  
-  return findings;
-};
+const provideHandleTransaction = (bonds: string[]): HandleTransaction => 
+  async (txEvent: TransactionEvent) => bonds
+    .map((address: string) => txEvent
+      .filterFunction(utils.BONDS_ABI, address)
+      .map((desc: ethers.TransactionDescription) => 
+        utils.createFinding(desc, address)
+      )
+    ).flat()
 
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(utils.BONDS_CONTRACTS),
 };
