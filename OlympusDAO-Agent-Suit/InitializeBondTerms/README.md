@@ -30,3 +30,4 @@ This agent detects `initializeBondTerms` call on following Bond Contracts
       - `_maxPayout`
       - `_maxDebt`
       - `_initialDebt`
+      - `_fee` (if the function has the _fee parameter)

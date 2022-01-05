@@ -5,8 +5,6 @@ import {
 } from 'forta-agent';
 import { utils } from "ethers";
 
-type FindingGenerator = (desc: utils.TransactionDescription, bond: string) => Finding;
-
 const BONDS_CONTRACTS = [
   '0x767e3459A35419122e5F6274fB1223d75881E0a9', // CVX Bond
   '0x575409F8d77c12B05feD8B455815f0e54797381c', // DAI Bond
@@ -27,11 +25,19 @@ const BONDS_ABI = [
     uint _maxDebt,
     uint _initialDebt
   )`,
+  `function initializeBondTerms( 
+    uint _controlVariable, 
+    uint _vestingTerm,
+    uint _minimumPrice,
+    uint _maxPayout,
+    uint _fee,
+    uint _maxDebt,
+    uint _initialDebt
+  )`,
 ];
 
-const createFinding: FindingGenerator = (
-  desc: utils.TransactionDescription,
-  bond: string, 
+const initBondTermsFinding = (
+  metadata: Record<string, string>, 
 ): Finding =>
   Finding.fromObject({
     name: 'OlympusDAO Bond function call detected',
@@ -40,16 +46,26 @@ const createFinding: FindingGenerator = (
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: 'OlympusDAO',
-    metadata: {
-      _controlVariable: desc.args['_controlVariable'].toString(),
-      _vestingTerm: desc.args['_vestingTerm'].toString(),
-      _minimumPrice: desc.args['_minimumPrice'].toString(),
-      _maxPayout: desc.args['_maxPayout'].toString(),
-      _maxDebt: desc.args['_maxDebt'].toString(),
-      _initialDebt: desc.args['_initialDebt'].toString(),
-      bond: bond.toLowerCase(),
-    }
+    metadata,
   });
+
+const createFinding = (
+  desc: utils.TransactionDescription,
+  bond: string, 
+): Finding => {
+  const metadata: Record<string, string> = {
+    _controlVariable: desc.args['_controlVariable'].toString(),
+    _vestingTerm: desc.args['_vestingTerm'].toString(),
+    _minimumPrice: desc.args['_minimumPrice'].toString(),
+    _maxPayout: desc.args['_maxPayout'].toString(),
+    _maxDebt: desc.args['_maxDebt'].toString(),
+    _initialDebt: desc.args['_initialDebt'].toString(),
+    bond: bond.toLowerCase(),
+  }
+  if(desc.sighash == "0x71535008")
+    Object.assign(metadata, {_fee: desc.args['_fee'].toString(),})
+  return initBondTermsFinding(metadata);
+}
 
 export default {
   BONDS_ABI,
