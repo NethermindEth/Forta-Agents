@@ -32,5 +32,5 @@ export const provideHandleTransaction = (
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(""),
+  handleTransaction: provideHandleTransaction(STAKING_CONTRACT_ADDRESS),
 };
