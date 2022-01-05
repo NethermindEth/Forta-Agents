@@ -5,7 +5,7 @@ import {
   LogDescription,
 } from 'forta-agent';
 
-type FindingGenerator = (log: LogDescription) => Finding;
+type FindingGenerator = (log: LogDescription, bond: string) => Finding;
 
 export const BONDs = [
   '0x767e3459A35419122e5F6274fB1223d75881E0a9', // CVX Bond
@@ -23,7 +23,10 @@ export const ABIs = [
   'event OwnershipPulled(address indexed previousOwner, address indexed newOwner)',
 ];
 
-const pushFinding: FindingGenerator = (log: LogDescription): Finding =>
+const pushFinding: FindingGenerator = (
+  log: LogDescription,
+  bond: string
+): Finding =>
   Finding.fromObject({
     name: 'OlympusDAO Bond Ownership event detected',
     description: 'OwnershipPushed event',
@@ -32,12 +35,16 @@ const pushFinding: FindingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     protocol: 'OlympusDAO',
     metadata: {
-      currentOwner: log.args['previousOwner'].toLowerCase(),
-      proposedOwner: log.args['newOwner'].toLowerCase(),
+      bond: bond,
+      previousOwner: log.args['previousOwner'].toLowerCase(),
+      newOwner: log.args['newOwner'].toLowerCase(),
     },
   });
 
-const pullFinding: FindingGenerator = (log: LogDescription): Finding =>
+const pullFinding: FindingGenerator = (
+  log: LogDescription,
+  bond: string
+): Finding =>
   Finding.fromObject({
     name: 'OlympusDAO Bond Ownership event detected',
     description: 'OwnershipPulled event',
@@ -46,6 +53,7 @@ const pullFinding: FindingGenerator = (log: LogDescription): Finding =>
     type: FindingType.Info,
     protocol: 'OlympusDAO',
     metadata: {
+      bond: bond,
       previousOwner: log.args['previousOwner'].toLowerCase(),
       newOwner: log.args['newOwner'].toLowerCase(),
     },
@@ -56,5 +64,5 @@ const findingMap: Record<string, FindingGenerator> = {
   OwnershipPulled: pullFinding,
 };
 
-export const createFinding = (log: LogDescription): Finding =>
-  findingMap[log.name](log);
+export const createFinding = (log: LogDescription, bond: string): Finding =>
+  findingMap[log.name](log, bond);
