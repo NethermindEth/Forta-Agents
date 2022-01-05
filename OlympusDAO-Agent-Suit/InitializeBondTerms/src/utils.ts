@@ -54,13 +54,13 @@ const createFinding = (
   bond: string, 
 ): Finding => {
   const metadata: Record<string, string> = {
+    bond: bond.toLowerCase(),
     _controlVariable: desc.args['_controlVariable'].toString(),
     _vestingTerm: desc.args['_vestingTerm'].toString(),
     _minimumPrice: desc.args['_minimumPrice'].toString(),
     _maxPayout: desc.args['_maxPayout'].toString(),
     _maxDebt: desc.args['_maxDebt'].toString(),
     _initialDebt: desc.args['_initialDebt'].toString(),
-    bond: bond.toLowerCase(),
   }
   if(desc.sighash == "0x71535008")
     Object.assign(metadata, {_fee: desc.args['_fee'].toString(),})

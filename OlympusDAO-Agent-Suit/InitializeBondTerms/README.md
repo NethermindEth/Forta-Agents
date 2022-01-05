@@ -23,11 +23,20 @@ This agent detects `initializeBondTerms` call on following Bond Contracts
   - Fired when a transaction a call to `initializeBondTerms` function ocur in Bonds Contracts
   - Severity is always set to "Info"
   - Type is always set to "Info"
-  - Metadata contains all the parametes of the function:
-      - `_controlVariable` 
-      - `_vestingTerm`
-      - `_minimumPrice`
-      - `_maxPayout`
-      - `_maxDebt`
-      - `_initialDebt`
-      - `_fee` (if the function has the _fee parameter)
+  - Metadata contains:
+      - `bond`: The bond contract address where the function was called
+      - `_controlVariable`: Function parameter
+      - `_vestingTerm`: Function parameter
+      - `_minimumPrice`: Function parameter
+      - `_maxPayout`: Function parameter
+      - `_maxDebt`: Function parameter
+      - `_initialDebt`: Function parameter
+      - `_fee`: If the contain that function parameter
+
+## Test Data
+
+The agent behaviour can be verified with the following transactions:
+
+- 0x3f4e34afa03d3c32118a38f46796633b3d70738d1b1d218ea7fcd3ba231217dc (function with fee)
+- 0x89e196f369a21994d863a2f4aaa0ea7fb0970418b98435dcf5efa87c2d5f66b4 (function without fee)
+  
