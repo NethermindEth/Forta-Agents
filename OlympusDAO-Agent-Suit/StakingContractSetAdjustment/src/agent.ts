@@ -18,7 +18,6 @@ export const provideHandleTransaction = (
       FUNCTION_ABI,
       stakingContractAddress
     );
-    txEvent.filterFunction;
     return callsToAdjustment.map(
       (callsToAdjustment: utils.TransactionDescription) =>
         createFinding(
