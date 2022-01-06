@@ -28,7 +28,7 @@ export const createFinding: FindingGenerator = (
     name: 'OlympusDAO Bond Policy Methods Agent',
     description: 'A Policy method is called',
     alertId: 'olympus-12',
-    severity: FindingSeverity.High,
+    severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: 'OlympusDAO',
     metadata: {
