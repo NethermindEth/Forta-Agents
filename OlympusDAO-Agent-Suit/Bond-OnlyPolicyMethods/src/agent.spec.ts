@@ -31,6 +31,29 @@ describe('Bond - Policy Methods Agents Test Suit', () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it('should return finding if `setBondTerms` function is called', async () => {
+    const txn = new TestTransactionEvent().addTraces({
+      to: test_bonds[0],
+      input: contractInterface.encodeFunctionData('setBondTerms', [0, 100001]),
+    });
+    const findings = await handleTransaction(txn);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: 'OlympusDAO Bond Policy Methods Agent',
+        description: 'A Policy method is called',
+        alertId: 'olympus-12',
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: 'OlympusDAO',
+        metadata: {
+          bond: test_bonds[0],
+          functionName: 'setBondTerms',
+        },
+      }),
+    ]);
+  });
+
   it('should return finding if `setAdjustment` function is called', async () => {
     const txn = new TestTransactionEvent().addTraces({
       to: test_bonds[0],
