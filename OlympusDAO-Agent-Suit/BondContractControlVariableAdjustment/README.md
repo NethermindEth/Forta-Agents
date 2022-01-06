@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects when bond contracts emit ControlVariableAdjustment event.
+This agent fires finding when bond contracts emit ControlVariableAdjustment event.
 
 ## Supported Chains
 
