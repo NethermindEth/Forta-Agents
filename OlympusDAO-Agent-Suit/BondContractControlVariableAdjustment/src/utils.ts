@@ -15,7 +15,7 @@ export const createFinding = (
     name: "Bond Contract ControlVariableAdjustment Event",
     description:
       "A ControlVariableAdjustment event was emitted from a bond contract",
-    alertId: "OlympusDAO-X",
+    alertId: "OlympusDAO-7",
     protocol: "OlympusDAO",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
