@@ -15,7 +15,7 @@ export const BONDs = [
 ];
 
 export const ABIs = [
-  'function setBondTerms(PARAMETER _parameter, uint256 _input)',
+  //'function setBondTerms(OlympusCVXBondDepository.PARAMETER _parameter, uint256 _input)',
   'function setAdjustment(bool _addition, uint256 _increment, uint256 _target, uint256 _buffer)',
   'function setStaking(address _staking, bool _helper)',
 ];
@@ -31,4 +31,8 @@ export const createFinding: FindingGenerator = (
     severity: FindingSeverity.High,
     type: FindingType.Info,
     protocol: 'OlympusDAO',
+    metadata: {
+      bond: bond,
+      functionName: txn.name,
+    },
   });

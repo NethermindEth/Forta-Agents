@@ -1,18 +1,14 @@
 import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
 import { ABIs, BONDs, createFinding } from './utils';
 
-export const provideHandlTransaction = (BONDs: string[]): HandleTransaction => {
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
+export const provideHandlTransaction =
+  (BONDs: string[]): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> =>
     BONDs.map((bond) =>
       txEvent.filterFunction(ABIs, bond).map((txn) => createFinding(txn, bond))
     ).flat();
 
-    return findings;
-  };
-};
-
 export default {
   handleTransaction: provideHandlTransaction(BONDs),
+  provideHandlTransaction,
 };
