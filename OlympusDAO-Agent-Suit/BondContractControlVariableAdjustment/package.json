@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "OlympusDAO-7",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detect event ControlVariableAdjustment emitted from bond contracts",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
