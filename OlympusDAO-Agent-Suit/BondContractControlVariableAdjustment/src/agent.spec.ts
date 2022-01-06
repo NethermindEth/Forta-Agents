@@ -65,10 +65,13 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
 
     BONDS_ADDRESSES.forEach((value, index) => {
       when(callMock)
-        .calledWith({
-          data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
-          to: REDEEM_HELPER_ADDRESS,
-        }, expect.anything())
+        .calledWith(
+          {
+            data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
+            to: REDEEM_HELPER_ADDRESS,
+          },
+          expect.anything()
+        )
         .mockResolvedValue(encodeParameter("address", value));
     });
 
@@ -95,10 +98,13 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
 
     BONDS_ADDRESSES.forEach((value, index) => {
       when(callMock)
-        .calledWith({
-          data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
-          to: REDEEM_HELPER_ADDRESS,
-        }, expect.anything())
+        .calledWith(
+          {
+            data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
+            to: REDEEM_HELPER_ADDRESS,
+          },
+          expect.anything()
+        )
         .mockResolvedValue(encodeParameter("address", value));
     });
 
@@ -111,7 +117,8 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
           ["uint256", "uint256", "uint256", "bool"],
           [12, 11, 10, true]
         )
-      ).addEventLog(
+      )
+      .addEventLog(
         EVENT_ABI,
         createAddress("0x12"),
         encodeParameters(
@@ -132,10 +139,13 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
 
     BONDS_ADDRESSES.forEach((value, index) => {
       when(callMock)
-        .calledWith({
-          data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
-          to: REDEEM_HELPER_ADDRESS,
-        }, expect.anything())
+        .calledWith(
+          {
+            data: redeemHelperInterface.encodeFunctionData("bonds", [index]),
+            to: REDEEM_HELPER_ADDRESS,
+          },
+          expect.anything()
+        )
         .mockResolvedValue(encodeParameter("address", value));
     });
 
@@ -148,7 +158,8 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
           ["uint256", "uint256", "uint256", "bool"],
           [12, 11, 10, true]
         )
-      ).addEventLog(
+      )
+      .addEventLog(
         EVENT_ABI,
         BONDS_ADDRESSES[3],
         encodeParameters(
@@ -159,6 +170,9 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding("12", "11", "10", "true"), createFinding("2", "1", "0", "true")]);
+    expect(findings).toStrictEqual([
+      createFinding("12", "11", "10", "true"),
+      createFinding("2", "1", "0", "true"),
+    ]);
   });
 });
