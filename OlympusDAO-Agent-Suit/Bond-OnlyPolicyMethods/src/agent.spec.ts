@@ -4,12 +4,19 @@ import {
   Finding,
   HandleTransaction,
 } from 'forta-agent';
-import agent from './agent';
+import { createAddress } from 'forta-agent-tools';
+import { provideHandlTransaction } from './agent';
 
-describe('high gas agent', () => {
+const test_bonds = [
+  createAddress('0x1'),
+  createAddress('0x2'),
+  createAddress('0x3'),
+];
+
+describe('Bond - Policy Methods Agents Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandlTransaction(test_bonds);
   });
 });

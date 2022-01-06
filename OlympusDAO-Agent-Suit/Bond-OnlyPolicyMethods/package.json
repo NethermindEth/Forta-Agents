@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "ethers": "^5.5.2",
-    "forta-agent": "^0.0.34"
+    "forta-agent": "^0.0.34",
+    "forta-agent-tools": "^1.0.32"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
