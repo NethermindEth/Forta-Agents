@@ -12,7 +12,7 @@ This agent detects transactions with high Deposit/Withdrawals values in OlympusD
 ## Alerts
 
 - olympus-treasury-5-1
-  - Fired when a high deposit ocur
+  - Fired when a high deposit occurs
   - Severity is always set to "info" 
   - Type is always set to "suspicious" 
   - Metadata contains:
@@ -21,7 +21,7 @@ This agent detects transactions with high Deposit/Withdrawals values in OlympusD
     - `value`: Value in OHM
 
 - olympus-treasury-5-2
-  - Fired when a high withdrawal ocur
+  - Fired when a high withdrawal occurs
   - Severity is always set to "info" 
   - Type is always set to "suspicious" 
   - Metadata contains:
