@@ -50,6 +50,7 @@ export const getAccounts = async (axios: any) => {
       balance: value.balanceShares,
     });
     users.add(address);
+    users.add(value.account.id);
     mapping[address] = values;
   });
   return { mapping, users };
