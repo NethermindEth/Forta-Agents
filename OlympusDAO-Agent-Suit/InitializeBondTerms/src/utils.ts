@@ -4,6 +4,7 @@ import {
   FindingType,
 } from 'forta-agent';
 import { utils } from "ethers";
+import { Interface } from '@ethersproject/abi';
 
 const BONDS_CONTRACTS = [
   '0x767e3459A35419122e5F6274fB1223d75881E0a9', // CVX Bond
@@ -35,6 +36,10 @@ const BONDS_ABI = [
     uint _initialDebt
   )`,
 ];
+
+const REDEEM_HELPER_IFACE = new Interface([
+  "function bonds(uint256 index) external view returns (address)",
+]);
 
 const initBondTermsFinding = (
   metadata: Record<string, string>, 
@@ -70,5 +75,6 @@ const createFinding = (
 export default {
   BONDS_ABI,
   BONDS_CONTRACTS,
+  REDEEM_HELPER_IFACE,
   createFinding,
 };
