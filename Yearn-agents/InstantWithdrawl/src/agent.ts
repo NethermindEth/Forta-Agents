@@ -25,7 +25,6 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
     vaults.forEach(async (vaultAddress: string) => {
       const vault = mapping[vaultAddress];
 
-      let count = 0;
       vault.forEach(async (obj, index) => {
         const userAddress = obj.account;
         const balance = obj.balance;
@@ -35,29 +34,28 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
           vaultAddress
         );
 
-        promises
-          .push
-          //   contract.methods
-          //     .withdraw(balance, userAddress, 0)
-          //     .send({ from: userAddress })
-          //     .then(() => {
-          //       contract.methods
-          //         .balanceOf(userAddress)
-          //         .call({}, blockEvent.blockNumber)
-          //         .then((res: string) => {
-          //           if (new BigNumber(res).gt(0)) {
-          //             findings.push(
-          //               generateFinding(
-          //                 new BigNumber(res),
-          //                 new BigNumber(balance),
-          //                 index,
-          //                 vaultAddress
-          //               )
-          //             );
-          //           }
-          //         });
-          //     })
-          ();
+        promises.push(
+          contract.methods
+            .withdraw(balance, userAddress, 0)
+            .send({ from: userAddress })
+            .then(() => {
+              contract.methods
+                .balanceOf(userAddress)
+                .call({}, blockEvent.blockNumber)
+                .then((res: string) => {
+                  if (new BigNumber(res).gt(0)) {
+                    findings.push(
+                      generateFinding(
+                        new BigNumber(res),
+                        new BigNumber(balance),
+                        index,
+                        vaultAddress
+                      )
+                    );
+                  }
+                });
+            })
+        );
       });
     });
 
