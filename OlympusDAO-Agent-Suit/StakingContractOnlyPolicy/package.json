@@ -1,7 +1,7 @@
 {
-  "name": "yearn-4",
+  "name": "OlympusDAO-6",
   "version": "0.0.1",
-  "description": "Forta Agent detecting vaults with total assets close to its deposit limit",
+  "description": "This agent detects calls to management function in Stake Contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -12,21 +12,20 @@
     "range": "npm run build && forta-agent run --range",
     "file": "npm run build && forta-agent run --file",
     "publish": "forta-agent publish",
+    "push": "forta-agent push",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
+    "keyfile": "forta-agent keyfile",
     "test": "jest"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.29",
-    "forta-agent-tools": "^1.0.29"
+    "forta-agent": "^0.0.33"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
-    "@types/jest-when": "^2.7.3",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^1.0.32",
     "jest": "^27.0.6",
-    "jest-when": "^3.4.2",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
