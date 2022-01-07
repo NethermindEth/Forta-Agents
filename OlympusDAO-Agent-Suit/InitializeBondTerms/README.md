@@ -13,7 +13,7 @@ Bond contracts are fetchet on-chain using the `redeemHelper` contract.
 ## Alerts
 
 - olympus-bond-4
-  - Fired when a transaction a call to `initializeBondTerms` function ocur in Bonds Contracts
+  - Fired when a call to `initializeBondTerms` function occurs in Bonds Contracts
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
