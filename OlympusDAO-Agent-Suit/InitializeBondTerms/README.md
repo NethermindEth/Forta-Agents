@@ -2,16 +2,9 @@
 
 ## Description
 
-This agent detects `initializeBondTerms` call on following Bond Contracts
-
-- `0x767e3459A35419122e5F6274fB1223d75881E0a9`, // CVX Bond
-- `0x575409F8d77c12B05feD8B455815f0e54797381c`, // DAI Bond
-- `0xE6295201CD1ff13CeD5f063a5421c39A1D236F1c`, // ETH Bond
-- `0x8510c8c2B6891E04864fa196693D44E6B6ec2514`, // FRAX Bond
-- `0x10C0f93f64e3C8D0a1b0f4B87d6155fd9e89D08D`, // LUSD Bond
-- `0x956c43998316b6a2F21f89a1539f73fB5B78c151`, // OHM / DAI LP Bond
-- `0xc20CffF07076858a7e642E396180EC390E5A02f7`, // OHM / FRAX LP Bond
-- `0xFB1776299E7804DD8016303Df9c07a65c80F67b6`, // OHM / LUSD LP Bond
+This agent detects `initializeBondTerms` call on OlympusDAO Bond Contracts.
+Bond contracts are fetchet on-chain using the `redeemHelper` contract.
+> Contract: 0xE1e83825613DE12E8F0502Da939523558f0B819E
 
 ## Supported Chains
 
@@ -35,8 +28,10 @@ This agent detects `initializeBondTerms` call on following Bond Contracts
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The current bonds were deployed before the redeemHelper, and in almost each of them
+the `initializeBondTerms` was called before too. 
 
-- 0x3f4e34afa03d3c32118a38f46796633b3d70738d1b1d218ea7fcd3ba231217dc (function with fee)
-- 0x89e196f369a21994d863a2f4aaa0ea7fb0970418b98435dcf5efa87c2d5f66b4 (function without fee)
-  
+The ETH V2 Bond was deployed after the redeemHelper, but the function was called before
+adding the bond to the bonds list in the reddemHelper.
+
+So no on-chain data to test the agent

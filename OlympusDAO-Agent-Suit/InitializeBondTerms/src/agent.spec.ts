@@ -12,6 +12,7 @@ import {
 } from "forta-agent-tools";
 import { Interface, FunctionFragment } from "@ethersproject/abi";
 import utils from "./utils";
+import { resetAllWhenMocks, when } from "jest-when";
 
 const IFACE = new Interface([
   ...utils.BONDS_ABI,
@@ -49,17 +50,28 @@ const PARAMS: [number, number, number, number, number, number, number][] = [
 ];
 
 describe("Bond - initializeBondTerms Agent test suite", () => {
-  const handler: HandleTransaction = provideHandleTransaction(BONDS);
+  const mockFunction = jest.fn();
+  const handler: HandleTransaction = provideHandleTransaction({
+    getBondsContracts: mockFunction,
+  } as any);
+
+  const mockBlock = (block: number) => 
+    when(mockFunction).calledWith(block).mockReturnValue(BONDS);
+
+  beforeEach(() => resetAllWhenMocks());
 
   it("should return empty findings on txns without function call", async () => {
-    const tx: TransactionEvent =  new TestTransactionEvent();
+    mockBlock(10);
+    const tx: TransactionEvent =  new TestTransactionEvent().setBlock(10);
 
     const finding: Finding[] = await handler(tx);
     expect(finding).toStrictEqual([]);
   });
 
   it("should return empty findings on txns calling other functions", async () => {
+    mockBlock(1);
     const tx: TransactionEvent =  new TestTransactionEvent()
+      .setBlock(1)
       .addTraces({
         to: BONDS[0],
         input: IFACE.encodeFunctionData("myFunction", PARAMS[0]),
@@ -70,7 +82,9 @@ describe("Bond - initializeBondTerms Agent test suite", () => {
   });
 
   it("should return empty findings if the funcion is called in other contract", async () => {
+    mockBlock(42);
     const tx: TransactionEvent =  new TestTransactionEvent()
+      .setBlock(42)
       .addTraces({
         to: createAddress("0xdead"),
         input: IFACE.encodeFunctionData(initTermsWithFee, PARAMS[0]),
@@ -81,7 +95,8 @@ describe("Bond - initializeBondTerms Agent test suite", () => {
   });
 
   it("should detect the calls in the bonds contracts", async () => {
-    const tx: TestTransactionEvent =  new TestTransactionEvent();
+    mockBlock(99);
+    const tx: TestTransactionEvent =  new TestTransactionEvent().setBlock(99);
 
     const expectedFindings: Finding[] = [];
 
