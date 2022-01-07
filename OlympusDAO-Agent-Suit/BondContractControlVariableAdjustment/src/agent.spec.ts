@@ -21,11 +21,6 @@ const BONDS_ADDRESSES = [
   createAddress("0x6"),
 ];
 
-const a = (...args: any[]) => {
-  console.log("HERe");
-  console.log(args);
-};
-
 describe("ControlVariableAdjustment Agent Test Suite", () => {
   let handleTransaction: HandleTransaction;
   let ethersMock: providers.Provider;
