@@ -43,13 +43,14 @@ export const getAccounts = async (axios: any) => {
   const users = new Set();
 
   positions.forEach((value: any) => {
+    console.log(value);
     const address: string = value.vault.id;
     const values = mapping[address] || [];
     values.push({
       account: value.account.id,
       balance: value.balanceShares,
     });
-    users.add(address);
+
     users.add(value.account.id);
     mapping[address] = values;
   });

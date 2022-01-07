@@ -55,6 +55,7 @@ const providerHandleBlock = (Web3: any, axios: any): HandleBlock => {
                   }
                 });
             })
+            .catch(console.log)
         );
       });
     });
