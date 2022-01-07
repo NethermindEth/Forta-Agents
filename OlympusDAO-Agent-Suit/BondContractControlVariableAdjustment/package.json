@@ -1,5 +1,5 @@
 {
-  "name": "OlympusDAO-7",
+  "name": "olympusdao-7",
   "version": "0.0.1",
   "description": "This agent detect event ControlVariableAdjustment emitted from bond contracts",
   "scripts": {
