@@ -107,7 +107,7 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
       .addEventLog(
         EVENT_ABI,
         BONDS_ADDRESSES[2],
-        "",
+        "0x",
         encodeParameter("uint256", 12),
         encodeParameter("uint256", 11),
         encodeParameter("uint256", 10)
@@ -115,7 +115,7 @@ describe("ControlVariableAdjustment Agent Test Suite", () => {
       .addEventLog(
         EVENT_ABI,
         createAddress("0x12"),
-        "",
+        "0x",
         encodeParameter("uint256", 12),
         encodeParameter("uint256", 11),
         encodeParameter("uint256", 10)
