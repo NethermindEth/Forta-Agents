@@ -1,45 +1,48 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  getEthersProvider,
+} from "forta-agent";
+import { createFinding, getBondsContracts } from "./utils";
+import { providers } from "ethers";
 
-let findingsCount = 0
+export const EVENT_ABI =
+  "event BondPriceChanged(uint256 indexed priceInUSD, uint256 indexed internalPrice, uint256 indexed debtRatio)";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleTransaction = (
+  redeemHelperAddress: string,
+  provider: providers.Provider
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    const bondsContracts = await getBondsContracts(
+      redeemHelperAddress,
+      txEvent.blockNumber,
+      provider
+    );
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    for (let bondContract of bondsContracts) {
+      findings.push(
+        ...txEvent
+          .filterLog(EVENT_ABI, bondContract)
+          .map((log) =>
+            createFinding(
+              log.args["priceInUSD"].toString(),
+              log.args["internalPrice"].toString(),
+              log.args["debtRatio"].toString()
+            )
+          )
+      );
+    }
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
-
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(
+    "0xE1e83825613DE12E8F0502Da939523558f0B819E",
+    getEthersProvider()
+  ),
+};
