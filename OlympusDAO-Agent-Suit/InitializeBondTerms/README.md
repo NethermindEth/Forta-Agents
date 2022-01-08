@@ -1,4 +1,4 @@
-# BOND - Ownership Transfers
+# OlympusDAO Treasury initializeBondTerms detector
 
 ## Description
 

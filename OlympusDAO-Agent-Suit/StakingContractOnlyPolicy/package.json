@@ -1,5 +1,5 @@
 {
-  "name": "OlympusDAO-6",
+  "name": "olympusdao-6",
   "version": "0.0.1",
   "description": "This agent detects calls to management function in Stake Contract",
   "scripts": {

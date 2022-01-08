@@ -1,4 +1,4 @@
-# OlympusDAO Treasury High Deposit/Withdrawals
+# sudo docker rmi $(sudo docker images -a -q) -f
 
 ## Description
 
@@ -21,7 +21,7 @@ This agent detects transactions with high Deposit/Withdrawals values in OlympusD
     - `value`: Value in OHM
 
 - olympus-treasury-5-2
-  - Fired when a high withdrawal occurs
+  - Fired when a high withdrawal occurssudo docker rmi $(sudo docker images -a -q) -f
   - Severity is always set to "info" 
   - Type is always set to "suspicious" 
   - Metadata contains:
