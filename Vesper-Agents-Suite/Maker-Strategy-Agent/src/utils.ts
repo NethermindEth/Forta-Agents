@@ -3,7 +3,8 @@ import Web3 from "web3";
 import { Strategy_ABI, CM_ABI } from "./abi";
 import { FindingGenerator } from "forta-agent-tools";
 
-export const JUG_DRIP_FUNCTION_SIGNATURE = "drip(bytes32)";
+export const JUG_CHANGE_BASE_FUNCTION_SIGNATURE = "file(bytes32,uint256)";
+export const JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE = "file(bytes32,bytes32,uint256)";
 export const JUG_CONTRACT = "0x19c0976f590D67707E62397C87829d896Dc0f1F1";
 
 export const createFindingStabilityFee = (
@@ -19,7 +20,24 @@ export const createFindingStabilityFee = (
       protocol: "Vesper",
       metadata: {
         strategy: _strategy,
-        collateralType: metadata?.arguments[0]
+        collateralType: metadata?.arguments[1],
+        newDuty: metadata?.arguments[2],
+      }
+    });
+  };
+};
+
+export const createFindingBaseStabilityFee = (): FindingGenerator => {
+  return (metadata): Finding => {
+    return Finding.fromObject({
+      name: "Stability Fee Update Detection",
+      description: "Base stability Fee changed",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      alertId: "Vesper-1-4",
+      protocol: "Vesper",
+      metadata: {
+        newBase: metadata?.arguments[1]
       }
     });
   };
