@@ -11,13 +11,37 @@ const isCallMethod = (
   return selector === contractInterface.getSighash(functionName);
 };
 
-export const isCallToAvailable = (pickleJar: string) => when(({ data, to }) =>
-  isCallMethod(data, pickleJarInterface, "available") && pickleJar === to 
-);
+export const isCallToAvailable = (pickleJar: string) =>
+  when(
+    ({ data, to }) =>
+      isCallMethod(data, pickleJarInterface, "available") && pickleJar === to
+  );
 
-export const isCallToBalance = (pickleJar: string) => when(({ data, to }) =>
-  isCallMethod(data, pickleJarInterface, "balance") && pickleJar === to
-);
+export const isCallToBalance = (pickleJar: string) =>
+  when(
+    ({ data, to }) =>
+      isCallMethod(data, pickleJarInterface, "balance") && pickleJar === to
+  );
+
+export const isCallToTotalLiquidity = (pickleJar: string) =>
+  when(
+    ({ data, to }) =>
+      isCallMethod(data, pickleJarInterface, "totalLiquidity") &&
+      pickleJar === to
+  );
+
+export const isCallToLiquidityOfThis = (pickleJar: string) =>
+  when(
+    ({ data, to }) =>
+      isCallMethod(data, pickleJarInterface, "liquidityOfThis") &&
+      pickleJar === to
+  );
+
+export const isCallToName = (pickleJar: string) =>
+  when(
+    ({ data, to }) =>
+      isCallMethod(data, pickleJarInterface, "name") && pickleJar === to
+  );
 
 export const isCallToDevelopmentVaults = when(({ data }) =>
   isCallMethod(data, pickleRegistryInterface, "developmentVaults")

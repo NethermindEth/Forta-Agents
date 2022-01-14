@@ -2,7 +2,7 @@ import { pickleJarInterface, pickleRegistryInterface } from "./abi";
 import { Contract, providers, BigNumber } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-const jarNames: { [key: string]: string } = {}
+const jarNames: { [key: string]: string } = {};
 
 export const getPickleJars = async (
   pickleRegistryAddress: string,
@@ -23,7 +23,10 @@ export const getPickleJars = async (
   return (await developmentVaultsPromise).concat(await productionVaultsPromise);
 };
 
-export const getPickleJarName = async (pickleJarAddress: string, provider: providers.Provider): Promise<string> => {
+export const getPickleJarName = async (
+  pickleJarAddress: string,
+  provider: providers.Provider
+): Promise<string> => {
   const pickleJar = new Contract(
     pickleJarAddress,
     pickleJarInterface,
@@ -35,9 +38,8 @@ export const getPickleJarName = async (pickleJarAddress: string, provider: provi
   if (name === undefined) {
     jarNames[pickleJarAddress] = await pickleJar.name();
   }
-
   return jarNames[pickleJarAddress];
-}
+};
 
 export const getPickleJarsBalance = async (
   pickleJarAddress: string,
@@ -79,7 +81,10 @@ export const getPickleJarsAvailable = async (
   return pickleJar.available({ blockTag: blockNumber });
 };
 
-export const createFinding = (pickleJar: string, idleFundsPercent: string): Finding => {
+export const createFinding = (
+  pickleJar: string,
+  idleFundsPercent: string
+): Finding => {
   return Finding.fromObject({
     name: "Idle Funds",
     description: "A pickle jar has a big amount of funds idle",
@@ -90,6 +95,6 @@ export const createFinding = (pickleJar: string, idleFundsPercent: string): Find
     metadata: {
       pickleJar: pickleJar,
       idleFundsPercent: idleFundsPercent,
-    }
+    },
   });
 };
