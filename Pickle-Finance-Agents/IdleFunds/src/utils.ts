@@ -34,3 +34,16 @@ export const getPickleJarsBalance = async (
   return pickleJar.balance({ blockTag: blockNumber });
 };
 
+export const getPickleJarsAvailable = async (
+  pickleJarAddress: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<BigNumber> => {
+  const pickleJar = new Contract(
+    pickleJarAddress,
+    pickleJarInterface,
+    provider
+  );
+
+  return pickleJar.available({ blockTag: blockNumber });
+};
