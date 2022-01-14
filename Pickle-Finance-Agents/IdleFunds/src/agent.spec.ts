@@ -7,8 +7,6 @@ import { when, resetAllWhenMocks } from "jest-when";
 import { isCallToBalance, isCallToAvailable, isCallToProductionVaults, isCallToDevelopmentVaults } from "./mock.utils";
 import { createFinding } from "./utils";
 
-const THRESHOLD = "";
-
 const developmentVaults = [
   createAddress("0x1"),
   createAddress("0x2"),
