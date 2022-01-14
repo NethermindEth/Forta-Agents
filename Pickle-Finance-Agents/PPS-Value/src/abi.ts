@@ -4,7 +4,7 @@ const VAULT: string[] = [
 
 const REGISTRY: string[] = [
   "function developmentVaults() view returns (address[])",
-  "function productionVaults() external view returns (address[])",
+  "function productionVaults() view returns (address[])",
 ];
 
 export default {
