@@ -11,12 +11,12 @@ const isCallMethod = (
   return selector === contractInterface.getSighash(functionName);
 };
 
-export const isCallToAvailable = when(({ data }) =>
-  isCallMethod(data, pickleJarInterface, "available")
+export const isCallToAvailable = (pickleJar: string) => when(({ data, to }) =>
+  isCallMethod(data, pickleJarInterface, "available") && pickleJar === to 
 );
 
-export const isCallToBalance = when(({ data }) =>
-  isCallMethod(data, pickleJarInterface, "balance")
+export const isCallToBalance = (pickleJar: string) => when(({ data, to }) =>
+  isCallMethod(data, pickleJarInterface, "balance") && pickleJar === to
 );
 
 export const isCallToDevelopmentVaults = when(({ data }) =>
