@@ -6,6 +6,6 @@ export const pickleJarInterface = new utils.Interface([
 ]);
 
 export const pickleRegistryInterface = new utils.Interface([
-  "function developmentVaults() external views returns (address[] memory)",
+  "function developmentVaults() external view returns (address[] memory)",
   "function productionVaults() external view returns (address[] memory)",
 ]);
