@@ -8,6 +8,7 @@ import { providers } from "ethers";
 import { getPickleJars, getPickleJarsBalance, getPickleJarsAvailable, createFinding } from "./utils";
 
 const PICKLE_FINANCE_REGISTRY = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
+const THRESHOLD = 25;
 
 const getFindingsForAJar = async (pickleJarAddress: string, blockNumber: number, provider: providers.Provider): Promise<Finding[]> => {
   const balancePromise = getPickleJarsBalance(pickleJarAddress, blockNumber, provider);  
@@ -15,7 +16,7 @@ const getFindingsForAJar = async (pickleJarAddress: string, blockNumber: number,
 
   const percentIdle = (await availablePromise).mul(100).div(await balancePromise);
 
-  if (percentIdle.lt(25)) {
+  if (percentIdle.lt(THRESHOLD)) {
     return [];
   }
 
