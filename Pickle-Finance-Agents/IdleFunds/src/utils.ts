@@ -1,5 +1,6 @@
 import { pickleJarInterface, pickleRegistryInterface } from "./abi";
 import { Contract, providers, BigNumber } from "ethers";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const getPickleJars = async (
   pickleRegistryAddress: string,
@@ -46,4 +47,19 @@ export const getPickleJarsAvailable = async (
   );
 
   return pickleJar.available({ blockTag: blockNumber });
+};
+
+export const createFinding = (pickleJar: string, idleFundsPercent: string): Finding => {
+  return Finding.fromObject({
+    name: "Idle Funds",
+    description: "A pickle jar has a big amount of funds idle",
+    alertId: "PICKLE-1",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Pickle Finance",
+    metadata: {
+      pickleJar: pickleJar,
+      idleFundsPercent: idleFundsPercent,
+    }
+  });
 };
