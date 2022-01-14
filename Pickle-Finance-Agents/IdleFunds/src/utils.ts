@@ -2,6 +2,8 @@ import { pickleJarInterface, pickleRegistryInterface } from "./abi";
 import { Contract, providers, BigNumber } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
+const jarNames: { [key: string]: string } = {}
+
 export const getPickleJars = async (
   pickleRegistryAddress: string,
   blockNumber: number,
@@ -21,6 +23,22 @@ export const getPickleJars = async (
   return (await developmentVaultsPromise).concat(await productionVaultsPromise);
 };
 
+export const getPickleJarName = async (pickleJarAddress: string, provider: providers.Provider): Promise<string> => {
+  const pickleJar = new Contract(
+    pickleJarAddress,
+    pickleJarInterface,
+    provider
+  );
+
+  let name = jarNames[pickleJarAddress];
+
+  if (name === undefined) {
+    jarNames[pickleJarAddress] = await pickleJar.name();
+  }
+
+  return jarNames[pickleJarAddress];
+}
+
 export const getPickleJarsBalance = async (
   pickleJarAddress: string,
   blockNumber: number,
@@ -31,6 +49,12 @@ export const getPickleJarsBalance = async (
     pickleJarInterface,
     provider
   );
+
+  const name = await getPickleJarName(pickleJarAddress, provider);
+
+  if (name.indexOf("Uni v3") != -1) {
+    return pickleJar.totalLiquidity({ blockTag: blockNumber });
+  }
 
   return pickleJar.balance({ blockTag: blockNumber });
 };
@@ -45,6 +69,12 @@ export const getPickleJarsAvailable = async (
     pickleJarInterface,
     provider
   );
+
+  const name = await getPickleJarName(pickleJarAddress, provider);
+
+  if (name.indexOf("Uni v3") != -1) {
+    return pickleJar.liquidityOfThis({ blockTag: blockNumber });
+  }
 
   return pickleJar.available({ blockTag: blockNumber });
 };
