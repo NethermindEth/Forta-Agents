@@ -14,7 +14,7 @@ const REGISTRY: string = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
 const createFinding = (
   vault: string, 
   cur: BigNumber, 
-  prev: BigNumber
+  prev: BigNumber,
 ): Finding => Finding.fromObject({
   name: "Vault PPS anomaly detected",
   description: "Vault PPS decreasement",
