@@ -2,7 +2,6 @@ import { pickleRegistryInterface } from "./abi";
 import { Contract, providers } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-
 export const getPickleJars = async (
   pickleRegistryAddress: string,
   blockNumber: number,
@@ -22,7 +21,11 @@ export const getPickleJars = async (
   return (await developmentVaultsPromise).concat(await productionVaultsPromise);
 };
 
-export const createFindings = (pickleJarAddress: string, methodCalled: string): Finding => {
+export const createFinding = (
+  pickleJarAddress: string,
+  methodCalled: string,
+  args: string
+): Finding => {
   return Finding.fromObject({
     name: "Jar Management",
     description: "A management function was called in a Jar",
@@ -33,6 +36,7 @@ export const createFindings = (pickleJarAddress: string, methodCalled: string): 
     metadata: {
       pickleJar: pickleJarAddress,
       methodCalled: methodCalled,
-    }
+      args: args,
+    },
   });
 };
