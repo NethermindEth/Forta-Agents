@@ -1,45 +1,45 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  Finding,
+  getEthersProvider,
+  HandleTransaction,
+  TransactionEvent,
+} from "forta-agent";
+import { pickleJarInterface } from "./abi";
+import { getPickleJars, createFinding } from "./utils";
+import { providers } from "ethers";
 
-let findingsCount = 0
+export const provideHandleTransaction = (
+  pickleRegistryAddress: string,
+  provider: providers.Provider
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+    const pickleJars = await getPickleJars(
+      pickleRegistryAddress,
+      txEvent.blockNumber,
+      provider
+    );
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const managementCallsPerJar = pickleJars.map((pickleJar: string) =>
+      txEvent.filterFunction(pickleJarInterface.format("minimal"), pickleJar)
+    );
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    for (let i = 0; i < pickleJars.length; i++) {
+      const newFindings = managementCallsPerJar[i].map((managementCall) =>
+        createFinding(
+          pickleJars[i],
+          managementCall.name,
+          managementCall.args.toString()
+        )
+      );
+      findings.push(...newFindings);
+    }
 
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction("", getEthersProvider()),
+};
