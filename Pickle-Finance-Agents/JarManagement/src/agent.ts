@@ -8,6 +8,8 @@ import { pickleJarInterface } from "./abi";
 import { getPickleJars, createFinding } from "./utils";
 import { providers } from "ethers";
 
+const PICKLE_FINANCE_REGISTRY = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
+
 export const provideHandleTransaction = (
   pickleRegistryAddress: string,
   provider: providers.Provider
@@ -41,5 +43,5 @@ export const provideHandleTransaction = (
 };
 
 export default {
-  handleTransaction: provideHandleTransaction("", getEthersProvider()),
+  handleTransaction: provideHandleTransaction(PICKLE_FINANCE_REGISTRY, getEthersProvider()),
 };
