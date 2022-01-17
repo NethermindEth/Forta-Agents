@@ -26,7 +26,7 @@ const WithdrawFinding: FindingGenerator = (log: LogDescription): Finding => Find
   protocol: "Pickle Finance",
   metadata: {
     jar: log.address.toString(),
-    amount: log.args[2].toString(),
+    amount: log.args[2].toString(),``
     from: log.args[0].toLowerCase(),
   }
 });
