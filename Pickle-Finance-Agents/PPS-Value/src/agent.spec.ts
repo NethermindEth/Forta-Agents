@@ -16,21 +16,24 @@ import { BigNumber } from "ethers";
 const VAULTS_DATA: [string, number, number][] = [
   // addr, ratio, oldRatio
   [createAddress("0xfee5"), 1, 1],
-  [createAddress("0xdef1"), 2, 3], // bad
-  [createAddress("0xc0de"), 3, 10],// bad
+  [createAddress("0xdef1"), 2, 3], 
+  [createAddress("0xc0de"), 3, 10],
+  [createAddress("0xe0a1"), 30, 30],
   [createAddress("0xf1a7"), 4, 2],
-  [createAddress("0xca11"), 5, 6], // bad
+  [createAddress("0xca11"), 5, 6],
 ]
 const VAULTS: string[] = VAULTS_DATA.map(data => data[0]);
 
-const createFinding = (
+const finding = (
   vault: string, 
   cur: number, 
   prev: number,
+  change: string,
+  id: string,
 ): Finding => Finding.fromObject({
   name: "Vault PPS anomaly detected",
-  description: "Vault PPS decreasement",
-  alertId: "pickle-5",
+  description: `Vault PPS ${change}`,
+  alertId:  `pickle-5-${id}`,
   protocol: "Pickle Finance",
   severity: FindingSeverity.High,
   type: FindingType.Suspicious,
@@ -40,6 +43,16 @@ const createFinding = (
     prevRatio: prev.toString(),
   },
 });
+
+const createFinding = (
+  vault: string, 
+  cur: number, 
+  prev: number,
+  inc: boolean,
+): Finding => inc? 
+  finding(vault, cur, prev, "increasement", "1"): 
+  finding(vault, cur, prev, "decreasement", "2"); 
+
 
 describe("PPS value monitor agent tests suite", () => {
   const mockGetVaults = jest.fn();
@@ -97,7 +110,9 @@ describe("PPS value monitor agent tests suite", () => {
         .calledWith(199, addr)
         .mockReturnValueOnce(BigNumber.from(oldRatio));
       if(oldRatio > ratio)
-        expectedFindings.push(createFinding(addr, ratio, oldRatio));
+        expectedFindings.push(createFinding(addr, ratio, oldRatio, false));
+      if(oldRatio < ratio)
+        expectedFindings.push(createFinding(addr, ratio, oldRatio, true));
     }
 
     const block: BlockEvent = new TestBlockEvent().setNumber(200);

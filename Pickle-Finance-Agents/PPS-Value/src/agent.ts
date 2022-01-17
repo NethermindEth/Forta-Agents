@@ -11,14 +11,16 @@ import VaultsFetcher from './vaults.fetcher';
 
 const REGISTRY: string = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
 
-const createFinding = (
+const finding = (
   vault: string, 
   cur: BigNumber, 
   prev: BigNumber,
+  change: string,
+  id: string,
 ): Finding => Finding.fromObject({
   name: "Vault PPS anomaly detected",
-  description: "Vault PPS decreasement",
-  alertId: "pickle-5",
+  description: `Vault PPS ${change}`,
+  alertId:  `pickle-5-${id}`,
   protocol: "Pickle Finance",
   severity: FindingSeverity.High,
   type: FindingType.Suspicious,
@@ -28,6 +30,15 @@ const createFinding = (
     prevRatio: prev.toString(),
   },
 });
+
+const createFinding = (
+  vault: string, 
+  cur: BigNumber, 
+  prev: BigNumber,
+  inc: boolean,
+): Finding => inc? 
+  finding(vault, cur, prev, "increasement", "1"): 
+  finding(vault, cur, prev, "decreasement", "2"); 
 
 export const provideHandleBlock = (fetcher: VaultsFetcher): HandleBlock => 
   async (blockEvent: BlockEvent) => {
@@ -46,6 +57,14 @@ export const provideHandleBlock = (fetcher: VaultsFetcher): HandleBlock =>
           vaults[i],
           ratio[i],
           ratio[i + vaults.length],
+          false,
+        ))
+      if(ratio[i].gt(ratio[i + vaults.length]))
+        findings.push(createFinding(
+          vaults[i],
+          ratio[i],
+          ratio[i + vaults.length],
+          true,
         ))
     }
 
