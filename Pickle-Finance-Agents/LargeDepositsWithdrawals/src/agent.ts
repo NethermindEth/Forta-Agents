@@ -10,7 +10,7 @@ import VaultsFetcher from './vaults.fetcher';
 import abi from './abi';
 import { createFinding } from './findings';
 
-const CERO: BigNumber = BigNumber.from(0);
+const ZERO: BigNumber = BigNumber.from(0);
 const PERCENT: BigNumber = BigNumber.from(40) // % that define what large means
 const REGISTRY: string = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
 
@@ -27,7 +27,7 @@ export const provideHandleTransaction = (
       .filterLog(abi.VAULT)
       .filter((log: LogDescription) => 
         vaults.has(log.address.toLowerCase()) &&
-        (CERO.eq(log.args[0]) || CERO.eq(log.args[1]))
+        (ZERO.eq(log.args[0]) || ZERO.eq(log.args[1]))
       );
       
     const vaultsInUse: Set<string> = new Set<string>(
