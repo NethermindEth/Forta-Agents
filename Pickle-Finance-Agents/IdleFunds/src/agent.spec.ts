@@ -44,7 +44,7 @@ describe("PickleFinance - IdleFunds Test Suite", () => {
   let handleBlock: HandleBlock;
 
   beforeAll(() => {
-    handleBlock = providerHandleBlock(pickleFinanceRegistry, ethersMock);
+    handleBlock = providerHandleBlock(pickleFinanceRegistry, 25, ethersMock);
   });
 
   beforeEach(() => {

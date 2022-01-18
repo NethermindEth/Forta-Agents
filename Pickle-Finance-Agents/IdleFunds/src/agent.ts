@@ -4,7 +4,7 @@ import {
   HandleBlock,
   getEthersProvider,
 } from "forta-agent";
-import { providers } from "ethers";
+import { providers, BigNumberish } from "ethers";
 import {
   getPickleJars,
   getPickleJarsBalance,
@@ -17,6 +17,7 @@ const THRESHOLD = 25;
 
 const getFindingsForAJar = async (
   pickleJarAddress: string,
+  threshold: BigNumberish,
   blockNumber: number,
   provider: providers.Provider
 ): Promise<Finding[]> => {
@@ -35,7 +36,7 @@ const getFindingsForAJar = async (
     .mul(100)
     .div(await balancePromise);
 
-  if (percentIdle.lt(THRESHOLD)) {
+  if (percentIdle.lt(threshold)) {
     return [];
   }
 
@@ -44,6 +45,7 @@ const getFindingsForAJar = async (
 
 export const providerHandleBlock = (
   pickleRegistryAddress: string,
+  threshold: BigNumberish,
   provider: providers.Provider
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
@@ -53,7 +55,7 @@ export const providerHandleBlock = (
       provider
     );
     const findingsPromises = pickleJars.map((pickleJar: string) =>
-      getFindingsForAJar(pickleJar, blockEvent.blockNumber, provider)
+      getFindingsForAJar(pickleJar, threshold, blockEvent.blockNumber, provider)
     );
     const findingsBatches = await Promise.all(findingsPromises);
 
@@ -64,6 +66,7 @@ export const providerHandleBlock = (
 export default {
   handleBlock: providerHandleBlock(
     PICKLE_FINANCE_REGISTRY,
+    THRESHOLD,
     getEthersProvider()
   ),
 };
