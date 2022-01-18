@@ -10,6 +10,7 @@ import { BigNumber } from "ethers";
 import VaultsFetcher from './vaults.fetcher';
 
 const REGISTRY: string = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
+const INC_PERCENT: BigNumber = BigNumber.from(10);
 
 const finding = (
   vault: string, 
@@ -40,7 +41,10 @@ const createFinding = (
   finding(vault, cur, prev, "increasement", "1"): 
   finding(vault, cur, prev, "decreasement", "2"); 
 
-export const provideHandleBlock = (fetcher: VaultsFetcher): HandleBlock => 
+export const provideHandleBlock = (
+  fetcher: VaultsFetcher,
+  percent: BigNumber,  
+): HandleBlock => 
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const block: number = blockEvent.blockNumber;
@@ -59,7 +63,8 @@ export const provideHandleBlock = (fetcher: VaultsFetcher): HandleBlock =>
           ratio[i + vaults.length],
           false,
         ))
-      if(ratio[i].gt(ratio[i + vaults.length]))
+      const increasement: BigNumber = ratio[i + vaults.length].mul(percent).div(100);
+      if(ratio[i].gt(ratio[i + vaults.length].add(increasement)))
         findings.push(createFinding(
           vaults[i],
           ratio[i],
@@ -77,5 +82,6 @@ export default {
       REGISTRY,
       getEthersProvider(),
     ),
+    INC_PERCENT,
   ),
 };

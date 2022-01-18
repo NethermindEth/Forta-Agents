@@ -61,7 +61,7 @@ describe("PPS value monitor agent tests suite", () => {
     getVaults: mockGetVaults,
     getPPS: mockGetPPS,
   }
-  const handler: HandleBlock = provideHandleBlock(mockFetcher as any);
+  const handler: HandleBlock = provideHandleBlock(mockFetcher as any, BigNumber.from(0));
 
   beforeEach(() => {
     mockGetPPS.mockClear();
