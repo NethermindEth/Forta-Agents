@@ -1,4 +1,4 @@
-# sudo docker rmi $(sudo docker images -a -q) -f
+# OlymusDAO Treasury Deposits & Withdraws monitor
 
 ## Description
 
