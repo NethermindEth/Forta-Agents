@@ -11,7 +11,7 @@ import abi from './abi';
 import { createFinding } from './findings';
 
 const ZERO: BigNumber = BigNumber.from(0);
-const PERCENT: BigNumber = BigNumber.from(40) // % that define what large means
+const PERCENT: BigNumber = BigNumber.from(40) // % this define what large means
 const REGISTRY: string = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
 
 export const provideHandleTransaction = (
