@@ -1,7 +1,7 @@
 import { utils } from "ethers";
 
 export const keeperInterface = new utils.Interface([
-  "function strategyAddress(uint256 index) external view returns (address)",
+  "function strategyArray(uint256 index) external view returns (address)",
 ]);
 
 export const strategyInterface = new utils.Interface([
