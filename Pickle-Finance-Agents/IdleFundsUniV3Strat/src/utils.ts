@@ -1,5 +1,6 @@
 import { keeperInterface, strategyInterface } from "./abi";
 import { providers, Contract, utils, BigNumberish } from "ethers";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const getStrategies = async (keeperAddress: string, blockNumber: number, provider: providers.Provider): Promise<string[]> => {
   const keeperContract = new Contract(keeperAddress, keeperInterface, provider);
@@ -23,4 +24,19 @@ export const getIdleFunds = async (strategyAddress: string, blockNumber: number,
 export const getTotalFunds = async (strategyAddress: string, blockNumber: number, provider: providers.Provider): Promise<BigNumberish> => {
   const strategyContract = new Contract(strategyAddress, strategyInterface, provider);
   return strategyContract.liquidityOf({ blockTag: blockNumber });
+};
+
+export const createFinding = (strategyAddress: string, percentOfIdleFunds: string): Finding => {
+  return Finding.fromObject({
+    name: "Idle Funds in UniV3 strategy",
+    description: "An UniV3 strategy has too much idle funds",
+    alertId: "PICKLE-8",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Pickle Finance",
+    metadata: {
+      strategy: strategyAddress,
+      idleFunds: percentOfIdleFunds,
+    }
+  });
 };
