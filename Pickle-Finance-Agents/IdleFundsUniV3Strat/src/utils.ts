@@ -1,5 +1,5 @@
 import { keeperInterface, strategyInterface } from "./abi";
-import { providers, Contract, utils } from "ethers";
+import { providers, Contract, utils, BigNumberish } from "ethers";
 
 export const getStrategies = async (keeperAddress: string, blockNumber: number, provider: providers.Provider): Promise<string[]> => {
   const keeperContract = new Contract(keeperAddress, keeperInterface, provider);
@@ -13,4 +13,14 @@ export const getStrategies = async (keeperAddress: string, blockNumber: number, 
   }
 
   return Promise.all(strategiesPromises);
-}
+};
+
+export const getIdleFunds = async (strategyAddress: string, blockNumber: number, provider: providers.Provider): Promise<BigNumberish> => {
+  const strategyContract = new Contract(strategyAddress, strategyInterface, provider);
+  return strategyContract.liquidityOfThis({ blockTag: blockNumber });
+};
+
+export const getTotalFunds = async (strategyAddress: string, blockNumber: number, provider: providers.Provider): Promise<BigNumberish> => {
+  const strategyContract = new Contract(strategyAddress, strategyInterface, provider);
+  return strategyContract.liquidityOf({ blockTag: blockNumber });
+};
