@@ -45,6 +45,10 @@ export default class StrategyFetcher {
     const pContract: Contract = new Contract(pool, abi.POOL, this.provider);
     const current: BigNumber = (await pContract.slot0({ blockTag: block }))[1];
 
-    return { lower, upper, current };
+    return { 
+      lower: BigNumber.from(lower), 
+      upper: BigNumber.from(upper), 
+      current: BigNumber.from(current), 
+    };
   }
 };

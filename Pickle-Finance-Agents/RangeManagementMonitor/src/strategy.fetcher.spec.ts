@@ -2,7 +2,7 @@ import MockProvider from "./mock.provider"
 import StrategyFetcher, { TickInfo } from "./strategy.fetcher";
 import { createAddress } from "forta-agent-tools";
 import { Interface } from "@ethersproject/abi";
-import { utils } from "ethers";
+import { utils, BigNumber } from "ethers";
 import abi from "./abi";
 
 const KEEPER_IFACE: Interface = new Interface(abi.KEEPER);
@@ -82,7 +82,11 @@ describe("StrategyFetcher tests suite", () => {
 				);
 
 			const ticks: TickInfo = await fetcher.getTicks(block, strat);
-			expect(ticks).toStrictEqual({ lower: i, upper: i + 1, current: i + 2 });
+			expect(ticks).toStrictEqual({ 
+				lower: BigNumber.from(i), 
+				upper: BigNumber.from(i + 1), 
+				current: BigNumber.from(i + 2) 
+			});
 		}
 	});
 });
