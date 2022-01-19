@@ -24,7 +24,7 @@ const createFinding = (tick: TickInfo, strategy: string): Finding => Finding.fro
   }
 })
 
-const provideHandleBlock = (fetcher: StrategyFetcher): HandleBlock => 
+export const provideHandleBlock = (fetcher: StrategyFetcher): HandleBlock => 
   async (blockEvent: BlockEvent) => {
     const block: number = blockEvent.blockNumber;
     const findings: Finding[] = [];
