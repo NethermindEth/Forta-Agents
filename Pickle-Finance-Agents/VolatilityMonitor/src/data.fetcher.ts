@@ -24,7 +24,7 @@ export default class DataFetcher {
 
     const address: Promise<string> = this.rContract
       .getUpkeep(id, { blockTag: block })
-      .then((result: any) => result.target);
+      .then((result: any) => result.target.toLowerCase());
     this.cache.set(key, address);
     return address;
   }
