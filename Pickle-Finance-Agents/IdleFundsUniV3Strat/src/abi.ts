@@ -8,4 +8,3 @@ export const strategyInterface = new utils.Interface([
   "function liquidityOfThis() external view returns (uint256)",
   "function liquidityOf() external view returns (uint256)",
 ]);
-
