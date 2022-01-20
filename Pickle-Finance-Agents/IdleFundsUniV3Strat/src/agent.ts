@@ -1,45 +1,38 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  BlockEvent,
+  HandleBlock,
+  getEthersProvider,
+  Finding,
+} from "forta-agent";
+import { getStrategies, getIdleFunds, getTotalFunds, createFinding } from "./utils";
+import { BigNumberish, providers } from "ethers";
 
-let findingsCount = 0
+const KEEPER_ADDRESS = "0xCd2e473DD506DfaDeeA81371053c307a24C05e6D";
+const THRESHOLD = 25;
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleBlock = (keeperAddress: string, threshold: BigNumberish, provider: providers.Provider): HandleBlock => {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const strategies = await getStrategies(keeperAddress, blockEvent.blockNumber, provider);
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    const idleFundPromises = strategies.map((strategy: string) => getIdleFunds(strategy, blockEvent.blockNumber, provider));
+    const totalFundPromises = strategies.map((strategy: string) => getTotalFunds(strategy, blockEvent.blockNumber, provider));
 
-  return findings
+    const idleFunds = await Promise.all(idleFundPromises);
+    const totalFunds = await Promise.all(totalFundPromises);
+
+    for (let i = 0; i < strategies.length; i++) {
+      const idleFundsPercent = idleFunds[i].mul(100).div(totalFunds[i]);
+      if (idleFundsPercent > threshold) {
+        findings.push(createFinding(strategies[i], idleFundsPercent.toString()));
+      }
+    }
+    
+    return findings;
+  };
 }
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleBlock: provideHandleBlock(KEEPER_ADDRESS, THRESHOLD, getEthersProvider()),
+};
