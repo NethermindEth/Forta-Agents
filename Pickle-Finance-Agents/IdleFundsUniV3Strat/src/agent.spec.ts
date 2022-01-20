@@ -1,48 +1,91 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  HandleBlock
+} from "forta-agent";
+import { provideHandleBlock } from "./agent";
+import { TestBlockEvent, createAddress, encodeParameter } from "forta-agent-tools";
+import { isCallToStrategyArray, isCallToLiquidityOf, isCallToLiquidityOfThis } from "./mock.utils";
+import { when, resetAllWhenMocks } from "jest-when";
+import { createFinding } from "./utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const keeperAddress = createAddress("0x1");
+const strategies = [
+  createAddress("0x2"),
+  createAddress("0x3"),
+];
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const callMock = jest.fn();
+const getStorageAtMock = jest.fn();
+
+const ethersMock = {
+  call: callMock,
+  getStorageAt: getStorageAtMock,
+  _isProvider: true // Necessary for mocking an ether provider
+};
+
+describe("UniV3 Strategy Idle Funds Test Suite", () => {
+  let handleBlock: HandleBlock;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleBlock = provideHandleBlock(keeperAddress, 30, ethersMock);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  beforeEach(() => {
+    resetAllWhenMocks(); 
+    when(getStorageAtMock).calledWith(expect.anything()).mockReturnValue(2);
+    when(callMock).calledWith(isCallToStrategyArray(0)).mockReturnValue(encodeParameter("address", strategies[0]));
+  });
 
-      const findings = await handleTransaction(txEvent)
+  it("should return empty findings if idle funds are zero", async () => {
+    const blockEvent = new TestBlockEvent();
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[1])).mockReturnValue(encodeParameter("uint256", 10000));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[1])).mockReturnValue(encodeParameter("uint256", 0));
 
-      expect(findings).toStrictEqual([])
-    })
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    const findings = await handleBlock(blockEvent);
 
-      const findings = await handleTransaction(txEvent)
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+  it("should return a finding if a strategy has too much idle funds", async () => {
+    const blockEvent = new TestBlockEvent();
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[1])).mockReturnValue(encodeParameter("uint256", 10000));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[1])).mockReturnValue(encodeParameter("uint256", 6000));
+
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([ createFinding(strategies[1], "60")]);
+  });
+
+  it("should only take in account UniV3 strategies", async () => {
+    const blockEvent = new TestBlockEvent();
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[1])).mockReturnValue(encodeParameter("uint256", 10000));
+    when(callMock).calledWith(isCallToLiquidityOf(createAddress("0x1234"))).mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[0])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[1])).mockReturnValue(encodeParameter("uint256", 0));
+    when(callMock).calledWith(isCallToLiquidityOfThis(createAddress("0x1234"))).mockReturnValue(encodeParameter("uint256", 8));
+
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should check all the strategies", async () => {
+    const blockEvent = new TestBlockEvent();
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[0])).mockReturnValue(encodeParameter("uint256", 100));
+    when(callMock).calledWith(isCallToLiquidityOf(strategies[1])).mockReturnValue(encodeParameter("uint256", 200));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[0])).mockReturnValue(encodeParameter("uint256", 40));
+    when(callMock).calledWith(isCallToLiquidityOfThis(strategies[1])).mockReturnValue(encodeParameter("uint256", 35));
+
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([ createFinding(strategies[0], "40"), createFinding(strategies[1], "35")]);
+  });
+});
