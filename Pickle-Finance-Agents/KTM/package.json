@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "keeper-topup-monitor",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detects when keepers are running out of balance",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
