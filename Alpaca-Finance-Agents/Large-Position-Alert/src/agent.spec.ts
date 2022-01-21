@@ -3,46 +3,148 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
+  TransactionEvent
 } from "forta-agent"
-import agent from "./agent"
+import { 
+  createAddress,
+  TestTransactionEvent,
+  encodeParameters
+} from "forta-agent-tools";
+import { provideLargePositionAlert } from "./agent"
 
-describe("high gas agent", () => {
+const TEST_VAULT_ADDRESS = createAddress('0x1212');
+const ALERT_ID = 'test';
+
+const eventSig: string = 'Work(uint256,uint256)';
+
+const positionId: number = 123;
+const borrowAmount: number = 100000;
+const deployer: string = createAddress('0x3');
+
+const data: string = encodeParameters(
+  ["uint256", "uint256"],
+  [positionId, borrowAmount]
+);
+
+describe("Large Position Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+  beforeAll(() => {
+    handleTransaction = provideLargePositionAlert(ALERT_ID, TEST_VAULT_ADDRESS);
+  });
+
+  it('should return a Finding from Work emission', async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(deployer)
+      .setTo(TEST_VAULT_ADDRESS)
+      .addEventLog(eventSig, TEST_VAULT_ADDRESS, data);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: 'Deploy Meta Pool Event',
+        description: 'New meta pool is deployed',
+        alertId: ALERT_ID,
+        severity: FindingSeverity.Info,
+        type: FindingType.Unknown,
+        metadata: {
+          positionId: positionId.toString(),
+          borrowAmount: borrowAmount.toString()
+        }
+      }),
+    ]);
+  });
+
+  
+})
+
+/*
+import {
+  Finding,
+  HandleTransaction,
+  FindingSeverity,
+  FindingType,
+  TransactionEvent,
+} from 'forta-agent';
+import { provideMetaPoolDeployment } from './agent';
+import { 
+  createAddress,
+  TestTransactionEvent,
+  encodeParameters
+} from "forta-agent-tools";
+
+const TEST_FACTORY_ADDRESS = createAddress('0x1212');
+const ALERT_ID = 'test';
+
+const eventSig: string = 'MetaPoolDeployed(address,address,uint256,uint256,address)';
+
+const coinAddress: string = createAddress('0x2');
+const basePoolAddress: string = createAddress('0x1');
+const ampCoef: number = 10;
+const fee: number = 100;
+const deployer: string = createAddress('0x3');
+
+const data: string = encodeParameters(
+  ["address","address","uint256", "uint256", "address"],
+  [coinAddress, basePoolAddress, ampCoef, fee, deployer]
+);
+
+describe('Meta Pool Deployment Agent', () => {
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = provideMetaPoolDeployment(ALERT_ID, TEST_FACTORY_ADDRESS);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  it('should return a Finding from MetaPoolDeployed emission', async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(deployer)
+      .setTo(TEST_FACTORY_ADDRESS)
+      .addEventLog(eventSig, TEST_FACTORY_ADDRESS, data);
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([])
-    })
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: 'Deploy Meta Pool Event',
+        description: 'New meta pool is deployed',
+        alertId: ALERT_ID,
+        severity: FindingSeverity.Info,
+        type: FindingType.Unknown,
+        metadata: {
+          coin: coinAddress,
+          basePool: basePoolAddress,
+          a: ampCoef.toString(),
+          fee: fee.toString(),
+          deployer
+        }
+      }),
+    ]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it('should return no Findings due to incorrect event signature', async () => {
+    const badSig: string = 'badSig';
 
-      const findings = await handleTransaction(txEvent)
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addInvolvedAddresses(TEST_FACTORY_ADDRESS, deployer)
+      .addEventLog(badSig, TEST_FACTORY_ADDRESS, data);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return no Findings due to wrong contract ddress', async () => {
+    const wrongContractAddress: string = createAddress('0x1111');
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addInvolvedAddresses(wrongContractAddress, deployer)
+      .addEventLog(eventSig,wrongContractAddress);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+});
+*/
