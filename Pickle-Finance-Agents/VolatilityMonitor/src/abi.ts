@@ -17,11 +17,18 @@ const REGISTRY: string[] = [
   )`,
 ];
 
+const STRATEGIES_MANAGMENT: string[] = [
+  "function addStrategy(address _address)",
+  "function removeStrategy(address _address)",
+];
+
 const KEEPER: string[] = [
   "function strategyArray(uint256 index) view returns (address strat)",
+  ...STRATEGIES_MANAGMENT,
 ];
 
 export default {
   REGISTRY,
   KEEPER,
+  STRATEGIES_MANAGMENT,
 };
