@@ -6,7 +6,6 @@ Monitors the strategies to verify they are in range and earning fees.
 
 ## Supported Chains
 
-- Ethereum
 - Polygon
 
 ## Alerts
