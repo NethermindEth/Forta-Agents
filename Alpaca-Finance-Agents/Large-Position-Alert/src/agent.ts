@@ -1,45 +1,63 @@
-import BigNumber from 'bignumber.js'
 import { 
-  BlockEvent, 
   Finding, 
-  HandleBlock, 
   HandleTransaction, 
   TransactionEvent, 
   FindingSeverity, 
   FindingType 
 } from 'forta-agent'
+import {
+  provideEventCheckerHandler,
+  FindingGenerator,
+  decodeParameters
+} from "forta-agent-tools";
+import { utils } from 'ethers';
 
-let findingsCount = 0
+const POOL_ADDRESS: string = "0x00000000000000000000000"; // TODO: FIND A LEGITIMATE 'Vault' ADDRESS
+export const workEventAbi: string = 'event Work(uint256,uint256)'; // TODO: CONFIRM  'id' PARAM DOESN'T NEED 'indexed'
+export const VAULT_IFACE: utils.Interface = new utils.Interface([workEventAbi]); // TODO: CONFIRM THIS IS USED CORRECTLY
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+const createFindingGenerator = (alertId: string): FindingGenerator => {
+  return (metadata: { [key: string]: any } | undefined): Finding => {
+    const decodedData = decodeParameters(
+      ["uint256", "uint256"],
+      metadata?.data
+    );
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
+    return Finding.fromObject({
+      name: "Large Position Event",
+      description: "Large Position Has Been Taken",
+      alertId: alertId,
+      severity: FindingSeverity.Info,
+      type: FindingType.Unknown,
+      metadata:{
+        positionId: decodedData[0],
+        borrowAmount: decodedData[1]
+      },
+    });
+  };
+};
+
+export function provideLargePositionAlert(
+  alertId: string,
+  address: string
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const handler = provideEventCheckerHandler(
+      createFindingGenerator(alertId),
+      VAULT_IFACE.getEvent('Work').format('sighash'),
+      address,
+      /*filter*/ // TODO: CONFIRM THIS SHOULD NOT BE USED
+    );
+    const findings: Finding[] = await handler(txEvent);
+
+    return findings
   }
-
-  return findings
 }
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideLargePositionAlert(
+    "ALPACA-1",
+    POOL_ADDRESS,
+  )
+};
