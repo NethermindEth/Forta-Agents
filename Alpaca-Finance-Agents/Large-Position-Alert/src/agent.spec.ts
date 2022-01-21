@@ -13,44 +13,44 @@ import {
 import { provideLargePositionAlert } from "./agent"
 
 const TEST_VAULT_ADDRESS = createAddress('0x1212');
-const ALERT_ID = 'test';
+const TEST_ALERT_ID = 'test';
 
-const eventSig: string = 'Work(uint256,uint256)';
+const workEventSig: string = 'Work(uint256,uint256)';
 
-const positionId: number = 123;
-const borrowAmount: number = 100000;
-const deployer: string = createAddress('0x3');
+const testPositionId: number = 123;
+const testBorrowAmount: number = 100000;
+const testMsgSender: string = createAddress('0x3');
 
 const data: string = encodeParameters(
   ["uint256", "uint256"],
-  [positionId, borrowAmount]
+  [testPositionId, testBorrowAmount]
 );
 
 describe("Large Position Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideLargePositionAlert(ALERT_ID, TEST_VAULT_ADDRESS);
+    handleTransaction = provideLargePositionAlert(TEST_ALERT_ID, TEST_VAULT_ADDRESS);
   });
 
-  it('should return a Finding from Work emission', async () => {
+  it('should return a Finding from Work event emission', async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(deployer)
+      .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESS)
-      .addEventLog(eventSig, TEST_VAULT_ADDRESS, data);
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Deploy Meta Pool Event',
-        description: 'New meta pool is deployed',
-        alertId: ALERT_ID,
+        name: "Large Position Event",
+        description: "Large Position Has Been Taken",
+        alertId: TEST_ALERT_ID,
         severity: FindingSeverity.Info,
         type: FindingType.Unknown,
         metadata: {
-          positionId: positionId.toString(),
-          borrowAmount: borrowAmount.toString()
+          positionId: testPositionId.toString(),
+          borrowAmount: testBorrowAmount.toString()
         }
       }),
     ]);
