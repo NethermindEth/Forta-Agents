@@ -1,7 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 import { toChecksumAddress } from 'ethereumjs-util';
 import { when, resetAllWhenMocks } from "jest-when";
-import { BigNumber } from "ethers";
 
 interface Params {
   inputs: any[],
