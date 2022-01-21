@@ -12,7 +12,10 @@ export type FindingGenerator = (
 ) => Finding;
 
 const decodePerformData = (performData: string): string => 
-  utils.defaultAbiCoder.decode(["address"], performData)[0];
+  utils.defaultAbiCoder.decode(["address"], performData)[0].toLowerCase();
+
+const encodePerformData = (addr: string): string => 
+  utils.defaultAbiCoder.encode(["address"], [addr]).toLowerCase();
 
 const countGteThreshold = (threshold: number): Validator =>
   (count: number): boolean => count >= threshold;
@@ -53,7 +56,7 @@ const notCalledFinding = (
 ): Finding => Finding.fromObject({
   name: "Pickle Volatility Monitor",
   description: "Missing performUpkeep calls",
-  alertId: "pickle-vm-1",
+  alertId: "pickle-vm-2",
   type: FindingType.Info,
   severity: FindingSeverity.Medium,
   metadata: {
@@ -102,6 +105,7 @@ const mediumCallsFinding = (
 
 export default {
   decodePerformData,
+  encodePerformData,
   countGteThreshold,
   notAddedRecently,
   highCallsFinding,

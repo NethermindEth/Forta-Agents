@@ -39,11 +39,11 @@ describe("Memory tests suite", () => {
     expect(mem.isTimePassed(6)).toStrictEqual(false);
     expect(mem.isTimePassed(9)).toStrictEqual(false);
     expect(mem.isTimePassed(11)).toStrictEqual(false);
-    expect(mem.isTimePassed(12)).toStrictEqual(true);
+    expect(mem.isTimePassed(12)).toStrictEqual(false);
     expect(mem.isTimePassed(22)).toStrictEqual(true);
     expect(mem.isTimePassed(22)).toStrictEqual(false);
     expect(mem.isTimePassed(1)).toStrictEqual(false);
-    expect(mem.isTimePassed(30)).toStrictEqual(false);
+    expect(mem.isTimePassed(32)).toStrictEqual(false);
     expect(mem.isTimePassed(100)).toStrictEqual(true);
   });
 
@@ -61,8 +61,8 @@ describe("Memory tests suite", () => {
     mem.update("AB", "CD", 20);
     expect(mem.getCount("AB", "CD")).toStrictEqual(1);
     expect(mem.getLastTime("AB", "CD")).toStrictEqual(20);
-    mem.clear();
+    mem.clear(21);
     expect(mem.getCount("AB", "CD")).toStrictEqual(-1);
-    expect(mem.getLastTime("AB", "CD")).toStrictEqual(-1);
+    expect(mem.getLastTime("AB", "CD")).toStrictEqual(20);
   });
 });

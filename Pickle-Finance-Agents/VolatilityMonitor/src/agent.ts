@@ -17,7 +17,7 @@ import utils, {
 } from './utils';
 import constants from './constants';
 
-const provideHandleTransaction = (
+export const provideHandleTransaction = (
   idsList: number[], 
   fetcher: DataFetcher,
   shortPeriod: number,
@@ -30,7 +30,9 @@ const provideHandleTransaction = (
   const hugeMem = new Memory(hugePeriod);
   const allMem: Memory[] = [shortMem, mediumMem, hugeMem];
 
-  const ids: Set<number> = new Set<number>(idsList);
+  const ids: Set<string> = new Set<string>(
+    idsList.map(id => id.toString()),
+  );
 
   const checkMem = async (
     mem: Memory, 
@@ -60,7 +62,7 @@ const provideHandleTransaction = (
             idsList[i],
             upkeeps[i],
             strat,
-            time,
+            timestamp - Math.max(time, 0),
             count,
             mem.period,
           ));
@@ -68,7 +70,7 @@ const provideHandleTransaction = (
       }
     }
 
-    mem.clear();
+    mem.clear(timestamp);
     return findings;    
   };
 
@@ -76,29 +78,6 @@ const provideHandleTransaction = (
     const findings: Finding[] = [];
     const block: number = txEvent.blockNumber;
     const timestamp: number = txEvent.timestamp;
-
-    // Analize addition/removals in the keepers
-    const upkeeps: string[] = await Promise.all(
-      idsList.map(id => fetcher.getUpkeep(block, id))
-    );
-    upkeeps.forEach((keeper: string) => {
-      txEvent
-        .filterFunction(abi.STRATEGIES_MANAGMENT, keeper)
-        .forEach((desc: TransactionDescription) =>
-          // @ts-ignore
-          allMem.forEach(mem => mem[desc.name](keeper, desc.args[0], timestamp))
-        )
-    });  
-
-    // Detect performUpkeep calls
-    const logs: LogDescription[] = txEvent.filterLog(abi.REGISTRY, fetcher.registry);
-    for(let log of logs) {
-      if(ids.has(log.args.id)){
-        const keeper: string = await fetcher.getUpkeep(block, log.args.id);
-        const strat: string = utils.decodePerformData(log.args.performData);
-        allMem.forEach(mem => mem.update(keeper, strat, timestamp))
-      }
-    }
 
     // Check short time intervals with multiple calls
     findings.push(... await checkMem(
@@ -124,8 +103,35 @@ const provideHandleTransaction = (
       block, 
       timestamp, 
       utils.notAddedRecently,
-      utils.mediumCallsFinding,
+      utils.notCalledFinding,
     ));
+
+    // Analize addition/removals in the keepers
+    const upkeeps: string[] = await Promise.all(
+      idsList.map(id => fetcher.getUpkeep(block, id))
+    );
+    upkeeps.forEach((keeper: string) => {
+      txEvent
+        .filterFunction(abi.STRATEGIES_MANAGMENT, keeper)
+        .forEach((desc: TransactionDescription) =>
+          // @ts-ignore
+          allMem.forEach(mem => mem[desc.name](
+            keeper, 
+            desc.args[0].toLowerCase(), 
+            timestamp)
+          )
+        )
+    });  
+
+    // Detect performUpkeep calls
+    const logs: LogDescription[] = txEvent.filterLog(abi.REGISTRY, fetcher.registry);
+    for(let log of logs) {
+      if(ids.has(log.args.id.toString())){
+        const keeper: string = await fetcher.getUpkeep(block, log.args.id);
+        const strat: string = utils.decodePerformData(log.args.performData);
+        allMem.forEach(mem => mem.update(keeper, strat, timestamp))
+      }
+    }
 
     return findings;
   };

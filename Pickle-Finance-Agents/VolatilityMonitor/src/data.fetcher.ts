@@ -18,7 +18,7 @@ export default class DataFetcher {
   }
 
   public async getUpkeep(block: number, id: BigNumberish): Promise<string> {
-    const key: string = `${block}-${id}`;
+    const key: string = `${block}-${id.toString()}`;
     if(this.cache.has(key))
       return this.cache.get(key) as Promise<string>;
 
