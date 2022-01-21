@@ -1,48 +1,265 @@
+import { HandleTransaction, TransactionEvent } from "forta-agent";
+import { provideHandleTransaction } from "./agent";
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  TestTransactionEvent,
+  createAddress,
+  encodeParameter,
+  encodeParameters,
+} from "forta-agent-tools";
+import { when } from "jest-when";
+import { isCallToGetUpkeep, isCallToGetMinBalance } from "./mock.utils";
+import { keeperRegistryInterface } from "./abi";
+import { createHighFinding, createInfoFinding } from "./utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const keeperRegistryAddress = createAddress("0x1");
+const zeroAddress = createAddress("0x0");
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const callMock = jest.fn();
+const ethersMock = {
+  call: callMock,
+  _isProvider: true, // Necessary for mocking ethers provider
+} as any;
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+describe("Keeper Topup Monitor Test Suite", () => {
+  let handleTransaction: HandleTransaction;
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  beforeEach(() => {
+    handleTransaction = provideHandleTransaction(
+      10,
+      25,
+      3,
+      keeperRegistryAddress,
+      28,
+      ethersMock
+    );
+  });
 
-      const findings = await handleTransaction(txEvent)
+  it("should return empty findings if performUpkeep was not call", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
 
-      expect(findings).toStrictEqual([])
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return an Info finding is the estimated remaining calls are below info threshold and above high threshold", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    let findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+
+    txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    when(callMock)
+      .calledWith(isCallToGetMinBalance, expect.anything())
+      .mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock)
+      .calledWith(isCallToGetUpkeep, expect.anything())
+      .mockReturnValue(
+        encodeParameters(
+          [
+            "address",
+            "uint32",
+            "bytes",
+            "uint96",
+            "address",
+            "address",
+            "uint64",
+          ],
+          [zeroAddress, 5, zeroAddress, 780, zeroAddress, zeroAddress, 0]
+        )
+      );
+
+    txEvent.setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
     })
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    findings = await handleTransaction(txEvent);
 
-      const findings = await handleTransaction(txEvent)
+    expect(findings).toStrictEqual([ createInfoFinding("11", "780") ]);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
+  it("should return an High finding is the estimated remaining calls are below high threshold", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    let findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+
+    txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    when(callMock)
+      .calledWith(isCallToGetMinBalance, expect.anything())
+      .mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock)
+      .calledWith(isCallToGetUpkeep, expect.anything())
+      .mockReturnValue(
+        encodeParameters(
+          [
+            "address",
+            "uint32",
+            "bytes",
+            "uint96",
+            "address",
+            "address",
+            "uint64",
+          ],
+          [zeroAddress, 5, zeroAddress, 180, zeroAddress, zeroAddress, 0]
+        )
+      );
+
+    txEvent.setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
     })
-  })
-})
+
+    findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([ createHighFinding("2", "180") ]);
+  });
+
+  it("should not return more than one finding per block", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    let findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+
+    txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    when(callMock)
+      .calledWith(isCallToGetMinBalance, expect.anything())
+      .mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock)
+      .calledWith(isCallToGetUpkeep, expect.anything())
+      .mockReturnValue(
+        encodeParameters(
+          [
+            "address",
+            "uint32",
+            "bytes",
+            "uint96",
+            "address",
+            "address",
+            "uint64",
+          ],
+          [zeroAddress, 5, zeroAddress, 180, zeroAddress, zeroAddress, 0]
+        )
+      );
+
+    txEvent = new TestTransactionEvent().setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+    });
+    txEvent.transaction.gasPrice = "14";
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([ createHighFinding("2", "180") ]);
+
+    txEvent = new TestTransactionEvent().setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+    });
+    txEvent.transaction.gasPrice = "14";
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should only emit findings when the correct keeper is called", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    let findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+
+    txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    when(callMock)
+      .calledWith(isCallToGetMinBalance, expect.anything())
+      .mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock)
+      .calledWith(isCallToGetUpkeep, expect.anything())
+      .mockReturnValue(
+        encodeParameters(
+          [
+            "address",
+            "uint32",
+            "bytes",
+            "uint96",
+            "address",
+            "address",
+            "uint64",
+          ],
+          [zeroAddress, 5, zeroAddress, 180, zeroAddress, zeroAddress, 0]
+        )
+      );
+
+    txEvent = new TestTransactionEvent().setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [26, zeroAddress]),
+    });
+    txEvent.transaction.gasPrice = "14";
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should emit empty findings if the actual balance is enough", async () => {
+    let txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    let findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+
+    txEvent = new TestTransactionEvent().setBlock(1);
+    txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+
+    when(callMock)
+      .calledWith(isCallToGetMinBalance, expect.anything())
+      .mockReturnValue(encodeParameter("uint256", 10));
+    when(callMock)
+      .calledWith(isCallToGetUpkeep, expect.anything())
+      .mockReturnValue(
+        encodeParameters(
+          [
+            "address",
+            "uint32",
+            "bytes",
+            "uint96",
+            "address",
+            "address",
+            "uint64",
+          ],
+          [zeroAddress, 5, zeroAddress, 1800, zeroAddress, zeroAddress, 0]
+        )
+      );
+
+    txEvent = new TestTransactionEvent().setBlock(2).addTraces({
+      to: keeperRegistryAddress,
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+    });
+    txEvent.transaction.gasPrice = "14";
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+});
