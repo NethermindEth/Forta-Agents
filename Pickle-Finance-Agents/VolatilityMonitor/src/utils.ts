@@ -46,12 +46,12 @@ const multipleCallsFinding = (
   }
 });
 
-const notCalledFinding = (
+const notCalledFinding: FindingGenerator = (
   id: number,
   keeper: string,
   strategy: string,
   last: number,
-  count: number,
+  _: number, // ignored. Should be -1 always
   frame: number,
 ): Finding => Finding.fromObject({
   name: "Pickle Volatility Monitor",
@@ -64,12 +64,11 @@ const notCalledFinding = (
     keeperAddress: keeper,
     strategyAddress: strategy,
     timeSinceLastUpkeep: last.toString(),
-    numberOfUpkeepsToday: count.toString(),
     timeFrame: frame.toString(),
   }
 });
 
-const highCallsFinding = (
+const highCallsFinding: FindingGenerator = (
   id: number,
   keeper: string,
   strategy: string,
@@ -86,7 +85,7 @@ const highCallsFinding = (
   FindingSeverity.High,
 );
 
-const mediumCallsFinding = (
+const mediumCallsFinding: FindingGenerator = (
   id: number,
   keeper: string,
   strategy: string,

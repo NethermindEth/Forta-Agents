@@ -55,7 +55,6 @@ const noCallsFinding = (
   index: number,
   strategyIndex: number,
   last: number,
-  count: number,
   frame: number,
 ): Finding => Finding.fromObject({
   name: "Pickle Volatility Monitor",
@@ -68,7 +67,6 @@ const noCallsFinding = (
     keeperAddress: KEEPERS[index].toLowerCase(),
     strategyAddress: STRATEGIES[index][strategyIndex].toLowerCase(),
     timeSinceLastUpkeep: last.toString(),
-    numberOfUpkeepsToday: count.toString(),
     timeFrame: frame.toString(),
   }
 });
@@ -230,9 +228,9 @@ describe("VM agent tests suite", () => {
       .setTimestamp(201)
     findings = await handler(tx);
     expect(findings).toStrictEqual([
-      noCallsFinding(0, 0, 201, -1, 100),
-      noCallsFinding(0, 1, 201, -1, 100),
-      noCallsFinding(1, 0, 201, -1, 100),
+      noCallsFinding(0, 0, 201, 100),
+      noCallsFinding(0, 1, 201, 100),
+      noCallsFinding(1, 0, 201, 100),
     ]);
   });
 
@@ -355,7 +353,7 @@ describe("VM agent tests suite", () => {
     expect(findings).toStrictEqual([
       multipleCallsFinding(1, 0, 1990, 4, 10, FindingSeverity.High),
       multipleCallsFinding(1, 0, 1990, 4, 20, FindingSeverity.Medium),
-      noCallsFinding(0, 1, 2000, -1, 30),
+      noCallsFinding(0, 1, 2000, 30),
     ]);
   });
 });
