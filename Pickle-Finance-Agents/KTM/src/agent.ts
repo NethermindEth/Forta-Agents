@@ -1,45 +1,102 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  getEthersProvider,
+} from "forta-agent";
+import {
+  getExecuteGasAndBalance,
+  getMinimumBalance,
+  createHighFinding,
+  createInfoFinding,
+} from "./utils";
+import DataWindows from "./data.windows";
+import { BigNumber, providers } from "ethers";
 
-let findingsCount = 0
+const KEEPER_REGISTRY_ADDRESS = "0x7b3EC232b08BD7b4b3305BE0C044D907B2DF960B";
+const KEEPER_INDEX = 28;
+const INFO_THRESHOLD = 25;
+const HIGH_THRESHOLD = 10;
+const WINDOWS_SIZE = 1000;
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleTransaction = (
+  highThreshold: number,
+  infoThreshold: number,
+  windowsSize: number,
+  keeperRegistryAddress: string,
+  keeperIndex: number,
+  provider: providers.Provider
+): HandleTransaction => {
+  const dataFeed = new DataWindows(windowsSize);
+  let lastBlock = 0;
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    dataFeed.addElement(BigNumber.from(txEvent.gasPrice));
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    const performUpkeepCalls = txEvent.filterFunction(
+      "function performUpkeep(uint256 index, bytes performData) external returns (bool)",
+      keeperRegistryAddress
+    );
 
-  return findings
-}
+    const relevantKeeperCalled = performUpkeepCalls.some(
+      (call) => call.args["index"].eq(28) 
+    );
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    if (relevantKeeperCalled) {
+      const [executeGas, balance] = await getExecuteGasAndBalance(
+        keeperRegistryAddress,
+        keeperIndex,
+        txEvent.blockNumber,
+        provider
+      );
+      const minimumBalance = await getMinimumBalance(
+        keeperRegistryAddress,
+        keeperIndex,
+        txEvent.blockNumber,
+        provider
+      );
+      const estimatedGasPrice = dataFeed.getMean();
+      if (estimatedGasPrice.eq(0)) {
+        // No data to estimate has been collected
+        return [];
+      }
+
+      const estimatedCallCost = executeGas.mul(estimatedGasPrice);
+      const remainingBalance = balance.sub(minimumBalance);
+      const remainingCalls = remainingBalance.div(estimatedCallCost);
+
+      if (
+        remainingCalls.lte(highThreshold) &&
+        txEvent.blockNumber > lastBlock
+      ) {
+        lastBlock = txEvent.blockNumber;
+        return [
+          createHighFinding(remainingCalls.toString(), balance.toString()),
+        ];
+      }
+
+      if (
+        remainingCalls.lte(infoThreshold) &&
+        txEvent.blockNumber > lastBlock
+      ) {
+        lastBlock = txEvent.blockNumber;
+        return [
+          createInfoFinding(remainingCalls.toString(), balance.toString()),
+        ];
+      }
+    }
+
+    return [];
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(
+    HIGH_THRESHOLD,
+    INFO_THRESHOLD,
+    WINDOWS_SIZE,
+    KEEPER_REGISTRY_ADDRESS,
+    KEEPER_INDEX,
+    getEthersProvider()
+  ),
+};
