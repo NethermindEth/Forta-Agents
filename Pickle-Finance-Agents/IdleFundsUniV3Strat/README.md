@@ -1,4 +1,4 @@
-# UniswapV3 Strategies Idel Funds
+# UniswapV3 Strategies Idle Funds
 
 ## Description
 
@@ -6,7 +6,7 @@ This agent detects when an UniswapV3 strategy has too much idle funds.
 
 ## Supported Chains
 
-- Ethereum
+- Polygon
 
 ## Alerts
 
