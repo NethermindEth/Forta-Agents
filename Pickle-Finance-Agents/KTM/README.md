@@ -6,7 +6,7 @@ This agent detects when keepers are running out of balance
 
 ## Supported Chains
 
-- Ethereum
+- Polygon
 
 ## Alerts
 
