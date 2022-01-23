@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js'
 import {
   FindingType,
   FindingSeverity,
@@ -10,15 +11,15 @@ import {
   TestTransactionEvent,
   encodeParameters
 } from "forta-agent-tools";
-import { provideLargePositionAlert } from "./agent"
+import { provideHandleTransaction,
+  POOL_ADDRESS,
+  workEventSig
+} from "./agent"
 
-const TEST_VAULT_ADDRESS = createAddress('0x1212');
-const TEST_ALERT_ID = 'test';
-
-const workEventSig: string = 'Work(uint256,uint256)';
+const TEST_ALERT_ID: string = 'test';
 
 const testPositionId: number = 123;
-const testBorrowAmount: number = 100000;
+const testBorrowAmount = new BigNumber(500000000000000000000);
 const testMsgSender: string = createAddress('0x3');
 
 const data: string = encodeParameters(
@@ -30,14 +31,14 @@ describe("Large Position Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideLargePositionAlert(TEST_ALERT_ID, TEST_VAULT_ADDRESS);
+    handleTransaction = provideHandleTransaction(TEST_ALERT_ID, POOL_ADDRESS);
   });
 
   it('should return a Finding from Work event emission', async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
-      .setTo(TEST_VAULT_ADDRESS)
-      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, data);
+      .setTo(POOL_ADDRESS)
+      .addEventLog(workEventSig, POOL_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
@@ -60,8 +61,8 @@ describe("Large Position Alert Agent", () => {
     const badWorkSig: string = 'badSig';
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(TEST_VAULT_ADDRESS, testMsgSender)
-      .addEventLog(badWorkSig, TEST_VAULT_ADDRESS, data);
+      .addInvolvedAddresses(POOL_ADDRESS, testMsgSender)
+      .addEventLog(badWorkSig, POOL_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
