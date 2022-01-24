@@ -19,7 +19,6 @@ export const workEventAbi: string = 'event Work(uint256 indexed id, uint256 loan
 const VAULT_IFACE: utils.Interface = new utils.Interface([workEventAbi]);
 export const workEventSig: string = VAULT_IFACE.getEvent('Work').format('sighash');
 
-
 const createFindingGenerator = (alertId: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding => {
     const decodedData = decodeParameters(
