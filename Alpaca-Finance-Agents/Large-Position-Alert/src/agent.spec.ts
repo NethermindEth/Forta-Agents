@@ -11,12 +11,14 @@ import {
   TestTransactionEvent,
   encodeParameters
 } from "forta-agent-tools";
-import { provideHandleTransaction,
-  BUSD_VAULT_ADDRESS,
-  workEventSig
+import {
+  provideHandleTransaction,
+  workEventSig,
+  VAULTS
 } from "./agent"
 
 const TEST_ALERT_ID: string = 'test';
+const BUSD_VAULT_ADDRESS: string = VAULTS["BUSD"].address;
 
 const testPositionId: number = 123;
 const testBorrowAmount = BigInt(500000000000000000000000); // 500,000 BUSD
