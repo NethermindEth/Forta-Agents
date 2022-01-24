@@ -1,45 +1,26 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import BigNumber from 'bignumber.js';
+import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
+import { CONTRACTS, createFinding } from './utils';
 
-let findingsCount = 0
+const handleTransaction: HandleTransaction = async (
+  txEvent: TransactionEvent
+) => {
+  const findings: Finding[] = [];
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+  const th = new BigNumber(10); // 10 GWei
+  const gasPrice = new BigNumber(txEvent.gasPrice).div(
+    new BigNumber(10).pow(9)
+  );
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+  CONTRACTS.map((contract) => {
+    if (txEvent.to === contract && gasPrice.gt(th)) {
+      findings.push(createFinding(contract, gasPrice.toString()));
+    }
+  });
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
-
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+  return findings;
+};
 
 export default {
   handleTransaction,
-  // handleBlock
-}
+};
