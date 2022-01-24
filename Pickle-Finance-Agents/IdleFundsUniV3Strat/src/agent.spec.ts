@@ -25,10 +25,6 @@ const ethersMock = {
   _isProvider: true, // Necessary for mocking an ether provider
 } as any;
 
-const b = () => {
-  console.log("HERE");
-  return encodeParameter("uint256", 0);
-};
 
 describe("UniV3 Strategy Idle Funds Test Suite", () => {
   let handleBlock: HandleBlock;
