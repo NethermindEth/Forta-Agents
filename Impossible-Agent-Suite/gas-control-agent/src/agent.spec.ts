@@ -1,48 +1,65 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+import BigNumber from 'bignumber.js';
+import { HandleTransaction } from 'forta-agent';
+import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
+import { provideHandleTransaction } from './agent';
+import { createFinding, hexToNumber } from './utils';
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const TEST_ADDRESSES = [
+  createAddress('0x1'),
+  createAddress('0x2'),
+  createAddress('0x3'),
+];
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+describe('high gas agent', () => {
+  let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleTransaction = provideHandleTransaction(TEST_ADDRESSES);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  it('should return empty finding', async () => {
+    const tx = new TestTransactionEvent();
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(tx);
 
-      expect(findings).toStrictEqual([])
-    })
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it('should return empty finding if gas used properly', async () => {
+    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
+    tx.transaction.gasPrice = '0x1A13B8600'; // 7 GWei
 
-      const findings = await handleTransaction(txEvent)
+    const findings = await handleTransaction(tx);
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return empty finding if gas used as 10', async () => {
+    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
+    tx.transaction.gasPrice = '0x2540BE400'; // 10 GWei
+
+    const findings = await handleTransaction(tx);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return empty finding if wrong address used', async () => {
+    const tx = new TestTransactionEvent().setTo(createAddress('0x6'));
+    tx.transaction.gasPrice = '0x28FA6AE00'; // 11 GWei
+
+    const findings = await handleTransaction(tx);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return a finding if gas used above 10', async () => {
+    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
+    tx.transaction.gasPrice = '0x28FA6AE00'; // 11 GWei
+
+    const findings = await handleTransaction(tx);
+
+    expect(findings).toStrictEqual([
+      createFinding(TEST_ADDRESSES[0], hexToNumber('0x28FA6AE00').toString()),
+    ]);
+  });
+});

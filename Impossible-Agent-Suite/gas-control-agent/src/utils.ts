@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { Finding, FindingSeverity, FindingType } from 'forta-agent';
 
 export const CONTRACTS = [
@@ -22,3 +23,6 @@ export const createFinding = (contract: string, gas: string) =>
       gas: gas,
     },
   });
+
+export const hexToNumber = (hex: string): BigNumber =>
+  new BigNumber(hex).div(new BigNumber(10).pow(9));

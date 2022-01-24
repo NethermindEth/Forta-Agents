@@ -1,26 +1,27 @@
 import BigNumber from 'bignumber.js';
 import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
-import { CONTRACTS, createFinding } from './utils';
+import { CONTRACTS, createFinding, hexToNumber } from './utils';
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export const provideHandleTransaction = (
+  contracts: string[]
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  const th = new BigNumber(10); // 10 GWei
-  const gasPrice = new BigNumber(txEvent.gasPrice).div(
-    new BigNumber(10).pow(9)
-  );
+    const th = new BigNumber(10); // 10 GWei
+    const gasPrice = hexToNumber(txEvent.gasPrice);
 
-  CONTRACTS.map((contract) => {
-    if (txEvent.to === contract && gasPrice.gt(th)) {
-      findings.push(createFinding(contract, gasPrice.toString()));
-    }
-  });
+    contracts.map((contract) => {
+      if (txEvent.to === contract && gasPrice.gt(th)) {
+        findings.push(createFinding(contract, gasPrice.toString()));
+      }
+    });
 
-  return findings;
+    return findings;
+  };
 };
 
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(CONTRACTS),
+  provideHandleTransaction,
 };

@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "gas-control-agent",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "The agent detects transactions that used gas price above 10",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,7 +20,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.34"
+    "forta-agent": "^0.0.34",
+    "forta-agent-tools": "^1.0.32"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
