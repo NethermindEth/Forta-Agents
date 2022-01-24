@@ -29,4 +29,4 @@ This agent detects `Work` event emission from the `Vault` contract when the `loa
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x7c14644d678090ed33d780fbf9fe016a26fea4d40af34ec226ffba1e554616ca (Closest `Work` event emission I could find. `loan` amount was ~26K BUSD)
+- [0xeda7ba552147a8a33f9f9b964c9d54605a1d20bcfc4d20e0c41cb6803f58246d](https://bscscan.com/tx/0xeda7ba552147a8a33f9f9b964c9d54605a1d20bcfc4d20e0c41cb6803f58246d) (`loan` amount was ~239K BUSD)
