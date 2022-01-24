@@ -12,14 +12,14 @@ import {
   encodeParameters
 } from "forta-agent-tools";
 import { provideHandleTransaction,
-  POOL_ADDRESS,
+  BUSD_VAULT_ADDRESS,
   workEventSig
 } from "./agent"
 
 const TEST_ALERT_ID: string = 'test';
 
 const testPositionId: number = 123;
-const testBorrowAmount = new BigNumber(500000000000000000000);
+const testBorrowAmount = BigInt(500000000000000000000000); // 500,000 BUSD
 const testMsgSender: string = createAddress('0x3');
 
 const data: string = encodeParameters(
@@ -31,14 +31,14 @@ describe("Large Position Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(TEST_ALERT_ID, POOL_ADDRESS);
+    handleTransaction = provideHandleTransaction(TEST_ALERT_ID, BUSD_VAULT_ADDRESS);
   });
 
   it('should return a Finding from Work event emission', async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
-      .setTo(POOL_ADDRESS)
-      .addEventLog(workEventSig, POOL_ADDRESS, data);
+      .setTo(BUSD_VAULT_ADDRESS)
+      .addEventLog(workEventSig, BUSD_VAULT_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
@@ -61,8 +61,8 @@ describe("Large Position Alert Agent", () => {
     const badWorkSig: string = 'badSig';
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(POOL_ADDRESS, testMsgSender)
-      .addEventLog(badWorkSig, POOL_ADDRESS, data);
+      .addInvolvedAddresses(BUSD_VAULT_ADDRESS, testMsgSender)
+      .addEventLog(badWorkSig, BUSD_VAULT_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
@@ -70,11 +70,28 @@ describe("Large Position Alert Agent", () => {
   });
 
   it('should return no Findings due to wrong contract ddress', async () => {
-    const wrongContractAddress: string = createAddress('0x1111');
+    const wrongVaultAddress: string = createAddress('0x1111');
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(wrongContractAddress, testMsgSender)
-      .addEventLog(workEventSig,wrongContractAddress);
+      .addInvolvedAddresses(wrongVaultAddress, testMsgSender)
+      .addEventLog(workEventSig,wrongVaultAddress);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should return no Findings due not passing borrow amount threshold', async () => {
+    const lowBorrowAmount = BigInt(5000000000000000000000); // 5,000 BUSD
+
+    const lowBorrowAmountData: string = encodeParameters(
+      ["uint256", "uint256"],
+      [testPositionId, lowBorrowAmount]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addInvolvedAddresses(BUSD_VAULT_ADDRESS, testMsgSender)
+      .addEventLog(workEventSig, BUSD_VAULT_ADDRESS, lowBorrowAmountData);
 
     const findings = await handleTransaction(txEvent);
 
