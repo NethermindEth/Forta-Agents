@@ -12,14 +12,6 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
 
 - Vesper-1-1
 
-  - Maker Type Strategy isUnderWater Detection:
-
-    - if `isUnderWater` returns true
-    - Severity is `Info`
-    - Type is `Suspicious`
-    - The alert metadata includes:
-      - `strategy`: The address of the Maker strategy
-
   - Maker Type Strategy Collateral Ratio < lowWater Detection:
 
     - if `Collateral Ratio` is below `lowWater`
@@ -42,10 +34,31 @@ This agent fetch all active pools alongside their strategies and filter `Maker` 
 
 - Vesper-1-2
 
+  - Maker Type Strategy isUnderWater Detection:
+
+    - if `isUnderWater` returns true
+    - Severity is `Info`
+    - Type is `Suspicious`
+    - The alert metadata includes:
+      - `strategy`: The address of the Maker strategy
+
+- Vesper-1-3
+
   - Stability Fee Updates Detection:
-    - throws alert when stability fee changes in the collaterals of maker strategies
+    - throws alert when duty changes in the collaterals of maker strategies
     - Severity is `Info`
     - Type is `Info`
     - The alert metadata includes:
       - `strategy`: The address of the Maker strategy
       - `collateralType`: The collateral type of strategy
+      - `newDuty`: New value set to duty.
+
+- Vesper-1-4
+
+  - Stability Fee Updates Detection:
+    - throws alert when base changes in the Jug contract.
+    - Severity is `Info`
+    - Type is `Info`
+    - The alert metadata includes:
+      - `newBase`: New value set to base.
+

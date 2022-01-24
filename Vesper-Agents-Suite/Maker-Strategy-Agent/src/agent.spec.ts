@@ -8,7 +8,8 @@ import {
 import {
   encodeFunctionSignature,
   TestBlockEvent,
-  TestTransactionEvent
+  TestTransactionEvent,
+  encodeParameter
 } from "forta-agent-tools";
 import { BlockEvent } from "forta-agent-tools/node_modules/forta-agent";
 import { provideHandleTransaction, provideMakerStrategyHandler } from "./agent";
@@ -18,7 +19,8 @@ import {
   createFindingIsUnderWater,
   createFindingLowWater,
   createFindingHighWater,
-  JUG_DRIP_FUNCTION_SIGNATURE,
+  JUG_CHANGE_BASE_FUNCTION_SIGNATURE,
+  JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE,
   JUG_CONTRACT
 } from "./utils";
 
@@ -34,7 +36,8 @@ const createMock = (...args: Args) => {
 
 const createFindingSF = (
   _strategy: string,
-  collateralType: string
+  collateralType: string,
+  newDuty: string
 ): Finding => {
   return Finding.fromObject({
     name: "Stability Fee Update Detection",
@@ -45,10 +48,28 @@ const createFindingSF = (
     protocol: "Vesper",
     metadata: {
       strategy: _strategy,
-      collateralType: collateralType
+      collateralType: collateralType,
+      newDuty: newDuty,
     }
   });
 };
+
+const createFindingSFB = (
+  newBase: string,
+): Finding => {
+  return Finding.fromObject({
+    name: "Stability Fee Update Detection",
+    description: "Base stability Fee changed",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "Vesper-1-4",
+    protocol: "Vesper",
+    metadata: {
+      newBase: newBase,
+    }
+  });
+};
+
 
 describe("Vesper Maker Strategy Agent Test Suite", () => {
   let handleBlock: HandleBlock;
@@ -320,11 +341,12 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
   });
 
   it("should return finding if stability fee changed in specific strategy", async () => {
-    const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
+    const selector = encodeFunctionSignature(JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE);
+    const what = "6475747900000000000000000000000000000000000000000000000000000000" // "duty" in bytes32
     const collateralType =
       "4554482d43000000000000000000000000000000000000000000000000000000";
 
-    const INPUT = selector + collateralType;
+    const INPUT = selector + what + collateralType + encodeParameter("uint256", 1245).slice(2);
 
     const mockWeb3 = createMock(
       poolAccountants,
@@ -349,17 +371,51 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     findings = await handleTransaction(txnEvent);
 
     expect(findings).toStrictEqual([
-      createFindingSF(Mock.STRATEGIES_V2.toString(), "0x" + collateralType),
-      createFindingSF(Mock.STRATEGIES_V3.toString(), "0x" + collateralType)
+      createFindingSF(Mock.STRATEGIES_V2.toString(), "0x" + collateralType, "1245"),
+      createFindingSF(Mock.STRATEGIES_V3.toString(), "0x" + collateralType, "1245")
+    ]);
+  });
+
+  it("should return finding if base fee changed", async () => {
+    const selector = encodeFunctionSignature(JUG_CHANGE_BASE_FUNCTION_SIGNATURE);
+    const what = "6261736500000000000000000000000000000000000000000000000000000000" // "base" in bytes32
+
+    const INPUT = selector + what + encodeParameter("uint256", 1245).slice(2);
+
+    const mockWeb3 = createMock(
+      poolAccountants,
+      false,
+      {
+        collateralRatio: "2516557646144049203"
+      },
+      "2200000000000000000",
+      "2500000000000000000",
+      "Maker",
+      1,
+    );
+
+    handleTransaction = provideHandleTransaction(mockWeb3);
+
+    const txnEvent = new TestTransactionEvent().addTraces({
+      to: JUG_CONTRACT,
+      input: INPUT
+    });
+
+    let findings: Finding[];
+    findings = await handleTransaction(txnEvent);
+
+    expect(findings).toStrictEqual([
+      createFindingSFB("1245"),
     ]);
   });
 
   it("should return empty finding if stability fee changed in non-maker strategy", async () => {
-    const selector = encodeFunctionSignature(JUG_DRIP_FUNCTION_SIGNATURE);
+    const selector = encodeFunctionSignature(JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE);
+    const what = "6475747900000000000000000000000000000000000000000000000000000000" // "duty" in bytes32
     const collateralType =
       "3554482d43000000000000000000000000000000000000000000000000000000"; // bad collateral type
 
-    const INPUT = selector + collateralType;
+    const INPUT = selector + what + collateralType + encodeParameter("uint256", 1245).slice(2);
 
     const mockWeb3 = createMock(
       poolAccountants,

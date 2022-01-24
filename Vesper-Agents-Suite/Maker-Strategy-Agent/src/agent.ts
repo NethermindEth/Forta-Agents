@@ -5,13 +5,15 @@ import {
   checkIsUnderWaterTrue,
   createFindingHighWater,
   createFindingIsUnderWater,
+  createFindingBaseStabilityFee,
   createFindingLowWater,
   createFindingStabilityFee,
   getCollateralRatio,
   getLowWater,
   getHighWater,
   getCollateralType,
-  JUG_DRIP_FUNCTION_SIGNATURE,
+  JUG_CHANGE_BASE_FUNCTION_SIGNATURE,
+  JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE,
   JUG_CONTRACT
 } from "./utils";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
@@ -130,18 +132,25 @@ export const provideHandleTransaction = (web3: Web3) => {
 
       for (const res of collaterals) {
         const filterOnArguments = (args: { [key: string]: any }): boolean => {
-          return args[0] === res.collateralType;
+          return args[1] === res.collateralType;
         };
 
         const agentHandler = provideFunctionCallsDetectorHandler(
           createFindingStabilityFee(res.strategy.toString()),
-          JUG_DRIP_FUNCTION_SIGNATURE,
+          JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE,
           { to: JUG_CONTRACT, filterOnArguments }
         );
 
         findings.push(...(await agentHandler(txEvent)));
       }
     }
+
+    const baseChangedHandler = provideFunctionCallsDetectorHandler(
+        createFindingBaseStabilityFee(),
+        JUG_CHANGE_BASE_FUNCTION_SIGNATURE,
+        { to: JUG_CONTRACT }
+    );
+    findings.push(...(await baseChangedHandler(txEvent)));
 
     return findings;
   };
