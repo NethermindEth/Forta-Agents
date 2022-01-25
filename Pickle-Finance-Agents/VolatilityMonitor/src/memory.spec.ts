@@ -1,68 +1,105 @@
-import Memory from "./memory";
+import { MemoryData, MemoryManager } from "./memory";
 
 describe("Memory tests suite", () => {
-  it("should store the constructor parameters", () => {
-    for(let i = 0; i < 10; ++i){
-      const mem: Memory = new Memory(i);
-
-      expect(mem.period).toStrictEqual(i);
-    }
-  });
-
-  it("should store data correctly", () => {
-    const mem: Memory = new Memory(3);
-    const key1: string = "key1";
-    const key2: string = "key2";
-
-    for(let i = 0; i < 10; ++i){
-      mem.update(key1, key2, i);
-      expect(mem.getLastTime(key1, key2)).toStrictEqual(i);
-      expect(mem.getCount(key1, key2)).toStrictEqual(i + 1);
-    }
-  });
-
-  it("should return -1 when no records", () => {
-    const mem: Memory = new Memory(0);
+  describe("MemoryData", () => {
+    it("should store the constructor parameters", () => {
+      for(let i = 0; i < 10; ++i){
+        const mem: MemoryData = new MemoryData(i);
   
-    expect(mem.getLastTime("a", "b")).toStrictEqual(-1);
-    expect(mem.getCount("a", "b")).toStrictEqual(-1);
-    mem.update("a", "c", 3);
-    expect(mem.getLastTime("a", "b")).toStrictEqual(-1);
-    expect(mem.getCount("a", "b")).toStrictEqual(-1);
-  });
+        expect(mem.size).toStrictEqual(i);
+      }
+    });
 
-  it("should manage time correctly", () => {
-    const mem: Memory = new Memory(10);
+    it("should store data correctly", () => {
+      const mem: MemoryData = new MemoryData(3);
+      const key1: string = "key1";
+      const key2: string = "key2";
   
-    expect(mem.isTimePassed(2)).toStrictEqual(false);
-    expect(mem.isTimePassed(5)).toStrictEqual(false);
-    expect(mem.isTimePassed(6)).toStrictEqual(false);
-    expect(mem.isTimePassed(9)).toStrictEqual(false);
-    expect(mem.isTimePassed(11)).toStrictEqual(false);
-    expect(mem.isTimePassed(12)).toStrictEqual(false);
-    expect(mem.isTimePassed(22)).toStrictEqual(true);
-    expect(mem.isTimePassed(22)).toStrictEqual(false);
-    expect(mem.isTimePassed(1)).toStrictEqual(false);
-    expect(mem.isTimePassed(32)).toStrictEqual(false);
-    expect(mem.isTimePassed(100)).toStrictEqual(true);
+      const expected: number[] = [];
+      for(let i = 0; i < 10; ++i){
+        expected.push(i);
+        mem.update(key1, key2, i);
+        expect(mem.get(key1, key2)).toStrictEqual(
+          expected.slice(Math.max(0, i - 2))
+        );
+      }
+    });
+
+    it("should return the correct time difference", () => {
+      const mem: MemoryData = new MemoryData(5);
+      const key1: string = "keyA";
+      const key2: string = "keyZ";
+
+      expect(mem.update(key1, key2, 1)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 2)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 3)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 4)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 5)).toStrictEqual(4);
+      expect(mem.update(key1, key2, 7)).toStrictEqual(5);
+      expect(mem.update(key1, key2, 9)).toStrictEqual(6);
+      expect(mem.update(key1, key2, 11)).toStrictEqual(7);
+      expect(mem.update(key1, key2, 13)).toStrictEqual(8);
+    });
+
+    it("should remove the data correctly", () => {
+      const mem: MemoryData = new MemoryData(5);
+  
+      mem.update("AB", "CD", 20);
+      expect(mem.get("AB", "CD")).toStrictEqual([20]);
+      mem.removeStrategy("AB", "CD");
+      expect(mem.get("AB", "CD")).toStrictEqual([]);
+    });
   });
 
-  it("should not count addStrategy calls", () => {
-    const mem: Memory = new Memory(1);
+  describe("MemoryManager", () => {
+    it("should store data correctly", () => {
+      const mem: MemoryManager = new MemoryManager(3);
+      const key1: string = "key1";
+      const key2: string = "key2";
+  
+      for(let i = 0; i < 10; ++i){
+        mem.update(key1, key2, i);
+        expect(mem.getLast(key1, key2)).toStrictEqual(i);
+      }
+    });
 
-    mem.addStrategy("AB", "CD", 20);
-    expect(mem.getCount("AB", "CD")).toStrictEqual(0);
-    expect(mem.getLastTime("AB", "CD")).toStrictEqual(20);
-  });
+    it("should return the correct time difference", () => {
+      const mem: MemoryManager = new MemoryManager(5);
+      const key1: string = "keyA2";
+      const key2: string = "keyZ2";
 
-  it("should clear the data", () => {
-    const mem: Memory = new Memory(1);
+      expect(mem.update(key1, key2, 0)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 1)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 2)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 3)).toStrictEqual(-1);
+      expect(mem.update(key1, key2, 5)).toStrictEqual(5);
+      expect(mem.update(key1, key2, 7)).toStrictEqual(6);
+      expect(mem.update(key1, key2, 9)).toStrictEqual(7);
+      expect(mem.update(key1, key2, 11)).toStrictEqual(8);
+      expect(mem.update(key1, key2, 13)).toStrictEqual(8);
+    });
 
-    mem.update("AB", "CD", 20);
-    expect(mem.getCount("AB", "CD")).toStrictEqual(1);
-    expect(mem.getLastTime("AB", "CD")).toStrictEqual(20);
-    mem.clear(21);
-    expect(mem.getCount("AB", "CD")).toStrictEqual(-1);
-    expect(mem.getLastTime("AB", "CD")).toStrictEqual(20);
+    it("should addStrategy correctly", () => {
+      const mem: MemoryManager = new MemoryManager(5);
+
+      for(let i = 0; i < 10; ++i){
+        const key1: string = i.toString();
+        const key2: string = (i + 1).toString();
+
+        mem.addStrategy(key1, key2, i);
+        expect(mem.getLast(key1, key2)).toStrictEqual(i);
+        mem.update(key1, key2, i + 1);
+        expect(mem.getLast(key1, key2)).toStrictEqual(i + 1);
+      }      
+    });
+
+    it("should remove the data correctly", () => {
+      const mem: MemoryManager = new MemoryManager(10);
+  
+      mem.update("AB", "CD", 20);
+      mem.addStrategy("AB", "CD", 12);
+      mem.removeStrategy("AB", "CD", 0);
+      expect(mem.getLast("AB", "CD")).toStrictEqual(-1);
+    });
   });
 });
