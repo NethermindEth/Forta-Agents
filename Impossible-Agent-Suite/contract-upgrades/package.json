@@ -19,13 +19,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.34",
-    "forta-agent-tools": "^1.0.32"
+    "forta-agent": "^0.0.34"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "bignumber.js": "^9.0.2",
+    "forta-agent-tools": "^1.0.32",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
