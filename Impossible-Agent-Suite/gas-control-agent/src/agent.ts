@@ -11,7 +11,7 @@ export const provideHandleTransaction = (
     const th = new BigNumber(10); // 10 GWei
     const gasPrice = hexToNumber(txEvent.gasPrice);
 
-    contracts.map((contract) => {
+    contracts.forEach((contract) => {
       if (txEvent.to === contract && gasPrice.gt(th)) {
         findings.push(createFinding(contract, gasPrice.toString()));
       }
