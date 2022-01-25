@@ -18,9 +18,9 @@ export const CONTRACTS = [
 
 export const createFinding = (log: LogDescription, contract: string) =>
   Finding.fromObject({
-    name: 'High Gas Usage Detection',
-    description: 'High gas is used - above 10',
-    alertId: 'IMPOSSIBLE-2',
+    name: 'Ownership Transfers Detection ',
+    description: 'The ownership is trasferred.',
+    alertId: 'IMPOSSIBLE-3',
     severity: FindingSeverity.High,
     type: FindingType.Info,
     protocol: 'Impossible Finance',

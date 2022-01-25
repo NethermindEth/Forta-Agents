@@ -14,4 +14,5 @@ export const provideHandleTransaction =
 
 export default {
   handleTransaction: provideHandleTransaction(CONTRACTS),
+  provideHandleTransaction,
 };
