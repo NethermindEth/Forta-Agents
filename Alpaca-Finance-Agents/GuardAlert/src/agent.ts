@@ -1,45 +1,56 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  BlockEvent,
+  Finding,
+  HandleBlock,
+  getEthersProvider,
+} from "forta-agent";
+import {
+  fetchAddresses,
+  checkIsStable,
+  getLpsWorker,
+  PriceStatus,
+  createFinding,
+  Fetcher,
+} from "./utils";
+import { providers } from "ethers";
 
-let findingsCount = 0
+const DATA_URL =
+  "https://raw.githubusercontent.com/alpaca-finance/bsc-alpaca-contract/main/.mainnet.json";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleBlock = (
+  fetcher: Fetcher,
+  url: string,
+  provider: providers.Provider
+): HandleBlock => {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const addresses = await fetcher(url);
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    const lpsAndWorkers = getLpsWorker(addresses.vaults);
 
-  return findings
-}
+    const priceStatusPromises = lpsAndWorkers.map((worker) =>
+      checkIsStable(worker[1], addresses.workerConfig, provider)
+    );
+    const priceStatus = await Promise.all(priceStatusPromises);
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    for (let i = 0; i < lpsAndWorkers.length; i++) {
+      if (
+        priceStatus[i] === PriceStatus.LOW ||
+        priceStatus[i] === PriceStatus.HIGH
+      ) {
+        findings.push(createFinding(lpsAndWorkers[i][0], priceStatus[i]));
+      }
+    }
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleBlock: provideHandleBlock(
+    fetchAddresses,
+    DATA_URL,
+    getEthersProvider()
+  ),
+};
