@@ -1,48 +1,154 @@
+import { HandleBlock } from "forta-agent";
+import { provideHandleBlock } from "./agent";
+import { createFinding, AddressesRegistry, PriceStatus } from "./utils";
+import { when, resetAllWhenMocks } from "jest-when";
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  createAddress,
+  encodeParameter,
+  TestBlockEvent,
+} from "forta-agent-tools";
+import { isCallToIsStable } from "./mock.utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const fetcherMock = jest.fn();
+const callMock = jest.fn();
+const ethersMock = {
+  call: callMock,
+  _isProvider: true, // This is necessary for being an ethers provider
+} as any;
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const workers = [
+  createAddress("0x3"),
+  createAddress("0x4"),
+  createAddress("0x5"),
+];
+
+const lpTokens = [createAddress("0x6"), createAddress("0x7")];
+
+const testAddresses: AddressesRegistry = {
+  vaults: [
+    {
+      address: createAddress("0x1"),
+      workers: [
+        {
+          address: workers[0],
+          lpToken: lpTokens[0],
+        },
+        {
+          address: workers[1],
+          lpToken: lpTokens[0],
+        },
+      ],
+    },
+    {
+      address: createAddress("0x2"),
+      workers: [
+        {
+          address: workers[2],
+          lpToken: lpTokens[1],
+        },
+      ],
+    },
+  ],
+  workerConfig: createAddress("0x0"),
+};
+
+describe("Alpaca Guard Test Suite", () => {
+  let handleBlock: HandleBlock;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+    handleBlock = provideHandleBlock(fetcherMock, "testURL", ethersMock);
+  });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  beforeEach(() => {
+    resetAllWhenMocks();
+    when(fetcherMock)
+      .calledWith(expect.anything())
+      .mockReturnValue(testAddresses);
+  });
 
-      const findings = await handleTransaction(txEvent)
+  it("should return empty findings if not price is deviated", async () => {
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[0]), undefined)
+      .mockReturnValue(encodeParameter("bool", true));
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[2]), undefined)
+      .mockReturnValue(encodeParameter("bool", true));
 
-      expect(findings).toStrictEqual([])
-    })
+    const blockEvent = new TestBlockEvent();
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    const findings = await handleBlock(blockEvent);
 
-      const findings = await handleTransaction(txEvent)
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+  it("should return a finding if a price is deviated up", async () => {
+    const encodedError = encodeParameter(
+      "string",
+      "WorkerConfig::isStable:: price too high"
+    );
+
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[0]), undefined)
+      .mockReturnValue(encodeParameter("bool", true));
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[2]), undefined)
+      .mockReturnValue("0x08c379a0" + encodedError.slice(2));
+
+    const blockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(lpTokens[1], PriceStatus.HIGH),
+    ]);
+  });
+
+  it("should return a finding if a price is deviated down", async () => {
+    const encodedError = encodeParameter(
+      "string",
+      "WorkerConfig::isStable:: price too low"
+    );
+
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[0]), undefined)
+      .mockReturnValue("0x08c379a0" + encodedError.slice(2));
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[2]), undefined)
+      .mockReturnValue(encodeParameter("bool", true));
+
+    const blockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(lpTokens[0], PriceStatus.LOW),
+    ]);
+  });
+
+  it("should return multiple finindgs if multiple prices are deviated", async () => {
+    const encodedErrorHigh = encodeParameter(
+      "string",
+      "WorkerConfig::isStable:: price too high"
+    );
+    const encodedErrorLow = encodeParameter(
+      "string",
+      "WorkerConfig::isStable:: price too low"
+    );
+
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[0]), undefined)
+      .mockReturnValue("0x08c379a0" + encodedErrorHigh.slice(2));
+    when(callMock)
+      .calledWith(isCallToIsStable(workers[2]), undefined)
+      .mockReturnValue("0x08c379a0" + encodedErrorLow.slice(2));
+
+    const blockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(lpTokens[0], PriceStatus.HIGH),
+      createFinding(lpTokens[1], PriceStatus.LOW),
+    ]);
+  });
+});
