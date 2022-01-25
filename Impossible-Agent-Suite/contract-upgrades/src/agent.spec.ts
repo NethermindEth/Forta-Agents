@@ -32,7 +32,7 @@ const createFinding = (contract: string, prev: string, newOwner: string) =>
     },
   });
 
-describe('high gas agent', () => {
+describe('Contract Upgrade Agent Test Suit', () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
