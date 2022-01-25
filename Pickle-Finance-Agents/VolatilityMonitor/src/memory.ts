@@ -1,105 +1,100 @@
-export default class Memory {
-  private curTime: number;
-  readonly period: number;
-  private lastClear: number;
-  private data: Record<string, Record<string, [number, number]>>;
+export class MemoryData {
+  readonly size: number;
+  private data: Record<string, Record<string, number[]>>;
 
-  constructor(period: number, ) {
-    this.period = period;
-    this.curTime = -1;
+  constructor(size: number) {
+    this.size = size;
     this.data = {};
-    this.lastClear = 0;
   }
 
   // Adds a new event associated with 
   // a keeper/strategy pair ocurred
+  // Returns the time difference between the events if
+  // the amount of events is reached
   public update(
     keeper: string, 
     strat: string, 
     timestamp: number,
-    value: number = 1,
-  ) {
+  ): number {
     if(!this.data[keeper])
       this.data[keeper] = {};
     if(!this.data[keeper][strat])
-      this.data[keeper][strat] = [value, timestamp];
+      this.data[keeper][strat] = [timestamp];
     else {
-      let [count, time] = this.data[keeper][strat];
-      if(time < this.lastClear) count = 0;
-      this.data[keeper][strat] = [count + value, timestamp];
+      const list: number[] = this.data[keeper][strat];
+      list.push(timestamp);
+      if(list.length > this.size)
+        list.splice(0, 1);
     }
+    
+    const list: number[] = this.get(keeper, strat);
+    if(list.length < this.size)
+      return -1;
+    return list[this.size - 1] - list[0];
   }
 
-  private get(
+  public get(
     keeper: string, 
     strat: string, 
-    time: boolean,
+  ): number[] {
+    if(!this.data[keeper]) return [];
+    if(!this.data[keeper][strat]) return [];
+    return this.data[keeper][strat];
+  }
+
+  // Clears the data relative to a keeper/strategy pair.
+  public removeStrategy(
+    keeper: string, 
+    strat: string,
+  ) {
+    if(this.data[keeper])
+      delete this.data[keeper][strat];
+  }
+};
+
+export class MemoryManager {
+  private performMemory: MemoryData;
+  private addStratMemory: MemoryData;
+
+  constructor(size: number) {
+    this.performMemory = new MemoryData(size);
+    this.addStratMemory = new MemoryData(1);
+  }
+
+  public update(
+    keeper: string, 
+    strat: string, 
+    timestamp: number,
   ): number {
-    if(!this.data[keeper]) return -1;
-    if(!this.data[keeper][strat]) return -1;
-    const [count, last] = this.data[keeper][strat];
-    return time? last : count;
+    return this.performMemory.update(keeper, strat, timestamp);
   }
 
-  // Returns the amount of events registered associated with 
-  // a keeper/strategy pair ocurred
-  public getCount(
+  public getLast(
     keeper: string, 
     strat: string,
   ) {
-    if(this.getLastTime(keeper, strat) < this.lastClear)
-      return -1;
-    return this.get(keeper, strat, false);
+    const perform: number[] = this.performMemory.get(keeper, strat);
+    const add: number[] = this.addStratMemory.get(keeper, strat);
+    return Math.max(
+      perform.length == 0? -1 : perform[perform.length - 1],
+      add.length == 0? -1 : add[add.length - 1],
+    );
   }
 
-  // Returns the last time when an event associated with 
-  // a keeper/strategy pair ocurred
-  public getLastTime(
-    keeper: string, 
-    strat: string,
-  ) {
-    return this.get(keeper, strat, true);
-  }
-
-  // Updates the last time registered for a keeper/strategy pair 
-  // without modifiying the count. It represents the strategy addition
-  // to the keeper.
   public addStrategy(
     keeper: string, 
     strat: string,
     timestamp: number,
   ) {
-    // initValue 0 to avoid been counted
-    this.update(keeper, strat, timestamp, 0);
+    this.addStratMemory.update(keeper, strat, timestamp);
   }
 
-  // Clears the data realtive to a keeper/strategy pair.
   public removeStrategy(
     keeper: string, 
     strat: string,
     _: number,
   ) {
-    if(this.data[keeper])
-      delete this.data[keeper][strat];
-  }
-
-  // Checks is the period of time is already passed
-  // and updates the actual time if the time is passed
-  public isTimePassed(time: number): boolean {
-    if(this.curTime == -1){
-      this.curTime = time;
-      return false;
-    }
-    if(time - this.period > this.curTime){
-      this.curTime = time;
-      return true;
-    }
-    return false;
-  }
-
-  // Clears will be executed on demand (lazy)
-  // based on the time where the cleaning occured
-  public clear(timestamp: number) {
-    this.lastClear = timestamp;
+    this.performMemory.removeStrategy(keeper, strat);
+    this.addStratMemory.removeStrategy(keeper, strat);
   }
 };
