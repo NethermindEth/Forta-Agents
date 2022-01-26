@@ -69,13 +69,12 @@ export const provideHandleTransaction = (
     for(let i = 0; i < ids.size; ++i) {
       for(let strat of strategies[i]) {
         const last: number = mem.getLast(upkeeps[i], strat);
-        if((last !== -1) && (timestamp - last >= hugePeriod)) {
+        if((last === -1) || (timestamp - last >= hugePeriod)) {
           findings.push(utils.notCalledFinding(
             idsList[i],
             upkeeps[i],
             strat,
             timestamp - Math.max(last, 0),
-            mem.getCount(upkeeps[i], strat),
             hugePeriod,
           ));
         }
@@ -133,34 +132,37 @@ export const provideHandleTransaction = (
     const findings: Finding[] = await handler(txEvent);
     const timestamp: number = txEvent.timestamp;
 
-    const validFinding: Finding[] = [];
+    const validFindings: Finding[] = [];
     for(let finding of findings){
       const keeper: string = finding.metadata.keeperAddress;
       const strat: string = finding.metadata.strategyAddress;
       const frame: string = finding.metadata.timeFrame;
       const key: string = `${keeper}-${strat}-${frame}`;
-      if(!lastAlert[key]){
-        validFinding.push(finding);
-        lastAlert[key] = timestamp;
-        continue;
-      }
-      const last: number = lastAlert[key];
-      lastAlert[key] = timestamp;
+      let valid: boolean = false;
+      
+      if(!lastAlert[key])
+        valid = true;
+      else {
+        const last: number = lastAlert[key];
 
-      const frameNumber: number = Number(frame);
-      switch(frameNumber){
-        case shortPeriod:
-        case mediumPeriod:
-          if(timestamp - last > shortPeriod)
-            validFinding.push(finding);
-          break;
-        default:
-          if(timestamp - last > mediumPeriod)
-            validFinding.push(finding);
+        const frameNumber: number = Number(frame);
+        switch(frameNumber){
+          case shortPeriod:
+          case mediumPeriod:
+            valid = (timestamp - last > shortPeriod);
+            break;
+          default:
+            valid = (timestamp - last > mediumPeriod);
+        }
+      }
+
+      if(valid){
+        validFindings.push(finding);
+        lastAlert[key] = timestamp;
       }
     }
 
-    return validFinding;
+    return validFindings;
   };
 
   return floodModeratorHandler;

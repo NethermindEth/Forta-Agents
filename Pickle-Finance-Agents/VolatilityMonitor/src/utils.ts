@@ -36,7 +36,6 @@ const notCalledFinding = (
   keeper: string,
   strategy: string,
   last: number,
-  _: number, // ignored. Should be -1 always
   frame: number,
 ): Finding => Finding.fromObject({
   name: "Pickle Volatility Monitor",
@@ -49,6 +48,7 @@ const notCalledFinding = (
     keeperAddress: keeper,
     strategyAddress: strategy,
     timeSinceLastUpkeep: last.toString(),
+    numberOfUpkeepsToday: "0",
     timeFrame: frame.toString(),
   }
 });
