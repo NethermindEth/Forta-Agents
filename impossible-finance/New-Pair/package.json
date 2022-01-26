@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "new-pair-agent",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "The agent detects `PairCreated` events from `Swap Factory V1`",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

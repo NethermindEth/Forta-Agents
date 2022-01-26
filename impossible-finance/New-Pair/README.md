@@ -16,7 +16,6 @@ Describe each of the type of alerts fired by this agent
   - Fired when the contract `Swap Factory V1` emits a `PairCreated` event
   - Severity is always set to "info"
   - Type is always set to "info"
-  - Mention any other type of metadata fields included with this alert
   - Metadata fields
     - token\_0: A token in the pair 
     - token\_1: A token in the pair
