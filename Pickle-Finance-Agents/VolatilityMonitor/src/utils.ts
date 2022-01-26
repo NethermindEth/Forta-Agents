@@ -1,15 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { utils } from 'ethers';
-
-export type Validator = (n: number) => boolean;
-export type FindingGenerator = (
-  id: number,
-  keeper: string,
-  strategy: string,
-  last: number,
-  count: number,
-  frame: number,
-) => Finding;
+import { utils, BigNumberish } from 'ethers';
 
 const decodePerformData = (performData: string): string => 
   utils.defaultAbiCoder.decode(["address"], performData)[0].toLowerCase();
@@ -17,13 +7,8 @@ const decodePerformData = (performData: string): string =>
 const encodePerformData = (addr: string): string => 
   utils.defaultAbiCoder.encode(["address"], [addr]).toLowerCase();
 
-const countGteThreshold = (threshold: number): Validator =>
-  (count: number): boolean => count >= threshold;
-
-const notAddedRecently: Validator = (count: number): boolean => count === -1;
-
 const multipleCallsFinding = (
-  id: number,
+  id: BigNumberish,
   keeper: string,
   strategy: string,
   last: number,
@@ -46,8 +31,8 @@ const multipleCallsFinding = (
   }
 });
 
-const notCalledFinding: FindingGenerator = (
-  id: number,
+const notCalledFinding = (
+  id: BigNumberish,
   keeper: string,
   strategy: string,
   last: number,
@@ -68,8 +53,8 @@ const notCalledFinding: FindingGenerator = (
   }
 });
 
-const highCallsFinding: FindingGenerator = (
-  id: number,
+const highCallsFinding = (
+  id: BigNumberish,
   keeper: string,
   strategy: string,
   last: number,
@@ -85,8 +70,8 @@ const highCallsFinding: FindingGenerator = (
   FindingSeverity.High,
 );
 
-const mediumCallsFinding: FindingGenerator = (
-  id: number,
+const mediumCallsFinding = (
+  id: BigNumberish,
   keeper: string,
   strategy: string,
   last: number,
@@ -105,8 +90,6 @@ const mediumCallsFinding: FindingGenerator = (
 export default {
   decodePerformData,
   encodePerformData,
-  countGteThreshold,
-  notAddedRecently,
   highCallsFinding,
   mediumCallsFinding,
   notCalledFinding,

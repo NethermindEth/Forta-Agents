@@ -5,122 +5,94 @@ import {
   TransactionEvent, 
 } from 'forta-agent';
 import abi from './abi';
-import Memory from './memory';
+import { MemoryManager } from './memory';
 import { 
   LogDescription, 
   TransactionDescription,
 } from '@ethersproject/abi';
 import DataFetcher from './data.fetcher';
-import utils, { 
-  FindingGenerator, 
-  Validator 
-} from './utils';
+import utils from './utils';
 import constants from './constants';
+import { Block } from '@ethersproject/abstract-provider';
+
+const AMOUNT_OF_CALLS: number = 5;
+const MEMORY: MemoryManager = new MemoryManager(AMOUNT_OF_CALLS);
+const FETCHER: DataFetcher = new DataFetcher(
+  constants.REGISTRY, 
+  getEthersProvider(),
+)
+
+const initialize = async () => {
+  // fetch lastest block
+  const block: number = await FETCHER.provider.getBlockNumber();
+  const data: Block = await FETCHER.provider.getBlock(block);
+
+  // fetch upkeeps data from latest blocks
+  const upkeeps: string[] = await Promise.all(
+    constants.IDS.map(id => FETCHER.getUpkeep(block, id))
+  );
+  const strategies: string[][] = await Promise.all(
+    upkeeps.map(upkeep => FETCHER.getStrategies(block, upkeep))
+  );
+  // Add all the currently added strategies per upkeep
+  // to avoid fake huge time without call perform alerts
+  for(let i = 0; i < upkeeps.length; ++i) {
+    for(let strat of strategies[i]) 
+      MEMORY.addStrategy(upkeeps[i], strat, data.timestamp);
+  }
+};
 
 export const provideHandleTransaction = (
   idsList: number[], 
   fetcher: DataFetcher,
+  mem: MemoryManager,
   shortPeriod: number,
   mediumPeriod: number,
   hugePeriod: number,
-  amountOfCalls: number,
 ): HandleTransaction => {
-  const shortMem = new Memory(shortPeriod);
-  const mediumMem = new Memory(mediumPeriod);
-  const hugeMem = new Memory(hugePeriod);
-  const allMem: Memory[] = [shortMem, mediumMem, hugeMem];
-
   const ids: Set<string> = new Set<string>(
     idsList.map(id => id.toString()),
   );
 
-  const checkMem = async (
-    mem: Memory, 
-    block: number, 
-    timestamp: number,
-    validator: Validator,
-    findingGenerator: FindingGenerator,
-  ): Promise<Finding[]> => {
-    if(!mem.isTimePassed(timestamp))
-      return [];
-
+  const handler: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    const block: number = txEvent.blockNumber;
+    const timestamp: number = txEvent.timestamp;
 
+    // check huge periods without performing a strategy
     const upkeeps: string[] = await Promise.all(
       idsList.map(id => fetcher.getUpkeep(block, id))
     );
     const strategies: string[][] = await Promise.all(
       upkeeps.map(upkeep => fetcher.getStrategies(block, upkeep))
     );
-
     for(let i = 0; i < ids.size; ++i) {
       for(let strat of strategies[i]) {
-        const count: number = mem.getCount(upkeeps[i], strat);
-        const time: number = mem.getLastTime(upkeeps[i], strat);
-        if(validator(count)) {
-          findings.push(findingGenerator(
+        const last: number = mem.getLast(upkeeps[i], strat);
+        if((last !== -1) && (timestamp - last >= hugePeriod)) {
+          findings.push(utils.notCalledFinding(
             idsList[i],
             upkeeps[i],
             strat,
-            timestamp - Math.max(time, 0),
-            count,
-            mem.period,
+            timestamp - Math.max(last, 0),
+            mem.getCount(upkeeps[i], strat),
+            hugePeriod,
           ));
         }
       }
     }
 
-    mem.clear(timestamp);
-    return findings;    
-  };
-
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-    const block: number = txEvent.blockNumber;
-    const timestamp: number = txEvent.timestamp;
-
-    // Check short time intervals with multiple calls
-    findings.push(... await checkMem(
-      shortMem, 
-      block, 
-      timestamp, 
-      utils.countGteThreshold(amountOfCalls),
-      utils.highCallsFinding,
-    ));
-
-    // Check medium time intervals with multiple calls
-    findings.push(... await checkMem(
-      mediumMem, 
-      block, 
-      timestamp, 
-      utils.countGteThreshold(amountOfCalls),
-      utils.mediumCallsFinding,
-    ));
-
-    // Check huge time without performing an strategy
-    findings.push(... await checkMem(
-      hugeMem, 
-      block, 
-      timestamp, 
-      utils.notAddedRecently,
-      utils.notCalledFinding,
-    ));
-
     // Analize addition/removals in the keepers
-    const upkeeps: string[] = await Promise.all(
-      idsList.map(id => fetcher.getUpkeep(block, id))
-    );
     upkeeps.forEach((keeper: string) => {
       txEvent
         .filterFunction(abi.STRATEGIES_MANAGMENT, keeper)
         .forEach((desc: TransactionDescription) =>
           // @ts-ignore
-          allMem.forEach(mem => mem[desc.name](
+          mem[desc.name](
             keeper, 
             desc.args[0].toLowerCase(), 
             timestamp)
           )
-        )
     });  
 
     // Detect performUpkeep calls
@@ -129,24 +101,43 @@ export const provideHandleTransaction = (
       if(ids.has(log.args.id.toString())){
         const keeper: string = await fetcher.getUpkeep(block, log.args.id);
         const strat: string = utils.decodePerformData(log.args.performData);
-        allMem.forEach(mem => mem.update(keeper, strat, timestamp))
+        const diff: number = mem.update(keeper, strat, timestamp);
+
+        if(diff <= shortPeriod)
+          findings.push(utils.highCallsFinding(
+            log.args.id,
+            keeper,
+            strat,
+            0,
+            mem.getCount(keeper, strat),
+            shortPeriod,
+          ))
+        if(diff <= mediumPeriod)
+          findings.push(utils.mediumCallsFinding(
+            log.args.id,
+            keeper,
+            strat,
+            0,
+            mem.getCount(keeper, strat),
+            mediumPeriod,
+          ))
       }
     }
 
     return findings;
   };
+
+  return handler;
 }
 
 export default {
+  initialize,
   handleTransaction: provideHandleTransaction(
     constants.IDS,
-    new DataFetcher(
-      constants.REGISTRY, 
-      getEthersProvider(),
-    ),
+    FETCHER,
+    MEMORY,
     constants.ONE_DAY,
     constants.ONE_WEEK,
     constants.ONE_MONTH,
-    constants.AMOUNT_OF_CALLS,
   ),
 };

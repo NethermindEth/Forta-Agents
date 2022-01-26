@@ -7,7 +7,7 @@ type ResultType = Promise<string[] | string>;
 export default class DataFetcher {
   readonly registry: string;
   private rContract: Contract;
-  private provider: providers.Provider;
+  readonly provider: providers.Provider;
   private cache: LRU<string, ResultType>;
 
   constructor(registry: string, provider: providers.Provider) {

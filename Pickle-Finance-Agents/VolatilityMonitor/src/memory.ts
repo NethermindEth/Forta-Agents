@@ -1,6 +1,8 @@
+import constants from "./constants";
+
 export class MemoryData {
   readonly size: number;
-  private data: Record<string, Record<string, number[]>>;
+  private data: Record<string, number[]>;
 
   constructor(size: number) {
     this.size = size;
@@ -16,18 +18,16 @@ export class MemoryData {
     strat: string, 
     timestamp: number,
   ): number {
-    if(!this.data[keeper])
-      this.data[keeper] = {};
-    if(!this.data[keeper][strat])
-      this.data[keeper][strat] = [timestamp];
+    const key: string = `${keeper}-${strat}`;
+    if(!this.data[key])
+      this.data[key] = [timestamp];
     else {
-      const list: number[] = this.data[keeper][strat];
-      list.push(timestamp);
-      if(list.length > this.size)
-        list.splice(0, 1);
+      this.data[key].push(timestamp);
+      if(this.data[key].length > this.size)
+        this.data[key].splice(0, 1);
     }
     
-    const list: number[] = this.get(keeper, strat);
+    const list: number[] = this.data[key];
     if(list.length < this.size)
       return -1;
     return list[this.size - 1] - list[0];
@@ -37,9 +37,9 @@ export class MemoryData {
     keeper: string, 
     strat: string, 
   ): number[] {
-    if(!this.data[keeper]) return [];
-    if(!this.data[keeper][strat]) return [];
-    return this.data[keeper][strat];
+    const key: string = `${keeper}-${strat}`;
+    if(!this.data[key]) return [];
+    return this.data[key];
   }
 
   // Clears the data relative to a keeper/strategy pair.
@@ -47,18 +47,20 @@ export class MemoryData {
     keeper: string, 
     strat: string,
   ) {
-    if(this.data[keeper])
-      delete this.data[keeper][strat];
+    const key: string = `${keeper}-${strat}`;
+    delete this.data[key];
   }
 };
 
 export class MemoryManager {
   private performMemory: MemoryData;
   private addStratMemory: MemoryData;
+  private dailyEvents: Record<string, number[]>;
 
   constructor(size: number) {
     this.performMemory = new MemoryData(size);
     this.addStratMemory = new MemoryData(1);
+    this.dailyEvents = {};
   }
 
   public update(
@@ -66,6 +68,19 @@ export class MemoryManager {
     strat: string, 
     timestamp: number,
   ): number {
+    // update daily events
+    const key: string = `${keeper}-${strat}`;
+    if(!this.dailyEvents[key])
+      this.dailyEvents[key] = [];
+    const list: number[] = this.dailyEvents[key];
+    list.push(timestamp);
+    let count: number = 0;
+    for(; count < list.length; ++count){
+      if(timestamp - list[count] <= constants.ONE_DAY)
+        break; 
+    }    
+    list.splice(0, count);
+
     return this.performMemory.update(keeper, strat, timestamp);
   }
 
@@ -94,7 +109,18 @@ export class MemoryManager {
     strat: string,
     _: number,
   ) {
+    const key: string = `${keeper}-${strat}`;
+    delete this.dailyEvents[key];
     this.performMemory.removeStrategy(keeper, strat);
     this.addStratMemory.removeStrategy(keeper, strat);
+  }
+
+  public getCount(
+    keeper: string, 
+    strat: string,
+  ): number {
+    const key: string = `${keeper}-${strat}`;
+    if(!this.dailyEvents[key]) return 0;
+    return this.dailyEvents[key].length;
   }
 };
