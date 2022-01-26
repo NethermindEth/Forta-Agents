@@ -24,7 +24,7 @@ This agent detects `Work` event emission from the `Vault` contract when the `loa
   - Metadata contains:
     - `id`: Id of the target position.
     - `loan`: Amount to borrow from the vault.
-    - `vault`: Address of `Vault` the position is taken in.
+    - `vault`: Address of the `Vault` which houses the position.
 
 ## Test Data
 
