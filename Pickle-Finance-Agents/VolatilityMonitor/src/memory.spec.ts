@@ -1,3 +1,4 @@
+import constants from "./constants";
 import { MemoryData, MemoryManager } from "./memory";
 
 describe("Memory tests suite", () => {
@@ -100,6 +101,23 @@ describe("Memory tests suite", () => {
       mem.addStrategy("AB", "CD", 12);
       mem.removeStrategy("AB", "CD", 0);
       expect(mem.getLast("AB", "CD")).toStrictEqual(-1);
+    });
+
+    it("should track daily events", () => {
+      const mem: MemoryManager = new MemoryManager(2);
+      const key1: string = "qwerty";
+      const key2: string = "wasd";
+  
+      for(let i = 0; i < 10; ++i){
+        mem.update(key1, key2, i);
+        expect(mem.getCount(key1, key2)).toStrictEqual(i + 1);
+      }
+      for(let i = 0; i < 10; ++i){
+        mem.update(key1, key2, i + constants.ONE_DAY + 1);
+        expect(mem.getCount(key1, key2)).toStrictEqual(10);
+      }
+      mem.update(key1, key2, 6 + 2 * constants.ONE_DAY);
+      expect(mem.getCount(key1, key2)).toStrictEqual(6);
     });
   });
 });
