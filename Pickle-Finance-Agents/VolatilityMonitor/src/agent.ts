@@ -127,7 +127,43 @@ export const provideHandleTransaction = (
     return findings;
   };
 
-  return handler;
+  const lastAlert: Record<string, number> = {};
+
+  const floodModeratorHandler: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = await handler(txEvent);
+    const timestamp: number = txEvent.timestamp;
+
+    const validFinding: Finding[] = [];
+    for(let finding of findings){
+      const keeper: string = finding.metadata.keeperAddress;
+      const strat: string = finding.metadata.strategyAddress;
+      const frame: string = finding.metadata.timeFrame;
+      const key: string = `${keeper}-${strat}-${frame}`;
+      if(!lastAlert[key]){
+        validFinding.push(finding);
+        lastAlert[key] = timestamp;
+        continue;
+      }
+      const last: number = lastAlert[key];
+      lastAlert[key] = timestamp;
+
+      const frameNumber: number = Number(frame);
+      switch(frameNumber){
+        case shortPeriod:
+        case mediumPeriod:
+          if(timestamp - last > shortPeriod)
+            validFinding.push(finding);
+          break;
+        default:
+          if(timestamp - last > mediumPeriod)
+            validFinding.push(finding);
+      }
+    }
+
+    return validFinding;
+  };
+
+  return floodModeratorHandler;
 }
 
 export default {
