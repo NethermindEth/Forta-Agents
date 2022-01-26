@@ -6,7 +6,6 @@ Monitors how often the strategies are rebalancing and determines if range change
 
 ## Supported Chains
 
-- Ethereum
 - Polygon
 
 ## Alerts
@@ -32,5 +31,6 @@ Monitors how often the strategies are rebalancing and determines if range change
     - `keeperAddress`: Address of the keeper associated with `id`
     - `strategyAddress`: Strategy used in `performData`
     - `timeSinceLastUpkeep`: Time passed since the last `performUpkeep` call with the same `id/strategy`
+    - `numberOfUpkeepsToday`: Number of calls detected in the period of time,
     - `timeFrame`: The duration of the period,
   > `numberOfUpkeepsToday` is ommitted in this alert because it always will be 0
