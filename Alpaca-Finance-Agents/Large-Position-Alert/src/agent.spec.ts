@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js'
 import {
   FindingType,
   FindingSeverity,
@@ -12,19 +11,12 @@ import {
   encodeParameters
 } from "forta-agent-tools";
 import {
-  provideHandleTransaction,
-  workEventSig,
-  VAULT_ADDRESSES
+  provideHandleTransaction
 } from "./agent"
 
-const TEST_ALERT_ID: string = 'test';
-// NOTE: IS IT *REQUIRED* TO HAVE MOCK VAULT ADDRESSES INSTEAD?
-const BUSD_VAULT_FOR_TEST: string = "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f";
-const ETH_VAULT_FOR_TEST: string = "0xbfF4a34A4644a113E8200D7F1D79b3555f723AfE";
-const BTCB_VAULT_FOR_TEST: string = "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7";
-const USDT_VAULT_FOR_TEST: string = "0x08FC9Ba2cAc74742177e0afC3dC8Aed6961c24e7";
-const ALPACA_VAULT_FOR_TEST: string = "0xf1bE8ecC990cBcb90e166b71E368299f0116d421";
-const TUSD_VAULT_FOR_TEST: string = "0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd";
+const workEventSig: string = "Work(uint256,uint256)";
+// NOTE: IS IT ENOUGH TO ONLY TEST WITH ONE VAULT
+const BUSD_VAULT_ADDRESS: string = "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f";
 
 const testPositionId: number = 123;
 const testBorrowAmount = BigInt(500000000000000000000000); // 500,000 BUSD
@@ -39,14 +31,14 @@ describe("Large Position Alert Agent - BUSD Vault", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(TEST_ALERT_ID, VAULT_ADDRESSES); // NOTE: HAVE TO USE TEST ADDRESSES?
+    handleTransaction = provideHandleTransaction();
   });
 
   it('should return a Finding from Work event emission in BUSD Vault', async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
-      .setTo(BUSD_VAULT_FOR_TEST) // BUSD Vault
-      .addEventLog(workEventSig, BUSD_VAULT_FOR_TEST, data);
+      .setTo(BUSD_VAULT_ADDRESS) // BUSD Vault
+      .addEventLog(workEventSig, BUSD_VAULT_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
@@ -54,12 +46,13 @@ describe("Large Position Alert Agent - BUSD Vault", () => {
       Finding.fromObject({
         name: "Large Position Event",
         description: "Large Position Has Been Taken",
-        alertId: TEST_ALERT_ID,
+        alertId: "ALPACA-1",
         severity: FindingSeverity.Info,
-        type: FindingType.Unknown,
+        type: FindingType.Info,
         metadata: {
           positionId: testPositionId.toString(),
-          borrowAmount: testBorrowAmount.toString()
+          borrowAmount: testBorrowAmount.toString(),
+          vault: BUSD_VAULT_ADDRESS.toLowerCase()
         }
       }),
     ]);
@@ -69,8 +62,8 @@ describe("Large Position Alert Agent - BUSD Vault", () => {
     const badWorkSig: string = 'badSig';
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(VAULT_ADDRESSES[0], testMsgSender)
-      .addEventLog(badWorkSig, VAULT_ADDRESSES[0], data);
+      .addInvolvedAddresses(BUSD_VAULT_ADDRESS, testMsgSender)
+      .addEventLog(badWorkSig, BUSD_VAULT_ADDRESS, data);
 
     const findings = await handleTransaction(txEvent);
 
@@ -98,8 +91,8 @@ describe("Large Position Alert Agent - BUSD Vault", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addInvolvedAddresses(VAULT_ADDRESSES[0], testMsgSender)
-      .addEventLog(workEventSig, VAULT_ADDRESSES[0], lowBorrowAmountData);
+      .addInvolvedAddresses(BUSD_VAULT_ADDRESS, testMsgSender)
+      .addEventLog(workEventSig, BUSD_VAULT_ADDRESS, lowBorrowAmountData);
 
     const findings = await handleTransaction(txEvent);
 

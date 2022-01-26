@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "alpaca-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Agent to detect successful Work event emissions",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -19,8 +19,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "ethers": "^5.5.3",
     "forta-agent": "^0.0.34",
     "forta-agent-tools": "^1.0.32"
   },

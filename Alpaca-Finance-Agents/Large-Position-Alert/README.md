@@ -19,11 +19,12 @@ This agent detects `Work` event emission from the `Vault` contract when the `loa
 
 - ALPACA-1
   - Fired when `Work` event is emitted with `loan` meeting any of the previously stated criteria.
-  - Severity is always set to "info."
-  - Type is always set to "unknown."
+  - Severity is always set to "Info."
+  - Type is always set to "Info."
   - Metadata contains:
     - `id`: Id of the target position.
     - `loan`: Amount to borrow from the vault.
+    - `vault`: Address of `Vault` the position is taken in.
 
 ## Test Data
 
