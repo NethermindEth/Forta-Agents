@@ -51,7 +51,7 @@ describe("Large Position Alert Agent - BUSD Vault", () => {
         type: FindingType.Info,
         metadata: {
           positionId: testPositionId.toString(),
-          borrowAmount: testBorrowAmount.toString(),
+          loanAmount: testBorrowAmount.toString(),
           vault: BUSD_VAULT_ADDRESS.toLowerCase()
         }
       }),
