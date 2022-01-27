@@ -24,7 +24,7 @@ const initialize = async () => {
   console.log(pairs);
 };
 
-const provideHandleTransaction =
+export const provideHandleTransaction =
   (pairs: Set<string>, factory: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
