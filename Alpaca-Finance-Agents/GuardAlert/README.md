@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects when a used DEX LP price deviate too much from Oracle price.
+This agent detects when a used DEX LP price deviate from Oracle price by a specific threshold.
 
 ## Supported Chains
 
@@ -17,6 +17,5 @@ Describe each of the type of alerts fired by this agent
   - Severity is always set to "High".
   - Type is always set to "Info".
   - Metadata contains the following field:
-    - `lpToke`: The address of the LP token which price deviate.
-    - `priceDeviationDirection`: Indicate is the price is too high or too low.
-
+    - `lpToken`: The address of the LP token which price deviate.
+    - `priceDeviationDirection`: Indicates whether the price is too high or too low. 

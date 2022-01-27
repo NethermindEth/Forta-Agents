@@ -66,7 +66,7 @@ describe("Alpaca Guard Test Suite", () => {
       .mockReturnValue(testAddresses);
   });
 
-  it("should return empty findings if not price is deviated", async () => {
+  it("should return empty findings if price has not deviated", async () => {
     when(callMock)
       .calledWith(isCallToIsStable(workers[0]), undefined)
       .mockReturnValue(encodeParameter("bool", true));
@@ -81,7 +81,7 @@ describe("Alpaca Guard Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return a finding if a price is deviated up", async () => {
+  it("should return a finding if price has deviated too high", async () => {
     const encodedError = encodeParameter(
       "string",
       "WorkerConfig::isStable:: price too high"
@@ -103,7 +103,7 @@ describe("Alpaca Guard Test Suite", () => {
     ]);
   });
 
-  it("should return a finding if a price is deviated down", async () => {
+  it("should return a finding if price has deviated too far down", async () => {
     const encodedError = encodeParameter(
       "string",
       "WorkerConfig::isStable:: price too low"
@@ -125,7 +125,7 @@ describe("Alpaca Guard Test Suite", () => {
     ]);
   });
 
-  it("should return multiple finindgs if multiple prices are deviated", async () => {
+  it("should return multiple findings if multiple prices have deviated", async () => {
     const encodedErrorHigh = encodeParameter(
       "string",
       "WorkerConfig::isStable:: price too high"

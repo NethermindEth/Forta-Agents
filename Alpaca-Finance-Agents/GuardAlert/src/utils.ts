@@ -106,7 +106,7 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Alpaca Guard",
-    description: "A DEX price is too much deviate from Oracle",
+    description: "DEX LP price has deviated too much from Oracle price",
     alertId: "ALPACA-2",
     protocol: "Alpaca Finance",
     severity: FindingSeverity.High,

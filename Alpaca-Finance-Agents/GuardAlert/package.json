@@ -1,7 +1,7 @@
 {
   "name": "alpaca-guard",
   "version": "0.0.1",
-  "description": "This agent detects when a used DEX LP price deviate too much from Oracle price",
+  "description": "This agent detects when a used DEX LP price deviates too much from the Oracle price",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
