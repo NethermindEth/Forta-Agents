@@ -1,48 +1,122 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+import { getStatsForVault } from "./utils";
+import { createAddress, encodeParameter } from "forta-agent-tools";
+import { when, resetAllWhenMocks } from "jest-when";
+import { isCallToBalanceOf, isCallToTotalSupply } from "./mock.utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const callMock = jest.fn();
+const getSigner = (address: string) => {
+  return {
+    _isSigner: true,
+    call: callMock,
+    sendTransaction: callMock,
+    getAddress: () => address,
+  };
+};
+const etherMock = {
+  call: callMock,
+  sendTransaction: callMock,
+  getSigner: getSigner,
+  _isProvider: true, // This is necessary for being an ether provider
+} as any;
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const vault = createAddress("0x1");
+const investors = [
+  createAddress("0x2"),
+  createAddress("0x3"),
+  createAddress("0x4"),
+  createAddress("0x5"),
+];
+const investorsInfo = [
+  {
+    vault: {
+      id: vault,
+    },
+    account: {
+      id: investors[0],
+    },
+  },
+  {
+    vault: {
+      id: vault,
+    },
+    account: {
+      id: investors[1],
+    },
+  },
+  {
+    vault: {
+      id: vault,
+    },
+    account: {
+      id: investors[2],
+    },
+  },
+  {
+    vault: {
+      id: vault,
+    },
+    account: {
+      id: investors[3],
+    },
+  },
+];
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const createFork = (...args: any[]) => etherMock;
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+describe("Yearn Vault Instant Withdrawns Test Suite", () => {
+  beforeEach(() => {
+    resetAllWhenMocks();
+  });
 
-      const findings = await handleTransaction(txEvent)
+  it("should return the correct values", async () => {
+    when(callMock)
+      .calledWith(isCallToTotalSupply, undefined)
+      .mockReturnValue(encodeParameter("uint256", 6000));
+    when(callMock)
+      .calledWith(isCallToBalanceOf, undefined)
+      // Balances before
+      .mockReturnValueOnce(encodeParameter("uint256", 1000))
+      .mockReturnValueOnce(encodeParameter("uint256", 700))
+      .mockReturnValueOnce(encodeParameter("uint256", 2000))
+      .mockReturnValueOnce(encodeParameter("uint256", 300))
+      // Balances after
+      .mockReturnValueOnce(encodeParameter("uint256", 0))
+      .mockReturnValueOnce(encodeParameter("uint256", 0))
+      .mockReturnValueOnce(encodeParameter("uint256", 0))
+      .mockReturnValueOnce(encodeParameter("uint256", 0));
 
-      expect(findings).toStrictEqual([])
-    })
+    const [vault, totalSupply, totalInvestorsValue, ableToWithdrawn] =
+      await getStatsForVault(investorsInfo, "", 0, createFork as any);
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+    expect(vault).toStrictEqual(vault);
+    expect(totalSupply.toString()).toStrictEqual("6000");
+    expect(totalInvestorsValue.toString()).toStrictEqual("4000");
+    expect(ableToWithdrawn.toString()).toStrictEqual("4000");
+  });
 
-      const findings = await handleTransaction(txEvent)
+  it("should return the correct values", async () => {
+    when(callMock)
+      .calledWith(isCallToTotalSupply, undefined)
+      .mockReturnValue(encodeParameter("uint256", 6000));
+    when(callMock)
+      .calledWith(isCallToBalanceOf, undefined)
+      // Balances before
+      .mockReturnValueOnce(encodeParameter("uint256", 1000))
+      .mockReturnValueOnce(encodeParameter("uint256", 1000))
+      .mockReturnValueOnce(encodeParameter("uint256", 2000))
+      .mockReturnValueOnce(encodeParameter("uint256", 300))
+      // Balances after
+      .mockReturnValueOnce(encodeParameter("uint256", 0))
+      .mockReturnValueOnce(encodeParameter("uint256", 500))
+      .mockReturnValueOnce(encodeParameter("uint256", 0))
+      .mockReturnValueOnce(encodeParameter("uint256", 300));
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+    const [vault, totalSupply, totalInvestorsValue, ableToWithdrawn] =
+      await getStatsForVault(investorsInfo, "", 0, createFork as any);
+
+    expect(vault).toStrictEqual(vault);
+    expect(totalSupply.toString()).toStrictEqual("6000");
+    expect(totalInvestorsValue.toString()).toStrictEqual("4300");
+    expect(ableToWithdrawn.toString()).toStrictEqual("3500");
+  });
+});
