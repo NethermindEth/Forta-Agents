@@ -125,7 +125,7 @@ describe("VM agent tests suite", () => {
     mockMemory.getCount.mockClear();
   });
 
-  it("should return empty findings in the there is noting to report", async () => {
+  it("should return empty findings in the there is nothing to report", async () => {
     prepareBlock(15);
     mockMemory.getLast.mockReturnValue(1);
     const handler: HandleTransaction = provideHandleTransaction(
@@ -137,7 +137,7 @@ describe("VM agent tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should report short & medium periord findings without flood", async () => {
+  it("should report short & medium period findings without flood", async () => {
     const handler: HandleTransaction = provideHandleTransaction(
       IDS, mockFetcher as any, mockMemory as any, 2, 4, 5,
     );
@@ -177,7 +177,7 @@ describe("VM agent tests suite", () => {
     );    
   });
 
-  it("should report medium periord findings without flood", async () => {
+  it("should report medium period findings without flood", async () => {
     const handler: HandleTransaction = provideHandleTransaction(
       IDS, mockFetcher as any, mockMemory as any, 2, 5, 200,
     );
@@ -216,7 +216,7 @@ describe("VM agent tests suite", () => {
     );    
   });
 
-  it("should report huge periord findings without flood", async () => {
+  it("should report huge period findings without flood", async () => {
     const handler: HandleTransaction = provideHandleTransaction(
       IDS, mockFetcher as any, mockMemory as any, 50, 90, 100,
     );
