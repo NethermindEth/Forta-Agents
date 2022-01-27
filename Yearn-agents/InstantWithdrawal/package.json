@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "yearn-7",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent informs about the amount of assets that can be instantanly withdrawn from vaults",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
