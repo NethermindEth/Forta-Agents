@@ -19,4 +19,4 @@ export default class PairFetcher {
 
     return Promise.all(pairPromises);
   }
-};
+}
