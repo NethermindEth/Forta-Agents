@@ -30,7 +30,7 @@ export const provideHandleBlock = (
     const lpsAndWorkers = getLpsWorker(addresses.vaults);
 
     const priceStatusPromises = lpsAndWorkers.map((worker) =>
-      checkIsStable(worker[1], addresses.workerConfig, provider)
+      checkIsStable(worker.address, addresses.workerConfig, provider)
     );
     const priceStatus = await Promise.all(priceStatusPromises);
 
@@ -39,7 +39,7 @@ export const provideHandleBlock = (
         priceStatus[i] === PriceStatus.LOW ||
         priceStatus[i] === PriceStatus.HIGH
       ) {
-        findings.push(createFinding(lpsAndWorkers[i][0], priceStatus[i]));
+        findings.push(createFinding(lpsAndWorkers[i].lpToken, priceStatus[i]));
       }
     }
 

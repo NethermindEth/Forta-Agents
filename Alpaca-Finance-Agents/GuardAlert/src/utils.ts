@@ -83,8 +83,8 @@ export const checkIsStable = async (
   }
 };
 
-export const getLpsWorker = (vaults: Vault[]): string[][] => {
-  const workers: string[][] = [];
+export const getLpsWorker = (vaults: Vault[]): Worker[] => {
+  const workers: Worker[] = [];
   const lps = new Set<string>();
 
   for (let vault of vaults) {
@@ -93,7 +93,7 @@ export const getLpsWorker = (vaults: Vault[]): string[][] => {
         continue;
       }
       lps.add(worker.lpToken);
-      workers.push([worker.lpToken, worker.address]);
+      workers.push(worker);
     }
   }
 
