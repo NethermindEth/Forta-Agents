@@ -14,8 +14,13 @@ export default class PairFetcher {
     const length: number = await this.fContract.allPairsLength({ blockTag: block });
 
     const pairPromises: Promise<string>[] = [];
-    for (let i = BigNumber.from(0); i.lt(length); i.add(1))
-      pairPromises.push(this.fContract.allPairs(i, { blockTag: block }));
+    for (let i = BigNumber.from(0); i.lt(length); i = i.add(1)) {
+      pairPromises.push(
+        this.fContract
+          .allPairs(i, { blockTag: block })
+          .then((pair: string) => pair.toLowerCase())
+      );
+    }
 
     return Promise.all(pairPromises);
   }

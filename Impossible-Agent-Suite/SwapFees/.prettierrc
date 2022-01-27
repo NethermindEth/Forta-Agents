@@ -1,6 +1,6 @@
 
 {
-  printWidth: 120,
+  printWidth: 90,
   trailingComma: es5,
   singleQuote: false 
 }

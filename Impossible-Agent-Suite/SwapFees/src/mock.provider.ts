@@ -18,7 +18,13 @@ export default class MockProvider {
     this.getStorageAt = jest.fn();
   }
 
-  public addCallTo(contract: string, block: number | string, iface: Interface, id: any, params: Params): MockProvider {
+  public addCallTo(
+    contract: string,
+    block: number | string,
+    iface: Interface,
+    id: any,
+    params: Params
+  ): MockProvider {
     when(this.call)
       .calledWith(
         {
@@ -31,7 +37,12 @@ export default class MockProvider {
     return this;
   }
 
-  public addStorage(contract: string, slot: number, block: number, result: string): MockProvider {
+  public addStorage(
+    contract: string,
+    slot: number,
+    block: number,
+    result: string
+  ): MockProvider {
     when(this.getStorageAt).calledWith(contract, slot, block).mockReturnValue(result);
     return this;
   }
