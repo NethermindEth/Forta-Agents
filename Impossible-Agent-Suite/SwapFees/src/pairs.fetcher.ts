@@ -10,7 +10,7 @@ export default class PairFetcher {
     this.fContract = new Contract(factory, abi.FACTORY, provider);
   }
 
-  public async getAllPairs(block: number): Promise<string[]> {
+  public async getAllPairs(block: number | string): Promise<string[]> {
     const length: number = await this.fContract.allPairsLength({ blockTag: block });
 
     const pairPromises: Promise<string>[] = [];
