@@ -79,7 +79,7 @@ export const createFinding = (
   return Finding.fromObject({
     name: "Minimun Withdrawable Shares",
     description: "Data about withdrawable shares from a yearn vault",
-    alertId: "Yearn-7",
+    alertId: "YEARN-7",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Yearn Finance",
