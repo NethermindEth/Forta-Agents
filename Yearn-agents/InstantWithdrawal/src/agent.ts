@@ -38,7 +38,7 @@ const detectFindings = async (
         (investorsInfo) => investorsInfo.length > 0
       );
 
-      const statsPromises = investByVault.map((investors) =>
+      const statsPromises = investByVault.slice(0,5).map((investors) =>
         getStatsForVault(investors, jsonRpcURL, blockNumber, getForkProvider)
       );
 
