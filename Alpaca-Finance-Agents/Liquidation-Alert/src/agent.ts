@@ -4,7 +4,7 @@ import {
   TransactionEvent, 
   FindingSeverity, 
   FindingType,
-} from 'forta-agent'
+} from 'forta-agent';
 
 const VAULT_ADDRESSES: string[] = [
   "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f".toLowerCase(), // BUSD
@@ -15,10 +15,7 @@ const VAULT_ADDRESSES: string[] = [
   "0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd".toLowerCase()  // TUSD
 ]
 
-// NOTE: HAD TO OMIT 'indexed' FROM BOTH 'id' AND 'killer' PARAMS TO GET filterLog() TO SUCCESSFULLY WORK.
-// TODO: FIGURE OUT HOW TO KEEP IT AS IT IS.
-// ORIGINAL: "event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)"
-const killEventAbi: string = "event Kill(uint256 id, address killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)";
+const killEventAbi: string = "event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)";
 
 const createFindings = (
   posId: number,
@@ -39,8 +36,8 @@ const createFindings = (
     type: FindingType.Info,
     metadata:{
       positionId: posId.toString(),
-      positionkiller: killer, // TODO: CONFIRM toString() IS UNECESSARY
-      positionOwner: posOwner, // TODO: CONFIRM toString() IS UNECESSARY
+      positionkiller: killer,
+      positionOwner: posOwner,
       positionValue: posVal.toString(),
       debt: debt.toString(),
       prize: prize.toString(),
@@ -59,8 +56,8 @@ const createFindings = (
       type: FindingType.Info,
       metadata:{
         positionId: posId.toString(),
-        positionkiller: killer, // TODO: CONFIRM toString() IS UNECESSARY
-        positionOwner: posOwner, // TODO: CONFIRM toString() IS UNECESSARY
+        positionkiller: killer,
+        positionOwner: posOwner,
         positionValue: posVal.toString(),
         debt: debt.toString(),
         prize: prize.toString(),

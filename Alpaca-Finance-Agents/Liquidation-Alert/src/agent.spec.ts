@@ -10,14 +10,14 @@ import {
   TestTransactionEvent,
   encodeParameters
 } from "forta-agent-tools";
-import { provideHandleTransaction } from "./agent"
+import { provideHandleTransaction } from "./agent";
 
 const TEST_VAULT_ADDRESSES: string[] = [createAddress("0x4321")];
 const testMsgSender: string = createAddress("0x1234");
 
 const killEventSig: string = "Kill(uint256,address,address,uint256,uint256,uint256,uint256)";
 
-// TODO: CONFIRM THE MATH ADDS UP TO AN ACTUAL LIQUIDATION EXCUTION
+
 const testId: number = 1;
 const testKiller: string = createAddress("0x0101");
 const testOwner: string = createAddress("0x0202");
@@ -27,9 +27,14 @@ const testPrize: bigint = BigInt(5000000000000000000000);     // 5,000
 const testLeft: bigint = BigInt(85000000000000000000000);     // 85,000
 
 const data: string = encodeParameters(
-  ["uint256","address","address", "uint256", "uint256", "uint256", "uint256"],
-  [testId, testKiller, testOwner, testPosVal, testDebt, testPrize, testLeft]
+  ["address", "uint256", "uint256", "uint256", "uint256"],
+  [testOwner, testPosVal, testDebt, testPrize, testLeft]
 );
+
+const topics: string[] = [
+  encodeParameters(["uint256"], [testId]),
+  encodeParameters(["address"], [testKiller])
+];
 
 describe("Liquidation Alert Agent", () => {
   let handleTransaction: HandleTransaction
@@ -42,7 +47,7 @@ describe("Liquidation Alert Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESSES[0])
-      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], data);
+      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], data, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -72,7 +77,7 @@ describe("Liquidation Alert Agent", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(TEST_VAULT_ADDRESSES[0], testMsgSender)
-      .addEventLog(badWorkSig, TEST_VAULT_ADDRESSES[0], data);
+      .addEventLog(badWorkSig, TEST_VAULT_ADDRESSES[0], data, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -84,7 +89,7 @@ describe("Liquidation Alert Agent", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(wrongVaultAddress, testMsgSender)
-      .addEventLog(killEventSig,wrongVaultAddress);
+      .addEventLog(killEventSig,wrongVaultAddress, data, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -94,15 +99,15 @@ describe("Liquidation Alert Agent", () => {
   it("should return a two Findings from Kill event emission due to 'left' being 0", async () => {
     const zeroLeft: number = 0;
     const zeroLeftData: string = encodeParameters(
-      ["uint256","address","address", "uint256", "uint256", "uint256", "uint256"],
-      [testId, testKiller, testOwner, testPosVal, testDebt, testPrize, zeroLeft]
+      ["address", "uint256", "uint256", "uint256", "uint256"],
+      [testOwner, testPosVal, testDebt, testPrize, zeroLeft]
     );
 
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESSES[0])
-      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], zeroLeftData);
+      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], zeroLeftData, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -132,8 +137,8 @@ describe("Liquidation Alert Agent", () => {
         type: FindingType.Info,
         metadata:{
           positionId: testId.toString(),
-          positionkiller: testKiller, // TODO: CONFIRM toString() IS UNECESSARY
-          positionOwner: testOwner, // TODO: CONFIRM toString() IS UNECESSARY
+          positionkiller: testKiller,
+          positionOwner: testOwner,
           positionValue: testPosVal.toString(),
           debt: testDebt.toString(),
           prize: testPrize.toString(),
