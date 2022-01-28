@@ -18,7 +18,7 @@ This agent detects `Kill` event emissions from `Vault` contracts.
     - `positionId`: Id of the target position.
     - `positionkiller`: Address that executed the liquidation.
     - `positionOwner`: Address of the owner of the target position.
-    - `positionValue`: Return amount after target position's liquidation.
+    - `positionValue`: Value amount of target position.
     - `debt`: Debt value of the target position.
     - `prize`: Combined amount of what is awarded to the liquidator and the treasury fees.
     - `left`: What is returned to the target position's owner after liquidation execution.
