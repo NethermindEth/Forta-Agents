@@ -20,7 +20,7 @@ const VAULT_ADDRESSES: string[] = [
 // ORIGINAL: "event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)"
 const killEventAbi: string = "event Kill(uint256 id, address killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)";
 
-const createFinding = (
+const createFindings = (
   posId: number,
   killer: string,
   posOwner: string,
@@ -29,8 +29,9 @@ const createFinding = (
   prize: number,
   left: number,
   vaultAddress: string
-): Finding => {
-  return Finding.fromObject({
+): Finding[] => {
+  const findings: Finding[] = [];
+  const finding: Finding = Finding.fromObject({
     name: "Liquidation Event",
     description: "Liquidation Has Occurred",
     alertId: "ALPACA-3",
@@ -47,6 +48,29 @@ const createFinding = (
       vault: vaultAddress
     },
   })
+  findings.push(finding);
+
+  if(Number(left) === 0) {
+    const findingTwo: Finding = Finding.fromObject({
+      name: "Bad Debt Event",
+      description: "Target position has 0 'left'",
+      alertId: "ALPACA-4",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      metadata:{
+        positionId: posId.toString(),
+        positionkiller: killer, // TODO: CONFIRM toString() IS UNECESSARY
+        positionOwner: posOwner, // TODO: CONFIRM toString() IS UNECESSARY
+        positionValue: posVal.toString(),
+        debt: debt.toString(),
+        prize: prize.toString(),
+        left: left.toString(),
+        vault: vaultAddress
+      }
+    })
+    findings.push(findingTwo);
+  }
+  return findings;
 }
 
 export function provideHandleTransaction(
@@ -59,7 +83,7 @@ export function provideHandleTransaction(
     for(let i = 0; i < killEvents.length; i++) {
       for(let v = 0; v < addresses.length; v++) {
         if(killEvents[i].address === addresses[v]) {
-          const newFinding: Finding = createFinding(
+          const newFindings: Finding[] = createFindings(
             killEvents[i].args["id"],
             killEvents[i].args["killer"],
             killEvents[i].args["owner"],
@@ -69,7 +93,9 @@ export function provideHandleTransaction(
             killEvents[i].args["left"],
             killEvents[i].address
           );
-          findings.push(newFinding);
+          for(let f = 0; f < newFindings.length; f++) {
+            findings.push(newFindings[f]);
+          }
         }
       }
     }
