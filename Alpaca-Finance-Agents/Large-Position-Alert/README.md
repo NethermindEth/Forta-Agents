@@ -4,7 +4,7 @@
 
 This agent detects `Work` event emission from the `Vault` contract when the `loan` meets any of the following criteria:
   - More than 300 WBNB
-  - More than 100,00 BUSH
+  - More than 100,00 BUSD
   - More than 30 ETH
   - More than 3 BTCB
   - More than 100,000 USDT
