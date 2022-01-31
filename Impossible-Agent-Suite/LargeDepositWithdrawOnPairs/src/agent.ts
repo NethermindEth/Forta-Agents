@@ -1,11 +1,63 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  getEthersProvider,
+  LogDescription,
+} from "forta-agent";
+import abi from "./abi";
+import createFinding from "./findings";
+import PairFetcher from "./pairs.fetcher";
+import { BigNumber } from "ethers";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+const PERCENT: number = 10; // Large percent
+const FACTORY: string = "0x918d7e714243F7d9d463C37e106235dCde294ffC";
+const FETCHER: PairFetcher = new PairFetcher(FACTORY, getEthersProvider());
+const PAIRS: Set<string> = new Set<string>();
 
-  return findings;
+const ABI: string[] = [
+  abi.FACTORY.getEvent("PairCreated").format("full"),
+  abi.PAIR.getEvent("Mint").format("full"),
+  abi.PAIR.getEvent("Burn").format("full"),
+];
+
+const initialize = async () => {
+  const pairs: string[] = await FETCHER.getAllPairs("latest");
+  pairs.forEach((pair) => PAIRS.add(pair));
 };
 
+export const provideHandleTransaction =
+  (pairs: Set<string>, fetcher: PairFetcher, percent: number): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const logs: LogDescription[] = txEvent.filterLog(ABI);
+    for (let log of logs) {
+      if (log.name === "PairCreated") {
+        if (log.address.toLowerCase() === fetcher.factory) {
+          pairs.add(log.args.pair.toLowerCase());
+        }
+      } else {
+        if (!pairs.has(log.address.toLowerCase())) continue;
+        const { reserve0, reserve1 } = await fetcher.getReserves(
+          txEvent.blockNumber,
+          log.address
+        );
+        const percent0: BigNumber = BigNumber.from(100)
+          .mul(log.args.amount0)
+          .div(reserve0);
+        const percent1: BigNumber = BigNumber.from(100)
+          .mul(log.args.amount1)
+          .div(reserve1);
+        if (percent0.gte(percent) || percent1.gte(percent))
+          findings.push(createFinding(log));
+      }
+    }
+
+    return findings;
+  };
+
 export default {
-  handleTransaction,
+  handleTransaction: provideHandleTransaction(PAIRS, FETCHER, PERCENT),
+  initialize,
 };
