@@ -41,12 +41,12 @@ export const provideHandleTransaction =
         if (!pairs.has(log.address.toLowerCase())) continue;
         const { reserve0, reserve1 } = await fetcher.getReserves(
           txEvent.blockNumber,
-          log.address.toLowerCase(),
+          log.address.toLowerCase()
         );
         const high0: BigNumber = BigNumber.from(percent).mul(reserve0).div(100);
         const high1: BigNumber = BigNumber.from(percent).mul(reserve1).div(100);
         if (high0.lte(log.args.amount0) || high1.lte(log.args.amount1))
-          findings.push(createFinding(log));
+          findings.push(createFinding(log, reserve0, reserve1));
       }
     }
 

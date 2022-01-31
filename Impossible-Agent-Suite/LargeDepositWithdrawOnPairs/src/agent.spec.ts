@@ -22,7 +22,9 @@ const addLiquity = (
   pair: string,
   amount0: string,
   amount1: string,
-  sender: string
+  sender: string,
+  reserve0: string,
+  reserve1: string,
 ): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Liquidity Action",
@@ -30,7 +32,7 @@ const addLiquity = (
     alertId: "impossible-9-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
-    metadata: { pair, amount0, amount1, sender },
+    metadata: { pair, amount0, amount1, sender, reserve0, reserve1 },
   });
 
 const removeLiquity = (
@@ -38,7 +40,9 @@ const removeLiquity = (
   amount0: string,
   amount1: string,
   sender: string,
-  to: string
+  to: string,
+  reserve0: string,
+  reserve1: string,
 ): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
@@ -46,7 +50,7 @@ const removeLiquity = (
     alertId: "impossible-9-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
-    metadata: { pair, amount0, amount1, sender, to },
+    metadata: { pair, amount0, amount1, sender, to, reserve0, reserve1 },
   });
 
 describe("Large add/remove Liquidity agent tests suite", () => {
@@ -71,17 +75,19 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
   it("should detect large Mint events in the initialization pairs", async () => {
     const { data, topics } = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
-      createAddress("0xdead"), 20, 50
+      createAddress("0xdead"),
+      20,
+      50,
     ]);
     when(mockReserves)
       .calledWith(21, PAIRS[0]) // Low increasement
-      .mockReturnValueOnce({reserve0:120, reserve1:300});
+      .mockReturnValueOnce({ reserve0: 120, reserve1: 300 });
     when(mockReserves)
       .calledWith(21, PAIRS[2]) // Large token0
-      .mockReturnValueOnce({reserve0:100, reserve1:400});
+      .mockReturnValueOnce({ reserve0: 100, reserve1: 400 });
     when(mockReserves)
       .calledWith(21, PAIRS[3]) // Large token1
-      .mockReturnValueOnce({reserve0:300, reserve1:100});
+      .mockReturnValueOnce({ reserve0: 300, reserve1: 100 });
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(21)
       .addAnonymousEventLog(PAIRS[0], data, ...topics)
@@ -90,24 +96,27 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      addLiquity(PAIRS[3], "20", "50", createAddress("0xdead")),
-      addLiquity(PAIRS[2], "20", "50", createAddress("0xdead")),
+      addLiquity(PAIRS[3], "20", "50", createAddress("0xdead"), "300", "100"),
+      addLiquity(PAIRS[2], "20", "50", createAddress("0xdead"), "100", "400"),
     ]);
   });
 
   it("should detect Mint events in the initialization pairs", async () => {
     const { data, topics } = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
-      createAddress("0x4d31"), 30, 20, createAddress("0xdead")
+      createAddress("0x4d31"),
+      30,
+      20,
+      createAddress("0xdead"),
     ]);
     when(mockReserves)
       .calledWith(21, PAIRS[0]) // Large token0
-      .mockReturnValueOnce({reserve0:30, reserve1:300});
+      .mockReturnValueOnce({ reserve0: 30, reserve1: 300 });
     when(mockReserves)
       .calledWith(21, PAIRS[2]) // Low increasement
-      .mockReturnValueOnce({reserve0:200, reserve1:400});
+      .mockReturnValueOnce({ reserve0: 200, reserve1: 400 });
     when(mockReserves)
       .calledWith(21, PAIRS[3]) // Large token1
-      .mockReturnValueOnce({reserve0:1000, reserve1:100});
+      .mockReturnValueOnce({ reserve0: 1000, reserve1: 100 });
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(21)
       .addAnonymousEventLog(PAIRS[0], data, ...topics)
@@ -116,8 +125,22 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      removeLiquity(PAIRS[0], "30", "20", createAddress("0x4d31"), createAddress("0xdead")),
-      removeLiquity(PAIRS[3], "30", "20", createAddress("0x4d31"), createAddress("0xdead")),
+      removeLiquity(
+        PAIRS[0],
+        "30",
+        "20",
+        createAddress("0x4d31"),
+        createAddress("0xdead"),
+        "30", "300"
+      ),
+      removeLiquity(
+        PAIRS[3],
+        "30",
+        "20",
+        createAddress("0x4d31"),
+        createAddress("0xdead"),
+        "1000", "100"
+      ),
     ]);
   });
 
@@ -129,18 +152,21 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       newPair,
       3, // ignored
     ]);
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("Mint"),
-      [createAddress("0xabc"), 5, 12]
-    );
-    const log2 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("Burn"), 
-      [createAddress("0xdef"), 15, 42, createAddress("0x123")]
-    );
+    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
+      createAddress("0xabc"),
+      5,
+      12,
+    ]);
+    const log2 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
+      createAddress("0xdef"),
+      15,
+      42,
+      createAddress("0x123"),
+    ]);
 
     mockReserves
-      .mockReturnValueOnce({reserve0:20, reserve1:1})
-      .mockReturnValueOnce({reserve0:0, reserve1:210});
+      .mockReturnValueOnce({ reserve0: 20, reserve1: 1 })
+      .mockReturnValueOnce({ reserve0: 0, reserve1: 210 });
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(factory, log0.data, ...log0.topics)
       .addAnonymousEventLog(newPair, log1.data, ...log1.topics)
@@ -148,8 +174,8 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      addLiquity(newPair, "5", "12", createAddress("0xabc")),
-      removeLiquity(newPair, "15", "42", createAddress("0xdef"), createAddress("0x123")),
+      addLiquity(newPair, "5", "12", createAddress("0xabc"), "20", "1"),
+      removeLiquity(newPair, "15", "42", createAddress("0xdef"), createAddress("0x123"), "0", "210"),
     ]);
   });
 
@@ -161,11 +187,13 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       newPair,
       3, // ignored
     ]);
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("Mint"),
-      [newPair, 5, 12]
-    );
-    const log2 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [factory, 15, 42, PAIRS[0]]);
+    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [newPair, 5, 12]);
+    const log2 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
+      factory,
+      15,
+      42,
+      PAIRS[0],
+    ]);
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(333)
       .addAnonymousEventLog(createAddress("0x10af"), log0.data, ...log0.topics)
@@ -177,10 +205,11 @@ describe("Large add/remove Liquidity agent tests suite", () => {
   });
 
   it("should ignore events not emitted in pairs", async () => {
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("Mint"),
-      [createAddress("0x0"), 3, 3]
-    );
+    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
+      createAddress("0x0"),
+      3,
+      3,
+    ]);
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
       createAddress("0x1ce"),
       log1.data,
