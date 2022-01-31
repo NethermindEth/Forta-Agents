@@ -12,7 +12,7 @@ This agent detects a `PairCreated` event emission from `Swap Factory V1`
 
 Describe each of the type of alerts fired by this agent
 
-- [agentID tbd]
+- IMPOSSIBLE-7
   - Fired when the contract `Swap Factory V1` emits a `PairCreated` event
   - Severity is always set to "info"
   - Type is always set to "info"

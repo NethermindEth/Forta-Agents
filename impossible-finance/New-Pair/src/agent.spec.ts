@@ -4,16 +4,17 @@ import {
   FindingType,
   HandleTransaction,
   TransactionEvent,
+  createTransactionEvent,
 } from 'forta-agent';
 
 import { createAddress, TestTransactionEvent, encodeParameter } from 'forta-agent-tools';
 
-import { provideHandleTransaction, SWAP_FACTORY_IFACE } from './agent';
+import { provideHandleTransaction, SWAP_FACTORY_IFACE, PAIRCREATED_EVENT_SIGNATURE } from './agent';
 
 const TARGET: string = createAddress('0x123');
 const ALERT_ID: string = 'swap-factory-pair-created-test';
 
-const createFinding = ( token0: string, token1: string ) => Finding.fromObject({
+const createFinding = ( token0: string, token1: string, pair: string ) => Finding.fromObject({
   name: 'New pair created',
   description: 'A new pair has been created in Swap Factory V1',
   alertId: ALERT_ID,
@@ -21,10 +22,15 @@ const createFinding = ( token0: string, token1: string ) => Finding.fromObject({
   type: FindingType.Info,
   protocol: 'Impossible Finance',
   metadata: {
-    token_0: token0,
-    token_1: token1, 
+    token0: token0,
+    token1: token1, 
+    pair: pair,
   }
 });
+
+let token0Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9a';
+let token1Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9b';
+let pairAddress = '0xab5801a7d398351b8be11c439e05c5b3259aec9c';
 
 describe('Swap-Factory-Pair-Created Agent test suite', () => {
   const handler: HandleTransaction = provideHandleTransaction(
@@ -45,6 +51,8 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
         SWAP_FACTORY_IFACE.getEvent('PairCreated').format('sighash'),
         createAddress('0x456'),
         '',
+        token0Address,
+        token1Address,
         SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
       );
 
@@ -58,6 +66,8 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
         'IrrelevantEvent(address)',
         TARGET,
         '',
+        token0Address,
+        token1Address,
         SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
       );
 
@@ -67,23 +77,25 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
 
   it('should detect events from the contract', async () => {
     let token0Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9c';
-    let token1Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9d';
+    let token1Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9d';   
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        SWAP_FACTORY_IFACE.getEvent('PairCreated').format('sighash'),
-        TARGET,
-        '',
-        token0Address,
-        token1Address,
-        SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
-      );
+      SWAP_FACTORY_IFACE.getEvent('PairCreated').format('sighash'),
+      TARGET,
+      '',
+      token0Address,
+      token1Address,
+      SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
+    );
 
     const findings = await handler(tx);
+    
     expect(findings).toStrictEqual([
       createFinding(
         token0Address,
         token1Address,
+	pairAddress,
       ),
     ]);
   });
