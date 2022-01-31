@@ -7,13 +7,20 @@ import {
   createTransactionEvent,
 } from 'forta-agent';
 
-import { createAddress, TestTransactionEvent, encodeParameter } from 'forta-agent-tools';
+import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
 
-import { provideHandleTransaction, SWAP_FACTORY_IFACE, PAIRCREATED_EVENT_SIGNATURE } from './agent';
+import { provideHandleTransaction, SWAP_FACTORY_IFACE } from './agent';
 
-const TARGET: string = createAddress('0x123');
+// Set the alertId to indicate it's a test
 const ALERT_ID: string = 'swap-factory-pair-created-test';
 
+// Address declarations 
+const factory: string = createAddress('0xa1');
+const token0: string = createAddress('0xb1');
+const token1: string = createAddress('0xb2');
+const pair: string = createAddress('0xc1');
+
+// Returns a finding with given inputs
 const createFinding = ( token0: string, token1: string, pair: string ) => Finding.fromObject({
   name: 'New pair created',
   description: 'A new pair has been created in Swap Factory V1',
@@ -22,20 +29,16 @@ const createFinding = ( token0: string, token1: string, pair: string ) => Findin
   type: FindingType.Info,
   protocol: 'Impossible Finance',
   metadata: {
-    token0: token0,
-    token1: token1, 
-    pair: pair,
+    token0: token0.toLowerCase(),
+    token1: token1.toLowerCase(), 
+    pair: pair.toLowerCase(),
   }
 });
-
-let token0Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9a';
-let token1Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9b';
-let pairAddress = '0xab5801a7d398351b8be11c439e05c5b3259aec9c';
 
 describe('Swap-Factory-Pair-Created Agent test suite', () => {
   const handler: HandleTransaction = provideHandleTransaction(
     ALERT_ID,
-    TARGET,
+    factory,
   );
 
   it('should ignore empty transactions', async () => {
@@ -46,17 +49,18 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
   });
 
   it('should ignore same events from other contracts', async () => {
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(
-        SWAP_FACTORY_IFACE.getEvent('PairCreated').format('sighash'),
-        createAddress('0x456'),
-        '',
-        token0Address,
-        token1Address,
-        SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
-      );
+    const log = SWAP_FACTORY_IFACE.encodeEventLog(
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair, '0']
+    );
 
-    const findings = await handler(tx);
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      // Not the factory contract address
+      createAddress('0xd4'),
+      log.data,
+      ...log.topics
+    );
+
+    const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
@@ -64,10 +68,10 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         'IrrelevantEvent(address)',
-        TARGET,
+        factory,
         '',
-        token0Address,
-        token1Address,
+        token0,
+        token1,
         SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
       );
 
@@ -76,27 +80,23 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
   });
 
   it('should detect events from the contract', async () => {
-    let token0Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9c';
-    let token1Address = '0xab5801a7d398351b8be11c439e05c5b3259aec9d';   
-
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(
-      SWAP_FACTORY_IFACE.getEvent('PairCreated').format('sighash'),
-      TARGET,
-      '',
-      token0Address,
-      token1Address,
-      SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
+    const log = SWAP_FACTORY_IFACE.encodeEventLog(
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair, '0']
     );
 
-    const findings = await handler(tx);
-    
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      factory,
+      log.data,
+      ...log.topics
+    );
+
+    const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
       createFinding(
-        token0Address,
-        token1Address,
-	pairAddress,
-      ),
+        token0,
+        token1,
+        pair,
+      )
     ]);
   });
 });

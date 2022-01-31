@@ -12,7 +12,7 @@ import { utils } from 'ethers';
 const SWAP_FACTORY_ADDRESS: string = '0x918d7e714243F7d9d463C37e106235dCde294ffC';
 
 // The signature of the PairCreated event
-export const PAIRCREATED_EVENT_SIGNATURE: string = 'event PairCreated(address indexed token0, address indexed token1, address pair, uint)';
+const PAIRCREATED_EVENT_SIGNATURE: string = 'event PairCreated(address indexed token0, address indexed token1, address pair, uint)';
 
 // Swap Factory V1 interface with the event
 export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([
@@ -42,9 +42,9 @@ export const provideHandleTransaction = (
           type: FindingType.Info,
           protocol: 'Impossible Finance',
           metadata: {
-            token0: pairCreatedEvents[i].args.token0,
-            token1: pairCreatedEvents[i].args.token1,
-            pair: pairCreatedEvents[i].args.pair,
+            token0: pairCreatedEvents[i].args.token0.toLowerCase(),
+            token1: pairCreatedEvents[i].args.token1.toLowerCase(),
+            pair: pairCreatedEvents[i].args.pair.toLowerCase(),
           }
         })
       );
