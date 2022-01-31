@@ -41,15 +41,11 @@ export const provideHandleTransaction =
         if (!pairs.has(log.address.toLowerCase())) continue;
         const { reserve0, reserve1 } = await fetcher.getReserves(
           txEvent.blockNumber,
-          log.address
+          log.address.toLowerCase(),
         );
-        const percent0: BigNumber = BigNumber.from(100)
-          .mul(log.args.amount0)
-          .div(reserve0);
-        const percent1: BigNumber = BigNumber.from(100)
-          .mul(log.args.amount1)
-          .div(reserve1);
-        if (percent0.gte(percent) || percent1.gte(percent))
+        const high0: BigNumber = BigNumber.from(percent).mul(reserve0).div(100);
+        const high1: BigNumber = BigNumber.from(percent).mul(reserve1).div(100);
+        if (high0.lte(log.args.amount0) || high1.lte(log.args.amount1))
           findings.push(createFinding(log));
       }
     }
