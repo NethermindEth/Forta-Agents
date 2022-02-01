@@ -75,5 +75,17 @@ describe("PairFetcher test suite", () => {
       reserve0: BigNumber.from(5),
       reserve1: BigNumber.from(10),
     });
+
+    // clear mock to check cached values
+    mockProvider.clear();
+
+    expect(await fetcher.getReserves(30, PAIRS[0])).toStrictEqual({
+      reserve0: BigNumber.from(5),
+      reserve1: BigNumber.from(10),
+    });
+    expect(await fetcher.getReserves(53, PAIRS[2])).toStrictEqual({
+      reserve0: BigNumber.from(1),
+      reserve1: BigNumber.from(3),
+    });
   });
 });
