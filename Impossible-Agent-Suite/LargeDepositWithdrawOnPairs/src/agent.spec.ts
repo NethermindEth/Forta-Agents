@@ -80,13 +80,13 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       50,
     ]);
     when(mockReserves)
-      .calledWith(21, PAIRS[0]) // Low increasement
+      .calledWith(20, PAIRS[0]) // Low increasement
       .mockReturnValueOnce({ reserve0: 120, reserve1: 300 });
     when(mockReserves)
-      .calledWith(21, PAIRS[2]) // Large token0
+      .calledWith(20, PAIRS[2]) // Large token0
       .mockReturnValueOnce({ reserve0: 100, reserve1: 400 });
     when(mockReserves)
-      .calledWith(21, PAIRS[3]) // Large token1
+      .calledWith(20, PAIRS[3]) // Large token1
       .mockReturnValueOnce({ reserve0: 300, reserve1: 100 });
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(21)
@@ -101,7 +101,7 @@ describe("Large add/remove Liquidity agent tests suite", () => {
     ]);
   });
 
-  it("should detect Mint events in the initialization pairs", async () => {
+  it("should detect large Burn events in the initialization pairs", async () => {
     const { data, topics } = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
       createAddress("0x4d31"),
       30,
@@ -109,16 +109,16 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       createAddress("0xdead"),
     ]);
     when(mockReserves)
-      .calledWith(21, PAIRS[0]) // Large token0
+      .calledWith(15, PAIRS[0]) // Large token0
       .mockReturnValueOnce({ reserve0: 30, reserve1: 300 });
     when(mockReserves)
-      .calledWith(21, PAIRS[2]) // Low increasement
+      .calledWith(15, PAIRS[2]) // Low increasement
       .mockReturnValueOnce({ reserve0: 200, reserve1: 400 });
     when(mockReserves)
-      .calledWith(21, PAIRS[3]) // Large token1
+      .calledWith(15, PAIRS[3]) // Large token1
       .mockReturnValueOnce({ reserve0: 1000, reserve1: 100 });
     const tx: TransactionEvent = new TestTransactionEvent()
-      .setBlock(21)
+      .setBlock(16)
       .addAnonymousEventLog(PAIRS[0], data, ...topics)
       .addAnonymousEventLog(PAIRS[3], data, ...topics)
       .addAnonymousEventLog(PAIRS[2], data, ...topics);

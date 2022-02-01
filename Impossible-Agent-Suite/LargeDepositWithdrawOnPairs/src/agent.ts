@@ -40,7 +40,7 @@ export const provideHandleTransaction =
       } else {
         if (!pairs.has(log.address.toLowerCase())) continue;
         const { reserve0, reserve1 } = await fetcher.getReserves(
-          txEvent.blockNumber,
+          txEvent.blockNumber - 1, // reserves at the beginning of the current block
           log.address.toLowerCase()
         );
         const high0: BigNumber = BigNumber.from(percent).mul(reserve0).div(100);
