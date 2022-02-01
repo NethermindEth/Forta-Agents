@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "worker-with-too-much-shares",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detects when workers have more shares than a specific threshold",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
