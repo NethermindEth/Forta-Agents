@@ -15,10 +15,13 @@ import { provideHandleTransaction, SWAP_FACTORY_IFACE } from './agent';
 const ALERT_ID: string = 'swap-factory-pair-created-test';
 
 // Address declarations 
-const factory: string = createAddress('0xa1');
-const token0: string = createAddress('0xb1');
-const token1: string = createAddress('0xb2');
-const pair: string = createAddress('0xc1');
+const factory: string = createAddress('0xa0');
+const token0: string = createAddress('0xb0');
+const token1: string = createAddress('0xb1');
+const token2: string = createAddress('0xb2');
+const token3: string = createAddress('0xb3');
+const pair0: string = createAddress('0xc0');
+const pair1: string = createAddress('0xc1');
 
 // Returns a finding with given inputs
 const createFinding = ( token0: string, token1: string, pair: string ) => Finding.fromObject({
@@ -50,7 +53,7 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
 
   it('should ignore same events from other contracts', async () => {
     const log = SWAP_FACTORY_IFACE.encodeEventLog(
-      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair, '0']
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair0, '0']
     );
 
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
@@ -65,23 +68,23 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
   });
 
   it('should ignore different event from same contract', async () => {
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(
-        'IrrelevantEvent(address)',
-        factory,
-        '',
-        token0,
-        token1,
-        SWAP_FACTORY_IFACE.getEventTopic('PairCreated'),
-      );
+    const log = SWAP_FACTORY_IFACE.encodeEventLog(
+      SWAP_FACTORY_IFACE.getEvent('IrrelevantEvent'), [createAddress('0xd1')]
+    );
 
-    const findings = await handler(tx);
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      factory,
+      log.data,
+      ...log.topics
+    );
+
+    const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
-  it('should detect events from the contract', async () => {
+  it('should detect single event from the contract', async () => {
     const log = SWAP_FACTORY_IFACE.encodeEventLog(
-      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair, '0']
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair0, '0']
     );
 
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
@@ -95,8 +98,42 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
       createFinding(
         token0,
         token1,
-        pair,
-      )
+        pair0,
+      ),
+    ]);
+  });
+
+  it('should detect multiple events from the contract', async () => {
+    const log1 = SWAP_FACTORY_IFACE.encodeEventLog(
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token0, token1, pair0, '0']
+    );
+
+    const log2 = SWAP_FACTORY_IFACE.encodeEventLog(
+      SWAP_FACTORY_IFACE.getEvent('PairCreated'), [token2, token3, pair1, '0']
+    );
+
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      factory,
+      log1.data,
+      ...log1.topics
+    ).addAnonymousEventLog(
+      factory, 
+      log2.data,
+      ...log2.topics,
+    );
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding(
+        token0,
+        token1,
+        pair0,
+      ),
+      createFinding(
+        token2,
+        token3,
+        pair1,
+      ),
     ]);
   });
 });

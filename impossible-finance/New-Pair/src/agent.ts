@@ -17,6 +17,8 @@ const PAIRCREATED_EVENT_SIGNATURE: string = 'event PairCreated(address indexed t
 // Swap Factory V1 interface with the event
 export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([
   PAIRCREATED_EVENT_SIGNATURE,
+  // This event is just for testing purposes
+  'event IrrelevantEvent(address user)',
 ]);
 
 // Returns a list of findings (may be empty if no relevant events)
