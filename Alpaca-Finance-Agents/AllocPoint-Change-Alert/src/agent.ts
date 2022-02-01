@@ -9,16 +9,20 @@ import {
   decodeParameter,
   decodeParameters
 } from "forta-agent-tools";
+import {
+  MDEX_POOLS
+} from "./lpTokens";
 
 const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
 // TODO: FIND NEEDED ADDRESS TO FILTER MDEX'S Set FUNCTION CALL BY
 const mdexAddress: string = "0x123456789";
 
+export const pcsTimelockAddress: string = "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4";
 const pcsQueueTnxAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
-const pcsSetFuncSig: string = "set(uint256,uint256, bool)";
-const pcsTimelockAddress: string = "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4";
+export const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
 
-const createFinding = (posId: number, allocPoint: number): Finding => {
+// TODO: FIND OUT HOW TO HANDLE FOR FOURTH ARGUMENT
+const createFinding = (posId: number, allocPoint: number, withUpdate: boolean/*, targetPool: string*/): Finding => {
   return Finding.fromObject({
     name: "AllocPoint Change Event",
     description: "Pool's alloc point queued for update.",
@@ -28,29 +32,13 @@ const createFinding = (posId: number, allocPoint: number): Finding => {
     metadata:{
       positionId: posId.toString(),
       allocPoint: allocPoint.toString(),
-      // vault: vaultAddress?.toString()
+      withUpdate: withUpdate.toString()//,
+      //targetPool: targetPool?.toString()
     },
   })
 }
 
 /*
-const workEventAbi: string = "event Work(uint256 id, uint256 loan)";
-
-const createFinding = (posId: number, loanAmount: bigint, vaultAddress: string): Finding => {
-  return Finding.fromObject({
-    name: "Large Position Event",
-    description: "Large Position Has Been Taken",
-    alertId: "ALPACA-1",
-    severity: FindingSeverity.Info,
-    type: FindingType.Info,
-    metadata:{
-      positionId: posId.toString(),
-      loanAmount: loanAmount.toString(),
-      vault: vaultAddress?.toString()
-    },
-  })
-}
-
 export function provideHandleTransaction(vaultsMap: Map<string, bigint>): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -75,6 +63,9 @@ export function provideHandleTransaction(vaultsMap: Map<string, bigint>): Handle
 
 export function provideHandleTransaction(): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+
+    console.log("The txEvent in the anon function is: " + JSON.stringify(txEvent));
+
     const findings: Finding[] = []
     /*
     // NOTE: IF CAN FIND A SPECIFIC ADDRESS THAT SHOULD HAVE
@@ -84,33 +75,40 @@ export function provideHandleTransaction(): HandleTransaction {
     // FUNCTION CALLS.
     const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
 
+    console.log("mdexSetCalls is: " + mdexSetCalls);
+
     for(let i = 0; i < mdexSetCalls.length; i++) {
       // TODO: FINDING WHAT _pid IS EXACTLY, PROBABLY
       // NOT BEST TO COMPARE TO AN ADDRESS
-      if(mdexSetCalls[i].args["_pid"] === mdexAddress) {
+      if(MDEX_POOLS.get(mdexSetCalls[i].args["_pid"])) {
         const mdexFinding: Finding = createFinding(
           mdexSetCalls[i].args["_pid"],
-          mdexSetCalls[i].args["_allocPoint"]
+          mdexSetCalls[i].args["_allocPoint"],
+          mdexSetCalls[i].args["_withUpdate"]
         );
         findings.push(mdexFinding);
       }
     }
     */
 
-    const pcsQueueTxnLogs = txEvent.filterLog(pcsQueueTnxAbi, pcsTimelockAddress);
+    const pcsQueueTxnEvents = txEvent.filterLog(pcsQueueTnxAbi);
 
-    for(let i = 0; i < pcsQueueTxnLogs.length; i++) {
-      const decodedFuncSig = decodeParameter("string", pcsQueueTxnLogs[i].args["signature"]);
+    console.log("pcsQueueTxnLogs is: " + pcsQueueTxnEvents);
+
+    for(let i = 0; i < pcsQueueTxnEvents.length; i++) {
+      const decodedFuncSig = decodeParameter("string", pcsQueueTxnEvents[i].args["signature"]);
 
       if(decodedFuncSig === pcsSetFuncSig) {
         const decodedData = decodeParameters(
           ["uint256", "uint256", "bool"],
-          pcsQueueTxnLogs[i].args["data"]
+          pcsQueueTxnEvents[i].args["data"]
         );
 
         const pcsFinding: Finding = createFinding(
           decodedData[0],
-          decodedData[1]
+          decodedData[1],
+          decodedData[3],
+          // pcsQueueTxnEvents[i].args["target"]
         );
         findings.push(pcsFinding);
       }
