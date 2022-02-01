@@ -1,6 +1,10 @@
 import axios from "axios";
 import { providers, Contract } from "ethers";
-import { workerInterface, positionManagerInterface, tokenInterface } from "./abi";
+import {
+  workerInterface,
+  positionManagerInterface,
+  tokenInterface,
+} from "./abi";
 import { BigNumber, constants } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
@@ -90,26 +94,56 @@ const getShareAmount = async (
     positionManagerInterface,
     provider
   );
-  return (await positionManagerContract.userInfo(pid, workerAddress, { blockTag: blockNumber })).amount;
+  return (
+    await positionManagerContract.userInfo(pid, workerAddress, {
+      blockTag: blockNumber,
+    })
+  ).amount;
 };
 
-const getTotalSupply = async (tokenAddress: string, blockNumber: number, provider: providers.Provider): Promise<BigNumber> => {
+const getTotalSupply = async (
+  tokenAddress: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<BigNumber> => {
   const tokenContract = new Contract(tokenAddress, tokenInterface, provider);
   return tokenContract.totalSupply({ blockTag: blockNumber });
 };
 
-export const getSharePercent = async (workerAddress: string, blockNumber: number, provider: providers.Provider): Promise<BigNumber> => {
-  const [ pid, lpToken ] = await getWorkerData(workerAddress, blockNumber, provider);
+export const getSharePercent = async (
+  workerAddress: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<BigNumber> => {
+  const [pid, lpToken] = await getWorkerData(
+    workerAddress,
+    blockNumber,
+    provider
+  );
+
   if (lpToken === constants.AddressZero) {
     return BigNumber.from(0);
   }
-  const positionManager = await getPositionManager(workerAddress, blockNumber, provider);
-  const shareAmount = await getShareAmount(positionManager, workerAddress, pid, blockNumber, provider);
+  const positionManager = await getPositionManager(
+    workerAddress,
+    blockNumber,
+    provider
+  );
+  const shareAmount = await getShareAmount(
+    positionManager,
+    workerAddress,
+    pid,
+    blockNumber,
+    provider
+  );
   const shareTotalSupply = await getTotalSupply(lpToken, blockNumber, provider);
   return shareAmount.mul(100).div(shareTotalSupply);
 };
 
-export const createFinding = (workerAddress: string, percent: string): Finding => {
+export const createFinding = (
+  workerAddress: string,
+  percent: string
+): Finding => {
   return Finding.fromObject({
     name: "Alpaca worker with too much shares",
     description: "An Alpaca worker has too much shares from a pool",
@@ -120,6 +154,6 @@ export const createFinding = (workerAddress: string, percent: string): Finding =
     metadata: {
       worker: workerAddress,
       percent: percent,
-    }
+    },
   });
 };

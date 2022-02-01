@@ -137,7 +137,10 @@ describe("Worker With Too Much Shares Test Suite", () => {
   it("should return empty findings if all the workers have a shares percent less than the threshold", async () => {
     setTotalSuppliesValues("1000", "25000", "500000");
     when(mockCall)
-      .calledWith(isCallToUserInfo(masterChef, 1, workers[0]), expect.anything())
+      .calledWith(
+        isCallToUserInfo(masterChef, 1, workers[0]),
+        expect.anything()
+      )
       .mockReturnValue(encodeParameters(["uint256", "uint256"], [200, 300]));
     when(mockCall)
       .calledWith(isCallToUserInfo(bscPool, 2, workers[1]), expect.anything())
@@ -156,7 +159,10 @@ describe("Worker With Too Much Shares Test Suite", () => {
   it("should return a finding if one of the worker owns more than threshold number of shares", async () => {
     setTotalSuppliesValues("1000", "25000", "500000");
     when(mockCall)
-      .calledWith(isCallToUserInfo(masterChef, 1, workers[0]), expect.anything())
+      .calledWith(
+        isCallToUserInfo(masterChef, 1, workers[0]),
+        expect.anything()
+      )
       .mockReturnValue(encodeParameters(["uint256", "uint256"], [600, 300]));
     when(mockCall)
       .calledWith(isCallToUserInfo(bscPool, 2, workers[1]), expect.anything())
@@ -169,13 +175,16 @@ describe("Worker With Too Much Shares Test Suite", () => {
 
     const findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([ createFinding(workers[0], "60") ]);
+    expect(findings).toStrictEqual([createFinding(workers[0], "60")]);
   });
 
   it("should return multiple findings if multiple workers owns more than threshold number of shares", async () => {
     setTotalSuppliesValues("1000", "25000", "500000");
     when(mockCall)
-      .calledWith(isCallToUserInfo(masterChef, 1, workers[0]), expect.anything())
+      .calledWith(
+        isCallToUserInfo(masterChef, 1, workers[0]),
+        expect.anything()
+      )
       .mockReturnValue(encodeParameters(["uint256", "uint256"], [300, 300]));
     when(mockCall)
       .calledWith(isCallToUserInfo(bscPool, 2, workers[1]), expect.anything())
@@ -188,13 +197,19 @@ describe("Worker With Too Much Shares Test Suite", () => {
 
     const findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([ createFinding(workers[1], "80"), createFinding(workers[2], "60") ]);
+    expect(findings).toStrictEqual([
+      createFinding(workers[1], "80"),
+      createFinding(workers[2], "60"),
+    ]);
   });
 
   it("should not scan all blocks", async () => {
     setTotalSuppliesValues("1000", "25000", "500000");
     when(mockCall)
-      .calledWith(isCallToUserInfo(masterChef, 1, workers[0]), expect.anything())
+      .calledWith(
+        isCallToUserInfo(masterChef, 1, workers[0]),
+        expect.anything()
+      )
       .mockReturnValue(encodeParameters(["uint256", "uint256"], [600, 300]));
     when(mockCall)
       .calledWith(isCallToUserInfo(bscPool, 2, workers[1]), expect.anything())
@@ -205,7 +220,7 @@ describe("Worker With Too Much Shares Test Suite", () => {
 
     let blockEvent = new TestBlockEvent().setNumber(10);
     let findings = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([ createFinding(workers[0], "60") ]);
+    expect(findings).toStrictEqual([createFinding(workers[0], "60")]);
 
     blockEvent = new TestBlockEvent().setNumber(10);
     findings = await handleBlock(blockEvent);
