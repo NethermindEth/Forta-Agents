@@ -1,45 +1,70 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import {
+  BlockEvent,
+  Finding,
+  HandleBlock,
+  getEthersProvider,
+} from "forta-agent";
+import {
+  getSharePercent,
+  fetchAddresses,
+  Fetcher,
+  createFinding,
+} from "./utils";
+import { providers } from "ethers";
 
-let findingsCount = 0
+const BLOCK_LAPSE = 100;
+const PERCENT_THRESHOLD = 51;
+const DATA_URL =
+  "https://raw.githubusercontent.com/alpaca-finance/bsc-alpaca-contract/main/.mainnet.json";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleBlock = (
+  addressesFetcher: Fetcher,
+  percentThreshold: number,
+  blockLapse: number,
+  provider: providers.Provider
+): HandleBlock => {
+  let lastBlock = -blockLapse;
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    if (blockEvent.blockNumber - lastBlock < blockLapse) {
+      return [];
+    }
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    lastBlock = blockEvent.blockNumber;
 
-  return findings
-}
+    const findings: Finding[] = [];
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    const registryAddresses = await addressesFetcher(DATA_URL);
+    const workerAddresses: string[] = [];
+
+    for (let vault of registryAddresses.vaults) {
+      for (let worker of vault.workers) {
+        workerAddresses.push(worker.address);
+      }
+    }
+
+    const percentPromises = workerAddresses.map((worker) =>
+      getSharePercent(worker, blockEvent.blockNumber, provider)
+    );
+    const percents = await Promise.all(percentPromises);
+
+    for (let i = 0; i < workerAddresses.length; i++) {
+      if (percents[i].gt(percentThreshold)) {
+        findings.push(
+          createFinding(workerAddresses[i], percents[i].toString())
+        );
+      }
+    }
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleBlock: provideHandleBlock(
+    fetchAddresses,
+    PERCENT_THRESHOLD,
+    BLOCK_LAPSE,
+    getEthersProvider()
+  ),
+};
