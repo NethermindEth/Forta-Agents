@@ -9,16 +9,14 @@ import {
   decodeParameters
 } from "forta-agent-tools";
 import {
+  POOL_CONTROLLERS_ADDRESSES,
   MDEX_PCS_POOLS
-} from "./lpTokens";
+} from "./pools";
 
 const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
-// TODO: FIND NEEDED ADDRESS TO FILTER MDEX'S Set FUNCTION CALL BY
-const mdexAddress: string = "0x123456789";
 
-export const pcsTimelockAddress: string = "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4";
 const pcsQueueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
-export const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
+const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
 
 const createFinding = (
   posId: number,
@@ -41,12 +39,47 @@ const createFinding = (
   })
 }
 
-export function provideHandleTransaction(pools: Map<number, string>[]): HandleTransaction {
+export function provideHandleTransaction(
+  pools: Map<string, Map<number, string>>,
+  poolControllers: string[]
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const queueTxnEvents = txEvent.filterLog(pcsQueueTxnAbi);
     // TODO: FIND DEPLOYED BoardRoomMDX TO FILTER BY ITS ADDRESS 
     const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
+
+    let timelockController: string;
+    function setTimelockController(newTimelock: string) {
+      timelockController = newTimelock;
+    }
+    function getTimelockController(): string {
+      return timelockController;
+    }
+
+    let boardroomController: string;
+    function setBoardroomController(newBoardroom: string) {
+      boardroomController = newBoardroom;
+    }
+    function getBoardroomController(): string {
+      return boardroomController;
+    }
+
+    for(let i = 0; i < poolControllers.length; i++) {
+      if(queueTxnEvents.length > 0) {
+        for(let log = 0; log < queueTxnEvents.length; log++) {
+          if(pools.get(poolControllers[i]) && poolControllers[i] === queueTxnEvents[log].address) {
+            setTimelockController(poolControllers[i]);
+          }
+        }
+      } else if(mdexSetCalls.length > 0) {
+        for(let log = 0; log < mdexSetCalls.length; log++) {
+          if(pools.get(poolControllers[i]) && poolControllers[i] === txEvent.to) {
+            setBoardroomController(poolControllers[i]);
+          }
+        }
+      }
+    }
 
     if(queueTxnEvents.length > 0) {
       for(let i = 0; i < queueTxnEvents.length; i++) {
@@ -55,7 +88,8 @@ export function provideHandleTransaction(pools: Map<number, string>[]): HandleTr
             ["uint256", "uint256", "bool"],
             queueTxnEvents[i].args["data"]
           );
-          if(pools[0].get(Number(decodedData[0]))) {
+          const queueTxnPools = pools.get(getTimelockController());
+          if(queueTxnPools && queueTxnPools.get(Number(decodedData[0]))) {
             const pcsFinding: Finding = createFinding(
               decodedData[0],
               decodedData[1],
@@ -68,7 +102,9 @@ export function provideHandleTransaction(pools: Map<number, string>[]): HandleTr
       }
     } else if(mdexSetCalls.length > 0) {
       for(let i = 0; i < mdexSetCalls.length; i++) {
-        if(pools[1].get(Number(mdexSetCalls[i].args["_pid"]))) {
+        const setFuncPools = pools.get(getBoardroomController());
+        
+        if(setFuncPools && setFuncPools.get(Number(mdexSetCalls[i].args["_pid"]))) {
           const mdexFinding: Finding = createFinding(
             mdexSetCalls[i].args["_pid"],
             mdexSetCalls[i].args["_allocPoint"],
@@ -85,5 +121,8 @@ export function provideHandleTransaction(pools: Map<number, string>[]): HandleTr
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(MDEX_PCS_POOLS)
+  handleTransaction: provideHandleTransaction(
+    MDEX_PCS_POOLS,
+    POOL_CONTROLLERS_ADDRESSES
+  )
 }

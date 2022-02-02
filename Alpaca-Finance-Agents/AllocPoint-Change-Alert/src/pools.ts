@@ -94,4 +94,12 @@ const MDEX_POOLS: Map<number, string> = new Map([
     [37, "0x59B76b5D39370ba2Aa7e723c639861266e85BFEc"]  // DAI-USDT
 ]);
 
-export const MDEX_PCS_POOLS: Map<number, string>[] = [PCS_POOLS, MDEX_POOLS];
+export const POOL_CONTROLLERS_ADDRESSES: string[] = [
+    "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4", // PancakeSwap Timelock
+    "Mdex BoardroomMDX address goes here"
+];
+
+export const MDEX_PCS_POOLS: Map<string, Map<number, string>> = new Map([
+    [POOL_CONTROLLERS_ADDRESSES[0], PCS_POOLS],
+    [POOL_CONTROLLERS_ADDRESSES[1], MDEX_POOLS]
+]);

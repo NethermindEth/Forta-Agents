@@ -63,15 +63,19 @@ const mdexIFace = new utils.Interface([mdexSetAbi])
 const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [testMdexPoolId, testMdexAllocPoint, testMdexWithUpdate]);
 const testMdexAddressMap: Map<number, string> = new Map([[testMdexPoolId, testMdexLpAddress]]);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
+const testPoolControllers: string[] = [testTimelockContract, testBoardRoomMdx]
 
-const completeTestPools: Map<number, string>[] = [testAddressMap, testMdexAddressMap];
+const completeTestPools: Map<string, Map<number, string>> = new Map([
+  [testPoolControllers[0], testAddressMap],
+  [testPoolControllers[1], testMdexAddressMap]
+]);
 
 
 describe("AllocPoint Change Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(completeTestPools);
+    handleTransaction = provideHandleTransaction(completeTestPools, testPoolControllers);
   })
 
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
