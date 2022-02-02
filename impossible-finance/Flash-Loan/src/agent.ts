@@ -21,7 +21,7 @@ const SWAP_FACTORY_V1_ABI = [
 const initialize = async () => {
   // Different initialize logic when testing to save time
   // When testing is true then Ethereum network should be used and a pre-set PAIRS array is used
-  const testing = true;
+  const testing = false;
   if(testing) {
     // Set the contract address to the UniswapV2 address instead of the BSC Impossbile Finance factory address
     SWAP_FACTORY_V1_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
@@ -45,7 +45,6 @@ const initialize = async () => {
   }
 }
 
-
 export const provideHandleTransaction = (
   alertId: string,
   address: string,
@@ -57,6 +56,8 @@ export const provideHandleTransaction = (
     const pairCreatedEvents = txEvent.filterLog(SWAP_FACTORY_V1_ABI[0], SWAP_FACTORY_V1_ADDRESS);
     for(let i = 0; i < pairCreatedEvents.length; i++) {
       // Get the newly created pair address and add it to the `PAIRS` array
+      PAIRS.push(pairCreatedEvents[i].args.pair);
+      console.log('New Pair Added: ' + PAIRS[PAIRS.length-1]);
     }
     // For each pair
     for(let i = 0; i < PAIRS.length; i++) {
