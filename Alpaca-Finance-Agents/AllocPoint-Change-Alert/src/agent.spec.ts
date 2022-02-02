@@ -17,22 +17,21 @@ import {
   provideHandleTransaction
 } from "./agent";
 
-
 const testMsgSender: string = createAddress("0x1234");
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test PancakeSwap Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 const testLpAddress: string = createAddress("0x321987456");
 // Arguments for a test call to set()
-const testPositionId: number = 123;
+const testPoolId: number = 123;
 const testAllocPoint: number = 321;
 const testWithUpdate: boolean = true;
 // Encoded arguments for set() function call
 const encodedSetFuncCall: string = encodeParameters(
   ["uint256", "uint256", "bool"],
-  [testPositionId, testAllocPoint, testWithUpdate]
+  [testPoolId, testAllocPoint, testWithUpdate]
 );
 
-const testAddressMap: Map<number, string> = new Map([[testPositionId, testLpAddress]]);
+const testAddressMap: Map<number, string> = new Map([[testPoolId, testLpAddress]]);
 const queueTxnEventSig: string = "QueueTransaction(bytes32,address,uint256,string,bytes,uint256)";
 const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
 
@@ -56,18 +55,13 @@ const pcsData: string = encodeParameters(
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test MDEX Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 const testBoardRoomMdx: string = createAddress("0x543678");
 const testMdexLpAddress: string = createAddress("0x321987456");
-const setFuncSig: string = "set(uint256,uint256,bool)";
 const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
-const testMdexPosId: number = 456;
+const testMdexPoolId: number = 456;
 const testMdexAllocPoint: number = 654;
 const testMdexWithUpdate: boolean = true;
-const mdexData: string = encodeParameters(
-  ["uint256", "uint256", "bool"],
-  [testMdexPosId, testMdexAllocPoint, testMdexWithUpdate]
-);
 const mdexIFace = new utils.Interface([mdexSetAbi])
-const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [testMdexPosId, testMdexAllocPoint, testMdexWithUpdate]);
-const testMdexAddressMap: Map<number, string> = new Map([[testMdexPosId, testMdexLpAddress]]);
+const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [testMdexPoolId, testMdexAllocPoint, testMdexWithUpdate]);
+const testMdexAddressMap: Map<number, string> = new Map([[testMdexPoolId, testMdexLpAddress]]);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 
 const completeTestPools: Map<number, string>[] = [testAddressMap, testMdexAddressMap];
@@ -96,13 +90,44 @@ describe("AllocPoint Change Alert Agent", () => {
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata:{
-          positionId: testPositionId.toString(),
+          positionId: testPoolId.toString(),
           allocPoint: testAllocPoint.toString(),
           withUpdate: testWithUpdate.toString(),
           target: testStakingContract
         }
       }),
     ]);
+  });
+
+  it("should return no Findings from QueueTransaction due to incorrect QueueTransanction event signature", async () => {
+    const badQueueTxnSig: string = 'badSig';
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testTimelockContract)
+      .addEventLog(badQueueTxnSig, testTimelockContract, pcsData, ...pcsTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return no Findings from QueueTransaction due to incorrect Set function signature", async () => {
+    const badSetFuncSig: string = 'badSig';
+
+    const pcsBadData: string = encodeParameters(
+      ["uint256", "string", "bytes", "uint256"],
+      [testValue, badSetFuncSig, encodedSetFuncCall, testEta]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testTimelockContract)
+      .addEventLog(queueTxnEventSig, testTimelockContract, pcsBadData, ...pcsTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
   });
 
   it("should return a Finding from Set function call from Mdex", async () => {
@@ -121,12 +146,29 @@ describe("AllocPoint Change Alert Agent", () => {
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata:{
-          positionId: testMdexPosId.toString(),
+          positionId: testMdexPoolId.toString(),
           allocPoint: testMdexAllocPoint.toString(),
           withUpdate: testMdexWithUpdate.toString(),
           target: testBoardRoomMdx
         }
       }),
     ])
-  })
+  });
+
+  it("should return no Findings from Mdex due to incorrect function abi", async () => {
+    const badPoolId: number = 987;
+
+    const mdexUpdatePoolAbi: string = "function updatePool(uint256 _pid)";
+    const badMdexIFace = new utils.Interface([mdexUpdatePoolAbi])
+    const badEncodedUpdatePoolFuncCall: string = badMdexIFace.encodeFunctionData("updatePool", [badPoolId]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testBoardRoomMdx)
+      .setData(badEncodedUpdatePoolFuncCall)
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
 })
