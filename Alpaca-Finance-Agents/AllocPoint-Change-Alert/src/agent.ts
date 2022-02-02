@@ -18,6 +18,9 @@ const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool
 const pcsQueueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
 const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
 
+let timelockController: string;
+let boardroomController: string;
+
 const createFinding = (
   posId: number,
   allocPoint: number,
@@ -49,69 +52,51 @@ export function provideHandleTransaction(
     // TODO: FIND DEPLOYED BoardRoomMDX TO FILTER BY ITS ADDRESS 
     const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
 
-    let timelockController: string;
-    function setTimelockController(newTimelock: string) {
-      timelockController = newTimelock;
-    }
-    function getTimelockController(): string {
-      return timelockController;
-    }
-
-    let boardroomController: string;
-    function setBoardroomController(newBoardroom: string) {
-      boardroomController = newBoardroom;
-    }
-    function getBoardroomController(): string {
-      return boardroomController;
-    }
-
-    for(let i = 0; i < poolControllers.length; i++) {
-      if(queueTxnEvents.length > 0) {
-        for(let log = 0; log < queueTxnEvents.length; log++) {
-          if(pools.get(poolControllers[i]) && poolControllers[i] === queueTxnEvents[log].address) {
-            setTimelockController(poolControllers[i]);
-          }
-        }
-      } else if(mdexSetCalls.length > 0) {
-        for(let log = 0; log < mdexSetCalls.length; log++) {
-          if(pools.get(poolControllers[i]) && poolControllers[i] === txEvent.to) {
-            setBoardroomController(poolControllers[i]);
-          }
-        }
-      }
-    }
-
     if(queueTxnEvents.length > 0) {
-      for(let i = 0; i < queueTxnEvents.length; i++) {
-        if(queueTxnEvents[i].args["signature"] === pcsSetFuncSig) {
-          const decodedData = decodeParameters(
-            ["uint256", "uint256", "bool"],
-            queueTxnEvents[i].args["data"]
-          );
-          const queueTxnPools = pools.get(getTimelockController());
-          if(queueTxnPools && queueTxnPools.get(Number(decodedData[0]))) {
-            const pcsFinding: Finding = createFinding(
-              decodedData[0],
-              decodedData[1],
-              decodedData[2],
-              queueTxnEvents[i].args["target"]
-            );
-            findings.push(pcsFinding);
+      for(let event = 0; event < queueTxnEvents.length; event++) {
+        for(let pc = 0; pc < poolControllers.length; pc++) {
+
+          if(pools.get(poolControllers[pc]) && poolControllers[pc] === queueTxnEvents[event].address) {
+            timelockController = poolControllers[pc];
+
+            if(queueTxnEvents[event].args["signature"] === pcsSetFuncSig) {
+              const decodedData = decodeParameters(
+                ["uint256", "uint256", "bool"],
+                queueTxnEvents[event].args["data"]
+              );
+              const queueTxnPools = pools.get(timelockController);
+              if(queueTxnPools && queueTxnPools.get(Number(decodedData[0]))) {
+                const pcsFinding = createFinding(
+                  decodedData[0],
+                  decodedData[1],
+                  decodedData[2],
+                  queueTxnEvents[event].args["target"]
+                );
+  
+                findings.push(pcsFinding);
+              }
+            }
           }
         }
       }
     } else if(mdexSetCalls.length > 0) {
-      for(let i = 0; i < mdexSetCalls.length; i++) {
-        const setFuncPools = pools.get(getBoardroomController());
-        
-        if(setFuncPools && setFuncPools.get(Number(mdexSetCalls[i].args["_pid"]))) {
-          const mdexFinding: Finding = createFinding(
-            mdexSetCalls[i].args["_pid"],
-            mdexSetCalls[i].args["_allocPoint"],
-            mdexSetCalls[i].args["_withUpdate"],
-            txEvent.to
-          );
-          findings.push(mdexFinding);
+      for(let call = 0; call < mdexSetCalls.length; call++) {
+        for(let pc = 0; pc < poolControllers.length; pc++) {
+          if(pools.get(poolControllers[pc]) && poolControllers[pc] === txEvent.to) {
+            boardroomController = poolControllers[pc];
+
+            const setFuncPools = pools.get(boardroomController);
+      
+            if(setFuncPools && setFuncPools.get(Number(mdexSetCalls[call].args["_pid"]))) {
+              const mdexFinding: Finding = createFinding(
+                mdexSetCalls[call].args["_pid"],
+                mdexSetCalls[call].args["_allocPoint"],
+                mdexSetCalls[call].args["_withUpdate"],
+                txEvent.to
+              );
+              findings.push(mdexFinding);
+            }
+          }
         }
       }
     }
