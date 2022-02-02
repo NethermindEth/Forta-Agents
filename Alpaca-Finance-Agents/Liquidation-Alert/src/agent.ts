@@ -17,7 +17,7 @@ const VAULT_ADDRESSES: string[] = [
 
 const killEventAbi: string = "event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)";
 
-const createFindings = (
+const createAgentThreeFinding = (
   posId: number,
   killer: string,
   posOwner: string,
@@ -26,8 +26,7 @@ const createFindings = (
   prize: number,
   left: number,
   vaultAddress: string
-): Finding[] => {
-  const findings: Finding[] = [];
+): Finding => {
   const finding: Finding = Finding.fromObject({
     name: "Liquidation Event",
     description: "Liquidation Has Occurred",
@@ -45,29 +44,37 @@ const createFindings = (
       vault: vaultAddress
     },
   })
-  findings.push(finding);
+  return finding;
+}
 
-  if(Number(left) === 0) {
-    const findingTwo: Finding = Finding.fromObject({
-      name: "Bad Debt Event",
-      description: "Target position has 0 'left'",
-      alertId: "ALPACA-4",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      metadata:{
-        positionId: posId.toString(),
-        positionkiller: killer,
-        positionOwner: posOwner,
-        positionValue: posVal.toString(),
-        debt: debt.toString(),
-        prize: prize.toString(),
-        left: left.toString(),
-        vault: vaultAddress
-      }
-    })
-    findings.push(findingTwo);
-  }
-  return findings;
+const createAgentFourFinding = (
+  posId: number,
+  killer: string,
+  posOwner: string,
+  posVal: number,
+  debt: number,
+  prize: number,
+  left: number,
+  vaultAddress: string
+): Finding => {
+  const finding: Finding = Finding.fromObject({
+    name: "Bad Debt Event",
+    description: "Target position has 0 'left'",
+    alertId: "ALPACA-4",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata:{
+      positionId: posId.toString(),
+      positionkiller: killer,
+      positionOwner: posOwner,
+      positionValue: posVal.toString(),
+      debt: debt.toString(),
+      prize: prize.toString(),
+      left: left.toString(),
+      vault: vaultAddress
+    },
+  });
+  return finding;
 }
 
 export function provideHandleTransaction(
@@ -79,8 +86,8 @@ export function provideHandleTransaction(
 
     for(let i = 0; i < killEvents.length; i++) {
       for(let v = 0; v < addresses.length; v++) {
-        if(killEvents[i].address === addresses[v]) {
-          const newFindings: Finding[] = createFindings(
+        if(addresses.includes(killEvents[i].address)) {
+          const newAgentThreeFinding: Finding = createAgentThreeFinding(
             killEvents[i].args["id"],
             killEvents[i].args["killer"],
             killEvents[i].args["owner"],
@@ -90,8 +97,20 @@ export function provideHandleTransaction(
             killEvents[i].args["left"],
             killEvents[i].address
           );
-          for(let f = 0; f < newFindings.length; f++) {
-            findings.push(newFindings[f]);
+          findings.push(newAgentThreeFinding);
+
+          if(Number(killEvents[i].args["left"]) === 0) {
+            const newAgentFourFinding: Finding = createAgentFourFinding(
+              killEvents[i].args["id"],
+              killEvents[i].args["killer"],
+              killEvents[i].args["owner"],
+              killEvents[i].args["posVal"],
+              killEvents[i].args["debt"],
+              killEvents[i].args["prize"],
+              killEvents[i].args["left"],
+              killEvents[i].address
+            );
+            findings.push(newAgentFourFinding);
           }
         }
       }
