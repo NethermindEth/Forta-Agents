@@ -26,7 +26,7 @@ const createFinding = (
   posId: number,
   allocPoint: number,
   withUpdate: boolean,
-  target: string
+  target: string | null
   ): Finding => {
   return Finding.fromObject({
     name: "AllocPoint Change Event",
@@ -38,7 +38,7 @@ const createFinding = (
       positionId: posId.toString(),
       allocPoint: allocPoint.toString(),
       withUpdate: withUpdate.toString(),
-      target
+      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE undefined
     },
   })
 }
@@ -46,6 +46,8 @@ const createFinding = (
 export function provideHandleTransaction(addresses: Map<number, string>): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    
+    /*
     const queueTxnEvents = txEvent.filterLog(pcsQueueTxnAbi);
 
     for(let i = 0; i < queueTxnEvents.length; i++) {
@@ -65,30 +67,22 @@ export function provideHandleTransaction(addresses: Map<number, string>): Handle
         }
       }
     }
+    */
 
-    /*
-    // NOTE: IF CAN FIND A SPECIFIC ADDRESS THAT SHOULD HAVE
-    // THE FUNCTION CALL FILTERED BY, ADD IT AS THE SECOND
-    // ARGUMENT TO filterFunction()
-    // TODO: CONFIRM THAT THIS ONLY WORKS FOR SUCCESSFUL
-    // FUNCTION CALLS.
+    // TODO: FIND DEPLOYED BoardRoomMDX TO FILTER BY ITS ADDRESS 
     const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
 
-    console.log("mdexSetCalls is: " + mdexSetCalls);
-
     for(let i = 0; i < mdexSetCalls.length; i++) {
-      // TODO: FINDING WHAT _pid IS EXACTLY, PROBABLY
-      // NOT BEST TO COMPARE TO AN ADDRESS
-      if(MDEX_POOLS.get(mdexSetCalls[i].args["_pid"])) {
+      if(addresses.get(Number(mdexSetCalls[i].args["_pid"]))) {
         const mdexFinding: Finding = createFinding(
           mdexSetCalls[i].args["_pid"],
           mdexSetCalls[i].args["_allocPoint"],
-          mdexSetCalls[i].args["_withUpdate"]
+          mdexSetCalls[i].args["_withUpdate"],
+          txEvent.to
         );
         findings.push(mdexFinding);
       }
     }
-    */
 
     return findings;
   }

@@ -11,29 +11,18 @@ import {
   encodeParameters
 } from "forta-agent-tools";
 import {
+  utils
+} from "ethers";
+import {
   provideHandleTransaction
 } from "./agent";
 
 
 const testMsgSender: string = createAddress("0x1234");
 
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test MDEX Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-const testBoardRoomMdx: string = createAddress("0x543678");
-const setFuncSig: string = "set(uint256,uint256,bool)";
-const testMdexPosId: number = 456;
-const testMdexAllocPoint: number = 654;
-const testMdexWithUpdate: boolean = true;
-const mdexData: string = encodeParameters(
-  ["uint256", "uint256", "bool"],
-  [testMdexPosId, testMdexAllocPoint, testMdexWithUpdate]
-);
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test PancakeSwap Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-// Arguments for a test call to set()
 const testLpAddress: string = createAddress("0x321987456");
+// Arguments for a test call to set()
 const testPositionId: number = 123;
 const testAllocPoint: number = 321;
 const testWithUpdate: boolean = true;
@@ -64,14 +53,33 @@ const pcsData: string = encodeParameters(
 );
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test MDEX Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
+const testBoardRoomMdx: string = createAddress("0x543678");
+const testMdexLpAddress: string = createAddress("0x321987456");
+const setFuncSig: string = "set(uint256,uint256,bool)";
+const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
+const testMdexPosId: number = 456;
+const testMdexAllocPoint: number = 654;
+const testMdexWithUpdate: boolean = true;
+const mdexData: string = encodeParameters(
+  ["uint256", "uint256", "bool"],
+  [testMdexPosId, testMdexAllocPoint, testMdexWithUpdate]
+);
+const mdexIFace = new utils.Interface([mdexSetAbi])
+const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [testMdexPosId, testMdexAllocPoint, testMdexWithUpdate]);
+const testMdexAddressMap: Map<number, string> = new Map([[testMdexPosId, testMdexLpAddress]]);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
+
 
 describe("AllocPoint Change Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(testAddressMap);
+    // handleTransaction = provideHandleTransaction(testAddressMap);
+    handleTransaction = provideHandleTransaction(testMdexAddressMap);
   })
 
+  /*
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
@@ -96,15 +104,13 @@ describe("AllocPoint Change Alert Agent", () => {
       }),
     ]);
   });
+  */
 
-  /*
   it("should return a Finding from Set function call from Mdex", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testBoardRoomMdx)
-      // THIS IS A FUNCTION CALL BECAUSE set DOESN'T EMIT AN event
-      // TODO: CONFIRM USING CORRECT CONTRACT FROM MDEX
-      .addEventLog(setFuncSig, testBoardRoomMdx, mdexData);
+      .setData(encodedMdexSetFuncCall)
 
     const findings = await handleTransaction(txEvent);
 
@@ -119,10 +125,9 @@ describe("AllocPoint Change Alert Agent", () => {
           positionId: testMdexPosId.toString(),
           allocPoint: testMdexAllocPoint.toString(),
           withUpdate: testMdexWithUpdate.toString(),
-          lpPool: testBoardRoomMdx
+          target: testBoardRoomMdx
         }
       }),
     ])
   })
-  */
 })
