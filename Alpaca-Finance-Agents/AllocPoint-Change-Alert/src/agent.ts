@@ -6,12 +6,10 @@ import {
   FindingType 
 } from 'forta-agent';
 import { 
-  decodeParameter,
   decodeParameters
 } from "forta-agent-tools";
 import {
-  MDEX_POOLS,
-  PCS_POOLS
+  MDEX_PCS_POOLS
 } from "./lpTokens";
 
 const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
@@ -38,49 +36,47 @@ const createFinding = (
       positionId: posId.toString(),
       allocPoint: allocPoint.toString(),
       withUpdate: withUpdate.toString(),
-      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE undefined
+      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE null
     },
   })
 }
 
-export function provideHandleTransaction(addresses: Map<number, string>): HandleTransaction {
+export function provideHandleTransaction(pools: Map<number, string>[]): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    
-    /*
     const queueTxnEvents = txEvent.filterLog(pcsQueueTxnAbi);
-
-    for(let i = 0; i < queueTxnEvents.length; i++) {
-      if(queueTxnEvents[i].args["signature"] === pcsSetFuncSig) {
-        const decodedData = decodeParameters(
-          ["uint256", "uint256", "bool"],
-          queueTxnEvents[i].args["data"]
-        );
-        if(addresses.get(Number(decodedData[0]))) {
-          const pcsFinding: Finding = createFinding(
-            decodedData[0],
-            decodedData[1],
-            decodedData[2],
-            queueTxnEvents[i].args["target"]
-          );
-          findings.push(pcsFinding);
-        }
-      }
-    }
-    */
-
     // TODO: FIND DEPLOYED BoardRoomMDX TO FILTER BY ITS ADDRESS 
     const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
 
-    for(let i = 0; i < mdexSetCalls.length; i++) {
-      if(addresses.get(Number(mdexSetCalls[i].args["_pid"]))) {
-        const mdexFinding: Finding = createFinding(
-          mdexSetCalls[i].args["_pid"],
-          mdexSetCalls[i].args["_allocPoint"],
-          mdexSetCalls[i].args["_withUpdate"],
-          txEvent.to
-        );
-        findings.push(mdexFinding);
+    if(queueTxnEvents.length > 0) {
+      for(let i = 0; i < queueTxnEvents.length; i++) {
+        if(queueTxnEvents[i].args["signature"] === pcsSetFuncSig) {
+          const decodedData = decodeParameters(
+            ["uint256", "uint256", "bool"],
+            queueTxnEvents[i].args["data"]
+          );
+          if(pools[0].get(Number(decodedData[0]))) {
+            const pcsFinding: Finding = createFinding(
+              decodedData[0],
+              decodedData[1],
+              decodedData[2],
+              queueTxnEvents[i].args["target"]
+            );
+            findings.push(pcsFinding);
+          }
+        }
+      }
+    } else if(mdexSetCalls.length > 0) {
+      for(let i = 0; i < mdexSetCalls.length; i++) {
+        if(pools[1].get(Number(mdexSetCalls[i].args["_pid"]))) {
+          const mdexFinding: Finding = createFinding(
+            mdexSetCalls[i].args["_pid"],
+            mdexSetCalls[i].args["_allocPoint"],
+            mdexSetCalls[i].args["_withUpdate"],
+            txEvent.to
+          );
+          findings.push(mdexFinding);
+        }
       }
     }
 
@@ -89,5 +85,5 @@ export function provideHandleTransaction(addresses: Map<number, string>): Handle
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(PCS_POOLS)
+  handleTransaction: provideHandleTransaction(MDEX_PCS_POOLS)
 }

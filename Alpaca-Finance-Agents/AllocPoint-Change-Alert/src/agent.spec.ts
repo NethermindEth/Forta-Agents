@@ -70,16 +70,16 @@ const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [test
 const testMdexAddressMap: Map<number, string> = new Map([[testMdexPosId, testMdexLpAddress]]);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 
+const completeTestPools: Map<number, string>[] = [testAddressMap, testMdexAddressMap];
+
 
 describe("AllocPoint Change Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    // handleTransaction = provideHandleTransaction(testAddressMap);
-    handleTransaction = provideHandleTransaction(testMdexAddressMap);
+    handleTransaction = provideHandleTransaction(completeTestPools);
   })
 
-  /*
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
@@ -104,7 +104,6 @@ describe("AllocPoint Change Alert Agent", () => {
       }),
     ]);
   });
-  */
 
   it("should return a Finding from Set function call from Mdex", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
