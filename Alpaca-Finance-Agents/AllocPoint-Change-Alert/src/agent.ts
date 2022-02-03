@@ -3,26 +3,43 @@ import {
   HandleTransaction, 
   TransactionEvent, 
   FindingSeverity, 
-  FindingType 
+  FindingType,
+  LogDescription
 } from 'forta-agent';
 import { 
   decodeParameters
 } from "forta-agent-tools";
-import {
-  POOL_CONTROLLERS_ADDRESSES,
-  MDEX_PCS_POOLS
-} from "./pools";
 
-const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
+const POOL_OWNERS: string[] = [
+  "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BscPool
+  "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4"  // PancakeSwap - Timelock
+  //"0x73feaa1eE314F8c655E354234017bE2193C9E24E"  // PancakeSwap - MasterChef
+]
 
-const pcsQueueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
-const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
+export const setFuncAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
+export const setFuncSig: string = "set(uint256,uint256,bool)";
 
-let timelockController: string;
-let boardroomController: string;
+const queueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
+
+
+function isAddressRelevant(contractAddress: string | null, poolArray: string[]): boolean {
+  if(contractAddress && poolArray.includes(contractAddress)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function containsFuncSig(log: LogDescription, functionSig: string): boolean {
+  if(log.args["signature"] === functionSig) {
+    return true;
+  } else {
+    return false;
+  }
+}
 
 const createFinding = (
-  posId: number,
+  poolId: number,
   allocPoint: number,
   withUpdate: boolean,
   target: string | null
@@ -34,7 +51,7 @@ const createFinding = (
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata:{
-      positionId: posId.toString(),
+      poolId: poolId.toString(),
       allocPoint: allocPoint.toString(),
       withUpdate: withUpdate.toString(),
       target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE null
@@ -43,62 +60,41 @@ const createFinding = (
 }
 
 export function provideHandleTransaction(
-  pools: Map<string, Map<number, string>>,
-  poolControllers: string[]
+  poolOwners: string[]
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const queueTxnEvents = txEvent.filterLog(pcsQueueTxnAbi);
-    // TODO: FIND DEPLOYED BoardRoomMDX TO FILTER BY ITS ADDRESS 
-    const mdexSetCalls = txEvent.filterFunction(mdexSetAbi);
 
-    if(queueTxnEvents.length > 0) {
-      for(let event = 0; event < queueTxnEvents.length; event++) {
-        for(let pc = 0; pc < poolControllers.length; pc++) {
+    findings.push(
+      ...txEvent.filterLog(queueTxnAbi)
+        .filter(log => isAddressRelevant(log.address, poolOwners))
+        .filter(log => containsFuncSig(log, setFuncSig))
+        .map(log => {
+          const decodedData = decodeParameters(
+            ["uint256", "uint256", "bool"],
+            log.args["data"]
+          );
+          return createFinding(
+            decodedData[0],
+            decodedData[1],
+            decodedData[2],
+            log.args["target"]
+          );
+        })
+      );
 
-          if(pools.get(poolControllers[pc]) && poolControllers[pc] === queueTxnEvents[event].address) {
-            timelockController = poolControllers[pc];
-
-            if(queueTxnEvents[event].args["signature"] === pcsSetFuncSig) {
-              const decodedData = decodeParameters(
-                ["uint256", "uint256", "bool"],
-                queueTxnEvents[event].args["data"]
-              );
-              const queueTxnPools = pools.get(timelockController);
-              if(queueTxnPools && queueTxnPools.get(Number(decodedData[0]))) {
-                const pcsFinding = createFinding(
-                  decodedData[0],
-                  decodedData[1],
-                  decodedData[2],
-                  queueTxnEvents[event].args["target"]
-                );
-  
-                findings.push(pcsFinding);
-              }
-            }
-          }
-        }
-      }
-    } else if(mdexSetCalls.length > 0) {
-      for(let call = 0; call < mdexSetCalls.length; call++) {
-        for(let pc = 0; pc < poolControllers.length; pc++) {
-          if(pools.get(poolControllers[pc]) && poolControllers[pc] === txEvent.to) {
-            boardroomController = poolControllers[pc];
-
-            const setFuncPools = pools.get(boardroomController);
-      
-            if(setFuncPools && setFuncPools.get(Number(mdexSetCalls[call].args["_pid"]))) {
-              const mdexFinding: Finding = createFinding(
-                mdexSetCalls[call].args["_pid"],
-                mdexSetCalls[call].args["_allocPoint"],
-                mdexSetCalls[call].args["_withUpdate"],
-                txEvent.to
-              );
-              findings.push(mdexFinding);
-            }
-          }
-        }
-      }
+    if(isAddressRelevant(txEvent.to, poolOwners)) {
+      findings.push(
+        ...txEvent.filterFunction(setFuncAbi)
+          .map(log => {
+            return createFinding(
+              log.args["_pid"],
+              log.args["_allocPoint"],
+              log.args["_withUpdate"],
+              txEvent.to
+            );
+          })
+      );
     }
 
     return findings;
@@ -107,7 +103,6 @@ export function provideHandleTransaction(
 
 export default {
   handleTransaction: provideHandleTransaction(
-    MDEX_PCS_POOLS,
-    POOL_CONTROLLERS_ADDRESSES
+    POOL_OWNERS
   )
 }
