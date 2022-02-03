@@ -13,7 +13,6 @@ import {
 const POOL_OWNERS: string[] = [
   "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BscPool
   "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4"  // PancakeSwap - Timelock
-  //"0x73feaa1eE314F8c655E354234017bE2193C9E24E"  // PancakeSwap - MasterChef
 ]
 
 export const setFuncAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
@@ -80,22 +79,17 @@ export function provideHandleTransaction(
             decodedData[2],
             log.args["target"]
           );
+        }),
+      ...txEvent.filterFunction(setFuncAbi)
+        .map(log => {
+          return createFinding(
+            log.args["_pid"],
+            log.args["_allocPoint"],
+            log.args["_withUpdate"],
+            txEvent.to
+          );
         })
-      );
-
-    if(isAddressRelevant(txEvent.to, poolOwners)) {
-      findings.push(
-        ...txEvent.filterFunction(setFuncAbi)
-          .map(log => {
-            return createFinding(
-              log.args["_pid"],
-              log.args["_allocPoint"],
-              log.args["_withUpdate"],
-              txEvent.to
-            );
-          })
-      );
-    }
+    );
 
     return findings;
   }
