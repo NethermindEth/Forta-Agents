@@ -14,75 +14,65 @@ import {
   utils
 } from "ethers";
 import {
-  provideHandleTransaction
+  provideHandleTransaction,
+  setFuncAbi,
+  setFuncSig
 } from "./agent";
 
 const testMsgSender: string = createAddress("0x1234");
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test PancakeSwap Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-const testLpAddress: string = createAddress("0x321987456");
+const testTimelockContract: string = createAddress("0x172839456");
+const testBscPool: string = createAddress("0x543678");
+const testPoolControllers: string[] = [testTimelockContract, testBscPool]
+
 // Arguments for a test call to set()
 const testPoolId: number = 123;
 const testAllocPoint: number = 321;
 const testWithUpdate: boolean = true;
-// Encoded arguments for set() function call
-const encodedSetFuncCall: string = encodeParameters(
+
+const testSetArguments: any[] = [testPoolId, testAllocPoint, testWithUpdate];
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test QueueTransaction Event Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
+const mockEncodedSetFuncCall: string = encodeParameters(
   ["uint256", "uint256", "bool"],
-  [testPoolId, testAllocPoint, testWithUpdate]
+  testSetArguments
 );
 
-const testAddressMap: Map<number, string> = new Map([[testPoolId, testLpAddress]]);
 const queueTxnEventSig: string = "QueueTransaction(bytes32,address,uint256,string,bytes,uint256)";
-const pcsSetFuncSig: string = "set(uint256,uint256,bool)";
 
-const testTimelockContract: string = createAddress("0x172839456")
 const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000000023";
 const testStakingContract: string = createAddress("0x987654321");
 const testValue: bigint = BigInt(1000000000000000000);    // 1.0
 const testEta: number = 14000000;
 
-const pcsTopics: string[] = [
+const testTopics: string[] = [
   encodeParameters(["bytes32"], [testTxHash]),
   encodeParameters(["address"], [testStakingContract])
 ];
 
-const pcsData: string = encodeParameters(
+const testData: string = encodeParameters(
   ["uint256", "string", "bytes", "uint256"],
-  [testValue, pcsSetFuncSig, encodedSetFuncCall, testEta]
+  [testValue, setFuncSig, mockEncodedSetFuncCall, testEta]
 );
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test MDEX Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-const testBoardRoomMdx: string = createAddress("0x543678");
-const testMdexLpAddress: string = createAddress("0x321987456");
-const mdexSetAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
-const testMdexPoolId: number = 456;
-const testMdexAllocPoint: number = 654;
-const testMdexWithUpdate: boolean = true;
-const mdexIFace = new utils.Interface([mdexSetAbi])
-const encodedMdexSetFuncCall: string = mdexIFace.encodeFunctionData("set", [testMdexPoolId, testMdexAllocPoint, testMdexWithUpdate]);
-const testMdexAddressMap: Map<number, string> = new Map([[testMdexPoolId, testMdexLpAddress]]);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Test Set Function Data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
+const testIFace = new utils.Interface([setFuncAbi])
+const testEncodedSetFuncCall: string = testIFace.encodeFunctionData("set", testSetArguments);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \\
-const testPoolControllers: string[] = [testTimelockContract, testBoardRoomMdx]
-
-const completeTestPools: Map<string, Map<number, string>> = new Map([
-  [testPoolControllers[0], testAddressMap],
-  [testPoolControllers[1], testMdexAddressMap]
-]);
-
 
 describe("AllocPoint Change Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(completeTestPools, testPoolControllers);
+    handleTransaction = provideHandleTransaction(testPoolControllers);
   })
 
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testTimelockContract)
-      .addEventLog(queueTxnEventSig, testTimelockContract, pcsData, ...pcsTopics);
+      .addEventLog(queueTxnEventSig, testTimelockContract, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -94,7 +84,7 @@ describe("AllocPoint Change Alert Agent", () => {
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata:{
-          positionId: testPoolId.toString(),
+          poolId: testPoolId.toString(),
           allocPoint: testAllocPoint.toString(),
           withUpdate: testWithUpdate.toString(),
           target: testStakingContract
@@ -109,7 +99,7 @@ describe("AllocPoint Change Alert Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testTimelockContract)
-      .addEventLog(badQueueTxnSig, testTimelockContract, pcsData, ...pcsTopics);
+      .addEventLog(badQueueTxnSig, testTimelockContract, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -121,13 +111,13 @@ describe("AllocPoint Change Alert Agent", () => {
 
     const pcsBadData: string = encodeParameters(
       ["uint256", "string", "bytes", "uint256"],
-      [testValue, badSetFuncSig, encodedSetFuncCall, testEta]
+      [testValue, badSetFuncSig, mockEncodedSetFuncCall, testEta]
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testTimelockContract)
-      .addEventLog(queueTxnEventSig, testTimelockContract, pcsBadData, ...pcsTopics);
+      .addEventLog(queueTxnEventSig, testTimelockContract, pcsBadData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -137,8 +127,8 @@ describe("AllocPoint Change Alert Agent", () => {
   it("should return a Finding from Set function call from Mdex", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
-      .setTo(testBoardRoomMdx)
-      .setData(encodedMdexSetFuncCall)
+      .setTo(testBscPool)
+      .setData(testEncodedSetFuncCall)
 
     const findings = await handleTransaction(txEvent);
 
@@ -150,10 +140,10 @@ describe("AllocPoint Change Alert Agent", () => {
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata:{
-          positionId: testMdexPoolId.toString(),
-          allocPoint: testMdexAllocPoint.toString(),
-          withUpdate: testMdexWithUpdate.toString(),
-          target: testBoardRoomMdx
+          poolId: testPoolId.toString(),
+          allocPoint: testAllocPoint.toString(),
+          withUpdate: testWithUpdate.toString(),
+          target: testBscPool
         }
       }),
     ])
@@ -168,7 +158,7 @@ describe("AllocPoint Change Alert Agent", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
-      .setTo(testBoardRoomMdx)
+      .setTo(testBscPool)
       .setData(badEncodedUpdatePoolFuncCall)
 
     const findings = await handleTransaction(txEvent);
