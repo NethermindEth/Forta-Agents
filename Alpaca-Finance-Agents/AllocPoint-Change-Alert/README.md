@@ -26,4 +26,5 @@ Describe each of the type of alerts fired by this agent
 
 The agent behaviour can be verified with the following transactions:
 
-- [0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72](https://bscscan.com/tx/0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72) (Call from PancakeSwap's Timelock to `set()` function.)
+- [0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72](https://bscscan.com/tx/0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72) (Call from PancakeSwap's `Timelock` to `set` function.)
+- [0xaabb06ab08335ba025e549882bc717c0d58d8c9f17e7992bbe1ca23b4acbba83](https://bscscan.com/tx/0xaabb06ab08335ba025e549882bc717c0d58d8c9f17e7992bbe1ca23b4acbba83) (Call to `set` function on Mdex `BSCPool` contract.)
