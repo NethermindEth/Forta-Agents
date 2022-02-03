@@ -85,9 +85,21 @@ export function provideHandleTransaction(
     const killEvents = txEvent.filterLog(killEventAbi);
 
     for(let i = 0; i < killEvents.length; i++) {
-      for(let v = 0; v < addresses.length; v++) {
-        if(addresses.includes(killEvents[i].address)) {
-          const newAgentThreeFinding: Finding = createAgentThreeFinding(
+      if(addresses.includes(killEvents[i].address)) {
+        const newAgentThreeFinding: Finding = createAgentThreeFinding(
+          killEvents[i].args["id"],
+          killEvents[i].args["killer"],
+          killEvents[i].args["owner"],
+          killEvents[i].args["posVal"],
+          killEvents[i].args["debt"],
+          killEvents[i].args["prize"],
+          killEvents[i].args["left"],
+          killEvents[i].address
+        );
+        findings.push(newAgentThreeFinding);
+
+        if(Number(killEvents[i].args["left"]) === 0) {
+          const newAgentFourFinding: Finding = createAgentFourFinding(
             killEvents[i].args["id"],
             killEvents[i].args["killer"],
             killEvents[i].args["owner"],
@@ -97,21 +109,7 @@ export function provideHandleTransaction(
             killEvents[i].args["left"],
             killEvents[i].address
           );
-          findings.push(newAgentThreeFinding);
-
-          if(Number(killEvents[i].args["left"]) === 0) {
-            const newAgentFourFinding: Finding = createAgentFourFinding(
-              killEvents[i].args["id"],
-              killEvents[i].args["killer"],
-              killEvents[i].args["owner"],
-              killEvents[i].args["posVal"],
-              killEvents[i].args["debt"],
-              killEvents[i].args["prize"],
-              killEvents[i].args["left"],
-              killEvents[i].address
-            );
-            findings.push(newAgentFourFinding);
-          }
+          findings.push(newAgentFourFinding);
         }
       }
     }

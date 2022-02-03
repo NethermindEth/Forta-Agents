@@ -12,7 +12,7 @@ import {
 } from "forta-agent-tools";
 import { provideHandleTransaction } from "./agent";
 
-const TEST_VAULT_ADDRESSES: string[] = [createAddress("0x4321")];
+const TEST_VAULT_ADDRESSES: string[] = [createAddress("0x4321"), createAddress("0x987654")];
 const testMsgSender: string = createAddress("0x1234");
 
 const killEventSig: string = "Kill(uint256,address,address,uint256,uint256,uint256,uint256)";
