@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "Low TVL on Pool",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detects when a pool has low TVL",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
