@@ -1,8 +1,8 @@
-# Worker with too much shares
+# High Share Liquidity Pool Agent
 
 ## Description
 
-This agent detects when a worker owns a percent of the shares bigger than the specified threshold. The agent does not scan every block because the computation does more requests than usual, also the percents computed will not change very frequently.
+This agent detects when a worker owns more than 51% of the shares in a pool. It is worth nothing that the agent does not scan every block because the computation does more requests than usual. In addition to this, the percentages computed will change very infrequently.
 
 ## Supported Chains
 
@@ -18,5 +18,5 @@ Describe each of the type of alerts fired by this agent
   - Type is always set to "Info".
   - The metadata contains:
     - `worker`: Worker's address owning too much shares.
-    - `percent`: Percent of shares owned by the worker.
+    - `workerPercentage`: Percentage of shares owned by the worker.
 

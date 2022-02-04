@@ -136,7 +136,7 @@ export const getSharePercent = async (
     blockNumber,
     provider
   );
-  const shareTotalSupply = await getTotalSupply(lpToken, blockNumber, provider);
+  const totalSupply = await getTotalSupply(lpToken, blockNumber, provider);
   return shareAmount.mul(100).div(shareTotalSupply);
 };
 
@@ -145,15 +145,15 @@ export const createFinding = (
   percent: string
 ): Finding => {
   return Finding.fromObject({
-    name: "Alpaca worker with too much shares",
-    description: "An Alpaca worker has too much shares from a pool",
+    name: "High Share of Liquidity Pool Alert",
+    description: "An Alpaca worker owns more than 51% of pool shares",
     alertId: "ALPACA-5",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     protocol: "Alpaca Finance",
     metadata: {
       worker: workerAddress,
-      percent: percent,
+      workerPercentage: percent,
     },
   });
 };
