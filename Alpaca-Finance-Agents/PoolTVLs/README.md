@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects when a pool has low TVL. Low is define through a `threshold` value.
+This agent detects when a pool has low TVL. Low is defined through a `threshold` value.
 
 ## Supported Chains
 
