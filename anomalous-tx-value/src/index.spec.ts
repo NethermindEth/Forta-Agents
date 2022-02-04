@@ -8,7 +8,7 @@ import {
   HandleTransaction
 } from "forta-agent";
 
-import agent, { DECIMALS, TX_VALUE_THRESHHOLD } from ".";
+import agent, { DECIMALS, TX_VALUE_THRESHOLD } from ".";
 
 describe("Detect Very High Txn Value", () => {
   let handleTransaction: HandleTransaction;
@@ -51,7 +51,7 @@ describe("Detect Very High Txn Value", () => {
 
     it("returns empty findings if value is equal to threshold", async () => {
       const txEvent = createTxEvent({
-        transaction: { value: TX_VALUE_THRESHHOLD }
+        transaction: { value: TX_VALUE_THRESHOLD }
       });
 
       const findings = await handleTransaction(txEvent);
@@ -70,7 +70,7 @@ describe("Detect Very High Txn Value", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "High Value Use Detection",
-          description: `High value is used.`,
+          description: "High value is used.",
           alertId: "NETHFORTA-2",
           severity: FindingSeverity.High,
           type: FindingType.Suspicious,

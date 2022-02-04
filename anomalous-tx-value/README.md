@@ -2,7 +2,7 @@
 
 ### Overview
 
-This agent detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This agent detects transactions with anomalous Transaction Value (i.e. value greater than the `TX_VALUE_THRESHOLD`).
 
 ## Installation
 
