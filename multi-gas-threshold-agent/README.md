@@ -1,4 +1,4 @@
-## Detect anomalous Transaction Value
+## Detect unusual amount of gas used
 
 ### Overview
 
