@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects when a worker owns more than 51% of the shares in a pool. It is worth nothing that the agent does not scan every block because the computation does more requests than usual. In addition to this, the percentages computed will change very infrequently.
+This agent detects when a worker owns more than 51% of the shares in a pool. 
 
 ## Supported Chains
 
