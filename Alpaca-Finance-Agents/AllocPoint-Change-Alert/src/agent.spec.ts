@@ -106,6 +106,19 @@ describe("AllocPoint Change Alert Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("should return no Findings from QueueTransaction due to incorrect Timelock address", async () => {
+    const badTimelockAddress: string = createAddress("badAddress");
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(badTimelockAddress)
+      .addEventLog(queueTxnEventSig, badTimelockAddress, testData, ...testTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
   it("should return no Findings from QueueTransaction due to incorrect Set function signature", async () => {
     const badSetFuncSig: string = 'badSig';
 

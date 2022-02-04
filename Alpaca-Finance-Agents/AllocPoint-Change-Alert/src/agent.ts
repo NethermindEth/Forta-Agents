@@ -1,4 +1,4 @@
-import { 
+import {
   Finding, 
   HandleTransaction, 
   TransactionEvent, 
@@ -20,21 +20,12 @@ export const setFuncSig: string = "set(uint256,uint256,bool)";
 
 const queueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
 
-
-function isAddressRelevant(contractAddress: string | null, poolArray: string[]): boolean {
-  if(contractAddress && poolArray.includes(contractAddress)) {
-    return true;
-  } else {
-    return false;
-  }
+function isAddressRelevant(contractAddress: string, poolArray: string[]): boolean {
+  return poolArray.includes(contractAddress);
 }
 
 function containsFuncSig(log: LogDescription, functionSig: string): boolean {
-  if(log.args["signature"] === functionSig) {
-    return true;
-  } else {
-    return false;
-  }
+  return log.args["signature"] === functionSig;
 }
 
 const createFinding = (
@@ -53,7 +44,7 @@ const createFinding = (
       poolId: poolId.toString(),
       allocPoint: allocPoint.toString(),
       withUpdate: withUpdate.toString(),
-      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE null
+      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE null FROM txEvent.to
     },
   })
 }
@@ -80,7 +71,11 @@ export function provideHandleTransaction(
             log.args["target"]
           );
         }),
-      ...txEvent.filterFunction(setFuncAbi)
+      ...poolOwners
+        .map(owner => {
+          return txEvent.filterFunction(setFuncAbi, owner);
+        })
+        .flat()
         .map(log => {
           return createFinding(
             log.args["_pid"],
