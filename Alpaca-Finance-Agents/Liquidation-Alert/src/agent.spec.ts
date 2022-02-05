@@ -1,7 +1,4 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
   HandleTransaction,
   TransactionEvent
 } from "forta-agent"
@@ -10,31 +7,20 @@ import {
   TestTransactionEvent,
   encodeParameters
 } from "forta-agent-tools";
-import { provideHandleTransaction } from "./agent";
+import {
+  provideHandleTransaction,
+  createAgentThreeFinding,
+  createAgentFourFinding 
+} from "./agent";
+import { BigNumber } from "ethers";
 
-const TEST_VAULT_ADDRESSES: string[] = [createAddress("0x4321"), createAddress("0x987654")];
-const testMsgSender: string = createAddress("0x1234");
+const TEST_VAULT_ADDRESSES: string[] = [
+  createAddress("0x43ABc21fE").toLowerCase(),
+  createAddress("0x98a7FEc65d4").toLowerCase()
+];
+const testMsgSender: string = createAddress("0x1fCc23aEe4");
 
 const killEventSig: string = "Kill(uint256,address,address,uint256,uint256,uint256,uint256)";
-
-
-const testId: number = 1;
-const testKiller: string = createAddress("0x0101");
-const testOwner: string = createAddress("0x0202");
-const testPosVal: bigint = BigInt(100000000000000000000000);  // 100,000
-const testDebt: bigint = BigInt(10000000000000000000000);     // 10,000
-const testPrize: bigint = BigInt(5000000000000000000000);     // 5,000
-const testLeft: bigint = BigInt(85000000000000000000000);     // 85,000
-
-const data: string = encodeParameters(
-  ["address", "uint256", "uint256", "uint256", "uint256"],
-  [testOwner, testPosVal, testDebt, testPrize, testLeft]
-);
-
-const topics: string[] = [
-  encodeParameters(["uint256"], [testId]),
-  encodeParameters(["address"], [testKiller])
-];
 
 describe("Liquidation Alert Agent", () => {
   let handleTransaction: HandleTransaction
@@ -44,6 +30,24 @@ describe("Liquidation Alert Agent", () => {
   })
 
   it("should return a Finding from Kill event emission", async () => {
+    const testId: number = 123;
+    const testKiller: string = createAddress("0x4fFd80").toLowerCase();
+    const testOwner: string = createAddress("0x32eCa76").toLowerCase();
+    const testPosVal: BigNumber = BigNumber.from("100000000000000000000000");  // 100,000
+    const testDebt: BigNumber = BigNumber.from("10000000000000000000000");     // 10,000
+    const testPrize: BigNumber = BigNumber.from("5000000000000000000000");     // 5,000
+    const testLeft: BigNumber = BigNumber.from("85000000000000000000000");     // 85,000
+
+    const data: string = encodeParameters(
+      ["address", "uint256", "uint256", "uint256", "uint256"],
+      [testOwner, testPosVal, testDebt, testPrize, testLeft]
+    );
+
+    const topics: string[] = [
+      encodeParameters(["uint256"], [testId]),
+      encodeParameters(["address"], [testKiller])
+    ];
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESSES[0])
@@ -52,28 +56,39 @@ describe("Liquidation Alert Agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Liquidation Event",
-        description: "Liquidation Has Occurred",
-        alertId: "ALPACA-3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          positionId: testId.toString(),
-          positionkiller: testKiller,
-          positionOwner: testOwner,
-          positionValue: testPosVal.toString(),
-          debt: testDebt.toString(),
-          prize: testPrize.toString(),
-          left: testLeft.toString(),
-          vault: TEST_VAULT_ADDRESSES[0]
-        }
-      }),
-    ]);
+      createAgentThreeFinding(
+        testId,
+        testKiller,
+        testOwner,
+        testPosVal,
+        testDebt,
+        testPrize,
+        testLeft,
+        TEST_VAULT_ADDRESSES[0]
+      )
+    ])
   });
 
   it("should return no Findings due to incorrect event signature", async () => {
     const badWorkSig: string = "badSig";
+
+    const testId: number = 456;
+    const testKiller: string = createAddress("0x86dEf93").toLowerCase();
+    const testOwner: string = createAddress("0x41aBf82").toLowerCase();
+    const testPosVal: BigNumber = BigNumber.from("250000000000000000000000");  // 250,000
+    const testDebt: BigNumber = BigNumber.from("50000000000000000000000");     // 50,000
+    const testPrize: BigNumber = BigNumber.from("10000000000000000000000");    // 10,000
+    const testLeft: BigNumber = BigNumber.from("190000000000000000000000");    // 190,000
+
+    const data: string = encodeParameters(
+      ["address", "uint256", "uint256", "uint256", "uint256"],
+      [testOwner, testPosVal, testDebt, testPrize, testLeft]
+    );
+
+    const topics: string[] = [
+      encodeParameters(["uint256"], [testId]),
+      encodeParameters(["address"], [testKiller])
+    ];
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(TEST_VAULT_ADDRESSES[0], testMsgSender)
@@ -85,7 +100,25 @@ describe("Liquidation Alert Agent", () => {
   });
 
   it("should return no Findings due to wrong contract ddress", async () => {
-    const wrongVaultAddress: string = createAddress("0x1111");
+    const wrongVaultAddress: string = createAddress("0x75dFa");
+
+    const testId: number = 789;
+    const testKiller: string = createAddress("0x42dC72").toLowerCase();
+    const testOwner: string = createAddress("0x98Cf65").toLowerCase();
+    const testPosVal: BigNumber = BigNumber.from("435000000000000000000000");  // 435,000
+    const testDebt: BigNumber = BigNumber.from("30000000000000000000000");     // 30,000
+    const testPrize: BigNumber = BigNumber.from("5000000000000000000000");     // 5,000
+    const testLeft: BigNumber = BigNumber.from("400000000000000000000000");    // 400,000
+
+    const data: string = encodeParameters(
+      ["address", "uint256", "uint256", "uint256", "uint256"],
+      [testOwner, testPosVal, testDebt, testPrize, testLeft]
+    );
+
+    const topics: string[] = [
+      encodeParameters(["uint256"], [testId]),
+      encodeParameters(["address"], [testKiller])
+    ];
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(wrongVaultAddress, testMsgSender)
@@ -97,55 +130,53 @@ describe("Liquidation Alert Agent", () => {
   });
 
   it("should return a two Findings from Kill event emission due to 'left' being 0", async () => {
-    const zeroLeft: number = 0;
-    const zeroLeftData: string = encodeParameters(
+    const testId: number = 753;
+    const testKiller: string = createAddress("0x42dC72").toLowerCase();
+    const testOwner: string = createAddress("0x98Cf65").toLowerCase();
+    const testPosVal: BigNumber = BigNumber.from("10000000000000000000000");   // 10,000
+    const testDebt: BigNumber = BigNumber.from("5000000000000000000000");      // 5,000
+    const testPrize: BigNumber = BigNumber.from("5000000000000000000000");     // 5,000
+    const testLeft: BigNumber = BigNumber.from("0");                           // 0
+
+    const data: string = encodeParameters(
       ["address", "uint256", "uint256", "uint256", "uint256"],
-      [testOwner, testPosVal, testDebt, testPrize, zeroLeft]
+      [testOwner, testPosVal, testDebt, testPrize, testLeft]
     );
+
+    const topics: string[] = [
+      encodeParameters(["uint256"], [testId]),
+      encodeParameters(["address"], [testKiller])
+    ];
 
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESSES[0])
-      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], zeroLeftData, ...topics);
+      .addEventLog(killEventSig, TEST_VAULT_ADDRESSES[0], data, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Liquidation Event",
-        description: "Liquidation Has Occurred",
-        alertId: "ALPACA-3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          positionId: testId.toString(),
-          positionkiller: testKiller,
-          positionOwner: testOwner,
-          positionValue: testPosVal.toString(),
-          debt: testDebt.toString(),
-          prize: testPrize.toString(),
-          left: zeroLeft.toString(),
-          vault: TEST_VAULT_ADDRESSES[0]
-        }
-      }),
-      Finding.fromObject({
-        name: "Bad Debt Event",
-        description: "Target position has 0 'left'",
-        alertId: "ALPACA-4",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata:{
-          positionId: testId.toString(),
-          positionkiller: testKiller,
-          positionOwner: testOwner,
-          positionValue: testPosVal.toString(),
-          debt: testDebt.toString(),
-          prize: testPrize.toString(),
-          left: zeroLeft.toString(),
-          vault: TEST_VAULT_ADDRESSES[0]
-        }
-      })
+      createAgentThreeFinding(
+        testId,
+        testKiller,
+        testOwner,
+        testPosVal,
+        testDebt,
+        testPrize,
+        testLeft,
+        TEST_VAULT_ADDRESSES[0]
+      ),
+      createAgentFourFinding(
+        testId,
+        testKiller,
+        testOwner,
+        testPosVal,
+        testDebt,
+        testPrize,
+        testLeft,
+        TEST_VAULT_ADDRESSES[0]
+      )
     ]);
   });
 })

@@ -5,6 +5,10 @@ import {
   FindingSeverity, 
   FindingType,
 } from 'forta-agent';
+import {
+  BigNumber,
+  BigNumberish,
+ } from "ethers";
 
 const VAULT_ADDRESSES: string[] = [
   "0x7C9e73d4C71dae564d41F78d56439bB4ba87592f".toLowerCase(), // BUSD
@@ -17,14 +21,14 @@ const VAULT_ADDRESSES: string[] = [
 
 const killEventAbi: string = "event Kill(uint256 indexed id, address indexed killer, address owner, uint256 posVal, uint256 debt, uint256 prize, uint256 left)";
 
-const createAgentThreeFinding = (
-  posId: number,
+export const createAgentThreeFinding = (
+  posId: BigNumberish,
   killer: string,
   posOwner: string,
-  posVal: number,
-  debt: number,
-  prize: number,
-  left: number,
+  posVal: BigNumberish,
+  debt: BigNumberish,
+  prize: BigNumberish,
+  left: BigNumberish,
   vaultAddress: string
 ): Finding => {
   const finding: Finding = Finding.fromObject({
@@ -47,14 +51,14 @@ const createAgentThreeFinding = (
   return finding;
 }
 
-const createAgentFourFinding = (
-  posId: number,
+export const createAgentFourFinding = (
+  posId: BigNumberish,
   killer: string,
   posOwner: string,
-  posVal: number,
-  debt: number,
-  prize: number,
-  left: number,
+  posVal: BigNumberish,
+  debt: BigNumberish,
+  prize: BigNumberish,
+  left: BigNumberish,
   vaultAddress: string
 ): Finding => {
   const finding: Finding = Finding.fromObject({
@@ -85,11 +89,11 @@ export function provideHandleTransaction(
     const killEvents = txEvent.filterLog(killEventAbi);
 
     for(let i = 0; i < killEvents.length; i++) {
-      if(addresses.includes(killEvents[i].address)) {
+      if(addresses.includes(killEvents[i].address.toLowerCase())) {
         const newAgentThreeFinding: Finding = createAgentThreeFinding(
           killEvents[i].args["id"],
-          killEvents[i].args["killer"],
-          killEvents[i].args["owner"],
+          killEvents[i].args["killer"].toLowerCase(),
+          killEvents[i].args["owner"].toLowerCase(),
           killEvents[i].args["posVal"],
           killEvents[i].args["debt"],
           killEvents[i].args["prize"],
@@ -98,11 +102,11 @@ export function provideHandleTransaction(
         );
         findings.push(newAgentThreeFinding);
 
-        if(Number(killEvents[i].args["left"]) === 0) {
+        if(BigNumber.from(0).eq(killEvents[i].args["left"])) {
           const newAgentFourFinding: Finding = createAgentFourFinding(
             killEvents[i].args["id"],
-            killEvents[i].args["killer"],
-            killEvents[i].args["owner"],
+            killEvents[i].args["killer"].toLowerCase(),
+            killEvents[i].args["owner"].toLowerCase(),
             killEvents[i].args["posVal"],
             killEvents[i].args["debt"],
             killEvents[i].args["prize"],
