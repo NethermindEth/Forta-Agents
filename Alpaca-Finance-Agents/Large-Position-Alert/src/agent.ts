@@ -18,7 +18,7 @@ const VAULTS_THRESHOLD_MAP: Map<string, BigNumber> = new Map([
 
 const workEventAbi: string = "event Work(uint256 id, uint256 loan)";
 
-const createFinding = (posId: number, loanAmount: BigNumber, vaultAddress: string): Finding => {
+export const createFinding = (posId: number, loanAmount: BigNumber, vaultAddress: string): Finding => {
   return Finding.fromObject({
     name: "Large Position Event",
     description: "Large Position Has Been Taken",

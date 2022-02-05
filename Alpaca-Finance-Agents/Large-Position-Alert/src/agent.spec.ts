@@ -11,7 +11,8 @@ import {
   encodeParameters
 } from "forta-agent-tools";
 import {
-  provideHandleTransaction
+  provideHandleTransaction,
+  createFinding
 } from "./agent"
 import { BigNumber } from "ethers";
 
@@ -48,18 +49,11 @@ describe("Large Position Alert Agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Large Position Event",
-        description: "Large Position Has Been Taken",
-        alertId: "ALPACA-1",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        metadata: {
-          positionId: testPositionId.toString(),
-          loanAmount: testBorrowAmount.toString(),
-          vault: TEST_VAULT_ADDRESS.toLowerCase()
-        }
-      }),
+      createFinding(
+        testPositionId,
+        testBorrowAmount,
+        TEST_VAULT_ADDRESS.toLowerCase()
+      )
     ]);
   });
 
@@ -119,5 +113,50 @@ describe("Large Position Alert Agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
+  });
+
+  it("should return multiple Findings from Work event emissions in test Vault", async () => {
+    const testPositionId: number = 258;
+    const testBorrowAmount: BigNumber = BigNumber.from("800000000000000000000000"); // 800,000
+
+    const testData: string = encodeParameters(
+      ["uint256", "uint256"],
+      [testPositionId, testBorrowAmount]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(TEST_VAULT_ADDRESS)
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData);
+
+    const findings = await handleTransaction(txEvent);
+
+    const testPositionIdTwo: number = 159;
+    const testBorrowAmountTwo: BigNumber = BigNumber.from("630000000000000000000000"); // 630,000
+
+    const testDataTwo: string = encodeParameters(
+      ["uint256", "uint256"],
+      [testPositionIdTwo, testBorrowAmountTwo]
+    );
+
+    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(TEST_VAULT_ADDRESS)
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testDataTwo);
+
+    findings.push(...await handleTransaction(txEventTwo));
+
+    expect(findings).toStrictEqual([
+      createFinding(
+        testPositionId,
+        testBorrowAmount,
+        TEST_VAULT_ADDRESS.toLowerCase()
+      ),
+      createFinding(
+        testPositionIdTwo,
+        testBorrowAmountTwo,
+        TEST_VAULT_ADDRESS.toLowerCase()
+      )
+    ]);
   });
 })
