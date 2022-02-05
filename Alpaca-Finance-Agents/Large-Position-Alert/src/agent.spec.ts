@@ -1,7 +1,4 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
   HandleTransaction,
   TransactionEvent
 } from "forta-agent"
