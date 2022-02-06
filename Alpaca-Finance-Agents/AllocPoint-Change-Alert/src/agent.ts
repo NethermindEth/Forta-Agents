@@ -13,7 +13,7 @@ import {
 const POOL_OWNERS: string[] = [
   "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BscPool
   "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4"  // PancakeSwap - Timelock
-]
+].map(address => address.toLowerCase());
 
 export const setFuncAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
 export const setFuncSig: string = "set(uint256,uint256,bool)";
@@ -28,7 +28,7 @@ function containsFuncSig(log: LogDescription, functionSig: string): boolean {
   return log.args["signature"] === functionSig;
 }
 
-const createFinding = (
+export const createFinding = (
   poolId: number,
   allocPoint: number,
   withUpdate: boolean,
@@ -44,7 +44,7 @@ const createFinding = (
       poolId: poolId.toString(),
       allocPoint: allocPoint.toString(),
       withUpdate: withUpdate.toString(),
-      target: target || "N/A" // target ARGUMENT COULD POTENTIALLY BE null FROM txEvent.to
+      target: target?.toLowerCase() || "N/A" // target ARGUMENT COULD POTENTIALLY BE null FROM txEvent.to
     },
   })
 }
@@ -57,7 +57,7 @@ export function provideHandleTransaction(
 
     findings.push(
       ...txEvent.filterLog(queueTxnAbi)
-        .filter(log => isAddressRelevant(log.address, poolOwners))
+        .filter(log => isAddressRelevant(log.address.toLowerCase(), poolOwners))
         .filter(log => containsFuncSig(log, setFuncSig))
         .map(log => {
           const decodedData = decodeParameters(
