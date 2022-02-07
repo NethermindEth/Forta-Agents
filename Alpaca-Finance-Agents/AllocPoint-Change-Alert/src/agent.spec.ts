@@ -37,7 +37,7 @@ describe("AllocPoint Change Alert Agent", () => {
 
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
     const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000aB4D23";
-    const testStakingContract: string = createAddress("0xdEe234aB9").toLowerCase();
+    const testStakingContract: string = "0xcC6699821f04906d1a3142F612fbb3AC8a8c463a";
 
     const testTopics: string[] = [
       encodeParameters(["bytes32"], [testTxHash]),
@@ -84,7 +84,7 @@ describe("AllocPoint Change Alert Agent", () => {
     const badQueueTxnSig: string = "badSig";
 
     const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000fE73b2";
-    const testStakingContract: string = createAddress("0x491bDa5").toLowerCase();
+    const testStakingContract: string = "0x8E37f666e9198136a5A979954C12e16639460b3f";
 
     const testTopics: string[] = [
       encodeParameters(["bytes32"], [testTxHash]),
@@ -124,7 +124,7 @@ describe("AllocPoint Change Alert Agent", () => {
     const badTimelockAddress: string = createAddress("badAddress");
 
     const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000dA3d72";
-    const testStakingContract: string = createAddress("0x30Fde21").toLowerCase();
+    const testStakingContract: string = "0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8";
 
     const testTopics: string[] = [
       encodeParameters(["bytes32"], [testTxHash]),
@@ -164,7 +164,7 @@ describe("AllocPoint Change Alert Agent", () => {
     const badSetFuncSig: string = 'badSig';
 
     const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000eF839d";
-    const testStakingContract: string = createAddress("0xDf3d578B").toLowerCase();
+    const testStakingContract: string = "0xA96d374262272675da83ca4Bf1DCC7BF9273e33D";
 
     const testTopics: string[] = [
       encodeParameters(["bytes32"], [testTxHash]),
@@ -245,7 +245,7 @@ describe("AllocPoint Change Alert Agent", () => {
 
   it("should return multiple Findings from both Set function call and QueueTransaction event emission", async () => {
     const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000d34Dfe";
-    const testStakingContract: string = createAddress("0xfA519Dc").toLowerCase();
+    const testStakingContract: string = "0xEb55a78C79b91719F6817855c5AD43a7aA0BF08C";
 
     const testTopics: string[] = [
       encodeParameters(["bytes32"], [testTxHash]),

@@ -65,9 +65,9 @@ export function provideHandleTransaction(
             log.args["data"]
           );
           return createFinding(
-            decodedData[0],
-            decodedData[1],
-            decodedData[2],
+            decodedData[0], // poolId
+            decodedData[1], // allocPoint
+            decodedData[2], // withUpdate
             log.args["target"]
           );
         }),
