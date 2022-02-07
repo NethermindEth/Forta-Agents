@@ -39,8 +39,8 @@ export const createAgentThreeFinding = (
     type: FindingType.Info,
     metadata:{
       positionId: posId.toString(),
-      positionkiller: killer,
-      positionOwner: posOwner,
+      positionkiller: killer.toLowerCase(),
+      positionOwner: posOwner.toLowerCase(),
       positionValue: posVal.toString(),
       debt: debt.toString(),
       prize: prize.toString(),
@@ -69,8 +69,8 @@ export const createAgentFourFinding = (
     type: FindingType.Info,
     metadata:{
       positionId: posId.toString(),
-      positionkiller: killer,
-      positionOwner: posOwner,
+      positionkiller: killer.toLowerCase(),
+      positionOwner: posOwner.toLowerCase(),
       positionValue: posVal.toString(),
       debt: debt.toString(),
       prize: prize.toString(),
