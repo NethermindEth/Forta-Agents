@@ -44,7 +44,7 @@ export function provideHandleTransaction(vaultsMap: Map<string, BigNumber>): Han
         const newFinding: Finding = createFinding(
           workEvents[i].args["id"],
           workEvents[i].args["loan"],
-          workEvents[i].address
+          workEvents[i].address.toLowerCase()
         );
         findings.push(newFinding);
       }   
