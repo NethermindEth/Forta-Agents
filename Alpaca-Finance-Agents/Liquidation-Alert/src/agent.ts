@@ -92,8 +92,8 @@ export function provideHandleTransaction(
       if(addresses.includes(killEvents[i].address.toLowerCase())) {
         const newAgentThreeFinding: Finding = createAgentThreeFinding(
           killEvents[i].args["id"],
-          killEvents[i].args["killer"].toLowerCase(),
-          killEvents[i].args["owner"].toLowerCase(),
+          killEvents[i].args["killer"],
+          killEvents[i].args["owner"],
           killEvents[i].args["posVal"],
           killEvents[i].args["debt"],
           killEvents[i].args["prize"],
@@ -105,8 +105,8 @@ export function provideHandleTransaction(
         if(BigNumber.from(0).eq(killEvents[i].args["left"])) {
           const newAgentFourFinding: Finding = createAgentFourFinding(
             killEvents[i].args["id"],
-            killEvents[i].args["killer"].toLowerCase(),
-            killEvents[i].args["owner"].toLowerCase(),
+            killEvents[i].args["killer"],
+            killEvents[i].args["owner"],
             killEvents[i].args["posVal"],
             killEvents[i].args["debt"],
             killEvents[i].args["prize"],
