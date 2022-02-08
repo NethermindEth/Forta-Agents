@@ -44,14 +44,14 @@ export const createFinding = (
 }
 
 export function provideHandleTransaction(
-  psc_timelock: string,
-  mdx_bscpool: string
+  pcsTimelock: string,
+  mdxBscPool: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     findings.push(
-      ...txEvent.filterLog(queueTxnAbi, psc_timelock)
+      ...txEvent.filterLog(queueTxnAbi, pcsTimelock)
         .filter(log => containsFuncSig(log, setFuncSig))
         .map(log => {
           const decodedData = decodeParameters(
@@ -65,7 +65,7 @@ export function provideHandleTransaction(
             log.args["target"]
           );
         }),
-      ...txEvent.filterFunction(setFuncAbi, mdx_bscpool)
+      ...txEvent.filterFunction(setFuncAbi, mdxBscPool)
         .map(log => {
           return createFinding(
             log.args["_pid"],
