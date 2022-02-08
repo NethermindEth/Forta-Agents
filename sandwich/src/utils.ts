@@ -29,7 +29,7 @@ const detectIfAttackPossible = (
   return minimumAmountOfToken2Recieved >= m;
 };
 
-const minimumInputAmountForFrontrunningT1 = (
+const maximumInputAmountForFrontrunningT1 = (
   r1: number,
   r2: number,
   m: number,
@@ -42,7 +42,7 @@ const minimumInputAmountForFrontrunningT1 = (
       5964054000 * r1 * m * v +
       988053892081 * m * v * v
   );
-  return (5.01505 * 10 ** 7 * t) / Math.sqrt(m) - 1.0015 * r1 - 0.4985 * r2;
+  return (5.01505 * 10 ** (-7) * t) / Math.sqrt(m) - 1.0015 * r1 - 0.4985 * r2;
 };
 
 function generateBlockEvent(tx: string[]): BlockEvent {
@@ -81,6 +81,6 @@ function generateBlockEvent(tx: string[]): BlockEvent {
 
 export {
   detectIfAttackPossible,
-  minimumInputAmountForFrontrunningT1,
+  maximumInputAmountForFrontrunningT1,
   generateBlockEvent,
 };
