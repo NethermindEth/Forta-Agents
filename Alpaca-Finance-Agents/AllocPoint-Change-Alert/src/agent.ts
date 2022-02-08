@@ -10,19 +10,13 @@ import {
   decodeParameters
 } from "forta-agent-tools";
 
-const POOL_OWNERS: string[] = [
-  "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BSCPool
-  "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4"  // PancakeSwap - Timelock
-].map(address => address.toLowerCase());
+const PCS_TIMELOCK: string = "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4".toLowerCase();
+const MDX_BSCPOOL: string = "0xc48FE252Aa631017dF253578B1405ea399728A50".toLowerCase();
 
 export const setFuncAbi: string = "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)";
 export const setFuncSig: string = "set(uint256,uint256,bool)";
 
 const queueTxnAbi: string = "event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
-
-function isAddressRelevant(contractAddress: string, poolArray: string[]): boolean {
-  return poolArray.includes(contractAddress);
-}
 
 function containsFuncSig(log: LogDescription, functionSig: string): boolean {
   return log.args["signature"] === functionSig;
@@ -50,14 +44,15 @@ export const createFinding = (
 }
 
 export function provideHandleTransaction(
-  poolOwners: string[]
+  ownerOne: string,
+  ownerTwo: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     findings.push(
       ...txEvent.filterLog(queueTxnAbi)
-        .filter(log => isAddressRelevant(log.address.toLowerCase(), poolOwners))
+        .filter(log => log.address.toLowerCase() === ownerOne)
         .filter(log => containsFuncSig(log, setFuncSig))
         .map(log => {
           const decodedData = decodeParameters(
@@ -71,10 +66,7 @@ export function provideHandleTransaction(
             log.args["target"]
           );
         }),
-      ...poolOwners
-        .map(owner => {
-          return txEvent.filterFunction(setFuncAbi, owner);
-        })
+      ...txEvent.filterFunction(setFuncAbi, ownerTwo)
         .flat()
         .map(log => {
           return createFinding(
@@ -92,6 +84,8 @@ export function provideHandleTransaction(
 
 export default {
   handleTransaction: provideHandleTransaction(
-    POOL_OWNERS
+    PCS_TIMELOCK,
+    MDX_BSCPOOL
+    
   )
 }

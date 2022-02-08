@@ -21,9 +21,8 @@ import {
 
 const testMsgSender: string = createAddress("0xcd85bf43");
 
-const testTimelockContract: string = createAddress("0x9ed32ff");
-const testBscPool: string = createAddress("0xf974dca");
-const testPoolControllers: string[] = [testTimelockContract, testBscPool].map(address => address.toLowerCase());
+const testTimelockContract: string = createAddress("0x9ed32ff").toLowerCase();
+const testBscPool: string = createAddress("0xf974dca").toLowerCase();
 
 const queueTxnEventSig: string = "QueueTransaction(bytes32,address,uint256,string,bytes,uint256)";
 
@@ -33,7 +32,7 @@ describe("AllocPoint Change Alert Agent", () => {
   let handleTransaction: HandleTransaction
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(testPoolControllers);
+    handleTransaction = provideHandleTransaction(testTimelockContract, testBscPool);
   })
 
   it("should return a Finding from QueueTransaction event emission in Timelock contract", async () => {
