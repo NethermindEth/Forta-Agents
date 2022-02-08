@@ -27,7 +27,7 @@ export const createFinding = (
   allocPoint: number,
   withUpdate: boolean,
   target: string | null
-  ): Finding => {
+): Finding => {
   return Finding.fromObject({
     name: "AllocPoint Change Event",
     description: "Pool's alloc point queued for update.",
@@ -44,15 +44,14 @@ export const createFinding = (
 }
 
 export function provideHandleTransaction(
-  ownerOne: string,
-  ownerTwo: string
+  psc_timelock: string,
+  mdx_bscpool: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     findings.push(
-      ...txEvent.filterLog(queueTxnAbi)
-        .filter(log => log.address.toLowerCase() === ownerOne)
+      ...txEvent.filterLog(queueTxnAbi, psc_timelock)
         .filter(log => containsFuncSig(log, setFuncSig))
         .map(log => {
           const decodedData = decodeParameters(
@@ -66,8 +65,7 @@ export function provideHandleTransaction(
             log.args["target"]
           );
         }),
-      ...txEvent.filterFunction(setFuncAbi, ownerTwo)
-        .flat()
+      ...txEvent.filterFunction(setFuncAbi, mdx_bscpool)
         .map(log => {
           return createFinding(
             log.args["_pid"],
@@ -86,6 +84,5 @@ export default {
   handleTransaction: provideHandleTransaction(
     PCS_TIMELOCK,
     MDX_BSCPOOL
-    
   )
 }
