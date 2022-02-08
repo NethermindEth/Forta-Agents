@@ -80,6 +80,95 @@ describe("AllocPoint Change Alert Agent", () => {
     ]);
   });
 
+  it("should return muiltiple Findings from QueueTransaction event emission in Timelock contract", async () => {
+    const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000fe9cd4";
+    const testStakingContract: string = createAddress("0xd42fda");
+
+    const testTopics: string[] = [
+      encodeParameters(["bytes32"], [testTxHash]),
+      encodeParameters(["address"], [testStakingContract])
+    ];
+
+    const testValue: BigNumber = BigNumber.from("17000000000000000000");  // 17
+
+    const testPoolId: number = 258;
+    const testAllocPoint: number = 852;
+    const testEta: number = 23300000;
+    const testWithUpdate: boolean = false;
+
+    const testSetArguments: any[] = [testPoolId, testAllocPoint, testWithUpdate];
+
+    const mockEncodedSetFuncCall: string = encodeParameters(
+      ["uint256", "uint256", "bool"],
+      testSetArguments
+    );
+
+    const testData: string = encodeParameters(
+      ["uint256", "string", "bytes", "uint256"],
+      [testValue, setFuncSig, mockEncodedSetFuncCall, testEta]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testTimelockContract)
+      .addEventLog(queueTxnEventSig, testTimelockContract, testData, ...testTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(
+        testPoolId,
+        testAllocPoint,
+        testWithUpdate,
+        testStakingContract
+      )
+    ]);
+
+
+    const testTxHashTwo: string = "0x0000000000000000000000000000000000000000000000000000000000e97ab6";
+    const testStakingContractTwo: string = createAddress("0xde432a");
+
+    const testTopicsTwo: string[] = [
+      encodeParameters(["bytes32"], [testTxHashTwo]),
+      encodeParameters(["address"], [testStakingContractTwo])
+    ];
+
+    const testValueTwo: BigNumber = BigNumber.from("23000000000000000000");  // 23
+
+    const testPoolIdTwo: number = 658;
+    const testAllocPointTwo: number = 856;
+    const testEtaTwo: number = 71300000;
+    const testWithUpdateTwo: boolean = true;
+
+    const testSetArgumentsTwo: any[] = [testPoolIdTwo, testAllocPointTwo, testWithUpdateTwo];
+
+    const mockEncodedSetFuncCallTwo: string = encodeParameters(
+      ["uint256", "uint256", "bool"],
+      testSetArgumentsTwo
+    );
+
+    const testDataTwo: string = encodeParameters(
+      ["uint256", "string", "bytes", "uint256"],
+      [testValueTwo, setFuncSig, mockEncodedSetFuncCallTwo, testEtaTwo]
+    );
+
+    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testTimelockContract)
+      .addEventLog(queueTxnEventSig, testTimelockContract, testDataTwo, ...testTopicsTwo);
+
+    const findingsTwo = await handleTransaction(txEventTwo);
+
+    expect(findingsTwo).toStrictEqual([
+      createFinding(
+        testPoolIdTwo,
+        testAllocPointTwo,
+        testWithUpdateTwo,
+        testStakingContractTwo
+      )
+    ]);
+  });
+
   it("should return no Findings from QueueTransaction due to incorrect QueueTransanction event signature", async () => {
     const badQueueTxnSig: string = "badSig";
 
@@ -226,6 +315,57 @@ describe("AllocPoint Change Alert Agent", () => {
     ]);
   });
 
+  it("should return multiple Findings from Set function calls", async () => {
+    const testPoolId: number = 258;
+    const testAllocPoint: number = 852;
+    const testWithUpdate: boolean = false;
+
+    const testSetArguments: any[] = [testPoolId, testAllocPoint, testWithUpdate];
+
+    const testEncodedSetFuncCall: string = testSetIFace.encodeFunctionData("set", testSetArguments);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testBscPool)
+      .setData(testEncodedSetFuncCall)
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(
+        testPoolId,
+        testAllocPoint,
+        testWithUpdate,
+        testBscPool
+      )
+    ]);
+
+
+    const testPoolIdTwo: number = 145;
+    const testAllocPointTwo: number = 541;
+    const testWithUpdateTwo: boolean = true;
+
+    const testSetArgumentsTwo: any[] = [testPoolIdTwo, testAllocPointTwo, testWithUpdateTwo];
+
+    const testEncodedSetFuncCallTwo: string = testSetIFace.encodeFunctionData("set", testSetArgumentsTwo);
+
+    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+      .setFrom(testMsgSender)
+      .setTo(testBscPool)
+      .setData(testEncodedSetFuncCallTwo)
+
+    const findingsTwo = await handleTransaction(txEventTwo);
+
+    expect(findingsTwo).toStrictEqual([
+      createFinding(
+        testPoolIdTwo,
+        testAllocPointTwo,
+        testWithUpdateTwo,
+        testBscPool
+      )
+    ]);
+  });
+
   it("should return no Findings due to incorrect Set function abi", async () => {
     const testPoolId: number = 987;
 
@@ -241,72 +381,5 @@ describe("AllocPoint Change Alert Agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
-  });
-
-  it("should return multiple Findings from both Set function call and QueueTransaction event emission", async () => {
-    const testTxHash: string = "0x0000000000000000000000000000000000000000000000000000000000d34dfe";
-    const testStakingContract: string = createAddress("0x0bf08c");
-
-    const testTopics: string[] = [
-      encodeParameters(["bytes32"], [testTxHash]),
-      encodeParameters(["address"], [testStakingContract])
-    ];
-
-    const testValue: BigNumber = BigNumber.from("38000000000000000000");  // 38
-
-    const testPoolId: number = 147;
-    const testAllocPoint: number = 741;
-    const testEta: number = 32300000;
-    const testWithUpdate: boolean = true;
-
-    const testSetArguments: any[] = [testPoolId, testAllocPoint, testWithUpdate];
-
-    const mockEncodedSetFuncCall: string = encodeParameters(
-      ["uint256", "uint256", "bool"],
-      testSetArguments
-    );
-
-    const testData: string = encodeParameters(
-      ["uint256", "string", "bytes", "uint256"],
-      [testValue, setFuncSig, mockEncodedSetFuncCall, testEta]
-    );
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(testMsgSender)
-      .setTo(testTimelockContract)
-      .addEventLog(queueTxnEventSig, testTimelockContract, testData, ...testTopics);
-
-    const findings = await handleTransaction(txEvent);
-
-
-    const testPoolIdTwo: number = 753;
-    const testAllocPointTwo: number = 357;
-    const testWithUpdateTwo: boolean = false;
-
-    const testSetArgumentsTwo: any[] = [testPoolIdTwo, testAllocPointTwo, testWithUpdateTwo];
-
-    const testEncodedSetFuncCall: string = testSetIFace.encodeFunctionData("set", testSetArgumentsTwo);
-
-    const txEventTwo: TransactionEvent = new TestTransactionEvent()
-      .setFrom(testMsgSender)
-      .setTo(testBscPool)
-      .setData(testEncodedSetFuncCall)
-
-    findings.push(...await handleTransaction(txEventTwo));
-
-    expect(findings).toStrictEqual([
-      createFinding(
-        testPoolId,
-        testAllocPoint,
-        testWithUpdate,
-        testStakingContract
-      ),
-      createFinding(
-        testPoolIdTwo,
-        testAllocPointTwo,
-        testWithUpdateTwo,
-        testBscPool
-      )
-    ]);
   });
 })
