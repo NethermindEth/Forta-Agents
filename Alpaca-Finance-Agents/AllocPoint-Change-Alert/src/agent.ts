@@ -11,7 +11,7 @@ import {
 } from "forta-agent-tools";
 
 const POOL_OWNERS: string[] = [
-  "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BscPool
+  "0xc48FE252Aa631017dF253578B1405ea399728A50", // MDEX - BSCPool
   "0xA1f482Dc58145Ba2210bC21878Ca34000E2e8fE4"  // PancakeSwap - Timelock
 ].map(address => address.toLowerCase());
 

@@ -5,7 +5,8 @@ import {
 import { 
   createAddress,
   TestTransactionEvent,
-  encodeParameters
+  encodeParameters,
+  TraceProps
 } from "forta-agent-tools";
 import {
   utils,
@@ -108,23 +109,6 @@ describe("AllocPoint Change Alert Agent", () => {
       [testValue, setFuncSig, mockEncodedSetFuncCall, testEta]
     );
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(testMsgSender)
-      .setTo(testTimelockContract)
-      .addEventLog(queueTxnEventSig, testTimelockContract, testData, ...testTopics);
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([
-      createFinding(
-        testPoolId,
-        testAllocPoint,
-        testWithUpdate,
-        testStakingContract
-      )
-    ]);
-
-
     const testTxHashTwo: string = "0x0000000000000000000000000000000000000000000000000000000000e97ab6";
     const testStakingContractTwo: string = createAddress("0xde432a");
 
@@ -152,14 +136,21 @@ describe("AllocPoint Change Alert Agent", () => {
       [testValueTwo, setFuncSig, mockEncodedSetFuncCallTwo, testEtaTwo]
     );
 
-    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+    const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testTimelockContract)
+      .addEventLog(queueTxnEventSig, testTimelockContract, testData, ...testTopics)
       .addEventLog(queueTxnEventSig, testTimelockContract, testDataTwo, ...testTopicsTwo);
 
-    const findingsTwo = await handleTransaction(txEventTwo);
+    const findings = await handleTransaction(txEvent);
 
-    expect(findingsTwo).toStrictEqual([
+    expect(findings).toStrictEqual([
+      createFinding(
+        testPoolId,
+        testAllocPoint,
+        testWithUpdate,
+        testStakingContract
+      ),
       createFinding(
         testPoolIdTwo,
         testAllocPointTwo,
@@ -324,22 +315,11 @@ describe("AllocPoint Change Alert Agent", () => {
 
     const testEncodedSetFuncCall: string = testSetIFace.encodeFunctionData("set", testSetArguments);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(testMsgSender)
-      .setTo(testBscPool)
-      .setData(testEncodedSetFuncCall)
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([
-      createFinding(
-        testPoolId,
-        testAllocPoint,
-        testWithUpdate,
-        testBscPool
-      )
-    ]);
-
+    const tracePropsOne: TraceProps[] = [{
+      to: testBscPool,
+      from: testMsgSender,
+      input: testEncodedSetFuncCall
+    }];
 
     const testPoolIdTwo: number = 145;
     const testAllocPointTwo: number = 541;
@@ -349,14 +329,27 @@ describe("AllocPoint Change Alert Agent", () => {
 
     const testEncodedSetFuncCallTwo: string = testSetIFace.encodeFunctionData("set", testSetArgumentsTwo);
 
-    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+    const traceProps: TraceProps[] = [{
+      to: testBscPool,
+      from: testMsgSender,
+      input: testEncodedSetFuncCallTwo
+    }];
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testBscPool)
-      .setData(testEncodedSetFuncCallTwo)
+      .addTraces(...tracePropsOne)
+      .addTraces(...traceProps);
 
-    const findingsTwo = await handleTransaction(txEventTwo);
+    const findings = await handleTransaction(txEvent);
 
-    expect(findingsTwo).toStrictEqual([
+    expect(findings).toStrictEqual([
+      createFinding(
+        testPoolId,
+        testAllocPoint,
+        testWithUpdate,
+        testBscPool
+      ),
       createFinding(
         testPoolIdTwo,
         testAllocPointTwo,
