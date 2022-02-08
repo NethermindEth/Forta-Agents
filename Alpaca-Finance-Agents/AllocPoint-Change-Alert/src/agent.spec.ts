@@ -21,8 +21,8 @@ import {
 
 const testMsgSender: string = createAddress("0xcd85bf43");
 
-const testTimelockContract: string = createAddress("0x9ed32ff").toLowerCase();
-const testBscPool: string = createAddress("0xf974dca").toLowerCase();
+const testTimelockContract: string = createAddress("0x9ed32ff");
+const testBscPool: string = createAddress("0xf974dca");
 
 const queueTxnEventSig: string = "QueueTransaction(bytes32,address,uint256,string,bytes,uint256)";
 
