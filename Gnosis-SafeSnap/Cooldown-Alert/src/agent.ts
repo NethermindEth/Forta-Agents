@@ -2,24 +2,30 @@ import {
   BlockEvent,
   Finding, 
   HandleBlock,
+  HandleTransaction,
   FindingSeverity, 
   FindingType,
-  getEthersProvider
+  getEthersProvider,
+  TransactionEvent,
 } from "forta-agent";
+import {
+  decodeParameter
+} from "forta-agent-tools";
 import {
   ethers,
   providers
 } from "ethers";
 import {
   daoModuleAbi,
-  realitioErc20Abi
+  realitioErc20Abi,
+  propQuestionCreateAbi
 } from "./abi";
 
 const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
 const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
 const QUESTION_COOLDOWN: number = 86400; // 86,400 seconds (i.e. 24 Hours)
 
-let questionIds: number[] = []; // NOTE: BETTER TO USE AS A ARGUMENT?
+let questionIds: string[] = []; // NOTE: BETTER TO USE AS A ARGUMENT?
 
 const createFinding = (
   questionId: number,
@@ -43,11 +49,24 @@ const createFinding = (
   });
 };
 
+export const provideHandleTransaction = (
+  daoModuleAddr: string
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    txEvent.filterLog(propQuestionCreateAbi, daoModuleAddr)
+      .map(event => questionIds.push(event.args[0]));
+
+    return findings;
+  }
+}
+
 export const provideHandleBlock = (
   //questionIds: number[],
   realitioErc20: string,
   daoModule: string,
-  provider: providers.Provider
+  // provider: providers.Provider
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -56,6 +75,9 @@ export const provideHandleBlock = (
     // OR IF POSSIBLE, ANY ProposalQuestionCreated
     // EVENT EMISSIONS AND PUSH questionId TO questionIds
 
+    // console.log("blockEvent is: " + JSON.stringify(blockEvent));
+
+    /*
     const realitioErc20Contract = new ethers.Contract(realitioErc20, realitioErc20Abi, provider);
 
     for(let id = 0; id < questionIds.length; id++) {
@@ -72,6 +94,7 @@ export const provideHandleBlock = (
         );
       }
     }
+    */
 
     // LOOP THROUGH ARRAY OF questionIds AND
     // DELETE ANY THAT ARE NO LONGER NECESSARY
@@ -86,6 +109,6 @@ export default {
     //123, // FIND REAL questionIds
     REALITIO_ERC20,
     DAO_MODULE,
-    getEthersProvider()
+    // getEthersProvider()
   )
 }
