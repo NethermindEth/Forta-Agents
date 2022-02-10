@@ -11,7 +11,16 @@ This agent detects decreasements in the Pickle Finance Vaults.
 
 ## Alerts
 
-- pickle-5
+- pickle-5-1
+  - Fired when a increasement is detected in a Pickle Finance Vault
+  - Severity is always set to "High"
+  - Type is always set to "Suspicious"
+  - Metadata contains:
+    - `vault`: Address of the vault with anomalous PPS
+    - `ratio`: The current PPS value of the vault
+    - `oldRatio`: The previous PPS value of the vault
+
+- pickle-5-2
   - Fired when a decreasement is detected in a Pickle Finance Vault
   - Severity is always set to "High"
   - Type is always set to "Suspicious"
