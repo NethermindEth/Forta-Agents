@@ -10,7 +10,7 @@ Monitors how often the strategies are rebalancing and determines if range change
 
 ## Alerts
 
-- pcikle-vm-1
+- pickle-vm-1
   - Fired when a multiple calls occurred with the same `performData` in a short/medium period of time
   - Severity is set to "High" if short and set to "Medium" if medium 
   - Type is always set to "Info" 
@@ -22,7 +22,7 @@ Monitors how often the strategies are rebalancing and determines if range change
     - `numberOfUpkeepsToday`: Number of calls detected in the period of time,
     - `timeFrame`: The duration of the period,
 
-- pcikle-vm-2
+- pickle-vm-2
   - Fired when a huge time passed without calling `performUpkeep` with some `id/strategy` pairs
   - Severity is always set to "Medium" 
   - Type is always set to "Info" 
