@@ -40,6 +40,7 @@ const multipleCallsFinding = (
   alertId: "pickle-vm-1",
   type: FindingType.Info,
   severity,
+  protocol: "Pickle Finance",
   metadata: {
     keeperId: IDS[index].toString(),
     keeperAddress: KEEPERS[index],
@@ -61,6 +62,7 @@ const noCallsFinding = (
   alertId: "pickle-vm-2",
   type: FindingType.Info,
   severity: FindingSeverity.Medium,
+  protocol: "Pickle Finance",
   metadata: {
     keeperId: IDS[index].toString(),
     keeperAddress: KEEPERS[index],
