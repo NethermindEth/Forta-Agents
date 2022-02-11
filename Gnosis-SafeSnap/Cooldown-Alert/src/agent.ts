@@ -9,44 +9,29 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import {
-  decodeParameter
-} from "forta-agent-tools";
-import {
-  ethers,
-  providers
+  Contract,
+  providers,
+  BigNumber,
+  utils
 } from "ethers";
 import {
-  daoModuleAbi,
-  realitioErc20Abi,
-  propQuestionCreateAbi
+  getFinalizeTSIface,
+  propQuestionCreateAbi,
 } from "./abi";
 
 const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
 const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
-const QUESTION_COOLDOWN: number = 86400; // 86,400 seconds (i.e. 24 Hours)
 
-let questionIds: string[] = []; // NOTE: BETTER TO USE AS A ARGUMENT?
+let questionIds: string[] = [];
 
-const createFinding = (
-  questionId: number,
-  questionFinalizeTS: number,
-  cooldownPeriod: number,
-  blockNumber: number
-): Finding => {
-  return Finding.fromObject({
-    name: "Cooldown Alert",
-    description: "A question's cooldown period has begun",
-    alertId: "GNOSIS-2",
-    type: FindingType.Info,
-    severity: FindingSeverity.Info,
-    protocol: "Gnosis SafeSnap",
-    metadata: {
-      questionId: questionId.toString(),
-      questionFinalizeTimeStamp: questionFinalizeTS.toString(),
-      cooldownPeriod: cooldownPeriod.toString(),
-      blockNumber: blockNumber.toString()
-    },
-  });
+const getFinalizeTS = async (
+  realitioAddress: string,
+  provider: providers.Provider,
+  blockNumber: number,
+  questionId: number/*string*/
+): Promise<any> => {
+  const realitioContract = new Contract(realitioAddress, getFinalizeTSIface, provider);
+  return Promise.all(realitioContract.getFinalizeTS({ blockTag: blockNumber, question_id: questionId }));
 };
 
 export const provideHandleTransaction = (
@@ -62,53 +47,168 @@ export const provideHandleTransaction = (
   }
 }
 
+// NOTE: INCLUDE A QUESTION'S COOLDOWN
+// IN THE METADATA?
+const createFinding = (
+  questionId: string,
+  questionFinalizeTS: number,
+  blockNumber: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Cooldown Alert",
+    description: "A question's cooldown period has begun",
+    alertId: "GNOSIS-2",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Gnosis SafeSnap",
+    metadata: {
+      questionId: questionId,
+      questionFinalizeTimeStamp: questionFinalizeTS.toString(),
+      blockNumber: blockNumber.toString()
+    },
+  });
+};
+
 export const provideHandleBlock = (
-  //questionIds: number[],
-  realitioErc20: string,
-  daoModule: string,
-  // provider: providers.Provider
+  realitioAddress: string,
+  provider: providers.Provider
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    // CHECK FOR ANY TXNS TO addProposalWithNonce
-    // OR IF POSSIBLE, ANY ProposalQuestionCreated
-    // EVENT EMISSIONS AND PUSH questionId TO questionIds
-
-    // console.log("blockEvent is: " + JSON.stringify(blockEvent));
+    const finalizeTS = await getFinalizeTS(realitioAddress, provider, blockEvent.block.number, 100); // 100 FOR  questionId FOR TESTING
+    console.log("finalizeTS is: " + finalizeTS);
 
     /*
-    const realitioErc20Contract = new ethers.Contract(realitioErc20, realitioErc20Abi, provider);
-
     for(let id = 0; id < questionIds.length; id++) {
-      const questionFinalizeTS: number = realitioErc20Contract.getFinalizeTS(questionIds[id]);
-
-      if(questionFinalizeTS > blockEvent.blockNumber) {
+      const finalizeTS = await getFinalizeTS(
+        realitioAddress,
+        provider,
+        blockEvent.block.number,
+        questionIds[id]
+      );
+      if(finalizeTS > blockEvent.blockNumber) {
         findings.push(
           createFinding(
             questionIds[id],
-            questionFinalizeTS,
-            QUESTION_COOLDOWN,
+            finalizeTS,
             blockEvent.blockNumber
           )
         );
       }
+
+      // NOTE: IF ONLY CHECKING WHEN COOLDOWN BEGINS,
+      // NO NEED TO WAIT FOR QUESTION EXPIRATION FOR DELETION
+      questionIds[id] = "";
     }
     */
-
-    // LOOP THROUGH ARRAY OF questionIds AND
-    // DELETE ANY THAT ARE NO LONGER NECESSARY
-    // (USING EXPIRATION GOOD ENOUGH?)
 
     return findings;
   }
 }
 
 export default {
+  handleTransaction: provideHandleTransaction(
+    DAO_MODULE
+  ),
   handleBlock: provideHandleBlock(
-    //123, // FIND REAL questionIds
     REALITIO_ERC20,
-    DAO_MODULE,
-    // getEthersProvider()
+    getEthersProvider(),
   )
 }
+
+/*
+export const provideHandleBlock = (
+  addressesFetcher: Fetcher,
+  percentThreshold: number,
+  blockLapse: number,
+  provider: providers.Provider
+): HandleBlock => {
+  let lastBlock = -blockLapse;
+
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    if (blockEvent.blockNumber - lastBlock < blockLapse) {
+      return [];
+    }
+
+    lastBlock = blockEvent.blockNumber;
+
+    const findings: Finding[] = [];
+
+    const registryAddresses = await addressesFetcher(DATA_URL);
+    const workerAddresses: string[] = [];
+
+    for (let vault of registryAddresses.vaults) {
+      for (let worker of vault.workers) {
+        workerAddresses.push(worker.address);
+      }
+    }
+
+    const percentPromises = workerAddresses.map((worker) =>
+      getSharePercent(worker, blockEvent.blockNumber, provider)
+    );
+    const percents = await Promise.all(percentPromises);
+
+    for (let i = 0; i < workerAddresses.length; i++) {
+      if (percents[i].gt(percentThreshold)) {
+        findings.push(
+          createFinding(workerAddresses[i], percents[i].toString())
+        );
+      }
+    }
+
+    return findings;
+  };
+};
+
+
+export const getSharePercent = async (
+  workerAddress: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<BigNumber> => {
+  const [pid, lpToken] = await getWorkerData(
+    workerAddress,
+    blockNumber,
+    provider
+  );
+
+  if (lpToken === constants.AddressZero) {
+    return BigNumber.from(0);
+  }
+  const positionManager = await getPositionManager(
+    workerAddress,
+    blockNumber,
+    provider
+  );
+  const shareAmount = await getShareAmount(
+    positionManager,
+    workerAddress,
+    pid,
+    blockNumber,
+    provider
+  );
+  const totalSupply = await getTotalSupply(lpToken, blockNumber, provider);
+  return shareAmount.mul(100).div(shareTotalSupply);
+};
+
+
+const getWorkerData = async (
+  workerAddress: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<[string, string]> => {
+  const workerContract = new Contract(workerAddress, workerInterface, provider);
+  return Promise.all([
+    workerContract.pid({ blockTag: blockNumber }),
+    workerContract.lpToken({ blockTag: blockNumber }),
+  ]);
+};
+
+
+when(mockCall)
+  .calledWith(isCallToPid(workers[0]), expect.anything())
+  .mockReturnValue(encodeParameter("uint256", 1));
+
+
+*/
