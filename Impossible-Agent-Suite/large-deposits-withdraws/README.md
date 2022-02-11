@@ -20,13 +20,13 @@ This agent detects large changes in TVL/ Monitor large deposits/withdrawals.
   - Severity is always set to "info".
   - Type is always set to "info".
   - ## Metadata contains:
-    - from : Address of the user who executed the transaction.
+    - `from` : Address of the user who executed the transaction.
 
 - IMPOSSIBLE-4-2
   - Fired when `Purchase`, `Withdraw` events are emitted from sale contracts with a large amount.
   - Severity is always set to "info".
   - Type is always set to "info".
   - ## Metadata contains:
-    - sale_contract: Address of the sale contract where the event was emitted.
-    - from: Address of the user who executed the transaction.
-    - amount: The amount that was purchased or withdrawn.
+    - `sale_contract`: Address of the sale contract where the event was emitted.
+    - `from`: Address of the user who executed the transaction.
+    - `amount`: The amount that was purchased or withdrawn.
