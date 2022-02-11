@@ -21,6 +21,7 @@ This agent detects large changes in TVL/ Monitor large deposits/withdrawals.
   - Type is always set to "info".
   - ## Metadata contains:
     - `from` : Address of the user who executed the transaction.
+    -  `amount`: The amount that was staked/unstaked.
 
 - IMPOSSIBLE-4-2
   - Fired when `Purchase`, `Withdraw` events are emitted from sale contracts with a large amount.
