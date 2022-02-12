@@ -16,7 +16,6 @@ import {
   MARK_PROPOSAL_AS_INVALID_BY_HASH,
   MARK_PROPOSAL_WITH_EXPIRED_ANSWER_AS_INVALID,
   EXECUTE_PROPOSAL,
-  FUNCTION_ARGUMENTS_MAPPING,
   EXECUTE_PROPOSAL_WITH_INDEX,
   GNOSIS_ADDRESS, 
 } from "./constants"
@@ -44,14 +43,16 @@ const provideHandleTransaction = async function (txEvent: TransactionEvent): Pro
       let functionName:string = functionInvocation.name
       // Create a list of the params of the function
       let argumentsList:any[] = functionInvocation.functionFragment.inputs.map((obj)=>obj.name)
+
+      console.log(txEvent)
       let metadata:any = {
         by: txEvent.from,
-        from: functionInvocation.args.from,
+        //from: functionInvocation.args.from,
         to: functionInvocation.args.to,
       }
       for (let key in functionInvocation.args) {
         if (argumentsList.includes(key)){
-          metadata[key] = functionInvocation.args[key]
+          metadata[key] = functionInvocation.args[key].toString()
         }
       }
 
