@@ -14,6 +14,7 @@ import {
 
 const PICKLE_FINANCE_REGISTRY = "0xF7C2DCFF5E947a617288792e289984a2721C4671";
 const THRESHOLD = 25;
+const TIME_WINDOW = 21600; // 6 hours
 
 const getFindingsForAJar = async (
   pickleJarAddress: string,
@@ -46,19 +47,36 @@ const getFindingsForAJar = async (
 export const providerHandleBlock = (
   pickleRegistryAddress: string,
   threshold: BigNumberish,
+  timeWindow: number,
   provider: providers.Provider
 ): HandleBlock => {
+  const lastTimeReported: { [key: string]: number } = {};
+
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const pickleJars = await getPickleJars(
       pickleRegistryAddress,
       blockEvent.blockNumber,
       provider
     );
-    const findingsPromises = pickleJars.map((pickleJar: string) =>
+
+    const jarsToReport = pickleJars.filter(
+      (jar) =>
+        lastTimeReported[jar] === undefined ||
+        blockEvent.block.timestamp - lastTimeReported[jar] >= timeWindow
+    );
+
+    const findingsPromises = jarsToReport.map((pickleJar: string) =>
       getFindingsForAJar(pickleJar, threshold, blockEvent.blockNumber, provider)
     );
+
     const findingsBatches = await Promise.all(findingsPromises);
 
+    const findings = findingsBatches.flat();
+
+    for (let finding of findings) {
+      lastTimeReported[finding.metadata.pickleJar] = blockEvent.block.timestamp;
+    }
+    
     return findingsBatches.flat();
   };
 };
@@ -67,6 +85,7 @@ export default {
   handleBlock: providerHandleBlock(
     PICKLE_FINANCE_REGISTRY,
     THRESHOLD,
+    TIME_WINDOW,
     getEthersProvider()
   ),
 };
