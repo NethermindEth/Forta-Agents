@@ -44,11 +44,8 @@ const provideHandleTransaction = async function (txEvent: TransactionEvent): Pro
       // Create a list of the params of the function
       let argumentsList:any[] = functionInvocation.functionFragment.inputs.map((obj)=>obj.name)
 
-      console.log(txEvent)
       let metadata:any = {
         by: txEvent.from,
-        //from: functionInvocation.args.from,
-        to: functionInvocation.args.to,
       }
       for (let key in functionInvocation.args) {
         if (argumentsList.includes(key)){
