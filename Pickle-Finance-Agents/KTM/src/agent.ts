@@ -38,23 +38,25 @@ export const provideHandleTransaction = (
       keeperRegistryAddress
     );
 
-    const relevantKeeperCalled = performUpkeepCalls.some(
-      (call) => call.args["index"].eq(28) 
+    const relevantKeeperCalled = performUpkeepCalls.some((call) =>
+      call.args["index"].eq(28)
     );
 
     if (relevantKeeperCalled) {
-      const [executeGas, balance] = await getExecuteGasAndBalance(
-        keeperRegistryAddress,
-        keeperIndex,
-        txEvent.blockNumber,
-        provider
-      );
-      const minimumBalance = await getMinimumBalance(
-        keeperRegistryAddress,
-        keeperIndex,
-        txEvent.blockNumber,
-        provider
-      );
+      const [[executeGas, balance], minimumBalance] = await Promise.all([
+        getExecuteGasAndBalance(
+          keeperRegistryAddress,
+          keeperIndex,
+          txEvent.blockNumber,
+          provider
+        ),
+        getMinimumBalance(
+          keeperRegistryAddress,
+          keeperIndex,
+          txEvent.blockNumber,
+          provider
+        ),
+      ]);
       const estimatedGasPrice = dataFeed.getMean();
       if (estimatedGasPrice.eq(0)) {
         // No data to estimate has been collected

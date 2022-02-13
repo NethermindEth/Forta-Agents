@@ -49,7 +49,6 @@ describe("Keeper Topup Monitor Test Suite", () => {
     let findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
 
-
     txEvent = new TestTransactionEvent().setBlock(1);
     txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
     findings = await handleTransaction(txEvent);
@@ -77,12 +76,15 @@ describe("Keeper Topup Monitor Test Suite", () => {
 
     txEvent.setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
-    })
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        28,
+        zeroAddress,
+      ]),
+    });
 
     findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([ createInfoFinding("11", "780") ]);
+    expect(findings).toStrictEqual([createInfoFinding("11", "780")]);
   });
 
   it("should return an High finding is the estimated remaining calls are below high threshold", async () => {
@@ -90,7 +92,6 @@ describe("Keeper Topup Monitor Test Suite", () => {
     txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
     let findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
-
 
     txEvent = new TestTransactionEvent().setBlock(1);
     txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
@@ -119,12 +120,15 @@ describe("Keeper Topup Monitor Test Suite", () => {
 
     txEvent.setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
-    })
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        28,
+        zeroAddress,
+      ]),
+    });
 
     findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([ createHighFinding("2", "180") ]);
+    expect(findings).toStrictEqual([createHighFinding("2", "180")]);
   });
 
   it("should not return more than one finding per block", async () => {
@@ -132,7 +136,6 @@ describe("Keeper Topup Monitor Test Suite", () => {
     txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
     let findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
-
 
     txEvent = new TestTransactionEvent().setBlock(1);
     txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
@@ -161,16 +164,22 @@ describe("Keeper Topup Monitor Test Suite", () => {
 
     txEvent = new TestTransactionEvent().setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        28,
+        zeroAddress,
+      ]),
     });
     txEvent.transaction.gasPrice = "14";
 
     findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([ createHighFinding("2", "180") ]);
+    expect(findings).toStrictEqual([createHighFinding("2", "180")]);
 
     txEvent = new TestTransactionEvent().setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        28,
+        zeroAddress,
+      ]),
     });
     txEvent.transaction.gasPrice = "14";
 
@@ -184,7 +193,6 @@ describe("Keeper Topup Monitor Test Suite", () => {
     let findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
 
-
     txEvent = new TestTransactionEvent().setBlock(1);
     txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
     findings = await handleTransaction(txEvent);
@@ -212,7 +220,10 @@ describe("Keeper Topup Monitor Test Suite", () => {
 
     txEvent = new TestTransactionEvent().setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [26, zeroAddress]),
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        26,
+        zeroAddress,
+      ]),
     });
     txEvent.transaction.gasPrice = "14";
 
@@ -225,7 +236,6 @@ describe("Keeper Topup Monitor Test Suite", () => {
     txEvent.transaction.gasPrice = "12"; // Necessary because forta-agent-tools doesn't support setting gas price yet
     let findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
-
 
     txEvent = new TestTransactionEvent().setBlock(1);
     txEvent.transaction.gasPrice = "14"; // Necessary because forta-agent-tools doesn't support setting gas price yet
@@ -254,12 +264,14 @@ describe("Keeper Topup Monitor Test Suite", () => {
 
     txEvent = new TestTransactionEvent().setBlock(2).addTraces({
       to: keeperRegistryAddress,
-      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [28, zeroAddress]),
+      input: keeperRegistryInterface.encodeFunctionData("performUpkeep", [
+        28,
+        zeroAddress,
+      ]),
     });
     txEvent.transaction.gasPrice = "14";
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
-
 });
