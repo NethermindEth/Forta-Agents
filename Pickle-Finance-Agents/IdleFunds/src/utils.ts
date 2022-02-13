@@ -87,7 +87,7 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Idle Funds",
-    description: "A pickle jar has a big amount of funds idle",
+    description: "A pickle jar has a big amount of idle funds",
     alertId: "PICKLE-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
