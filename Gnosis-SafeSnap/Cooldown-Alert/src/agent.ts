@@ -22,17 +22,45 @@ import {
 const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
 const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
 
+export const testQuestionId: string = utils.formatBytes32String("Is this a test?"); // NOTE: ONLY IN HERE FOR TESTING
+
 let questionIds: string[] = [];
 
-const getFinalizeTS = async (
+export const getFinalizeTS = async ( // NOTE: ONLY EXPORTING FOR TESTING
   realitioAddress: string,
   provider: providers.Provider,
   blockNumber: number,
-  questionId: number/*string*/
-): Promise<any> => {
+  questionId: string
+): Promise<any>/*confirm what it is supposed to return*/ => {
   const realitioContract = new Contract(realitioAddress, getFinalizeTSIface, provider);
-  return Promise.all(realitioContract.getFinalizeTS({ blockTag: blockNumber, question_id: questionId }));
+  try {
+    // return await realitioContract.getFinalizeTS(questionId, { blockTag: blockNumber  });
+    return await realitioContract.createTemplate("content");
+  } catch {
+    console.log("call to contract failed.");
+  }
 };
+
+/*
+const getShareAmount = async (
+  positionManagerAddress: string,
+  workerAddress: string,
+  pid: string,
+  blockNumber: number,
+  provider: providers.Provider
+): Promise<BigNumber> => {
+  const positionManagerContract = new Contract(
+    positionManagerAddress,
+    positionManagerInterface,
+    provider
+  );
+  return (
+    await positionManagerContract.userInfo(pid, workerAddress, {
+      blockTag: blockNumber,
+    })
+  ).amount;
+};
+*/
 
 export const provideHandleTransaction = (
   daoModuleAddr: string
@@ -76,7 +104,13 @@ export const provideHandleBlock = (
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const finalizeTS = await getFinalizeTS(realitioAddress, provider, blockEvent.block.number, 100); // 100 FOR  questionId FOR TESTING
+    const finalizeTS = await getFinalizeTS(
+      realitioAddress,
+      provider,
+      blockEvent.blockNumber,
+      testQuestionId
+    );
+
     console.log("finalizeTS is: " + finalizeTS);
 
     /*

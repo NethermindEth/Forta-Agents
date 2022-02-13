@@ -20,7 +20,9 @@ import {
 } from "./abi";
 import {
   provideHandleBlock,
-  provideHandleTransaction
+  provideHandleTransaction,
+  getFinalizeTS,
+  testQuestionId
 } from "./agent";
 import {
   when,
@@ -34,7 +36,7 @@ import {
 const testMsgSender: string = createAddress("0xda456f");
 const testRealitioErc20: string = createAddress("0x2d5ef8");
 const testDaoModule: string = createAddress("0xac689d");
-const testQuestionId: string = "0xf2eeb729e636a8cb783be044acf6b7b1e2c5863735b60d6daae84c366ee87d97";
+// const testQuestionId: string = utils.formatBytes32String("Is this a test?");
 const testFinalizeTS: number = 4000;
 
 const mockCall = jest.fn();
@@ -52,45 +54,42 @@ const isCallMethod = (
   return selector === contractInterface.getSighash(functionName);
 };
 
-const isCallToGetFinalizeTS = (questionId: any/*string*/) => {
-  if(questionId) {
-    return true; // NOTE: true BOOLEAN FOR TESTING ONLY
-  }
-}
-/*
+const isCallToGetFinalizeTS = (questionId: string) => {
+  return true;
+  /*
   when(
     ({ data, to}) => {
-      console.log("made it to isCallToGetFinalizeTS");
-      /*
+      console.log("passed { data, to } check");
       isCallMethod(data, getFinalizeTSIface, "getFinalizeTS") &&
       to.toLowerCase() === testRealitioErc20.toLowerCase() &&
       questionId === testQuestionId.toLowerCase()
       
     }
   );
-*/
-
-when(mockCall)
-  .calledWith(isCallToGetFinalizeTS(100), expect.anything())
-  .mockReturnValue(encodeParameter("uint32", testFinalizeTS));
+  */
+}
 
 
 describe("Cooldown Monitor Agent", () => {
   let handleBlock: HandleBlock;
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => {
+  beforeEach(() => {
+    resetAllWhenMocks();
+
     handleBlock = provideHandleBlock(
       testRealitioErc20,
       mockEthers
     );
+
     handleTransaction = provideHandleTransaction(
       testDaoModule
     );
-  });
 
-  beforeEach(() => {
-    resetAllWhenMocks();
+    when(mockCall)
+      // .calledWith(isCallToGetFinalizeTS(testQuestionId), expect.anything())
+      .calledWith(getFinalizeTS(testRealitioErc20, mockEthers, 1256000, testQuestionId)) // NOTE: ONLY USING THIS FOR TESTING
+      .mockReturnValue(testFinalizeTS);
   });
 
   it("should return a Finding from detecting when a question's cooldown starts", async () => {
