@@ -44,7 +44,7 @@ describe("PickleFinance - IdleFunds Test Suite", () => {
   let handleBlock: HandleBlock;
 
   beforeAll(() => {
-    handleBlock = providerHandleBlock(pickleFinanceRegistry, 25, ethersMock);
+    handleBlock = providerHandleBlock(pickleFinanceRegistry, 25, 100, ethersMock);
   });
 
   beforeEach(() => {
@@ -52,17 +52,26 @@ describe("PickleFinance - IdleFunds Test Suite", () => {
 
     when(mockCall)
       .calledWith(isCallToDevelopmentVaults, expect.anything())
-      .mockReturnValue(encodeParameter("address[]", developmentVaults.map(value => value[0])));
+      .mockReturnValue(
+        encodeParameter(
+          "address[]",
+          developmentVaults.map((value) => value[0])
+        )
+      );
     when(mockCall)
       .calledWith(isCallToProductionVaults, expect.anything())
-      .mockReturnValue(encodeParameter("address[]", productionVaults.map(value => value[0])));
+      .mockReturnValue(
+        encodeParameter(
+          "address[]",
+          productionVaults.map((value) => value[0])
+        )
+      );
 
     for (let i = 0; i < allVaults.length; i++) {
       when(mockCall)
         .calledWith(isCallToName(allVaults[i][0]), undefined)
         .mockReturnValue(encodeParameter("string", allVaults[i][1]));
     }
-
   });
 
   it("should return empty findings if idle funds in pickle jar are below threshold", async () => {
@@ -152,6 +161,50 @@ describe("PickleFinance - IdleFunds Test Suite", () => {
 
     const findings = await handleBlock(blockEvent);
 
+    expect(findings).toStrictEqual([
+      createFinding(allVaults[1][0], "32"),
+      createFinding(allVaults[2][0], "80"),
+    ]);
+  });
+
+  it("should ignore findings from the same jar that are too close in time", async () => {
+    let blockEvent = new TestBlockEvent().setTimestamp(0);
+    const balancesAndAvailables = [
+      ["100", "24"],
+      ["100", "32"],
+      ["1000", "800"],
+      ["1000", "249"],
+    ];
+
+    for (let i = 0; i < allVaults.length; i++) {
+      const [balance, available] = balancesAndAvailables[i];
+      when(mockCall)
+        .calledWith(isCallToBalance(allVaults[i][0]), expect.anything())
+        .mockReturnValue(encodeParameter("uint256", balance));
+      when(mockCall)
+        .calledWith(isCallToAvailable(allVaults[i][0]), expect.anything())
+        .mockReturnValue(encodeParameter("uint256", available));
+      when(mockCall)
+        .calledWith(isCallToTotalLiquidity(allVaults[i][0]), expect.anything())
+        .mockReturnValue(encodeParameter("uint256", balance));
+      when(mockCall)
+        .calledWith(isCallToLiquidityOfThis(allVaults[i][0]), expect.anything())
+        .mockReturnValue(encodeParameter("uint256", available));
+    }
+
+    let findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([
+      createFinding(allVaults[1][0], "32"),
+      createFinding(allVaults[2][0], "80"),
+    ]);
+
+    blockEvent = new TestBlockEvent().setTimestamp(50);
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+
+    blockEvent = new TestBlockEvent().setTimestamp(100);
+
+    findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
       createFinding(allVaults[1][0], "32"),
       createFinding(allVaults[2][0], "80"),
