@@ -1,17 +1,9 @@
 import { 
-  Finding, 
   getEthersProvider, 
   HandleTransaction, 
-  TransactionEvent, 
 } from 'forta-agent';
-import abi from './abi';
 import { MemoryManager } from './memory';
-import { 
-  LogDescription, 
-  TransactionDescription,
-} from '@ethersproject/abi';
 import DataFetcher from './data.fetcher';
-import utils from './utils';
 import constants from './constants';
 import { Block } from '@ethersproject/abstract-provider';
 import getMainHandler from './main.handler';
