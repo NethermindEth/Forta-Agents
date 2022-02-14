@@ -16,7 +16,7 @@ import {
 } from "forta-agent-tools";
 import {
   propQuestionCreatedSig,
-  getFinalizeTSIface
+  realitioIFace
 } from "./abi";
 import {
   provideHandleBlock,
@@ -54,7 +54,8 @@ const isCallMethod = (
   return selector === contractInterface.getSighash(functionName);
 };
 
-const isCallToGetFinalizeTS = (questionId: string) => {
+const isCallToGetFinalizeTS = (questionId: BigNumber) => {
+  console.log(questionId);
   return true;
   /*
   when(
@@ -87,12 +88,12 @@ describe("Cooldown Monitor Agent", () => {
     );
 
     when(mockCall)
-      // .calledWith(isCallToGetFinalizeTS(testQuestionId), expect.anything())
-      .calledWith(getFinalizeTS(testRealitioErc20, mockEthers, 1256000, testQuestionId)) // NOTE: ONLY USING THIS FOR TESTING
-      .mockReturnValue(testFinalizeTS);
+      .calledWith(isCallToGetFinalizeTS(testQuestionId), expect.anything())
+      .mockReturnValue(encodeParameter("uint256", testFinalizeTS)); // NOTE: NOT SURE IF SUPPOSED TO RETURN OUTPUT OF encodeParameter
   });
 
   it("should return a Finding from detecting when a question's cooldown starts", async () => {
+    /*
     const testPropId: string = "d34d";
 
     const testTopics: string[] = [
@@ -108,6 +109,7 @@ describe("Cooldown Monitor Agent", () => {
       .addEventLog(propQuestionCreatedSig, testDaoModule, testData, ...testTopics);
 
     await handleTransaction(txEvent);
+    */
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(1256000)
 

@@ -12,17 +12,17 @@ import {
   Contract,
   providers,
   BigNumber,
-  utils
+  FixedNumber
 } from "ethers";
 import {
-  getFinalizeTSIface,
+  realitioIFace,
   propQuestionCreateAbi,
 } from "./abi";
 
 const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
 const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
 
-export const testQuestionId: string = utils.formatBytes32String("Is this a test?"); // NOTE: ONLY IN HERE FOR TESTING
+export const testQuestionId: BigNumber = BigNumber.from("0x81d50202a3f5c3971f123d9ddcca9c2c91d3e863019bdc3de8fcc2480ffadf02"); // NOTE: ONLY IN HERE FOR TESTING. PULLED IT FROM REALITY.ETH
 
 let questionIds: string[] = [];
 
@@ -30,37 +30,12 @@ export const getFinalizeTS = async ( // NOTE: ONLY EXPORTING FOR TESTING
   realitioAddress: string,
   provider: providers.Provider,
   blockNumber: number,
-  questionId: string
-): Promise<any>/*confirm what it is supposed to return*/ => {
-  const realitioContract = new Contract(realitioAddress, getFinalizeTSIface, provider);
-  try {
-    // return await realitioContract.getFinalizeTS(questionId, { blockTag: blockNumber  });
-    return await realitioContract.createTemplate("content");
-  } catch {
-    console.log("call to contract failed.");
-  }
+  questionId: BigNumber
+)/*: Promise<any>confirm what it is supposed to return*/ => {
+  const realitioContract = new Contract(realitioAddress, realitioIFace, provider);
+  // console.log("questionId is: " + questionId);
+  /*return*/ console.log(await realitioContract.getFinalizeTS(questionId, { blockTag: blockNumber })); // NOTE: THE ERROR IS FROM CALLING THE FUNCTION IN THE CONTRACT
 };
-
-/*
-const getShareAmount = async (
-  positionManagerAddress: string,
-  workerAddress: string,
-  pid: string,
-  blockNumber: number,
-  provider: providers.Provider
-): Promise<BigNumber> => {
-  const positionManagerContract = new Contract(
-    positionManagerAddress,
-    positionManagerInterface,
-    provider
-  );
-  return (
-    await positionManagerContract.userInfo(pid, workerAddress, {
-      blockTag: blockNumber,
-    })
-  ).amount;
-};
-*/
 
 export const provideHandleTransaction = (
   daoModuleAddr: string
@@ -150,99 +125,3 @@ export default {
     getEthersProvider(),
   )
 }
-
-/*
-export const provideHandleBlock = (
-  addressesFetcher: Fetcher,
-  percentThreshold: number,
-  blockLapse: number,
-  provider: providers.Provider
-): HandleBlock => {
-  let lastBlock = -blockLapse;
-
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    if (blockEvent.blockNumber - lastBlock < blockLapse) {
-      return [];
-    }
-
-    lastBlock = blockEvent.blockNumber;
-
-    const findings: Finding[] = [];
-
-    const registryAddresses = await addressesFetcher(DATA_URL);
-    const workerAddresses: string[] = [];
-
-    for (let vault of registryAddresses.vaults) {
-      for (let worker of vault.workers) {
-        workerAddresses.push(worker.address);
-      }
-    }
-
-    const percentPromises = workerAddresses.map((worker) =>
-      getSharePercent(worker, blockEvent.blockNumber, provider)
-    );
-    const percents = await Promise.all(percentPromises);
-
-    for (let i = 0; i < workerAddresses.length; i++) {
-      if (percents[i].gt(percentThreshold)) {
-        findings.push(
-          createFinding(workerAddresses[i], percents[i].toString())
-        );
-      }
-    }
-
-    return findings;
-  };
-};
-
-
-export const getSharePercent = async (
-  workerAddress: string,
-  blockNumber: number,
-  provider: providers.Provider
-): Promise<BigNumber> => {
-  const [pid, lpToken] = await getWorkerData(
-    workerAddress,
-    blockNumber,
-    provider
-  );
-
-  if (lpToken === constants.AddressZero) {
-    return BigNumber.from(0);
-  }
-  const positionManager = await getPositionManager(
-    workerAddress,
-    blockNumber,
-    provider
-  );
-  const shareAmount = await getShareAmount(
-    positionManager,
-    workerAddress,
-    pid,
-    blockNumber,
-    provider
-  );
-  const totalSupply = await getTotalSupply(lpToken, blockNumber, provider);
-  return shareAmount.mul(100).div(shareTotalSupply);
-};
-
-
-const getWorkerData = async (
-  workerAddress: string,
-  blockNumber: number,
-  provider: providers.Provider
-): Promise<[string, string]> => {
-  const workerContract = new Contract(workerAddress, workerInterface, provider);
-  return Promise.all([
-    workerContract.pid({ blockTag: blockNumber }),
-    workerContract.lpToken({ blockTag: blockNumber }),
-  ]);
-};
-
-
-when(mockCall)
-  .calledWith(isCallToPid(workers[0]), expect.anything())
-  .mockReturnValue(encodeParameter("uint256", 1));
-
-
-*/
