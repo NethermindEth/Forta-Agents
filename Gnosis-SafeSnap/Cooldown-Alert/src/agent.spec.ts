@@ -32,6 +32,8 @@ import {
   utils,
   BigNumber,
 } from "ethers";
+import MockProvider from "./mock.provider";
+import DataFetcher from "./data.fetcher";
 
 const testMsgSender: string = createAddress("0xda456f");
 const testRealitioErc20: string = createAddress("0x2d5ef8");
@@ -39,6 +41,7 @@ const testDaoModule: string = createAddress("0xac689d");
 // const testQuestionId: string = utils.formatBytes32String("Is this a test?");
 const testFinalizeTS: number = 4000;
 
+/*
 const mockCall = jest.fn();
 const mockEthers = {
   call: mockCall,
@@ -57,7 +60,6 @@ const isCallMethod = (
 const isCallToGetFinalizeTS = (questionId: BigNumber) => {
   console.log(questionId);
   return true;
-  /*
   when(
     ({ data, to}) => {
       console.log("passed { data, to } check");
@@ -67,13 +69,15 @@ const isCallToGetFinalizeTS = (questionId: BigNumber) => {
       
     }
   );
-  */
 }
+*/
 
 
 describe("Cooldown Monitor Agent", () => {
   let handleBlock: HandleBlock;
   let handleTransaction: HandleTransaction;
+  const mockProvider: MockProvider = new MockProvider();
+  const fetcher: DataFetcher = new DataFetcher(testRealitioErc20, mockProvider as any);
 
   beforeEach(() => {
     resetAllWhenMocks();
@@ -86,10 +90,6 @@ describe("Cooldown Monitor Agent", () => {
     handleTransaction = provideHandleTransaction(
       testDaoModule
     );
-
-    when(mockCall)
-      .calledWith(isCallToGetFinalizeTS(testQuestionId), expect.anything())
-      .mockReturnValue(encodeParameter("uint256", testFinalizeTS)); // NOTE: NOT SURE IF SUPPOSED TO RETURN OUTPUT OF encodeParameter
   });
 
   it("should return a Finding from detecting when a question's cooldown starts", async () => {
@@ -111,7 +111,12 @@ describe("Cooldown Monitor Agent", () => {
     await handleTransaction(txEvent);
     */
 
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(1256000)
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(1256000);
+
+    mockProvider.addCallTo(
+      testDaoModule, 1256000, realitioIFace, 'getFinalizeTS',
+      { inputs: [testQuestionId], outputs: [testFinalizeTS] },
+    );
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
