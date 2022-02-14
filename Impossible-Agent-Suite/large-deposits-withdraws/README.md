@@ -6,7 +6,7 @@ This agent detects large changes in TVL/ Monitor large deposits/withdrawals.
 
 > - `Stake` and `Unstake` events are used to monitor staking/unstaking in IFAllocationMaster contract.
 > - `Purchase`and `Withdraw` events are used to detect purchase and withdraws with their whitelist and giveaway versions.
-> - Large is defined based on a precent of the IDIA token total supply for staking contract adn the received total stake weight for sale contracts.
+> - Large is defined based on a precent of the IDIA token total supply for staking contract and the received total stake weight for sale contracts.
 
 ## Supported Chains
 
