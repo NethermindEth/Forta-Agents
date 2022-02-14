@@ -20,7 +20,7 @@ export const stakeHandler = async (
     [STAKE_SIGNATURE, UNSTAKE_SIGNATURE],
     staking_contract
   );
-  if (stakingEvents.length == 0) return findings;
+  if (stakingEvents.length === 0) return findings;
   // compute totalSupply of the token
   const totalSupply = await fetcher.getTotalSupply(
     IDIA_TOKEN,
