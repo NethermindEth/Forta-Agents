@@ -2,93 +2,87 @@ import {
   Finding,
   HandleTransaction,
   TransactionEvent,
-  getEthersProvider,
   FindingSeverity,
   FindingType,
+  getEthersProvider,
 } from 'forta-agent';
 
 const { ethers } = require('ethers');
 
-// Global variables
-const PAIRS: Set<string> = new Set<string>();
-let SWAP_FACTORY_V1_ADDRESS = '0x918d7e714243F7d9d463C37e106235dCde294ffC';
-export const SWAP_FACTORY_V1_ABI = [
-  "event PairCreated(address indexed token0, address indexed token1, address pair, uint)",
-  "function allPairs(uint) external view returns (address pair)",
-  "function allPairsLength() external view returns (uint)",
-]
-export const PAIR_SWAP_ABI = [
-  'function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data)',
-]
+let SWAP_FACTORY_ADDRESS= '0x918d7e714243f7d9d463c37e106235dcde294ffc';
 
-const initialize = async () => {
-  // Interact with the Swap Factory contract to get the total number of pairs
+export const SWAP_FACTORY_ABI = [
+  'event PairCreated(address indexed token0, address indexed token1, address pair, uint)',
+  'function getPair(address tokenA, address tokenB) external view returns (address pair)',
+];
+
+export const PAIR_SWAP_ABI = [
+  'event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)',
+  'function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data)',
+  'function factory() external view returns (address)',
+  'function token0() external view returns (address)',
+  'function token1() external view returns (address)',
+];
+
+// Receives the address of a contract with same ABI as PAIR_SWAP_ABI and returns the factory address
+export const getContractFactory = async (swapContract: string) => {
   const provider = getEthersProvider();
-  const contract = new ethers.Contract(SWAP_FACTORY_V1_ADDRESS, SWAP_FACTORY_V1_ABI, provider);
-  const numPairs = await contract.allPairsLength();
-  let i = ethers.BigNumber.from(0);
-  // Get each pair address and add it to the array `PAIRS`
-  while(i.lt(numPairs)) {
-    PAIRS.add(await contract.allPairs(i.toString()));
-    console.log(i.add(1).toString() + '/' + numPairs.toString());
-    i = i.add(ethers.BigNumber.from(1));
-  }
+  const contractInterface = new ethers.Contract(swapContract, PAIR_SWAP_ABI, provider);
+  return await contractInterface.factory();
 }
 
 export const provideHandleTransaction = (
   address: string,
-  pairs: Set<string>,
+  getContractFactory: any,
 ): HandleTransaction => {
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+  return async (tx: TransactionEvent): Promise<Finding[]> => {
     // Set up the findings array
     const findings: Finding[] = [];
-    // Check if new pair has been deployed
-    const pairCreatedEvents = txEvent.filterLog(SWAP_FACTORY_V1_ABI[0], address);
-    for(let i = 0; i < pairCreatedEvents.length; i++) {
-      // Get the newly created pair address and add it to the `pairs` array
-      pairs.add(pairCreatedEvents[i].args.pair);
-    }
-    pairs.forEach((pair) => {
-      // Get all times `swap` has been called on the pair
-      const pairSwaps = txEvent.filterFunction(PAIR_SWAP_ABI[0], pair);
-      // For every `swap` function call
-      pairSwaps.forEach((pairswap) => {
-        // Get the argument call data
-        const amount0Out = pairswap.args.amount0Out;
-        const amount1Out = pairswap.args.amount1Out;
-        const to = pairswap.args.to;
-        const data = ethers.BigNumber.from(pairswap.args.data);
-        // If `data` is non-zero then it is a flashloan
-        if(data.gt(ethers.BigNumber.from('0'))) {
-          // Create a finding
-          findings.push(
-            Finding.fromObject({
-              name: 'Flash Loan Detected',
-              description: 'A flash loan has been made on a StableXSwap contract',
-              alertId: 'IMPOSSIBLE-5',
-              severity: FindingSeverity.Info,
-              type: FindingType.Info,
-              protocol: 'Impossible Finance',
-              metadata: {
-                amount0Out: amount0Out.toString(),
-                amount1Out: amount1Out.toString(),
-                to: to,
-                data: data.toHexString() 
-              }
-            })
-          );
-        }
-      });
+
+    // Get addresses of all contracts that emitted a `Swap` event
+    let swapContracts: string[] = [];
+    const swapLogs = tx.filterLog(PAIR_SWAP_ABI[0]);
+    swapLogs.forEach((swapLog) => {
+      swapContracts.push(swapLog.address);
     });
+
+    // For each potential address
+    await Promise.all(swapContracts.map(async (swapContract) => {
+      // Get all times the `swap` function was called on the contract `swapContract`
+      const swapCalls = tx.filterFunction(PAIR_SWAP_ABI[1], swapContract);
+      // For each swapCall
+      await Promise.all(swapCalls.map(async (swapCall) => {
+        if(ethers.BigNumber.from(swapCall.args.data).gt(ethers.BigNumber.from('0'))) {
+          // If the contract factory address is `SWAP_FACTORY_ADDRESS`
+          const contractFactory = await getContractFactory(swapContract);
+          if(contractFactory == address) {
+            // Create a finding
+            findings.push(
+              Finding.fromObject({
+                name: 'Flash Loan Detected',
+                description: 'A flash loan has been executed on an Impossible Finance StableXSwap contract',
+                alertId: 'IMPOSSIBLE-5',
+                severity: FindingSeverity.Info,
+                type: FindingType.Info,
+                protocol: 'Impossible Finance',
+                metadata: {
+                  amount0Out: swapCall.args.amount0Out.toString(),
+                  amount1Out: swapCall.args.amount1Out.toString(),
+                  to: swapCall.args.to.toLowerCase(),
+                  data: ethers.BigNumber.from(swapCall.args.data).toHexString(),
+                },
+              })
+            );
+          }
+        }
+      }));
+    }));
+
+    // Return findings
     return findings;
   }
 }
 
-// Export needed functions
 export default {
-  initialize,
-  handleTransaction: provideHandleTransaction(
-    SWAP_FACTORY_V1_ADDRESS,
-    PAIRS,
-  ),
+  handleTransaction: provideHandleTransaction(SWAP_FACTORY_ADDRESS, getContractFactory),
 }
