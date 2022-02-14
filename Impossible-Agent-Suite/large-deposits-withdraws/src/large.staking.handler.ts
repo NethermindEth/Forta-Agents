@@ -9,7 +9,7 @@ import {
 } from "./utils";
 import StakeFetcher from "./stake.fetcher";
 
-export const provideStakeHandler = async (
+export const stakeHandler = async (
   staking_contract: string,
   txEvent: TransactionEvent,
   fetcher: StakeFetcher
@@ -24,7 +24,7 @@ export const provideStakeHandler = async (
   // compute totalSupply of the token
   const totalSupply = await fetcher.getTotalSupply(
     IDIA_TOKEN,
-    txEvent.blockNumber
+    txEvent.blockNumber - 1
   );
   const threshold: BigNumber = BigNumber.from(PERCENT)
     .mul(totalSupply)
@@ -39,5 +39,5 @@ export const provideStakeHandler = async (
 };
 
 export default {
-  provideStakeHandler,
+  stakeHandler,
 };

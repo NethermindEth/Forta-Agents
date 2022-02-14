@@ -31,11 +31,7 @@ describe("StakeFetcher test suite", () => {
     initialize();
 
     for (let [contract, block, supply] of TEST_DATA) {
-      const total: BigNumber = await fetcher.getTotalSupply(
-        contract,
-        block
-        //   trackId
-      );
+      const total: BigNumber = await fetcher.getTotalSupply(contract, block);
       expect(total).toStrictEqual(BigNumber.from(supply));
     }
   });

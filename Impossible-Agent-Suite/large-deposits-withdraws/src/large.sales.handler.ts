@@ -8,7 +8,7 @@ import {
   WITHDRAW_SIGNATURE,
 } from "./utils";
 
-export const provideSaleHandler = async (
+export const saleHandler = async (
   sale_contracts: string[],
   txEvent: TransactionEvent,
   fetcher: SalesFetcher
@@ -53,5 +53,5 @@ export const provideSaleHandler = async (
 };
 
 export default {
-  provideSaleHandler,
+  saleHandler,
 };

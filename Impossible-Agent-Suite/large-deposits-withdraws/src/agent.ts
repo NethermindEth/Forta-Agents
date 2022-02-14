@@ -5,8 +5,8 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import { STAKING_CONTRACT, SALE_CONTRACTS } from "./utils";
-import { provideSaleHandler } from "./large.sales.handler";
-import { provideStakeHandler } from "./large.staking.handler";
+import { saleHandler } from "./large.sales.handler";
+import { stakeHandler } from "./large.staking.handler";
 import StakeFetcher from "./stake.fetcher";
 import SalesFetcher from "./sales.fetcher";
 
@@ -19,8 +19,8 @@ export const provideHandleTransaction =
   ): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const handlerCalls = [
-      provideStakeHandler(staking_address, txEvent, stake_fetcher), // monitors staking contract.
-      provideSaleHandler(sale_addresses, txEvent, sale_fetcher), // monitors sale contracts.
+      stakeHandler(staking_address, txEvent, stake_fetcher), // monitors staking contract.
+      saleHandler(sale_addresses, txEvent, sale_fetcher), // monitors sale contracts.
     ];
 
     const findings = (await Promise.all(handlerCalls)).flat();

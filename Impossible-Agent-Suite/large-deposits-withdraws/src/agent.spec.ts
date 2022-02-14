@@ -71,7 +71,6 @@ const SaleFinding = (
   });
 
 describe("Large Deposits-withdraws Agent test suite", () => {
-  //const mockGetTotalStakeWeight = jest.fn();
   const mockGetTotalSupply = jest.fn();
   const mockGetTotalPaymentReceived = jest.fn();
   const mockStakeFetcher = {
@@ -175,17 +174,14 @@ describe("Large Deposits-withdraws Agent test suite", () => {
       .mockReturnValueOnce(promise(100))
       .mockReturnValueOnce(promise(80));
 
-    const tx1: TransactionEvent = new TestTransactionEvent()
+    const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(532188)
       .addAnonymousEventLog(staking_address, log1.data, ...log1.topics)
-      .addAnonymousEventLog(staking_address, log2.data, ...log2.topics);
-    const tx2: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(staking_address, log2.data, ...log2.topics)
       .addAnonymousEventLog(sale_addresses[0], log3.data, ...log3.topics)
       .addAnonymousEventLog(sale_addresses[1], log4.data, ...log4.topics);
 
-    const handlerCalls = [handler(tx1), handler(tx2)];
-    const findings = await (await Promise.all(handlerCalls)).flat();
-
+    const findings = await handler(tx);
     expect(findings).toStrictEqual([
       StakeFinding("Stake", "40", createAddress("0xa2")),
       StakeFinding("Unstake", "60", createAddress("0xa3")),
