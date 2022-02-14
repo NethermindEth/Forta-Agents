@@ -14,7 +14,7 @@ const TEST_DATA: [string, number, number][] = [
 
 describe("SaleFetcher test suite", () => {
   const mockProvider: MockProvider = new MockProvider();
-  const fetcher: SaleFetcher = new SaleFetcher(mockProvider as any, true);
+  const fetcher: SaleFetcher = new SaleFetcher(mockProvider as any);
 
   const initialize = () => {
     for (let [contract, block, total] of TEST_DATA) {

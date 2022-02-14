@@ -35,7 +35,7 @@ export const saleHandler = async (
   contractsInUse.forEach((contract: string) => {
     thresholdsPromises.push(
       fetcher
-        .getTotalPaymentReceived(txEvent.blockNumber, contract)
+        .getTotalPaymentReceived(txEvent.blockNumber - 1, contract)
         .then(
           (total: BigNumber) =>
             (thresholds[contract] = total.mul(PERCENT).div(100))

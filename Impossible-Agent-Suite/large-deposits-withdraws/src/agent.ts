@@ -31,7 +31,7 @@ export default {
   handleTransaction: provideHandleTransaction(
     STAKING_CONTRACT,
     SALE_CONTRACTS,
-    new StakeFetcher(getEthersProvider(), false),
-    new SalesFetcher(getEthersProvider(), false)
+    new StakeFetcher(getEthersProvider()),
+    new SalesFetcher(getEthersProvider())
   ),
 };

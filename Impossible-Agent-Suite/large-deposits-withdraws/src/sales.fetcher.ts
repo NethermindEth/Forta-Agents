@@ -5,14 +5,12 @@ import { SALE_ABI } from "./utils";
 export default class SalesFetcher {
   private provider: providers.Provider;
   private cache: LRU<string, Promise<BigNumber | Set<string>>>;
-  private mock: boolean;
 
-  constructor(provider: providers.Provider, mock: boolean) {
+  constructor(provider: providers.Provider) {
     this.provider = provider;
     this.cache = new LRU<string, Promise<BigNumber | Set<string>>>({
       max: 10000,
     });
-    this.mock = mock;
   }
 
   public async getTotalPaymentReceived(
@@ -24,7 +22,7 @@ export default class SalesFetcher {
     const saleContract = new Contract(contract, SALE_ABI, this.provider);
     const totalPaymentReceived: Promise<BigNumber> =
       saleContract.totalPaymentReceived({
-        blockTag: this.mock ? block : undefined,
+        blockTag: block,
       });
     this.cache.set(key, totalPaymentReceived);
     return totalPaymentReceived;
