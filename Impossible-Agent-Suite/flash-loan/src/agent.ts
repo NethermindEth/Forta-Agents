@@ -9,7 +9,12 @@ import {
 
 const { ethers } = require('ethers');
 
-let SWAP_FACTORY_ADDRESS= '0x918d7e714243f7d9d463c37e106235dcde294ffc';
+import LRU from 'lru-cache';
+
+const cache: LRU<string, string> = new LRU<string, string>({ max: 10000 });
+
+//let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
+let SWAP_FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
 
 export const SWAP_FACTORY_ABI = [
   'event PairCreated(address indexed token0, address indexed token1, address pair, uint)',
@@ -26,9 +31,26 @@ export const PAIR_SWAP_ABI = [
 
 // Receives the address of a contract with same ABI as PAIR_SWAP_ABI and returns the factory address
 export const getContractFactory = async (swapContract: string) => {
-  const provider = getEthersProvider();
-  const contractInterface = new ethers.Contract(swapContract, PAIR_SWAP_ABI, provider);
-  return await contractInterface.factory();
+  let factory;
+  // If the cache contains the factory for `swapContract`
+  if(cache.has(swapContract)) {
+    // Set factory to the `swapContract` factory
+    factory = cache.get(swapContract);
+  } else {
+  // Otherwise if the cache does not contain the factory for `swapContract`
+    try {
+      // Query the smart contract for its factory
+      const provider = getEthersProvider();
+      const contractInterface = new ethers.Contract(swapContract, PAIR_SWAP_ABI, provider);
+      factory = await contractInterface.factory();
+      // Add it to the cache
+      cache.set(swapContract, factory);
+    } catch(error) {
+      // If the query fails (contract doesn't have a `factory` function then set to zero address
+      cache.set(swapContract, '0x0000000000000000000000000000000000000000');
+    }
+  }
+  return factory;
 }
 
 export const provideHandleTransaction = (
