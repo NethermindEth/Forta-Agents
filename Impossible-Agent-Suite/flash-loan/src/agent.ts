@@ -47,6 +47,7 @@ export const getContractFactory = async (swapContract: string) => {
     } catch(error) {
       // If the query fails (contract doesn't have a `factory` function then set to zero address
       cache.set(swapContract, '0x0000000000000000000000000000000000000000');
+      factory = '0x0000000000000000000000000000000000000000';
     }
   }
   return factory;
