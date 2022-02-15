@@ -13,8 +13,7 @@ import LRU from 'lru-cache';
 
 const cache: LRU<string, string> = new LRU<string, string>({ max: 10000 });
 
-//let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
-let SWAP_FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
+let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
 
 export const SWAP_FACTORY_ABI = [
   'event PairCreated(address indexed token0, address indexed token1, address pair, uint)',
