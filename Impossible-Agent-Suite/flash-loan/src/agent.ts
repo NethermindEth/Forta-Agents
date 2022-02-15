@@ -43,7 +43,10 @@ export const provideHandleTransaction = (
     let swapContracts: string[] = [];
     const swapLogs = tx.filterLog(PAIR_SWAP_ABI[0]);
     swapLogs.forEach((swapLog) => {
-      swapContracts.push(swapLog.address);
+      // If the address is already in the array then don't add
+      if(swapContracts.indexOf(swapLog.address) === -1) {
+        swapContracts.push(swapLog.address);
+      }
     });
 
     // For each potential address
