@@ -78,9 +78,7 @@ export const provideHandleBlock = (
 
       // NOTE: IF ONLY CHECKING WHEN COOLDOWN BEGINS,
       // NO NEED TO WAIT FOR QUESTION EXPIRATION FOR DELETION
-      // TODO: RESEARCH IF BETTER APPROACH TO DELETE AN ARRAY ITEM
-      // WHILE LOOPING THROUGH IT.
-      questionIds[id] = "";
+      delete questionIds[id];
     }
 
     return findings;
