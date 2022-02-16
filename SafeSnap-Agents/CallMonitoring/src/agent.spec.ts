@@ -5,8 +5,6 @@ import  {
   FindingType,
   FindingSeverity,
   Finding,
-  createTransactionEvent,
-  getJsonRpcUrl,
   TransactionEvent
 } from "forta-agent";
 import {
