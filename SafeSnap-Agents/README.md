@@ -17,7 +17,7 @@ This agent reports transactions that includes execution of any of these function
 
 ### Alerts
 Describe each of the type of alerts fired by this agent
-- FORTA-8
+- SafeSnap-1
 	- Fired when any of the following functions are called
 		- addProposal
 		- addProposalWithNonce, 

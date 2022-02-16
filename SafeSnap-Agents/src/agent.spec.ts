@@ -45,13 +45,13 @@ const createFinding = (functionName:string, params: any) => {
     by: zeroAddress
   }
   for(let key in params){
-    metadata[key] = params[key]
+    metadata[key] = params[key].toString()
   }
 
   return Finding.fromObject({
     name: "Zodiac/Gnosis SafeSnap",
     description: `${functionName} execeuted`,
-    alertId: "FORTA-8",
+    alertId: "SafeSnap-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata: metadata
@@ -65,7 +65,6 @@ describe("Monitor function", ()=>{
     let txHashes:string[] = ["0x198752008246c30849803849ca78d3cdf204683715a591c62f3c9ef71cf63710"];
 
     const Transaction:string = createTransaction("addProposal",[proposalId,txHashes])
-
     const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
     const findings = await agent.handleTransaction(txEvent);
     const expectedFinding = createFinding("addProposal",{
@@ -199,5 +198,35 @@ describe("Monitor function", ()=>{
 
     expect(findings).toStrictEqual([]);
   })
+  it("Should return findings for multiple function call in same Transaction", async ()=>{
+    let proposalId:string = "QmWwo3TkBtUybd7wcwix6yuGtApR427FBCxiSGJNwowDoN";
+    let txHashes:string[] = ["0x198752008246c30849803849ca78d3cdf204683715a591c62f3c9ef71cf63710"];
+    let questionHash:string = "0x6d6168616d000000000000000000000000000000000000000000000000000000";
+    const txEvent: TransactionEvent = new TestTransactionEvent().setTo(GNOSIS_ADDRESS).addTraces({
+        to: GNOSIS_ADDRESS,
+        from: zeroAddress,
+        input: createTransaction("addProposal",[proposalId,txHashes])
+    },{
+        to: GNOSIS_ADDRESS,
+        from: zeroAddress,
+        input: createTransaction("markProposalWithExpiredAnswerAsInvalid",[questionHash])
+    });
+    const expectedFinding: Finding[] = [];
+    expectedFinding.push(createFinding("addProposal",{
+        proposalId: proposalId,
+        txHashes: txHashes,
+      }))
+    expectedFinding.push(createFinding("markProposalWithExpiredAnswerAsInvalid",{
+        questionHash: questionHash,
+    }))
+
+    const findings = await agent.handleTransaction(txEvent);
+    console.log(findings)
+    expect(findings).toStrictEqual(expectedFinding);
+  })
+
+
+
+
 
 })

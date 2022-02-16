@@ -53,7 +53,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       Finding.fromObject({
         name: "Zodiac/Gnosis SafeSnap",
         description: `${functionName} execeuted`,
-        alertId: "FORTA-8",
+        alertId: "SafeSnap-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: metadata,
