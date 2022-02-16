@@ -9,49 +9,32 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import {
-  Contract,
-  providers,
-  BigNumber,
-  FixedNumber
-} from "ethers";
-import {
-  realitioIFace,
   propQuestionCreateAbi,
 } from "./abi";
+import DataFetcher from "./data.fetcher";
 
 const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
 const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
-
-export const testQuestionId: BigNumber = BigNumber.from("0x81d50202a3f5c3971f123d9ddcca9c2c91d3e863019bdc3de8fcc2480ffadf02"); // NOTE: ONLY IN HERE FOR TESTING. PULLED IT FROM REALITY.ETH
+const FETCHER: DataFetcher = new DataFetcher(
+  REALITIO_ERC20, 
+  getEthersProvider(),
+)
 
 let questionIds: string[] = [];
 
-export const getFinalizeTS = async ( // NOTE: ONLY EXPORTING FOR TESTING
-  realitioAddress: string,
-  provider: providers.Provider,
-  blockNumber: number,
-  questionId: BigNumber
-)/*: Promise<any>confirm what it is supposed to return*/ => {
-  const realitioContract = new Contract(realitioAddress, realitioIFace, provider);
-  // console.log("questionId is: " + questionId);
-  /*return*/ console.log(await realitioContract.getFinalizeTS(questionId, { blockTag: blockNumber })); // NOTE: THE ERROR IS FROM CALLING THE FUNCTION IN THE CONTRACT
-};
-
 export const provideHandleTransaction = (
-  daoModuleAddr: string
+  daoModuleAddress: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    txEvent.filterLog(propQuestionCreateAbi, daoModuleAddr)
+    txEvent.filterLog(propQuestionCreateAbi, daoModuleAddress)
       .map(event => questionIds.push(event.args[0]));
 
     return findings;
   }
 }
 
-// NOTE: INCLUDE A QUESTION'S COOLDOWN
-// IN THE METADATA?
 const createFinding = (
   questionId: string,
   questionFinalizeTS: number,
@@ -60,7 +43,7 @@ const createFinding = (
   return Finding.fromObject({
     name: "Cooldown Alert",
     description: "A question's cooldown period has begun",
-    alertId: "GNOSIS-2",
+    alertId: "SAFESNAP-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     protocol: "Gnosis SafeSnap",
@@ -73,30 +56,17 @@ const createFinding = (
 };
 
 export const provideHandleBlock = (
-  realitioAddress: string,
-  provider: providers.Provider
+  fetcher: DataFetcher
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const finalizeTS = await getFinalizeTS(
-      realitioAddress,
-      provider,
-      blockEvent.blockNumber,
-      testQuestionId
-    );
-
-    console.log("finalizeTS is: " + finalizeTS);
-
-    /*
     for(let id = 0; id < questionIds.length; id++) {
-      const finalizeTS = await getFinalizeTS(
-        realitioAddress,
-        provider,
-        blockEvent.block.number,
+      const finalizeTS: number = await fetcher.getFinalizeTS(
+        blockEvent.blockNumber,
         questionIds[id]
       );
-      if(finalizeTS > blockEvent.blockNumber) {
+      if(blockEvent.blockNumber > finalizeTS) {
         findings.push(
           createFinding(
             questionIds[id],
@@ -108,9 +78,10 @@ export const provideHandleBlock = (
 
       // NOTE: IF ONLY CHECKING WHEN COOLDOWN BEGINS,
       // NO NEED TO WAIT FOR QUESTION EXPIRATION FOR DELETION
+      // TODO: RESEARCH IF BETTER APPROACH TO DELETE AN ARRAY ITEM
+      // WHILE LOOPING THROUGH IT.
       questionIds[id] = "";
     }
-    */
 
     return findings;
   }
@@ -121,7 +92,6 @@ export default {
     DAO_MODULE
   ),
   handleBlock: provideHandleBlock(
-    REALITIO_ERC20,
-    getEthersProvider(),
+    FETCHER
   )
 }

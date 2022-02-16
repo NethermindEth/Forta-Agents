@@ -3,7 +3,7 @@ import { utils } from "ethers";
 export const realitioAbi: string = "function getFinalizeTS(bytes32 question_id) public view returns(uint32)";
 
 export const realitioIFace = new utils.Interface([
-    "function getFinalizeTS(bytes32 question_id) public view returns(uint32)"
+    realitioAbi
 ]);
 
 export const propQuestionCreatedSig: string = "ProposalQuestionCreated(bytes32,string)";
