@@ -17,8 +17,8 @@ export default class DataFetcher {
         this.cache = new LRU<string, ResultType>({max: 10000});
       }
 
-    public async getFinalizeTS(block: number, questionId: BigNumberish): Promise<number> { // TODO: FIND OUT EXACTLY WHAT TYPE questionId WILL BE
-        const key: string = `FinalizeTS-${block}-${questionId.toString()}`;
+    public async getFinalizeTS(block: number, questionId: string): Promise<number> {
+        const key: string = `FinalizeTS-${block}-${questionId}`;
         if(this.cache.has(key))
             return this.cache.get(key) as Promise<number>;
 

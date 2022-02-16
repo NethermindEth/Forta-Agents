@@ -27,7 +27,7 @@
     "@types/jest-when": "^3.5.0",
     "@types/lru-cache": "^5.1.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^1.0.33",
+    "forta-agent-tools": "^1.0.34",
     "jest": "^27.0.6",
     "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",
