@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with high gas consumption
+This agent detects when a question, based on its `question_id`, begins its cooldown period.
 
 ## Supported Chains
 
