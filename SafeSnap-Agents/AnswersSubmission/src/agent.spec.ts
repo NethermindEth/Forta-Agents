@@ -6,7 +6,6 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
-import { when } from "jest-when";
 import { provideHandleTransaction } from "./agent";
 import { ORACLE_ABI, REALITY_ABI } from "./utils";
 
@@ -58,22 +57,11 @@ describe("answers submission agent", () => {
     "0x9ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc44",
     "0xaca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc52",
   ];
-  //init the mock fetcher
-  const mockGetOracle = jest.fn();
-  const mockOracleFetcher = {
-    getOracle: mockGetOracle,
-  };
 
   let handler: HandleTransaction;
 
   beforeAll(async () => {
-    handler = provideHandleTransaction(
-      reality_module,
-      mockOracleFetcher as any
-    );
-    when(mockGetOracle)
-      .calledWith("latest", reality_module)
-      .mockReturnValue(oracle_address);
+    handler = provideHandleTransaction(reality_module, oracle_address);
 
     // agent will save the questions ids.
     const tx = new TestTransactionEvent();

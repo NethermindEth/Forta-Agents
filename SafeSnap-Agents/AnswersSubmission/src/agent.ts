@@ -12,12 +12,19 @@ import {
   createFinding,
 } from "./utils";
 
+const FETCHER = new OracleFetcher(getEthersProvider());
 const questions: string[] = [];
+let oracle: string = "";
+
+export const initialize = async () => {
+  oracle = await FETCHER.getOracle("latest", SAFESNAP_CONTRACT);
+};
 
 export const provideHandleTransaction =
-  (reality_module: string, fetcher: OracleFetcher): HandleTransaction =>
+  (reality_module: string, _oracle: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    if (!_oracle) _oracle = oracle;
 
     txEvent
       .filterLog([QUESTION_CREATED_SIGNATURE], reality_module)
@@ -26,11 +33,8 @@ export const provideHandleTransaction =
       });
     if (questions.length === 0) return findings;
 
-    // get the oracle address of reality module.
-    const oracle = await fetcher.getOracle("latest", reality_module);
-
     // get answers events logs.
-    txEvent.filterLog(ANSWERS_EVENTS_SIGNATURES, oracle).map((log) => {
+    txEvent.filterLog(ANSWERS_EVENTS_SIGNATURES, _oracle).map((log) => {
       if (
         (log.name === "LogAnswerReveal" && questions.includes(log.args[0])) ||
         (log.name === "LogNewAnswer" && questions.includes(log.args[1]))
@@ -42,8 +46,6 @@ export const provideHandleTransaction =
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    SAFESNAP_CONTRACT,
-    new OracleFetcher(getEthersProvider())
-  ),
+  initialize,
+  handleTransaction: provideHandleTransaction(SAFESNAP_CONTRACT, oracle),
 };
