@@ -1,7 +1,7 @@
 import { MockEthersProvider } from "forta-agent-tools";
 import OracleFetcher from "./oracle.fetcher";
 import { createAddress } from "forta-agent-tools";
-import { reality_abi } from "./utils";
+import { REALITY_ABI } from "./utils";
 
 const TEST_DATA: [string, number, string][] = [
   [createAddress("0xeea2"), 20, createAddress("0xfee5")],
@@ -17,7 +17,7 @@ describe("OracleFetcher test suite", () => {
 
   const initialize = () => {
     for (let [contract, block, oracle] of TEST_DATA) {
-      mockProvider.addCallTo(contract, block, reality_abi, "oracle", {
+      mockProvider.addCallTo(contract, block, REALITY_ABI, "oracle", {
         inputs: [],
         outputs: [oracle],
       });

@@ -8,7 +8,7 @@ import {
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
 import { when } from "jest-when";
 import { provideHandleTransaction } from "./agent";
-import { oracle_abi, reality_abi } from "./utils";
+import { ORACLE_ABI, REALITY_ABI } from "./utils";
 
 const createFinding = (
   name: string,
@@ -78,8 +78,8 @@ describe("answers submission agent", () => {
     // agent will save the questions ids.
     const tx = new TestTransactionEvent();
     questions.forEach((question) => {
-      const log = reality_abi.encodeEventLog(
-        reality_abi.getEvent("ProposalQuestionCreated"),
+      const log = REALITY_ABI.encodeEventLog(
+        REALITY_ABI.getEvent("ProposalQuestionCreated"),
         [question, "prop"]
       );
       tx.addAnonymousEventLog(reality_module, log.data, ...log.topics);
@@ -95,8 +95,8 @@ describe("answers submission agent", () => {
   });
 
   it("should ignore answers events emitted from a different oracle", async () => {
-    const log1 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogNewAnswer"),
+    const log1 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogNewAnswer"),
       [
         "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
         questions[0],
@@ -107,8 +107,8 @@ describe("answers submission agent", () => {
         false,
       ]
     );
-    const log2 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogAnswerReveal"),
+    const log2 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogAnswerReveal"),
       [
         questions[1],
         createAddress("0x3fe3"),
@@ -130,8 +130,8 @@ describe("answers submission agent", () => {
     const different_questionId =
       "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc22";
 
-    const log1 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogNewAnswer"),
+    const log1 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogNewAnswer"),
       [
         "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
         different_questionId,
@@ -142,8 +142,8 @@ describe("answers submission agent", () => {
         false,
       ]
     );
-    const log2 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogAnswerReveal"),
+    const log2 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogAnswerReveal"),
       [
         different_questionId,
         createAddress("0x3fe3"),
@@ -162,8 +162,8 @@ describe("answers submission agent", () => {
   });
 
   it("should return multiple findings", async () => {
-    const log1 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogNewAnswer"),
+    const log1 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogNewAnswer"),
       [
         "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
         questions[2],
@@ -174,8 +174,8 @@ describe("answers submission agent", () => {
         true,
       ]
     );
-    const log2 = oracle_abi.encodeEventLog(
-      oracle_abi.getEvent("LogAnswerReveal"),
+    const log2 = ORACLE_ABI.encodeEventLog(
+      ORACLE_ABI.getEvent("LogAnswerReveal"),
       [
         questions[3],
         createAddress("0x3fe3"),

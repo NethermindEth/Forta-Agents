@@ -1,6 +1,6 @@
 import { providers, Contract } from "ethers";
 import LRU from "lru-cache";
-import { reality_abi } from "./utils";
+import { REALITY_ABI } from "./utils";
 
 export default class OracleFetcher {
   private provider: providers.Provider;
@@ -21,7 +21,7 @@ export default class OracleFetcher {
     if (this.cache.has(key)) return this.cache.get(key) as Promise<string>;
     const RealityContract = new Contract(
       contract.toLowerCase(),
-      reality_abi,
+      REALITY_ABI,
       this.provider
     );
     const totalPaymentReceived: Promise<string> = RealityContract.oracle({

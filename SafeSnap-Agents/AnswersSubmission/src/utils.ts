@@ -10,11 +10,11 @@ export const ANSWERS_EVENTS_SIGNATURES = [
   "event LogAnswerReveal(bytes32 indexed question_id, address indexed user, bytes32 indexed answer_hash, bytes32 answer, uint256 nonce, uint256 bond)",
 ];
 
-export const reality_abi = new Interface([
+export const REALITY_ABI = new Interface([
   "function oracle() view returns (address)",
   QUESTION_CREATED_SIGNATURE,
 ]);
-export const oracle_abi = new Interface(ANSWERS_EVENTS_SIGNATURES);
+export const ORACLE_ABI = new Interface(ANSWERS_EVENTS_SIGNATURES);
 
 export const createFinding = (log: LogDescription | any) => {
   if (log.name === "LogNewAnswer")
