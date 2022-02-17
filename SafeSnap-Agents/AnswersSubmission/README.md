@@ -25,8 +25,8 @@ This agent detects answers events on the oracle for reality module questions.
 
   - Fired when `LogAnswerReveal` event is emitted on the reality module oracle.
   - Severity is always set to "Info".
-    - Type is always set to "Info".
-    - Metadata contains:
-      - `questionId`: the question Id who's answer is submitted.
-      - `answer`: the revealed answer.
-      - `user`: address of the user who revealed the answer.
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `questionId`: the question Id who's answer is submitted.
+    - `answer`: the revealed answer.
+    - `user`: address of the user who revealed the answer.
