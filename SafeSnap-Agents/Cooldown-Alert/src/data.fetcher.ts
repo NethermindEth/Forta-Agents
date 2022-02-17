@@ -1,30 +1,34 @@
-import { BigNumberish, Contract, providers } from "ethers";
-import LRU from "lru-cache";
-import { realitioIFace } from "./abi";
-
-type ResultType = Promise<number>;
+import { Contract, providers } from "ethers";
+import { oracleIFace, moduleIFace } from "./abi";
 
 export default class DataFetcher {
-    readonly realitio: string;
-    private rContract: Contract;
+    readonly moduleAddress: string;
     readonly provider: providers.Provider;
-    private cache: LRU<string, ResultType>;
+    private moduleContract: Contract;
 
-    constructor(realitio: string, provider: providers.Provider) {
-        this.realitio = realitio;
+    constructor(
+        moduleAddress: string,
+        provider: providers.Provider
+    ) {
+        this.moduleAddress = moduleAddress;
         this.provider = provider;
-        this.rContract = new Contract(realitio, realitioIFace, provider);
-        this.cache = new LRU<string, ResultType>({max: 10000});
-      }
+        this.moduleContract = new Contract(moduleAddress, moduleIFace, provider);
+    }
 
-    public async getFinalizeTS(block: number, questionId: string): Promise<number> {
-        const key: string = `FinalizeTS-${block}-${questionId}`;
-        if(this.cache.has(key))
-            return this.cache.get(key) as Promise<number>;
+    public async getOracle(blockNumber: number): Promise<string> {
+        const oracleAddress: string = await this.moduleContract
+            .oracle({ blockTag: blockNumber });
+        return oracleAddress;
+    }
 
-        const finalizeTS: Promise<number> = this.rContract
-            .getFinalizeTS(questionId, { blockTag: block });
-        this.cache.set(key, finalizeTS);
-        return finalizeTS;
+    public async getFinalizeTS(
+        blockNumber: number,
+        oracleAddress: string,
+        questionId: string
+    ): Promise<number> {
+       // NOTE: TRIED CALLING getOracle FROM HERE, BUT WOULDN'T WORK
+       const oracleContract: Contract = new Contract(oracleAddress, oracleIFace, this.provider);
+       const finalizeTS: number = await oracleContract.getFinalizeTS(questionId, { blockTag: blockNumber });
+       return finalizeTS;
     }
 }

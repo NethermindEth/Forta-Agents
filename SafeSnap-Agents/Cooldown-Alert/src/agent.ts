@@ -7,28 +7,38 @@ import {
   FindingType,
   getEthersProvider,
   TransactionEvent,
+  Initialize
 } from "forta-agent";
 import {
   propQuestionCreateAbi,
 } from "./abi";
 import DataFetcher from "./data.fetcher";
+import {
+  providers
+} from "ethers";
 
-const REALITIO_ERC20: string = "0x8f1CC53bf34932591177CDA24723486205CA7510".toLowerCase();
-const DAO_MODULE: string = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1".toLowerCase();
-const FETCHER: DataFetcher = new DataFetcher(
-  REALITIO_ERC20, 
-  getEthersProvider(),
-)
+const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613".toLowerCase();
+let FETCHER: DataFetcher;
 
 let questionIds: string[] = [];
 
+// NOTE: COULDN'T GET IT TO WORK
+// BY SETTING ITS TYPE TO Initialize
+// FROM THE SDK
+export const provideInitialize = (
+  moduleAddress: string,
+  provider: providers.Provider
+) => {
+  FETCHER = new DataFetcher(moduleAddress, provider);
+}
+
 export const provideHandleTransaction = (
-  daoModuleAddress: string
+  moduleAddress: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    txEvent.filterLog(propQuestionCreateAbi, daoModuleAddress)
+    txEvent.filterLog(propQuestionCreateAbi, moduleAddress)
       .map(event => questionIds.push(event.args[0]));
 
     return findings;
@@ -55,17 +65,21 @@ const createFinding = (
   });
 };
 
-export const provideHandleBlock = (
-  fetcher: DataFetcher
-): HandleBlock => {
+export const provideHandleBlock = (): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    const oracleAddress: string = await FETCHER.getOracle(blockEvent.blockNumber);
+
+    console.log("questionIds.length is: " + questionIds.length);
+    console.log("questionIds before for loop is: " + questionIds);
 
     for(let id = 0; id < questionIds.length; id++) {
-      const finalizeTS: number = await fetcher.getFinalizeTS(
+      const finalizeTS: number = await FETCHER.getFinalizeTS(
         blockEvent.blockNumber,
+        oracleAddress,
         questionIds[id]
       );
+
       if(blockEvent.blockNumber > finalizeTS) {
         findings.push(
           createFinding(
@@ -74,22 +88,30 @@ export const provideHandleBlock = (
             blockEvent.blockNumber
           )
         );
+        console.log("questionIds right before splice is: " + questionIds);
+        questionIds.splice(id, 1);
+        console.log("questionIds right after splice is: " + questionIds);
+        console.log("questionIds.length right after splice is: " + questionIds.length);
+        // Decrement id to make up
+        // for questionIds.length
+        // decreasing after splice
+        id--;
       }
-
-      // NOTE: IF ONLY CHECKING WHEN COOLDOWN BEGINS,
-      // NO NEED TO WAIT FOR QUESTION EXPIRATION FOR DELETION
-      delete questionIds[id];
     }
+
+    console.log("questionIds.length after splice, outside of for loop, is: " + questionIds.length);
 
     return findings;
   }
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    DAO_MODULE
+  initialize: provideInitialize(
+    MODULE_ADDRESS,
+    getEthersProvider()
   ),
-  handleBlock: provideHandleBlock(
-    FETCHER
-  )
+  handleTransaction: provideHandleTransaction(
+    MODULE_ADDRESS
+  ),
+  handleBlock: provideHandleBlock()
 }
