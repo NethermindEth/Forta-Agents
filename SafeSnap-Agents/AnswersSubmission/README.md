@@ -19,7 +19,7 @@ This agent detects answers events on the oracle for reality module questions.
     - `questionId`: the question Id who's answer is submitted.
     - `answer`: the submitted answer.
     - `user`: address of the user who submitted the answer.
-    - `commitement`: set to `yes` if a commitment is submitted, `no` otherwise.
+    - `commitment`: set to `yes` if a commitment is submitted, `no` otherwise.
 
 - GNOSIS-3-2
 
