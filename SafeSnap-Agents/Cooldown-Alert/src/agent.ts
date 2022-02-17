@@ -13,33 +13,35 @@ import {
   propQuestionCreateAbi,
 } from "./abi";
 import DataFetcher from "./data.fetcher";
-import {
-  providers
-} from "ethers";
 
 const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613".toLowerCase();
-let FETCHER: DataFetcher;
+const FETCHER: DataFetcher = new DataFetcher(MODULE_ADDRESS, getEthersProvider());
+let oracleAddress: string = "";
 
 let questionIds: string[] = [];
 
+/*
 // NOTE: COULDN'T GET IT TO WORK
 // BY SETTING ITS TYPE TO Initialize
 // FROM THE SDK
-export const provideInitialize = (
-  moduleAddress: string,
-  provider: providers.Provider
-) => {
-  FETCHER = new DataFetcher(moduleAddress, provider);
+const initialize = (): Initialize => {
+  oracleAddress = FETCHER.getOracle(blockEvent.blockNumber);
 }
+*/
 
 export const provideHandleTransaction = (
-  moduleAddress: string
+  moduleAddress: string,
+  questionIds: string[]
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
+    console.log("questionIds.length in provideHandleTransaction before filterLog is: " + questionIds.length);
+
     txEvent.filterLog(propQuestionCreateAbi, moduleAddress)
       .map(event => questionIds.push(event.args[0]));
+
+      console.log("questionIds.length in provideHandleTransaction after filterLog is: " + questionIds.length);
 
     return findings;
   }
@@ -65,18 +67,21 @@ const createFinding = (
   });
 };
 
-export const provideHandleBlock = (): HandleBlock => {
+export const provideHandleBlock = (
+  fetcher: DataFetcher,
+  oracle: string,
+  questionIds: string[]
+): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const oracleAddress: string = await FETCHER.getOracle(blockEvent.blockNumber);
 
-    console.log("questionIds.length is: " + questionIds.length);
-    console.log("questionIds before for loop is: " + questionIds);
+    console.log("questionIds.length in provideHandleBlock before for loop is: " + questionIds.length);
+    console.log("questionIds before in provideHandleBlock for loop is: " + questionIds);
 
     for(let id = 0; id < questionIds.length; id++) {
-      const finalizeTS: number = await FETCHER.getFinalizeTS(
+      const finalizeTS: number = await fetcher.getFinalizeTS(
         blockEvent.blockNumber,
-        oracleAddress,
+        oracle,
         questionIds[id]
       );
 
@@ -106,12 +111,13 @@ export const provideHandleBlock = (): HandleBlock => {
 }
 
 export default {
-  initialize: provideInitialize(
-    MODULE_ADDRESS,
-    getEthersProvider()
-  ),
   handleTransaction: provideHandleTransaction(
-    MODULE_ADDRESS
+    MODULE_ADDRESS,
+    questionIds
   ),
-  handleBlock: provideHandleBlock()
+  handleBlock: provideHandleBlock(
+    FETCHER,
+    oracleAddress,
+    questionIds
+  )
 }

@@ -12,8 +12,7 @@ import {
   TestBlockEvent,
   TestTransactionEvent,
   encodeParameters,
-  MockEthersProvider,
-  runBlock
+  MockEthersProvider
 } from "forta-agent-tools";
 import {
   propQuestionCreatedSig,
@@ -21,7 +20,6 @@ import {
   oracleIFace
 } from "./abi";
 import {
-  provideInitialize,
   provideHandleBlock,
   provideHandleTransaction
 } from "./agent";
@@ -33,6 +31,8 @@ import {
 const testMsgSender: string = createAddress("0xda456f");
 const testOracle: string = createAddress("0x2d5ef8");
 const testModule: string = createAddress("0xac689d");
+
+const testQuestionIds: string[] = [];
 
 const mockFetcher = {
   testModule,
@@ -64,10 +64,15 @@ describe("Cooldown Monitor Agent", () => {
   beforeEach(() => {
     resetAllWhenMocks();
 
-    handleBlock = provideHandleBlock();
-
     handleTransaction = provideHandleTransaction(
-      testModule 
+      testModule,
+      testQuestionIds
+    );
+
+    handleBlock = provideHandleBlock(
+      mockFetcher as any,
+      testOracle,
+      testQuestionIds
     );
   });
 
@@ -84,14 +89,6 @@ describe("Cooldown Monitor Agent", () => {
     ];
 
     const testData: string = "0xd34db3ef";
-
-    // NOTE: COULDN'T GET IT TO WORK
-    // BY SETTING ITS TYPE TO Initialize
-    // FROM THE SDK
-    provideInitialize(
-      testModule,
-      mockProvider as any
-    );
 
     mockProvider.addCallTo(
       testModule, testBlockNumber, moduleIFace,
@@ -110,23 +107,13 @@ describe("Cooldown Monitor Agent", () => {
       .setTimestamp(testBlockNumber)
       .addEventLog(propQuestionCreatedSig, testModule, testData, ...testTopics);
 
-    // NOTE: STILL HAD TO HAVE THIS SINCE I NEED TO
-    // HANDLE A TRANSACTION TO PROVIDE THE questionIds
-    // ARRAY WITH ITEMS
-    // await handleTransaction(txEvent);
+    await handleTransaction(txEvent);
 
     prepareMockFetcher(testBlockNumber, testOracle, [testQuestionId], [testFinalizeTS]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumber);
 
-    const findings: Finding[] = await runBlock(
-      {
-        handleBlock: handleBlock,
-        handleTransaction: handleTransaction
-      },
-      blockEvent,
-      txEvent
-    );
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -145,7 +132,6 @@ describe("Cooldown Monitor Agent", () => {
     ]);
   });
 
-  /*
   it("should return no Findings due to finalize timestamp being more than block number", async () => {
     const testPropId: string = "ab-12";
     const testQuestionId: string = "0x57c12963d94d1a2eec26eae9b064089728246725d507feb9e94a9703eb796a07";
@@ -159,14 +145,6 @@ describe("Cooldown Monitor Agent", () => {
     ];
 
     const testData: string = "0xf0ob4r";
-
-    // NOTE: COULDN'T GET IT TO WORK
-    // BY SETTING ITS TYPE TO Initialize
-    // FROM THE SDK
-    provideInitialize(
-      testModule,
-      mockProvider as any
-    );
 
     mockProvider.addCallTo(
       testModule, testBlockNumber, moduleIFace,
@@ -185,23 +163,13 @@ describe("Cooldown Monitor Agent", () => {
       .setTimestamp(testBlockNumber)
       .addEventLog(propQuestionCreatedSig, testModule, testData, ...testTopics);
 
-    // NOTE: STILL HAD TO HAVE THIS SINCE I NEED TO
-    // HANDLE A TRANSACTION TO PROVIDE THE questionIds
-    // ARRAY WITH ITEMS
     await handleTransaction(txEvent);
 
     prepareMockFetcher(testBlockNumber, testOracle, [testQuestionId], [testFinalizeTS]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumber);
 
-    const findings: Finding[] = await runBlock(
-      {
-        handleBlock: handleBlock,
-        handleTransaction: handleTransaction
-      },
-      blockEvent,
-      txEvent
-    );
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
     ]);
@@ -236,14 +204,6 @@ describe("Cooldown Monitor Agent", () => {
 
     const testDataTwo: string = "0xad32f5";
 
-    // NOTE: COULDN'T GET IT TO WORK
-    // BY SETTING ITS TYPE TO Initialize
-    // FROM THE SDK
-    provideInitialize(
-      testModule,
-      mockProvider as any
-    );
-
     mockProvider.addCallTo(
       testModule, testBlockNumber, moduleIFace,
       "oracle",
@@ -268,9 +228,6 @@ describe("Cooldown Monitor Agent", () => {
       .addEventLog(propQuestionCreatedSig, testModule, testDataOne, ...testTopicsOne)
       .addEventLog(propQuestionCreatedSig, testModule, testDataTwo, ...testTopicsTwo);
 
-    // NOTE: STILL HAD TO HAVE THIS SINCE I NEED TO
-    // HANDLE A TRANSACTION TO PROVIDE THE questionIds
-    // ARRAY WITH ITEMS
     await handleTransaction(txEvent);
 
     prepareMockFetcher(
@@ -282,14 +239,7 @@ describe("Cooldown Monitor Agent", () => {
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumber);
 
-    const findings: Finding[] = await runBlock(
-      {
-        handleBlock: handleBlock,
-        handleTransaction: handleTransaction
-      },
-      blockEvent,
-      txEvent
-    );
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -350,14 +300,6 @@ describe("Cooldown Monitor Agent", () => {
 
     const testDataTwo: string = "0xad32f5";
 
-    // NOTE: COULDN'T GET IT TO WORK
-    // BY SETTING ITS TYPE TO Initialize
-    // FROM THE SDK
-    provideInitialize(
-      testModule,
-      mockProvider as any
-    );
-
     mockProvider.addCallTo(
       testModule, testBlockNumber, moduleIFace,
       "oracle",
@@ -381,9 +323,6 @@ describe("Cooldown Monitor Agent", () => {
       .addEventLog(propQuestionCreatedSig, testModule, testDataOne, ...testTopicsOne)
       .addEventLog(propQuestionCreatedSig, testModule, testDataTwo, ...testTopicsTwo);
 
-    // NOTE: STILL HAD TO HAVE THIS SINCE I NEED TO
-    // HANDLE A TRANSACTION TO PROVIDE THE questionIds
-    // ARRAY WITH ITEMS
     await handleTransaction(txEvent);
 
     prepareMockFetcher(
@@ -395,14 +334,7 @@ describe("Cooldown Monitor Agent", () => {
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumber);
 
-    const findings: Finding[] = await runBlock(
-      {
-        handleBlock: handleBlock,
-        handleTransaction: handleTransaction
-      },
-      blockEvent,
-      txEvent
-    );
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
@@ -420,5 +352,4 @@ describe("Cooldown Monitor Agent", () => {
       })
     ]);
   });
-  */
 });
