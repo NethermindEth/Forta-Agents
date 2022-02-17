@@ -1,0 +1,33 @@
+import { providers, Contract } from "ethers";
+import LRU from "lru-cache";
+import { reality_abi } from "./utils";
+
+export default class OracleFetcher {
+  private provider: providers.Provider;
+  private cache: LRU<string, Promise<string>>;
+
+  constructor(provider: providers.Provider) {
+    this.provider = provider;
+    this.cache = new LRU<string, Promise<string>>({
+      max: 10000,
+    });
+  }
+
+  public async getOracle(
+    block: number | string,
+    contract: string
+  ): Promise<string> {
+    const key: string = `${contract} - ${block}`;
+    if (this.cache.has(key)) return this.cache.get(key) as Promise<string>;
+    const RealityContract = new Contract(
+      contract.toLowerCase(),
+      reality_abi,
+      this.provider
+    );
+    const totalPaymentReceived: Promise<string> = RealityContract.oracle({
+      blockTag: block,
+    });
+    this.cache.set(key, totalPaymentReceived);
+    return totalPaymentReceived;
+  }
+}
