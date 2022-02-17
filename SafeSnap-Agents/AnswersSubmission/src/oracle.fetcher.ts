@@ -24,10 +24,10 @@ export default class OracleFetcher {
       reality_abi,
       this.provider
     );
-    const totalPaymentReceived: Promise<string> = RealityContract.oracle({
+    const oracle: Promise<string> = RealityContract.oracle({
       blockTag: block,
     });
-    this.cache.set(key, totalPaymentReceived);
-    return totalPaymentReceived;
+    this.cache.set(key, oracle);
+    return oracle;
   }
 }
