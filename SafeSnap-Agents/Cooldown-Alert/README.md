@@ -11,7 +11,7 @@ This agent detects when a question, based on its `question_id`, begins its coold
 ## Alerts
 
 - SAFESNAP-2
-  - Fired when a transaction consumes more gas than 1,000,000 gas
+  - Fired when it detects a `question_id`'s cooldown has begun.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
