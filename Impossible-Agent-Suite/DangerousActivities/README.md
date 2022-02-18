@@ -1,4 +1,4 @@
-# impossible Finance Dangerous activities
+# Impossible Finance Dangerous Activities
 
 ## Description
 
