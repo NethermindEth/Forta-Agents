@@ -21,6 +21,7 @@ const tradeFeesFinding = (pair: string, oldFee: string, newFee: string): Finding
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Trade fee updated",
+    protocol: "Impossible Finance",
     alertId: "impossible-6-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -31,6 +32,7 @@ const withdrawalFeeRatioFinding = (pair: string, oldFee: string, newFee: string)
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Withdrawal fee ratio updated",
+    protocol: "Impossible Finance",
     alertId: "impossible-6-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,

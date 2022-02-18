@@ -6,6 +6,7 @@ const tradeFeesFinding: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Trade fee updated",
+    protocol: "Impossible Finance",
     alertId: "impossible-6-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -20,6 +21,7 @@ const withdrawalFeeRatioFinding: FindingGenerator = (log: LogDescription): Findi
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Withdrawal fee ratio updated",
+    protocol: "Impossible Finance",
     alertId: "impossible-6-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
