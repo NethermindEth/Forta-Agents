@@ -9,14 +9,12 @@ import utils, { Verifier } from './utils';
 import bscDangerous from './bsc.dangerous';
 import impossibleAddresses from './impossible.addresses';
 
-
 const DANGEROUS_VERIFIER: Verifier = utils.listVerifier(bscDangerous);
 const IMPOSSIBLE_VERIFIER: Verifier = utils.listVerifier(impossibleAddresses);
 
-
 const createFinding = (impossible: string[], dangerous: string[]) => Finding.fromObject({
   name: "Impossible Finance interaction monitor",
-  description: "Dangerous Interaaction detected",
+  description: "Dangerous Interaction detected",
   alertId: "impossible-dangerous",
   protocol: "Impossible Finance",
   severity: FindingSeverity.High,
@@ -26,7 +24,6 @@ const createFinding = (impossible: string[], dangerous: string[]) => Finding.fro
     dangerousAddresses: dangerous.toString(),
   }
 });
-
 
 export const provideHandleTransaction = (
   impossibleVerifier: Verifier,
@@ -52,7 +49,6 @@ export const provideHandleTransaction = (
 
   return findings;
 };
-
 
 export default {
   handleTransaction: provideHandleTransaction(

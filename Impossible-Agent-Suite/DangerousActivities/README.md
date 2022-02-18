@@ -11,7 +11,7 @@ This agent detects transactions involving impossible addresses and dangerous add
 ## Alerts
 
 - impossible-dangerous
-  - Fired when a transaction involve impossible addresses and dangerous addresses
+  - Fired when a transaction involves impossible addresses and dangerous addresses
   - Severity is always set to "High"
   - Type is always set to "Suspicious"
   - Metadata contains:

@@ -13,7 +13,7 @@ const toAddresses = (list: string[]) => list.map(x => createAddress(x));
 
 const createFinding = (impossible: string[], dangerous: string[]) => Finding.fromObject({
   name: "Impossible Finance interaction monitor",
-  description: "Dangerous Interaaction detected",
+  description: "Dangerous Interaction detected",
   alertId: "impossible-dangerous",
   protocol: "Impossible Finance",
   severity: FindingSeverity.High,
