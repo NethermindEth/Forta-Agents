@@ -3,12 +3,19 @@ import BigNumber from "bignumber.js";
 import abi from "./pool.abi";
 import Web3 from "web3";
 import { getTokensHere, getTotalValue, createFinding, getPools } from "./utils";
+import TimeTracker from "./time.tracker";
 
 const web3 = new Web3(getJsonRpcUrl());
+const tracker: TimeTracker = new TimeTracker();
+const ONE_HOUR: number = 3600000; // one hour in miliseconds
 
-// pool.tokenHere()> 20% of pool.totalValue()
+// pool.tokenHere()> 35% of pool.totalValue()
 
-function provideHandleFunction(web3: Web3): HandleBlock {
+function provideHandleFunction(
+  web3: Web3,
+  timeThreshold: number,
+  tracker: TimeTracker
+  ): HandleBlock {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const blockNumber = blockEvent.blockNumber;
@@ -28,9 +35,15 @@ function provideHandleFunction(web3: Web3): HandleBlock {
       const pool = value[0];
       const totalValue = new BigNumber(value[1]);
       const tokenHere = new BigNumber(value[2]);
-
-      if (tokenHere.isGreaterThan(totalValue.multipliedBy(0.2))) {
+      const [success, time] = tracker.tryGetLastTime(pool);
+      if (!success) {
+        // set this block as the time to start tracking the pool fund
+        tracker.update(pool, blockEvent.block.timestamp);
+      };
+      const elapsed: number = blockEvent.block.timestamp - time;
+      if (elapsed >= timeThreshold && tokenHere.isGreaterThan(totalValue.multipliedBy(0.35))) {
         findings.push(createFinding(pool, tokenHere.toNumber()));
+        tracker.update(pool, blockEvent.block.timestamp);
       }
     });
 
@@ -39,6 +52,6 @@ function provideHandleFunction(web3: Web3): HandleBlock {
 }
 
 export default {
-  handleBlock: provideHandleFunction(web3),
+  handleBlock: provideHandleFunction(web3, ONE_HOUR, tracker),
   provideHandleFunction,
 };

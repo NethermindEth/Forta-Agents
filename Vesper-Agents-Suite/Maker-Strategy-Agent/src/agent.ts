@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import TimeTracker from './time.tracker';
 import { getJsonRpcUrl, TransactionEvent } from "forta-agent";
 import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
@@ -20,8 +21,14 @@ import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import MakerFetcher from "./maker.fetcher";
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
+const tracker: TimeTracker = new TimeTracker();
+const ONE_HOUR: number = 3600000; // one hour in miliseconds
 
-export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
+export const provideMakerStrategyHandler = (
+  web3: Web3,
+  timeThreshold: number,
+  tracker: TimeTracker
+  ): HandleBlock => {
   const fetcher = new MakerFetcher(web3);
 
   return async (blockEvent: BlockEvent) => {
@@ -52,19 +59,19 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
           res.strategy,
           blockEvent.blockNumber
         );
-        
-         /* Commented to stop alert.
-        const highWater: Promise<number> = getHighWater(
-          web3,
-          res.strategy,
-          blockEvent.blockNumber
-        );
-        const isUnderWater: Promise<boolean> = checkIsUnderWaterTrue(
-          web3,
-          res.strategy,
-          blockEvent.blockNumber
-        );
-        */
+
+        /* Commented to stop alert.
+       const highWater: Promise<number> = getHighWater(
+         web3,
+         res.strategy,
+         blockEvent.blockNumber
+       );
+       const isUnderWater: Promise<boolean> = checkIsUnderWaterTrue(
+         web3,
+         res.strategy,
+         blockEvent.blockNumber
+       );
+       */
 
         await Promise.all([lowWater]).then(
           (values) => {
@@ -77,7 +84,14 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
               findings.push(createFindingIsUnderWater(res.strategy.toString()));
             }
             */
-            if (BigInt(collateralRatio) < BigInt(lowWater)) {
+            const [success, time] = tracker.tryGetLastTime(res.strategy);
+            if (!success) {
+              // set this block as the time to start tracking the strategy
+              tracker.update(res.strategy, blockEvent.block.timestamp);
+            };
+            const elapsed: number = blockEvent.block.timestamp - time;
+            if (elapsed >= timeThreshold && BigInt(collateralRatio) < BigInt(lowWater)) {
+              tracker.update(res.strategy, blockEvent.block.timestamp);
               findings.push(
                 createFindingLowWater(
                   res.strategy.toString(),
@@ -85,7 +99,7 @@ export const provideMakerStrategyHandler = (web3: Web3): HandleBlock => {
                   lowWater.toString()
                 )
               );
-            } 
+            }
             /* Commented to stop alert.
             else if (BigInt(collateralRatio) > BigInt(highWater))
               findings.push(
@@ -146,9 +160,9 @@ export const provideHandleTransaction = (web3: Web3) => {
     }
 
     const baseChangedHandler = provideFunctionCallsDetectorHandler(
-        createFindingBaseStabilityFee(),
-        JUG_CHANGE_BASE_FUNCTION_SIGNATURE,
-        { to: JUG_CONTRACT }
+      createFindingBaseStabilityFee(),
+      JUG_CHANGE_BASE_FUNCTION_SIGNATURE,
+      { to: JUG_CONTRACT }
     );
     findings.push(...(await baseChangedHandler(txEvent)));
 
@@ -157,7 +171,7 @@ export const provideHandleTransaction = (web3: Web3) => {
 };
 
 export default {
-  handleBlock: provideMakerStrategyHandler(web3),
+  handleBlock: provideMakerStrategyHandler(web3, ONE_HOUR, tracker),
   handleTransaction: provideHandleTransaction(web3),
   provideMakerStrategyHandler,
   provideHandleTransaction

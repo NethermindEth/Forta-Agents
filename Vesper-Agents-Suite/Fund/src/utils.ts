@@ -2,7 +2,7 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import Web3 from "web3";
 import { ControllerABI, AddressListABI } from "./abi";
 
-const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
+const controllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 const mockList = [
   "0xcA0c34A3F35520B9490C1d58b35A19AB64014D80",
@@ -23,7 +23,7 @@ const getTokensHere = async (contract: any, blockNumber: number) => {
 const createFinding = (pool: any, tokenfunds = 0): Finding => {
   return Finding.fromObject({
     name: "Pool Fund's Report",
-    description: "The idle funds in the pool > 20% of total value",
+    description: "The idle funds in the pool > 35% of total value",
     alertId: "Vesper-3",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -43,7 +43,7 @@ const getPools = async (
 
   const controllerContract = new web3.eth.Contract(
     ControllerABI,
-    controllerAddresss
+    controllerAddress
   );
   const addressListAddress: string = await controllerContract.methods
     .pools()

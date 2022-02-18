@@ -23,7 +23,7 @@ import {
   JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE,
   JUG_CONTRACT
 } from "./utils";
-
+import TimeTracker from './time.tracker';
 const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
 
 const createMock = (...args: Args) => {
@@ -69,11 +69,12 @@ const createFindingSFB = (
     }
   });
 };
-
+const threshold: number = 1000;
 
 describe("Vesper Maker Strategy Agent Test Suite", () => {
   let handleBlock: HandleBlock;
   let handleTransaction: HandleTransaction;
+  const tracker: TimeTracker = new TimeTracker();
 
   xit("should return empty findings if isUnderWater=False", async () => {
     const LOW_WATER = "2200000000000000000";
@@ -91,7 +92,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -117,7 +118,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -155,7 +156,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       0,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -182,11 +183,13 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
-    const blockEvent: BlockEvent = new TestBlockEvent();
+    const startBlock = 2000;
+    const blockEvent: BlockEvent = new TestBlockEvent().setTimestamp(startBlock)
+      .setNumber(10);
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
@@ -220,7 +223,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -250,7 +253,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -277,7 +280,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
@@ -317,7 +320,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       1,
     );
 
-    handleBlock = provideMakerStrategyHandler(mockWeb3);
+    handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
 
