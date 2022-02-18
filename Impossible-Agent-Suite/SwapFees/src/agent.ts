@@ -21,7 +21,6 @@ const ABI: string[] = [
 const initialize = async () => {
   const pairs: string[] = await FETCHER.getAllPairs("latest");
   pairs.forEach((pair) => PAIRS.add(pair));
-  console.log(pairs);
 };
 
 export const provideHandleTransaction =
