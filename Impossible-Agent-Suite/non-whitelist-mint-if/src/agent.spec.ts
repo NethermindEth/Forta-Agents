@@ -12,7 +12,7 @@ import {
 } from 'forta-agent-tools';
 
 import {
-  IF_ABI,
+  ERC20_ABI,
   provideHandleTransaction
 } from './agent';
 
@@ -20,10 +20,14 @@ import {
   ethers
 } from 'ethers';
 
+import {
+  Verifier,
+} from './verifier';
+
 // Function to easily create a finding
 const createFinding = (receiver: string) => Finding.fromObject({
   name: 'IF token non-whitelist mint',
-  description: 'Impossible Finance tokens have been minted to a non-whitelisted address',
+  description: 'IF tokens have been minted to a non-whitelisted address',
   alertId: 'IMPOSSIBLE-2-1',
   severity: FindingSeverity.High,
   type: FindingType.Suspicious,
@@ -48,25 +52,46 @@ const generateTransferLog = (contract: ethers.utils.Interface, from: string, to:
 describe('Impossible Finance token non-whitelist mint test suite', () => {
   let handler: HandleTransaction;
   let contract: ethers.utils.Interface;
+  let tokens: [string, Verifier, string, string][];
+  let mockedVerifier_IF: any;
+  let mockedVerifier_IDIA: any;
 
   // Set the zere address
   const ZERO_ADDR = createAddress('0x0');
-  // Set the IF token contract address
+  // Set the IF and IDIA token contract address
   const IF_ADDR = createAddress('0xa1');
-  // Create addresses for the whitelist
-  const WHITELIST_ADDRS: string[] = [
-    createAddress('0xb1'),
-    createAddress('0xb2'),
-    createAddress('0xb3'),
-    createAddress('0xb4')
-  ];
-  // Create an address outside the whitelist
-  const NON_WHITELIST_ADDR = createAddress('0xc1');
+  const IDIA_ADDR = createAddress('0xa2');
+  // Set address of another token that is not IF or IDIA
+  const IRRELEVANT_ADDR = createAddress('0xb1');
+  // Set a user address
+  const USER_ADDR = createAddress('0xc1');
 
   // Setup to be run before the tests
   beforeAll(() => {
-    handler = provideHandleTransaction(IF_ADDR, WHITELIST_ADDRS);
-    contract = new ethers.utils.Interface(IF_ABI);
+    contract = new ethers.utils.Interface(ERC20_ABI);
+  });
+
+  beforeEach(() => {
+    // Setup the mock functions for the verifiers
+    mockedVerifier_IF = jest.fn();
+    mockedVerifier_IDIA = jest.fn();
+    // Construct the `tokens` array to be passed to the handler with mock verifiers
+    tokens = [
+      [
+        IF_ADDR,
+        mockedVerifier_IF,
+        'IF',
+        'IMPOSSIBLE-2-1'
+      ],
+      [
+        IDIA_ADDR,
+        mockedVerifier_IDIA,
+        'IDIA',
+        'IMPOSSBILE-2-2'
+      ]
+    ];
+    // Get the agent handler
+    handler = provideHandleTransaction(tokens);
   });
 
   it('should ignore empty transactions', async () => {
@@ -80,12 +105,12 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
   
   it('should ignore mints from other addresses', async () => {
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, NON_WHITELIST_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
-        WHITELIST_ADDRS[0],
+        IRRELEVANT_ADDR,
         log.data,
         ...log.topics
       );
@@ -99,7 +124,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
   it('should ignore transfers that are not mints', async () => {
     // Generate the event log
-    const log = generateTransferLog(contract, WHITELIST_ADDRS[0], NON_WHITELIST_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, IRRELEVANT_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -117,8 +142,11 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
   });
 
   it('should ignore mints to whitelisted addresses', async () => {
+    // Mock the IF verifier to state that `USER_ADDR` is a whitelisted address
+    mockedVerifier_IF.mockResolvedValue(true);
+
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, WHITELIST_ADDRS[0], ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -136,8 +164,11 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
   });
 
   it('should detect single mint to non-whitelisted address', async () => {
+    // Mock the IF verifier to state that `USER_ADDR` is not a whitelisted address
+    mockedVerifier_IF.mockResolvedValue(false);
+
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, NON_WHITELIST_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -152,14 +183,18 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
     // Check if findings contain expected results
     expect(findings).toStrictEqual([
-      createFinding(NON_WHITELIST_ADDR)
+      createFinding(USER_ADDR)
     ]);
   });
 
   it('should detect multiple mints to non-whitelisted address', async () => {
+    // Mock the IF verifier twice to state that `USER_ADDR` is a whitelisted address
+    mockedVerifier_IF.mockResolvedValue(false);
+    mockedVerifier_IF.mockResolvedValue(false);
+    
     // Generate the event log
-    const log1 = generateTransferLog(contract, ZERO_ADDR, NON_WHITELIST_ADDR, ethers.BigNumber.from('100').toHexString());  
-    const log2 = generateTransferLog(contract, ZERO_ADDR, NON_WHITELIST_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log1 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log2 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -179,8 +214,8 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
     // Check if findings contain expected results
     expect(findings).toStrictEqual([
-      createFinding(NON_WHITELIST_ADDR),
-      createFinding(NON_WHITELIST_ADDR)
+      createFinding(USER_ADDR),
+      createFinding(USER_ADDR)
     ]);
   });
 });
