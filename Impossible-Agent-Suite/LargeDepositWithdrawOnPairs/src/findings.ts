@@ -7,7 +7,7 @@ type FindingGenerator = (
   reserve1: BigNumberish
 ) => Finding;
 
-const addLiquity: FindingGenerator = (
+const addLiquidityFinding: FindingGenerator = (
   log: LogDescription,
   reserve0: BigNumberish,
   reserve1: BigNumberish
@@ -15,6 +15,7 @@ const addLiquity: FindingGenerator = (
   Finding.fromObject({
     name: "Impossible Finance Pair Liquidity Action",
     description: "Large liquidity Added",
+    protocol: "Impossible Finance",
     alertId: "impossible-9-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -28,7 +29,7 @@ const addLiquity: FindingGenerator = (
     },
   });
 
-const removeLiquity: FindingGenerator = (
+const removeLiquidityFinding: FindingGenerator = (
   log: LogDescription,
   reserve0: BigNumberish,
   reserve1: BigNumberish
@@ -36,6 +37,7 @@ const removeLiquity: FindingGenerator = (
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Liquidity Removed",
+    protocol: "Impossible Finance",
     alertId: "impossible-9-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -51,8 +53,8 @@ const removeLiquity: FindingGenerator = (
   });
 
 const findingsRouter: Record<string, FindingGenerator> = {
-  Mint: addLiquity,
-  Burn: removeLiquity,
+  Mint: addLiquidityFinding,
+  Burn: removeLiquidityFinding,
 };
 
 const createFinding: FindingGenerator = (

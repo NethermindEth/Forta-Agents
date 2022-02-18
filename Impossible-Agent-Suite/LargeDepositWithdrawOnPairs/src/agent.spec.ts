@@ -18,7 +18,7 @@ const PAIRS: string[] = [
   createAddress("0xe570fad0"),
 ];
 
-const addLiquity = (
+const addLiquidityFinding = (
   pair: string,
   amount0: string,
   amount1: string,
@@ -29,13 +29,14 @@ const addLiquity = (
   Finding.fromObject({
     name: "Impossible Finance Pair Liquidity Action",
     description: "Large liquidity Added",
+    protocol: "Impossible Finance",
     alertId: "impossible-9-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: { pair, amount0, amount1, sender, reserve0, reserve1 },
   });
 
-const removeLiquity = (
+const removeLiquidityFinding = (
   pair: string,
   amount0: string,
   amount1: string,
@@ -47,6 +48,7 @@ const removeLiquity = (
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
     description: "Liquidity Removed",
+    protocol: "Impossible Finance",
     alertId: "impossible-9-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -96,8 +98,8 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      addLiquity(PAIRS[3], "20", "50", createAddress("0xdead"), "300", "100"),
-      addLiquity(PAIRS[2], "20", "50", createAddress("0xdead"), "100", "400"),
+      addLiquidityFinding(PAIRS[3], "20", "50", createAddress("0xdead"), "300", "100"),
+      addLiquidityFinding(PAIRS[2], "20", "50", createAddress("0xdead"), "100", "400"),
     ]);
   });
 
@@ -125,7 +127,7 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      removeLiquity(
+      removeLiquidityFinding(
         PAIRS[0],
         "30",
         "20",
@@ -133,7 +135,7 @@ describe("Large add/remove Liquidity agent tests suite", () => {
         createAddress("0xdead"),
         "30", "300"
       ),
-      removeLiquity(
+      removeLiquidityFinding(
         PAIRS[3],
         "30",
         "20",
@@ -174,8 +176,8 @@ describe("Large add/remove Liquidity agent tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      addLiquity(newPair, "5", "12", createAddress("0xabc"), "20", "1"),
-      removeLiquity(newPair, "15", "42", createAddress("0xdef"), createAddress("0x123"), "0", "210"),
+      addLiquidityFinding(newPair, "5", "12", createAddress("0xabc"), "20", "1"),
+      removeLiquidityFinding(newPair, "15", "42", createAddress("0xdef"), createAddress("0x123"), "0", "210"),
     ]);
   });
 
