@@ -15,6 +15,6 @@ This agent detects when a question, based on its `question_id`, begins its coold
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-    - 'questionId': ID of the question whose cooldown period has begun.
-    - 'questionFinalizeTimeStamp': Time when the question outcome is finalized and cooldown begins.
-    - 'blockNumber': Current block number.
+    - `questionId`: ID of the question whose cooldown period has begun.
+    - `questionFinalizeTimeStamp`: Time when the question outcome is finalized and cooldown begins.
+    - `blockNumber`: Current block number.
