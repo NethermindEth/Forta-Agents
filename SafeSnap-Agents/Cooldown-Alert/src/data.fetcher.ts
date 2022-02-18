@@ -18,7 +18,7 @@ export default class DataFetcher {
     public async getOracle(blockNumber: number): Promise<string> {
         const oracleAddress: string = await this.moduleContract
             .oracle({ blockTag: blockNumber });
-        return oracleAddress;
+        return oracleAddress.toLowerCase();
     }
 
     public async getFinalizeTS(
