@@ -1,3 +1,4 @@
+import { Interface } from "@ethersproject/abi";
 import {
   Finding,
   FindingSeverity,
@@ -5,9 +6,10 @@ import {
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
+import { when } from "jest-when";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
-import { provideHandleTransaction } from "./agent";
-import { ORACLE_ABI, REALITY_ABI } from "./utils";
+import { initialize, provideHandleTransaction } from "./agent";
+import { ORACLE_ABI } from "./utils";
 
 const createFinding = (
   name: string,
@@ -31,7 +33,7 @@ const createFinding = (
         commitment: commitment ? "yes" : "no",
       },
     });
-  else
+  else if (name === "LogAnswerReveal")
     return Finding.fromObject({
       name: "Answers submission alert",
       description: "An answer has been revealed",
@@ -45,11 +47,26 @@ const createFinding = (
         user,
       },
     });
+  else
+    return Finding.fromObject({
+      name: "Question finalized alert",
+      description: "A question has been finalized",
+      alertId: "GNOSIS-3-3",
+      type: FindingType.Info,
+      severity: FindingSeverity.Info,
+      protocol: "Gnosis SafeSnap",
+      metadata: {
+        questionId,
+        answer,
+      },
+    });
 };
+
 describe("answers submission agent", () => {
   const reality_module = createAddress("0xffee");
   const oracle_address = createAddress("0xfede");
   const different_oracle = createAddress("0xd4");
+  const WRONG_EVENT_SIGNATURE = "event wrong_sig()";
   const questions = [
     // array of test questions.
     "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc24",
@@ -59,20 +76,20 @@ describe("answers submission agent", () => {
   ];
 
   let handler: HandleTransaction;
+  const mockGetOracle = jest.fn();
+  const mockOracleFetcher = {
+    getOracle: mockGetOracle,
+  };
 
   beforeAll(async () => {
-    handler = provideHandleTransaction(reality_module, oracle_address);
-
-    // agent will save the questions ids.
-    const tx = new TestTransactionEvent();
-    questions.forEach((question) => {
-      const log = REALITY_ABI.encodeEventLog(
-        REALITY_ABI.getEvent("ProposalQuestionCreated"),
-        [question, "prop"]
-      );
-      tx.addAnonymousEventLog(reality_module, log.data, ...log.topics);
-    });
-    await handler(tx);
+    //init the mock fetcher
+    when(mockGetOracle)
+      .calledWith("latest", reality_module)
+      .mockReturnValue(oracle_address);
+    // init the agent ie. fetch the oracle.
+    handler = provideHandleTransaction("");
+    const initializer = initialize(reality_module, mockOracleFetcher as any);
+    await initializer();
   });
 
   it("should ignore empty transactions", async () => {
@@ -82,7 +99,7 @@ describe("answers submission agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore answers events emitted from a different oracle", async () => {
+  it("should ignore answers events emitted on a different oracle", async () => {
     const log1 = ORACLE_ABI.encodeEventLog(
       ORACLE_ABI.getEvent("LogNewAnswer"),
       [
@@ -106,45 +123,29 @@ describe("answers submission agent", () => {
         55,
       ]
     );
+    const log3 = ORACLE_ABI.encodeEventLog(ORACLE_ABI.getEvent("LogFinalize"), [
+      questions[1],
+      "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
+    ]);
+
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(different_oracle, log1.data, ...log1.topics)
-      .addAnonymousEventLog(different_oracle, log2.data, ...log2.topics);
+      .addAnonymousEventLog(different_oracle, log2.data, ...log2.topics)
+      .addAnonymousEventLog(different_oracle, log3.data, ...log3.topics);
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore answers for a non monitored question", async () => {
-    const different_questionId =
-      "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc22";
-
-    const log1 = ORACLE_ABI.encodeEventLog(
-      ORACLE_ABI.getEvent("LogNewAnswer"),
-      [
-        "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
-        different_questionId,
-        "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc26",
-        createAddress("0x3fe3"),
-        55,
-        4,
-        false,
-      ]
-    );
-    const log2 = ORACLE_ABI.encodeEventLog(
-      ORACLE_ABI.getEvent("LogAnswerReveal"),
-      [
-        different_questionId,
-        createAddress("0x3fe3"),
-        "0x7ca0eb796b737d1d6fce75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc26",
-        "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
-        4,
-        55,
-      ]
-    );
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(oracle_address, log1.data, ...log1.topics)
-      .addAnonymousEventLog(oracle_address, log2.data, ...log2.topics);
-
+  it("should ignore other events on the oracle", async () => {
+    const WRONG_ABI = new Interface([WRONG_EVENT_SIGNATURE]);
+    const log1 = WRONG_ABI.encodeEventLog(WRONG_ABI.getEvent("wrong_sig"), []);
+    const tx: TransactionEvent =
+      new TestTransactionEvent().addAnonymousEventLog(
+        oracle_address,
+        log1.data,
+        ...log1.topics
+      );
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
@@ -173,9 +174,14 @@ describe("answers submission agent", () => {
         55,
       ]
     );
+    const log3 = ORACLE_ABI.encodeEventLog(ORACLE_ABI.getEvent("LogFinalize"), [
+      questions[3],
+      "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
+    ]);
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(oracle_address, log1.data, ...log1.topics)
-      .addAnonymousEventLog(oracle_address, log2.data, ...log2.topics);
+      .addAnonymousEventLog(oracle_address, log2.data, ...log2.topics)
+      .addAnonymousEventLog(oracle_address, log3.data, ...log3.topics);
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
@@ -188,6 +194,13 @@ describe("answers submission agent", () => {
       ),
       createFinding(
         "LogAnswerReveal",
+        questions[3],
+        "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
+        createAddress("0x3fe3"),
+        undefined
+      ),
+      createFinding(
+        "LogFinalize",
         questions[3],
         "0x7ca0eb796b737d1d6fbe75cae0c351c4626ce7d826ceff3a9f91ec8d2282cc25",
         createAddress("0x3fe3"),
