@@ -28,7 +28,7 @@ const createFinding = (impossible: string[], dangerous: string[]) => Finding.fro
 });
 
 
-const provideHandleTransaction = (
+export const provideHandleTransaction = (
   impossibleVerifier: Verifier,
   dangerousVerifier: Verifier, 
 ): HandleTransaction => async (txEvent: TransactionEvent) => {
