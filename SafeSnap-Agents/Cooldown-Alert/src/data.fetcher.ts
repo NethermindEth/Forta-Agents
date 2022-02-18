@@ -26,7 +26,6 @@ export default class DataFetcher {
         oracleAddress: string,
         questionId: string
     ): Promise<number> {
-       // NOTE: TRIED CALLING getOracle FROM HERE, BUT WOULDN'T WORK
        const oracleContract: Contract = new Contract(oracleAddress, oracleIFace, this.provider);
        const finalizeTS: number = await oracleContract.getFinalizeTS(questionId, { blockTag: blockNumber });
        return finalizeTS;

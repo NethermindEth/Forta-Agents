@@ -37,7 +37,7 @@ describe("DataFetcher tests suite", () => {
       { inputs:[], outputs:[testOracle] },
     );
 
-    let oracleAddress: string = await fetcher.getOracle(testBlockNumber)
+    const oracleAddress: string = await fetcher.getOracle(testBlockNumber)
     expect(oracleAddress).toStrictEqual(testOracle);
   })
 
@@ -47,14 +47,13 @@ describe("DataFetcher tests suite", () => {
       "oracle",
       { inputs:[], outputs:[testOracle] },
     );
+    mockProvider.addCallTo(
+      testOracle, testBlockNumber, oracleIFace,
+      "getFinalizeTS",
+      { inputs:[testQuestionId], outputs:[testFinalizeTS] },
+    );
 
     const oracleAddress: string = await fetcher.getOracle(testBlockNumber)
-
-    mockProvider.addCallTo(
-        testOracle, testBlockNumber, oracleIFace,
-        "getFinalizeTS",
-        { inputs:[testQuestionId], outputs:[testFinalizeTS] },
-    );
 
     const finalizeTS: number = await fetcher.getFinalizeTS(
       testBlockNumber,
