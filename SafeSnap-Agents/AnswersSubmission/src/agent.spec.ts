@@ -6,9 +6,8 @@ import {
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
-import { when } from "jest-when";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
-import { initialize, provideHandleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { ORACLE_ABI } from "./utils";
 
 const createFinding = (
@@ -76,20 +75,9 @@ describe("answers submission agent", () => {
   ];
 
   let handler: HandleTransaction;
-  const mockGetOracle = jest.fn();
-  const mockOracleFetcher = {
-    getOracle: mockGetOracle,
-  };
 
   beforeAll(async () => {
-    //init the mock fetcher
-    when(mockGetOracle)
-      .calledWith("latest", reality_module)
-      .mockReturnValue(oracle_address);
-    // init the agent ie. fetch the oracle.
-    handler = provideHandleTransaction("");
-    const initializer = initialize(reality_module, mockOracleFetcher as any);
-    await initializer();
+    handler = provideHandleTransaction(oracle_address);
   });
 
   it("should ignore empty transactions", async () => {

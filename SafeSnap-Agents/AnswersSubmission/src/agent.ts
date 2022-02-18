@@ -20,8 +20,6 @@ export const provideHandleTransaction =
   (_oracle: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    if (!_oracle) _oracle = oracle;
-
     // get events logs on the oracle.
     txEvent.filterLog(EVENTS_SIGNATURES, _oracle).map((log) => {
       findings.push(createFinding(log));
