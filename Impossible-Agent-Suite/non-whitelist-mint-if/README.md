@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects IF and IDIA token mints to non-whitelisted addresses
+This agent detects IF and IDIA token mints to non-whitelisted addresses, excluding mints through the function `staxMigrate`
 
 ## Supported Chains
 

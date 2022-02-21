@@ -12,7 +12,7 @@ import {
 } from 'forta-agent-tools';
 
 import {
-  ERC20_ABI,
+  IF_ABI,
   provideHandleTransaction
 } from './agent';
 
@@ -68,7 +68,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
   // Setup to be run before the tests
   beforeAll(() => {
-    contract = new ethers.utils.Interface(ERC20_ABI);
+    contract = new ethers.utils.Interface(IF_ABI);
   });
 
   beforeEach(() => {
@@ -150,6 +150,39 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(
+        IF_ADDR,
+        log.data,
+        ...log.topics
+      );
+
+    // Run the handler on the test transaction
+    const findings: Finding[] = await handler(tx);
+
+    // Check if findings contain expected results
+    expect(findings).toStrictEqual([]);
+  });
+
+  it('should ignore mints through calls to `staxMigrate`', async () => {
+    // Mock the IF verifier to state that `USER_ADDR` is a whitelisted address
+    mockedVerifier_IF.mockResolvedValue(false);
+
+    // Generate the event log
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+
+    // Create the test transaction and attach the event log
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        to: IF_ADDR,
+        from: USER_ADDR,
+        input: contract.encodeFunctionData(
+          'staxMigrate',
+          [
+            ethers.BigNumber.from('100')
+          ]
+        ),
+        output: '0x0'
+      })
       .addAnonymousEventLog(
         IF_ADDR,
         log.data,

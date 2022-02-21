@@ -34,8 +34,9 @@ const TOKENS: [string, Verifier, string, string][] = [
 ];
 
 // Impossible Finance token contract ABI with relevant events/functions
-export const ERC20_ABI = [
+export const IF_ABI= [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
+  'function staxMigrate(uint)'
 ];
 
 export const provideHandleTransaction = (tokens: [string, Verifier, string, string][]): HandleTransaction => {
@@ -50,35 +51,37 @@ export const provideHandleTransaction = (tokens: [string, Verifier, string, stri
       const verifierFunction = tokendata[1];
       const tokenSymbol = tokendata[2];
       const alertId = tokendata[3];
-      // Get all `Transfer` events emitted from `tokenAddress`
-      const transfers = tx.filterLog(ERC20_ABI, tokenAddress);
-      // For each transfer
-      await Promise.all(transfers.map(async (transfer) => {
-        // If the `from` address is the zero address
-        if(transfer.args.from == ZERO_ADDR) {
-          // This transfer is a mint so run the verifier on the recipient address
-          const whitelisted = await verifierFunction(transfer.args.from);
-
-          console.log('whitelisted: ' + whitelisted);
-          // If `whitelisted` is false then the address is not in the whitelist
-          if(!whitelisted) {
-            // Create a finding
-            findings.push(
-              Finding.fromObject({
-                name: tokenSymbol + ' token non-whitelist mint',
-                description: tokenSymbol + ' tokens have been minted to a non-whitelisted address',
-                alertId: alertId,
-                severity: FindingSeverity.High,
-                type: FindingType.Suspicious,
-                protocol: 'Impossible Finance',
-                metadata: {
-                  receiver: transfer.args.to.toLowerCase(),
-                }
-              })
-            );
+      // If `staxMigrate` has not been called
+      const migrateCalls = tx.filterFunction(IF_ABI[1], tokenAddress);
+      if(migrateCalls.length == 0) {
+        // Get all `Transfer` events emitted from `tokenAddress`
+        const transfers = tx.filterLog(IF_ABI[0], tokenAddress);
+        // For each transfer
+        await Promise.all(transfers.map(async (transfer) => {
+          // If the `from` address is the zero address
+          if(transfer.args.from == ZERO_ADDR) {
+            // This transfer is a mint so run the verifier on the recipient address
+            const whitelisted = await verifierFunction(transfer.args.from);
+            // If `whitelisted` is false then the address is not in the whitelist
+            if(!whitelisted) {
+              // Create a finding
+              findings.push(
+                Finding.fromObject({
+                  name: tokenSymbol + ' token non-whitelist mint',
+                  description: tokenSymbol + ' tokens have been minted to a non-whitelisted address',
+                  alertId: alertId,
+                  severity: FindingSeverity.High,
+                  type: FindingType.Suspicious,
+                  protocol: 'Impossible Finance',
+                  metadata: {
+                    receiver: transfer.args.to.toLowerCase(),
+                  }
+                })
+              );
+            }
           }
-        }
-      }));
+        }));
+      }
     }));
 
     // Return findings
