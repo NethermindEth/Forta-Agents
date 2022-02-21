@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "forta-agent-tools": "^1.0.34",
-    "bignumber.js": "^9.0.1",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",

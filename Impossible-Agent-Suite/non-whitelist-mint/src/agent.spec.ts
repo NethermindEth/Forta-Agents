@@ -17,6 +17,7 @@ import {
 } from './agent';
 
 import {
+  BigNumber,
   ethers
 } from 'ethers';
 
@@ -44,7 +45,7 @@ const generateTransferLog = (contract: ethers.utils.Interface, from: string, to:
     [
       createAddress(from),
       createAddress(to),
-      ethers.BigNumber.from(value),
+      BigNumber.from(value),
     ],
   );
 }
@@ -68,10 +69,8 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
   // Setup to be run before the tests
   beforeAll(() => {
+    // Setup the ethers interface
     contract = new ethers.utils.Interface(IF_ABI);
-  });
-
-  beforeEach(() => {
     // Setup the mock functions for the verifiers
     mockedVerifier_IF = jest.fn();
     mockedVerifier_IDIA = jest.fn();
@@ -94,6 +93,10 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
     handler = provideHandleTransaction(tokens);
   });
 
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('should ignore empty transactions', async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
 
@@ -105,7 +108,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
   
   it('should ignore mints from other addresses', async () => {
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -124,7 +127,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
 
   it('should ignore transfers that are not mints', async () => {
     // Generate the event log
-    const log = generateTransferLog(contract, IRRELEVANT_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, IRRELEVANT_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -146,7 +149,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
     mockedVerifier_IF.mockResolvedValue(true);
 
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -168,7 +171,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
     mockedVerifier_IF.mockResolvedValue(false);
 
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -178,7 +181,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
         input: contract.encodeFunctionData(
           'staxMigrate',
           [
-            ethers.BigNumber.from('100')
+            BigNumber.from('100')
           ]
         ),
         output: '0x0'
@@ -201,7 +204,7 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
     mockedVerifier_IF.mockResolvedValue(false);
 
     // Generate the event log
-    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()
@@ -226,8 +229,8 @@ describe('Impossible Finance token non-whitelist mint test suite', () => {
     mockedVerifier_IF.mockResolvedValue(false);
     
     // Generate the event log
-    const log1 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
-    const log2 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, ethers.BigNumber.from('100').toHexString());  
+    const log1 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
+    const log2 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());  
 
     // Create the test transaction and attach the event log
     const tx: TransactionEvent = new TestTransactionEvent()

@@ -29,7 +29,7 @@ This agent detects IF and IDIA token mints to non-whitelisted addresses, excludi
 
 The agent behaviour can be verified with the following transactions (Ethereum Network):
 
-- `0xe8d2ee70539e9dae26704569d6576ba0f5137908347a42a482fa22e8f88217bf` (IF - Mint to authorized address)I
+- `0xe8d2ee70539e9dae26704569d6576ba0f5137908347a42a482fa22e8f88217bf` (IF - Mint to authorized address)
 - `0xb44ef8a0fbe33872edee723b90465ccdf1269a24cbc0119bfcf7bb31f8cfb3bb` (IDIA - Mint to authorized address)
 
 Note that there are no existing transactions where a mint to a non-whitelisted address has occurred
