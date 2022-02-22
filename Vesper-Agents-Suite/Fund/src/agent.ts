@@ -9,18 +9,16 @@ const web3 = new Web3(getJsonRpcUrl());
 const tracker: TimeTracker = new TimeTracker();
 const ONE_HOUR: number = 3600000; // one hour in miliseconds
 
-// pool.tokenHere()> 35% of pool.totalValue()
-
 function provideHandleFunction(
   web3: Web3,
-  timeThreshold: number,
+  cacheTime: number,
   tracker: TimeTracker
   ): HandleBlock {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const blockNumber = blockEvent.blockNumber;
 
-    const pools: any = await getPools(web3, blockNumber);
+    const pools: any = await getPools();
     const promises: Promise<[any, any, any]>[] = [];
     pools.forEach((value: string) => {
       const contract = new web3.eth.Contract(abi as any, value);
@@ -41,7 +39,7 @@ function provideHandleFunction(
         tracker.update(pool, blockEvent.block.timestamp);
       };
       const elapsed: number = blockEvent.block.timestamp - time;
-      if (elapsed >= timeThreshold && tokenHere.isGreaterThan(totalValue.multipliedBy(0.35))) {
+      if (elapsed >= cacheTime && tokenHere.isGreaterThan(totalValue.multipliedBy(0.35))) {
         findings.push(createFinding(pool, tokenHere.toNumber()));
         tracker.update(pool, blockEvent.block.timestamp);
       }

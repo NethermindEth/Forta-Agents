@@ -2,6 +2,7 @@ import Web3 from "web3";
 import TimeTracker from './time.tracker';
 import { getJsonRpcUrl, TransactionEvent } from "forta-agent";
 import { BlockEvent, Finding, HandleBlock } from "forta-agent";
+import LRU from "lru-cache";
 import {
   checkIsUnderWaterTrue,
   createFindingHighWater,
@@ -19,26 +20,43 @@ import {
 } from "./utils";
 import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import MakerFetcher from "./maker.fetcher";
+const MAKER_STRATEGY_KEY = "_makerStrategies"
 
 const web3: Web3 = new Web3(getJsonRpcUrl());
+const cache: LRU<string, string[]> = new LRU<string, string[]>({ max: 100 });
 const tracker: TimeTracker = new TimeTracker();
-const ONE_HOUR: number = 3600000; // one hour in miliseconds
+let cacheTime: number = 3600000; // one hour in miliseconds
+
+export const setCacheTime = (time: number) => {
+  cacheTime = time;
+}
+
+const getMakerStrategies = async (blockNumber: number, fetcher: any) => {
+  const currentTime = Date.now()
+  const [success, time] = tracker.tryGetLastTime(MAKER_STRATEGY_KEY);
+  if (!success || (currentTime - time >= cacheTime)) {
+    const makerStrategies = await fetcher.getMakerStrategies(blockNumber);
+    tracker.update(MAKER_STRATEGY_KEY, currentTime);
+    cache.set(MAKER_STRATEGY_KEY, makerStrategies)
+    return makerStrategies;
+  }
+  return cache.get(MAKER_STRATEGY_KEY)
+}
 
 export const provideMakerStrategyHandler = (
   web3: Web3,
   timeThreshold: number,
   tracker: TimeTracker
-  ): HandleBlock => {
+): HandleBlock => {
   const fetcher = new MakerFetcher(web3);
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const promises: any = [];
 
-    const makers = await fetcher.getMakerStrategies(blockEvent.blockNumber);
-
+    const makers = await getMakerStrategies(blockEvent.blockNumber, fetcher);
     if (makers) {
-      makers.forEach((strategy) => {
+      makers.forEach((strategy: string) => {
         promises.push(
           getCollateralRatio(web3, strategy, blockEvent.blockNumber).then(
             (res) => {
@@ -90,7 +108,7 @@ export const provideMakerStrategyHandler = (
               tracker.update(res.strategy, blockEvent.block.timestamp);
             };
             const elapsed: number = blockEvent.block.timestamp - time;
-            if (elapsed >= timeThreshold && BigInt(collateralRatio) < BigInt(lowWater)) {
+            if (elapsed >= timeThreshold && BigInt(collateralRatio) > BigInt(0) && BigInt(collateralRatio) < BigInt(lowWater)) {
               tracker.update(res.strategy, blockEvent.block.timestamp);
               findings.push(
                 createFindingLowWater(
@@ -128,10 +146,10 @@ export const provideHandleTransaction = (web3: Web3) => {
 
     if (!txEvent.status) return [];
 
-    const makers = await fetcher.getMakerStrategies(txEvent.blockNumber);
+    const makers = await getMakerStrategies(txEvent.blockNumber, fetcher);
 
     if (makers) {
-      makers.forEach((strategy) => {
+      makers.forEach((strategy: string) => {
         promises.push(
           getCollateralType(web3, strategy, txEvent.blockNumber).then((res) => {
             return {
@@ -171,7 +189,7 @@ export const provideHandleTransaction = (web3: Web3) => {
 };
 
 export default {
-  handleBlock: provideMakerStrategyHandler(web3, ONE_HOUR, tracker),
+  handleBlock: provideMakerStrategyHandler(web3, cacheTime, tracker),
   handleTransaction: provideHandleTransaction(web3),
   provideMakerStrategyHandler,
   provideHandleTransaction

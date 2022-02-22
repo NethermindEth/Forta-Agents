@@ -14,9 +14,11 @@
     "publish": "forta-agent publish",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
+    "push": "forta-agent push",
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.26.0",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.32",

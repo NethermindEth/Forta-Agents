@@ -13,32 +13,3 @@ export const ControllerABI = [
   },
 ] as AbiItem[];
 
-export const AddressListABI = [
-  {
-    name: "length",
-    type: "function",
-    inputs: [],
-    outputs: [
-      {
-        type: "uint256",
-        name: "",
-      },
-    ],
-  },
-  {
-    name: "at",
-    type: "function",
-    inputs: [
-      {
-        type: "uint256",
-        name: "index",
-      },
-    ],
-    outputs: [
-      {
-        type: "address",
-        name: "",
-      },
-    ],
-  },
-] as AbiItem[];

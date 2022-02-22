@@ -1,7 +1,7 @@
 {
   "name": "vesper-3",
   "version": "0.0.1",
-  "description": "Forta agent to detect if idle funds in the pool > 10% of total value",
+  "description": "Forta agent to detect if idle funds in the pool > 35% of total value",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -18,6 +18,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.26.0",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.32"

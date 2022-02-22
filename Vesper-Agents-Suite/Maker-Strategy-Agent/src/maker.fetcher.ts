@@ -3,16 +3,18 @@ import LRU from "lru-cache";
 import { isZeroAddress } from "ethereumjs-util";
 import {
   Accountant_ABI,
-  AddressListABI,
+  V2POOL_ABI,
   CONTROLLER_ABI,
   PoolABI,
   Strategy_ABI
 } from "./abi";
+const axios = require('axios')
+const apiUrl = 'https://api.vesper.finance/dashboard?version=2'
+const status = 'operative'
+const allowedStages = ['prod', 'beta', 'orbit']
 
 type blockNumber = string | number;
 type strategies = string[];
-
-const CONTROLLER_CONTRACT = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export default class MakerFetcher {
   private cache: LRU<blockNumber, strategies>;
@@ -23,42 +25,28 @@ export default class MakerFetcher {
     this.web3 = web3;
   }
 
-  private getPools = async (
-    blockNumber: string | number = "latest"
-  ): Promise<string[]> => {
-    const pools: string[] = [];
-    const poolCalls = [];
+  private getPools = async () => {
+    const list = await axios
+      .get(apiUrl)
+      .then((response: { data: { pools: any[]; }; }) => {
+        return {
+          v2:
+            response.data.pools
+              .filter((pool: { status: string; stage: string; contract: { version: any }; }) => {
+                return pool.status === status && allowedStages.includes(pool.stage) && pool.contract.version.includes("2.x")
+              })
+              .map(pool => pool.contract.address)
+          ,
+          v3: response.data.pools
+            .filter((pool: { status: string; stage: string; contract: { version: any }; }) => {
+              return pool.status === status && allowedStages.includes(pool.stage) && !pool.contract.version.includes("2.x")
+            })
+            .map(pool => pool.contract.address)
 
-    const controllerContract = new this.web3.eth.Contract(
-      CONTROLLER_ABI,
-      CONTROLLER_CONTRACT
-    );
-    const addressListAddress = await controllerContract.methods
-      .pools()
-      .call({}, blockNumber);
-
-    const addressListContract = new this.web3.eth.Contract(
-      AddressListABI,
-      addressListAddress
-    );
-    const poolsLength: number = Number(
-      await addressListContract.methods.length().call({}, blockNumber)
-    );
-
-    for (let i = 0; i < poolsLength; i++) {
-      poolCalls.push(addressListContract.methods.at(i).call({}, blockNumber));
-    }
-
-    await Promise.all(poolCalls).then((res) => {
-      res.forEach(([pool, _]) => {
-        if (!isZeroAddress(pool)) {
-          pools.push(pool);
         }
-      });
-    });
-
-    return pools;
-  };
+      })
+    return list
+  }
 
   private getPromise = (pool: string, blockNumber: string | number) => {
     const contract = new this.web3.eth.Contract(PoolABI, pool);
@@ -68,13 +56,13 @@ export default class MakerFetcher {
   };
 
   private getPoolAccountants = async (
-    blockNumber: string | number, 
+    blockNumber: string | number,
     pools: string[],
   ): Promise<string[]> => {
     const poolAccountants: string[] = [];
 
     const poolAccountantCalls = pools.map((pool) => {
-      return this.getPromise(pool, blockNumber).catch(() => {});
+      return this.getPromise(pool, blockNumber).catch(() => { });
     });
 
     await Promise.all(poolAccountantCalls).then((res) => {
@@ -89,17 +77,20 @@ export default class MakerFetcher {
   };
 
   private getV2Strategies = async (
-    blockNumber: string | number, 
+    blockNumber: string | number,
     pools: string[],
   ): Promise<string[]> => {
     let v2Strategies: string[] = [];
-
-    const controllerContract = new this.web3.eth.Contract(
-      CONTROLLER_ABI,
-      CONTROLLER_CONTRACT
-    );
-
-    const v2StrategyCalls = pools.map((pool) => {
+    const v2StrategyCalls = pools.map(async (pool) => {
+      const poolV2Contract = new this.web3.eth.Contract(
+        V2POOL_ABI,
+        pool
+      );
+      const controller = await poolV2Contract.methods.controller().call()
+      const controllerContract = new this.web3.eth.Contract(
+        CONTROLLER_ABI,
+        controller
+      );
       return controllerContract.methods.strategy(pool).call({}, blockNumber);
     });
 
@@ -115,11 +106,11 @@ export default class MakerFetcher {
   };
 
   private getV3Strategies = async (
-    blockNumber: string | number, 
+    blockNumber: string | number,
     pools: string[],
   ) => {
     let v3Strategies: string[] = [];
-    
+
     const poolAccountants: string[] = await this.getPoolAccountants(
       blockNumber,
       pools,
@@ -139,7 +130,7 @@ export default class MakerFetcher {
           }
         });
       });
-    } catch {}
+    } catch { }
 
     return v3Strategies;
   };
@@ -149,12 +140,13 @@ export default class MakerFetcher {
   ): Promise<string[]> => {
     if (blockNumber != "latest" && this.cache.get(blockNumber) !== undefined)
       return this.cache.get(blockNumber) as string[];
-
-    const pools: string[] = await this.getPools(blockNumber);
+    const pools = await this.getPools()
+    const v2Pools: string[] = pools.v2;
+    const v3Pools: string[] = pools.v3;
 
     let [V2, V3] = await Promise.all([
-      this.getV2Strategies(blockNumber, pools),
-      this.getV3Strategies(blockNumber, pools)
+      this.getV2Strategies(blockNumber, v2Pools),
+      this.getV3Strategies(blockNumber, v3Pools)
     ]);
 
     V2 = Array.from(new Set<string>(V2));
@@ -166,7 +158,7 @@ export default class MakerFetcher {
         strat,
       );
       const name: string = await sContract.methods.NAME().call({}, blockNumber);
-      if(!name.includes("Maker")) return BigInt(0);
+      if (!name.includes("Maker")) return BigInt(0);
       return BigInt(await sContract.methods.totalLocked().call({}, blockNumber));
     });
 
@@ -176,7 +168,7 @@ export default class MakerFetcher {
         strat,
       );
       const name: string = await sContract.methods.NAME().call({}, blockNumber);
-      if(!name.includes("Maker")) return BigInt(0);
+      if (!name.includes("Maker")) return BigInt(0);
       return BigInt(await sContract.methods.totalValue().call({}, blockNumber));
     });
 

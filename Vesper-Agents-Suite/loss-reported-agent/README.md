@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects when a V3 Vesper Strategy report looses through `reportLoss` o `reportEarnings` method.
+This agent detects when a V3 Vesper Strategy reports loss through `reportLoss` or `reportEarnings` method.
 
 
 ## Alerts
