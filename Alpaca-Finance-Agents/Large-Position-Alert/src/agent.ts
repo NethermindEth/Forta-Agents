@@ -16,7 +16,7 @@ const VAULTS_THRESHOLD_MAP: Map<string, BigNumber> = new Map([
   ["0x3282d2a151ca00BfE7ed17Aa16E42880248CD3Cd".toLowerCase(), BigNumber.from("100000000000000000000000")]  // 100,000 TUSD
 ])
 
-const workEventAbi: string = "event Work(uint256 id, uint256 loan)";
+const workEventAbi: string = "event Work(uint256 indexed id, uint256 loan)";
 
 export const createFinding = (posId: number, loanAmount: BigNumber, vaultAddress: string): Finding => {
   return Finding.fromObject({
