@@ -32,7 +32,7 @@ describe("PairFetcher test suite", () => {
       const addr: string = createAddress(`0xDA0${i}`);
       const fetcher: PairFetcher = new PairFetcher(addr, mockProvider as any);
 
-      expect(fetcher.factory).toStrictEqual(addr);
+      expect(fetcher.factoryAddress).toStrictEqual(addr);
     }
   });
 
