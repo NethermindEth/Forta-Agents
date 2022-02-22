@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions involving impossible addresses and dangerous addresses
+This agent detects transactions involving Impossible Finance addresses and known dangerous addresses
 
 ## Supported Chains
 
@@ -10,8 +10,8 @@ This agent detects transactions involving impossible addresses and dangerous add
 
 ## Alerts
 
-- impossible-dangerous
-  - Fired when a transaction involves impossible addresses and dangerous addresses
+- IMPOSSIBLE-8
+  - Fired when a transaction involves Impossible Finance addresses and known dangerous addresses
   - Severity is always set to "High"
   - Type is always set to "Suspicious"
   - Metadata contains:
