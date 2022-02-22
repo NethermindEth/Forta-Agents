@@ -1,24 +1,7 @@
-import axios, { AxiosRequestConfig } from "axios";
-import { vaultRegistryInterface, vaultInterface } from "./abi";
-import { providers, BigNumber, Contract } from "ethers";
+import { AxiosRequestConfig } from "axios";
+import { providers, BigNumber } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import ganache from "ganache-core";
-
-type ForkFactory = (
-  jsonRpcURL: string,
-  block: number,
-  unlockedAccounts: string[]
-) => providers.Web3Provider;
-
-type InvestorInfo = {
-  vault: {
-    id: string;
-  };
-
-  account: {
-    id: string;
-  };
-};
 
 const getGraphQuery = (vault: string) => {
   return {
@@ -38,7 +21,7 @@ const getGraphQuery = (vault: string) => {
   };
 };
 
-const makeRequestOptions = (vault: string): AxiosRequestConfig => {
+export const makeRequestOptions = (vault: string): AxiosRequestConfig => {
   return {
     method: "POST",
     url: "https://api.thegraph.com/subgraphs/name/salazarguille/yearn-vaults-v2-subgraph-mainnet",
@@ -47,26 +30,6 @@ const makeRequestOptions = (vault: string): AxiosRequestConfig => {
     },
     data: JSON.stringify(getGraphQuery(vault)),
   };
-};
-
-export const getBiggerInvestors = async (
-  vault: string
-): Promise<InvestorInfo[]> => {
-  const data = (await axios(makeRequestOptions(vault.toLowerCase()))) as any;
-  return data.data.data.accountVaultPositions;
-};
-
-export const getVaults = async (
-  vaultRegistryAddress: string,
-  blockNumber: number,
-  provider: providers.Provider
-): Promise<string[]> => {
-  const vaultRegistryContract = new Contract(
-    vaultRegistryAddress,
-    vaultRegistryInterface,
-    provider
-  );
-  return vaultRegistryContract.assetsAddresses({ blockTag: blockNumber });
 };
 
 export const createFinding = (
@@ -105,60 +68,4 @@ export const getForkProvider = (
       unlocked_accounts: unlockedAddresses,
     }) as any
   );
-};
-
-const withdrawForUser = async (
-  investorInfo: InvestorInfo,
-  balanceBefore: BigNumber,
-  forkProvider: providers.Web3Provider
-): Promise<BigNumber> => {
-  const vaultAddress = investorInfo.vault.id;
-  const investor = investorInfo.account.id;
-
-  const vaultContract = new Contract(
-    vaultAddress,
-    vaultInterface,
-    forkProvider.getSigner(investor)
-  );
-
-  try {
-    await vaultContract.withdraw(balanceBefore);
-  } catch {}
-
-  const balanceAfter = await vaultContract.balanceOf(investor);
-
-  return balanceBefore.sub(balanceAfter);
-};
-
-export const getStatsForVault = async (
-  topInvestors: InvestorInfo[],
-  jsonRpcURL: string,
-  blockNumber: number,
-  createFork: ForkFactory
-): Promise<[string, BigNumber, BigNumber, BigNumber]> => {
-  const investors = topInvestors.map((investor) => investor.account.id);
-  const forkProvider = createFork(jsonRpcURL, blockNumber, investors);
-
-  const vault = topInvestors[0].vault.id;
-  const vaultContract = new Contract(vault, vaultInterface, forkProvider);
-
-  const totalSupply = await vaultContract.totalSupply();
-  const balancesPromises = investors.map((investor) =>
-    vaultContract.balanceOf(investor)
-  );
-  const balances = await Promise.all(balancesPromises);
-
-  const totalInvestorValues = balances.reduce((acum, value) => acum.add(value));
-
-  let ableToWithdrawn = BigNumber.from(0);
-  for (let i = 0; i < topInvestors.length; i++) {
-    const withdrawnByInvestor = await withdrawForUser(
-      topInvestors[i],
-      balances[i],
-      forkProvider
-    );
-    ableToWithdrawn = ableToWithdrawn.add(withdrawnByInvestor);
-  }
-
-  return [vault, totalSupply, totalInvestorValues, ableToWithdrawn];
 };

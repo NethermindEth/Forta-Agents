@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "axios": "^0.21.4",
-    "forta-agent": "^0.0.34",
+    "forta-agent": "^0.0.39",
     "ganache-core": "^2.13.2"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^2.7.4",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^1.0.32",
+    "forta-agent-tools": "^2.0.3",
     "jest": "^27.0.6",
     "jest-when": "^3.5.0",
     "nodemon": "^2.0.8",
