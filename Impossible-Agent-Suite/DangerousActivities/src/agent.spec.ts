@@ -13,8 +13,8 @@ const toAddresses = (list: string[]) => list.map(x => createAddress(x));
 
 const createFinding = (impossible: string[], dangerous: string[]) => Finding.fromObject({
   name: "Impossible Finance interaction monitor",
-  description: "Dangerous Interaction detected",
-  alertId: "impossible-dangerous",
+  description: "A known dangerous address has interacted with an Impossible Finance smart contract",
+  alertId: "IMPOSSIBLE-8",
   protocol: "Impossible Finance",
   severity: FindingSeverity.High,
   type: FindingType.Suspicious,
