@@ -34,14 +34,18 @@ describe("Large Position Alert Agent", () => {
     const testBorrowAmount: BigNumber = BigNumber.from("500000000000000000000000"); // 500,000
 
     const testData: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionId, testBorrowAmount]
+      ["uint256"],
+      [testBorrowAmount]
     );
+
+    const testTopics: string[] = [
+      encodeParameters(["uint256"], [testPositionId])
+    ];
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESS)
-      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData);
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -59,15 +63,19 @@ describe("Large Position Alert Agent", () => {
     const testBorrowAmount: BigNumber = BigNumber.from("200000000000000000000000"); // 200,000
 
     const testData: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionId, testBorrowAmount]
+      ["uint256"],
+      [testBorrowAmount]
     );
+
+    const testTopics: string[] = [
+      encodeParameters(["uint256"], [testPositionId])
+    ];
 
     const badWorkSig: string = 'badSig';
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(TEST_VAULT_ADDRESS, testMsgSender)
-      .addEventLog(badWorkSig, TEST_VAULT_ADDRESS, testData);
+      .addEventLog(badWorkSig, TEST_VAULT_ADDRESS, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -79,15 +87,19 @@ describe("Large Position Alert Agent", () => {
     const testBorrowAmount: BigNumber = BigNumber.from("350000000000000000000000"); // 350,000
 
     const testData: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionId, testBorrowAmount]
+      ["uint256"],
+      [testBorrowAmount]
     );
+
+    const testTopics: string[] = [
+      encodeParameters(["uint256"], [testPositionId])
+    ];
 
     const wrongVaultAddress: string = createAddress("0x1aBC43Fe");
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(wrongVaultAddress, testMsgSender)
-      .addEventLog(workEventSig, wrongVaultAddress, testData);
+      .addEventLog(workEventSig, wrongVaultAddress, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -99,13 +111,17 @@ describe("Large Position Alert Agent", () => {
     const testBorrowAmount: BigNumber = BigNumber.from("5000000000000000000000"); // 5,000
 
     const testData: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionId, testBorrowAmount]
+      ["uint256"],
+      [testBorrowAmount]
     );
+
+    const testTopics: string[] = [
+      encodeParameters(["uint256"], [testPositionId])
+    ];
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(TEST_VAULT_ADDRESS, testMsgSender)
-      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData);
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData, ...testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -117,31 +133,33 @@ describe("Large Position Alert Agent", () => {
     const testBorrowAmount: BigNumber = BigNumber.from("800000000000000000000000"); // 800,000
 
     const testData: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionId, testBorrowAmount]
+      ["uint256"],
+      [testBorrowAmount]
     );
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(testMsgSender)
-      .setTo(TEST_VAULT_ADDRESS)
-      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData);
-
-    const findings = await handleTransaction(txEvent);
+    const testTopics: string[] = [
+      encodeParameters(["uint256"], [testPositionId])
+    ];
 
     const testPositionIdTwo: number = 159;
     const testBorrowAmountTwo: BigNumber = BigNumber.from("630000000000000000000000"); // 630,000
 
     const testDataTwo: string = encodeParameters(
-      ["uint256", "uint256"],
-      [testPositionIdTwo, testBorrowAmountTwo]
+      ["uint256"],
+      [testBorrowAmountTwo]
     );
 
-    const txEventTwo: TransactionEvent = new TestTransactionEvent()
+    const testTopicsTwo: string[] = [
+      encodeParameters(["uint256"], [testPositionIdTwo])
+    ];
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(TEST_VAULT_ADDRESS)
-      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testDataTwo);
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testData, ...testTopics)
+      .addEventLog(workEventSig, TEST_VAULT_ADDRESS, testDataTwo, ...testTopicsTwo);
 
-    findings.push(...await handleTransaction(txEventTwo));
+    const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       createFinding(
