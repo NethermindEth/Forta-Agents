@@ -6,7 +6,7 @@ import {
   FindingType,
 } from 'forta-agent';
 import utils, { Verifier } from './utils';
-import bscDangerous from './bsc.dangerous';
+import bscDangerous from './bsc.dangerous.addresses';
 import impossibleAddresses from './impossible.addresses';
 
 const DANGEROUS_VERIFIER: Verifier = utils.listVerifier(bscDangerous);
