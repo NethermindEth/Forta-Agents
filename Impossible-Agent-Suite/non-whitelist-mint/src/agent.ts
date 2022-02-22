@@ -13,9 +13,9 @@ import {
 } from './verifier';
 
 // Address of the Impossible Finance token contract
-let IF_ADDR = '0xb0e1fc65c1a741b4662b813eb787d369b8614af1';
-let IDIA_ADDR = '0x0b15ddf19d47e6a86a56148fb4afffc6929bcb89';
-let ZERO_ADDR = '0x0000000000000000000000000000000000000000';
+const IF_ADDR = '0xb0e1fc65c1a741b4662b813eb787d369b8614af1';
+const IDIA_ADDR = '0x0b15ddf19d47e6a86a56148fb4afffc6929bcb89';
+const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
 // Array containing a token address and its respective whitelist verifier function
 const TOKENS: [string, Verifier, string, string][] = [
@@ -36,7 +36,7 @@ const TOKENS: [string, Verifier, string, string][] = [
 // Impossible Finance token contract ABI with relevant events/functions
 export const IF_ABI= [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
-  'function staxMigrate(uint)'
+  'function staxMigrate(uint amount)'
 ];
 
 export const provideHandleTransaction = (tokens: [string, Verifier, string, string][]): HandleTransaction => {
