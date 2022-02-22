@@ -19,10 +19,10 @@ const PAIRS: string[] = [
 
 const tradeFeesFinding = (pair: string, oldFee: string, newFee: string): Finding =>
   Finding.fromObject({
-    name: "Impossible Finance Pair Updated",
+    name: "Impossible Finance Pair fees Updated",
     description: "Trade fee updated",
     protocol: "Impossible Finance",
-    alertId: "impossible-6-1",
+    alertId: "IMPOSSIBLE-6-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: { pair, oldFee, newFee },
@@ -30,10 +30,10 @@ const tradeFeesFinding = (pair: string, oldFee: string, newFee: string): Finding
 
 const withdrawalFeeRatioFinding = (pair: string, oldFee: string, newFee: string): Finding =>
   Finding.fromObject({
-    name: "Impossible Finance Pair Updated",
+    name: "Impossible Finance Pair fees Updated",
     description: "Withdrawal fee ratio updated",
     protocol: "Impossible Finance",
-    alertId: "impossible-6-2",
+    alertId: "IMPOSSIBLE-6-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: { pair, oldFee, newFee },
