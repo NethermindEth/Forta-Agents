@@ -30,7 +30,7 @@ const addLiquidityFinding = (
     name: "Impossible Finance Pair Liquidity Action",
     description: "Large liquidity Added",
     protocol: "Impossible Finance",
-    alertId: "impossible-9-1",
+    alertId: "IMPOSSIBLE-9-1",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: { pair, amount0, amount1, sender, reserve0, reserve1 },
@@ -47,9 +47,9 @@ const removeLiquidityFinding = (
 ): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
-    description: "Liquidity Removed",
+    description: "Large Liquidity Removed",
     protocol: "Impossible Finance",
-    alertId: "impossible-9-2",
+    alertId: "IMPOSSIBLE-9-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: { pair, amount0, amount1, sender, to, reserve0, reserve1 },
