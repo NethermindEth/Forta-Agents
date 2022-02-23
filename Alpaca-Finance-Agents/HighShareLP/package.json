@@ -1,7 +1,7 @@
 {
-  "name": "worker-with-too-much-shares",
+  "name": "worker-with-more-than-51%-shares",
   "version": "0.0.1",
-  "description": "This agent detects when workers have more shares than a specific threshold",
+  "description": "This agent detects when a worker has more than 51% of shares in a pool",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
