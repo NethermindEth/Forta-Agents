@@ -9,7 +9,7 @@ import abi from "./abi";
 import createFinding from "./findings";
 import PairFetcher from "./pairs.fetcher";
 
-const FACTORY: string = "0x918d7e714243F7d9d463C37e106235dCde294ffC"; // V1 address (no V2 deployed)
+const FACTORY: string = "0x86f9944711526af414683033E5846E92b721191A"; // PoC Factory in Goerli
 const FETCHER: PairFetcher = new PairFetcher(FACTORY, getEthersProvider());
 const PAIRS: Set<string> = new Set<string>();
 

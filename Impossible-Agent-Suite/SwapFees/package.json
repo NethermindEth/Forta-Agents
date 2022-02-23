@@ -20,6 +20,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@types/lru-cache": "^7.4.0",
     "forta-agent": "^0.0.35"
   },
   "devDependencies": {
