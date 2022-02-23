@@ -6,16 +6,9 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { when } from "jest-when";
 import abi from "./abi";
 import { provideHandleTransaction } from "./agent";
-
-const PAIRS: string[] = [
-  createAddress("0xace17e"),
-  createAddress("0xca1d0"),
-  createAddress("0xf11e7e"),
-  createAddress("0xc0c1do"),
-  createAddress("0xe570fad0"),
-];
 
 const tradeFeesFinding = (pair: string, oldFee: string, newFee: string): Finding =>
   Finding.fromObject({
@@ -40,12 +33,12 @@ const withdrawalFeeRatioFinding = (pair: string, oldFee: string, newFee: string)
   });
 
 describe("Swap Fee Monitor agent tests suite", () => {
-  const factory: string = createAddress("0xf00d");
-  let handler: HandleTransaction;
-  
-  beforeEach(() => {
-    handler = provideHandleTransaction(new Set(PAIRS), factory);
-  });
+  const mockFetcher = {
+    isImpossiblePair: jest.fn(),
+  };
+  const handler: HandleTransaction = provideHandleTransaction(mockFetcher as any);
+
+  beforeEach(() => mockFetcher.isImpossiblePair.mockClear());
 
   it("should report empty findings in txns without events", async () => {
     const tx: TransactionEvent =  new TestTransactionEvent();
@@ -54,101 +47,92 @@ describe("Swap Fee Monitor agent tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect UpdatedTradeFees events in the initialization pairs", async () => {
+  it("should detect UpdatedTradeFees events only in valid Impossible Finance pairs", async () => {
+    const PAIRS: string[] = [
+      createAddress("0xdef1abc"),
+      createAddress("0xdef1"),
+      createAddress("0xdef121321"),
+    ];
+    when(mockFetcher.isImpossiblePair)
+      .calledWith(20, PAIRS[0]).mockReturnValue(true)
+      .calledWith(20, PAIRS[2]).mockReturnValue(true);
+
     const { data, topics } = abi.PAIR.encodeEventLog(
       abi.PAIR.getEvent("UpdatedTradeFees"), [20, 50]
     )
     const tx: TransactionEvent =  new TestTransactionEvent()
+      .setBlock(20)
+      .addAnonymousEventLog(PAIRS[1], data, ...topics)
       .addAnonymousEventLog(PAIRS[0], data, ...topics)
-      .addAnonymousEventLog(PAIRS[3], data, ...topics)
       .addAnonymousEventLog(PAIRS[2], data, ...topics);
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
       tradeFeesFinding(PAIRS[0], "20", "50"),
-      tradeFeesFinding(PAIRS[3], "20", "50"),
       tradeFeesFinding(PAIRS[2], "20", "50"),
     ]);
   });
 
-  it("should detect UpdatedWithdrawalFeeRatio events in the initialization pairs", async () => {
+  it("should detect UpdatedWithdrawalFeeRatio events only in valid Impossible Finance pairs", async () => {
+    const PAIRS: string[] = [
+      createAddress("0xda0fdc"),
+      createAddress("0xda0efb"),
+      createAddress("0xda0321"),
+    ];
+    when(mockFetcher.isImpossiblePair)
+      .calledWith(42, PAIRS[2]).mockReturnValue(true)
+      .calledWith(42, PAIRS[1]).mockReturnValue(true);
+
     const { data, topics } = abi.PAIR.encodeEventLog(
       abi.PAIR.getEvent("UpdatedWithdrawalFeeRatio"), [1, 2]
     )
     const tx: TransactionEvent =  new TestTransactionEvent()
-      .addAnonymousEventLog(PAIRS[4], data, ...topics)
+      .setBlock(42)
+      .addAnonymousEventLog(PAIRS[2], data, ...topics)
       .addAnonymousEventLog(PAIRS[1], data, ...topics)
       .addAnonymousEventLog(PAIRS[0], data, ...topics);
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      withdrawalFeeRatioFinding(PAIRS[4], "1", "2"),
+      withdrawalFeeRatioFinding(PAIRS[2], "1", "2"),
       withdrawalFeeRatioFinding(PAIRS[1], "1", "2"),
-      withdrawalFeeRatioFinding(PAIRS[0], "1", "2"),
     ]);
   });
 
-  it("should detect events in newly created pairs", async () => {
-    const newPair: string = createAddress("0xfabada");
-    const log0 = abi.FACTORY.encodeEventLog(
-      abi.FACTORY.getEvent("PairCreated"), [
-        createAddress("0x1"), // ignored
-        createAddress("0x2"), // ignored
-        createAddress("0xfabada"),
-        3, // ignored
-      ]
+  it("should detect multiple type of events only in valid Impossible Finance pairs", async () => {
+    const PAIRS: string[] = [
+      createAddress("0xda0fdc"),
+      createAddress("0xbade0a"),
+      createAddress("0xdead"),
+      createAddress("0x1337"),
+    ];
+    when(mockFetcher.isImpossiblePair)
+      .calledWith(2000, PAIRS[0]).mockReturnValue(true)
+      .calledWith(2000, PAIRS[3]).mockReturnValue(true);
+
+    const event0 = abi.PAIR.encodeEventLog(
+      abi.PAIR.getEvent("UpdatedWithdrawalFeeRatio"), [200, 3]
     );
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("UpdatedWithdrawalFeeRatio"), [5, 12]
-    );
-    const log2 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("UpdatedTradeFees"), [15, 42]
+    const event1 = abi.PAIR.encodeEventLog(
+      abi.PAIR.getEvent("UpdatedTradeFees"), [4040, 50]
     );
     const tx: TransactionEvent =  new TestTransactionEvent()
-      .addAnonymousEventLog(factory, log0.data, ...log0.topics)
-      .addAnonymousEventLog(newPair, log1.data, ...log1.topics)
-      .addAnonymousEventLog(newPair, log2.data, ...log2.topics);
+      .setBlock(2000)
+      .addAnonymousEventLog(PAIRS[2], event1.data, ...event1.topics)
+      .addAnonymousEventLog(PAIRS[1], event1.data, ...event1.topics)
+      .addAnonymousEventLog(PAIRS[2], event0.data, ...event0.topics)
+      .addAnonymousEventLog(PAIRS[3], event1.data, ...event1.topics)
+      .addAnonymousEventLog(PAIRS[1], event0.data, ...event0.topics)
+      .addAnonymousEventLog(PAIRS[0], event0.data, ...event0.topics)
+      .addAnonymousEventLog(PAIRS[0], event1.data, ...event1.topics)
+      .addAnonymousEventLog(PAIRS[3], event1.data, ...event1.topics);
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      withdrawalFeeRatioFinding(newPair, "5", "12"),
-      tradeFeesFinding(newPair, "15", "42"),
+      tradeFeesFinding(PAIRS[3], "4040", "50"),
+      withdrawalFeeRatioFinding(PAIRS[0], "200", "3"),
+      tradeFeesFinding(PAIRS[0], "4040", "50"),
+      tradeFeesFinding(PAIRS[3], "4040", "50"),
     ]);
-  });
-
-  it("should ignore pair creations not emitted in the factory", async () => {
-    const newPair: string = createAddress("0xfabada");
-    const log0 = abi.FACTORY.encodeEventLog(
-      abi.FACTORY.getEvent("PairCreated"), [
-        createAddress("0x1"), // ignored
-        createAddress("0x2"), // ignored
-        createAddress("0xfabada"),
-        3, // ignored
-      ]
-    );
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("UpdatedWithdrawalFeeRatio"), [5, 12]
-    );
-    const log2 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("UpdatedTradeFees"), [15, 42]
-    );
-    const tx: TransactionEvent =  new TestTransactionEvent()
-      .addAnonymousEventLog(createAddress("0x10af"), log0.data, ...log0.topics)
-      .addAnonymousEventLog(newPair, log1.data, ...log1.topics)
-      .addAnonymousEventLog(newPair, log2.data, ...log2.topics);
-
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should ignore events not emitted in pairs", async () => {
-    const log1 = abi.PAIR.encodeEventLog(
-      abi.PAIR.getEvent("UpdatedWithdrawalFeeRatio"), [3, 3]
-    );
-    const tx: TransactionEvent =  new TestTransactionEvent()
-      .addAnonymousEventLog(createAddress("0x1ce"), log1.data, ...log1.topics);
-
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([]);
   });
 });
