@@ -4,40 +4,22 @@ pragma solidity =0.7.6;
 import './ImpossiblePair.sol';
 
 contract ImpossibleSwapFactory {
-    address public feeTo;
-    address public governance;
-    address public router;
-    address public routerExtension;
-    bool public whitelist;
-    mapping(address => bool) public approvedTokens;
-
     mapping(address => mapping(address => address)) public getPair;
-    address[] public allPairs;
 
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
+    event NewPair(address indexed pair);
 
-    function allPairsLength() external view returns (uint256) {
-        return allPairs.length;
-    }
-
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
+    // not being monitored by the agent
+    function createPair(address tokenA, address tokenB, uint8 fee, uint256 ratio) external returns (address pair) {
         bytes memory bytecode = type(ImpossiblePair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(tokenA, tokenB));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
+        getPair[tokenA][tokenB] = pair;
+        getPair[tokenB][tokenA] = pair;
+        ImpossiblePair(pair).setData(tokenA, tokenB, fee, ratio);
 
-        allPairs.push(pair);
-        emit PairCreated(tokenA, tokenB, pair, allPairs.length);
-    }
-
-    // Functions needed for other agents
-
-    function setFeeTo(address _feeTo) external onlyGovernance {
-        feeTo = _feeTo;
-    }
-
-    function setGovernance(address _governance) external override onlyGovernance {
-        governance = _governance;
+        emit NewPair(pair);
+        return pair;
     }
 }
