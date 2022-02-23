@@ -137,7 +137,7 @@ export const getSharePercent = async (
     provider
   );
   const totalSupply = await getTotalSupply(lpToken, blockNumber, provider);
-  return shareAmount.mul(100).div(shareTotalSupply);
+  return shareAmount.mul(100).div(totalSupply);
 };
 
 export const createFinding = (
