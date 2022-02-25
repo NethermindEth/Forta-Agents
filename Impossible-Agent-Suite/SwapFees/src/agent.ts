@@ -11,7 +11,6 @@ import PairFetcher from "./pairs.fetcher";
 
 const FACTORY: string = "0x86f9944711526af414683033E5846E92b721191A"; // PoC Factory in Goerli
 const FETCHER: PairFetcher = new PairFetcher(FACTORY, getEthersProvider());
-const PAIRS: Set<string> = new Set<string>();
 
 export const provideHandleTransaction = (fetcher: PairFetcher): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
