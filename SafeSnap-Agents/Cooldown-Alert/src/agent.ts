@@ -21,7 +21,7 @@ let questionIds: string[] = [];
 
 const initialize = async () => {
   oracle = await FETCHER.getOracle(await getEthersProvider().getBlockNumber());
-}
+};
 
 export const provideHandleTransaction = (
   moduleAddress: string,
@@ -34,8 +34,8 @@ export const provideHandleTransaction = (
       .map(event => questionIds.push(event.args[0]));
 
     return findings;
-  }
-}
+  };
+};
 
 const createFinding = (
   questionId: string,
@@ -43,7 +43,7 @@ const createFinding = (
   blockNumber: number
 ): Finding => {
   return Finding.fromObject({
-    name: "Cooldown Alert",
+    name: "SafeSnap Cooldown Alert",
     description: "A question's cooldown period has begun",
     alertId: "SAFESNAP-2",
     type: FindingType.Info,
@@ -88,8 +88,8 @@ export const provideHandleBlock = (
       }
     }
     return findings;
-  }
-}
+  };
+};
 
 export default {
   initialize,
@@ -102,4 +102,4 @@ export default {
     oracle,
     questionIds
   )
-}
+};

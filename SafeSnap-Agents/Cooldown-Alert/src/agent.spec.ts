@@ -70,6 +70,22 @@ function createTestTopics(questionId: string, propId: string): string[] {
   ];
 }
 
+function createFinding(id: string, finalizeTs: number, block: number): Finding {
+  return Finding.fromObject({
+    name: "SafeSnap Cooldown Alert",
+    description: "A question's cooldown period has begun",
+    alertId: "SAFESNAP-2",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    protocol: "Gnosis SafeSnap",
+    metadata: {
+      questionId: id,
+      questionFinalizeTimeStamp: finalizeTs.toString(),
+      blockNumber: block.toString()
+    },
+  });
+};
+
 const testFilteredQuestionIds: string[] = [];
 
 const mockFetcher = {
@@ -129,21 +145,11 @@ describe("Cooldown Monitor Agent", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Cooldown Alert",
-        description: "A question's cooldown period has begun",
-        alertId: "SAFESNAP-2",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        protocol: "Gnosis SafeSnap",
-        metadata: {
-          questionId: testQuestionIds[0],
-          questionFinalizeTimeStamp: testFinalizeTSs[0].toString(),
-          blockNumber: testBlockNumber.toString()
-        },
-      })
-    ]);
+    expect(findings).toStrictEqual([createFinding(
+      testQuestionIds[0],
+      testFinalizeTSs[0],
+      testBlockNumber,
+    )]);
   });
 
   it("should return no Findings due to finalize timestamp being more than block number", async () => {
@@ -163,8 +169,7 @@ describe("Cooldown Monitor Agent", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-    ]);
+    expect(findings).toStrictEqual([]);
   });
 
   it("should return multiple Findings from detecting cooldowns from different questions", async () => {
@@ -192,32 +197,8 @@ describe("Cooldown Monitor Agent", () => {
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Cooldown Alert",
-        description: "A question's cooldown period has begun",
-        alertId: "SAFESNAP-2",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        protocol: "Gnosis SafeSnap",
-        metadata: {
-          questionId: testQuestionIds[2],
-          questionFinalizeTimeStamp: testFinalizeTSs[2].toString(),
-          blockNumber: testBlockNumber.toString()
-        },
-      }),
-      Finding.fromObject({
-        name: "Cooldown Alert",
-        description: "A question's cooldown period has begun",
-        alertId: "SAFESNAP-2",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        protocol: "Gnosis SafeSnap",
-        metadata: {
-          questionId: testQuestionIds[3],
-          questionFinalizeTimeStamp: testFinalizeTSs[3].toString(),
-          blockNumber: testBlockNumber.toString()
-        },
-      })
+      createFinding(testQuestionIds[2], testFinalizeTSs[2], testBlockNumber),
+      createFinding(testQuestionIds[3], testFinalizeTSs[3], testBlockNumber),
     ]);
   });
 
@@ -246,19 +227,7 @@ describe("Cooldown Monitor Agent", () => {
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Cooldown Alert",
-        description: "A question's cooldown period has begun",
-        alertId: "SAFESNAP-2",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        protocol: "Gnosis SafeSnap",
-        metadata: {
-          questionId: testQuestionIds[5],
-          questionFinalizeTimeStamp: testFinalizeTSs[5].toString(),
-          blockNumber: testBlockNumber.toString()
-        },
-      })
+      createFinding(testQuestionIds[5], testFinalizeTSs[5], testBlockNumber),
     ]);
   });
 });
