@@ -28,8 +28,10 @@ describe("PairFetcher test suite", () => {
   });
 
   it("should return false in calls to isImpossiblePair for address that doesn't have token0", async () => {
-    for(let [addr, block,,,] of CASES){
-      // no mock initialization so call to token0 should return undefined
+    for(let [addr, block,,,token1] of CASES){
+      mockProvider
+        .addCallTo(addr, block, abi.PAIR, "token1", { inputs:[], outputs:[token1]});
+      // no mock initialization for token0 so calls to token1 should return undefined
       expect(await fetcher.isImpossiblePair(block, addr)).toStrictEqual(false);
     }
   });
