@@ -15,7 +15,7 @@ import {
   EXECUTE_PROPOSAL_WITH_INDEX,
 } from "./constants";
 
-const MODULE_ADDRESS: string = "0x1c511d88ba898b4d9cd9113d13b9c360a02fcea1";
+const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613";
 
 export const provideHandleTransaction = (contractAddress: string): HandleTransaction => { 
   return async (txEvent: TransactionEvent) => {
