@@ -62,7 +62,6 @@ const createFinding = (
 };
 
 describe("answers submission agent", () => {
-  const reality_module = createAddress("0xffee");
   const oracle_address = createAddress("0xfede");
   const different_oracle = createAddress("0xd4");
   const WRONG_EVENT_SIGNATURE = "event wrong_sig()";

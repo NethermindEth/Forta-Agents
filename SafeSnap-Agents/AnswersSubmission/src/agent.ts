@@ -9,7 +9,6 @@ import { EVENTS_SIGNATURES, SAFESNAP_CONTRACT, createFinding } from "./utils";
 
 const FETCHER = new OracleFetcher(getEthersProvider());
 let oracle: string = "";
-let safesnap_contract = SAFESNAP_CONTRACT;
 
 export const initialize =
   (reality_module: string, fetcher: OracleFetcher) => async () => {
@@ -29,6 +28,6 @@ export const provideHandleTransaction =
   };
 
 export default {
-  initialize: initialize(safesnap_contract, FETCHER),
+  initialize: initialize(SAFESNAP_CONTRACT, FETCHER),
   handleTransaction: provideHandleTransaction(oracle),
 };
