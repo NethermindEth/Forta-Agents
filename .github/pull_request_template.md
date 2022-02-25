@@ -11,7 +11,7 @@ _Put an `x` in the boxes that apply_
 - [ ] Code style update (formatting, renaming)
 - [ ] Other (please describe): 
 
-## New Agent PR readyness
+## New Agent PR readiness
 
 - [ ] `npm install` command works (i.e. package-lock is updated properly)
 - [ ] The `name` and `description` fields of `package.json` describe the agent properly
@@ -36,7 +36,7 @@ _Put an `x` in the boxes that apply_
 - [ ] `metadata` of the findings contains all the information needed.
 - [ ] The SDK methods are being used appropriately (e.g. `filterLog`, `filterFunction`, `getEthersProvider`)
 - [ ] `ABI`s match the contracts used / `args` used from `LogDescriptions` exists in the `ABI`s 
-- [ ] the agent follows forta recommended [best practices](https://docs.forta.network/en/latest/best-practices/)
+- [ ] the agent follows Forta recommended [best practices](https://docs.forta.network/en/latest/best-practices/)
 - [ ] Agent can recover from failed error call when they can fail (e.g. error are being catched on calls than can fail)
 
 
