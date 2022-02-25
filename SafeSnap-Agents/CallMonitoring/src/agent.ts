@@ -13,8 +13,9 @@ import {
   MARK_PROPOSAL_WITH_EXPIRED_ANSWER_AS_INVALID,
   EXECUTE_PROPOSAL,
   EXECUTE_PROPOSAL_WITH_INDEX,
-  GNOSIS_ADDRESS, 
 } from "./constants";
+
+const MODULE_ADDRESS: string = "0x1c511d88ba898b4d9cd9113d13b9c360a02fcea1";
 
 export const provideHandleTransaction = (contractAddress: string): HandleTransaction => { 
   return async (txEvent: TransactionEvent) => {
@@ -65,6 +66,6 @@ export const provideHandleTransaction = (contractAddress: string): HandleTransac
 
 export default {
   handleTransaction: provideHandleTransaction(
-    GNOSIS_ADDRESS,
+    MODULE_ADDRESS,
   ),
 };

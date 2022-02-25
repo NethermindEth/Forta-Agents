@@ -5,8 +5,9 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import OracleFetcher from "./oracle.fetcher";
-import { EVENTS_SIGNATURES, SAFESNAP_CONTRACT, createFinding } from "./utils";
+import { EVENTS_SIGNATURES, createFinding } from "./utils";
 
+const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613";
 const FETCHER = new OracleFetcher(getEthersProvider());
 let oracle: string = "";
 
@@ -28,6 +29,6 @@ export const provideHandleTransaction =
   };
 
 export default {
-  initialize: initialize(SAFESNAP_CONTRACT, FETCHER),
+  initialize: initialize(MODULE_ADDRESS, FETCHER),
   handleTransaction: provideHandleTransaction(oracle),
 };

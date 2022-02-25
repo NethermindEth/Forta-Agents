@@ -1,11 +1,12 @@
-import { TestTransactionEvent } from "forta-agent-tools";
-import agent from "./agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import agent, { provideHandleTransaction } from "./agent";
 import {utils} from "ethers";
 import  {
   FindingType,
   FindingSeverity,
   Finding,
-  TransactionEvent
+  TransactionEvent,
+  HandleTransaction
 } from "forta-agent";
 import {
   ADD_PROPOSOAL,
@@ -15,7 +16,6 @@ import {
   MARK_PROPOSAL_WITH_EXPIRED_ANSWER_AS_INVALID,
   EXECUTE_PROPOSAL,
   EXECUTE_PROPOSAL_WITH_INDEX,
-  GNOSIS_ADDRESS
 } from "./constants";
 
 const iface: utils.Interface = new utils.Interface([
@@ -56,13 +56,16 @@ const createFinding = (functionName: string, params: any) => {
 };
 
 describe("Calls monitor agent", () => {
+  const module: string = createAddress("0xdead");
+  const handler: HandleTransaction = provideHandleTransaction(module);
+
   it("should detect addProposal function call", async () => {
     const proposalId: string = "QmWwo3TkBtUybd7wcwix6yuGtApR427FBCxiSGJNwowDoN";
     const txHashes: string[] = ["0x198752008246c30849803849ca78d3cdf204683715a591c62f3c9ef71cf63710"];
 
     const Transaction: string = createTransaction("addProposal",[proposalId,txHashes]);
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("addProposal",{
       proposalId: proposalId,
       txHashes: txHashes[0],
@@ -78,8 +81,8 @@ describe("Calls monitor agent", () => {
 
     const Transaction: string = createTransaction("addProposalWithNonce",[proposalId,txHashes,nonce]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("addProposalWithNonce",{
       proposalId: proposalId,
       txHashes: txHashes[0],
@@ -95,8 +98,8 @@ describe("Calls monitor agent", () => {
 
     const Transaction: string = createTransaction("markProposalAsInvalid", [proposalId, txHashes]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     
     const expectedFinding = createFinding("markProposalAsInvalid", {
       proposalId: proposalId,
@@ -110,8 +113,8 @@ describe("Calls monitor agent", () => {
     const questionHash: string = "0x6d6168616d000000000000000000000000000000000000000000000000000000";
     const Transaction: string = createTransaction("markProposalAsInvalidByHash", [questionHash]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("markProposalAsInvalidByHash",{
       questionHash: questionHash,
     });
@@ -123,8 +126,8 @@ describe("Calls monitor agent", () => {
     const questionHash: string = "0x6d6168616d000000000000000000000000000000000000000000000000000000";
     const Transaction: string = createTransaction("markProposalWithExpiredAnswerAsInvalid", [questionHash]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("markProposalWithExpiredAnswerAsInvalid", {
       questionHash: questionHash,
     });
@@ -142,8 +145,8 @@ describe("Calls monitor agent", () => {
 
     const Transaction: string = createTransaction("executeProposal", [proposalId, txHashes, to, value, data, operation]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("executeProposal", {
       to: to,
       proposalId: proposalId,
@@ -167,8 +170,8 @@ describe("Calls monitor agent", () => {
 
     const Transaction: string = createTransaction("executeProposalWithIndex",[proposalId, txHashes, to, value, data, operation, txIndex]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(GNOSIS_ADDRESS);
-    const findings = await agent.handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(module);
+    const findings = await handler(txEvent);
     const expectedFinding = createFinding("executeProposalWithIndex", {
       to: to,
       proposalId: proposalId,
@@ -189,7 +192,7 @@ describe("Calls monitor agent", () => {
     const Transaction: string = createTransaction("addProposal", [proposalId, txHashes]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setData(Transaction).setTo(zeroAddress);
-    const findings = await agent.handleTransaction(txEvent);
+    const findings = await handler(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
@@ -198,12 +201,12 @@ describe("Calls monitor agent", () => {
     const proposalId: string = "QmWwo3TkBtUybd7wcwix6yuGtApR427FBCxiSGJNwowDoN";
     const txHashes: string[] = ["0x198752008246c30849803849ca78d3cdf204683715a591c62f3c9ef71cf63710"];
     const questionHash: string = "0x6d6168616d000000000000000000000000000000000000000000000000000000";
-    const txEvent: TransactionEvent = new TestTransactionEvent().setTo(GNOSIS_ADDRESS).addTraces({
-        to: GNOSIS_ADDRESS,
+    const txEvent: TransactionEvent = new TestTransactionEvent().setTo(module).addTraces({
+        to: module,
         from: zeroAddress,
         input: createTransaction("addProposal", [proposalId, txHashes])
       }, {
-        to: GNOSIS_ADDRESS,
+        to: module,
         from: zeroAddress,
         input: createTransaction("markProposalWithExpiredAnswerAsInvalid", [questionHash])
     });
@@ -217,7 +220,7 @@ describe("Calls monitor agent", () => {
       }),
     ];
 
-    const findings = await agent.handleTransaction(txEvent);
+    const findings = await handler(txEvent);
     expect(findings).toStrictEqual(expectedFindings);
   });
 });

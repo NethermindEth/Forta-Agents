@@ -2,7 +2,6 @@ import { LogDescription } from "ethers/lib/utils";
 import { Interface } from "@ethersproject/abi";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const SAFESNAP_CONTRACT = "0x1c511d88ba898b4D9cd9113D13B9c360a02Fcea1"; // reality module.
 export const EVENTS_SIGNATURES = [
   "event LogNewAnswer(bytes32 answer, bytes32 indexed question_id, bytes32 history_hash, address indexed user, uint256 bond, uint256 ts, bool is_commitment)",
   "event LogAnswerReveal(bytes32 indexed question_id, address indexed user, bytes32 indexed answer_hash, bytes32 answer, uint256 nonce, uint256 bond)",

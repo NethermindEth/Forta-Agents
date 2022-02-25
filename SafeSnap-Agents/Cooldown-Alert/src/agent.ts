@@ -13,7 +13,7 @@ import {
 } from "./abi";
 import DataFetcher from "./data.fetcher";
 
-const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613".toLowerCase();
+const MODULE_ADDRESS: string = "0x0eBaC21F7f6A6599B5fa5f57Baaa974ADFEC4613";
 const FETCHER: DataFetcher = new DataFetcher(MODULE_ADDRESS, getEthersProvider());
 let oracle: string = "";
 
