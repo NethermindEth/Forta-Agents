@@ -6,7 +6,6 @@ This agent detects when Impossible Finance tokens are minted through the functio
 
 ## Supported Chains
 
-- Ethereum
 - BSC
 
 ## Alerts
