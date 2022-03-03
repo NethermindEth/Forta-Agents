@@ -15,8 +15,8 @@ This agent detects a WithdrawalRootHashAddition event emission from FlexaCollate
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata fields
-    timestamp: Raw timestamp of the transaction
-    timeUTC: Timestamp of the transaction in UTC
+    - timestamp: Raw timestamp of the transaction
+    - timeUTC: Timestamp of the transaction in UTC
 
 ## Test Data
 
