@@ -11,7 +11,7 @@ export const AMP_ABI: string[] = [
 ];
 
 export const transferByPartitionFinding = (log: LogDescription): Finding => Finding.fromObject({
-  name: "Large transfer from a Flexa Collateral Manager partition detected",
+  name: "Large FlexaCollateralManager TransferByPartition alert",
   description: "TransferByPartition event emitted with a large value",
   alertId: "FLEXA-2",
   severity: FindingSeverity.Info,
