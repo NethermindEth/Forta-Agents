@@ -82,9 +82,9 @@ describe("Flexa Withdrawal Root Hash Addition Agent Test Suite", () => {
   });
 
   it("should detect multiple events from the contract", async () => {
-    const log1 = IFACE.encodeEventLog(IFACE.getEvent("WithdrawalRootHashAddition"), [rootHash[0], nonce[0].toString()]);
+    const log1 = IFACE.encodeEventLog(IFACE.getEvent("WithdrawalRootHashAddition"), [rootHash[0], nonce[0]]);
 
-    const log2 = IFACE.encodeEventLog(IFACE.getEvent("WithdrawalRootHashAddition"), [rootHash[1], nonce[1].toString()]);
+    const log2 = IFACE.encodeEventLog(IFACE.getEvent("WithdrawalRootHashAddition"), [rootHash[1], nonce[1]]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(factory, log1.data, ...log1.topics)
