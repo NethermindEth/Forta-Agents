@@ -21,7 +21,7 @@ import {
   BigNumber
 } from 'ethers';
 
-const createFinding = (receiver: string, inAmount: string, outAmount: string) => Finding.fromObject({
+const createFinding = (receiver: string, outAmount: string) => Finding.fromObject({
   name: 'IF token staxMigrate imbalanced mint',
   description: 'staxMigrate was called and an unexpected amount of IF tokens have been minted',
   alertId: 'IMPOSSIBLE-10',
@@ -30,7 +30,6 @@ const createFinding = (receiver: string, inAmount: string, outAmount: string) =>
   protocol: 'Impossible Finance',
   metadata: {
     receiver: receiver.toLowerCase(),
-    staxAmountIn: inAmount,
     ifAmountOut: outAmount
   }
 });
@@ -137,6 +136,53 @@ describe('Impossible Finance staxMigrate imbalanced mint test suite', () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it('should ignore two `staxMigrate` mints that have the same input and output amount', async () => {
+    // Generate the event log
+    const log1 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());
+    const log2 = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('200').toHexString());
+
+    // Create the test transaction and attach the event log
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        to: IF_ADDR,
+        from: USER_ADDR,
+        input: contract.encodeFunctionData(
+          'staxMigrate',
+          [
+            BigNumber.from('100')
+          ]
+        ),
+        output: '0x0'
+      })
+      .addTraces({
+        to: IF_ADDR,
+        from: USER_ADDR,
+        input: contract.encodeFunctionData(
+          'staxMigrate',
+          [
+            BigNumber.from('200')
+          ]
+        ),
+        output: '0x0'
+      })
+      .addAnonymousEventLog(
+        IF_ADDR,
+        log1.data,
+        ...log1.topics
+      )
+      .addAnonymousEventLog(
+        IF_ADDR,
+        log2.data,
+        ...log2.topics
+      );
+
+    // Run the handler on the test transaction
+    const findings: Finding[] = await handler(tx);
+
+    // Check if findings contain expected results
+    expect(findings).toStrictEqual([]);
+  });
+
   it('should detect `staxMigrate` mints that have a different input and output amount', async () => {
     // Generate the event log
     const log = generateTransferLog(contract, ZERO_ADDR, USER_ADDR, BigNumber.from('100').toHexString());
@@ -165,7 +211,7 @@ describe('Impossible Finance staxMigrate imbalanced mint test suite', () => {
 
     // Check if findings contain expected results
     expect(findings).toStrictEqual([
-      createFinding(USER_ADDR, '101', '100')
+      createFinding(USER_ADDR, '100')
     ]);
   });
 });

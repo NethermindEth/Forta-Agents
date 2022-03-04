@@ -21,42 +21,104 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
 
     // Get all times `staxMigrate` was called
     const migrations = tx.filterFunction(IF_ABI[1], address);
+    
+    // Get all times `Transfer` was emitted
+    const transfers = tx.filterLog(IF_ABI[0], address);
+
+    // For each `transfer` event
+    transfers.forEach((transfer) => {
+      // If it is a mint transfer
+      if(transfer.args.from == ZERO_ADDR) {
+        // Attempt to find a matching `staxMigrate` call
+        let i = 0;
+        let matchingMigrate = false;
+        while(i < migrations.length) {
+          // Get the amount 'in' STAX tokens and 'out' IF tokens
+          const staxAmountIn = migrations[i].args.amount.toString();
+          const ifAmountOut = transfer.args.value.toString();
+          // If amount in and out match
+          if(staxAmountIn == ifAmountOut) {
+            // The `staxMigrate` call matches the `transfer` event
+            matchingMigrate = true;
+            // Remove the matching `staxMigrate` call so it can't be matched again
+            migrations.splice(i, 1);
+            // Exit the loop
+            break;
+          }
+          i++;
+        }
+        // If a matching transfer mint for the `staxMigrate` call was not found
+        if(matchingMigrate == false) {
+          findings.push(
+            Finding.fromObject({
+              name: 'IF token staxMigrate imbalanced mint',
+              description: 'staxMigrate was called and an unexpected amount of IF tokens have been minted',
+              alertId: 'IMPOSSIBLE-10',
+              severity: FindingSeverity.High,  
+              type: FindingType.Exploit,
+              protocol: 'Impossible Finance',
+              metadata: {
+                receiver: transfer.args.to.toString().toLowerCase(),
+                ifAmountOut: transfer.args.value.toString()
+              }
+            })
+          );
+        }
+      }
+    });
+    
+    /*
     // If there were calls to the `staxMigrate` function 
     if(migrations.length) {
-      // Get all times `Transfer` was emitted
-      const transfers = tx.filterLog(IF_ABI[0], address);
+
       // For each `staxMigrate` call
       migrations.forEach((migration) => {
-        // For each `Transfer` event
-        transfers.forEach((transfer) => {
-          // Check if the `Transfer` event is a mint
-          if(transfer.args.from == ZERO_ADDR) {
-            // Get the amount of STAX tokens that are going 'in'
+
+        // Cycle through all transfer events
+        let i = 0;
+        let matchingTransfer = false;
+        while(i < transfers.length) {
+          // If the transfer is a mint
+          if(transfers[i].args.from == ZERO_ADDR) {
+            // Get the amount 'in' STAX tokens and 'out' IF tokens
             const staxAmountIn = migration.args.amount.toString();
-            const ifAmountOut = transfer.args.value.toString();
-            // If `staxAmountIn` and `ifAmountOut` are different 
-            if(staxAmountIn != ifAmountOut) {
-              // Create a finding
-              findings.push(
-                Finding.fromObject({
-                  name: 'IF token staxMigrate imbalanced mint',
-                  description: 'staxMigrate was called and an unexpected amount of IF tokens have been minted',
-                  alertId: 'IMPOSSIBLE-10',
-                  severity: FindingSeverity.High,  
-                  type: FindingType.Exploit,
-                  protocol: 'Impossible Finance',
-                  metadata: {
-                    receiver: transfer.args.to.toLowerCase(),
-                    staxAmountIn: staxAmountIn,
-                    ifAmountOut: ifAmountOut
-                  }
-                })
-              );
+            const ifAmountOut = transfers[i].args.value.toString();
+            // If `staxAmountIn` and `ifAmountOut` match
+            if(staxAmountIn == ifAmountOut) {
+              // The `staxMigrate` call matches the `transfer` event
+              matchingTransfer = true;
+              // Exit while loop
+              break;
             }
           }
-        });
+          // Increment i
+          i++;
+        } 
+  
+        console.log(migration);
+        
+        // If a matching transfer mint for the `staxMigrate` call was not found
+        if(matchingTransfer == false) {
+
+
+
+          findings.push(
+            Finding.fromObject({
+              name: 'IF token staxMigrate imbalanced mint',
+              description: 'staxMigrate was called and an unexpected amount of IF tokens have been minted',
+              alertId: 'IMPOSSIBLE-10',
+              severity: FindingSeverity.High,  
+              type: FindingType.Exploit,
+              protocol: 'Impossible Finance',
+              metadata: {
+                staxAmountIn: migration.args.amount.toString()
+              }
+            })
+          );
+        }
       });
     }
+    */
 
     // Return findings
     return findings;
