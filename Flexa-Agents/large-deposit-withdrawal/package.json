@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "flexa-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects large deposits and withdrawal in Flexa Staking contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -19,10 +19,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.29"
+    "@types/lru-cache": "^5.1.1",
+    "forta-agent": "^0.0.36"
+
   },
   "devDependencies": {
+    "forta-agent-tools": "^1.0.38",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
