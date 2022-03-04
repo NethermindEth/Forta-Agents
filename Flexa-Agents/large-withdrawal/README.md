@@ -15,7 +15,8 @@ This agent detects large transfers from `FlexaCollateralManager` contract partit
     * Severity is always set to "Info".
     * Type is always set to "Info".
     * Metadata contains: 
-        * `fromPartition`: Partition from which the amount was transferred.
-        * `fromAddress`: Address of the user who executed the transfer.
-        * `toAddress`: Address of the user who received the transferred amount.
-        * `value`: Value of the transferred amount. 
+        * `fromPartition`: Partition the tokens were transfered from.
+        * `operator`: Address that initiated the transfer.
+        * `fromAddress`: Address the tokens were transferred from.
+        * `toAddress`: Address the tokens were transferred to.
+        * `value`: Amount of tokens transferred. 

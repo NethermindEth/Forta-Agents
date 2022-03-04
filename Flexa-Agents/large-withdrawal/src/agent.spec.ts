@@ -18,14 +18,14 @@ const PARTITIONS: string[] = [
     keccak256("part6"),
 ];
 
-const transferByPartitionFinding = (fromPartition: string, fromAddress: string, toAddress: string, value: string): Finding => Finding.fromObject({
+const createFinding = (fromPartition: string, operator: string, fromAddress: string, toAddress: string, value: string): Finding => Finding.fromObject({
   name: "Large FlexaCollateralManager TransferByPartition alert",
   description: "TransferByPartition event emitted with a large value",
   alertId: "FLEXA-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   protocol: "Flexa",
-  metadata: { fromPartition, fromAddress, toAddress, value },
+  metadata: { fromPartition, operator, fromAddress, toAddress, value },
 });
 
 describe("Forta Collateral Manager large transfer by partition agent test suite", () => {
@@ -139,8 +139,8 @@ describe("Forta Collateral Manager large transfer by partition agent test suite"
 
         const findings: Finding[] = await handler(txEvent);
         expect(findings).toStrictEqual([
-            transferByPartitionFinding(PARTITIONS[0], mockFetcher.flexa, createAddress("0xbaba"), "3243223"),  
-            transferByPartitionFinding(PARTITIONS[2], mockFetcher.flexa, createAddress("0x1010"), "99999")          
+            createFinding(PARTITIONS[0], createAddress("0xdead"), mockFetcher.flexa, createAddress("0xbaba"), "3243223"),  
+            createFinding(PARTITIONS[2], createAddress("0x9898"), mockFetcher.flexa,  createAddress("0x1010"), "99999")          
         ]);
     });
 });

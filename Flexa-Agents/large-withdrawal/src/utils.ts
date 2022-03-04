@@ -10,7 +10,7 @@ export const AMP_ABI: string[] = [
     "event TransferByPartition( bytes32 indexed fromPartition, address operator, address indexed from, address indexed to, uint256 value, bytes data, bytes operatorData )"
 ];
 
-export const transferByPartitionFinding = (log: LogDescription): Finding => Finding.fromObject({
+export const createFinding = (log: LogDescription): Finding => Finding.fromObject({
   name: "Large FlexaCollateralManager TransferByPartition alert",
   description: "TransferByPartition event emitted with a large value",
   alertId: "FLEXA-2",
@@ -19,18 +19,17 @@ export const transferByPartitionFinding = (log: LogDescription): Finding => Find
   protocol: "Flexa",
   metadata: {
     fromPartition: log.args['fromPartition'].toLowerCase(),
+    operator: log.args['operator'].toLowerCase(),
     fromAddress: log.args['from'].toLowerCase(),
     toAddress: log.args['to'].toLowerCase(),
     value: log.args['value'].toString(),
   }
 });
 
-export const createFinding = (log: LogDescription): Finding => transferByPartitionFinding(log);
-
 export default {
     FLEXA_MANAGER_CONTRACT,
     FLEXA_ABI,
     AMP_CONTRACT,
     AMP_ABI,  
-    transferByPartitionFinding
+    createFinding
 };
