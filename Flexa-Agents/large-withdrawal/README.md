@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects large transfers from Flexa Collateral Manager contract partitions.
+This agent detects large transfers from `FlexaCollateralManager` contract partitions.
 
 ## Supported Chains
 
