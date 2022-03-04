@@ -85,7 +85,7 @@ describe("Forta Collateral Manager large transfer by partition agent test suite"
         expect(findings).toStrictEqual([]);
     })
 
-    it("should ignore transfers not from a partition", async () => {
+    it("should ignore transfers from a non-permitted partition", async () => {
         when(mockIsPartition)
             .calledWith(500, PARTITIONS[3]).mockReturnValue(false);
             
