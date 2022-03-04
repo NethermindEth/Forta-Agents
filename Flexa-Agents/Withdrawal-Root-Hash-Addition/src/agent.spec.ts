@@ -1,7 +1,13 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-
+import { utils } from "ethers";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
-import { provideHandleTransaction, FLEXA_COLLATERAL_MANAGER_IFACE as IFACE } from "./agent";
+import { provideHandleTransaction, WITHDRAWAL_ROOT_HASH_ADDITION_SIGNATURE } from "./agent";
+
+const IFACE: utils.Interface = new utils.Interface([
+  WITHDRAWAL_ROOT_HASH_ADDITION_SIGNATURE,
+  // This event is just for testing purposes
+  "event IrrelevantEvent(bytes32 indexed rootHash, uint256 indexed nonce)"
+]);
 
 const factory: string = createAddress("0xa0");
 const unixTime = 1645787209;

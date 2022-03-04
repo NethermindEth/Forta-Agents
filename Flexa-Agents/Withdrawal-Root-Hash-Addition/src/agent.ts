@@ -1,15 +1,9 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
-import { utils, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 
 const FLEXA_COLLATERAL_MANAGER: string = "0x706d7f8b3445d8dfc790c524e3990ef014e7c578";
 export const WITHDRAWAL_ROOT_HASH_ADDITION_SIGNATURE: string =
   "event WithdrawalRootHashAddition(bytes32 indexed rootHash, uint256 indexed nonce)";
-
-export const FLEXA_COLLATERAL_MANAGER_IFACE: utils.Interface = new utils.Interface([
-  WITHDRAWAL_ROOT_HASH_ADDITION_SIGNATURE,
-  // This event is just for testing purposes
-  "event IrrelevantEvent(bytes32 indexed rootHash, uint256 indexed nonce)"
-]);
 
 export const provideHandleTransaction = (address: string): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
