@@ -1,45 +1,63 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import { BigNumber } from "ethers";
+import { LogDescription } from "forta-agent";
+import {
+  Finding,
+  getEthersProvider,
+  HandleTransaction,
+  TransactionEvent,
+} from "forta-agent";
+import PriceFetcher from "./price.fetcher";
+import {
+  EVENTS_SIGNATURES,
+  STAKING_CONTRACT,
+  CHAINLINK_AMP_DATA_FEED,
+} from "./utils";
+import { createFinding } from "./utils";
 
-let findingsCount = 0
+const THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1M USD
+const amount_correction: BigNumber = BigNumber.from(10).pow(18);
+const price_correction: BigNumber = BigNumber.from(10).pow(8);
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+export const provideHandleTransaction =
+  (
+    staking_contract: string,
+    fetcher: PriceFetcher,
+    threshold: BigNumber
+  ): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    // get the event logs
+    const logs: LogDescription[] = txEvent.filterLog(
+      EVENTS_SIGNATURES,
+      staking_contract
+    );
+    if (!logs) return findings;
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    // get the token price in USD.
+    const price_feed: BigNumber[] = await fetcher.getAmpPrice(
+      txEvent.blockNumber,
+      CHAINLINK_AMP_DATA_FEED
+    );
+    let token_price = price_feed[1]; // the price is given in USD * 10^8
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+    logs.forEach((log) => {
+      let amount: BigNumber = log.args.amount; //get the amount transfered, given in USD * 10^18
+      //if the amount transfered is greater than the 1M threshold.
+      if (
+        amount
+          .mul(token_price)
+          .gte(threshold.mul(amount_correction).mul(price_correction))
+      )
+        findings.push(createFinding(log));
+    });
 
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    return findings;
+  };
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(
+    STAKING_CONTRACT,
+    new PriceFetcher(getEthersProvider()),
+    THRESHOLD
+  ),
+};
