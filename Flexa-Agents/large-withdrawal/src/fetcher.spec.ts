@@ -7,7 +7,7 @@ import { keccak256 } from "forta-agent/dist/sdk/utils";
 const FLEXA_IFACE: Interface = new Interface(utils.FLEXA_ABI);
 
 //partition address, block number, isPartition
-const PARTITIONS: [string, number, boolean][] = [
+const CASES: [string, number, boolean][] = [
     [keccak256("csfkfdsk"), 13, true],
     [keccak256("ooooooo"), 14, false],
     [keccak256("dfdsf9ssf"), 15, true],
@@ -41,7 +41,7 @@ describe("Fetcher test suite", () => {
     });
 
     it("should return true (false) when isPartition is called with an address that is (is not) a partition", async () => {        
-        for(let [partition, block, isPartition] of PARTITIONS) {
+        for(let [partition, block, isPartition] of CASES) {
             mockProvider.addCallTo(flexa, block, FLEXA_IFACE, 'partitions', { inputs: [partition], outputs: [isPartition]});        
             const value: boolean = await fetcher.isPartition(block, partition);
             expect(value).toStrictEqual(isPartition);
