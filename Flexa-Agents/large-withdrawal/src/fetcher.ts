@@ -6,11 +6,9 @@ export default class Fetcher {
   readonly amp: string;
   readonly flexa: string;
   private flexaContract: Contract;
-  private provider: providers.Provider;
   private cache: LRU<string, BigNumber | boolean>;
 
   constructor(amp: string, flexa: string, provider: providers.Provider){
-      this.provider = provider;
       this.amp = amp;
       this.flexa = flexa;
       this.flexaContract = new Contract(flexa, utils.FLEXA_ABI, provider);
