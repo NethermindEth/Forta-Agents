@@ -29,7 +29,7 @@ export const createFinding = (log: LogDescription) => {
     type: FindingType.Info,
     protocol: "Flexa",
     metadata: {
-      supplier: log.args.supplier,
+      supplier: log.args.supplier.toLowerCase(),
       amount: log.args.amount.toHexString(),
     },
   });
