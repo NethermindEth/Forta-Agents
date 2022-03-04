@@ -31,7 +31,7 @@ export const provideHandleTransaction =
       EVENTS_SIGNATURES,
       staking_contract
     );
-    if (!logs) return findings;
+    if (logs.length === 0) return findings;
 
     // get the token price in USD.
     const price_feed: BigNumber[] = await fetcher.getAmpPrice(
