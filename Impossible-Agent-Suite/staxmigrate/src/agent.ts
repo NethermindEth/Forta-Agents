@@ -49,6 +49,7 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
         }
         // If a matching transfer mint for the `staxMigrate` call was not found
         if(matchingMigrate == false) {
+          // Generate a finding
           findings.push(
             Finding.fromObject({
               name: 'IF token staxMigrate imbalanced mint',
@@ -66,59 +67,6 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
         }
       }
     });
-    
-    /*
-    // If there were calls to the `staxMigrate` function 
-    if(migrations.length) {
-
-      // For each `staxMigrate` call
-      migrations.forEach((migration) => {
-
-        // Cycle through all transfer events
-        let i = 0;
-        let matchingTransfer = false;
-        while(i < transfers.length) {
-          // If the transfer is a mint
-          if(transfers[i].args.from == ZERO_ADDR) {
-            // Get the amount 'in' STAX tokens and 'out' IF tokens
-            const staxAmountIn = migration.args.amount.toString();
-            const ifAmountOut = transfers[i].args.value.toString();
-            // If `staxAmountIn` and `ifAmountOut` match
-            if(staxAmountIn == ifAmountOut) {
-              // The `staxMigrate` call matches the `transfer` event
-              matchingTransfer = true;
-              // Exit while loop
-              break;
-            }
-          }
-          // Increment i
-          i++;
-        } 
-  
-        console.log(migration);
-        
-        // If a matching transfer mint for the `staxMigrate` call was not found
-        if(matchingTransfer == false) {
-
-
-
-          findings.push(
-            Finding.fromObject({
-              name: 'IF token staxMigrate imbalanced mint',
-              description: 'staxMigrate was called and an unexpected amount of IF tokens have been minted',
-              alertId: 'IMPOSSIBLE-10',
-              severity: FindingSeverity.High,  
-              type: FindingType.Exploit,
-              protocol: 'Impossible Finance',
-              metadata: {
-                staxAmountIn: migration.args.amount.toString()
-              }
-            })
-          );
-        }
-      });
-    }
-    */
 
     // Return findings
     return findings;
