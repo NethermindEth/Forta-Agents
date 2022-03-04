@@ -6,11 +6,13 @@ import {
   FindingType,
 } from 'forta-agent';
 import utils, { Verifier } from './utils';
-import bscDangerous from './bsc.dangerous.addresses';
 import impossibleAddresses from './impossible.addresses';
+import DarklistVerifier from './darklist.verifier';
 
-const DANGEROUS_VERIFIER: Verifier = utils.listVerifier(bscDangerous);
+const UPDATE_THRESHOLD: number = 86400; // one day
+const DARKLIST_VERIFIER = new DarklistVerifier(UPDATE_THRESHOLD);
 const IMPOSSIBLE_VERIFIER: Verifier = utils.listVerifier(impossibleAddresses);
+const DANGEROUS_VERIFIER: Verifier = DARKLIST_VERIFIER.isDark.bind(DARKLIST_VERIFIER);
 
 const createFinding = (impossible: string[], dangerous: string[]) => Finding.fromObject({
   name: "Impossible Finance interaction monitor",
@@ -30,14 +32,16 @@ export const provideHandleTransaction = (
   dangerousVerifier: Verifier, 
 ): HandleTransaction => async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
+  const timestamp: number = txEvent.timestamp;
+  const blockNumber: number = txEvent.blockNumber;
 
   const impossibleInteraction: string[] = [];
   const dangerousInteraction: string[] = [];
   await Promise.all(Object.keys(txEvent.addresses).map(
     async (involvedAddress: string) => {
       const [i, d] = await Promise.all([
-        impossibleVerifier(involvedAddress),
-        dangerousVerifier(involvedAddress),
+        impossibleVerifier(involvedAddress, timestamp, blockNumber),
+        dangerousVerifier(involvedAddress, timestamp, blockNumber),
       ]);
       if(i) impossibleInteraction.push(involvedAddress);
       if(d) dangerousInteraction.push(involvedAddress);
