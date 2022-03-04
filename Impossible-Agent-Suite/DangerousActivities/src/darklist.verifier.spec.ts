@@ -64,7 +64,7 @@ describe("DarklistVerifier tests suite", () => {
     for(let addr of address)
       expect(await verifier.isDark(addr, 20)).toStrictEqual(true);
 
-    const extraAddr: string = createAddress("bade0a");
+    const extraAddr: string = createAddress("0xbade0a");
     mockFetcher.mockReturnValueOnce(toResponse([...address, extraAddr]));
     
     for(let i = 1; i <= 20; ++i)
