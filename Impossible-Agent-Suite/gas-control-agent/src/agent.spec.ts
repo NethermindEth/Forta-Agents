@@ -1,65 +1,104 @@
-import BigNumber from 'bignumber.js';
-import { HandleTransaction } from 'forta-agent';
+import { BigNumber, BigNumberish } from 'ethers';
+import { Finding, FindingSeverity, FindingType, HandleTransaction } from 'forta-agent';
 import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
 import { provideHandleTransaction } from './agent';
-import { createFinding, hexToNumber } from './utils';
+import utils from './utils';
 
 const TEST_ADDRESSES = [
-  createAddress('0x1'),
-  createAddress('0x2'),
-  createAddress('0x3'),
+  createAddress('0x1abc'),
+  createAddress('0x2def'),
+  createAddress('0xdead'),
 ];
 
-describe('high gas agent', () => {
-  let handleTransaction: HandleTransaction;
+const createFinding = (addrs: string[], gas: string) => {
+  const gasStr: string = BigNumber.from(gas).toString();
 
-  beforeAll(() => {
-    handleTransaction = provideHandleTransaction(TEST_ADDRESSES);
+  return Finding.fromObject({
+    name: 'High Gas Usage Detection',
+    description: 'High gas is used - above 10',
+    alertId: 'IMPOSSIBLE-2',
+    severity: FindingSeverity.High,
+    type: FindingType.Info,
+    protocol: 'Impossible Finance',
+    metadata: {
+      protocolContracts: addrs.toString(),
+      gasInGwei: gasStr,
+      gasInWei: gasStr.slice(0, gasStr.length - 9),
+    },
   });
+}
+
+describe('Gas monitor agent test suite', () => {
+  const threshold: BigNumber = BigNumber.from(20);
+  const handleTransaction: HandleTransaction = provideHandleTransaction(
+    utils.isOnList(TEST_ADDRESSES), 
+    threshold,
+  );
+
+  const toGas = (wei: BigNumberish) => 
+    BigNumber.from(wei).mul(BigNumber.from(10).pow(9));
 
   it('should return empty finding', async () => {
     const tx = new TestTransactionEvent();
+    tx.transaction.gasPrice = toGas(200).toHexString();
 
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([]);
   });
 
-  it('should return empty finding if gas used properly', async () => {
-    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
-    tx.transaction.gasPrice = '0x1A13B8600'; // 7 GWei
+  it('should return empty finding if gas is below threshold', async () => {
+    const CASES: number[] = [12, 8, 2, 19, 11, 20];
+
+    for(let price of CASES) {
+      const tx = new TestTransactionEvent().addInvolvedAddresses(...TEST_ADDRESSES);
+      tx.transaction.gasPrice = toGas(price).toHexString();
+
+      const findings = await handleTransaction(tx);
+
+      expect(findings).toStrictEqual([]);
+    }
+  });
+
+  it('should return empty finding if gas is above threshold', async () => {
+    const CASES: number[] = [21, 100, 234, 22, 30, 42];
+
+    for(let price of CASES) {
+      const tx = new TestTransactionEvent().addInvolvedAddresses(...TEST_ADDRESSES);
+      tx.transaction.gasPrice = toGas(price).toHexString();
+
+      const findings = await handleTransaction(tx);
+
+      expect(findings).toStrictEqual([createFinding(TEST_ADDRESSES, tx.transaction.gasPrice)]);
+    }
+  });
+
+  it('should return empty finding if non relevant addresses are involved', async () => {
+    const tx = new TestTransactionEvent().addInvolvedAddresses(
+      createAddress('0x6'), 
+      createAddress("0xfee")
+    );
+    tx.transaction.gasPrice = toGas(10000).toHexString();
 
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([]);
   });
 
-  it('should return empty finding if gas used as 10', async () => {
-    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
-    tx.transaction.gasPrice = '0x2540BE400'; // 10 GWei
-
-    const findings = await handleTransaction(tx);
-
-    expect(findings).toStrictEqual([]);
-  });
-
-  it('should return empty finding if wrong address used', async () => {
-    const tx = new TestTransactionEvent().setTo(createAddress('0x6'));
-    tx.transaction.gasPrice = '0x28FA6AE00'; // 11 GWei
-
-    const findings = await handleTransaction(tx);
-
-    expect(findings).toStrictEqual([]);
-  });
-
-  it('should return a finding if gas used above 10', async () => {
-    const tx = new TestTransactionEvent().setTo(TEST_ADDRESSES[0]);
-    tx.transaction.gasPrice = '0x28FA6AE00'; // 11 GWei
+  it('should return a finding if gas used is above the threshold for one wei', async () => {
+    const tx = new TestTransactionEvent().addInvolvedAddresses(
+      TEST_ADDRESSES[2], 
+      TEST_ADDRESSES[1],
+    );
+    tx.transaction.gasPrice = toGas(threshold).add(1).toHexString(); // 11 GWei
 
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(TEST_ADDRESSES[0], hexToNumber('0x28FA6AE00').toString()),
+      createFinding(
+        [TEST_ADDRESSES[2], TEST_ADDRESSES[1]], 
+        tx.transaction.gasPrice,
+      ),
     ]);
   });
 });

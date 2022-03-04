@@ -2,7 +2,8 @@
 
 ## Description
 
-This agent detects transactions with high gas Price - above 10 Gwei
+This agent detects transactions with high gas Price where Impossible Finance addresses are involved
+> High is defined as above 10 Gwei
 
 ## Supported Chains
 
@@ -11,9 +12,10 @@ This agent detects transactions with high gas Price - above 10 Gwei
 ## Alerts
 
 - IMPOSSIBLE-2
-  - Fired when a transaction uses more than 10 Gwei as `Gas Price`
+  - Fired when a transaction uses more than 10 Gwei as gas price and involve Impossible Finance addresses
   - Severity is always set to "High"
   - Type is always set to "Info"
   - Metadata includes:
-    - `contract`: The contract address that transaction interacted.
-    - `gas`: The gas price used.
+    - `protocolContracts`: The Impossible Finance contract addresses involved in the transaction.
+    - `gasInGwei`: The raw gas price used in Gwei.
+    - `gasInWei`: The gas price in Wei.

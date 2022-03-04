@@ -1,7 +1,11 @@
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'ethers';
 import { Finding, FindingSeverity, FindingType } from 'forta-agent';
 
-export const CONTRACTS = [
+const GAS_DECIMALS: BigNumber = BigNumber.from(10).pow(9);
+
+export type AddressValidator = (addr: string) => boolean | Promise<boolean>;
+
+const CONTRACTS = [
   '0xb0e1fc65c1a741b4662b813eb787d369b8614af1', // IF
   '0x0b15ddf19d47e6a86a56148fb4afffc6929bcb89', // IDIA
   '0x1d37f1e6f0cce814f367d2765ebad5448e59b91b', // IF Allocation Master V1.5
@@ -11,8 +15,15 @@ export const CONTRACTS = [
   '0x56f6ca0a3364fa3ac9f0e8e9858b2966cdf39d03', // Swap v3 Router
 ];
 
-export const createFinding = (contract: string, gas: string) =>
-  Finding.fromObject({
+const isOnList = (list: string[]): AddressValidator => {
+  const set: Set<string> = new Set<string>(list);
+  return set.has.bind(set);
+};
+
+const createFinding = (contracts: string[], gas: BigNumber) => {
+  const gasStr: string = gas.toString();
+  
+  return Finding.fromObject({
     name: 'High Gas Usage Detection',
     description: 'High gas is used - above 10',
     alertId: 'IMPOSSIBLE-2',
@@ -20,10 +31,16 @@ export const createFinding = (contract: string, gas: string) =>
     type: FindingType.Info,
     protocol: 'Impossible Finance',
     metadata: {
-      contract: contract,
-      gas: gas,
+      protocolContracts: contracts.toString(),
+      gasInGwei: gasStr,
+      gasInWei: gasStr.slice(0, gasStr.length - 9),
     },
-  });
+  })
+};
 
-export const hexToNumber = (hex: string): BigNumber =>
-  new BigNumber(hex).div(new BigNumber(10).pow(9));
+export default {
+  isOnList,
+  GAS_DECIMALS,
+  createFinding,
+  isOnContractList: isOnList(CONTRACTS),
+};

@@ -1,27 +1,36 @@
-import BigNumber from 'bignumber.js';
 import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
-import { CONTRACTS, createFinding, hexToNumber } from './utils';
+import utils, { AddressValidator } from './utils';
+import { BigNumber } from 'ethers';
+
+const THRESHOLD: BigNumber = BigNumber.from(10); // gas price
+const DECIMALS: BigNumber = BigNumber.from(10).pow(9);
 
 export const provideHandleTransaction = (
-  contracts: string[]
+  isValid: AddressValidator, 
+  _threshold: BigNumber,
 ): HandleTransaction => {
+  const threshold: BigNumber = _threshold.mul(DECIMALS);
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const th = new BigNumber(10); // 10 GWei
-    const gasPrice = hexToNumber(txEvent.gasPrice);
+    const gasPrice: BigNumber = BigNumber.from(txEvent.gasPrice);
 
-    contracts.forEach((contract) => {
-      if (txEvent.to === contract && gasPrice.gt(th)) {
-        findings.push(createFinding(contract, gasPrice.toString()));
-      }
-    });
+    const addrs: string[] = Object.keys(txEvent.addresses);
+    const valid: boolean[] = await Promise.all(addrs.map(addr => isValid(addr)));
+    const involved: string[] = addrs.filter((_, idx) => valid[idx]);
+
+    if (involved.length && threshold.lt(gasPrice)) 
+      findings.push(utils.createFinding(involved, gasPrice));
 
     return findings;
   };
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(CONTRACTS),
+  handleTransaction: provideHandleTransaction(
+    utils.isOnContractList,
+    THRESHOLD,
+  ),
   provideHandleTransaction,
 };
