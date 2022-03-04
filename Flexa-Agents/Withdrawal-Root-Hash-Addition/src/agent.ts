@@ -1,5 +1,5 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
-import { utils } from "ethers";
+import { utils, BigNumber } from "ethers";
 
 const FLEXA_COLLATERAL_MANAGER: string = "0x706d7f8b3445d8dfc790c524e3990ef014e7c578";
 export const WITHDRAWAL_ROOT_HASH_ADDITION_SIGNATURE: string =
@@ -20,7 +20,7 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
     for (let i = 0; i < withdrawalRootHashAdditionEvents.length; i++) {
       findings.push(
         Finding.fromObject({
-          name: "Flexa withdrawal root event",
+          name: "Flexa Withdrawal Root Hash alert",
           description: "A new withdrawal root hash is added to the active set",
           alertId: "FLEXA-3",
           severity: FindingSeverity.Info,
@@ -28,7 +28,9 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
           protocol: "Flexa",
           metadata: {
             timestamp: txEvent.timestamp.toString(),
-            timeUTC: time.toUTCString()
+            timeUTC: time.toUTCString(),
+            rootHash: withdrawalRootHashAdditionEvents[i].args.rootHash,
+            nonce: BigNumber.from(withdrawalRootHashAdditionEvents[i].args.nonce).toString()
           }
         })
       );

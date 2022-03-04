@@ -17,6 +17,8 @@ This agent detects a `WithdrawalRootHashAddition` event emission from `FlexaColl
   - Metadata fields
     - timestamp: Raw timestamp of the transaction
     - timeUTC: Timestamp of the transaction in UTC
+    - rootHash: Event's `rootHash` argument
+    - nonce: Event's `nonce` argument
 
 ## Test Data
 
