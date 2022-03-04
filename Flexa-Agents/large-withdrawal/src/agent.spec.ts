@@ -68,7 +68,7 @@ describe("Forta Collateral Manager large transfer by partition agent test suite"
 
     })
 
-    it("should ignore transfers from a non Flexa partition", async () => {
+    it("should ignore non-withdrawal transfers", async () => {
         when(mockIsPartition)
             .calledWith(22, PARTITIONS[4]).mockReturnValue(true);
             
