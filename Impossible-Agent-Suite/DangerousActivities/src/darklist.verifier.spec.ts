@@ -6,6 +6,7 @@ describe("DarklistVerifier tests suite", () => {
   let verifier: DarklistVerifier;
 
   const verifyCalls = (numberOfCalls: number) => {
+    expect(mockFetcher).toHaveBeenCalledTimes(numberOfCalls);
     for(let i = 1; i <= numberOfCalls; ++i)
       expect(mockFetcher).nthCalledWith(i, dataUrl);
   };
@@ -46,7 +47,7 @@ describe("DarklistVerifier tests suite", () => {
       expect(await verifier.isDark(createAddress(`0x${i}`))).toStrictEqual(false);
     for(let addr of address)
       expect(await verifier.isDark(addr)).toStrictEqual(true);
-    expect(mockFetcher).toHaveBeenCalledTimes(1);
+    verifyCalls(1);
   });
 
   it("should update the darklist if the threshold time is passed", async () => {
@@ -73,6 +74,6 @@ describe("DarklistVerifier tests suite", () => {
       expect(await verifier.isDark(addr, 25)).toStrictEqual(true);
     expect(await verifier.isDark(extraAddr, 40)).toStrictEqual(true);
 
-    expect(mockFetcher).toHaveBeenCalledTimes(2);
+    verifyCalls(2);
   });
 });
