@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects a WithdrawalRootHashAddition event emission from FlexaCollateralManager contract.
+This agent detects a `WithdrawalRootHashAddition` event emission from `FlexaCollateralManager` contract.
 
 ## Supported Chains
 
@@ -11,9 +11,9 @@ This agent detects a WithdrawalRootHashAddition event emission from FlexaCollate
 ## Alerts
 
 - FLEXA-3
-  - Fired when a the contract emits WithdrawalRootHashAddition event.
-  - Severity is always set to "info"
-  - Type is always set to "info"
+  - Fired when a the contract emits `WithdrawalRootHashAddition` event.
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
   - Metadata fields
     - timestamp: Raw timestamp of the transaction
     - timeUTC: Timestamp of the transaction in UTC
