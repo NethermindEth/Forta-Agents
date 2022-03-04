@@ -12,7 +12,7 @@ This agent detects transactions with high gas Price where Impossible Finance add
 ## Alerts
 
 - IMPOSSIBLE-2
-  - Fired when a transaction uses more than 10 Gwei as gas price and involve Impossible Finance addresses
+  - Fired when a transaction uses high gas price and involve Impossible Finance addresses
   - Severity is always set to "High"
   - Type is always set to "Info"
   - Metadata includes:
