@@ -23,7 +23,7 @@ export const createFinding = (log: LogDescription) => {
   const name = log.name == "SupplyReceipt" ? "Deposit" : "Withdrawal";
   return Finding.fromObject({
     name: `Large ${name} detected on Flexa staking contract`,
-    description: `${log.name} event emitted with an amount exceeding 1M USD`,
+    description: `${log.name} event emitted with a large amount`,
     alertId: "Flexa-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

@@ -26,7 +26,7 @@ const createFinding = (
   const name = log_name == "SupplyReceipt" ? "Deposit" : "Withdrawal";
   return Finding.fromObject({
     name: `Large ${name} detected on Flexa staking contract`,
-    description: `${log_name} event emitted with an amount exceeding 1M USD`,
+    description: `${log_name} event emitted with a large amount`,
     alertId: "Flexa-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
