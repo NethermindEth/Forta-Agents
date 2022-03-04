@@ -28,7 +28,7 @@ const createFinding = (fromPartition: string, operator: string, fromAddress: str
   metadata: { fromPartition, operator, fromAddress, toAddress, value },
 });
 
-describe("Forta Collateral Manager large transfer by partition agent test suite", () => {
+describe("Flexa Collateral Manager large transfer by partition agent test suite", () => {
     const mockIsPartition = jest.fn();
     const FLEXA_CONTRACT: string = createAddress("0xfffd");
     const AMP_CONTRACT: string = createAddress("0xffff");
