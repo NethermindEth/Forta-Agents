@@ -1,48 +1,203 @@
+import { BigNumber } from "ethers";
+import { formatBytes32String, Interface } from "ethers/lib/utils";
 import {
   FindingType,
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+  TransactionEvent,
+} from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { provideHandleTransaction } from "./agent";
+import { EVENTS_SIGNATURES } from "./utils";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const FLEXA_CONTRACT = createAddress("0xfea");
+const THRESHOLD = BigNumber.from(1000); // amount threshold used by the agent
+const EVENTS_IFACE = new Interface(EVENTS_SIGNATURES);
+const amount_correction: BigNumber = BigNumber.from(10).pow(18);
+const price_correction: BigNumber = BigNumber.from(10).pow(8);
+const TOKEN_PRICE = BigNumber.from(10).mul(price_correction);
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const createFinding = (
+  log_name: string,
+  supplier: string,
+  amount: BigNumber
+): Finding => {
+  const name = log_name == "SupplyReceipt" ? "Deposit" : "Withdrawal";
+  return Finding.fromObject({
+    name: `Large ${name} detected on Flexa staking contract`,
+    description: `${log_name} event emitted with an amount exceeding 1M USD`,
+    alertId: "Flexa-1",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Flexa",
+    metadata: {
+      supplier: supplier.toLowerCase(),
+      amount: amount.toHexString(),
+    },
+  });
+};
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+describe("Large deposit/ withdrawal agent tests suite", () => {
+  //init the mock fetcher
+  const mockPrice = jest.fn();
+  const mockFetcher = {
+    getAmpPrice: mockPrice,
+  };
+  mockPrice.mockReturnValue([1, TOKEN_PRICE, 2, 3, 1]);
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+  // init the agent
+  let handler: HandleTransaction;
+  handler = provideHandleTransaction(
+    FLEXA_CONTRACT,
+    mockFetcher as any,
+    THRESHOLD
+  );
 
-      const findings = await handleTransaction(txEvent)
+  it("should ignore transactions without events", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent();
 
-      expect(findings).toStrictEqual([])
-    })
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  it("should ignore events emitted on a different contract", async () => {
+    const different_contract = createAddress("0xd4");
+    // events generation
+    const log1 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("SupplyReceipt"),
+      [
+        createAddress("0xa1"), // supplier
+        formatBytes32String("abc"), // partition
+        BigNumber.from(150).mul(amount_correction), // amount exceeding the threshold
+        5, // nonce
+      ]
+    );
+    const log2 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("Withdrawal"),
+      [
+        createAddress("0xa2"), // supplier
+        formatBytes32String("bbe"), // partition
+        BigNumber.from(160).mul(amount_correction), //amount exceeding the threshold
+        5, // rootNonce
+        5, // authorizedAccountNonce
+      ]
+    );
+    const log3 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("FallbackWithdrawal"),
+      [
+        createAddress("0xa3"), // supplier
+        formatBytes32String("ebc"), // partition
+        BigNumber.from(150).mul(amount_correction), //amount exceeding the threshold
+      ]
+    );
+    // create a transaction with the previous event logs
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(different_contract, log1.data, ...log1.topics)
+      .addAnonymousEventLog(different_contract, log2.data, ...log2.topics)
+      .addAnonymousEventLog(different_contract, log3.data, ...log3.topics);
 
-      const findings = await handleTransaction(txEvent)
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+  it("should return multiple findings", async () => {
+    // events generation
+    const log1 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("SupplyReceipt"),
+      [
+        createAddress("0xa1"), //supplier
+        formatBytes32String("abc"), //flexa partition
+        BigNumber.from(150).mul(amount_correction), //amount exceeding the threshold
+        5, // nonce
+      ]
+    );
+    const log2 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("Withdrawal"),
+      [
+        createAddress("0xa2"), //supplier
+        formatBytes32String("abc"), //flexa partition
+        BigNumber.from(160).mul(amount_correction), //amount exceeding the threshold
+        5, // rootNonce
+        5, // authorizedAccountNonce
+      ]
+    );
+    const log3 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("FallbackWithdrawal"),
+      [
+        createAddress("0xa3"), //supplier
+        formatBytes32String("abc"), //flexa partition
+        BigNumber.from(200).mul(amount_correction), //amount exceeding the threshold
+      ]
+    );
+    // create a transaction with the previous event logs
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(FLEXA_CONTRACT, log1.data, ...log1.topics)
+      .addAnonymousEventLog(FLEXA_CONTRACT, log2.data, ...log2.topics)
+      .addAnonymousEventLog(FLEXA_CONTRACT, log3.data, ...log3.topics);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding(
+        "SupplyReceipt",
+        createAddress("0xa1"),
+        BigNumber.from(150).mul(amount_correction)
+      ),
+      createFinding(
+        "Withdrawal",
+        createAddress("0xa2"),
+        BigNumber.from(160).mul(amount_correction)
+      ),
+      createFinding(
+        "FallbackWithdrawal",
+        createAddress("0xa3"),
+        BigNumber.from(200).mul(amount_correction)
+      ),
+    ]);
+  });
+
+  it("should ignore events with a regular amount", async () => {
+    const log1 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("SupplyReceipt"),
+      [
+        createAddress("0xa1"), //supplier
+        formatBytes32String("abc"), //partition
+        BigNumber.from(50).mul(amount_correction), // regular amount
+        5, // nonce
+      ]
+    );
+
+    const log2 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("Withdrawal"),
+      [
+        createAddress("0xa2"), // supplier
+        formatBytes32String("bbe"), // partition
+        BigNumber.from(160).mul(amount_correction), // amount exceeding the threshold
+        5, // rootNonce
+        5, // authorizedAccountNonce
+      ]
+    );
+    const log3 = EVENTS_IFACE.encodeEventLog(
+      EVENTS_IFACE.getEvent("FallbackWithdrawal"),
+      [
+        createAddress("0xa3"), // supplier
+        formatBytes32String("ebc"), // partition
+        BigNumber.from(60).mul(amount_correction), // regular amount
+      ]
+    );
+    // create a transaction with the previous event logs
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(FLEXA_CONTRACT, log1.data, ...log1.topics)
+      .addAnonymousEventLog(FLEXA_CONTRACT, log2.data, ...log2.topics)
+      .addAnonymousEventLog(FLEXA_CONTRACT, log3.data, ...log3.topics);
+    // generate a finding to only the event with an amount greater than the threshold
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding(
+        "Withdrawal",
+        createAddress("0xa2"),
+        BigNumber.from(160).mul(amount_correction)
+      ),
+    ]);
+  });
+});
