@@ -8,36 +8,41 @@ interface Reserves {
 }
 
 export default class PairFetcher {
-  readonly factory: string;
-  private fContract: Contract;
+  readonly factoryAddress: string;
+  private factoryContract: Contract;
   private provider: providers.Provider;
-  private cache: LRU<string, Reserves>;
+  private cache: LRU<string, boolean | Reserves>;
 
   constructor(factory: string, provider: providers.Provider) {
-    this.factory = factory;
     this.provider = provider;
-    this.fContract = new Contract(factory, abi.FACTORY, provider);
-    this.cache = new LRU<string, Reserves>({ max: 10000 });
+    this.factoryAddress = factory;
+    this.factoryContract = new Contract(factory, abi.FACTORY, provider);
+    this.cache = new LRU<string, boolean>({ max: 10000 });
   }
 
-  // not need to be stored in cache because is called just one time
-  public async getAllPairs(block: number | string): Promise<string[]> {
-    const length: number = await this.fContract.allPairsLength({ blockTag: block });
-
-    const pairPromises: Promise<string>[] = [];
-    for (let i = BigNumber.from(0); i.lt(length); i = i.add(1)) {
-      pairPromises.push(
-        this.fContract
-          .allPairs(i, { blockTag: block })
-          .then((pair: string) => pair.toLowerCase())
-      );
+  public async isImpossiblePair(block: number | string, pair: string): Promise<boolean> {
+    const key: string = `is-${block}-${pair}`
+    if(this.cache.has(key))
+      return this.cache.get(key) as boolean;
+    
+    try {
+      const pairContract: Contract = new Contract(pair, abi.PAIR, this.provider);
+      const [token0, token1] = await Promise.all([
+        pairContract.token0({ blockTag: block }),
+        pairContract.token1({ blockTag: block }),
+      ]);
+      const realPair: string = await this.factoryContract.getPair(token0, token1, { blockTag: block });
+      const isCorrectPair: boolean = (realPair.toLowerCase() === pair.toLowerCase());
+      this.cache.set(key, isCorrectPair);
+      return isCorrectPair;
+    } catch {
+      this.cache.set(key, false);
+      return false;
     }
-
-    return Promise.all(pairPromises);
   }
 
   public async getReserves(block: number | string, pair: string): Promise<Reserves> {
-    const key: string = `${block}-${pair}`;
+    const key: string = `reserve-${block}-${pair}`;
     if(this.cache.has(key))
       return this.cache.get(key) as Reserves;
     const pContract = new Contract(pair, abi.PAIR, this.provider);
@@ -46,4 +51,4 @@ export default class PairFetcher {
     this.cache.set(key, { reserve0, reserve1 });
     return { reserve0, reserve1 };
   }
-}
+};

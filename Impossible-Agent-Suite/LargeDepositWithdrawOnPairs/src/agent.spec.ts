@@ -8,23 +8,35 @@ import {
 import { createAddress, TestTransactionEvent } from "forta-agent-tools";
 import { when } from "jest-when";
 import abi from "./abi";
+import { Interface } from "@ethersproject/abi";
 import { provideHandleTransaction } from "./agent";
 
-const PAIRS: string[] = [
-  createAddress("0xace17e"),
-  createAddress("0xca1d0"),
-  createAddress("0xf11e7e"),
-  createAddress("0xc0c1do"),
-  createAddress("0xe570fad0"),
+type TestData = [string, boolean, string, string[], string, string, boolean, number][];
+
+// address, isPair, event, params, reserves0, reserve1, emit finding, block
+const CASES: TestData = [
+  // not pairs
+  [createAddress("0xace17e"), false, "Mint", [createAddress('0x1a'), "1000", "2000"], "1000", "2000", false, 1], 
+  [createAddress("0xca1d0"), false, "Burn", [createAddress('0x1b'), "2000", "3000", createAddress('0x2b')], "100", "200", false, 2], 
+  // under threshold
+  [createAddress("0xf11e7e"), true, "Mint", [createAddress('0x1c'), "1", "1"], "200", "200", false, 3], 
+  [createAddress("0xc0c1do"), true, "Burn", [createAddress('0x1b'), "10", "3", createAddress('0x2b')], "4000", "200", false, 4],
+  // over threshold
+  [createAddress("0xe570fad0"), true, "Mint", [createAddress('0x1e'), "100", "200"], "10", "20", true, 5], 
+  [createAddress("0xfee"), true, "Burn", [createAddress('0x1f'), "200", "40", createAddress('0x2f')], "1000", "200", true, 6], 
+  // other events on pairs
+  [createAddress("0x1ce"), true, "Test", ["1", "2"], "10", "20", false, 7], 
+  [createAddress("0xf00d"), true, "Test", ["3", "4"], "1000", "200", false, 8], 
 ];
 
+const ABI: Interface = new Interface([
+  abi.PAIR.getEvent("Mint").format("full"),
+  abi.PAIR.getEvent("Burn").format("full"),
+  "event Test(uint a, uint b)",
+]);
+
 const addLiquidityFinding = (
-  pair: string,
-  amount0: string,
-  amount1: string,
-  sender: string,
-  reserve0: string,
-  reserve1: string,
+  [pair, sender, amount0, amount1, reserve0, reserve1]: string[],
 ): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Liquidity Action",
@@ -37,13 +49,7 @@ const addLiquidityFinding = (
   });
 
 const removeLiquidityFinding = (
-  pair: string,
-  amount0: string,
-  amount1: string,
-  sender: string,
-  to: string,
-  reserve0: string,
-  reserve1: string,
+  [pair, sender, amount0, amount1, to, reserve0, reserve1]: string[],
 ): Finding =>
   Finding.fromObject({
     name: "Impossible Finance Pair Updated",
@@ -55,17 +61,23 @@ const removeLiquidityFinding = (
     metadata: { pair, amount0, amount1, sender, to, reserve0, reserve1 },
   });
 
+const router: Record<string, (_: string[]) => Finding> = {
+  "Burn": removeLiquidityFinding,
+  "Mint": addLiquidityFinding,
+};
+
 describe("Large add/remove Liquidity agent tests suite", () => {
   const factory: string = createAddress("0xf00d");
-  const mockReserves = jest.fn();
   const mockFetcher = {
     factory,
-    getReserves: mockReserves,
+    getReserves: jest.fn(),
+    isImpossiblePair: jest.fn(),
   };
-  let handler: HandleTransaction;
+  const handler: HandleTransaction = provideHandleTransaction(mockFetcher as any, 20);
 
   beforeEach(() => {
-    handler = provideHandleTransaction(new Set(PAIRS), mockFetcher as any, 20);
+    mockFetcher.getReserves.mockClear();
+    mockFetcher.isImpossiblePair.mockClear();
   });
 
   it("should report empty findings in txns without events", async () => {
@@ -75,150 +87,48 @@ describe("Large add/remove Liquidity agent tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect large Mint events in the initialization pairs", async () => {
-    const { data, topics } = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
-      createAddress("0xdead"),
-      20,
-      50,
-    ]);
-    when(mockReserves)
-      .calledWith(20, PAIRS[0]) // Low increasement
-      .mockReturnValueOnce({ reserve0: 120, reserve1: 300 });
-    when(mockReserves)
-      .calledWith(20, PAIRS[2]) // Large token0
-      .mockReturnValueOnce({ reserve0: 100, reserve1: 400 });
-    when(mockReserves)
-      .calledWith(20, PAIRS[3]) // Large token1
-      .mockReturnValueOnce({ reserve0: 300, reserve1: 100 });
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .setBlock(21)
-      .addAnonymousEventLog(PAIRS[0], data, ...topics)
-      .addAnonymousEventLog(PAIRS[3], data, ...topics)
-      .addAnonymousEventLog(PAIRS[2], data, ...topics);
+  it("should detect/ignore events accordingly", async () => {
+    for(let [address, isPair, event, params, reserve0, reserve1, emitFinding, block] of CASES) {
+      when(mockFetcher.isImpossiblePair)
+        .calledWith(block, address)
+        .mockReturnValue(isPair);
+      const { data, topics } = ABI.encodeEventLog(ABI.getEvent(event), params);
+      when(mockFetcher.getReserves)
+        .calledWith(block - 1, address)
+        .mockReturnValueOnce({ reserve0, reserve1});
+      const tx: TransactionEvent = new TestTransactionEvent()
+        .setBlock(block)
+        .addAnonymousEventLog(address, data, ...topics);
+      
+      const findings: Finding[] = await handler(tx);
+      const expected: Finding[] = [];
+      if(emitFinding)
+        expected.push(router[event]([address, ...params, reserve0, reserve1]));
 
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([
-      addLiquidityFinding(PAIRS[3], "20", "50", createAddress("0xdead"), "300", "100"),
-      addLiquidityFinding(PAIRS[2], "20", "50", createAddress("0xdead"), "100", "400"),
-    ]);
+      expect(findings).toStrictEqual(expected);
+    }
   });
 
-  it("should detect large Burn events in the initialization pairs", async () => {
-    const { data, topics } = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
-      createAddress("0x4d31"),
-      30,
-      20,
-      createAddress("0xdead"),
-    ]);
-    when(mockReserves)
-      .calledWith(15, PAIRS[0]) // Large token0
-      .mockReturnValueOnce({ reserve0: 30, reserve1: 300 });
-    when(mockReserves)
-      .calledWith(15, PAIRS[2]) // Low increasement
-      .mockReturnValueOnce({ reserve0: 200, reserve1: 400 });
-    when(mockReserves)
-      .calledWith(15, PAIRS[3]) // Large token1
-      .mockReturnValueOnce({ reserve0: 1000, reserve1: 100 });
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .setBlock(16)
-      .addAnonymousEventLog(PAIRS[0], data, ...topics)
-      .addAnonymousEventLog(PAIRS[3], data, ...topics)
-      .addAnonymousEventLog(PAIRS[2], data, ...topics);
+  it("should detect multiple events", async () => {
+    const EVENTS: TestData = [CASES[5], CASES[0], CASES[1], CASES[4]];
 
+    const block: number = 42;
+    const expected: Finding[] = [];
+    const tx: TestTransactionEvent = new TestTransactionEvent().setBlock(block)
+    for(let [address,, event, params, reserve0, reserve1,,] of EVENTS) {
+      when(mockFetcher.isImpossiblePair)
+        .calledWith(block, address)
+        .mockReturnValue(true);
+      const { data, topics } = ABI.encodeEventLog(ABI.getEvent(event), params);
+      when(mockFetcher.getReserves)
+        .calledWith(block - 1, address)
+        .mockReturnValueOnce({ reserve0, reserve1});
+        
+      tx.addAnonymousEventLog(address, data, ...topics);
+      
+      expected.push(router[event]([address, ...params, reserve0, reserve1]));
+    }
     const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([
-      removeLiquidityFinding(
-        PAIRS[0],
-        "30",
-        "20",
-        createAddress("0x4d31"),
-        createAddress("0xdead"),
-        "30", "300"
-      ),
-      removeLiquidityFinding(
-        PAIRS[3],
-        "30",
-        "20",
-        createAddress("0x4d31"),
-        createAddress("0xdead"),
-        "1000", "100"
-      ),
-    ]);
-  });
-
-  it("should detect events in newly created pairs", async () => {
-    const newPair: string = createAddress("0xfabada");
-    const log0 = abi.FACTORY.encodeEventLog(abi.FACTORY.getEvent("PairCreated"), [
-      createAddress("0x1"), // ignored
-      createAddress("0x2"), // ignored
-      newPair,
-      3, // ignored
-    ]);
-    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
-      createAddress("0xabc"),
-      5,
-      12,
-    ]);
-    const log2 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
-      createAddress("0xdef"),
-      15,
-      42,
-      createAddress("0x123"),
-    ]);
-
-    mockReserves
-      .mockReturnValueOnce({ reserve0: 20, reserve1: 1 })
-      .mockReturnValueOnce({ reserve0: 0, reserve1: 210 });
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(factory, log0.data, ...log0.topics)
-      .addAnonymousEventLog(newPair, log1.data, ...log1.topics)
-      .addAnonymousEventLog(newPair, log2.data, ...log2.topics);
-
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([
-      addLiquidityFinding(newPair, "5", "12", createAddress("0xabc"), "20", "1"),
-      removeLiquidityFinding(newPair, "15", "42", createAddress("0xdef"), createAddress("0x123"), "0", "210"),
-    ]);
-  });
-
-  it("should ignore pair creations not emitted in the factory", async () => {
-    const newPair: string = createAddress("0xfabada");
-    const log0 = abi.FACTORY.encodeEventLog(abi.FACTORY.getEvent("PairCreated"), [
-      createAddress("0x1"), // ignored
-      createAddress("0x2"), // ignored
-      newPair,
-      3, // ignored
-    ]);
-    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [newPair, 5, 12]);
-    const log2 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Burn"), [
-      factory,
-      15,
-      42,
-      PAIRS[0],
-    ]);
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .setBlock(333)
-      .addAnonymousEventLog(createAddress("0x10af"), log0.data, ...log0.topics)
-      .addAnonymousEventLog(newPair, log1.data, ...log1.topics)
-      .addAnonymousEventLog(newPair, log2.data, ...log2.topics);
-
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should ignore events not emitted in pairs", async () => {
-    const log1 = abi.PAIR.encodeEventLog(abi.PAIR.getEvent("Mint"), [
-      createAddress("0x0"),
-      3,
-      3,
-    ]);
-    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
-      createAddress("0x1ce"),
-      log1.data,
-      ...log1.topics
-    );
-
-    const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([]);
+    expect(findings).toStrictEqual(expected);
   });
 });
