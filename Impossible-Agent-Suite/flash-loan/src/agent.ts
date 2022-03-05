@@ -11,9 +11,10 @@ const { ethers } = require('ethers');
 
 import LRU from 'lru-cache';
 
-const cache: LRU<string, string> = new LRU<string, string>({ max: 10000 });
+const cache: LRU<string, boolean> = new LRU<string, boolean>({ max: 10000 });
 
-let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
+//let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
+let SWAP_FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
 
 export const SWAP_FACTORY_ABI = [
   'event PairCreated(address indexed token0, address indexed token1, address pair, uint)',
@@ -23,39 +24,48 @@ export const SWAP_FACTORY_ABI = [
 export const PAIR_SWAP_ABI = [
   'event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)',
   'function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data)',
-  'function factory() external view returns (address)',
   'function token0() external view returns (address)',
   'function token1() external view returns (address)',
 ];
 
 // Receives the address of a contract with same ABI as PAIR_SWAP_ABI and returns the factory address
-export const getContractFactory = async (swapContract: string) => {
-  let factory;
-  // If the cache contains the factory for `swapContract`
+export const checkFromFactory = async (swapContract: string) => {
+  let isFromFactory;
+  // If the contract exists in the cache
   if(cache.has(swapContract)) {
-    // Set factory to the `swapContract` factory
-    factory = cache.get(swapContract);
+    // Get data from cache
+    isFromFactory = cache.get(swapContract);
   } else {
-  // Otherwise if the cache does not contain the factory for `swapContract`
+  // Otherwise if the cache does contain data for `swapContract`
     try {
-      // Query the smart contract for its factory
+      // Query the smart contract for its tokens
       const provider = getEthersProvider();
       const contractInterface = new ethers.Contract(swapContract, PAIR_SWAP_ABI, provider);
-      factory = await contractInterface.factory();
-      // Add it to the cache
-      cache.set(swapContract, factory);
+      const token0 = await contractInterface.token0();
+      const token1 = await contractInterface.token1();
+      // Query the factory to see if the token pairs point to the contract address
+      const factoryInterface = new ethers.Contract(SWAP_FACTORY_ADDRESS, SWAP_FACTORY_ABI, provider);
+      const pairAddress = await factoryInterface.getPair(token0, token1);
+      // If the returned pair matches `swapContract` then add to the cache
+      if(pairAddress.toLowerCase() == swapContract.toLowerCase()) {
+        cache.set(swapContract, true);
+        isFromFactory = true;
+      } else {
+        cache.set(swapContract, false);
+        isFromFactory = false;
+      }
     } catch(error) {
-      // If the query fails (contract doesn't have a `factory` function then set to zero address
-      cache.set(swapContract, '0x0000000000000000000000000000000000000000');
-      factory = '0x0000000000000000000000000000000000000000';
+      // If the query fails
+      cache.set(swapContract, false);
+      isFromFactory = false;
     }
   }
-  return factory;
+  return isFromFactory;
 }
 
 export const provideHandleTransaction = (
   address: string,
-  getContractFactory: any,
+  checkFromFactory: any,
 ): HandleTransaction => {
   return async (tx: TransactionEvent): Promise<Finding[]> => {
     // Set up the findings array
@@ -77,10 +87,16 @@ export const provideHandleTransaction = (
       const swapCalls = tx.filterFunction(PAIR_SWAP_ABI[1], swapContract);
       // For each swapCall
       await Promise.all(swapCalls.map(async (swapCall) => {
-        if(ethers.BigNumber.from(swapCall.args.data).gt(ethers.BigNumber.from('0'))) {
-          // If the contract factory address is `SWAP_FACTORY_ADDRESS`
-          const contractFactory = await getContractFactory(swapContract);
-          if(contractFactory == address) {
+        // Get the calldata for the swap
+        let data = swapCall.args.data;
+        // If there is no data a zero must be added to the end
+        if(data == '0x') {
+          data = data + '0';
+        }
+        if(ethers.BigNumber.from(data).gt(ethers.BigNumber.from('0'))) {
+          // If the contract is from the factory `SWAP_FACTORY_ADDRESS`
+          const isFromFactory = await checkFromFactory(swapContract);
+          if(isFromFactory) {
             // Create a finding
             findings.push(
               Finding.fromObject({
@@ -109,5 +125,5 @@ export const provideHandleTransaction = (
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(SWAP_FACTORY_ADDRESS, getContractFactory),
+  handleTransaction: provideHandleTransaction(SWAP_FACTORY_ADDRESS, checkFromFactory),
 }
