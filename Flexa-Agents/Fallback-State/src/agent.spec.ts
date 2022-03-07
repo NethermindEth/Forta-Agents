@@ -7,7 +7,8 @@ const factory: string = createAddress("0xa0");
 
 const mockFetcher = {
   getFallbackSetDate: jest.fn(),
-  getFallbackWithdrawalDelaySeconds: jest.fn()
+  getFallbackWithdrawalDelaySeconds: jest.fn(),
+  getPreviousBlockTimestamp: jest.fn()
 };
 
 const testBlockNumber: number[] = [14306500, 14306501];
