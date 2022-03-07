@@ -1,15 +1,14 @@
 import { Finding, HandleTransaction, TransactionEvent } from 'forta-agent';
 import utils, { AddressValidator } from './utils';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 const THRESHOLD: BigNumber = BigNumber.from(10); // gas price
-const DECIMALS: BigNumber = BigNumber.from(10).pow(9);
 
 export const provideHandleTransaction = (
   isValid: AddressValidator, 
   _threshold: BigNumber,
 ): HandleTransaction => {
-  const threshold: BigNumber = _threshold.mul(DECIMALS);
+  const threshold: BigNumber = ethers.utils.parseUnits(_threshold.toString(), 'gwei');
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];

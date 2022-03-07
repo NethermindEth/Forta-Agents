@@ -22,8 +22,8 @@ const createFinding = (addrs: string[], gas: string, threshold: BigNumber) => {
     protocol: 'Impossible Finance',
     metadata: {
       protocolContracts: addrs.toString(),
-      gasInGwei: gasStr,
-      gasInWei: gasStr.slice(0, gasStr.length - 9),
+      gasInGwei: gasStr.slice(0, gasStr.length - 9),
+      gasInWei: gasStr,
     },
   });
 }

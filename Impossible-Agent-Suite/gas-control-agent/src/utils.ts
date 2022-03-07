@@ -1,8 +1,6 @@
 import { BigNumber } from 'ethers';
 import { Finding, FindingSeverity, FindingType } from 'forta-agent';
 
-const GAS_DECIMALS: BigNumber = BigNumber.from(10).pow(9);
-
 export type AddressValidator = (addr: string) => boolean | Promise<boolean>;
 
 const CONTRACTS = [
@@ -32,15 +30,14 @@ const createFinding = (contracts: string[], gas: BigNumber, threshold: BigNumber
     protocol: 'Impossible Finance',
     metadata: {
       protocolContracts: contracts.toString(),
-      gasInGwei: gasStr,
-      gasInWei: gasStr.slice(0, gasStr.length - 9),
+      gasInGwei: gasStr.slice(0, gasStr.length - 9),
+      gasInWei: gasStr,
     },
   })
 };
 
 export default {
   isOnList,
-  GAS_DECIMALS,
   createFinding,
   isOnContractList: isOnList(CONTRACTS),
 };
