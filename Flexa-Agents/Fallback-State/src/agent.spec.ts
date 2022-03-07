@@ -1,8 +1,7 @@
 import { HandleBlock, Finding, FindingSeverity, FindingType } from "forta-agent";
 import { provideHandleBlock } from "./agent";
-import { TestBlockEvent, createAddress, encodeParameter } from "forta-agent-tools";
+import { TestBlockEvent, createAddress } from "forta-agent-tools";
 import { when, resetAllWhenMocks } from "jest-when";
-import { flexaInterface } from "./abi";
 
 const factory: string = createAddress("0xa0");
 
