@@ -10,10 +10,11 @@ const mockFetcher = {
   getFallbackWithdrawalDelaySeconds: jest.fn()
 };
 
-const testBlockNumber: number[] = [14306500, 14306501, 14306502];
-const testFallbackSetDate: number[] = [1500000000, 1600000000, 1700000000];
-const testFallbackWithdrawalDelaySeconds: number[] = [3900000, 4000000, 4100000];
-const testBlockTimestamp: number[] = [1600000000, 1700000000];
+const testBlockNumber: number[] = [14306500, 14306501];
+const testFallbackSetDate: number[] = [1500000000, 1600000000];
+const testFallbackWithdrawalDelaySeconds: number = 3900000;
+const testBlockTimestamp: number = 1600000009;
+const testPreviousBlockTimestamp: number = 1600000000;
 
 const createFinding = () => {
   return Finding.fromObject({
