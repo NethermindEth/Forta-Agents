@@ -17,7 +17,7 @@
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "dependencies": {
     "@types/lru-cache": "^7.4.0",
