@@ -23,9 +23,9 @@ export const provideHandleBlock = (fetcher: DataFetcher, flexaContractAddress: s
     );
 
     // Check if contract is in fallback state
-    // Contract enters fallback state if (fallbackSetDate +fallbackWithdrawalDelaySeconds <= block.timestamp)
+    // Contract enters fallback state if (fallbackSetDate + fallbackWithdrawalDelaySeconds <= block.timestamp)
     if (fallbackSetDate + fallbackWithdrawalDelaySeconds <= blockEvent.block.timestamp) {
-      // Check if the previous block is not in fallback state. if it was, it'd be a reccurring finding.
+      // Check if the contract was not in fallback state in the previous block. if it was, it'd be a reccurring finding.
       if (previousFallbackSetDate + previousFallbackWithdrawalDelaySeconds > previousBlockTimestamp) {
         findings.push(
           Finding.fromObject({
