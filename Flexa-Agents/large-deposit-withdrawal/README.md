@@ -13,7 +13,7 @@ This agent detects deposits and withdrawals in Flexa staking contract with an am
 ## Alerts
 
 - FLEXA-1
-  - Fired when a transaction deposits/ withdraws a large amount to Flexa Staking contract.
+  - Fired when a transaction deposits/withdraws a large amount to/from Flexa Staking contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
