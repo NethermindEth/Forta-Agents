@@ -42,11 +42,83 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
   });
 
   it("should return empty finding if contract isn't in fallback state", async () => {
-    // set mock values
-    when(mockFetcher.getFallbackSetDate).calledWith(testBlockNumber[1], factory).mockReturnValue(252525);
-    when(mockFetcher.getFallbackWithdrawalDelaySeconds).calledWith(testBlockNumber[1], factory).mockReturnValue(262626);
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackSetDate[1]);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
 
-    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp[0]).setNumber(testBlockNumber[1]);
+    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return empty finding if contract is in fallback state in the last two blocks", async () => {
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackSetDate[0]);
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[0], factory)
+      .mockReturnValue(testFallbackSetDate[0]);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[0], factory)
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getPreviousBlockTimestamp)
+      .calledWith(testBlockNumber[1])
+      .mockReturnValue(testPreviousBlockTimestamp);
+
+    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding if contract is in fallback state only in the last block", async () => {
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackSetDate[0]);
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[0], factory)
+      .mockReturnValue(testFallbackSetDate[1]);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[1], factory)
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[0], factory)
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getPreviousBlockTimestamp)
+      .calledWith(testBlockNumber[1])
+      .mockReturnValue(testPreviousBlockTimestamp);
+
+    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([createFinding(testBlockTimestamp, testBlockNumber[1])]);
+  });
+
+  it("should return empty finding if a different contract is in fallback state", async () => {
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[1], createAddress("0xd4"))
+      .mockReturnValue(testFallbackSetDate[0]);
+    when(mockFetcher.getFallbackSetDate)
+      .calledWith(testBlockNumber[0], createAddress("0xd4"))
+      .mockReturnValue(testFallbackSetDate[1]);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[1], createAddress("0xd4"))
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
+      .calledWith(testBlockNumber[0], createAddress("0xd4"))
+      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
+    when(mockFetcher.getPreviousBlockTimestamp)
+      .calledWith(testBlockNumber[1])
+      .mockReturnValue(testPreviousBlockTimestamp);
+
+    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
