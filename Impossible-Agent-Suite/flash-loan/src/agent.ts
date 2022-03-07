@@ -29,7 +29,7 @@ export const PAIR_SWAP_ABI = [
 ];
 
 // Receives the address of a contract with same ABI as PAIR_SWAP_ABI and returns the factory address
-export const checkFromFactory = async (swapContract: string) => {
+export const checkFromFactory = async (swapContract: string, swapFactoryAddress: string) => {
   let isFromFactory;
   // If the contract exists in the cache
   if(cache.has(swapContract)) {
@@ -44,7 +44,7 @@ export const checkFromFactory = async (swapContract: string) => {
       const token0 = await contractInterface.token0();
       const token1 = await contractInterface.token1();
       // Query the factory to see if the token pairs point to the contract address
-      const factoryInterface = new ethers.Contract(SWAP_FACTORY_ADDRESS, SWAP_FACTORY_ABI, provider);
+      const factoryInterface = new ethers.Contract(SWAP_FACTORY_ADDRESS, swapFactoryAddress, provider);
       const pairAddress = await factoryInterface.getPair(token0, token1);
       // If the returned pair matches `swapContract` then add to the cache
       if(pairAddress.toLowerCase() == swapContract.toLowerCase()) {
@@ -64,7 +64,7 @@ export const checkFromFactory = async (swapContract: string) => {
 }
 
 export const provideHandleTransaction = (
-  address: string,
+  swapFactoryAddress: string,
   checkFromFactory: any,
 ): HandleTransaction => {
   return async (tx: TransactionEvent): Promise<Finding[]> => {
@@ -95,7 +95,7 @@ export const provideHandleTransaction = (
         }
         if(ethers.BigNumber.from(data).gt(ethers.BigNumber.from('0'))) {
           // If the contract is from the factory `SWAP_FACTORY_ADDRESS`
-          const isFromFactory = await checkFromFactory(swapContract);
+          const isFromFactory = await checkFromFactory(swapContract, swapFactoryAddress);
           if(isFromFactory) {
             // Create a finding
             findings.push(
@@ -110,7 +110,7 @@ export const provideHandleTransaction = (
                   amount0Out: swapCall.args.amount0Out.toString(),
                   amount1Out: swapCall.args.amount1Out.toString(),
                   to: swapCall.args.to.toLowerCase(),
-                  data: ethers.BigNumber.from(swapCall.args.data).toHexString(),
+                  data: swapCall.args.data.toString()
                 },
               })
             );

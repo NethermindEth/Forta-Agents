@@ -2,7 +2,6 @@
 
 ## Description
 
-This agent detects if a flash loan has been taken
 This agent detects flashloans through the function `swap` on pairs generated through `Swap Factory V1`
 
 ## Supported Chains
@@ -25,7 +24,7 @@ Describe each of the type of alerts fired by this agent
 
 ## Test Data
 
-The test transaction provided is on the Ethereum Network with the contract `Uniswap Factory V2` since the Impossible Finance factory and swap structure is very similar. 
+The test transaction provided is on the Ethereum Network with the contract `Uniswap Factory V2` since the Impossible Finance factory and swap structure is very similar.
 If you would like to test this agent with these transactions, change the `SWAP_FACTORY_ADDRESS` variable to the address `0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f` which is the Uniswap V2 Factory contract address on the Ethereum chain.
 
  - 0x284101ec1389344b360d10caa9a5c8be8fc75fe87c0a3273a0716539b5357ffd (Ethereum network, generates finding)
