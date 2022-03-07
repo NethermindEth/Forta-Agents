@@ -16,16 +16,17 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "dependencies": {
     "@types/lru-cache": "^5.1.1",
-    "forta-agent": "^0.0.34"
+    "forta-agent": "^0.0.39"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^3.5.0",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^1.0.40",
     "jest": "^27.0.6",
     "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",
