@@ -16,10 +16,10 @@ This agent detects ownership transfers in following contracts
 ## Alerts
 
 - IMPOSSIBLE-3
-  - Fired when `OwnershipTransferred` event is logged.
+  - Fired when `OwnershipTransferred` event is emitted.
   - Severity is always set to "High"
   - Type is always set to "Info"
   - Metadata contains:
-    - contract: The contract event occured
-    - previousOwner: The current owner
-    - newOwner: The new owner
+    - `contract`: The contract event occured
+    - `previousOwner`: The current owner
+    - `newOwner`: The new owner
