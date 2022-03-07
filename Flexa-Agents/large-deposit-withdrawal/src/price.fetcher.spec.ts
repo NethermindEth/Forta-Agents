@@ -43,8 +43,8 @@ describe("PriceFetcher test suite", () => {
     initialize();
     for (let [contract, block, price] of TEST_DATA) {
       const response: BigNumber[] = await fetcher.getAmpPrice(block, contract);
-      const fetched_price = response[1];
-      expect(fetched_price).toStrictEqual(BigNumber.from(price));
+      const fetchedPrice = response[1];
+      expect(fetchedPrice).toStrictEqual(BigNumber.from(price));
     }
   });
 
@@ -52,8 +52,8 @@ describe("PriceFetcher test suite", () => {
     // We do not init the mock provider to use cache values.
     for (let [contract, block, price] of TEST_DATA) {
       const response: BigNumber[] = await fetcher.getAmpPrice(block, contract);
-      const fetched_price = response[1];
-      expect(fetched_price).toStrictEqual(BigNumber.from(price));
+      const fetchedPrice = response[1];
+      expect(fetchedPrice).toStrictEqual(BigNumber.from(price));
     }
   });
 });

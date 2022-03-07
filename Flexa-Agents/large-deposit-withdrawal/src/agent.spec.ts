@@ -14,19 +14,19 @@ import { EVENTS_SIGNATURES } from "./utils";
 const FLEXA_CONTRACT = createAddress("0xfea");
 const THRESHOLD = BigNumber.from(1000); // amount threshold used by the agent
 const EVENTS_IFACE = new Interface(EVENTS_SIGNATURES);
-const amount_correction: BigNumber = BigNumber.from(10).pow(18);
-const price_correction: BigNumber = BigNumber.from(10).pow(8);
-const TOKEN_PRICE = BigNumber.from(10).mul(price_correction);
+const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
+const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
+const TOKEN_PRICE = BigNumber.from(10).mul(PRICE_CORRECTION);
 
 const createFinding = (
-  log_name: string,
+  logName: string,
   supplier: string,
   amount: BigNumber
 ): Finding => {
-  const name = log_name == "SupplyReceipt" ? "Deposit" : "Withdrawal";
+  const name = logName == "SupplyReceipt" ? "Deposit" : "Withdrawal";
   return Finding.fromObject({
     name: `Large ${name} detected on Flexa staking contract`,
-    description: `${log_name} event emitted with a large amount`,
+    description: `${logName} event emitted with a large amount`,
     alertId: "Flexa-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -69,7 +69,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa1"), // supplier
         formatBytes32String("abc"), // partition
-        BigNumber.from(150).mul(amount_correction), // amount exceeding the threshold
+        BigNumber.from(150).mul(AMOUNT_CORRECTION), // amount exceeding the threshold
         5, // nonce
       ]
     );
@@ -78,7 +78,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa2"), // supplier
         formatBytes32String("bbe"), // partition
-        BigNumber.from(160).mul(amount_correction), //amount exceeding the threshold
+        BigNumber.from(160).mul(AMOUNT_CORRECTION), //amount exceeding the threshold
         5, // rootNonce
         5, // authorizedAccountNonce
       ]
@@ -88,7 +88,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa3"), // supplier
         formatBytes32String("ebc"), // partition
-        BigNumber.from(150).mul(amount_correction), //amount exceeding the threshold
+        BigNumber.from(150).mul(AMOUNT_CORRECTION), //amount exceeding the threshold
       ]
     );
     // create a transaction with the previous event logs
@@ -108,7 +108,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa1"), //supplier
         formatBytes32String("abc"), //flexa partition
-        BigNumber.from(150).mul(amount_correction), //amount exceeding the threshold
+        BigNumber.from(150).mul(AMOUNT_CORRECTION), //amount exceeding the threshold
         5, // nonce
       ]
     );
@@ -117,7 +117,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa2"), //supplier
         formatBytes32String("abc"), //flexa partition
-        BigNumber.from(160).mul(amount_correction), //amount exceeding the threshold
+        BigNumber.from(160).mul(AMOUNT_CORRECTION), //amount exceeding the threshold
         5, // rootNonce
         5, // authorizedAccountNonce
       ]
@@ -127,7 +127,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa3"), //supplier
         formatBytes32String("abc"), //flexa partition
-        BigNumber.from(200).mul(amount_correction), //amount exceeding the threshold
+        BigNumber.from(200).mul(AMOUNT_CORRECTION), //amount exceeding the threshold
       ]
     );
     // create a transaction with the previous event logs
@@ -141,17 +141,17 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       createFinding(
         "SupplyReceipt",
         createAddress("0xa1"),
-        BigNumber.from(150).mul(amount_correction)
+        BigNumber.from(150).mul(AMOUNT_CORRECTION)
       ),
       createFinding(
         "Withdrawal",
         createAddress("0xa2"),
-        BigNumber.from(160).mul(amount_correction)
+        BigNumber.from(160).mul(AMOUNT_CORRECTION)
       ),
       createFinding(
         "FallbackWithdrawal",
         createAddress("0xa3"),
-        BigNumber.from(200).mul(amount_correction)
+        BigNumber.from(200).mul(AMOUNT_CORRECTION)
       ),
     ]);
   });
@@ -162,7 +162,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa1"), //supplier
         formatBytes32String("abc"), //partition
-        BigNumber.from(50).mul(amount_correction), // regular amount
+        BigNumber.from(50).mul(AMOUNT_CORRECTION), // regular amount
         5, // nonce
       ]
     );
@@ -172,7 +172,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa2"), // supplier
         formatBytes32String("bbe"), // partition
-        BigNumber.from(160).mul(amount_correction), // amount exceeding the threshold
+        BigNumber.from(160).mul(AMOUNT_CORRECTION), // amount exceeding the threshold
         5, // rootNonce
         5, // authorizedAccountNonce
       ]
@@ -182,7 +182,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       [
         createAddress("0xa3"), // supplier
         formatBytes32String("ebc"), // partition
-        BigNumber.from(60).mul(amount_correction), // regular amount
+        BigNumber.from(60).mul(AMOUNT_CORRECTION), // regular amount
       ]
     );
     // create a transaction with the previous event logs
@@ -196,7 +196,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       createFinding(
         "Withdrawal",
         createAddress("0xa2"),
-        BigNumber.from(160).mul(amount_correction)
+        BigNumber.from(160).mul(AMOUNT_CORRECTION)
       ),
     ]);
   });

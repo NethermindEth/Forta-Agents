@@ -15,12 +15,12 @@ import {
 import { createFinding } from "./utils";
 
 const THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1M USD
-const amount_correction: BigNumber = BigNumber.from(10).pow(18);
-const price_correction: BigNumber = BigNumber.from(10).pow(8);
+const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
+const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
 
 export const provideHandleTransaction =
   (
-    staking_contract: string,
+    stakingContract: string,
     fetcher: PriceFetcher,
     threshold: BigNumber
   ): HandleTransaction =>
@@ -29,24 +29,24 @@ export const provideHandleTransaction =
     // get the event logs
     const logs: LogDescription[] = txEvent.filterLog(
       EVENTS_SIGNATURES,
-      staking_contract
+      stakingContract
     );
     if (logs.length === 0) return findings;
 
     // get the token price in USD.
-    const price_feed: BigNumber[] = await fetcher.getAmpPrice(
+    const priceFeed: BigNumber[] = await fetcher.getAmpPrice(
       txEvent.blockNumber,
       CHAINLINK_AMP_DATA_FEED
     );
-    let token_price = price_feed[1]; // the price is given in USD * 10^8
+    let tokenPrice = priceFeed[1]; // the price is given in USD * 10^8
 
     logs.forEach((log) => {
       let amount: BigNumber = log.args.amount; //get the amount transfered, given in USD * 10^18
       //if the amount transfered is greater than the 1M threshold.
       if (
         amount
-          .mul(token_price)
-          .gte(threshold.mul(amount_correction).mul(price_correction))
+          .mul(tokenPrice)
+          .gte(threshold.mul(AMOUNT_CORRECTION).mul(PRICE_CORRECTION))
       )
         findings.push(createFinding(log));
     });
