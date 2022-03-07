@@ -7,18 +7,16 @@ import {
   getEthersProvider,
 } from 'forta-agent';
 
-const { ethers } = require('ethers');
+import { ethers } from 'ethers';
 
 import LRU from 'lru-cache';
 
 const cache: LRU<string, boolean> = new LRU<string, boolean>({ max: 10000 });
 
-//let SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
-let SWAP_FACTORY_ADDRESS = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
+const SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
 
 export const SWAP_FACTORY_ABI = [
-  'event PairCreated(address indexed token0, address indexed token1, address pair, uint)',
-  'function getPair(address tokenA, address tokenB) external view returns (address pair)',
+  'function getPair(address tokenA, address tokenB) external view returns (address pair)'
 ];
 
 export const PAIR_SWAP_ABI = [
@@ -28,7 +26,7 @@ export const PAIR_SWAP_ABI = [
   'function token1() external view returns (address)',
 ];
 
-// Receives the address of a contract with same ABI as PAIR_SWAP_ABI and returns the factory address
+// Receives the address of a pair and returns true if the factory is `swapFactoryAddress`
 export const checkFromFactory = async (swapContract: string, swapFactoryAddress: string) => {
   let isFromFactory;
   // If the contract exists in the cache
