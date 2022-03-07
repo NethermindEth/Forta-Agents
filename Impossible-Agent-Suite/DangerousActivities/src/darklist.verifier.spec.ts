@@ -33,7 +33,7 @@ describe("DarklistVerifier tests suite", () => {
     }
   });
 
-  it("should set the threshold correctly", async () => {
+  it("should return True only for the addresses in the blacklist", async () => {
     const address: string[] = [
       createAddress('0xdead'),
       createAddress('0xfee'),
