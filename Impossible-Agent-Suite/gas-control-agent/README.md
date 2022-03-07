@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with high gas Price where Impossible Finance addresses are involved
+This agent detects transactions with high gas price where Impossible Finance addresses are involved
 > High is defined as above 10 Gwei
 
 ## Supported Chains
@@ -12,7 +12,7 @@ This agent detects transactions with high gas Price where Impossible Finance add
 ## Alerts
 
 - IMPOSSIBLE-2
-  - Fired when a transaction uses high gas price and involve Impossible Finance addresses
+  - Fired when a transaction uses a high gas price and involves Impossible Finance addresses
   - Severity is always set to "High"
   - Type is always set to "Info"
   - Metadata includes:
