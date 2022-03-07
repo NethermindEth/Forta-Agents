@@ -4,7 +4,7 @@ import { createAddress } from "forta-agent-tools";
 import { BigNumber } from "ethers";
 import abi from "./abi";
 
-// pair, block, factory, token0, token1, reserve0, reserve1
+// pair, block, factory, token0, token1
 const CASES: [string, number, string, string, string][] = [
   [createAddress("0xda00"), 12, createAddress("0xfac70"), createAddress("0xabc1"), createAddress("0xdef1")],
   [createAddress("0xda01"), 13, createAddress("0xfac79"), createAddress("0xabc0"), createAddress("0xd3f1")],
@@ -34,7 +34,7 @@ describe("PairFetcher test suite", () => {
     for(let [addr, block,,,token1] of CASES){
       mockProvider
         .addCallTo(addr, block, abi.PAIR, "token1", { inputs:[], outputs:[token1]});
-      // no mock initialization for token0 so calls to token1 should return undefined
+      // no mock initialization for token0 so calls to token0 should return undefined
       expect(await fetcher.isImpossiblePair(block, addr)).toStrictEqual(false);
     }
   });

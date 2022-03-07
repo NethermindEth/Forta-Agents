@@ -1,7 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 
 const FACTORY: Interface = new Interface([
-  "event PairCreated(address indexed token0, address indexed token1, address pair, uint256)",
   "function getPair(address token0, address token1) view returns (address pair)",
 ]);
 
