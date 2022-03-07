@@ -37,6 +37,7 @@ export const provideHandleTransaction = (
 
   const impossibleInteraction: string[] = [];
   const dangerousInteraction: string[] = [];
+  
   await Promise.all(Object.keys(txEvent.addresses).map(
     async (involvedAddress: string) => {
       const [i, d] = await Promise.all([
