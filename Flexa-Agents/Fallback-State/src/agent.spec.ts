@@ -16,14 +16,18 @@ const testFallbackWithdrawalDelaySeconds: number = 3900000;
 const testBlockTimestamp: number = 1600000009;
 const testPreviousBlockTimestamp: number = 1600000000;
 
-const createFinding = () => {
+const createFinding = (timestamp: number, blockNumber: number) => {
   return Finding.fromObject({
-    name: "Contract Fallback State",
+    name: "Contract Fallback State alert",
     description: "Contract has entered fallback mode",
     alertId: "FLEXA-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "Flexa"
+    protocol: "Flexa",
+    metadata: {
+      blockTimestamp: timestamp.toString(),
+      blockNumber: blockNumber.toString()
+    }
   });
 };
 
