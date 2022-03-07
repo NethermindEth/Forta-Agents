@@ -18,6 +18,7 @@ const IDIA_ADDR = '0x0b15ddf19d47e6a86a56148fb4afffc6929bcb89';
 const ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
 // Array containing a token address and its respective whitelist verifier function
+// address, verifier, symbol, alertId
 const TOKENS: [string, Verifier, string, string][] = [
   [
     IF_ADDR,
