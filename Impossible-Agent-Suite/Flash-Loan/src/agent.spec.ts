@@ -13,9 +13,7 @@ import {
 
 import {
   provideHandleTransaction,
-  checkFromFactory,
   PAIR_SWAP_ABI,
-  SWAP_FACTORY_ABI,
 } from './agent';
 
 import {
