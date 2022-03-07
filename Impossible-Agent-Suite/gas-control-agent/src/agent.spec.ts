@@ -60,7 +60,7 @@ describe('Gas monitor agent test suite', () => {
     }
   });
 
-  it('should return empty finding if gas is above threshold', async () => {
+  it('should return a finding if gas is above threshold', async () => {
     const CASES: number[] = [21, 100, 234, 22, 30, 42];
 
     for(let price of CASES) {
