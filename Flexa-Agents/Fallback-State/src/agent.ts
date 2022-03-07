@@ -34,7 +34,11 @@ export const provideHandleBlock = (fetcher: DataFetcher, flexaContractAddress: s
             alertId: "FLEXA-4",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
-            protocol: "Flexa"
+            protocol: "Flexa",
+            metadata: {
+              blockTimestamp: blockEvent.block.timestamp.toString(),
+              blockNumber: blockEvent.blockNumber.toString()
+            }
           })
         );
       }
