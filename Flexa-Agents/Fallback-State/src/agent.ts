@@ -9,7 +9,7 @@ export const provideHandleBlock = (fetcher: DataFetcher, flexaContractAddress: s
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const previousBlockTimestamp = (await getEthersProvider().getBlock(blockEvent.blockNumber - 1)).timestamp;
+    const previousBlockTimestamp = await fetcher.getPreviousBlockTimestamp(blockEvent.blockNumber);
 
     const fallbackSetDate = await fetcher.getFallbackSetDate(blockEvent.blockNumber, flexaContractAddress);
     const fallbackWithdrawalDelaySeconds = await fetcher.getFallbackWithdrawalDelaySeconds(

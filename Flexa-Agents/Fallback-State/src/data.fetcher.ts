@@ -1,5 +1,6 @@
 import { Contract, providers, BigNumber } from "ethers";
 import { flexaInterface } from "./abi";
+import { getEthersProvider } from "forta-agent";
 
 export default class DataFetcher {
   readonly moduleAddress: string;
@@ -22,5 +23,10 @@ export default class DataFetcher {
       blockTag: blockNumber
     });
     return BigNumber.from(fallbackWithdrawalDelaySeconds).toNumber();
+  }
+
+  public async getPreviousBlockTimestamp(blockNumber: number): Promise<number> {
+    const previousBlockTimestamp = (await getEthersProvider().getBlock(blockNumber - 1)).timestamp;
+    return previousBlockTimestamp;
   }
 }
