@@ -21,7 +21,7 @@ export const provideHandleTransaction = (
     const involved: string[] = addrs.filter((_, idx) => valid[idx]);
 
     if (involved.length && threshold.lt(gasPrice)) 
-      findings.push(utils.createFinding(involved, gasPrice));
+      findings.push(utils.createFinding(involved, gasPrice, _threshold));
 
     return findings;
   };

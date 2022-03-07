@@ -20,12 +20,12 @@ const isOnList = (list: string[]): AddressValidator => {
   return set.has.bind(set);
 };
 
-const createFinding = (contracts: string[], gas: BigNumber) => {
+const createFinding = (contracts: string[], gas: BigNumber, threshold: BigNumber) => {
   const gasStr: string = gas.toString();
   
   return Finding.fromObject({
     name: 'High Gas Usage Detection',
-    description: 'High gas is used - above 10',
+    description: `High gas is used - above ${threshold.toString()} Gwei`,
     alertId: 'IMPOSSIBLE-2',
     severity: FindingSeverity.High,
     type: FindingType.Info,

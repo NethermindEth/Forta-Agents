@@ -10,12 +10,12 @@ const TEST_ADDRESSES = [
   createAddress('0xdead'),
 ];
 
-const createFinding = (addrs: string[], gas: string) => {
+const createFinding = (addrs: string[], gas: string, threshold: BigNumber) => {
   const gasStr: string = BigNumber.from(gas).toString();
 
   return Finding.fromObject({
     name: 'High Gas Usage Detection',
-    description: 'High gas is used - above 10',
+    description: `High gas is used - above ${threshold.toString()} Gwei`,
     alertId: 'IMPOSSIBLE-2',
     severity: FindingSeverity.High,
     type: FindingType.Info,
@@ -69,7 +69,7 @@ describe('Gas monitor agent test suite', () => {
 
       const findings = await handleTransaction(tx);
 
-      expect(findings).toStrictEqual([createFinding(TEST_ADDRESSES, tx.transaction.gasPrice)]);
+      expect(findings).toStrictEqual([createFinding(TEST_ADDRESSES, tx.transaction.gasPrice, threshold)]);
     }
   });
 
@@ -98,6 +98,7 @@ describe('Gas monitor agent test suite', () => {
       createFinding(
         [TEST_ADDRESSES[2], TEST_ADDRESSES[1]], 
         tx.transaction.gasPrice,
+        threshold,
       ),
     ]);
   });
