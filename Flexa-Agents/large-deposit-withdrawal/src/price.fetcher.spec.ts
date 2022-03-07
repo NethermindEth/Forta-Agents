@@ -6,10 +6,10 @@ import { Interface } from "@ethersproject/abi";
 
 // contract, block, price
 const TEST_DATA: [string, number | string, number][] = [
-  [createAddress("0xfee5"), "latest", 42],
-  [createAddress("0xdef1"), "latest", 1],
-  [createAddress("0xc0de"), "latest", 420],
-  [createAddress("0xf1a7"), "latest", 20000],
+  [createAddress("0xfee5"), 20, 42],
+  [createAddress("0xdef1"), 30, 1],
+  [createAddress("0xc0de"), 40, 420],
+  [createAddress("0xf1a7"), 50, 20000],
 ];
 
 describe("PriceFetcher test suite", () => {

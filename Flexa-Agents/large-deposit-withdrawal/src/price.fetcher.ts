@@ -29,7 +29,7 @@ export default class PriceFetcher {
     if (this.cache.has(key)) return this.cache.get(key) as Promise<Reponse>;
     const priceFeedContract = new Contract(contract, PRICE_ABI, this.provider);
     const ampPrice: Promise<Reponse> = priceFeedContract.latestRoundData({
-      blockTag: "latest",
+      blockTag: block,
     });
     this.cache.set(key, ampPrice);
     return ampPrice;
