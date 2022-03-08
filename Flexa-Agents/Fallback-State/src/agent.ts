@@ -9,16 +9,9 @@ export const provideHandleBlock = (fetcher: DataFetcher, flexaContractAddress: s
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const previousBlockTimestamp = await fetcher.getPreviousBlockTimestamp(blockEvent.blockNumber);
-
     const fallbackSetDate = await fetcher.getFallbackSetDate(blockEvent.blockNumber, flexaContractAddress);
     const fallbackWithdrawalDelaySeconds = await fetcher.getFallbackWithdrawalDelaySeconds(
       blockEvent.blockNumber,
-      flexaContractAddress
-    );
-    const previousFallbackSetDate = await fetcher.getFallbackSetDate(blockEvent.blockNumber - 1, flexaContractAddress);
-    const previousFallbackWithdrawalDelaySeconds = await fetcher.getFallbackWithdrawalDelaySeconds(
-      blockEvent.blockNumber - 1,
       flexaContractAddress
     );
 
@@ -26,6 +19,16 @@ export const provideHandleBlock = (fetcher: DataFetcher, flexaContractAddress: s
     // Contract enters fallback state if (fallbackSetDate + fallbackWithdrawalDelaySeconds <= block.timestamp)
     if (fallbackSetDate + fallbackWithdrawalDelaySeconds <= blockEvent.block.timestamp) {
       // Check if the contract was not in fallback state in the previous block. if it was, it'd be a reccurring finding.
+      const previousBlockTimestamp = await fetcher.getPreviousBlockTimestamp(blockEvent.blockNumber);
+      const previousFallbackSetDate = await fetcher.getFallbackSetDate(
+        blockEvent.blockNumber - 1,
+        flexaContractAddress
+      );
+      const previousFallbackWithdrawalDelaySeconds = await fetcher.getFallbackWithdrawalDelaySeconds(
+        blockEvent.blockNumber - 1,
+        flexaContractAddress
+      );
+
       if (previousFallbackSetDate + previousFallbackWithdrawalDelaySeconds > previousBlockTimestamp) {
         findings.push(
           Finding.fromObject({
