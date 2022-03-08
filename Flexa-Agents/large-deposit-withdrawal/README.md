@@ -24,5 +24,5 @@ This agent detects deposits and withdrawals to the Flexa staking contract with a
 
 There's no current transaction including a Deposit or Withdrawal with an amount greater than 1M USD. To verify the agent behavior, you can change the threshold to a lower amount and test with the following transactions:
 
-- 0x9a5e5e8b72893af9975719c9ae4bcb8bd133168fbbfa0b6c6752e29165906ec2 (Deposit)
-- 0x0ba0fd557d24b0ae7622d713493ca79a1ebec73c9f363aa98dc0610f395d6c60 (Withdrawal)
+- 0x9a5e5e8b72893af9975719c9ae4bcb8bd133168fbbfa0b6c6752e29165906ec2 (Deposit - a threshold of 200 USD or above generates a finding)
+- 0x0ba0fd557d24b0ae7622d713493ca79a1ebec73c9f363aa98dc0610f395d6c60 (Withdrawal - a threshold of 1100 USD or above generates a finding)
