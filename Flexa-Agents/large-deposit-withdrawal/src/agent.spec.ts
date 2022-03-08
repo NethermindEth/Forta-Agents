@@ -27,7 +27,7 @@ const createFinding = (
   return Finding.fromObject({
     name: `Large ${name} detected on Flexa staking contract`,
     description: `${logName} event emitted with a large amount`,
-    alertId: "Flexa-1",
+    alertId: "FLEXA-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Flexa",
