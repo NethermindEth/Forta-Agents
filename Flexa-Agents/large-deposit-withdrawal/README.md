@@ -2,9 +2,9 @@
 
 ## Description
 
-This agent detects deposits and withdrawals in Flexa staking contract with an amount that exceeds 1M USD.
+This agent detects deposits and withdrawals to the Flexa staking contract with an amount that exceeds 1M USD.
 
-> Amp token price is obtained using Chainlink data feeds.
+> AMP token price is obtained using Chainlink data feeds.
 
 ## Supported Chains
 
