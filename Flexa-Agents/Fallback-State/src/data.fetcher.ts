@@ -24,8 +24,8 @@ export default class DataFetcher {
     return BigNumber.from(fallbackWithdrawalDelaySeconds);
   }
 
-  public async getPreviousBlockTimestamp(blockNumber: number): Promise<number> {
-    const previousBlockTimestamp = (await this.provider.getBlock(blockNumber - 1)).timestamp;
-    return previousBlockTimestamp;
+  public async getBlockTimestamp(blockNumber: number): Promise<number> {
+    const blockTimestamp = (await this.provider.getBlock(blockNumber)).timestamp;
+    return blockTimestamp;
   }
 }

@@ -7,7 +7,7 @@ import { BigNumber } from "ethers";
 const mockFetcher = {
   getFallbackSetDate: jest.fn(),
   getFallbackWithdrawalDelaySeconds: jest.fn(),
-  getPreviousBlockTimestamp: jest.fn()
+  getBlockTimestamp: jest.fn()
 };
 
 const testBlockNumbers: number[] = [14306500, 14306501];
@@ -63,9 +63,7 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
       .calledWith(testBlockNumbers[0])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
-    when(mockFetcher.getPreviousBlockTimestamp)
-      .calledWith(testBlockNumbers[1])
-      .mockReturnValue(testPreviousBlockTimestamp);
+    when(mockFetcher.getBlockTimestamp).calledWith(testBlockNumbers[0]).mockReturnValue(testPreviousBlockTimestamp);
 
     const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumbers[1]);
     const findings = await handleBlock(blockEvent);
@@ -86,9 +84,7 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
       .calledWith(testBlockNumbers[0])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
-    when(mockFetcher.getPreviousBlockTimestamp)
-      .calledWith(testBlockNumbers[1])
-      .mockReturnValue(testPreviousBlockTimestamp);
+    when(mockFetcher.getBlockTimestamp).calledWith(testBlockNumbers[0]).mockReturnValue(testPreviousBlockTimestamp);
 
     const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumbers[1]);
     const findings = await handleBlock(blockEvent);
