@@ -24,11 +24,7 @@ const createFinding = (timestamp: number, blockNumber: number) => {
     alertId: "FLEXA-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "Flexa",
-    metadata: {
-      blockTimestamp: timestamp.toString(),
-      blockNumber: blockNumber.toString()
-    }
+    protocol: "Flexa"
   });
 };
 
