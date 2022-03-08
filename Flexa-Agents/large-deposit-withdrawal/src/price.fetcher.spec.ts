@@ -49,7 +49,15 @@ describe("PriceFetcher test suite", () => {
   });
 
   it("should use the cached values", async () => {
-    // We do not init the mock provider to use cache values.
+    initialize();
+    for (let [contract, block, price] of TEST_DATA) {
+      const response: BigNumber[] = await fetcher.getAmpPrice(block, contract);
+      const fetchedPrice = response[1];
+      expect(fetchedPrice).toStrictEqual(BigNumber.from(price));
+    }
+    // we clear the mock to use cache values.
+    mockProvider.clear();
+
     for (let [contract, block, price] of TEST_DATA) {
       const response: BigNumber[] = await fetcher.getAmpPrice(block, contract);
       const fetchedPrice = response[1];
