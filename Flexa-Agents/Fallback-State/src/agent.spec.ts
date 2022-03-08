@@ -1,6 +1,6 @@
 import { HandleBlock, Finding, FindingSeverity, FindingType } from "forta-agent";
 import { provideHandleBlock } from "./agent";
-import { TestBlockEvent, createAddress } from "forta-agent-tools";
+import { TestBlockEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
 import { when, resetAllWhenMocks } from "jest-when";
 import { BigNumber } from "ethers";
 
