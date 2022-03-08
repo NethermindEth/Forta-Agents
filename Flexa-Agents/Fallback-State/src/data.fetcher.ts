@@ -10,18 +10,18 @@ export default class DataFetcher {
     this.provider = provider;
   }
 
-  public async getFallbackSetDate(blockNumber: number, flexaAddress: string): Promise<number> {
+  public async getFallbackSetDate(blockNumber: number, flexaAddress: string): Promise<BigNumber> {
     const flexaContract: Contract = new Contract(flexaAddress, flexaInterface, this.provider);
     const fallbackSetDate: BigNumber = await flexaContract.fallbackSetDate({ blockTag: blockNumber });
-    return BigNumber.from(fallbackSetDate).toNumber();
+    return BigNumber.from(fallbackSetDate);
   }
 
-  public async getFallbackWithdrawalDelaySeconds(blockNumber: number, flexaAddress: string): Promise<number> {
+  public async getFallbackWithdrawalDelaySeconds(blockNumber: number, flexaAddress: string): Promise<BigNumber> {
     const flexaContract: Contract = new Contract(flexaAddress, flexaInterface, this.provider);
     const fallbackWithdrawalDelaySeconds: BigNumber = await flexaContract.fallbackWithdrawalDelaySeconds({
       blockTag: blockNumber
     });
-    return BigNumber.from(fallbackWithdrawalDelaySeconds).toNumber();
+    return BigNumber.from(fallbackWithdrawalDelaySeconds);
   }
 
   public async getPreviousBlockTimestamp(blockNumber: number): Promise<number> {
