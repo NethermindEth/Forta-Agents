@@ -1,7 +1,7 @@
 {
   "name": "fallback-state-agent",
   "version": "0.0.1",
-  "description": "This agent detects when the contract enters fallback state",
+  "description": "This agent detects when Flexa Collateral Manager contract enters a fallback state",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
