@@ -14,7 +14,7 @@ const AMP_TOKEN: string = "0xfF20817765cB7f73d4bde2e66e067E58D11095C2";
 const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
 export const createFinding = (
-  amountThreshold: any,
+  amountThreshold: BigNumber,
   amount: number,
   partition: string,
   operator: string,
@@ -29,9 +29,9 @@ export const createFinding = (
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata: {
-      amountThreshold,
+      amountThreshold: amountThreshold.toString(),
       value: amount.toString(),
-      partition: partition.toLocaleLowerCase(),
+      fromPartition: partition.toLocaleLowerCase(),
       operator: operator.toLocaleLowerCase(),
       from: from.toLocaleLowerCase(),
       destinationPartition: destinationPartition.toLocaleLowerCase(),
