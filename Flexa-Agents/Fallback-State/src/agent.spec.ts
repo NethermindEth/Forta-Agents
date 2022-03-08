@@ -16,7 +16,7 @@ const testFallbackWithdrawalDelaySeconds: number = 3900000;
 const testBlockTimestamp: number = 1600000009;
 const testPreviousBlockTimestamp: number = 1600000000;
 
-const createFinding = (timestamp: number, blockNumber: number) => {
+const createFinding = () => {
   return Finding.fromObject({
     name: "Contract Fallback State alert",
     description: "Contract has entered fallback mode",
@@ -93,6 +93,6 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
     const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
     const findings = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([createFinding(testBlockTimestamp, testBlockNumber[1])]);
+    expect(findings).toStrictEqual([createFinding()]);
   });
 });
