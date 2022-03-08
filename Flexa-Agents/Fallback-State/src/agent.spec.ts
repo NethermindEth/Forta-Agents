@@ -97,27 +97,4 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
 
     expect(findings).toStrictEqual([createFinding(testBlockTimestamp, testBlockNumber[1])]);
   });
-
-  it("should return empty finding if a different contract is in fallback state", async () => {
-    when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[1], createAddress("0xd4"))
-      .mockReturnValue(testFallbackSetDate[0]);
-    when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[0], createAddress("0xd4"))
-      .mockReturnValue(testFallbackSetDate[1]);
-    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[1], createAddress("0xd4"))
-      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
-    when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[0], createAddress("0xd4"))
-      .mockReturnValue(testFallbackWithdrawalDelaySeconds);
-    when(mockFetcher.getPreviousBlockTimestamp)
-      .calledWith(testBlockNumber[1])
-      .mockReturnValue(testPreviousBlockTimestamp);
-
-    const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
-    const findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([]);
-  });
 });
