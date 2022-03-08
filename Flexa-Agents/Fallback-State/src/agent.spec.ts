@@ -1,10 +1,8 @@
 import { HandleBlock, Finding, FindingSeverity, FindingType } from "forta-agent";
 import { provideHandleBlock } from "./agent";
-import { TestBlockEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
+import { TestBlockEvent } from "forta-agent-tools/lib/tests.utils";
 import { when, resetAllWhenMocks } from "jest-when";
 import { BigNumber } from "ethers";
-
-const factory: string = createAddress("0xa0");
 
 const mockFetcher = {
   getFallbackSetDate: jest.fn(),
@@ -35,15 +33,15 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
   beforeEach(() => {
     resetAllWhenMocks();
 
-    handleBlock = provideHandleBlock(mockFetcher as any, factory);
+    handleBlock = provideHandleBlock(mockFetcher as any);
   });
 
   it("should return empty finding if contract isn't in fallback state", async () => {
     when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackSetDate[1]));
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
 
     const blockEvent = new TestBlockEvent().setTimestamp(testBlockTimestamp).setNumber(testBlockNumber[1]);
@@ -54,16 +52,16 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
 
   it("should return empty finding if contract is in fallback state in the last two blocks", async () => {
     when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackSetDate[0]));
     when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[0], factory)
+      .calledWith(testBlockNumber[0])
       .mockReturnValue(BigNumber.from(testFallbackSetDate[0]));
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[0], factory)
+      .calledWith(testBlockNumber[0])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
     when(mockFetcher.getPreviousBlockTimestamp)
       .calledWith(testBlockNumber[1])
@@ -77,16 +75,16 @@ describe("Flexa Staking Contract Fallback State Tests", () => {
 
   it("should return a finding if contract is in fallback state only in the last block", async () => {
     when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackSetDate[0]));
     when(mockFetcher.getFallbackSetDate)
-      .calledWith(testBlockNumber[0], factory)
+      .calledWith(testBlockNumber[0])
       .mockReturnValue(BigNumber.from(testFallbackSetDate[1]));
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[1], factory)
+      .calledWith(testBlockNumber[1])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
     when(mockFetcher.getFallbackWithdrawalDelaySeconds)
-      .calledWith(testBlockNumber[0], factory)
+      .calledWith(testBlockNumber[0])
       .mockReturnValue(BigNumber.from(testFallbackWithdrawalDelaySeconds));
     when(mockFetcher.getPreviousBlockTimestamp)
       .calledWith(testBlockNumber[1])
