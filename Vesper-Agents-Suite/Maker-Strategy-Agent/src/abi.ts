@@ -1,5 +1,17 @@
 import { AbiItem } from "web3-utils";
 
+export const V2POOL_ABI = [
+  {
+    inputs: [],
+    name: "controller",
+    outputs: [
+      { internalType: "contract IController", name: "", type: "address" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  }
+] as AbiItem[];
+
 export const CONTROLLER_ABI = [
   {
     inputs: [],
@@ -14,30 +26,6 @@ export const CONTROLLER_ABI = [
     inputs: [{ internalType: "address", name: "", type: "address" }],
     name: "strategy",
     outputs: [{ internalType: "address", name: "", type: "address" }],
-    stateMutability: "view",
-    type: "function"
-  }
-] as AbiItem[];
-
-export const AddressListABI = [
-  {
-    name: "length",
-    type: "function",
-    inputs: [],
-    outputs: [
-      {
-        type: "uint256",
-        name: ""
-      }
-    ]
-  },
-  {
-    inputs: [{ internalType: "uint256", name: "index", type: "uint256" }],
-    name: "at",
-    outputs: [
-      { internalType: "address", name: "", type: "address" },
-      { internalType: "uint256", name: "", type: "uint256" }
-    ],
     stateMutability: "view",
     type: "function"
   }

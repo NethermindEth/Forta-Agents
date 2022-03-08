@@ -1,13 +1,12 @@
 import { createAddress } from "forta-agent-tools";
 
 const CM: string = createAddress("0x3333");
-const POOLS: string[] = [createAddress("0x2")];
+const CONTROLLER: string[] = [createAddress("0x6")];
 
 const STRATEGIES_V2: string[] = [createAddress("0x3")];
 const STRATEGIES_V3: string[] = [createAddress("0x5")];
 
 export type Args = [
-  pools: string[],
   isUnderWater: boolean,
   vaultInfo: { collateralRatio: string },
   lowWater: string,
@@ -24,7 +23,6 @@ const build_Mock = (args: Args) =>
       NAME: this.NAME,
       strategy: this.strategy,
       getStrategies: this.getStrategies,
-      pools: this.pools,
       cm: this.cm,
       getVaultInfo: this.getVaultInfo,
       isUnderwater: this.isUnderwater,
@@ -36,6 +34,7 @@ const build_Mock = (args: Args) =>
       collateralType: this.collateralType,
       totalLocked: this.totalLocked,
       totalValue: this.totalValue,
+      controller: this.controller
     };
 
     constructor(_: any, address: string) {
@@ -44,19 +43,25 @@ const build_Mock = (args: Args) =>
 
     private NAME() {
       return {
-        call: () => args[5]
+        call: () => args[4]
+      };
+    }
+
+    private controller() {
+      return {
+        call: () => CONTROLLER
       };
     }
 
     private totalValue() {
       return {
-        call: () => args[6]
+        call: () => args[5]
       };
     }
 
     private totalLocked() {
       return {
-        call: () => args[6]
+        call: () => args[5]
       };
     }
 
@@ -69,12 +74,6 @@ const build_Mock = (args: Args) =>
     private getStrategies() {
       return {
         call: () => STRATEGIES_V3
-      };
-    }
-
-    private pools() {
-      return {
-        call: () => POOLS
       };
     }
 
@@ -92,30 +91,30 @@ const build_Mock = (args: Args) =>
 
     private isUnderwater() {
       return {
-        call: () => args[1]
+        call: () => args[0]
       };
     }
     private getVaultInfo() {
       return {
-        call: () => args[2]
+        call: () => args[1]
       };
     }
 
     private lowWater() {
       return {
-        call: () => args[3]
+        call: () => args[2]
       };
     }
 
     private highWater() {
       return {
-        call: () => args[4]
+        call: () => args[3]
       };
     }
 
     private at(index: number) {
       return {
-        call: () => args[0][index]
+        call: () => args[index]
       };
     }
 
@@ -134,7 +133,7 @@ const build_Mock = (args: Args) =>
   };
 
 export default {
-  POOLS,
+  CONTROLLER,
   STRATEGIES_V2,
   STRATEGIES_V3,
   build_Mock

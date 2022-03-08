@@ -1,68 +1,104 @@
 import { AbiItem } from "web3-utils";
 
-const POOLS: AbiItem = {
-  name: "pools",
-  type: "function",
-  inputs: [],
-  outputs: [{
-    name: 'poolsList',
-    type: 'address',
-  }],
-} as AbiItem;
-
 const STRATEGY: AbiItem = {
   name: "strategy",
   type: "function",
-  inputs: [{
-    name: 'pool',
-    type: 'address',
-  }],
-  outputs: [{
-    name: 'strategy',
-    type: 'address',
-  }],
+  inputs: [
+    {
+      name: "pool",
+      type: "address",
+    },
+  ],
+  outputs: [
+    {
+      name: "strategy",
+      type: "address",
+    },
+  ],
 } as AbiItem;
 
 const GET_STRATEGIES: AbiItem = {
   name: "getStrategies",
   type: "function",
   inputs: [],
-  outputs: [{
-    name: 'strategiesList',
-    type: 'address[]',
-  }],
+  outputs: [
+    {
+      name: "strategiesList",
+      type: "address[]",
+    },
+  ],
 } as AbiItem;
 
-const AT: AbiItem = {
-  name: "at",
+const PoolABI: AbiItem = {
+  name: "poolAccountant",
   type: "function",
-  inputs: [{
-    name: "index",
-    type: "uint256",
-  }],
-  outputs: [{
-      name: 'pool',
-      type: 'address',
-    }, {
-      name: '_',
-      type: 'uint256',
-  }],
+  inputs: [],
+  outputs: [
+    {
+      type: "address",
+      name: "",
+    },
+  ],
 } as AbiItem;
 
-const LENGHT: AbiItem = {
-    name: "length",
+export const Accountant_ABI = 
+  {
+    name: "strategy",
     type: "function",
-    inputs: [],
-    outputs: [{
-        name: 'length',
-        type: 'uint256',
-    }],
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    outputs: [
+      {
+        internalType: "bool",
+        name: "active",
+        type: "bool",
+      },
+      {
+        internalType: "uint256",
+        name: "interestFee",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "debtRate",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "lastRebalance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalDebt",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalLoss",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "totalProfit",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "debtRatio",
+        type: "uint256",
+      },
+    ],
   } as AbiItem;
 
 export default {
-    POOLS,
-    STRATEGY,
-    GET_STRATEGIES,
-    AT,
-    LENGHT,
+  STRATEGY,
+  GET_STRATEGIES,
+  PoolABI,
+  Accountant_ABI,
 };

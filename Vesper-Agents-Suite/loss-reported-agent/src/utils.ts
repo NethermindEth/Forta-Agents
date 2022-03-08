@@ -1,22 +1,24 @@
 import { Finding, FindingType, FindingSeverity, Log } from "forta-agent";
 import {
   FindingGenerator,
-  decodeFunctionCallParameters,
   decodeParameters,
   decodeParameter,
 } from "forta-agent-tools";
 import Web3 from "web3";
-import { ControllerABI, AddressListABI, PoolABI } from "./abi";
+import { PoolABI } from "./abi";
 import LRU from "lru-cache";
-
+const axios = require("axios");
+export const API_URL = "https://api.vesper.finance/dashboard?version=2";
+const STATUS = "operative";
+const ALLOWED_STAGES = ["prod", "beta", "orbit"];
+const IGNORE_ADDRESS = ["0xbA4cFE5741b357FA371b506e5db0774aBFeCf8Fc"];
 const poolAccountantsCache = new LRU({ max: 10_000 });
-
-const controllerAddresss = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
 
 export const createFindingCallDetector: FindingGenerator = (callInfo) => {
   return Finding.fromObject({
     name: "Loss Reported",
-    description: "A loss was reported by a V3 strategy",
+    description:
+      "A loss was reported by a V3 strategy",
     alertId: "Vesper-2",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -58,35 +60,21 @@ export const hasLosses = (log: Log) => {
   return BigInt(loss) > BigInt(0);
 };
 
-const getPools = async (
-  web3: Web3,
-  blockNumber: string | number
-): Promise<string[]> => {
-  const pools: string[] = [];
-
-  const controllerContract = new web3.eth.Contract(
-    ControllerABI,
-    controllerAddresss
-  );
-  const addressListAddress: string = await controllerContract.methods
-    .pools()
-    .call({}, blockNumber);
-
-  const addressListContract = new web3.eth.Contract(
-    AddressListABI,
-    addressListAddress
-  );
-  const poolsLength: number = Number(
-    await addressListContract.methods.length().call({}, blockNumber)
-  );
-
-  for (let i = 0; i < poolsLength; i++) {
-    const poolAddress = await addressListContract.methods
-      .at(i)
-      .call({}, blockNumber);
-    pools.push(poolAddress);
-  }
-  return pools;
+const getPools = async () => {
+  return axios.get(API_URL).then((response: { data: { pools: any[] } }) => {
+    return response.data.pools
+      .filter(
+        (pool: {
+          status: string;
+          stage: string;
+          contract: { version: string; address: string };
+        }) =>
+          pool.status === STATUS &&
+          ALLOWED_STAGES.includes(pool.stage) &&
+          !IGNORE_ADDRESS.includes(pool.contract.address)
+      )
+      .map((pool) => pool.contract.address);
+  });
 };
 
 export const getPoolAccountants = async (
@@ -101,17 +89,18 @@ export const getPoolAccountants = async (
   }
 
   const poolAccountants: string[] = [];
-  const pools: string[] = await getPools(web3, blockNumber);
-
+  const pools: string[] = await getPools();
   for (let pool of pools) {
     try {
       const poolContract = new web3.eth.Contract(PoolABI, pool);
-      poolAccountants.push(
-        await poolContract.methods.poolAccountant().call({}, blockNumber)
-      );
-    } catch {}
+      const poolAccountant = await poolContract.methods
+        .poolAccountant()
+        .call({}, blockNumber);
+      poolAccountants.push(poolAccountant);
+    } catch { 
+      
+    }
   }
-
   poolAccountantsCache.set(blockNumber, poolAccountants);
   return poolAccountants;
 };

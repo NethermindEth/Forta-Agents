@@ -1,8 +1,9 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import Web3 from "web3";
-import { ControllerABI, AddressListABI } from "./abi";
-
-const controllerAddress = "0xa4F1671d3Aee73C05b552d57f2d16d3cfcBd0217";
+const axios = require("axios");
+export const API_URL = "https://api.vesper.finance/dashboard?version=2";
+const STATUS = "operative";
+const ALLOWED_STAGES = ["prod", "beta", "orbit"];
+const IGNORE_ADDRESS = ["0xbA4cFE5741b357FA371b506e5db0774aBFeCf8Fc"]; // vVSP pool
 
 const mockList = [
   "0xcA0c34A3F35520B9490C1d58b35A19AB64014D80",
@@ -30,40 +31,25 @@ const createFinding = (pool: any, tokenfunds = 0): Finding => {
     metadata: {
       pool,
       tokenfunds: tokenfunds.toString(),
-
     },
   });
 };
 
-const getPools = async (
-  web3: Web3,
-  blockNumber: string | number
-): Promise<string[]> => {
-  const pools: string[] = [];
-
-  const controllerContract = new web3.eth.Contract(
-    ControllerABI,
-    controllerAddress
-  );
-  const addressListAddress: string = await controllerContract.methods
-    .pools()
-    .call({}, blockNumber);
-
-  const addressListContract = new web3.eth.Contract(
-    AddressListABI,
-    addressListAddress
-  );
-  const poolsLength: number = Number(
-    await addressListContract.methods.length().call({}, blockNumber)
-  );
-
-  for (let i = 0; i < poolsLength; i++) {
-    const poolAddress = await addressListContract.methods
-      .at(i)
-      .call({}, blockNumber);
-    pools.push(poolAddress);
-  }
-  return pools;
+const getPools = async () => {
+  return axios.get(API_URL).then((response: { data: { pools: any[] } }) => {
+    return response.data.pools
+      .filter(
+        (pool: {
+          status: string;
+          stage: string;
+          contract: { version: string; address: string };
+        }) =>
+          pool.status === STATUS &&
+          ALLOWED_STAGES.includes(pool.stage) &&
+          !IGNORE_ADDRESS.includes(pool.contract.address)
+      )
+      .map((pool) => pool.contract.address);
+  });
 };
 
 export { mockList, getTotalValue, getTokensHere, createFinding, getPools };

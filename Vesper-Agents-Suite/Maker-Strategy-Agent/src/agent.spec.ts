@@ -12,7 +12,7 @@ import {
   encodeParameter
 } from "forta-agent-tools";
 import { BlockEvent } from "forta-agent-tools/node_modules/forta-agent";
-import { provideHandleTransaction, provideMakerStrategyHandler } from "./agent";
+import { provideHandleTransaction, provideMakerStrategyHandler, setCacheTime } from "./agent";
 import { createAddress } from "forta-agent-tools";
 import Mock, { Args } from "./mock/mock";
 import {
@@ -24,7 +24,8 @@ import {
   JUG_CONTRACT
 } from "./utils";
 import TimeTracker from './time.tracker';
-const poolAccountants = [createAddress("0x0"), createAddress("0x1")];
+const axios = require('axios');
+jest.mock('axios');
 
 const createMock = (...args: Args) => {
   return {
@@ -71,17 +72,47 @@ const createFindingSFB = (
 };
 const threshold: number = 1000;
 
+function mockPool() {
+  const poolAddress = createAddress("0x2")
+  const pools = {
+    data: {
+      pools: [
+        {
+          contract: {
+            address: poolAddress,
+            version : "2.x"
+          },
+          status: "operative",
+          stage: "prod",
+        },
+        {
+          contract: {
+            address: poolAddress,
+            version : "3.x"
+          },
+          status: "operative",
+          stage: "prod",
+        },
+      ],
+    },
+  } as any;
+  (axios.get as jest.Mock).mockResolvedValue(pools);
+}
+
 describe("Vesper Maker Strategy Agent Test Suite", () => {
   let handleBlock: HandleBlock;
   let handleTransaction: HandleTransaction;
-  const tracker: TimeTracker = new TimeTracker();
+  const tracker: TimeTracker = new TimeTracker();  
+  beforeEach(() => {
+    setCacheTime(0)
+    mockPool()
+  });
 
   xit("should return empty findings if isUnderWater=False", async () => {
     const LOW_WATER = "2200000000000000000";
     const HIGH_WATER = "2600000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: "2516557646144049203"
@@ -107,7 +138,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2500000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: COLLATERAL_RATIO
@@ -145,7 +175,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2500000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: COLLATERAL_RATIO
@@ -155,7 +184,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker",
       0,
     );
-
+    
     handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
@@ -170,9 +199,8 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const COLLATERAL_RATIO = "2116557646144049203";
     const LOW_WATER = "2200000000000000000";
     const HIGH_WATER = "2500000000000000000";
-
+    
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: COLLATERAL_RATIO
@@ -205,6 +233,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       )
     ]);
   });
+  
 
   xit("should return findings because of isUnderWater=True", async () => {
     const COLLATERAL_RATIO = "2516557646144049203";
@@ -212,7 +241,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2600000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       true, // isUnderWater
       {
         collateralRatio: COLLATERAL_RATIO
@@ -242,7 +270,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2500000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       true, // isUnderWater
       {
         collateralRatio: COLLATERAL_RATIO
@@ -252,7 +279,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "UniSwap",
       1,
     );
-
+    
     handleBlock = provideMakerStrategyHandler(mockWeb3, threshold, tracker);
 
     let findings: Finding[] = [];
@@ -269,7 +296,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2600000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       true, // isUnderWater
       {
         collateralRatio: COLLATERAL_RATIO
@@ -309,7 +335,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const HIGH_WATER = "2500000000000000000";
 
     const mockWeb3 = createMock(
-      poolAccountants,
       true, // isUnderWater
       {
         collateralRatio: COLLATERAL_RATIO
@@ -343,7 +368,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     ]);
   });
 
-  it("should return finding if stability fee changed in specific strategy", async () => {
+  it("should return finding if stability fee changed in specific strategy", async () => {
     const selector = encodeFunctionSignature(JUG_CHANGE_DUTY_FUNCTION_SIGNAUTRE);
     const what = "6475747900000000000000000000000000000000000000000000000000000000" // "duty" in bytes32
     const collateralType =
@@ -352,7 +377,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const INPUT = selector + what + collateralType + encodeParameter("uint256", 1245).slice(2);
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: "2516557646144049203"
@@ -362,6 +386,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker",
       1,
     );
+    
 
     handleTransaction = provideHandleTransaction(mockWeb3);
 
@@ -386,7 +411,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const INPUT = selector + what + encodeParameter("uint256", 1245).slice(2);
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: "2516557646144049203"
@@ -396,6 +420,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker",
       1,
     );
+    
 
     handleTransaction = provideHandleTransaction(mockWeb3);
 
@@ -421,7 +446,6 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
     const INPUT = selector + what + collateralType + encodeParameter("uint256", 1245).slice(2);
 
     const mockWeb3 = createMock(
-      poolAccountants,
       false,
       {
         collateralRatio: "2516557646144049203"
@@ -431,6 +455,7 @@ describe("Vesper Maker Strategy Agent Test Suite", () => {
       "Maker",
       1,
     );
+    
 
     handleTransaction = provideHandleTransaction(mockWeb3);
 
