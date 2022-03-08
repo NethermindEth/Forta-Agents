@@ -150,7 +150,7 @@ describe("Large stake deposits", () => {
 
     const testOperator: string = createAddress("0xdef789");
     const bytesOperatorData: string = toBytes32("0x0789");
-    const testValue: number = 100;
+    const testValue: BigNumber = BigNumber.from(100);
 
     const testDestinationPartition: string =
       "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
@@ -206,7 +206,7 @@ describe("Large stake deposits", () => {
     const testOperator: string = createAddress("0xdef963");
     const bytesOperatorData: string = toBytes32("0x0357");
     // const testValue: BigNumber = BigNumber.from(10000000);
-    const testValue: number = 10000000;
+    const testValue: BigNumber = BigNumber.from(10000000);
 
     const testDestinationPartition: string =
       "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
@@ -258,36 +258,36 @@ describe("Large stake deposits", () => {
       // Format: [threshold, amount, partition, operator, from, destinationPartition, to, data, operatorData]
       [
         testThreshold,
-        110,
+        BigNumber.from(110),
         "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        createAddress("0xe0a"),
-        createAddress("0xabc1"),
-        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        createAddress("0xabc1"),
-        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7c578",
+        createAddress("0xabc147"),
+        createAddress("0xabc258"),
+        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679",
+        createAddress("0xabc369"),
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679",
         "0x0123"
       ],
       [
         testThreshold,
-        115,
-        "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        createAddress("0xe0a"),
-        createAddress("0xabc1"),
-        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        createAddress("0xabc1"),
-        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        "0x0123"
+        BigNumber.from(115),
+        "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7a753",
+        createAddress("0xdef123"),
+        createAddress("0xdef456"),
+        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7b951",
+        createAddress("0xdef789"),
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7b951",
+        "0x0789"
       ]
     ];
 
     const { data: dataOne, topics: topicsOne } = testAmpIFace.encodeEventLog(
       testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[0][2], CASES[0][3], CASES[0][4], CASES[0][6], CASES[0][2], CASES[0][7], CASES[0][8]]
+      [CASES[0][2], CASES[0][3], CASES[0][4], CASES[0][6], CASES[0][1], CASES[0][7], CASES[0][8]]
     );
 
     const { data: dataTwo, topics: topicsTwo } = testAmpIFace.encodeEventLog(
       testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][6], CASES[1][2], CASES[1][7], CASES[1][8]]
+      [CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][6], CASES[1][1], CASES[1][7], CASES[1][8]]
     );
 
     let txEvent: TransactionEvent = new TestTransactionEvent()

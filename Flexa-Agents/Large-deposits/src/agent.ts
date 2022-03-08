@@ -15,7 +15,7 @@ const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
 export const createFinding = (
   amountThreshold: BigNumber,
-  amount: number,
+  amount: BigNumber,
   partition: string,
   operator: string,
   from: string,
