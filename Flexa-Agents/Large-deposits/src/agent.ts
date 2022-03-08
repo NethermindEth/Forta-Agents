@@ -9,10 +9,9 @@ import {
 import { BigNumber, utils, providers } from "ethers";
 import abi from "./abi";
 
-const ethersProvider = getEthersProvider();                    
 const AMOUNT_THRESHOLD = utils.parseEther("1").mul(1e6); // 1 million
 const AMP_TOKEN: string = "0xfF20817765cB7f73d4bde2e66e067E58D11095C2";
-const FLEXA_TOKEN: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
+const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
 export const createFinding = (
   amountThreshold: any,
@@ -49,7 +48,7 @@ export function provideHandleTransaction(
 ) {
   const flexaStakingContract = new ethers.Contract(
     flexaManager,
-    abi.FLEXA_TOKEN,
+    abi.FLEXA_CONTRACT,
     provider,
   );
   return async (txEvent: TransactionEvent) => {
@@ -60,26 +59,22 @@ export function provideHandleTransaction(
       abi.AMP_TOKEN,
       ampToken
     );
-    // console.log(transferByPartitionEvents);
 
     // fire alerts for transfers of large stake
     await Promise.all(transferByPartitionEvents.map(async (event) => {
       const data = event.args.data;
       const value = event.args.value;
 
-      // console.log("OK1");
       //derives destinationAddress from data argument
       const [,decodedPartition] = utils.defaultAbiCoder.decode(
         ["bytes32", "bytes32"],
         data,
       );
 
-      console.log("foo",decodedPartition, data);
       const destinationPartitionMapping = await flexaStakingContract.partitions(
         decodedPartition,
         { blockTag: txEvent.blockNumber },
       );
-      console.log("OK3");
 
 
       if (destinationPartitionMapping) {
@@ -107,7 +102,7 @@ export default {
   handleTransaction: provideHandleTransaction(
     AMOUNT_THRESHOLD,
     AMP_TOKEN,
-    FLEXA_TOKEN,
+    FLEXA_CONTRACT,
     getEthersProvider(),
   ),
 };
