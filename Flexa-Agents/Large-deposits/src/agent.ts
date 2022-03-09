@@ -31,7 +31,8 @@ export const createFinding = (
     alertId: "FLEXA-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    metadata: {
+    protocol: "Flexa",
+      metadata: {
       value: amount.toString(),
       fromPartition: partition.toLowerCase(),
       operator: operator.toLowerCase(),
