@@ -206,7 +206,7 @@ describe("Large stake deposits", () => {
   });
 
   it("should return empty findings when the transfer is emitted from a different partition", async () => {
-    //When partition mapping is false
+    //When partitions mapping is false
 
     const testFromPartition: string = toBytes32("0xc571");
     const testFrom: string = createAddress("0xabc258");
