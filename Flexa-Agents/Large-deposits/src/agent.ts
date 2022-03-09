@@ -14,13 +14,13 @@ const AMP_TOKEN: string = "0xfF20817765cB7f73d4bde2e66e067E58D11095C2";
 const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
 export const createFinding = (
-  amountThreshold: BigNumber,
   amount: BigNumber,
   partition: string,
   operator: string,
   from: string,
   destinationPartition: string,
-  to: string
+  to: string,
+  operatorData: string,
 ): Finding => {
   return Finding.fromObject({
     name: "Large Deposit",
@@ -29,13 +29,13 @@ export const createFinding = (
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata: {
-      amountThreshold: amountThreshold.toString(),
       value: amount.toString(),
       fromPartition: partition.toLowerCase(),
       operator: operator.toLowerCase(),
       from: from.toLowerCase(),
       destinationPartition: destinationPartition.toLowerCase(),
       to: to.toLowerCase(),
+      operatorData: operatorData.toLowerCase(),
     },
   });
 };
@@ -80,13 +80,13 @@ export function provideHandleTransaction(
       if (isValidPartition) {
         if (value.gte(amountThreshold)) {
           const newFinding: Finding = createFinding(
-            amountThreshold,
             event.args.value,
             event.args.fromPartition,
             event.args.operator,
             event.args.from,
             decodedPartition,
-            event.args.to
+            event.args.to,
+            event.args.operatorData,
           );
           findings.push(newFinding);
         }

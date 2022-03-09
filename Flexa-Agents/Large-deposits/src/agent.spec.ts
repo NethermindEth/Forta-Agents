@@ -1,11 +1,11 @@
-import { HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import {
   createAddress,
   TestTransactionEvent,
   encodeParameters,
   MockEthersProvider,
 } from "forta-agent-tools";
-import { createFinding, provideHandleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import { Interface } from "@ethersproject/abi";
 import abi from "./abi";
@@ -20,19 +20,26 @@ const testFlexaIFace: Interface = new Interface(abi.COLLATERAL_MANAGER);
 const testFlag: string =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-describe("Large stake deposits", () => {
-  type TEST_CASE = [
-    any,
-    any,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string,
-    string
-  ];
+const createFinding = ([
+  value, fromPartition,
+  operator, from,
+  destinationPartition,
+  to, operatorData,
+]: string[]) => Finding.fromObject({
+  name: "Large Deposit",
+  description: "Large Deposit into staking pool",
+  alertId: "FLEXA-2",
+  severity: FindingSeverity.Info,
+  type: FindingType.Info,
+  metadata: {
+    value, fromPartition,
+    operator, from,
+    destinationPartition,
+    to, operatorData,
+  },
+});
 
+describe("Large stake deposits", () => {
   let handleTransaction: HandleTransaction;
   const mockProvider = new MockEthersProvider();
 
@@ -95,100 +102,61 @@ describe("Large stake deposits", () => {
 
   it("should only return findings if value is equal to or greater than threshold", async () => {
     // CASES Format: [less than threshold, equal to threshold, more than threshold]
-    // Individual Case Format: [threshold, amount, partition, operator, from, destinationPartition, to, data, operatorData]
-    const CASES: TEST_CASE[] = [
+    // Individual Case Format: [amount, partition, operator, from, destinationPartition, to, operatorData]
+    const CASES: string[][] = [
       [
-        testThreshold,
-        BigNumber.from(10), // Less than threshold
+        "10", // Less than threshold
         toBytes32("0xa123"),
         createAddress("0xabc123"),
         createAddress("0xabc456"),
         toBytes32("0xb456"),
         createAddress("0xabc789"),
-        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xb456")]),
         toBytes32("0x0456")
       ],
       [
-        testThreshold,
-        BigNumber.from(100), // Equal to threshold
+        "100", // Equal to threshold
         toBytes32("0xc789"),
         createAddress("0xdef123"),
         createAddress("0xdef456"),
         toBytes32("0xd147"),
         createAddress("0xdef789"),
-        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xd147")]),
         toBytes32("0x0789")
       ],
       [
-        testThreshold,
-        BigNumber.from(10000000), // More than threshold
+        "10000000", // More than threshold
         toBytes32("0xe258"),
         createAddress("0xaec123"),
         createAddress("0xdbf456"),
         toBytes32("0xf369"),
         createAddress("0xaec789"),
-        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xf369")]),
         toBytes32("0x0357")
       ]
     ];
 
-    const { data: dataOne, topics: topicsOne } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[0][2], CASES[0][3], CASES[0][4], CASES[0][6], CASES[0][1], CASES[0][7], CASES[0][8]]
-    );
+    const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(55);
 
-    const { data: dataTwo, topics: topicsTwo } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][6], CASES[1][1], CASES[1][7], CASES[1][8]
-      ]
-    );
-
-    const { data: dataThree, topics: topicsThree } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[2][2], CASES[2][3], CASES[2][4], CASES[2][6], CASES[2][1], CASES[2][7], CASES[2][8]]
-    );
-
-    // prepare the partitions call
-    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
-      inputs: [CASES[0][5]],
-      outputs: [true],
-    });
-    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
-      inputs: [CASES[1][5]],
-      outputs: [true],
-    });
-    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
-      inputs: [CASES[2][5]],
-      outputs: [true],
-    });
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setBlock(55)
-      .addAnonymousEventLog(testAmp, dataOne, ...topicsOne)
-      .addAnonymousEventLog(testAmp, dataTwo, ...topicsTwo)
-      .addAnonymousEventLog(testAmp, dataThree, ...topicsThree);
+    for(let [amount, partition, operator, from, destinationPartition, to, operatorData] of CASES) {
+      // join flag & destination
+      const encodedDestination: string = encodeParameters(["bytes32", "bytes32"], [testFlag, destinationPartition]);
+      // encode the event
+      const { data, topics } = testAmpIFace.encodeEventLog(
+        testAmpIFace.getEvent("TransferByPartition"),
+        [partition, operator, from, to, amount, encodedDestination, operatorData]
+      );
+      // prepare the partitions call
+      mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
+        inputs: [destinationPartition],
+        outputs: [true],
+      });
+      // prepare the txn
+      txEvent.addAnonymousEventLog(testAmp, data, ...topics);
+    }
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(
-        testThreshold,
-        CASES[1][1],
-        CASES[1][2],
-        CASES[1][3],
-        CASES[1][4],
-        CASES[1][5],
-        CASES[1][6]
-      ),
-      createFinding(
-        testThreshold,
-        CASES[2][1],
-        CASES[2][2],
-        CASES[2][3],
-        CASES[2][4],
-        CASES[2][5],
-        CASES[2][6]
-      ),
+      createFinding(CASES[1]),
+      createFinding(CASES[2]),
     ]);
   });
 
