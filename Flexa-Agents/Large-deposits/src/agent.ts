@@ -31,11 +31,11 @@ export const createFinding = (
     metadata: {
       amountThreshold: amountThreshold.toString(),
       value: amount.toString(),
-      fromPartition: partition.toLocaleLowerCase(),
-      operator: operator.toLocaleLowerCase(),
-      from: from.toLocaleLowerCase(),
-      destinationPartition: destinationPartition.toLocaleLowerCase(),
-      to: to.toLocaleLowerCase(),
+      fromPartition: partition.toLowerCase(),
+      operator: operator.toLowerCase(),
+      from: from.toLowerCase(),
+      destinationPartition: destinationPartition.toLowerCase(),
+      to: to.toLowerCase(),
     },
   });
 };
@@ -48,7 +48,7 @@ export function provideHandleTransaction(
 ) {
   const flexaStakingContract = new ethers.Contract(
     flexaManager,
-    abi.FLEXA_CONTRACT,
+    abi.COLLATERAL_MANAGER,
     provider,
   );
   return async (txEvent: TransactionEvent) => {
@@ -71,13 +71,13 @@ export function provideHandleTransaction(
         data,
       );
 
-      const destinationPartitionMapping = await flexaStakingContract.partitions(
+      const isValidPartition = await flexaStakingContract.partitions(
         decodedPartition,
         { blockTag: txEvent.blockNumber },
       );
 
 
-      if (destinationPartitionMapping) {
+      if (isValidPartition) {
         if (value.gte(amountThreshold)) {
           const newFinding: Finding = createFinding(
             amountThreshold,

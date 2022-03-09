@@ -16,7 +16,7 @@ const testAmp: string = createAddress("0xdef1");
 const testFlexa: string = createAddress("0xf1e4a");
 const testThreshold: BigNumber = BigNumber.from(100);
 const testAmpIFace: Interface = new Interface(abi.AMP_TOKEN);
-const testFlexaIFace: Interface = new Interface(abi.FLEXA_CONTRACT);
+const testFlexaIFace: Interface = new Interface(abi.COLLATERAL_MANAGER);
 const testFlag: string =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
@@ -57,17 +57,15 @@ describe("Large stake deposits", () => {
   });
 
   it("should return no Findings due to incorrect event signature", async () => {
-    const testFromPartition: string =
-      "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578";
+    const testFromPartition: string = toBytes32("0xc578");
     const testFrom: string = createAddress("0xabc123");
     const testTo: string = createAddress("0xabc456");
 
     const testOperator: string = createAddress(("0xdef123"));
     const bytesOperatorData: string = toBytes32("0x0123");
-    const testValue: number = 100;
+    const testValue: BigNumber = BigNumber.from(100);
 
-    const testDestinationPartition: string =
-      "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
+    const testDestinationPartition: string = toBytes32("0xd679");
     const testData: string = encodeParameters(
       ["bytes32", "bytes32"],
       [testFlag, testDestinationPartition]
@@ -90,193 +88,49 @@ describe("Large stake deposits", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(50)
-      .addEventLog(badWorkSig, testAmp, data, ...topics.slice(1));
+      .addEventLog(badWorkSig, testAmp, data, ...topics);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns no findings if value is lesser than threshold", async () => {
-    const testFromPartition: string =
-      "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578";
-    const testFrom: string = createAddress("0xabc789");
-    const testTo: string = createAddress("0xabc963");
-
-    const testOperator: string = createAddress("0xdef456");
-    const bytesOperatorData: string = toBytes32("0x0456");
-    const testValue: number = 10;
-
-    const testDestinationPartition: string =
-      "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
-    const testData: string = encodeParameters(
-      ["bytes32", "bytes32"],
-      [testFlag, testDestinationPartition]
-    );
-
-    const { data, topics } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [
-        testFromPartition,
-        testOperator,
-        testFrom,
-        testTo,
-        testValue,
-        testData,
-        bytesOperatorData,
-      ]
-    );
-
-    // prepare the partitions call
-    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
-      inputs: [testDestinationPartition],
-      outputs: [true],
-    });
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setBlock(55)
-      .addAnonymousEventLog(testAmp, data, ...topics);
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should returns findings if value is equal to threshold", async () => {
-    const testFromPartition: string =
-      "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578";
-    const testFrom: string = createAddress("0xabc369");
-    const testTo: string = createAddress("0xabc258");
-
-    const testOperator: string = createAddress("0xdef789");
-    const bytesOperatorData: string = toBytes32("0x0789");
-    const testValue: BigNumber = BigNumber.from(100);
-
-    const testDestinationPartition: string =
-      "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
-    const testData: string = encodeParameters(
-      ["bytes32", "bytes32"],
-      [testFlag, testDestinationPartition]
-    );
-
-    const { data, topics } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [
-        testFromPartition,
-        testOperator,
-        testFrom,
-        testTo,
-        testValue,
-        testData,
-        bytesOperatorData,
-      ]
-    );
-
-    // prepare the partitions call
-    mockProvider.addCallTo(testFlexa, 60, testFlexaIFace, "partitions", {
-      inputs: [testDestinationPartition],
-      outputs: [true],
-    });
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setBlock(60)
-      .addAnonymousEventLog(testAmp, data, ...topics);
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([
-      createFinding(
-        testThreshold,
-        testValue,
-        testFromPartition,
-        testOperator,
-        testFrom,
-        testDestinationPartition,
-        testTo
-      ),
-    ]);
-  });
-
-  it("should returns findings if value is greater than threshold", async () => {
-    const testFromPartition: string =
-      "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578";
-    const testFrom: string = createAddress("0xabc147");
-    const testTo: string = createAddress("0xabc159");
-
-    const testOperator: string = createAddress("0xdef963");
-    const bytesOperatorData: string = toBytes32("0x0357");
-    // const testValue: BigNumber = BigNumber.from(10000000);
-    const testValue: BigNumber = BigNumber.from(10000000);
-
-    const testDestinationPartition: string =
-      "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
-    const testData: string = encodeParameters(
-      ["bytes32", "bytes32"],
-      [testFlag, testDestinationPartition]
-    );
-
-    const { data, topics } = testAmpIFace.encodeEventLog(
-      testAmpIFace.getEvent("TransferByPartition"),
-      [
-        testFromPartition,
-        testOperator,
-        testFrom,
-        testTo,
-        testValue,
-        testData,
-        bytesOperatorData,
-      ]
-    );
-
-    // prepare the partitions call
-    mockProvider.addCallTo(testFlexa, 65, testFlexaIFace, "partitions", {
-      inputs: [testDestinationPartition],
-      outputs: [true],
-    });
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setBlock(65)
-      .addAnonymousEventLog(testAmp, data, ...topics);
-
-    const findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([
-      createFinding(
-        testThreshold,
-        testValue,
-        testFromPartition,
-        testOperator,
-        testFrom,
-        testDestinationPartition,
-        testTo
-      ),
-    ]);
-  });
-
-  it("should return multiple findings", async () => {
+  it("should only return findings if value is equal to or greater than threshold", async () => {
+    // CASES Format: [less than threshold, equal to threshold, more than threshold]
+    // Individual Case Format: [threshold, amount, partition, operator, from, destinationPartition, to, data, operatorData]
     const CASES: TEST_CASE[] = [
-      // Format: [threshold, amount, partition, operator, from, destinationPartition, to, data, operatorData]
       [
         testThreshold,
-        BigNumber.from(110),
-        "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578",
-        createAddress("0xabc147"),
-        createAddress("0xabc258"),
-        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679",
-        createAddress("0xabc369"),
-        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679",
-        "0x0123"
+        BigNumber.from(10), // Less than threshold
+        toBytes32("0xa123"),
+        createAddress("0xabc123"),
+        createAddress("0xabc456"),
+        toBytes32("0xb456"),
+        createAddress("0xabc789"),
+        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xb456")]),
+        toBytes32("0x0456")
       ],
       [
         testThreshold,
-        BigNumber.from(115),
-        "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7a753",
+        BigNumber.from(100), // Equal to threshold
+        toBytes32("0xc789"),
         createAddress("0xdef123"),
         createAddress("0xdef456"),
-        "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7b951",
+        toBytes32("0xd147"),
         createAddress("0xdef789"),
-        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7b951",
-        "0x0789"
+        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xd147")]),
+        toBytes32("0x0789")
+      ],
+      [
+        testThreshold,
+        BigNumber.from(10000000), // More than threshold
+        toBytes32("0xe258"),
+        createAddress("0xaec123"),
+        createAddress("0xdbf456"),
+        toBytes32("0xf369"),
+        createAddress("0xaec789"),
+        encodeParameters(["bytes32", "bytes32"], [testFlag, toBytes32("0xf369")]),
+        toBytes32("0x0357")
       ]
     ];
 
@@ -287,60 +141,71 @@ describe("Large stake deposits", () => {
 
     const { data: dataTwo, topics: topicsTwo } = testAmpIFace.encodeEventLog(
       testAmpIFace.getEvent("TransferByPartition"),
-      [CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][6], CASES[1][1], CASES[1][7], CASES[1][8]]
+      [CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][6], CASES[1][1], CASES[1][7], CASES[1][8]
+      ]
     );
 
-    let txEvent: TransactionEvent = new TestTransactionEvent()
-      .setBlock(70)
-      .addAnonymousEventLog(testAmp, dataOne, ...topicsOne)
-      .addAnonymousEventLog(testAmp, dataTwo, ...topicsTwo);
+    const { data: dataThree, topics: topicsThree } = testAmpIFace.encodeEventLog(
+      testAmpIFace.getEvent("TransferByPartition"),
+      [CASES[2][2], CASES[2][3], CASES[2][4], CASES[2][6], CASES[2][1], CASES[2][7], CASES[2][8]]
+    );
 
-    mockProvider.addCallTo(testFlexa, 70, testFlexaIFace, "partitions", {
+    // prepare the partitions call
+    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
       inputs: [CASES[0][5]],
       outputs: [true],
     });
-    mockProvider.addCallTo(testFlexa, 70, testFlexaIFace, "partitions", {
+    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
       inputs: [CASES[1][5]],
       outputs: [true],
     });
+    mockProvider.addCallTo(testFlexa, 55, testFlexaIFace, "partitions", {
+      inputs: [CASES[2][5]],
+      outputs: [true],
+    });
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setBlock(55)
+      .addAnonymousEventLog(testAmp, dataOne, ...topicsOne)
+      .addAnonymousEventLog(testAmp, dataTwo, ...topicsTwo)
+      .addAnonymousEventLog(testAmp, dataThree, ...topicsThree);
 
     const findings = await handleTransaction(txEvent);
+
     expect(findings).toStrictEqual([
       createFinding(
-        CASES[0][0],
-        CASES[0][1],
-        CASES[0][2],
-        CASES[0][3],
-        CASES[0][4],
-        CASES[0][5],
-        CASES[0][6]
-      ),
-      createFinding(
-        CASES[1][0],
+        testThreshold,
         CASES[1][1],
         CASES[1][2],
         CASES[1][3],
         CASES[1][4],
         CASES[1][5],
         CASES[1][6]
-      )
+      ),
+      createFinding(
+        testThreshold,
+        CASES[2][1],
+        CASES[2][2],
+        CASES[2][3],
+        CASES[2][4],
+        CASES[2][5],
+        CASES[2][6]
+      ),
     ]);
   });
 
   it("should return no findings when event is not emitted in the correct address", async () => {
     const wrongAmpToken: string = createAddress("0xd34d");
 
-    const testFromPartition: string =
-      "0xcccccccc2862b8cb21caedb8706d7f8b3445d8dfc790c524e3990ef014e7c578";
+    const testFromPartition: string = toBytes32("0xc578");
     const testFrom: string = createAddress("0xabc268");
     const testTo: string = createAddress("0xabc842");
 
     const testOperator: string = createAddress("0xdef954");
     const bytesOperatorData: string = toBytes32("0x0951");
-    const testValue: number = 200;
+    const testValue: BigNumber = BigNumber.from(200);
 
-    const testDestinationPartition: string =
-      "0xcccccccc7a0208a97d8ac263706d7f8b3445d8dfc790c524e3990ef014e7d679";
+    const testDestinationPartition: string = toBytes32("0xd679");
     const testData: string = encodeParameters(
       ["bytes32", "bytes32"],
       [testFlag, testDestinationPartition]

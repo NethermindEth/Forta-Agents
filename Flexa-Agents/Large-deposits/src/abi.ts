@@ -10,11 +10,11 @@ const AMP_TOKEN = [
   )`,
 ];
   
-const FLEXA_CONTRACT = [
+const COLLATERAL_MANAGER = [
   "function partitions(bytes32) view returns (bool)",
 ];
   
 export default {
-  FLEXA_CONTRACT,
+  COLLATERAL_MANAGER,
   AMP_TOKEN,
 };
