@@ -54,7 +54,7 @@ const initialize = () => {
   );
 };
 
-const provideHandleBlock = (
+export const provideHandleBlock = (
   period: number, 
   findings: Finding[][], 
   lastReported: number

@@ -1,122 +1,77 @@
-// import { getStatsForVault } from "./utils";
-// import { createAddress, encodeParameter } from "forta-agent-tools";
-// import { when, resetAllWhenMocks } from "jest-when";
-// import { isCallToBalanceOf, isCallToTotalSupply } from "./mock.utils";
+import { Finding, FindingSeverity, FindingType, HandleBlock } from "forta-agent";
+import { TestBlockEvent } from "forta-agent-tools/lib/tests";
+import { provideHandleBlock } from "./agent";
 
-// const callMock = jest.fn();
-// const getSigner = (address: string) => {
-//   return {
-//     _isSigner: true,
-//     call: callMock,
-//     sendTransaction: callMock,
-//     getAddress: () => address,
-//   };
-// };
-// const etherMock = {
-//   call: callMock,
-//   sendTransaction: callMock,
-//   getSigner: getSigner,
-//   _isProvider: true, // This is necessary for being an ether provider
-// } as any;
+const createGenericFinding = (
+  id: number,
+): Finding => Finding.fromObject({
+  name: "Generic Finding",
+  description: `Generic Finding #${id}`,
+  alertId: `GENERIC-${id}`,
+  severity: FindingSeverity.Info,
+  type: FindingType.Info,
+  protocol: "Generic Finance",
+});
 
-// const vault = createAddress("0x1");
-// const investors = [
-//   createAddress("0x2"),
-//   createAddress("0x3"),
-//   createAddress("0x4"),
-//   createAddress("0x5"),
-// ];
-// const investorsInfo = [
-//   {
-//     vault: {
-//       id: vault,
-//     },
-//     account: {
-//       id: investors[0],
-//     },
-//   },
-//   {
-//     vault: {
-//       id: vault,
-//     },
-//     account: {
-//       id: investors[1],
-//     },
-//   },
-//   {
-//     vault: {
-//       id: vault,
-//     },
-//     account: {
-//       id: investors[2],
-//     },
-//   },
-//   {
-//     vault: {
-//       id: vault,
-//     },
-//     account: {
-//       id: investors[3],
-//     },
-//   },
-// ];
+const updater = (findings: Finding[][]) => 
+  (n: number) => {
+    const newFindings: Finding[] = []
+    for(let i = 0; i < n; ++i)
+      newFindings.push(createGenericFinding(i));
+    findings.push(newFindings);
+    return newFindings;
+  };
 
-// const createFork = (...args: any[]) => etherMock;
-
-describe("Yearn Vault Instant Withdrawns Test Suite", () => {
-  // beforeEach(() => {
-  //   resetAllWhenMocks();
-  // });
-
-  it("should return the correct values", async () => {
-    // when(callMock)
-    //   .calledWith(isCallToTotalSupply, undefined)
-    //   .mockReturnValue(encodeParameter("uint256", 6000));
-    // when(callMock)
-    //   .calledWith(isCallToBalanceOf, undefined)
-    //   // Balances before
-    //   .mockReturnValueOnce(encodeParameter("uint256", 1000))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 700))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 2000))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 300))
-    //   // Balances after
-    //   .mockReturnValueOnce(encodeParameter("uint256", 0))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 0))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 0))
-    //   .mockReturnValueOnce(encodeParameter("uint256", 0));
-
-    // const [vault, totalSupply, totalInvestorsValue, ableToWithdrawn] =
-    //   await getStatsForVault(investorsInfo, "", 0, createFork as any);
-
-    // expect(vault).toStrictEqual(vault);
-    // expect(totalSupply.toString()).toStrictEqual("6000");
-    // expect(totalInvestorsValue.toString()).toStrictEqual("4000");
-    // expect(ableToWithdrawn.toString()).toStrictEqual("4000");
+describe("InstantWhitdraw agent tests suite", () => {
+  let findingsList: Finding[][] = [];
+  let add: any; ;
+  let handler: HandleBlock;
+  const period: number = 10;
+  
+  beforeEach(() => {
+    findingsList = [];
+    add = updater(findingsList);
+    handler = provideHandleBlock(period, findingsList, 0);
   });
 
-  // it("should return the correct values", async () => {
-  //   when(callMock)
-  //     .calledWith(isCallToTotalSupply, undefined)
-  //     .mockReturnValue(encodeParameter("uint256", 6000));
-  //   when(callMock)
-  //     .calledWith(isCallToBalanceOf, undefined)
-  //     // Balances before
-  //     .mockReturnValueOnce(encodeParameter("uint256", 1000))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 1000))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 2000))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 300))
-  //     // Balances after
-  //     .mockReturnValueOnce(encodeParameter("uint256", 0))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 500))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 0))
-  //     .mockReturnValueOnce(encodeParameter("uint256", 300));
+  it("should return the latest batch of findings", async () => {
+    const CASES: number[] = [1, 10, 4, 5, 1];
 
-  //   const [vault, totalSupply, totalInvestorsValue, ableToWithdrawn] =
-  //     await getStatsForVault(investorsInfo, "", 0, createFork as any);
+    let timestamp: number = 0;
+    for(let batches of CASES) {
+      for(let i = 1; i <= batches; ++i)
+        add(i);
+      const lastBatch: Finding[] = findingsList[batches - 1];
+      // increase the timestamp to always report findings
+      timestamp += period;
+      const findings: Finding[] = await handler(
+        new TestBlockEvent().setTimestamp(timestamp)
+      );
+      expect(findings).toStrictEqual(lastBatch);
+      expect(findingsList).toStrictEqual([]);
+    }
+  });
 
-  //   expect(vault).toStrictEqual(vault);
-  //   expect(totalSupply.toString()).toStrictEqual("6000");
-  //   expect(totalInvestorsValue.toString()).toStrictEqual("4300");
-  //   expect(ableToWithdrawn.toString()).toStrictEqual("3500");
-  // });
+  it("should return no findings if period is not passed", async () => {
+    // timestamp, should report
+    const CASES: [number, boolean][] = [
+      [2, false],
+      [3, false],
+      [10, true],
+      [11, false],
+      [1100, true],
+      [2000, true],
+      [2009, false],
+    ];
+
+    for(let i = 0; i < CASES.length; ++i) {
+      const last: Finding[] = add(i + 1);
+      const [timestamp, report] = CASES[i];
+
+      const findings: Finding[] = await handler(new TestBlockEvent().setTimestamp(timestamp));
+      
+      if(report) expect(findings).toStrictEqual(last);
+      else expect(findings).toStrictEqual([]);
+    }
+  });
 });
