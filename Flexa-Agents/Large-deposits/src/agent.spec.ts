@@ -16,22 +16,20 @@ import {
 import { provideHandleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import { Interface } from "@ethersproject/abi";
-import abi from "./abi";
+import util from "./utils";
 import { leftPad } from "web3-utils";
 
 const toBytes32 = (n: string) => leftPad(BigNumber.from(n).toHexString(), 64);
 const testAmp: string = createAddress("0xdef1");
 const testFlexa: string = createAddress("0xf1e4a");
 const testThreshold: BigNumber = BigNumber.from(100);
-const testAmpIFace: Interface = new Interface(abi.AMP_TOKEN);
-const testFlexaIFace: Interface = new Interface(abi.COLLATERAL_MANAGER);
+const testAmpIFace: Interface = new Interface(util.AMP_TOKEN);
+const testFlexaIFace: Interface = new Interface(util.COLLATERAL_MANAGER);
 const testFlag: string =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-
-  const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
-  const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
-
-  const TOKEN_PRICE = BigNumber.from(10).mul(PRICE_CORRECTION);
+const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
+const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
+const TOKEN_PRICE = BigNumber.from(10).mul(PRICE_CORRECTION);
 
 const createFinding = ([
   value,
@@ -73,7 +71,8 @@ describe("Large stake deposits", () => {
       testThreshold,
       testAmp,
       testFlexa,
-      mockProvider as any
+      mockProvider as any,
+      mockFetcher as any,
     );
   });
 
