@@ -7,9 +7,12 @@ import {
   ethers,
 } from "forta-agent";
 import { BigNumber, utils, providers } from "ethers";
-import abi from "./abi";
+import PriceFetcher from "./price.fetcher";
 
-const AMOUNT_THRESHOLD = utils.parseEther("1").mul(1e6); // 1 million
+import util from "./utils";
+const AMOUNT_THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1 M USD
+const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
+const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
 const AMP_TOKEN: string = "0xfF20817765cB7f73d4bde2e66e067E58D11095C2";
 const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
@@ -20,12 +23,12 @@ export const createFinding = (
   from: string,
   destinationPartition: string,
   to: string,
-  operatorData: string,
+  operatorData: string
 ): Finding => {
   return Finding.fromObject({
     name: "Large Deposit",
-    description: "Large Deposit into Flexa staking pool",
-    alertId: "FLEXA-1",
+    description: "Large Deposit into staking pool",
+    alertId: "FLEXA-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata: {
@@ -39,35 +42,41 @@ export const createFinding = (
     },
   });
 };
-
 export function provideHandleTransaction(
   amountThreshold: BigNumber,
   ampToken: string,
   flexaManager: string,
   provider: providers.Provider,
+  fetcher: PriceFetcher
 ) {
   const flexaStakingContract = new ethers.Contract(
     flexaManager,
-    abi.COLLATERAL_MANAGER,
-    provider,
+    util.COLLATERAL_MANAGER,
+    provider
   );
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
     // filter the transaction logs for transferByPartition events
     const transferByPartitionEvents = txEvent.filterLog(
-      abi.AMP_TOKEN,
+      util.AMP_TOKEN,
       ampToken
     );
+    const priceFeed: BigNumber[] = await fetcher.getAmpPrice(
+      txEvent.blockNumber,
+      util.CHAINLINK_AMP_DATA_FEED
+    );
+    let tokenPrice = priceFeed[1];
 
     // fire alerts for transfers of large stake
-    await Promise.all(transferByPartitionEvents.map(async (event) => {
-      const data = event.args.data;
-      const value = event.args.value;
-      
-      let decodedPartition: string;
+    await Promise.all(
+      transferByPartitionEvents.map(async (event) => {
+        const data = event.args.data;
+        const value = event.args.value;
+        
+        let decodedPartition: string;
 
-      if (data.length < 128) {
+        if (data.length < 128) {
           decodedPartition = event.args._fromPartition;
         } else {
           [, decodedPartition] = utils.defaultAbiCoder.decode(
@@ -76,25 +85,31 @@ export function provideHandleTransaction(
           );
         }
 
-      const isValidPartition = await flexaStakingContract.partitions(
-        decodedPartition,
-        { blockTag: txEvent.blockNumber },
-      );
-      if (isValidPartition) {
-        if (value.gte(amountThreshold)) {
-          const newFinding: Finding = createFinding(
-            event.args.value,
-            event.args.fromPartition,
-            event.args.operator,
-            event.args.from,
-            decodedPartition,
-            event.args.to,
-            event.args.operatorData,
-          );
-          findings.push(newFinding);
+        const isValidPartition = await flexaStakingContract.partitions(
+          decodedPartition,
+          { blockTag: txEvent.blockNumber }
+        );
+
+        if (isValidPartition) {
+          if (
+            value
+              .mul(tokenPrice)
+              .gte(amountThreshold.mul(AMOUNT_CORRECTION).mul(PRICE_CORRECTION))
+          ) {
+            const newFinding: Finding = createFinding(
+              event.args.value,
+              event.args.fromPartition,
+              event.args.operator,
+              event.args.from,
+              decodedPartition,
+              event.args.to,
+              event.args.operatorData
+            );
+            findings.push(newFinding);
+          }
         }
-      }
-    }));
+      })
+    );
 
     return findings;
   };
@@ -105,5 +120,6 @@ export default {
     AMP_TOKEN,
     FLEXA_CONTRACT,
     getEthersProvider(),
+    new PriceFetcher(getEthersProvider())
   ),
 };
