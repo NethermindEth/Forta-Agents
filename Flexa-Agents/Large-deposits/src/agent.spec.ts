@@ -20,8 +20,6 @@ const testFlexaIFace: Interface = new Interface(abi.COLLATERAL_MANAGER);
 const testFlag: string =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-jest.setTimeout(1000000);
-
 describe("Large stake deposits", () => {
   type TEST_CASE = [
     any,
