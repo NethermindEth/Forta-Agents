@@ -59,7 +59,7 @@ describe("Large stake deposits", () => {
     const testFrom: string = createAddress("0xabc123");
     const testTo: string = createAddress("0xabc456");
 
-    const testOperator: string = createAddress(("0xdef123"));
+    const testOperator: string = createAddress("0xdef123");
     const bytesOperatorData: string = toBytes32("0x0123");
     const testValue: BigNumber = BigNumber.from(100);
 
@@ -82,11 +82,11 @@ describe("Large stake deposits", () => {
       ]
     );
 
-    const badWorkSig: string = "wrong";
+    const badWorkSig: string = "wrong()";
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(50)
-      .addEventLog(badWorkSig, testAmp, data, ...topics);
+      .addEventLog(badWorkSig, testAmp, data, ...topics.slice(1));
 
     const findings = await handleTransaction(txEvent);
 
