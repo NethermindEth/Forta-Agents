@@ -25,7 +25,7 @@ export const createFinding = (
   return Finding.fromObject({
     name: "Large Deposit",
     description: "Large Deposit into staking pool",
-    alertId: "FLEXA-1",
+    alertId: "FLEXA-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     metadata: {

@@ -10,7 +10,7 @@ This agent detects large deposits to `FlexaCollateralManager` contract partition
 
 ## Alerts
 
-- FLEXA-1 
+- FLEXA-2 
     * Fired when it detects `TransferByPartition` events emitted from the `AMP` contract with a large amount transferred to a `FlexaCollaterManager` partition.
     * Severity is always set to "Info".
     * Type is always set to "Info".
