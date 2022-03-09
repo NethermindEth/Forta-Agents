@@ -28,11 +28,19 @@ const testFlexaIFace: Interface = new Interface(abi.COLLATERAL_MANAGER);
 const testFlag: string =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
+  const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
+  const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
+
+  const TOKEN_PRICE = BigNumber.from(10).mul(PRICE_CORRECTION);
+
 const createFinding = ([
-  value, fromPartition,
-  operator, from,
+  value,
+  fromPartition,
+  operator, 
+  from,
   destinationPartition,
-  to, operatorData,
+  to, 
+  operatorData,
 ]: string[]) => Finding.fromObject({
   name: "Large Deposit",
   description: "Large Deposit into staking pool",
@@ -40,15 +48,24 @@ const createFinding = ([
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   metadata: {
-    value, fromPartition,
-    operator, from,
+    value, 
+    fromPartition,
+    operator, 
+    from,
     destinationPartition,
-    to, operatorData,
+    to, 
+    operatorData,
   },
 });
 
 describe("Large stake deposits", () => {
   let handleTransaction: HandleTransaction;
+  const mockPrice = jest.fn();
+  const mockFetcher = {
+    getAmpPrice: mockPrice,
+  };
+  mockPrice.mockReturnValue([1, TOKEN_PRICE, 2, 3, 1]);
+
   const mockProvider = new MockEthersProvider();
 
   beforeAll(() => {
