@@ -1,7 +1,7 @@
 {
   "name": "flexa-2",
   "version": "0.0.1",
-  "description": "This agent detect large deposits into Flexa staking pool",
+  "description": "This agent detects large deposits into Flexa staking pool",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
