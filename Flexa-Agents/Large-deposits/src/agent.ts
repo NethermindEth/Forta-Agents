@@ -64,19 +64,22 @@ export function provideHandleTransaction(
     await Promise.all(transferByPartitionEvents.map(async (event) => {
       const data = event.args.data;
       const value = event.args.value;
+      
+      let decodedPartition: string;
 
-      //derives destinationAddress from data argument
-      const [,decodedPartition] = utils.defaultAbiCoder.decode(
-        ["bytes32", "bytes32"],
-        data,
-      );
+      if (data.length < 128) {
+          decodedPartition = event.args._fromPartition;
+        } else {
+          [, decodedPartition] = utils.defaultAbiCoder.decode(
+            ["bytes32", "bytes32"],
+            data
+          );
+        }
 
       const isValidPartition = await flexaStakingContract.partitions(
         decodedPartition,
         { blockTag: txEvent.blockNumber },
       );
-
-
       if (isValidPartition) {
         if (value.gte(amountThreshold)) {
           const newFinding: Finding = createFinding(
@@ -96,8 +99,6 @@ export function provideHandleTransaction(
     return findings;
   };
 }
-
-
 export default {
   handleTransaction: provideHandleTransaction(
     AMOUNT_THRESHOLD,
