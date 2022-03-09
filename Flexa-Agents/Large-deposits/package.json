@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "flexa-2",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This agent detect large deposits into Flexa staking pool",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
