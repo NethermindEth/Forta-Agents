@@ -61,11 +61,10 @@ describe("Large stake deposits", () => {
   const mockFetcher = {
     getAmpPrice: mockPrice,
   };
-  mockPrice.mockReturnValue([1, TOKEN_PRICE, 2, 3, 1]);
-
   const mockProvider = new MockEthersProvider();
-
+  
   beforeAll(() => {
+    mockPrice.mockReturnValue([1, TOKEN_PRICE, 2, 3, 1]);
     handleTransaction = provideHandleTransaction(
       testThreshold,
       testAmp,
@@ -273,19 +272,16 @@ describe("Large stake deposits", () => {
     expect(findings).toStrictEqual([]);
   });
 
-    const testFromPartition: string = toBytes32("0xc571");
-    const testFrom: string = createAddress("0xabc258");
-    const testTo: string = createAddress("0xabc841");
+  it("should use fromPartition as destinationPartition", async () => {
+    const testFromPartition: string = toBytes32("0xa1");
+    const testFrom: string = createAddress("0xb2");
+    const testTo: string = createAddress("0xc3");
 
-    const testOperator: string = createAddress("0xdef954");
-    const bytesOperatorData: string = toBytes32("0x0952");
-    const testValue: BigNumber = BigNumber.from(200);
+    const testOperator: string = createAddress("0xd4");
+    const bytesOperatorData: string = toBytes32("0xe5");
+    const testValue: BigNumber = BigNumber.from(200).mul(AMOUNT_CORRECTION);
 
-    const testDestinationPartition: string = toBytes32("0xd689");
-    const testData: string = encodeParameters(
-      ["bytes32", "bytes32"],
-      [testFlag, testDestinationPartition]
-    );
+    const testData: string = "0x1234"; // anything shorter than 128 
 
     const { data, topics } = testAmpIFace.encodeEventLog(
       testAmpIFace.getEvent("TransferByPartition"),
@@ -302,8 +298,8 @@ describe("Large stake deposits", () => {
 
     // prepare the partitions call
     mockProvider.addCallTo(testFlexa, 75, testFlexaIFace, "partitions", {
-      inputs: [testDestinationPartition],
-      outputs: [false],
+      inputs: [testFromPartition],
+      outputs: [true],
     });
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -312,7 +308,16 @@ describe("Large stake deposits", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([]);
-
+    expect(findings).toStrictEqual([
+      createFinding([
+        testValue.toString(),
+        testFromPartition,
+        testOperator,
+        testFrom,
+        testFromPartition,
+        testTo,
+        bytesOperatorData
+      ])
+    ]);
   });
 });
