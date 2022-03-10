@@ -64,6 +64,10 @@ export function provideHandleTransaction(
       util.AMP_TOKEN,
       ampToken
     );
+
+    if(transferByPartitionEvents.length === 0)
+      return findings;
+
     const priceFeed: BigNumber[] = await fetcher.getAmpPrice(
       txEvent.blockNumber,
       util.CHAINLINK_AMP_DATA_FEED
