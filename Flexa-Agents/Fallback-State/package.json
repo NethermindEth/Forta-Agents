@@ -1,5 +1,5 @@
 {
-  "name": "fallback-state-agent",
+  "name": "flexa-5",
   "version": "0.0.1",
   "description": "This agent detects when Flexa Collateral Manager contract enters a fallback state",
   "scripts": {

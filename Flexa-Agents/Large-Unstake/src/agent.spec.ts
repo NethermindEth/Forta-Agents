@@ -21,7 +21,7 @@ const PARTITIONS: string[] = [
 const createFinding = (fromPartition: string, operator: string, fromAddress: string, toAddress: string, value: string): Finding => Finding.fromObject({
   name: "Large FlexaCollateralManager TransferByPartition alert",
   description: "TransferByPartition event emitted with a large value",
-  alertId: "FLEXA-2",
+  alertId: "FLEXA-3",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   protocol: "Flexa",

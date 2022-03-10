@@ -13,7 +13,7 @@ export const AMP_ABI: string[] = [
 export const createFinding = (log: LogDescription): Finding => Finding.fromObject({
   name: "Large FlexaCollateralManager TransferByPartition alert",
   description: "TransferByPartition event emitted with a large value",
-  alertId: "FLEXA-2",
+  alertId: "FLEXA-3",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
   protocol: "Flexa",

@@ -26,7 +26,7 @@ export const provideHandleBlock = (fetcher: DataFetcher): HandleBlock => {
           Finding.fromObject({
             name: "Contract Fallback State alert",
             description: "Contract has entered fallback mode",
-            alertId: "FLEXA-4",
+            alertId: "FLEXA-5",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "Flexa"

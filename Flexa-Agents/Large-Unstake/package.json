@@ -1,5 +1,5 @@
 {
-  "name": "large-transferbypartition-withdrawal-agent",
+  "name": "flexa-3",
   "version": "0.0.1",
   "description": "Detects large transfer by partition events from a Flexa Collateral Manager contract partition",
   "scripts": {

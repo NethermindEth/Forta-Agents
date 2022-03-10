@@ -16,7 +16,7 @@ export const provideHandleTransaction = (address: string): HandleTransaction => 
         Finding.fromObject({
           name: "Flexa Withdrawal Root Hash alert",
           description: "A new withdrawal root hash is added to the active set",
-          alertId: "FLEXA-3",
+          alertId: "FLEXA-4",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "Flexa",

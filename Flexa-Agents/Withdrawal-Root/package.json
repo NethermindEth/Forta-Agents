@@ -1,5 +1,5 @@
 {
-  "name": "withdrawal-root-hash-publish-agent",
+  "name": "flexa-4",
   "version": "0.0.1",
   "description": "This agent detects a WithdrawalRootHashAddition event emission from FlexaCollateralManager contract.",
   "scripts": {
