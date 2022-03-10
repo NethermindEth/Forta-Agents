@@ -79,7 +79,7 @@ export function provideHandleTransaction(
         let decodedPartition: string;
 
         if (data.length < 128) {
-          decodedPartition = event.args._fromPartition;
+          decodedPartition = event.args.fromPartition;
         } else {
           [, decodedPartition] = utils.defaultAbiCoder.decode(
             ["bytes32", "bytes32"],
