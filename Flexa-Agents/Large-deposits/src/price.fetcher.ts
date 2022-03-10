@@ -10,6 +10,7 @@ export type Response = [
   updatedAt: BigNumber,
   answeredInRound: BigNumber
 ];
+
 export default class PriceFetcher {
   private provider: providers.Provider;
   private cache: LRU<string, Promise<Response>>;

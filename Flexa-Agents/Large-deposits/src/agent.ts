@@ -10,13 +10,13 @@ import { BigNumber, utils, providers } from "ethers";
 import PriceFetcher from "./price.fetcher";
 
 import util from "./utils";
-const AMOUNT_THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1 M USD
+const AMOUNT_THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1M USD
 const AMOUNT_CORRECTION: BigNumber = BigNumber.from(10).pow(18);
 const PRICE_CORRECTION: BigNumber = BigNumber.from(10).pow(8);
 const AMP_TOKEN: string = "0xfF20817765cB7f73d4bde2e66e067E58D11095C2";
 const FLEXA_CONTRACT: string = "0x706D7F8B3445D8Dfc790C524E3990ef014e7C578";
 
-export const createFinding = (
+const createFinding = (
   amount: BigNumber,
   partition: string,
   operator: string,
@@ -32,7 +32,7 @@ export const createFinding = (
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Flexa",
-      metadata: {
+    metadata: {
       value: amount.toString(),
       fromPartition: partition.toLowerCase(),
       operator: operator.toLowerCase(),
@@ -43,6 +43,7 @@ export const createFinding = (
     },
   });
 };
+
 export function provideHandleTransaction(
   amountThreshold: BigNumber,
   ampToken: string,
@@ -91,30 +92,28 @@ export function provideHandleTransaction(
           { blockTag: txEvent.blockNumber }
         );
 
-        if (isValidPartition) {
-          if (
-            value
-              .mul(tokenPrice)
-              .gte(amountThreshold.mul(AMOUNT_CORRECTION).mul(PRICE_CORRECTION))
-          ) {
-            const newFinding: Finding = createFinding(
-              event.args.value,
-              event.args.fromPartition,
-              event.args.operator,
-              event.args.from,
-              decodedPartition,
-              event.args.to,
-              event.args.operatorData
-            );
-            findings.push(newFinding);
-          }
+        if (
+          isValidPartition &&
+          value.mul(tokenPrice).gte(amountThreshold.mul(AMOUNT_CORRECTION).mul(PRICE_CORRECTION))
+        ) {
+          const newFinding: Finding = createFinding(
+            event.args.value,
+            event.args.fromPartition,
+            event.args.operator,
+            event.args.from,
+            decodedPartition,
+            event.args.to,
+            event.args.operatorData
+          );
+          findings.push(newFinding);
         }
       })
     );
 
     return findings;
   };
-}
+};
+
 export default {
   handleTransaction: provideHandleTransaction(
     AMOUNT_THRESHOLD,
