@@ -91,7 +91,7 @@ describe("Large stake deposits", () => {
 
     const testOperator: string = createAddress("0xdef123");
     const bytesOperatorData: string = toBytes32("0x0123");
-    const testValue: BigNumber = BigNumber.from(100);
+    const testValue: BigNumber = BigNumber.from(100).mul(AMOUNT_CORRECTION);
 
     const testDestinationPartition: string = toBytes32("0xd679");
     const testData: string = encodeParameters(
@@ -192,7 +192,7 @@ describe("Large stake deposits", () => {
 
     const testOperator: string = createAddress("0xdef954");
     const bytesOperatorData: string = toBytes32("0x0951");
-    const testValue: BigNumber = BigNumber.from(200);
+    const testValue: BigNumber = BigNumber.from(200).mul(AMOUNT_CORRECTION);
 
     const testDestinationPartition: string = toBytes32("0xd679");
     const testData: string = encodeParameters(
@@ -228,8 +228,50 @@ describe("Large stake deposits", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty findings when the transfer is emitted from a different partition", async () => {
-    //When partitions mapping is false
+  it("should return empty findings when the transfer is emitted from a non-flexa partition", async () => {
+    // When partitions mapping is false
+
+    const testFromPartition: string = toBytes32("0xc571");
+    const testFrom: string = createAddress("0xabc258");
+    const testTo: string = createAddress("0xabc841");
+
+    const testOperator: string = createAddress("0xdef954");
+    const bytesOperatorData: string = toBytes32("0x0952");
+    const testValue: BigNumber = BigNumber.from(200).mul(AMOUNT_CORRECTION);
+
+    const testDestinationPartition: string = toBytes32("0xd689");
+    const testData: string = encodeParameters(
+      ["bytes32", "bytes32"],
+      [testFlag, testDestinationPartition]
+    );
+
+    const { data, topics } = testAmpIFace.encodeEventLog(
+      testAmpIFace.getEvent("TransferByPartition"),
+      [
+        testFromPartition,
+        testOperator,
+        testFrom,
+        testTo,
+        testValue,
+        testData,
+        bytesOperatorData,
+      ]
+    );
+
+    // prepare the partitions call
+    mockProvider.addCallTo(testFlexa, 75, testFlexaIFace, "partitions", {
+      inputs: [testDestinationPartition],
+      outputs: [false],
+    });
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setBlock(75)
+      .addAnonymousEventLog(testAmp, data, ...topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
 
     const testFromPartition: string = toBytes32("0xc571");
     const testFrom: string = createAddress("0xabc258");
