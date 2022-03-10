@@ -1,18 +1,16 @@
-import { 
+import {
   Finding,
   FindingSeverity,
   FindingType, 
   HandleTransaction, 
   TransactionEvent
 } from "forta-agent";
-
 import {
   createAddress,
   TestTransactionEvent,
   encodeParameters,
   MockEthersProvider,
 } from "forta-agent-tools";
-
 import { provideHandleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import { Interface } from "@ethersproject/abi";
@@ -22,7 +20,7 @@ import { leftPad } from "web3-utils";
 const toBytes32 = (n: string) => leftPad(BigNumber.from(n).toHexString(), 64);
 const testAmp: string = createAddress("0xdef1");
 const testFlexa: string = createAddress("0xf1e4a");
-const testThreshold: BigNumber = BigNumber.from(100);
+const testThreshold: BigNumber = BigNumber.from(100); // $100
 const testAmpIFace: Interface = new Interface(util.AMP_TOKEN);
 const testFlexaIFace: Interface = new Interface(util.COLLATERAL_MANAGER);
 const testFlag: string =
@@ -45,6 +43,7 @@ const createFinding = ([
   alertId: "FLEXA-2",
   severity: FindingSeverity.Info,
   type: FindingType.Info,
+  protocol: "Flexa",
   metadata: {
     value, 
     fromPartition,
@@ -129,7 +128,7 @@ describe("Large stake deposits", () => {
     // Individual Case Format: [amount, partition, operator, from, destinationPartition, to, operatorData]
     const CASES: string[][] = [
       [
-        "10", // Less than threshold
+        BigNumber.from(1).mul(AMOUNT_CORRECTION).toString(), // Less than threshold (1 token @ $10)
         toBytes32("0xa123"),
         createAddress("0xabc123"),
         createAddress("0xabc456"),
@@ -138,7 +137,7 @@ describe("Large stake deposits", () => {
         toBytes32("0x0456")
       ],
       [
-        "100", // Equal to threshold
+        BigNumber.from(10).mul(AMOUNT_CORRECTION).toString(), // Equal to threshold (10 tokens @ $10)
         toBytes32("0xc789"),
         createAddress("0xdef123"),
         createAddress("0xdef456"),
@@ -147,7 +146,7 @@ describe("Large stake deposits", () => {
         toBytes32("0x0789")
       ],
       [
-        "10000000", // More than threshold
+        BigNumber.from(10000000).mul(AMOUNT_CORRECTION).toString(), // More than threshold (10,000,000 tokens @ $10)
         toBytes32("0xe258"),
         createAddress("0xaec123"),
         createAddress("0xdbf456"),
