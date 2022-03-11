@@ -13,7 +13,7 @@ const initialize = async () => {
 };
 
 export const provideHandleTransaction =
-  (_AugustusSwapperContract: string): HandleTransaction =>
+  (_AugustusSwapperContract?: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     if (!_AugustusSwapperContract) _AugustusSwapperContract = AugustusSwapperContract;
@@ -58,5 +58,5 @@ export const provideHandleTransaction =
 
 export default {
   initialize,
-  handleTransaction: provideHandleTransaction(AugustusSwapperContract),
+  handleTransaction: provideHandleTransaction(),
 };
