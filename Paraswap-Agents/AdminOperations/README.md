@@ -7,6 +7,11 @@ This agent detects admin operations on AugustusSwapper Contract.
 ## Supported Chains
 
 - Ethereum
+- Polygon
+- BSC
+- Avalanche
+- Fantom
+- Ropsten
 
 ## Alerts
 
