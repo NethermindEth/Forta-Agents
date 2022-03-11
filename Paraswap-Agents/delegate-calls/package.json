@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "delegated-function-call-agent",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects delecated calls done on the Paraswap protocol",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@types/lru-cache": "^7.4.0",
-    "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.39"
   },
   "devDependencies": {
