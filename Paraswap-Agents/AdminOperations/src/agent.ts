@@ -3,37 +3,37 @@ import { Finding, HandleTransaction, TransactionEvent, LogDescription, getEthers
 import { createEventFinding, createFunctionFinding } from "./findings";
 import { ADMIN_OPERATIONS, AUGUSTUS_SWAPPER_CONTRACTS } from "./utils";
 
-let AugustusSwapperContract = "";
+let augustusSwapperContract = "";
 
 const initialize = async () => {
   // set the contract address based on the networkId.
   const provider = getEthersProvider();
   const network = await provider.getNetwork();
-  AugustusSwapperContract = AUGUSTUS_SWAPPER_CONTRACTS[network.chainId];
+  augustusSwapperContract = AUGUSTUS_SWAPPER_CONTRACTS[network.chainId];
 };
 
 export const provideHandleTransaction =
-  (_AugustusSwapperContract?: string): HandleTransaction =>
+  (_augustusSwapperContract?: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    if (!_AugustusSwapperContract) _AugustusSwapperContract = AugustusSwapperContract;
+    if (!_augustusSwapperContract) _augustusSwapperContract = augustusSwapperContract;
 
     // get event logs
     const logs: LogDescription[] = txEvent.filterLog(
       [ADMIN_OPERATIONS[5], ADMIN_OPERATIONS[6]],
-      _AugustusSwapperContract
+      _augustusSwapperContract
     );
     // get function calls
     const functionsCalls = txEvent.filterFunction(
       [ADMIN_OPERATIONS[0], ADMIN_OPERATIONS[2], ADMIN_OPERATIONS[3], ADMIN_OPERATIONS[4]],
-      _AugustusSwapperContract
+      _augustusSwapperContract
     );
     // generate findings for logs.
     logs.forEach((log) => {
       findings.push(createEventFinding(log));
     });
     // get Transfer event logs.
-    let transferLogs = txEvent.filterLog([ADMIN_OPERATIONS[1]], _AugustusSwapperContract);
+    let transferLogs = txEvent.filterLog([ADMIN_OPERATIONS[1]], _augustusSwapperContract);
 
     functionsCalls.forEach((call) => {
       // for transferTokens call, generate findings only if the Transfer event was emitted.
