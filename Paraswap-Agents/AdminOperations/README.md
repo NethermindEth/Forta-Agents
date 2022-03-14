@@ -29,7 +29,7 @@ This agent detects admin operations on `AugustusSwapper` Contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata fields:
-    - `token`: Address of the transfered token.
+    - `token`: Address of the transfered token, `ETH` if it's an ETH transfer.
     - `destination`: Address to which the tokens were transfered.
     - `amount`: Amount of transfered tokens.
 

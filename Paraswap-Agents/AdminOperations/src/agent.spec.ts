@@ -14,7 +14,7 @@ const IRRELEVENT_IFACE = new Interface(["event wrongsig()", "function wrongFunct
 
 const TEST_DATA = [
   [createAddress("0xb1"), createAddress("0xc1"), BigNumber.from(10)], // transferTokens args
-  [createAddress("0xb2"), createAddress("0xc2"), BigNumber.from(80)], // transferTokens args
+  [createAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"), createAddress("0xc2"), BigNumber.from(80)], // transferTokens args (ETH transfer)
   [createAddress("0xb3"), createAddress("0xc3"), BigNumber.from(90)], // transferTokens args
   ["0xafde1234", createAddress("0xd1")], // setImplementation args
   [createAddress("0xd3")], // setFeeWallet args
@@ -27,15 +27,17 @@ const TEST_DATA = [
 const createFinding = (operationName: string, args: any[]) => {
   switch (operationName) {
     case "transferTokens":
+      const ETH_TRANSFER = args[0] === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
       return Finding.fromObject({
-        name: `Admin operation detected: tokens were transfered`,
+        name: `Admin operation detected: ${ETH_TRANSFER ? "ETH" : "tokens"} transfer`,
         description: `${operationName} function was called in AugustusSwapper contract`,
         alertId: "PARASWAP-1-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Paraswap",
         metadata: {
-          token: args[0].toLowerCase(),
+          token: ETH_TRANSFER ? "ETH" : args[0].toLowerCase(),
           destination: args[1].toLowerCase(),
           amount: args[2].toString(),
         },
@@ -209,10 +211,11 @@ describe("Paraswap Admin operations Agent test suite", () => {
     ]);
   });
 
-  it("Should return multiple findings when transferTokens is called many times", async () => {
+  it("Should detect both ETH and other tokens transfer through transferTokens calls", async () => {
     // Add transferTokens calls to the transaction
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
+      // ERC 20 Token transfer
       .addTraces({
         to: SWAPPER_ADDR,
         from: USER_ADDR,
@@ -221,6 +224,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
           TEST_DATA[0] // transferTokens args
         ),
       })
+      // ETH transfer
       .addTraces({
         to: SWAPPER_ADDR,
         from: USER_ADDR,

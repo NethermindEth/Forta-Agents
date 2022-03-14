@@ -19,15 +19,17 @@ export const createEventFinding = (log: LogDescription) => {
 export const createFunctionFinding = (call: TransactionDescription) => {
   switch (call.name) {
     case "transferTokens":
+      const ETH_TRANSFER = call.args.token === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
       return Finding.fromObject({
-        name: `Admin operation detected: tokens were transfered`,
+        name: `Admin operation detected: ${ETH_TRANSFER ? "ETH" : "tokens"} transfer`,
         description: `${call.name} function was called in AugustusSwapper contract`,
         alertId: "PARASWAP-1-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Paraswap",
         metadata: {
-          token: call.args.token.toLowerCase(),
+          token: ETH_TRANSFER ? "ETH" : call.args.token.toLowerCase(),
           destination: call.args.destination.toLowerCase(),
           amount: call.args.amount.toString(),
         },
