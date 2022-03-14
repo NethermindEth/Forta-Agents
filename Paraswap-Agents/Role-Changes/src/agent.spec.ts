@@ -4,8 +4,8 @@ import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests
 import { provideHandleTransaction } from "./agent";
 import { EVENTS_ABI } from "./utils";
 
-const CONTRACT = createAddress("0x1");
-const EVENTS_IFACE = new Interface(EVENTS_ABI);
+const TEST_SWAPPER = createAddress("0x1");
+const TEST_ACCESS_IFACE = new Interface(EVENTS_ABI);
 const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
@@ -59,7 +59,7 @@ const createFinding = (logName: string, args: string[]) => {
 describe("Large deposit/ withdrawal agent tests suite", () => {
   // init the agent
   let handler: HandleTransaction;
-  handler = provideHandleTransaction(CONTRACT);
+  handler = provideHandleTransaction(TEST_SWAPPER);
 
   it("should ignore transactions without events", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
@@ -72,17 +72,17 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
   it("should ignore events emitted on a different contract", async () => {
     const differentContract = createAddress("0xd4");
     // events generation
-    const log1 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleAdminChanged"), [
+    const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
       formatBytes32String("abc"), // role
       formatBytes32String("acd"), // previousAdminRole
       formatBytes32String("ade"), // newAdminRole
     ]);
-    const log2 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleGranted"), [
+    const log2 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleGranted"), [
       formatBytes32String("bbc"), // role
       createAddress("0xa1"), // account
       createAddress("0xa2"), // sender
     ]);
-    const log3 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleRevoked"), [
+    const log3 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleRevoked"), [
       formatBytes32String("cbc"), // role
       createAddress("0xb1"), // account
       createAddress("0xb2"), // sender
@@ -106,7 +106,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       createAddress("0xa2"), // sender
     ]);
     // create a transaction with the previous event logs
-    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(CONTRACT, log.data, ...log.topics);
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(TEST_SWAPPER, log.data, ...log.topics);
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([]);
@@ -114,13 +114,17 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
 
   it("should return single finding", async () => {
     // events generation
-    const log1 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleAdminChanged"), [
+    const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
       formatBytes32String("abc"), // role
       formatBytes32String("acd"), // previousAdminRole
       formatBytes32String("ade"), // newAdminRole
     ]);
     // create a transaction with the previous event logs
-    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(CONTRACT, log1.data, ...log1.topics);
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_SWAPPER,
+      log1.data,
+      ...log1.topics
+    );
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([createFinding("RoleAdminChanged", log1.topics)]);
@@ -128,19 +132,19 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
 
   it("should return multiple findings", async () => {
     // events generation
-    const log1 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleAdminChanged"), [
+    const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
       formatBytes32String("abc"), // role
       formatBytes32String("acd"), // previousAdminRole
       formatBytes32String("ade"), // newAdminRole
     ]);
 
-    const log2 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleGranted"), [
+    const log2 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleGranted"), [
       formatBytes32String("bbc"), // role
       createAddress("0x1"), // account
       createAddress("0x2"), // sender
     ]);
 
-    const log3 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("RoleRevoked"), [
+    const log3 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleRevoked"), [
       formatBytes32String("cbc"), // role
       createAddress("0x3"), // account
       createAddress("0x4"), // sender
@@ -148,9 +152,9 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
 
     // create a transaction with the previous event logs
     const tx: TransactionEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(CONTRACT, log1.data, ...log1.topics)
-      .addAnonymousEventLog(CONTRACT, log2.data, ...log2.topics)
-      .addAnonymousEventLog(CONTRACT, log3.data, ...log3.topics);
+      .addAnonymousEventLog(TEST_SWAPPER, log1.data, ...log1.topics)
+      .addAnonymousEventLog(TEST_SWAPPER, log2.data, ...log2.topics)
+      .addAnonymousEventLog(TEST_SWAPPER, log3.data, ...log3.topics);
 
     const findings: Finding[] = await handler(tx);
 
