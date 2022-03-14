@@ -35,7 +35,7 @@ This agent detects role changes in `AccessControl` contract.
     - `account`: The account that is granted `role`.
     - `sender`: The account that originated the contract call.
 
-- PARASWAP-2-2
+- PARASWAP-2-3
   - Fired when `AccessControl` contract emits `RoleGranted` event.
   - Severity is always set to "Info"
   - Type is always set to "Info"
