@@ -8,7 +8,7 @@ This agent detects admin operations on `AugustusSwapper` Contract.
 
 - Ethereum
 - Polygon
-- BSC
+- Binance Smart Chain
 - Avalanche
 - Fantom
 - Ropsten
@@ -25,7 +25,7 @@ This agent detects admin operations on `AugustusSwapper` Contract.
 
 - PARASWAP-1-2
 
-  - Fired when the tokens were transfers through calls to `transferTokens`.
+  - Fired when tokens are transferred through a call to `transferTokens`.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata fields:
@@ -35,7 +35,7 @@ This agent detects admin operations on `AugustusSwapper` Contract.
 
 - PARASWAP-1-3
 
-  - Fired when the router implementation was upgraded through calls to `setImplementation`.
+  - Fired when a router implementation is set through calls to `setImplementation`.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata fields:
