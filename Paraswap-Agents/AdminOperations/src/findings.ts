@@ -65,7 +65,7 @@ export const createFunctionFinding = (call: TransactionDescription) => {
       });
 
     default:
-      // "setFeeWallet"
+    case "setFeeWallet":
       return Finding.fromObject({
         name: `Admin operation detected: Fee Wallet address changed`,
         description: `${call.name} function was called in AugustusSwapper contract`,
