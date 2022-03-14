@@ -101,9 +101,9 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
   it("should ignore different events on the same contract", async () => {
     // events generation
     const log = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
-      formatBytes32String("bbc"), // role
-      createAddress("0xa1"), // account
-      createAddress("0xa2"), // sender
+      formatBytes32String("dbc"), // role
+      createAddress("0xa3"), // account
+      createAddress("0xa4"), // sender
     ]);
     // create a transaction with the previous event logs
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(TEST_SWAPPER, log.data, ...log.topics);
@@ -115,9 +115,9 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
   it("should return single finding", async () => {
     // events generation
     const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
-      formatBytes32String("abc"), // role
-      formatBytes32String("acd"), // previousAdminRole
-      formatBytes32String("ade"), // newAdminRole
+      formatBytes32String("bbc"), // role
+      formatBytes32String("bcd"), // previousAdminRole
+      formatBytes32String("bde"), // newAdminRole
     ]);
     // create a transaction with the previous event logs
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
@@ -133,9 +133,9 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
   it("should return multiple findings", async () => {
     // events generation
     const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
-      formatBytes32String("abc"), // role
-      formatBytes32String("acd"), // previousAdminRole
-      formatBytes32String("ade"), // newAdminRole
+      formatBytes32String("cbc"), // role
+      formatBytes32String("ccd"), // previousAdminRole
+      formatBytes32String("cde"), // newAdminRole
     ]);
 
     const log2 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleGranted"), [
