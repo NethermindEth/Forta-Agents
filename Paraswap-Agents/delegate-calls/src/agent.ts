@@ -28,7 +28,11 @@ export const PARA_ABI = [
 ];
 
 // Checks if `logicAddr` has the role `ROUTER_ROLE` in the contract `paraAddr`
-const checkRouterRole = async (paraAddr: string, logicAddr: string): Promise<boolean | undefined> => {
+const checkRouterRole = async (
+  paraAddr: string,
+  logicAddr: string,
+  block: number | string
+): Promise<boolean | undefined> => {
   let isRouterRole;
   // If the contract exists in the cache then return data
   if (cache.has(logicAddr)) {
@@ -38,7 +42,7 @@ const checkRouterRole = async (paraAddr: string, logicAddr: string): Promise<boo
     try {
       // Check on-chain data to see if `logicAddr` has the correct role
       const contractInterface = new ethers.Contract(paraAddr, PARA_ABI, getEthersProvider());
-      isRouterRole = await contractInterface.hasRole(ROUTER_ROLE, logicAddr);
+      isRouterRole = await contractInterface.hasRole(ROUTER_ROLE, logicAddr, { blocktag: block });
       cache.set(logicAddr, isRouterRole);
     } catch (error) {
       // If there is as error set `isRouterRole` to undefined
@@ -79,7 +83,7 @@ export const provideHandleTransaction = (address: string, checkRouterRole: any):
         // If the calltype is "delegatecall" and the from address is `address`
         if (trace.action.callType == "delegatecall" && trace.action.from == address) {
           // Check if the logic contract for the delegatecall has the role ` ROUTER_ROLE`
-          const hasRouterRole = await checkRouterRole(address, trace.action.to);
+          const hasRouterRole = await checkRouterRole(address, trace.action.to, tx.blockNumber);
           // Create a finding
           findings.push(createFinding(hasRouterRole, trace.action.to));
         }
