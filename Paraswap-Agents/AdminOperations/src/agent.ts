@@ -9,12 +9,12 @@ export const provideHandleTransaction =
 
     // get event logs
     const logs: LogDescription[] = txEvent.filterLog(
-      [ADMIN_OPERATIONS[5], ADMIN_OPERATIONS[6]],
+      [ADMIN_OPERATIONS[4], ADMIN_OPERATIONS[5]],
       augustusSwapperContract
     );
     // get function calls
     const functionsCalls = txEvent.filterFunction(
-      [ADMIN_OPERATIONS[0], ADMIN_OPERATIONS[2], ADMIN_OPERATIONS[3], ADMIN_OPERATIONS[4]],
+      [ADMIN_OPERATIONS[0], ADMIN_OPERATIONS[1], ADMIN_OPERATIONS[2], ADMIN_OPERATIONS[3]],
       augustusSwapperContract
     );
     // generate findings for logs.
