@@ -28,7 +28,7 @@ This agent detects delagated calls by the contract `AugustusSwapper` (see [here]
 - PARASWAP-3-3
   - Fired when `AugustusSwapper` makes a delegated call to a contract and it cannot be verified if the contract has the role `ROUTER_ROLE`
     - This will only occur if the `ethers` call to `AugustusSwapper.hasRole()` fails. This is very unlikely to ever fire however in the case that a delegated call is made while the agent's endpoint is having issues, the agent does not know if the contract is trusted (has role `ROUTER_ROLE`) or is not trusted (doesn't have role `ROUTER_ROLE`). It would then be recommended for the Paraswap team to manually verify if the `logicContract` has the role `ROUTER_ROLE` or not.
-  - Severity is set to "Info"
+  - Severity is set to "Medium"
   - Type is set to "Suspicious"
   - Metadata:
     - `logicContract`: The contract called by the `AugustusSwapper` contract through a `delegatecall`

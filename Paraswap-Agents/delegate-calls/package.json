@@ -1,7 +1,7 @@
 {
   "name": "delegated-function-call-agent",
   "version": "0.0.1",
-  "description": "Detects delecated calls done on the Paraswap protocol",
+  "description": "Detects delegated calls done on the Paraswap protocol",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
