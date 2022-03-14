@@ -1,39 +1,29 @@
 import { BigNumber } from "ethers";
-import { Finding, HandleTransaction, TransactionEvent, LogDescription, getEthersProvider } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, LogDescription } from "forta-agent";
 import { createEventFinding, createFunctionFinding } from "./findings";
-import { ADMIN_OPERATIONS, AUGUSTUS_SWAPPER_CONTRACTS } from "./utils";
-
-let augustusSwapperContract = "";
-
-const initialize = async () => {
-  // set the contract address based on the networkId.
-  const provider = getEthersProvider();
-  const network = await provider.getNetwork();
-  augustusSwapperContract = AUGUSTUS_SWAPPER_CONTRACTS[network.chainId];
-};
+import { ADMIN_OPERATIONS, AUGUSTUS_SWAPPER_CONTRACT } from "./utils";
 
 export const provideHandleTransaction =
-  (_augustusSwapperContract?: string): HandleTransaction =>
+  (augustusSwapperContract: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    if (!_augustusSwapperContract) _augustusSwapperContract = augustusSwapperContract;
 
     // get event logs
     const logs: LogDescription[] = txEvent.filterLog(
       [ADMIN_OPERATIONS[5], ADMIN_OPERATIONS[6]],
-      _augustusSwapperContract
+      augustusSwapperContract
     );
     // get function calls
     const functionsCalls = txEvent.filterFunction(
       [ADMIN_OPERATIONS[0], ADMIN_OPERATIONS[2], ADMIN_OPERATIONS[3], ADMIN_OPERATIONS[4]],
-      _augustusSwapperContract
+      augustusSwapperContract
     );
     // generate findings for logs.
     logs.forEach((log) => {
       findings.push(createEventFinding(log));
     });
     // get Transfer event logs.
-    let transferLogs = txEvent.filterLog([ADMIN_OPERATIONS[1]], _augustusSwapperContract);
+    let transferLogs = txEvent.filterLog([ADMIN_OPERATIONS[1]], augustusSwapperContract);
 
     functionsCalls.forEach((call) => {
       // for transferTokens call, generate findings only if the Transfer event was emitted.
@@ -57,6 +47,5 @@ export const provideHandleTransaction =
   };
 
 export default {
-  initialize,
-  handleTransaction: provideHandleTransaction(),
+  handleTransaction: provideHandleTransaction(AUGUSTUS_SWAPPER_CONTRACT),
 };

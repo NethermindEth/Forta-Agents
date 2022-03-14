@@ -11,14 +11,5 @@ export const ADMIN_OPERATIONS = [
   "event AdapterInitialized(address indexed adapter)",
 ];
 
-// <ChainId , AugustusSwapper contract address>
-export const AUGUSTUS_SWAPPER_CONTRACTS: { [key: number]: string } = {
-  "1": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // Ethereum Mainnet
-  "56": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // BSC
-  "137": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // Polygon
-  "43114": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // Avalanche
-  "250": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // Fantom
-  "3": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57", // Ropsten
-};
-
+export const AUGUSTUS_SWAPPER_CONTRACT: string = "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57";
 export const SWAPPER_IFACE = new Interface(ADMIN_OPERATIONS);
