@@ -57,7 +57,7 @@ export const createFunctionFinding = (call: TransactionDescription) => {
         protocol: "Paraswap",
         metadata: {
           partner: call.args.partner.toLowerCase(),
-          partnerShare: call.args._partnerShare.toLowerCase(),
+          partnerShare: call.args._partnerShare.toString(),
           noPositiveSlippage: call.args._noPositiveSlippage,
           positiveSlippageToUser: call.args._positiveSlippageToUser,
           feePercent: call.args._feePercent.toString(),

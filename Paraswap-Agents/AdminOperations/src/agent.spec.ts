@@ -22,6 +22,7 @@ const TEST_DATA = [
   [createAddress("0xd3")], // setFeeWallet args
   [createAddress("0xd4")], // RouterInitialized args
   [createAddress("0xd5")], // AdapterInitialized args
+  [createAddress("0xd6"), BigNumber.from(20), true, false, 1, "partnerId", "0xda12"], // registerPartner args
 ];
 
 // function to generate test findings
@@ -68,6 +69,24 @@ const createFinding = (operationName: string, args: any[]) => {
           new_address: args[0].toLowerCase(),
         },
       });
+
+    case "registerPartner":
+      return Finding.fromObject({
+        name: `Admin operation detected: new Partner registred`,
+        description: `${operationName} function was called in AugustusSwapper contract`,
+        alertId: "PARASWAP-1-4",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "Paraswap",
+        metadata: {
+          partner: args[0].toLowerCase(),
+          partnerShare: args[1].toString(),
+          noPositiveSlippage: args[2],
+          positiveSlippageToUser: args[3],
+          feePercent: args[4].toString(),
+        },
+      });
+
     default:
       // "RouterInitialized"  or "AdapterInitialized"
       let name = operationName == "RouterInitialized" ? "Router" : "Adapter";
@@ -167,6 +186,15 @@ describe("Paraswap Admin operations Agent test suite", () => {
           TEST_DATA[6] // setFeeWallet args
         ),
       })
+      // Add call to `registerPartner`
+      .addTraces({
+        to: SWAPPER_ADDR,
+        from: USER_ADDR,
+        input: SWAPPER_IFACE.encodeFunctionData(
+          "registerPartner",
+          TEST_DATA[9] // setFeeWallet args
+        ),
+      })
       // Add log of `AdapterInitialized` event
       .addAnonymousEventLog(SWAPPER_ADDR, log1.data, ...log1.topics);
 
@@ -175,6 +203,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
       createFinding("AdapterInitialized", TEST_DATA[8]),
       createFinding("setImplementation", TEST_DATA[5]),
       createFinding("setFeeWallet", TEST_DATA[6]),
+      createFinding("registerPartner", TEST_DATA[9]),
     ]);
   });
 
