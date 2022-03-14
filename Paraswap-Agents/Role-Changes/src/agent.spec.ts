@@ -56,7 +56,7 @@ const createFinding = (logName: string, args: string[]) => {
   }
 };
 
-describe("Large deposit/ withdrawal agent tests suite", () => {
+describe("Paraswap Role Change Agent Test Suite", () => {
   // init the agent
   let handler: HandleTransaction;
   handler = provideHandleTransaction(TEST_SWAPPER);
