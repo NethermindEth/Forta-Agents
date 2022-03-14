@@ -163,6 +163,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
 
   it("Should return findings when admin operations are executed on AugustusSwapper Contract", async () => {
     const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("AdapterInitialized"), TEST_DATA[6]);
+    const log2 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("RouterInitialized"), TEST_DATA[5]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
@@ -194,11 +195,14 @@ describe("Paraswap Admin operations Agent test suite", () => {
         ),
       })
       // Add log of `AdapterInitialized` event
-      .addAnonymousEventLog(SWAPPER_ADDR, log1.data, ...log1.topics);
+      .addAnonymousEventLog(SWAPPER_ADDR, log1.data, ...log1.topics)
+      // Add log of `RouterInitialized` event
+      .addAnonymousEventLog(SWAPPER_ADDR, log2.data, ...log2.topics);
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
       createFinding("AdapterInitialized", TEST_DATA[6]),
+      createFinding("RouterInitialized", TEST_DATA[5]),
       createFinding("setImplementation", TEST_DATA[3]),
       createFinding("setFeeWallet", TEST_DATA[4]),
       createFinding("registerPartner", TEST_DATA[7]),
