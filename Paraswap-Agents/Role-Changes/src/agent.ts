@@ -8,7 +8,6 @@ export const provideHandleTransaction =
     const findings: Finding[] = [];
 
     const logs: LogDescription[] = txEvent.filterLog(EVENTS_ABI, swapperContract);
-    if (logs.length === 0) return findings;
 
     logs.forEach((log) => {
       findings.push(createFinding(log));
