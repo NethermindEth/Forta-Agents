@@ -119,18 +119,21 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       formatBytes32String("bcd"), // previousAdminRole
       formatBytes32String("bde"), // newAdminRole
     ]);
+    const log2 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
+      formatBytes32String("tse"), // role
+      createAddress("0xb5"), // account
+      createAddress("0xb6"), // sender
+    ]);
     // create a transaction with the previous event logs
-    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
-      TEST_SWAPPER,
-      log1.data,
-      ...log1.topics
-    );
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(TEST_SWAPPER, log1.data, ...log1.topics)
+      .addAnonymousEventLog(TEST_SWAPPER, log2.data, ...log2.topics);
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([createFinding("RoleAdminChanged", log1.topics)]);
   });
 
-  it("should return multiple findings", async () => {
+  it("should return three findings", async () => {
     // events generation
     const log1 = TEST_ACCESS_IFACE.encodeEventLog(TEST_ACCESS_IFACE.getEvent("RoleAdminChanged"), [
       formatBytes32String("cbc"), // role
@@ -149,12 +152,18 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       createAddress("0x3"), // account
       createAddress("0x4"), // sender
     ]);
+    const log4 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
+      formatBytes32String("ebc"), // role
+      createAddress("0xc8"), // account
+      createAddress("0xc9"), // sender
+    ]);
 
     // create a transaction with the previous event logs
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(TEST_SWAPPER, log1.data, ...log1.topics)
       .addAnonymousEventLog(TEST_SWAPPER, log2.data, ...log2.topics)
-      .addAnonymousEventLog(TEST_SWAPPER, log3.data, ...log3.topics);
+      .addAnonymousEventLog(TEST_SWAPPER, log3.data, ...log3.topics)
+      .addAnonymousEventLog(TEST_SWAPPER, log4.data, ...log4.topics);
 
     const findings: Finding[] = await handler(tx);
 
