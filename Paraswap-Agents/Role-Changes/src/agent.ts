@@ -1,13 +1,13 @@
 import { Finding, HandleTransaction, TransactionEvent, LogDescription } from "forta-agent";
 
-import { createFinding, EVENTS_SIGNATURES, CONTRACT } from "./utils";
+import { createFinding, EVENTS_ABI, SWAPPER_CONTRACT } from "./utils";
 
 export const provideHandleTransaction =
-  (contract: string): HandleTransaction =>
+  (swapperContract: string): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs: LogDescription[] = txEvent.filterLog(EVENTS_SIGNATURES, contract);
+    const logs: LogDescription[] = txEvent.filterLog(EVENTS_ABI, swapperContract);
     if (logs.length === 0) return findings;
 
     logs.forEach((log) => {
@@ -18,5 +18,5 @@ export const provideHandleTransaction =
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(CONTRACT),
+  handleTransaction: provideHandleTransaction(SWAPPER_CONTRACT),
 };

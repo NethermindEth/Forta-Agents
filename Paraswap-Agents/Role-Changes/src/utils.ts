@@ -1,7 +1,7 @@
 import { LogDescription, Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const CONTRACT = "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57"; //AugustusSwapper contract
-export const EVENTS_SIGNATURES = [
+export const SWAPPER_CONTRACT = "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57"; //AugustusSwapper contract
+export const EVENTS_ABI = [
   "event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole)",
   "event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender)",
   "event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender)",

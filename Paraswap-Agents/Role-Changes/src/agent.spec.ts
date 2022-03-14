@@ -2,10 +2,10 @@ import { formatBytes32String, Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
-import { EVENTS_SIGNATURES } from "./utils";
+import { EVENTS_ABI } from "./utils";
 
 const CONTRACT = createAddress("0x1");
-const EVENTS_IFACE = new Interface(EVENTS_SIGNATURES);
+const EVENTS_IFACE = new Interface(EVENTS_ABI);
 const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
