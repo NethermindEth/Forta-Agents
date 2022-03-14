@@ -16,8 +16,6 @@ const TEST_DATA = [
   [createAddress("0xb1"), createAddress("0xc1"), BigNumber.from(10)], // transferTokens args
   [createAddress("0xb2"), createAddress("0xc2"), BigNumber.from(80)], // transferTokens args
   [createAddress("0xb3"), createAddress("0xc3"), BigNumber.from(90)], // transferTokens args
-  [USER_ADDR, createAddress("0xc1"), BigNumber.from(10)], // Transfer event args
-  [USER_ADDR, createAddress("0xc2"), BigNumber.from(80)], // Transfer event args
   ["0xafde1234", createAddress("0xd1")], // setImplementation args
   [createAddress("0xd3")], // setFeeWallet args
   [createAddress("0xd4")], // RouterInitialized args
@@ -31,7 +29,7 @@ const createFinding = (operationName: string, args: any[]) => {
     case "transferTokens":
       return Finding.fromObject({
         name: `Admin operation detected: tokens were transfered`,
-        description: `${operationName} function was called and a Transfer event was emitted in AugustusSwapper contract`,
+        description: `${operationName} function was called in AugustusSwapper contract`,
         alertId: "PARASWAP-1-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -118,7 +116,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
     const IRRELEVENT_ADDR = createAddress("0xff");
 
     // create events and calls on a different address
-    const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("RouterInitialized"), TEST_DATA[7]);
+    const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("RouterInitialized"), TEST_DATA[5]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
@@ -128,7 +126,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setImplementation",
-          TEST_DATA[5] // setImplementation args
+          TEST_DATA[3] // setImplementation args
         ),
       })
       // Add call to `setFeeWallet`
@@ -137,7 +135,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setFeeWallet",
-          TEST_DATA[6] // setFeeWallet args
+          TEST_DATA[4] // setFeeWallet args
         ),
       })
       // Add log of `RouterInitialized` event
@@ -164,7 +162,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
   });
 
   it("Should return findings when admin operations are executed on AugustusSwapper Contract", async () => {
-    const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("AdapterInitialized"), TEST_DATA[8]);
+    const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("AdapterInitialized"), TEST_DATA[6]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
@@ -174,7 +172,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setImplementation",
-          TEST_DATA[5] // setImplementation args
+          TEST_DATA[3] // setImplementation args
         ),
       })
       // Add call to `setFeeWallet`
@@ -183,7 +181,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setFeeWallet",
-          TEST_DATA[6] // setFeeWallet args
+          TEST_DATA[4] // setFeeWallet args
         ),
       })
       // Add call to `registerPartner`
@@ -192,7 +190,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "registerPartner",
-          TEST_DATA[9] // setFeeWallet args
+          TEST_DATA[7] // setFeeWallet args
         ),
       })
       // Add log of `AdapterInitialized` event
@@ -200,18 +198,14 @@ describe("Paraswap Admin operations Agent test suite", () => {
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
-      createFinding("AdapterInitialized", TEST_DATA[8]),
-      createFinding("setImplementation", TEST_DATA[5]),
-      createFinding("setFeeWallet", TEST_DATA[6]),
-      createFinding("registerPartner", TEST_DATA[9]),
+      createFinding("AdapterInitialized", TEST_DATA[6]),
+      createFinding("setImplementation", TEST_DATA[3]),
+      createFinding("setFeeWallet", TEST_DATA[4]),
+      createFinding("registerPartner", TEST_DATA[7]),
     ]);
   });
 
   it("Should return multiple findings when transferTokens is called many times", async () => {
-    // Transfer events.
-    const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("Transfer"), TEST_DATA[3]);
-    const log2 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("Transfer"), TEST_DATA[4]);
-
     // Add transferTokens calls to the transaction
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
@@ -230,40 +224,12 @@ describe("Paraswap Admin operations Agent test suite", () => {
           "transferTokens",
           TEST_DATA[1] // transferTokens args
         ),
-      })
-      .addAnonymousEventLog(SWAPPER_ADDR, log1.data, ...log1.topics)
-      .addAnonymousEventLog(SWAPPER_ADDR, log2.data, ...log2.topics);
+      });
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
       createFinding("transferTokens", TEST_DATA[0]),
       createFinding("transferTokens", TEST_DATA[1]),
     ]);
-  });
-
-  it("Should ignore transferTokens calls where the corresponding Transfer event was not emitted", async () => {
-    // Add transferTokens calls to the transaction
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .setFrom(USER_ADDR)
-      .addInvolvedAddresses(USER_ADDR)
-      .addTraces({
-        to: SWAPPER_ADDR,
-        from: USER_ADDR,
-        input: SWAPPER_IFACE.encodeFunctionData(
-          "transferTokens",
-          TEST_DATA[3] // transferTokens args
-        ),
-      })
-      .addTraces({
-        to: SWAPPER_ADDR,
-        from: USER_ADDR,
-        input: SWAPPER_IFACE.encodeFunctionData(
-          "transferTokens",
-          TEST_DATA[1] // transferTokens args
-        ),
-      });
-
-    const findings = await handler(tx);
-    expect(findings).toStrictEqual([]);
   });
 });

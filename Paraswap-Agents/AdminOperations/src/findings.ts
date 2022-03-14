@@ -21,7 +21,7 @@ export const createFunctionFinding = (call: TransactionDescription) => {
     case "transferTokens":
       return Finding.fromObject({
         name: `Admin operation detected: tokens were transfered`,
-        description: `${call.name} function was called and a Transfer event was emitted in AugustusSwapper contract`,
+        description: `${call.name} function was called in AugustusSwapper contract`,
         alertId: "PARASWAP-1-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,

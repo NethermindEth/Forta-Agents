@@ -1,4 +1,3 @@
-import { BigNumber } from "ethers";
 import { Finding, HandleTransaction, TransactionEvent, LogDescription } from "forta-agent";
 import { createEventFinding, createFunctionFinding } from "./findings";
 import { ADMIN_OPERATIONS, AUGUSTUS_SWAPPER_CONTRACT } from "./utils";
@@ -22,25 +21,9 @@ export const provideHandleTransaction =
     logs.forEach((log) => {
       findings.push(createEventFinding(log));
     });
-    // get Transfer event logs.
-    let transferLogs = txEvent.filterLog([ADMIN_OPERATIONS[1]], augustusSwapperContract);
-
+    // generate findings for function calls
     functionsCalls.forEach((call) => {
-      // for transferTokens call, generate findings only if the Transfer event was emitted.
-      if (call.name == "transferTokens") {
-        for (let transfer of transferLogs) {
-          if (
-            transfer.args.from.toLowerCase() == txEvent.from.toLowerCase() &&
-            transfer.args.to.toLowerCase() == call.args.destination.toLowerCase() &&
-            BigNumber.from(transfer.args.value).eq(BigNumber.from(call.args.amount))
-          ) {
-            findings.push(createFunctionFinding(call));
-            transferLogs.splice(transferLogs.indexOf(transfer), 1);
-            break;
-          }
-        }
-        // generate findings for the other function calls
-      } else findings.push(createFunctionFinding(call));
+      findings.push(createFunctionFinding(call));
     });
 
     return findings;
