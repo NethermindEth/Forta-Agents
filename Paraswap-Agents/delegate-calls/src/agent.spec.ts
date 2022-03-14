@@ -18,13 +18,16 @@ describe("Paraswap Delegated Function Call Agent test suite", () => {
   let contract: ethers.utils.Interface;
   let mockCheckRouterRole: any;
 
+  beforeAll(() => {
+    // Setup an ethers interface to be used when creating function calls in the test transactions
+    contract = new ethers.utils.Interface(["function exampleFunctionCall(bool) returns (bool)"]);
+  });
+
   beforeEach(() => {
     // Setup the mock `checkRouterRole` function
     mockCheckRouterRole = jest.fn();
     // Setup the handler to use the mocked `checkRouterRole` function
     handler = provideHandleTransaction(AUGUSTUS_ADDR, mockCheckRouterRole);
-    // Setup an ethers interface to be used when creating function calls in the test transactions
-    contract = new ethers.utils.Interface(["function exampleFunctionCall(bool) returns (bool)"]);
   });
 
   it("ignores empty transactions", async () => {
@@ -50,7 +53,7 @@ describe("Paraswap Delegated Function Call Agent test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("ignores delegated calls from contracts not in the `addresses` array", async () => {
+  it("ignores delegated calls from non-paraswap contracts", async () => {
     // Create a transaction with a delegated call from a external address to a external address
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
       to: EXTERNAL_ADDR_1,
