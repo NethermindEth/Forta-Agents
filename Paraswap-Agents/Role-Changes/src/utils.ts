@@ -8,28 +8,47 @@ export const EVENTS_ABI = [
 ];
 
 export const createFinding = (log: LogDescription) => {
-  let metadata;
-
   if (log.name == "RoleAdminChanged") {
-    metadata = {
-      role: log.args.role,
-      previousAdminRole: log.args.previousAdminRole,
-      newAdminRole: log.args.newAdminRole,
-    };
+    return Finding.fromObject({
+      name: "Admin role change detected on AccessControl contract",
+      description: `${log.name} event emitted`,
+      alertId: "PARASWAP-2-1",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: log.args.role,
+        previousAdminRole: log.args.previousAdminRole,
+        newAdminRole: log.args.newAdminRole,
+      },
+    });
+  } else if (log.name == "RoleGranted") {
+    return Finding.fromObject({
+      name: "Role grant detected on AccessControl contract",
+      description: `${log.name} event emitted`,
+      alertId: "PARASWAP-2-2",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: log.args.role,
+        account: log.args.account,
+        sender: log.args.sender,
+      },
+    });
   } else {
-    metadata = {
-      role: log.args.role,
-      account: log.args.account,
-      sender: log.args.sender,
-    };
+    return Finding.fromObject({
+      name: "Role revoke detected on AccessControl contract",
+      description: `${log.name} event emitted`,
+      alertId: "PARASWAP-2-3",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: log.args.role,
+        account: log.args.account,
+        sender: log.args.sender,
+      },
+    });
   }
-  return Finding.fromObject({
-    name: `Role Change detected on AccessControl contract`,
-    description: `${log.name} event emitted`,
-    alertId: "PARASWAP-2",
-    severity: FindingSeverity.Info,
-    type: FindingType.Info,
-    protocol: "Paraswap",
-    metadata,
-  });
 };

@@ -10,31 +10,50 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
 
-const createFinding = (logName: string, args: string[]): Finding => {
-  let metadata;
-
+const createFinding = (logName: string, args: string[]) => {
   if (logName == "RoleAdminChanged") {
-    metadata = {
-      role: args[1],
-      previousAdminRole: args[2],
-      newAdminRole: args[3],
-    };
+    return Finding.fromObject({
+      name: "Admin role change detected on AccessControl contract",
+      description: `${logName} event emitted`,
+      alertId: "PARASWAP-2-1",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: args[1],
+        previousAdminRole: args[2],
+        newAdminRole: args[3],
+      },
+    });
+  } else if (logName == "RoleGranted") {
+    return Finding.fromObject({
+      name: "Role grant detected on AccessControl contract",
+      description: `${logName} event emitted`,
+      alertId: "PARASWAP-2-2",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: args[1],
+        account: args[2].slice(0, 2) + args[2].slice(26),
+        sender: args[3].slice(0, 2) + args[3].slice(26),
+      },
+    });
   } else {
-    metadata = {
-      role: args[1],
-      account: args[2].slice(0, 2) + args[2].slice(26),
-      sender: args[3].slice(0, 2) + args[3].slice(26),
-    };
+    return Finding.fromObject({
+      name: "Role revoke detected on AccessControl contract",
+      description: `${logName} event emitted`,
+      alertId: "PARASWAP-2-3",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "Paraswap",
+      metadata: {
+        role: args[1],
+        account: args[2].slice(0, 2) + args[2].slice(26),
+        sender: args[3].slice(0, 2) + args[3].slice(26),
+      },
+    });
   }
-  return Finding.fromObject({
-    name: `Role Change detected on AccessControl contract`,
-    description: `${logName} event emitted`,
-    alertId: "PARASWAP-2",
-    severity: FindingSeverity.Info,
-    type: FindingType.Info,
-    protocol: "Paraswap",
-    metadata,
-  });
 };
 
 describe("Large deposit/ withdrawal agent tests suite", () => {
