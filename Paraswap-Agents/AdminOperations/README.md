@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects admin operations on AugustusSwapper Contract.
+This agent detects admin operations on `AugustusSwapper` Contract.
 
 ## Supported Chains
 
@@ -17,7 +17,7 @@ This agent detects admin operations on AugustusSwapper Contract.
 
 - PARASWAP-1-1
 
-  - Fired when the Router or Adapter has been initialized.
+  - Fired when the `Router` or `Adapter` has been initialized.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata fields:
@@ -49,7 +49,7 @@ This agent detects admin operations on AugustusSwapper Contract.
   - Type is always set to "Info".
   - Metadata fields:
     - `partner`: Address of the new partner.
-    - `partnerShare`: The partner Share.
+    - `partnerShare`: The partner share.
     - `noPositiveSlippage`: Set to `true` if positive slippage should not be taken into account. `false` otherwise.
     - `positiveSlippageToUser`: Set to `true` if positive slippage should go to the user. `false` otherwise.
     - `feePercent`: Partner fee Percent.

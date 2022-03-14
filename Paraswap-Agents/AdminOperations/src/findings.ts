@@ -60,7 +60,7 @@ export const createFunctionFinding = (call: TransactionDescription) => {
           partnerShare: call.args._partnerShare.toLowerCase(),
           noPositiveSlippage: call.args._noPositiveSlippage,
           positiveSlippageToUser: call.args._positiveSlippageToUser,
-          feePercent: call.args._feePercent,
+          feePercent: call.args._feePercent.toString(),
         },
       });
 
