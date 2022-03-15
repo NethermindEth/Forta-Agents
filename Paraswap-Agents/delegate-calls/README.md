@@ -7,6 +7,11 @@ This agent detects delagated calls by the contract `AugustusSwapper` (see [here]
 ## Supported Chains
 
 - Ethereum
+- Polygon
+- Binance Smart Chain
+- Avalanche
+- Fantom
+- Ropsten
 
 ## Alerts
 
