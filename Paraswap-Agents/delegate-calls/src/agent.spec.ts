@@ -1,10 +1,10 @@
-import { Finding, FindingType, FindingSeverity, TransactionEvent, HandleTransaction } from "forta-agent";
+import { Finding, TransactionEvent, HandleTransaction } from "forta-agent";
 
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 
 import { ethers } from "ethers";
 
-import { provideHandleTransaction, PARA_ABI } from "./agent";
+import { provideHandleTransaction } from "./agent";
 
 import { createFinding } from "./finding";
 
