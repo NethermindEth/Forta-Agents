@@ -10,8 +10,6 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
 
-console.log(formatBytes32String("ROUTER_ROLE"));
-
 const createFinding = (logName: string, args: string[]) => {
   let description = "";
   let alertId = "";
