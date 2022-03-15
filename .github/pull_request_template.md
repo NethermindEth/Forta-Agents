@@ -23,7 +23,7 @@ _Put an `x` in the boxes that apply_
 - [ ] The txn/block examples listed in the README generate the expected findings
 - [ ] Code is easy to follow and/or properly commented
 - [ ] Agent contains tests
-- [ ] All tests pass when running `npm tests`
+- [ ] All tests pass when running `npm test`
 - [ ] Tests are not making real network calls (i.e. network interaction is properly mocked)
 - [ ] Tests cover all the paths (i.e. negative & positive test cases)
 - [ ] When the tests complete, no warning/errors are shown
