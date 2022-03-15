@@ -40,7 +40,7 @@ const checkRouterRole = async (
     try {
       // Check on-chain data to see if `logicAddr` has the correct role
       const paraContractIface = new ethers.Contract(paraAddr, PARA_ABI, getEthersProvider());
-      isRouterRole = await paraContractIface.hasRole(ROUTER_ROLE, logicAddr, { blocktag: block });
+      isRouterRole = await paraContractIface.hasRole.call({ blocktag: block }, ROUTER_ROLE, logicAddr);
       cache.set(logicAddr, isRouterRole);
     } catch (error) {
       // If there is as error set `isRouterRole` to undefined
