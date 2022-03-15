@@ -8,7 +8,7 @@ This agent detects role changes in `AugustusSwapper` contract.
 
 - Ethereum
 - Polygon
-- BSC
+- Binance Smart Chain
 - Avalanche
 - Fantom
 - Ropsten
