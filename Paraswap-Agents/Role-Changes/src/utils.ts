@@ -8,9 +8,10 @@ export const EVENTS_ABI = [
 ];
 
 export const createFinding = (log: LogDescription) => {
-  let description;
-  let alertId;
-  let metadata;
+  let description = "";
+  let alertId = "";
+  let metadata = {};
+
   switch (log.name) {
     case "RoleAdminChanged":
       description = "Admin role change detected on AugustusSwapper contract";
@@ -30,7 +31,7 @@ export const createFinding = (log: LogDescription) => {
         sender: log.args.sender,
       };
       break;
-    default:
+    case "RoleRevoked":
       description = "Role revoke detected on AugustusSwapper contract";
       alertId = "PARASWAP-2-3";
       metadata = {
@@ -40,6 +41,7 @@ export const createFinding = (log: LogDescription) => {
       };
       break;
   }
+
   return Finding.fromObject({
     name: `${log.name} event emitted`,
     description,

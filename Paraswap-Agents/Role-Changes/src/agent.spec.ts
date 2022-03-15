@@ -13,9 +13,9 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
 console.log(formatBytes32String("ROUTER_ROLE"));
 
 const createFinding = (logName: string, args: string[]) => {
-  let description;
-  let alertId;
-  let metadata;
+  let description = "";
+  let alertId = "";
+  let metadata = {};
   switch (logName) {
     case "RoleAdminChanged":
       description = "Admin role change detected on AugustusSwapper contract";
@@ -35,7 +35,7 @@ const createFinding = (logName: string, args: string[]) => {
         sender: args[3].slice(0, 2) + args[3].slice(26),
       };
       break;
-    default:
+    case "RoleRevoked":
       description = "Role revoke detected on AugustusSwapper contract";
       alertId = "PARASWAP-2-3";
       metadata = {
