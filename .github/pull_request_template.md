@@ -32,7 +32,7 @@ _Put an `x` in the boxes that apply_
 - [ ] Network calls are properly being cached (if duplicated calls can occur)
 - [ ] A performance review has been done (e.g. `Promise.all` is used whenever possible)
 - [ ] The findings fields are filled out correctly
-- [ ] Findings `protocol` is specified (if the agent is for an specific one)
+- [ ] Findings `protocol` is specified (if the agent is for a specific one)
 - [ ] `metadata` of the findings contains all the information needed.
 - [ ] The SDK methods are being used appropriately (e.g. `filterLog`, `filterFunction`, `getEthersProvider`)
 - [ ] `ABI`s match the contracts used / `args` used from `LogDescriptions` exists in the `ABI`s
