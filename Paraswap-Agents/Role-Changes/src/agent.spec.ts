@@ -10,10 +10,12 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
 
+console.log(formatBytes32String("ROUTER_ROLE"));
+
 const createFinding = (logName: string, args: string[]) => {
   if (logName == "RoleAdminChanged") {
     return Finding.fromObject({
-      name: "Admin role change detected on AccessControl contract",
+      name: "Admin role change detected on AugustusSwapper contract",
       description: `${logName} event emitted`,
       alertId: "PARASWAP-2-1",
       severity: FindingSeverity.Info,
@@ -27,7 +29,7 @@ const createFinding = (logName: string, args: string[]) => {
     });
   } else if (logName == "RoleGranted") {
     return Finding.fromObject({
-      name: "Role grant detected on AccessControl contract",
+      name: "Role grant detected on AugustusSwapper contract",
       description: `${logName} event emitted`,
       alertId: "PARASWAP-2-2",
       severity: FindingSeverity.Info,
@@ -41,7 +43,7 @@ const createFinding = (logName: string, args: string[]) => {
     });
   } else {
     return Finding.fromObject({
-      name: "Role revoke detected on AccessControl contract",
+      name: "Role revoke detected on AugustusSwapper contract",
       description: `${logName} event emitted`,
       alertId: "PARASWAP-2-3",
       severity: FindingSeverity.Info,

@@ -1,7 +1,7 @@
 {
   "name": "paraswap-2",
   "version": "0.0.1",
-  "description": "This agent detects RoleAdminChanged, RoleGranted, RoleRevoked event emissions from AccessControl contract.",
+  "description": "This agent detects RoleAdminChanged, RoleGranted, RoleRevoked event emissions from AugustusSwapper contract.",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects role changes in `AccessControl` contract.
+This agent detects role changes in `AugustusSwapper` contract.
 
 ## Supported Chains
 
@@ -17,7 +17,7 @@ This agent detects role changes in `AccessControl` contract.
 
 - PARASWAP-2-1
 
-  - Fired when `AccessControl` contract emits `RoleAdminChanged` event.
+  - Fired when `AugustusSwapper` contract emits `RoleAdminChanged` event.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata fields:
@@ -27,7 +27,7 @@ This agent detects role changes in `AccessControl` contract.
 
 - PARASWAP-2-2
 
-  - Fired when `AccessControl` contract emits `RoleGranted` event.
+  - Fired when `AugustusSwapper` contract emits `RoleGranted` event.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata fields:
@@ -36,7 +36,7 @@ This agent detects role changes in `AccessControl` contract.
     - `sender`: The account that originated the contract call.
 
 - PARASWAP-2-3
-  - Fired when `AccessControl` contract emits `RoleRevoked` event.
+  - Fired when `AugustusSwapper` contract emits `RoleRevoked` event.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata fields:

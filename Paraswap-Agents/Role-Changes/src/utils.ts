@@ -10,7 +10,7 @@ export const EVENTS_ABI = [
 export const createFinding = (log: LogDescription) => {
   if (log.name == "RoleAdminChanged") {
     return Finding.fromObject({
-      name: "Admin role change detected on AccessControl contract",
+      name: "Admin role change detected on AugustusSwapper contract",
       description: `${log.name} event emitted`,
       alertId: "PARASWAP-2-1",
       severity: FindingSeverity.Info,
@@ -24,7 +24,7 @@ export const createFinding = (log: LogDescription) => {
     });
   } else if (log.name == "RoleGranted") {
     return Finding.fromObject({
-      name: "Role grant detected on AccessControl contract",
+      name: "Role grant detected on AugustusSwapper contract",
       description: `${log.name} event emitted`,
       alertId: "PARASWAP-2-2",
       severity: FindingSeverity.Info,
@@ -38,7 +38,7 @@ export const createFinding = (log: LogDescription) => {
     });
   } else {
     return Finding.fromObject({
-      name: "Role revoke detected on AccessControl contract",
+      name: "Role revoke detected on AugustusSwapper contract",
       description: `${log.name} event emitted`,
       alertId: "PARASWAP-2-3",
       severity: FindingSeverity.Info,
