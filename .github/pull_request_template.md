@@ -37,7 +37,7 @@ _Put an `x` in the boxes that apply_
 - [ ] The SDK methods are being used appropriately (e.g. `filterLog`, `filterFunction`, `getEthersProvider`)
 - [ ] `ABI`s match the contracts used / `args` used from `LogDescriptions` exists in the `ABI`s
 - [ ] the agent follows Forta recommended [best practices](https://docs.forta.network/en/latest/best-practices/)
-- [ ] Agent can recover from failed error call when they can fail (e.g. error are being catched on calls that can fail)
+- [ ] Agent can recover from failed error calls when they can fail (e.g. errors are being caught on calls that can fail)
 
 ## Comments (optional)
 
