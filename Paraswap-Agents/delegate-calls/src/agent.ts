@@ -1,7 +1,5 @@
 import {
   Finding,
-  FindingType,
-  FindingSeverity,
   TransactionEvent,
   HandleTransaction,
   getEthersProvider,
@@ -41,8 +39,8 @@ const checkRouterRole = async (
   } else {
     try {
       // Check on-chain data to see if `logicAddr` has the correct role
-      const contractInterface = new ethers.Contract(paraAddr, PARA_ABI, getEthersProvider());
-      isRouterRole = await contractInterface.hasRole(ROUTER_ROLE, logicAddr, { blocktag: block });
+      const paraContractIface = new ethers.Contract(paraAddr, PARA_ABI, getEthersProvider());
+      isRouterRole = await paraContractIface.hasRole(ROUTER_ROLE, logicAddr, { blocktag: block });
       cache.set(logicAddr, isRouterRole);
     } catch (error) {
       // If there is as error set `isRouterRole` to undefined
@@ -54,13 +52,13 @@ const checkRouterRole = async (
   return isRouterRole;
 };
 
-export const provideHandleTransaction = (address: string, checkRouterRole: any): HandleTransaction => {
+export const provideHandleTransaction = (paraAddr: string, checkRouterRole: any): HandleTransaction => {
   return async (tx: TransactionEvent): Promise<Finding[]> => {
     // Setup the findings array
     const findings: Finding[] = [];
 
     // Check if any contracts have had roles granted and update `cache` if needed
-    const roleGrants = tx.filterLog(PARA_ABI[1], address);
+    const roleGrants = tx.filterLog(PARA_ABI[1], paraAddr);
     roleGrants.forEach((roleGrant) => {
       // If ROUTER_ROLE was granted to an account that is inside the cache then update the cache
       if (roleGrant.args.role == ROUTER_ROLE && cache.has(roleGrant.args.account)) {
@@ -69,7 +67,7 @@ export const provideHandleTransaction = (address: string, checkRouterRole: any):
     });
 
     // Check if any contracts have had roles revoked and update `cache` if needed
-    const roleRevokes = tx.filterLog(PARA_ABI[2], address);
+    const roleRevokes = tx.filterLog(PARA_ABI[2], paraAddr);
     roleRevokes.forEach((roleRevoke) => {
       // If ROUTER_ROLE was removed from an account that is inside the cache then update the cache
       if (roleRevoke.args.role == ROUTER_ROLE && cache.has(roleRevoke.args.account)) {
@@ -81,9 +79,9 @@ export const provideHandleTransaction = (address: string, checkRouterRole: any):
     await Promise.all(
       tx.traces.map(async (trace) => {
         // If the calltype is "delegatecall" and the from address is `address`
-        if (trace.action.callType == "delegatecall" && trace.action.from == address) {
+        if (trace.action.callType == "delegatecall" && trace.action.from == paraAddr) {
           // Check if the logic contract for the delegatecall has the role ` ROUTER_ROLE`
-          const hasRouterRole = await checkRouterRole(address, trace.action.to, tx.blockNumber);
+          const hasRouterRole = await checkRouterRole(paraAddr, trace.action.to, tx.blockNumber);
           // Create a finding
           findings.push(createFinding(hasRouterRole, trace.action.to));
         }
