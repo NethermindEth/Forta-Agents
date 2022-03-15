@@ -1,4 +1,4 @@
-import { Finding, FindingType, FindingSeverity, TransactionEvent, HandleTransaction } from "forta-agent";
+import { Finding, FindingType, FindingSeverity } from "forta-agent";
 
 export const createFinding = (hasRouterRole: boolean | undefined, logicContract: string) => {
   let desc;
