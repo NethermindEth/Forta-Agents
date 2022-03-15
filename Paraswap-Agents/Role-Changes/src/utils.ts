@@ -8,47 +8,45 @@ export const EVENTS_ABI = [
 ];
 
 export const createFinding = (log: LogDescription) => {
-  if (log.name == "RoleAdminChanged") {
-    return Finding.fromObject({
-      name: `${log.name} event emitted`,
-      description: "Admin role change detected on AugustusSwapper contract",
-      alertId: "PARASWAP-2-1",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+  let description;
+  let alertId;
+  let metadata;
+  switch (log.name) {
+    case "RoleAdminChanged":
+      description = "Admin role change detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-1";
+      metadata = {
         role: log.args.role,
         previousAdminRole: log.args.previousAdminRole,
         newAdminRole: log.args.newAdminRole,
-      },
-    });
-  } else if (log.name == "RoleGranted") {
-    return Finding.fromObject({
-      name: `${log.name} event emitted`,
-      description: "Role grant detected on AugustusSwapper contract",
-      alertId: "PARASWAP-2-2",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+      };
+      break;
+    case "RoleGranted":
+      description = "Role grant detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-2";
+      metadata = {
         role: log.args.role,
         account: log.args.account,
         sender: log.args.sender,
-      },
-    });
-  } else {
-    return Finding.fromObject({
-      name: `${log.name} event emitted`,
-      description: "Role revoke detected on AugustusSwapper contract",
-      alertId: "PARASWAP-2-3",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+      };
+      break;
+    default:
+      description = "Role revoke detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-3";
+      metadata = {
         role: log.args.role,
         account: log.args.account,
         sender: log.args.sender,
-      },
-    });
+      };
+      break;
   }
+  return Finding.fromObject({
+    name: `${log.name} event emitted`,
+    description,
+    alertId,
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Paraswap",
+    metadata,
+  });
 };

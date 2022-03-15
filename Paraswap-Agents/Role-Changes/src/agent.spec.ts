@@ -13,49 +13,48 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
 console.log(formatBytes32String("ROUTER_ROLE"));
 
 const createFinding = (logName: string, args: string[]) => {
-  if (logName == "RoleAdminChanged") {
-    return Finding.fromObject({
-      name: "Admin role change detected on AugustusSwapper contract",
-      description: `${logName} event emitted`,
-      alertId: "PARASWAP-2-1",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+  let description;
+  let alertId;
+  let metadata;
+  switch (logName) {
+    case "RoleAdminChanged":
+      description = "Admin role change detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-1";
+      metadata = {
         role: args[1],
         previousAdminRole: args[2],
         newAdminRole: args[3],
-      },
-    });
-  } else if (logName == "RoleGranted") {
-    return Finding.fromObject({
-      name: "Role grant detected on AugustusSwapper contract",
-      description: `${logName} event emitted`,
-      alertId: "PARASWAP-2-2",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+      };
+      break;
+    case "RoleGranted":
+      description = "Role grant detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-2";
+      metadata = {
         role: args[1],
         account: args[2].slice(0, 2) + args[2].slice(26),
         sender: args[3].slice(0, 2) + args[3].slice(26),
-      },
-    });
-  } else {
-    return Finding.fromObject({
-      name: "Role revoke detected on AugustusSwapper contract",
-      description: `${logName} event emitted`,
-      alertId: "PARASWAP-2-3",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Paraswap",
-      metadata: {
+      };
+      break;
+    default:
+      description = "Role revoke detected on AugustusSwapper contract";
+      alertId = "PARASWAP-2-3";
+      metadata = {
         role: args[1],
         account: args[2].slice(0, 2) + args[2].slice(26),
         sender: args[3].slice(0, 2) + args[3].slice(26),
-      },
-    });
+      };
+      break;
   }
+
+  return Finding.fromObject({
+    name: `${logName} event emitted`,
+    description,
+    alertId,
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Paraswap",
+    metadata,
+  });
 };
 
 describe("Paraswap Role Change Agent Test Suite", () => {
