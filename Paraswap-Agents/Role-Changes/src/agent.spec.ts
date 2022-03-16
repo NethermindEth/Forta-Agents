@@ -10,42 +10,43 @@ const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(bytes32 indexed role, address indexed account, address indexed sender)",
 ]);
 
-const createFinding = (logName: string, args: string[]) => {
+const createFinding = (logDesc: any) => {
   let description = "";
   let alertId = "";
   let metadata = {};
-  switch (logName) {
+
+  switch (logDesc.name) {
     case "RoleAdminChanged":
       description = "Admin role change detected on AugustusSwapper contract";
       alertId = "PARASWAP-2-1";
       metadata = {
-        role: args[1],
-        previousAdminRole: args[2],
-        newAdminRole: args[3],
+        role: logDesc.args.role,
+        previousAdminRole: logDesc.args.previousAdminRole,
+        newAdminRole: logDesc.args.newAdminRole,
       };
       break;
     case "RoleGranted":
       description = "Role grant detected on AugustusSwapper contract";
       alertId = "PARASWAP-2-2";
       metadata = {
-        role: args[1],
-        account: args[2].slice(0, 2) + args[2].slice(26),
-        sender: args[3].slice(0, 2) + args[3].slice(26),
+        role: logDesc.args.role,
+        account: logDesc.args.account,
+        sender: logDesc.args.sender,
       };
       break;
     case "RoleRevoked":
       description = "Role revoke detected on AugustusSwapper contract";
       alertId = "PARASWAP-2-3";
       metadata = {
-        role: args[1],
-        account: args[2].slice(0, 2) + args[2].slice(26),
-        sender: args[3].slice(0, 2) + args[3].slice(26),
+        role: logDesc.args.role,
+        account: logDesc.args.account,
+        sender: logDesc.args.sender,
       };
       break;
   }
 
   return Finding.fromObject({
-    name: `${logName} event emitted`,
+    name: `${logDesc.name} event emitted`,
     description,
     alertId,
     severity: FindingSeverity.Info,
@@ -129,7 +130,7 @@ describe("Paraswap Role Change Agent Test Suite", () => {
       .addAnonymousEventLog(TEST_SWAPPER, log2.data, ...log2.topics);
     const findings: Finding[] = await handler(tx);
 
-    expect(findings).toStrictEqual([createFinding("RoleAdminChanged", log1.topics)]);
+    expect(findings).toStrictEqual([createFinding(TEST_ACCESS_IFACE.parseLog(log1))]);
   });
 
   it("should return three findings", async () => {
@@ -167,9 +168,9 @@ describe("Paraswap Role Change Agent Test Suite", () => {
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([
-      createFinding("RoleAdminChanged", log1.topics),
-      createFinding("RoleGranted", log2.topics),
-      createFinding("RoleRevoked", log3.topics),
+      createFinding(TEST_ACCESS_IFACE.parseLog(log1)),
+      createFinding(TEST_ACCESS_IFACE.parseLog(log2)),
+      createFinding(TEST_ACCESS_IFACE.parseLog(log3)),
     ]);
   });
 });
