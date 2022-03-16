@@ -3,14 +3,16 @@ import { Interface } from "ethers/lib/utils";
 import { Finding, FindingType, FindingSeverity, TransactionEvent, HandleTransaction } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
-import { SWAPPER_IFACE } from "./utils";
+import { ADMIN_OPERATIONS } from "./utils";
 
 // AugustusSwapper address
 const SWAPPER_ADDR = createAddress("0xa1");
 // Address used to initiate transactions
 const USER_ADDR = createAddress("0xaa");
-// Irrelevent events/ functions used for tests
-const IRRELEVENT_IFACE = new Interface(["event wrongsig()", "function wrongFunction()"]);
+// Swapper contract Interface
+export const SWAPPER_IFACE = new Interface(ADMIN_OPERATIONS);
+// Irrelevant events/ functions used for tests
+const IRRELEVANT_IFACE = new Interface(["event wrongsig()", "function wrongFunction()"]);
 
 const TEST_DATA = [
   [createAddress("0xb1"), createAddress("0xc1"), BigNumber.from(10)], // transferTokens args
@@ -115,7 +117,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
   });
 
   it("should ignore admin operations on a different Contract", async () => {
-    const IRRELEVENT_ADDR = createAddress("0xff");
+    const IRRELEVANT_IFACE = createAddress("0xff");
 
     // create events and calls on a different address
     const log1 = SWAPPER_IFACE.encodeEventLog(SWAPPER_IFACE.getEvent("RouterInitialized"), TEST_DATA[5]);
@@ -124,7 +126,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
       .setFrom(USER_ADDR)
       // Add call to `setImplementation`
       .addTraces({
-        to: IRRELEVENT_ADDR,
+        to: IRRELEVANT_IFACE,
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setImplementation",
@@ -133,7 +135,7 @@ describe("Paraswap Admin operations Agent test suite", () => {
       })
       // Add call to `setFeeWallet`
       .addTraces({
-        to: IRRELEVENT_ADDR,
+        to: IRRELEVANT_IFACE,
         from: USER_ADDR,
         input: SWAPPER_IFACE.encodeFunctionData(
           "setFeeWallet",
@@ -141,21 +143,21 @@ describe("Paraswap Admin operations Agent test suite", () => {
         ),
       })
       // Add log of `RouterInitialized` event
-      .addAnonymousEventLog(IRRELEVENT_ADDR, log1.data, ...log1.topics);
+      .addAnonymousEventLog(IRRELEVANT_IFACE, log1.data, ...log1.topics);
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
   it("should ignore other event logs and function calls on AugustusSwapper Contract", async () => {
-    const log1 = IRRELEVENT_IFACE.encodeEventLog(IRRELEVENT_IFACE.getEvent("wrongsig"), []);
+    const log1 = IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("wrongsig"), []);
     const tx: TransactionEvent = new TestTransactionEvent()
       .setFrom(USER_ADDR)
       // Add call to another function
       .addTraces({
         to: SWAPPER_ADDR,
         from: USER_ADDR,
-        input: IRRELEVENT_IFACE.encodeFunctionData("wrongFunction", []),
+        input: IRRELEVANT_IFACE.encodeFunctionData("wrongFunction", []),
       })
       .addAnonymousEventLog(SWAPPER_ADDR, log1.data, ...log1.topics);
 

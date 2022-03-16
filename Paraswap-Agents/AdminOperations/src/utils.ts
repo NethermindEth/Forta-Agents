@@ -1,5 +1,3 @@
-import { Interface } from "ethers/lib/utils";
-
 // array of operations to monitor
 export const ADMIN_OPERATIONS = [
   "function transferTokens(address token, address payable destination, uint256 amount)",
@@ -11,4 +9,3 @@ export const ADMIN_OPERATIONS = [
 ];
 
 export const AUGUSTUS_SWAPPER_CONTRACT: string = "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57";
-export const SWAPPER_IFACE = new Interface(ADMIN_OPERATIONS);

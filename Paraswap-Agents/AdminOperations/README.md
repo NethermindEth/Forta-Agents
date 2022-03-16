@@ -25,7 +25,7 @@ This agent detects admin operations on `AugustusSwapper` Contract.
 
 - PARASWAP-1-2
 
-  - Fired when tokens are transferred through a call to `transferTokens`.
+  - Fired when tokens, or ETH, are transferred through a call to `transferTokens`.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata fields:
