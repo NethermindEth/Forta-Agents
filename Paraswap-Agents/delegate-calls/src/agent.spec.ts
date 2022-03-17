@@ -56,14 +56,13 @@ describe("Paraswap MultiPath DelegateCall Agent test suite", () => {
   });
 
   it("ignores delegated calls to functions other than `megaSwap` and `multiSwap` from AugustusSwapper", async () => {
-    const tx: TransactionEvent = new TestTransactionEvent()
-      .addTraces({
-        to: EXTERNAL_ADDR_1,
-        from: AUGUSTUS_ADDR,
-        // Function signature that does not match `multiSwap` or `megaSwap`
-        input: "0xa1b2c3d4",
-        output: "0x0",
-      });
+    const tx: TransactionEvent = new TestTransactionEvent().addTraces({
+      to: EXTERNAL_ADDR_1,
+      from: AUGUSTUS_ADDR,
+      // Function signature that does not match `multiSwap` or `megaSwap`
+      input: "0xa1b2c3d4",
+      output: "0x0",
+    });
 
     // Set the call type of every trace to "delegatecall"
     tx.traces.forEach((trace) => {
@@ -134,7 +133,7 @@ describe("Paraswap MultiPath DelegateCall Agent test suite", () => {
         // Manually place the function signature due to function argument complexity
         input: "0x46c67b6d",
         output: "0x0",
-      })
+      });
 
     // Set the call type of every trace to "delegatecall"
     tx.traces.forEach((trace) => {

@@ -1,8 +1,4 @@
-import {
-  Finding,
-  TransactionEvent,
-  HandleTransaction,
-} from "forta-agent";
+import { Finding, TransactionEvent, HandleTransaction } from "forta-agent";
 
 import { createFinding } from "./finding";
 
@@ -23,9 +19,9 @@ export const provideHandleTransaction = (paraAddr: string): HandleTransaction =>
         // If the calltype is "delegatecall" and the from address is `address`
         if (trace.action.callType == "delegatecall" && trace.action.from == paraAddr) {
           // Get the function signature used in the call
-          const funcSig = trace.action.input.substring(0,10);
+          const funcSig = trace.action.input.substring(0, 10);
           // If the function signature matches `multiSwap` or `megaSwap`
-          if(multiPathFuncSigs.includes(funcSig)) {
+          if (multiPathFuncSigs.includes(funcSig)) {
             // Create a finding
             findings.push(createFinding(trace.action.to, funcSig));
           }

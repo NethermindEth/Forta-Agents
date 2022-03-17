@@ -10,7 +10,7 @@ export const createFinding = (multiPathAddress: string, funcSig: string) => {
     protocol: "Paraswap",
     metadata: {
       function: funcSig == "0xa94e78ef" ? "multiSwap" : "megaSwap",
-      multiPathAddress
-    }
+      multiPathAddress,
+    },
   });
-}
+};
