@@ -17,7 +17,7 @@ export const provideHandleTransaction = (paraAddr: string): HandleTransaction =>
     await Promise.all(
       tx.traces.map(async (trace) => {
         // If the calltype is "delegatecall" and the from address is `address`
-        if (trace.action.callType == "delegatecall" && trace.action.from == paraAddr) {
+        if (trace.action.callType === "delegatecall" && trace.action.from === paraAddr) {
           // Get the function signature used in the call
           const funcSig = trace.action.input.substring(0, 10);
           // If the function signature matches `multiSwap` or `megaSwap`
