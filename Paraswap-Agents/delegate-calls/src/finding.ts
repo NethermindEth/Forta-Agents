@@ -9,7 +9,7 @@ export const createFinding = (multiPathAddress: string) => {
     type: FindingType.Info,
     protocol: "Paraswap",
     metadata: {
-      multiPathAddress: multiPathAddress
+      multiPathAddress
     }
   });
 }

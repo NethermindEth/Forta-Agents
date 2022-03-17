@@ -1,21 +1,13 @@
 import {
   Finding,
-  FindingSeverity,
-  FindingType,
   TransactionEvent,
   HandleTransaction,
-  getEthersProvider,
 } from "forta-agent";
-
-import { ethers } from "ethers";
 
 import { createFinding } from "./finding";
 
 // The address of the Paraswap contract (the contract's name is "AugustusSwapper")
 const AUGUSTUS_ADDR = "0xdef171fe48cf0115b1d80b88dc8eab59176fee57";
-
-// Function signatures for `simpleSwap` and `simpleBuy`
-const simpleSwapFuncSigs = ["0x54e3f31b", "0x2298207a"];
 
 // Function signatures for `multiSwap` and `megaSwap`
 const multiPathFuncSigs = ["0xa94e78ef", "0x46c67b6d"];
