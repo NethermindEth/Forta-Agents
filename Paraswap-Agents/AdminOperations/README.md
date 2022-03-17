@@ -61,3 +61,9 @@ This agent detects admin operations on `AugustusSwapper` Contract.
   - Type is always set to "Info".
   - Metadata fields:
     - `new_address`: Address of the new Fee Wallet.
+
+## Test Data
+
+The agent behaviour can be verified with the following transactions (Ropsten):
+
+- 0x6541e757606ca93db8a185c4871c6dded58aba86319585b05a280f7db32f7441 (call to `setImplementation`, finding generated)
