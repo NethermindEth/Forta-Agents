@@ -27,7 +27,7 @@ export const provideHandleTransaction = (paraAddr: string): HandleTransaction =>
           // If the function signature matches `multiSwap` or `megaSwap`
           if(multiPathFuncSigs.includes(funcSig)) {
             // Create a finding
-            findings.push(createFinding(trace.action.to));
+            findings.push(createFinding(trace.action.to, funcSig));
           }
         }
       })

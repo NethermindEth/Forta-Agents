@@ -1,6 +1,6 @@
 import { Finding, FindingType, FindingSeverity } from "forta-agent";
 
-export const createFinding = (multiPathAddress: string) => {
+export const createFinding = (multiPathAddress: string, funcSig: string) => {
   return Finding.fromObject({
     name: "MultiPath DelegateCall",
     description: "A delegated call has been made to the MultiPath contract",
@@ -9,6 +9,7 @@ export const createFinding = (multiPathAddress: string) => {
     type: FindingType.Info,
     protocol: "Paraswap",
     metadata: {
+      function: funcSig == "0xa94e78ef" ? "multiSwap" : "megaSwap",
       multiPathAddress
     }
   });

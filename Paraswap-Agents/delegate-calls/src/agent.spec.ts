@@ -100,8 +100,8 @@ describe("Paraswap MultiPath DelegateCall Agent test suite", () => {
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(EXTERNAL_ADDR_1),
-      createFinding(EXTERNAL_ADDR_1),
+      createFinding(EXTERNAL_ADDR_1, "0xa94e78ef"),
+      createFinding(EXTERNAL_ADDR_1, "0x46c67b6d"),
     ]);
   });
 
@@ -144,10 +144,10 @@ describe("Paraswap MultiPath DelegateCall Agent test suite", () => {
     const findings: Finding[] = await handler(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(EXTERNAL_ADDR_1),
-      createFinding(EXTERNAL_ADDR_2),
-      createFinding(EXTERNAL_ADDR_1),
-      createFinding(EXTERNAL_ADDR_2),
+      createFinding(EXTERNAL_ADDR_1, "0xa94e78ef"),
+      createFinding(EXTERNAL_ADDR_2, "0x46c67b6d"),
+      createFinding(EXTERNAL_ADDR_1, "0xa94e78ef"),
+      createFinding(EXTERNAL_ADDR_2, "0x46c67b6d"),
     ]);
   });
 });
