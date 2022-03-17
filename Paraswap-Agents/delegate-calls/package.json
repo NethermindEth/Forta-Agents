@@ -1,7 +1,7 @@
 {
   "name": "delegated-function-call-agent",
   "version": "0.0.1",
-  "description": "Detects delegated calls done on the Paraswap protocol",
+  "description": "Detects delegated calls to swap functions on the MultiPath contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,7 +20,6 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@types/lru-cache": "^7.4.0",
     "forta-agent": "^0.0.39"
   },
   "devDependencies": {
