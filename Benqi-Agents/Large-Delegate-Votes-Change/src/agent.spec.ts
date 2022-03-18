@@ -15,7 +15,7 @@ const QI_IFACE = new Interface([DELEGATE_VOTES_CHANGED_ABI]);
 const createFinding = (delegate: string, previousBalance: string, newBalance: string): Finding => {
   return Finding.fromObject({
     name: "Large increase in delegate votes",
-    description: "There was a large increase in delegate votes based on the previous amount",
+    description: `There was a >= ${PERCENTAGE_THRESHOLD.toString()}% increase in delegate votes based on the previous amount`,
     alertId: "BENQI-1-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

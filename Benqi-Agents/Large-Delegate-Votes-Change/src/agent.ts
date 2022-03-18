@@ -18,6 +18,8 @@ export const provideHandleTransaction = (
   contractAddress: string,
   percentageThreshold: BigNumber
 ): HandleTransaction => {
+  const description = `There was a >= ${percentageThreshold.toString()}% increase in delegate votes based on the previous amount`;
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -29,7 +31,7 @@ export const provideHandleTransaction = (
       findings.push(
         Finding.fromObject({
           name: "Large increase in delegate votes",
-          description: "There was a large increase in delegate votes based on the previous amount",
+          description,
           alertId: "BENQI-1-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
