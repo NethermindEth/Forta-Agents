@@ -1,7 +1,7 @@
 {
   "name": "benqi-3",
   "version": "0.0.1",
-  "description": "This agent detects transfer of a large amount of QI tokens and users with high amounts of QI balance.",
+  "description": "This agent detects transfer of a large amount of QI tokens and accounts with high amounts of QI balance.",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
