@@ -24,25 +24,23 @@ export const provideHandleTransaction = (
     const findings: Finding[] = [];
 
     txEvent.filterLog(DELEGATE_VOTES_CHANGED_ABI, contractAddress).forEach((log: LogDescription) => {
-      if (!isLarge(log.args.previousBalance, log.args.newBalance, percentageThreshold)) {
-        return;
+      if (isLarge(log.args.previousBalance, log.args.newBalance, percentageThreshold)) {
+        findings.push(
+          Finding.fromObject({
+            name: "Large increase in delegate votes",
+            description,
+            alertId: "BENQI-1-1",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "Benqi Finance",
+            metadata: {
+              delegate: log.args.delegate,
+              previousBalance: log.args.previousBalance.toString(),
+              newBalance: log.args.newBalance.toString(),
+            },
+          })
+        );
       }
-
-      findings.push(
-        Finding.fromObject({
-          name: "Large increase in delegate votes",
-          description,
-          alertId: "BENQI-1-1",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          protocol: "Benqi Finance",
-          metadata: {
-            delegate: log.args.delegate,
-            previousBalance: log.args.previousBalance.toString(),
-            newBalance: log.args.newBalance.toString(),
-          },
-        })
-      );
     });
 
     return findings;
