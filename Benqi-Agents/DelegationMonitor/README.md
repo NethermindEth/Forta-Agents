@@ -18,7 +18,8 @@ This agent detects users with a huge balance delegating their votes.
   - Severity is always set to "Info" 
   - Type is always set to "Info" 
   - Metadata includes:
-    * `delegator`: address of the delegator user
+    * `delegator`: address of the user delegating his votes
+
     * `fromDelegate`: address of the current delegate
     * `toDelegate`: address of the delegatee
     * `balance`: balance of the delegator
