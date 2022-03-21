@@ -3,6 +3,8 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 // Address of the PGL contract.
 export const PGL_CONTRACT = "0xE530dC2095Ef5653205CF5ea79F8979a7028065c";
+export const TESTNET_PGL_CONTRACT =
+  "0x4e181F9f190e803DD2cAb193dEf2e2AaF5a84ab8";
 // Mint, Burn events signatures.
 export const EVENTS_SIGNATURES = [
   "event Mint(address indexed sender, uint amount0, uint amount1)",
@@ -10,8 +12,9 @@ export const EVENTS_SIGNATURES = [
 ];
 // getReserves function signature
 export const RESERVES_FUNCTION = new Interface([
-  "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+  "function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast)",
 ]);
+
 // Percentage used to set the thresholds
 export const PERCENT = 10;
 
