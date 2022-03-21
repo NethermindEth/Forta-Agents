@@ -9,7 +9,7 @@ import {
   createAddress,
   TestTransactionEvent,
   MockEthersProvider,
-} from "forta-agent-tools";
+} from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import { Interface } from "@ethersproject/abi";
