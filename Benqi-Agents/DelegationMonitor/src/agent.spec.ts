@@ -44,7 +44,7 @@ const createFinding = ([
       balance,
     },
   });
-describe("Large stake deposits", () => {
+describe("User with huge balance delegating their votes", () => {
   let handleTransaction: HandleTransaction;
 
   const mockProvider = new MockEthersProvider();
