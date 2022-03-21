@@ -71,26 +71,35 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
     });
 
     it("should ignore DelegateVotesChanged events from the QI contract that do not meet the threshold", async () => {
-      const alertLog = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
+      const exactThresholdLog = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
         DELEGATE_ADDRESS, // delegate
         "100", // previousBalance
         increaseByPercentage("100", PERCENTAGE_THRESHOLD), // newBalance
       ]);
 
-      const ignoredLog = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
+      const aboveThresholdLog = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
+        DELEGATE_ADDRESS, // delegate
+        "100", // previousBalance
+        increaseByPercentage("100", PERCENTAGE_THRESHOLD.add(10)), // newBalance
+      ]);
+
+      const belowThresholdLog = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
         DELEGATE_ADDRESS, // delegate
         "100", // previousBalance
         increaseByPercentage("100", PERCENTAGE_THRESHOLD.sub(1)), // newBalance
       ]);
 
       const txEvent = new TestTransactionEvent();
-      txEvent.addAnonymousEventLog(QI_ADDRESS, alertLog.data, ...alertLog.topics);
-      txEvent.addAnonymousEventLog(QI_ADDRESS, ignoredLog.data, ...ignoredLog.topics);
+      txEvent
+        .addAnonymousEventLog(QI_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(QI_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics)
+        .addAnonymousEventLog(QI_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
 
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
         createFinding(DELEGATE_ADDRESS, "100", increaseByPercentage("100", PERCENTAGE_THRESHOLD)),
+        createFinding(DELEGATE_ADDRESS, "100", increaseByPercentage("100", PERCENTAGE_THRESHOLD.add(10))),
       ]);
     });
 
@@ -104,18 +113,27 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const alertLog2 = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
         DELEGATE_ADDRESS, // delegate
         "200", // previousBalance
-        increaseByPercentage("200", PERCENTAGE_THRESHOLD), // newBalance
+        increaseByPercentage("200", PERCENTAGE_THRESHOLD.add(5)), // newBalance
+      ]);
+
+      const alertLog3 = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("DelegateVotesChanged"), [
+        DELEGATE_ADDRESS, // delegate
+        "300", // previousBalance
+        increaseByPercentage("300", PERCENTAGE_THRESHOLD.add(10)), // newBalance
       ]);
 
       const txEvent = new TestTransactionEvent();
-      txEvent.addAnonymousEventLog(QI_ADDRESS, alertLog1.data, ...alertLog1.topics);
-      txEvent.addAnonymousEventLog(QI_ADDRESS, alertLog2.data, ...alertLog2.topics);
+      txEvent
+        .addAnonymousEventLog(QI_ADDRESS, alertLog1.data, ...alertLog1.topics)
+        .addAnonymousEventLog(QI_ADDRESS, alertLog2.data, ...alertLog2.topics)
+        .addAnonymousEventLog(QI_ADDRESS, alertLog3.data, ...alertLog3.topics);
 
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
         createFinding(DELEGATE_ADDRESS, "100", increaseByPercentage("100", PERCENTAGE_THRESHOLD)),
-        createFinding(DELEGATE_ADDRESS, "200", increaseByPercentage("200", PERCENTAGE_THRESHOLD)),
+        createFinding(DELEGATE_ADDRESS, "200", increaseByPercentage("200", PERCENTAGE_THRESHOLD.add(5))),
+        createFinding(DELEGATE_ADDRESS, "300", increaseByPercentage("300", PERCENTAGE_THRESHOLD.add(10))),
       ]);
     });
   });
