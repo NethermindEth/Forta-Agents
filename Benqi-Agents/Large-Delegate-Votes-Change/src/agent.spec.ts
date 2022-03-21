@@ -19,7 +19,7 @@ const createFinding = (delegate: string, previousBalance: string, newBalance: st
     alertId: "BENQI-1-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "BENQI",
+    protocol: "Benqi Finance",
     metadata: {
       delegate: delegate.toLowerCase(),
       previousBalance,

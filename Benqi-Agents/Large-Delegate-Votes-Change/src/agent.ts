@@ -35,7 +35,7 @@ export const provideHandleTransaction = (
           alertId: "BENQI-1-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
-          protocol: "BENQI",
+          protocol: "Benqi Finance",
           metadata: {
             delegate: log.args.delegate,
             previousBalance: log.args.previousBalance.toString(),
