@@ -3,7 +3,8 @@
 
 ## Description
 
-This agent detects user with a huge balance delegating their votes
+This agent detects users with a huge balance delegating their votes.
+
 ## Supported Chains
 
 - Avalanche
