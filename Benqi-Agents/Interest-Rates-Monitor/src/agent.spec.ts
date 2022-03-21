@@ -38,12 +38,12 @@ const testCreateFinding = (
         name: "Βorrow rate below threshold drop",
         description: `${name} token's borrow interest rate dropped below lower threshold`,
         alertId: "BENQI-6-1",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Medium,
         protocol: "BenQi",
         metadata: {
           token: name,
-          tokenAddress: address,
+          tokenAddress: address.toLowerCase(),
           borrowInterestRate: rate.toString(),
           lowerRateThreshold: threshold.toString(),
           thresholdExceededBy: `${((rate.toNumber() - threshold.toNumber()) / threshold.toNumber())
@@ -56,12 +56,12 @@ const testCreateFinding = (
         name: "Borrow rate upper threshold excess",
         description: `${name} token's borrow interest rate exceeded upper threshold`,
         alertId: "BENQI-6-2",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Medium,
         protocol: "BenQi",
         metadata: {
           token: name,
-          tokenAddress: address,
+          tokenAddress: address.toLowerCase(),
           borrowInterestRate: rate.toString(),
           upperRateThreshold: threshold.toString(),
           thresholdExceededBy: `${((rate.toNumber() - threshold.toNumber()) / threshold.toNumber())
@@ -74,12 +74,12 @@ const testCreateFinding = (
         name: "Supply rate below threshold drop",
         description: `${name} token's supply interest rate dropped below lower threshold`,
         alertId: "BENQI-6-3",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Medium,
         protocol: "BenQi",
         metadata: {
           token: name,
-          tokenAddress: address,
+          tokenAddress: address.toLowerCase(),
           supplyInterestRate: rate.toString(),
           lowerRateThreshold: threshold.toString(),
           thresholdExceededBy: `${((rate.toNumber() - threshold.toNumber()) / threshold.toNumber())
@@ -92,12 +92,12 @@ const testCreateFinding = (
         name: "Supply rate upper threshold excess",
         description: `${name} token's supply interest rate exceeded upper threshold`,
         alertId: "BENQI-6-4",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
+        type: FindingType.Suspicious,
+        severity: FindingSeverity.Medium,
         protocol: "BenQi",
         metadata: {
           token: name,
-          tokenAddress: address,
+          tokenAddress: address.toLowerCase(),
           supplyInterestRate: rate.toString(),
           upperRateThreshold: threshold.toString(),
           thresholdExceededBy: `${((rate.toNumber() - threshold.toNumber()) / threshold.toNumber())
