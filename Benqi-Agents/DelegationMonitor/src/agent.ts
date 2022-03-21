@@ -7,7 +7,7 @@ import {
   ethers,
   HandleTransaction,
 } from "forta-agent";
-import { BigNumber, utils, providers } from "ethers";
+import { BigNumber, providers } from "ethers";
 
 import util from "./utils";
 
