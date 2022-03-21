@@ -11,6 +11,7 @@ const TEST_BENQI_IFACE = new Interface(EVENT_ABI);
 const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(address indexed from, address indexed to, uint256 amount)",
 ]);
+
 const mockFetcher = {
   getBalance: jest.fn(),
   qiTokenAddress: TEST_QI_TOKEN_CONTRACT,
@@ -46,7 +47,7 @@ const createTransferFinding = (logDesc: any) => {
   });
 };
 
-describe("Benqi Token (QI) Contract Tests", () => {
+describe("Benqi Token (QI) Transfer and Balance Tests", () => {
   let handleTransaction: HandleTransaction;
 
   beforeEach(() => {
