@@ -11,7 +11,7 @@ import { BigNumber, providers } from "ethers";
 
 import util from "./utils";
 
-const Qi_CONTRACT: string = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5";
+const QI_CONTRACT: string = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5";
 const AMOUNT_THRESHOLD: BigNumber = BigNumber.from(10 ** 6); // 1M USD
 
 export const createFinding = (
