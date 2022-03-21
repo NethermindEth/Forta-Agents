@@ -18,7 +18,7 @@ export const createFinding = (
         alertId: "BENQI-6-1",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
-        protocol: "BenQi",
+        protocol: "Benqi Finance",
         metadata: {
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
@@ -36,7 +36,7 @@ export const createFinding = (
         alertId: "BENQI-6-2",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
-        protocol: "BenQi",
+        protocol: "Benqi Finance",
         metadata: {
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
@@ -54,7 +54,7 @@ export const createFinding = (
         alertId: "BENQI-6-3",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
-        protocol: "BenQi",
+        protocol: "Benqi Finance",
         metadata: {
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
@@ -72,7 +72,7 @@ export const createFinding = (
         alertId: "BENQI-6-4",
         type: FindingType.Suspicious,
         severity: FindingSeverity.Medium,
-        protocol: "BenQi",
+        protocol: "Benqi Finance",
         metadata: {
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
