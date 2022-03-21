@@ -1,48 +1,264 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent
-} from "forta-agent"
-import agent from "./agent"
+import { HandleTransaction, Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Interface } from "ethers/lib/utils";
+import { provideHandleTransaction } from "./agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+import { when, resetAllWhenMocks } from "jest-when";
+import { createLargeBalanceFinding, EVENT_ABI } from "./utils";
+import { BigNumber } from "ethers";
 
-describe("high gas agent", () => {
-  let handleTransaction: HandleTransaction
+const TEST_QI_TOKEN_CONTRACT = createAddress("0xa1");
+const TEST_BENQI_IFACE = new Interface(EVENT_ABI);
+const IRRELEVANT_EVENT_IFACE = new Interface([
+  "event IrrelevantEvent(address indexed from, address indexed to, uint256 amount)",
+]);
+const mockFetcher = {
+  getBalance: jest.fn(),
+  qiTokenAddress: TEST_QI_TOKEN_CONTRACT,
+};
 
-  const createTxEventWithGasUsed = (gasUsed: string) => createTransactionEvent({
-    transaction: {} as any,
-    receipt: { gasUsed } as any,
-    block: {} as any,
-  })
+const testTransferAmounts: BigNumber[] = [
+  BigNumber.from("600000000000000000"), //above threshold
+  BigNumber.from("500000000000000000"), //above threshold
+  BigNumber.from("3000000000000000"), //below threshold
+];
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction
-  })
+const testBalances: BigNumber[] = [
+  BigNumber.from("370000000000000000000000000"), //above threshold
+  BigNumber.from("400000000000000000000000000"), //above threshold
+  BigNumber.from("10000000000000000000000"), //below threshold
+];
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if gas used is below threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1")
+const testAccounts: string[] = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 
-      const findings = await handleTransaction(txEvent)
+const createTransferFinding = (logDesc: any) => {
+  return Finding.fromObject({
+    name: "QI Token Transfer",
+    description: "Large amount of QI token transfer is detected",
+    alertId: "BENQI-3-1",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Benqi",
+    metadata: {
+      from: logDesc.args.from,
+      to: logDesc.args.to,
+      amount: BigNumber.from(logDesc.args.amount).toString(),
+    },
+  });
+};
 
-      expect(findings).toStrictEqual([])
-    })
+describe("Benqi Token (QI) Contract Tests", () => {
+  let handleTransaction: HandleTransaction;
 
-    it("returns a finding if gas used is above threshold", async () => {
-      const txEvent = createTxEventWithGasUsed("1000001")
+  beforeEach(() => {
+    resetAllWhenMocks();
 
-      const findings = await handleTransaction(txEvent)
+    handleTransaction = provideHandleTransaction(mockFetcher as any);
+  });
 
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Gas Used",
-          description: `Gas Used: ${txEvent.gasUsed}`,
-          alertId: "FORTA-1",
-          type: FindingType.Suspicious,
-          severity: FindingSeverity.Medium
-        }),
-      ])
-    })
-  })
-})
+  it("should return empty finding if transferred amount and account balance are below threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[2]).mockReturnValue(testBalances[2]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("aaa"), // address from
+      testAccounts[2], // address to
+      testTransferAmounts[2], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_QI_TOKEN_CONTRACT,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding if transferred amount is above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[2]).mockReturnValue(testBalances[2]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("baa"), // address from
+      testAccounts[2], // address to
+      testTransferAmounts[0], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_QI_TOKEN_CONTRACT,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([createTransferFinding(TEST_BENQI_IFACE.parseLog(log1))]);
+  });
+
+  it("ignore different events on the same contract", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+
+    const log1 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
+      createAddress("caa"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[0], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_QI_TOKEN_CONTRACT,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return multiple findings if transferred amounts are above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[2]).mockReturnValue(testBalances[2]);
+    when(mockFetcher.getBalance).calledWith(testAccounts[1]).mockReturnValue(testBalances[2]);
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("daa"), // address from
+      testAccounts[2], // address to
+      testTransferAmounts[0], // transferred amount
+    ]);
+
+    const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("dba"), // address from
+      testAccounts[1], // address to
+      testTransferAmounts[1], // transferred amount
+    ]);
+    const log3 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
+      createAddress("dca"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[0], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log1.data, ...log1.topics)
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log2.data, ...log2.topics)
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log3.data, ...log3.topics);
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([
+      createTransferFinding(TEST_BENQI_IFACE.parseLog(log1)),
+      createTransferFinding(TEST_BENQI_IFACE.parseLog(log2)),
+    ]);
+  });
+
+  it("should return a finding if an account's balance is above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("eaa"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[2], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_QI_TOKEN_CONTRACT,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([createLargeBalanceFinding(testAccounts[0], testBalances[0])]);
+  });
+
+  it("should return multiple findings if accounts' balances are above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+    when(mockFetcher.getBalance).calledWith(testAccounts[1]).mockReturnValue(testBalances[1]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("faa"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[2], // transferred amount
+    ]);
+    const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("fba"), // address from
+      testAccounts[1], // address to
+      testTransferAmounts[2], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log1.data, ...log1.topics)
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log2.data, ...log2.topics);
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([
+      createLargeBalanceFinding(testAccounts[0], testBalances[0]),
+      createLargeBalanceFinding(testAccounts[1], testBalances[1]),
+    ]);
+  });
+
+  it("should return findings if transferred amount and account balance are above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("aba"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[1], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_QI_TOKEN_CONTRACT,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([
+      createTransferFinding(TEST_BENQI_IFACE.parseLog(log1)),
+      createLargeBalanceFinding(testAccounts[0], testBalances[0]),
+    ]);
+  });
+
+  it("should return multiple findings for both transfer amount and balance, if multiple transferred amounts and accounts' balances are above threshold", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+    when(mockFetcher.getBalance).calledWith(testAccounts[1]).mockReturnValue(testBalances[1]);
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("aca"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[1], // transferred amount
+    ]);
+
+    const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("acb"), // address from
+      testAccounts[1], // address to
+      testTransferAmounts[0], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log1.data, ...log1.topics)
+      .addAnonymousEventLog(TEST_QI_TOKEN_CONTRACT, log2.data, ...log2.topics);
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([
+      createTransferFinding(TEST_BENQI_IFACE.parseLog(log1)),
+      createLargeBalanceFinding(testAccounts[0], testBalances[0]),
+      createTransferFinding(TEST_BENQI_IFACE.parseLog(log2)),
+      createLargeBalanceFinding(testAccounts[1], testBalances[1]),
+    ]);
+  });
+
+  it("should ignore events emitted on a different contract", async () => {
+    when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
+    const differentContract = createAddress("0xd4");
+
+    const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
+      createAddress("ada"), // address from
+      testAccounts[0], // address to
+      testTransferAmounts[1], // transferred amount
+    ]);
+
+    const transactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      differentContract,
+      log1.data,
+      ...log1.topics
+    );
+    const findings = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+});
