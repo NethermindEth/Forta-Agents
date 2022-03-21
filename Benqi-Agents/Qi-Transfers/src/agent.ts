@@ -1,14 +1,16 @@
 import { Finding, HandleTransaction, TransactionEvent, LogDescription, getEthersProvider } from "forta-agent";
-import { QI_TOKEN_CONTRACT, EVENT_ABI, createTransferFinding, createLargeBalanceFinding } from "./utils";
+import {
+  QI_TOKEN_CONTRACT,
+  EVENT_ABI,
+  createTransferFinding,
+  createLargeBalanceFinding,
+  TRANSFERED_TOKEN_THRESHOLD,
+  BALANCE_THRESHOLD,
+} from "./utils";
 import { BigNumber } from "ethers";
 import DataFetcher from "./data.fetcher";
 
 const FETCHER: DataFetcher = new DataFetcher(QI_TOKEN_CONTRACT, getEthersProvider());
-
-export const TRANSFERED_TOKEN_THRESHOLD = BigNumber.from("400000000000000000");
-export const TOTAL_SUPPLY = BigNumber.from("7200000000000000000000000000");
-export const PERCENTAGE = 5;
-export const BALANCE_THRESHOLD = TOTAL_SUPPLY.mul(PERCENTAGE).div(100);
 
 export const provideHandleTransaction =
   (fetcher: DataFetcher): HandleTransaction =>
