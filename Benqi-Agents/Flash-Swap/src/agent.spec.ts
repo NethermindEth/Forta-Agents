@@ -7,7 +7,10 @@ import {
   createAddress,
   TestTransactionEvent
 } from "forta-agent-tools/lib/tests";
-import { utils } from "ethers";
+import {
+  utils,
+  BigNumber
+} from "ethers";
 import { provideHandleTransaction } from "./agent";
 import {
   SWAP_ABI,
@@ -21,10 +24,10 @@ const testSwapIFace = new utils.Interface([SWAP_ABI]);
 
 // Format: amount0Out, amount1Out, to, data
 const testCases: any[][] = [
-  [100, 100, createAddress("0xab03"), "0x12ab"],
-  [300, 300, createAddress("0xac04"), "0x34ac"],
-  [500, 500, createAddress("0xad05"), "0x45ad"],
-  [800, 800, createAddress("0xae06"), ""]
+  [BigNumber.from(100), BigNumber.from(100), createAddress("0xab03"), "0x12ab"],
+  [BigNumber.from(300), BigNumber.from(300), createAddress("0xac04"), "0x34ac"],
+  [BigNumber.from(500), BigNumber.from(500), createAddress("0xad05"), "0x45ad"],
+  [BigNumber.from(800), BigNumber.from(800), createAddress("0xae06"), "0x00"]
 ];
 
 const encodedSwapCalls: string[] = [
