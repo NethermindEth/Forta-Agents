@@ -13,7 +13,8 @@ This agent detects users with a huge balance delegating their votes.
 
 
 - BENQI-2
-  - Fired when user with `balance` greater than threshold delagate their votes.
+  - Fired when a user with a balance greater than the threshold delagates his votes.
+
   - Severity is always set to "Info" 
   - Type is always set to "Info" 
   - Metadata includes:
