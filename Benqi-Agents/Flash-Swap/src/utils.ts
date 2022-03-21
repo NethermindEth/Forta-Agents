@@ -18,7 +18,7 @@ export const createFinding = (amount0Out: string, amount1Out: string, to: string
         metadata: {
             amount0Out,
             amount1Out,
-            to: to.toLowerCase()
+            to
         },
     });
 };

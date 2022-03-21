@@ -22,7 +22,8 @@ const testMsgSender: string = createAddress("0xac02");
 
 const testSwapIFace = new utils.Interface([SWAP_ABI]);
 
-// Format: amount0Out, amount1Out, to, data
+// Overall format (swap types): flash swap, flash swap, flash swap, regular swap
+// Individual format (function arguments): amount0Out, amount1Out, to, data
 const testCases: any[][] = [
   [BigNumber.from(100), BigNumber.from(100), createAddress("0xab03"), "0x12ab"],
   [BigNumber.from(300), BigNumber.from(300), createAddress("0xac04"), "0x34ac"],
@@ -88,7 +89,7 @@ describe("Flash Swap agent alert test suite", () => {
     expect(findings).toStrictEqual([]);
   })
 
-  it("should return multiple Findings from calls to swap function when 'data.length' is more than zero", async () => {
+  it("should return Findings from `swap` function calls that are flash swaps", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testPglContract)
@@ -119,7 +120,7 @@ describe("Flash Swap agent alert test suite", () => {
     ]);
   })
 
-  it("should ignore calls to swap function when 'data.length' is zero", async () => {
+  it("should ignore swap function calls when that are regular swaps", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testPglContract)
