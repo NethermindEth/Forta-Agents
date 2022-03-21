@@ -29,7 +29,7 @@ export const provideHandleTransaction = (
           Finding.fromObject({
             name: "Large increase in delegate votes",
             description,
-            alertId: "BENQI-1-1",
+            alertId: "BENQI-1",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "Benqi Finance",

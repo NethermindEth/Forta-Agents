@@ -16,7 +16,7 @@ const createFinding = (delegate: string, previousBalance: string, newBalance: st
   return Finding.fromObject({
     name: "Large increase in delegate votes",
     description: `There was a >= ${PERCENTAGE_THRESHOLD.toString()}% increase in delegate votes based on the previous amount`,
-    alertId: "BENQI-1-1",
+    alertId: "BENQI-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Benqi Finance",
