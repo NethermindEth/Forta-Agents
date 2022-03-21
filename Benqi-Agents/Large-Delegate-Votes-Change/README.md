@@ -2,8 +2,8 @@
 
 ## Description
 
-This agent detects large (>= 30%) increments in a delegate account's QI token
-vote balance by monitoring `DelegateVotesChanged` events emitted by the token
+This agent detects large increments in a delegate account's QI token vote
+balance by monitoring `DelegateVotesChanged` events emitted by the token
 contract.
 
 ## Supported Chains
