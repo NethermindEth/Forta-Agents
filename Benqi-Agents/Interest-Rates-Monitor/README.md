@@ -4,6 +4,8 @@
 
 This agent detects BenQi's `QiTokens` interest rates threshold excesses.
 
+> QiTokens can be added and thresholds can be changed in `src/utils.ts`.
+
 ## Supported Chains
 
 - Avalanche
