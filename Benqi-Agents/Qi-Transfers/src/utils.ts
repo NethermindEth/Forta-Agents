@@ -8,7 +8,7 @@ export const benqiInterface = new ethers.utils.Interface(BALANCE_ABI);
 
 const TOTAL_SUPPLY = BigNumber.from("7200000000000000000000000000");
 const PERCENTAGE = 5;
-export const TRANSFERED_TOKEN_THRESHOLD = BigNumber.from("400000000000000000");
+export const TRANSFERED_TOKEN_THRESHOLD = BigNumber.from("1000000000000000000000000");
 export const BALANCE_THRESHOLD = TOTAL_SUPPLY.mul(PERCENTAGE).div(100);
 
 export const createTransferFinding = (log: LogDescription) => {

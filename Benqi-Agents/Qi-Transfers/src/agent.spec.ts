@@ -18,9 +18,9 @@ const mockFetcher = {
 };
 
 const testTransferAmounts: BigNumber[] = [
-  BigNumber.from("600000000000000000"), //above threshold
-  BigNumber.from("500000000000000000"), //above threshold
-  BigNumber.from("3000000000000000"), //below threshold
+  BigNumber.from("2000000000000000000000000"), //above threshold
+  BigNumber.from("3000000000000000000000000"), //above threshold
+  BigNumber.from("100000000000000000"), //below threshold
 ];
 
 const testBalances: BigNumber[] = [
