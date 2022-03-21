@@ -21,7 +21,8 @@ This agent detects users with a huge balance delegating their votes.
     * `delegator`: address of the user delegating his votes
 
     * `fromDelegate`: address of the current delegate
-    * `toDelegate`: address of the delegatee
+    * `toDelegate`: address of the new delegatee
+
     * `balance`: balance of the delegator
 
 ## Test Data
