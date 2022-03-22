@@ -2,7 +2,7 @@ import { AgentConfig, ThresholdMode } from "./utils";
 
 const CONFIG: AgentConfig = {
   /**
-   * config.thresholdMode:
+   * AgentConfig.thresholdMode:
    *    Can be:
    *     - ABSOLUTE: A fixed amount in QI wei
    *     - PERCENTAGE_TOTAL_SUPPLY: A percent of QI's totalSupply
@@ -11,7 +11,7 @@ const CONFIG: AgentConfig = {
   thresholdMode: ThresholdMode.ABSOLUTE,
 
   /**
-   * config.threshold:
+   * AgentConfig.threshold:
    *    It can be a string indicating the fixed threshold amount, in the case
    *    of config.thresholdMode being ABSOLUTE, or a string with an integer
    *    indicating a percentage, if config.thresholdMode is PERCENTAGE based.

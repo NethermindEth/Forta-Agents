@@ -20,6 +20,8 @@ The way a grant is classified as large can be modified in the `config.ts` file.
   - Metadata contains:
     - `recipient`: Address of the grant recipient
     - `amount`: Amount granted
+    - `mode`: The threshold mode defined in the agent configuration
+    - `threshold`: The threshold value defined in the agent configuration
 
 ## Test Data (TODO)
 
