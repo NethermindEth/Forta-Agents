@@ -2,7 +2,7 @@ import {
     Finding,
     FindingSeverity, 
     FindingType,
-  } from 'forta-agent';
+} from 'forta-agent';
 
 export const PGL_CONTRACT: string = "0xE530dC2095Ef5653205CF5ea79F8979a7028065c";
 export const SWAP_ABI: string = "function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data)";
