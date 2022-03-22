@@ -11,10 +11,11 @@ export const QI_TOKEN_CONTRACT = isTestnet
   ? "0x749590F04a3aa91B53E03124FDa4Ec0391D4Dd4E" // AVAX Testnet QI Token Contract address
   : "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"; // AVAX Mainnet QI Token Contract address
 
-const TOTAL_SUPPLY = BigNumber.from("7200000000000000000000000000");
-const THRESHOLD_PERCENTAGE = 5;
-export const TRANSFERED_TOKEN_THRESHOLD = BigNumber.from("1000000000000000000000000");
-export const BALANCE_THRESHOLD = TOTAL_SUPPLY.mul(THRESHOLD_PERCENTAGE).div(100);
+const QI_DECIMALS: number = 18;
+const TOTAL_SUPPLY: BigNumber = BigNumber.from("7200000000").mul(`${10 ** QI_DECIMALS}`);
+const THRESHOLD_PERCENTAGE: number = 5;
+export const TRANSFERED_TOKEN_THRESHOLD: BigNumber = BigNumber.from("1000000").mul(`${10 ** QI_DECIMALS}`);
+export const BALANCE_THRESHOLD: BigNumber = TOTAL_SUPPLY.mul(THRESHOLD_PERCENTAGE).div(100);
 
 export const createTransferFinding = (log: LogDescription) => {
   return Finding.fromObject({
@@ -35,7 +36,7 @@ export const createTransferFinding = (log: LogDescription) => {
 export const createLargeBalanceFinding = (account: string, balance: BigNumber) => {
   return Finding.fromObject({
     name: "Large Amount of QI Balance",
-    description: "A user with large amount of QI token is detected",
+    description: "An account with large amount of balance is detected",
     alertId: "BENQI-3-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
