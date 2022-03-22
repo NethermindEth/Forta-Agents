@@ -1,10 +1,15 @@
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 import { ethers, BigNumber } from "ethers";
 
-export const QI_TOKEN_CONTRACT = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"; //Benqi token(qi) contract
 export const EVENT_ABI = ["event Transfer(address indexed from, address indexed to, uint256 amount)"];
 export const BALANCE_ABI = ["function balanceOf(address account) external view returns (uint)"];
 export const benqiInterface = new ethers.utils.Interface(BALANCE_ABI);
+
+const isTestnet: boolean = false;
+
+export const QI_TOKEN_CONTRACT = isTestnet
+  ? "0x749590F04a3aa91B53E03124FDa4Ec0391D4Dd4E" // AVAX Testnet QI Token Contract address
+  : "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"; // AVAX Mainnet QI Token Contract address
 
 const TOTAL_SUPPLY = BigNumber.from("7200000000000000000000000000");
 const PERCENTAGE = 5;
