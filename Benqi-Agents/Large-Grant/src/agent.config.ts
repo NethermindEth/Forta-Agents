@@ -11,9 +11,8 @@ export const THRESHOLD_MODE = ThresholdMode.ABSOLUTE;
 
 /**
  * THRESHOLD:
- *  If THRESHOLD_MODE is set to:
- *  - ABSOLUTE: A string indicating the fixed threshold amount
- *  - PERCENTAGE_TOTAL_SUPPLY: A string with an integer indicating the percentage
- *  - PERCENTAGE_COMP_BALANCE: A string with an integer indicating the percentage
+ *  It can be a string indicating the fixed threshold amount, in the case of
+ *  THRESHOLD_MODE being ABSOLUTE, or a string with an integer indicating the
+ *  percentage, if THRESHOLD_MODE is PERCENTAGE based.
  */
 export const THRESHOLD = "100";
