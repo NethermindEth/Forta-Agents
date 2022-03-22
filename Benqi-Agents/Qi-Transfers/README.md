@@ -1,27 +1,70 @@
-# High Gas Agent
+# QI Token Large Transfer and Large Balance Agent
 
 ## Description
 
-This agent detects transactions with high gas consumption
+This agent detects transfers of a large amount of `QI` tokens and accounts with large amount of `QI` balance.
+
+- Threshold for transferred token amount can be set at `src/utils.ts` line 17. The default amount is set to 1 million tokens.
+
+```
+const THRESHOLD_AMOUNT: number = 1000000;
+```
+
+- Threshold percentage of `QI` token total supply for balances can be set `src/utils.ts` line 16. The default value is set to 5 percent.
+
+```
+const THRESHOLD_PERCENTAGE: number = 5;
+```
 
 ## Supported Chains
 
-- Ethereum
-- List any other chains this agent can support e.g. BSC
+- Avalanche
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- BENQI-3-1
 
-- FORTA-1
-  - Fired when a transaction consumes more gas than 1,000,000 gas
-  - Severity is always set to "medium" (mention any conditions where it could be something else)
-  - Type is always set to "suspicious" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when the amount of transferred `QI` tokens are above threshold value
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
+  - Metadata includes:
+    - from: Source address
+    - to: Destination address
+    - amount: The amount of transferred tokens
+
+- BENQI-3-2
+  - Fired when balance of the destination account of a transfer is more than threshold percentage of the total supply
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
+  - Metadata includes:
+    - account: The account that gets the tokens
+    - balance: Balance of the account
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+### Mainnet
 
-- 0x1b71dcc24657989f920d627c7768f545d70fcb861c9a05824f7f5d056968aeee (1,094,700 gas)
-- 0x8df0579bf65e859f87c45b485b8f1879c56bc818043c3a0d6870c410b5013266 (2,348,226 gas)
+The agent behaviour can be verified with the following test transactions in `AVAX Mainnet Network` if `TRANSFERED_TOKEN_THRESHOLD` is lowered to 6000.
+
+- 0x86cec2063f9f9941823b69d16c7cdc729ad21bc4d1384f203ad2c852c1e7c1c4 (Large Transfer and Large Balance)
+
+### Testnet
+
+A PoC `QI Token Contract` is deployed on `AVAX Testnet Network` to catch the monitored conditions.
+In order to run this agent on `AVAX Testnet Network`, two steps must be done:
+
+1. `isTestnet` variable must be changed to `true` at `src/utils.ts` line 8:
+
+```
+const isTestnet: boolean = true;
+```
+
+Default value is false, which means the agent will run for `QI Token Contract` deployed in `AVAX Mainnet` if it's not changed to `true`.
+
+2. `jsonRpcUrl` in `forta.config.json` must be `https://api.avax-test.network/ext/bc/C/rpc`
+
+The agent behaviour can be verified with the following test transactions in `AVAX Testnet Network`:
+
+- 0x02a6f7f16bd58994e8d780bb428a3351bd4268ec177e2768efcb0b2f38cabe94 (Large Transfer)
+- 0x9480a4e49be58b564e270960c41f04311881d0e134634bdda0210b07f7a1a853 (Large Balance)
+- 0x85c9eab54973d8fe2cc6efef05cd6aceecb406b849ed55b5808951dd872dc647 (Large Transfer and Large Balance)
