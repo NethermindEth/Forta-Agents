@@ -31,7 +31,7 @@ const createFinding = ([
   balance,
 ]: string[]) =>
   Finding.fromObject({
-    name: "Delegations Monitor",
+    name: "Large votes delegation detected",
     description: "Detect user with a huge balance delegating their votes",
     alertId: "BENQI-2",
     severity: FindingSeverity.Info,
