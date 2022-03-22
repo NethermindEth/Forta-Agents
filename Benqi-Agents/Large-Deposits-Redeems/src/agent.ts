@@ -1,45 +1,38 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import { Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
+import { createFinding } from "./findings";
+import SuppliesFetcher from "./supplies.fetcher";
+import { FUNCTION_SIGNATURES, PGL_STAKING_CONTRACT, THRESHOLD_PERCENTAGE } from "./utils";
 
-let findingsCount = 0
+export const provideHandleTransaction =
+  (pglStakingContract: string, threshold_percentage: number, fetcher: SuppliesFetcher): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+    // get `deposit` and `redeem` calls in PGL staking contract.
+    const calls = txEvent.filterFunction(FUNCTION_SIGNATURES, pglStakingContract);
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    // Loop over calls
+    await Promise.all(
+      calls.map(async (call) => {
+        // get the pglAmount that was deposited / redeemed.
+        const pglAmount = call.args.pglAmount;
 
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
-  }
+        // fetch the total staked PGL and compute the threshold.
+        const totalSupplies = await fetcher.getTotalSupplies(txEvent.blockNumber - 1);
+        const threshold = totalSupplies.mul(threshold_percentage).div(100);
 
-  return findings
-}
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+        // create a finding if the amount exceeds the threshold.
+        if (threshold.lte(pglAmount)) findings.push(createFinding(call.name, pglAmount, txEvent.from));
+      })
+    );
+    // return the findings
+    return findings;
+  };
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  handleTransaction: provideHandleTransaction(
+    PGL_STAKING_CONTRACT,
+    THRESHOLD_PERCENTAGE,
+    new SuppliesFetcher(getEthersProvider(), PGL_STAKING_CONTRACT)
+  ),
+};
