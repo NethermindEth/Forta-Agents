@@ -1,8 +1,9 @@
 import { BigNumber, ethers } from "ethers";
 import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
-import { THRESHOLD, THRESHOLD_MODE } from "./config";
+import CONFIG from "./agent.config";
 import { createFinding } from "./finding";
 import {
+  AgentConfig,
   COMPTROLLER_ADDRESS,
   QI_ADDRESS,
   QI_BALANCE_ABI,
@@ -16,13 +17,12 @@ const QI_IFACE = new ethers.utils.Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI
 const provideIsLarge = (
   qiAddress: string,
   comptrollerAddress: string,
-  thresholdMode: ThresholdMode,
-  threshold: string
+  agentConfig: AgentConfig
 ): ((value: BigNumber) => Promise<boolean>) => {
-  const bnThreshold = BigNumber.from(threshold);
+  const bnThreshold = BigNumber.from(agentConfig.threshold);
   const qiContract = new ethers.Contract(qiAddress, QI_IFACE, getEthersProvider());
 
-  switch (thresholdMode) {
+  switch (agentConfig.thresholdMode) {
     case ThresholdMode.ABSOLUTE:
       return async (value: BigNumber): Promise<boolean> => {
         return value.gte(bnThreshold);
@@ -43,10 +43,9 @@ const provideIsLarge = (
 export const provideHandleTransaction = (
   qiAddress: string,
   comptrollerAddress: string,
-  thresholdMode: ThresholdMode,
-  threshold: string
+  agentConfig: AgentConfig
 ): HandleTransaction => {
-  const isLarge = provideIsLarge(qiAddress, comptrollerAddress, thresholdMode, threshold);
+  const isLarge = provideIsLarge(qiAddress, comptrollerAddress, agentConfig);
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -56,7 +55,14 @@ export const provideHandleTransaction = (
     await Promise.all(
       events.map(async (log: LogDescription) => {
         if (await isLarge(log.args.amount)) {
-          findings.push(createFinding(log.args.recipient, log.args.amount.toString(), thresholdMode, threshold));
+          findings.push(
+            createFinding(
+              log.args.recipient,
+              log.args.amount.toString(),
+              agentConfig.thresholdMode,
+              agentConfig.threshold
+            )
+          );
         }
       })
     );
@@ -67,5 +73,5 @@ export const provideHandleTransaction = (
 
 export default {
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, THRESHOLD_MODE, THRESHOLD),
+  handleTransaction: provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, CONFIG),
 };

@@ -10,3 +10,8 @@ export enum ThresholdMode {
   PERCENTAGE_TOTAL_SUPPLY,
   PERCENTAGE_COMP_BALANCE,
 }
+
+export interface AgentConfig {
+  thresholdMode: ThresholdMode;
+  threshold: string;
+}
