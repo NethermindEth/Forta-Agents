@@ -19,24 +19,24 @@ export const QiTOKENS_ABI: string[] = [
 
 //Lower & upper borrow interest rate thresholds for every qiToken
 export const BORROW_RATE_THRESHOLDS: BigNumber[][] = [
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiAVAX
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiBTC
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiETH
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiUSDT
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiLINK
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiUSDC
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiDAI
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiQI
 ];
 
 //Lower & upper supply interest rate thresholds for every qiToken
 export const SUPPLY_RATE_THRESHOLDS: BigNumber[][] = [
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
-  [BigNumber.from(10000), BigNumber.from(2200000000)],
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiAVAX
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiBTC
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiETH
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiUSDT
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiLINK
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiUSDC
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiDAI
+  [BigNumber.from(10000), BigNumber.from(2200000000)], // qiQI
 ];
