@@ -12,9 +12,9 @@ export const QI_TOKEN_CONTRACT = isTestnet
   : "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5"; // AVAX Mainnet QI Token Contract address
 
 const TOTAL_SUPPLY = BigNumber.from("7200000000000000000000000000");
-const PERCENTAGE = 5;
+const THRESHOLD_PERCENTAGE = 5;
 export const TRANSFERED_TOKEN_THRESHOLD = BigNumber.from("1000000000000000000000000");
-export const BALANCE_THRESHOLD = TOTAL_SUPPLY.mul(PERCENTAGE).div(100);
+export const BALANCE_THRESHOLD = TOTAL_SUPPLY.mul(THRESHOLD_PERCENTAGE).div(100);
 
 export const createTransferFinding = (log: LogDescription) => {
   return Finding.fromObject({
