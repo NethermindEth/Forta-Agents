@@ -1,4 +1,5 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, Contract } from "ethers";
+import { Interface } from "ethers/lib/utils";
 import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
 import CONFIG from "./agent.config";
 import { createFinding } from "./finding";
@@ -12,7 +13,7 @@ import {
   ThresholdMode,
 } from "./utils";
 
-const QI_IFACE = new ethers.utils.Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI]);
+const QI_IFACE = new Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI]);
 
 const provideIsLarge = (
   qiAddress: string,
@@ -21,7 +22,7 @@ const provideIsLarge = (
   provider?: any
 ): ((value: BigNumber, block: number) => Promise<boolean>) => {
   const bnThreshold = BigNumber.from(agentConfig.threshold);
-  const qiContract = new ethers.Contract(qiAddress, QI_IFACE, provider);
+  const qiContract = new Contract(qiAddress, QI_IFACE, provider);
 
   switch (agentConfig.thresholdMode) {
     case ThresholdMode.ABSOLUTE:
