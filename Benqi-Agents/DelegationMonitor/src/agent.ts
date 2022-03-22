@@ -38,7 +38,6 @@ export const createFinding = (
 export function provideHandleTransaction(
   amountThreshold: BigNumber,
   QiToken: string,
-
   provider: providers.Provider
 ): HandleTransaction {
   const cache: LRU<string, BigNumber> = new LRU<string, BigNumber>({
