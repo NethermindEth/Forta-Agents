@@ -349,162 +349,20 @@ describe("Qi Tokens' interest rate thresholds excess agent test suite", () => {
     ]);
   });
 
-  it("should return 8 findings when all upper thresholds have been exceeded", async () => {
-    for (let i = 0; i < testQiTokens.length; i++) {
-      when(mockFetcher.getSupplyInterestRates)
-        .calledWith(202, testQiTokens[i][1])
-        .mockReturnValue(BigNumber.from(1721212982000000).add(i)); // exceeded threshold
-      when(mockFetcher.getBorrowInterestRates)
-        .calledWith(202, testQiTokens[i][1])
-        .mockReturnValue(BigNumber.from(2621212982000000).add(i)); // exceeded threshold
-    }
-    const blockEvent = new TestBlockEvent().setNumber(202);
-    const findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(
-        testQiTokens[0][0],
-        testQiTokens[0][1],
-        BigNumber.from(1721212982000000),
-        testSupplyRateThresholds[0][1],
-        "upperSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[1][0],
-        testQiTokens[1][1],
-        BigNumber.from(1721212982000001),
-        testSupplyRateThresholds[1][1],
-        "upperSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[2][0],
-        testQiTokens[2][1],
-        BigNumber.from(1721212982000002),
-        testSupplyRateThresholds[2][1],
-        "upperSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[3][0],
-        testQiTokens[3][1],
-        BigNumber.from(1721212982000003),
-        testSupplyRateThresholds[3][1],
-        "upperSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[0][0],
-        testQiTokens[0][1],
-        BigNumber.from(2621212982000000),
-        testBorrowRateThresholds[0][1],
-        "upperBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[1][0],
-        testQiTokens[1][1],
-        BigNumber.from(2621212982000001),
-        testBorrowRateThresholds[1][1],
-        "upperBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[2][0],
-        testQiTokens[2][1],
-        BigNumber.from(2621212982000002),
-        testBorrowRateThresholds[2][1],
-        "upperBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[3][0],
-        testQiTokens[3][1],
-        BigNumber.from(2621212982000003),
-        testBorrowRateThresholds[3][1],
-        "upperBorrow"
-      ),
-    ]);
-  });
-
-  it("should return 8 findings when all interest rates have dropped below lower thresholds", async () => {
-    for (let i = 0; i < testQiTokens.length; i++) {
-      when(mockFetcher.getSupplyInterestRates)
-        .calledWith(303, testQiTokens[i][1])
-        .mockReturnValue(BigNumber.from(5).sub(i)); // dropped below threshold
-      when(mockFetcher.getBorrowInterestRates)
-        .calledWith(303, testQiTokens[i][1])
-        .mockReturnValue(BigNumber.from(6).sub(i)); // dropped below threshold
-    }
-    const blockEvent = new TestBlockEvent().setNumber(303);
-    const findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(
-        testQiTokens[0][0],
-        testQiTokens[0][1],
-        BigNumber.from(5),
-        testSupplyRateThresholds[0][0],
-        "lowerSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[1][0],
-        testQiTokens[1][1],
-        BigNumber.from(4),
-        testSupplyRateThresholds[1][0],
-        "lowerSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[2][0],
-        testQiTokens[2][1],
-        BigNumber.from(3),
-        testSupplyRateThresholds[2][0],
-        "lowerSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[3][0],
-        testQiTokens[3][1],
-        BigNumber.from(2),
-        testSupplyRateThresholds[3][0],
-        "lowerSupply"
-      ),
-      testCreateFinding(
-        testQiTokens[0][0],
-        testQiTokens[0][1],
-        BigNumber.from(6),
-        testBorrowRateThresholds[0][0],
-        "lowerBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[1][0],
-        testQiTokens[1][1],
-        BigNumber.from(5),
-        testBorrowRateThresholds[1][0],
-        "lowerBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[2][0],
-        testQiTokens[2][1],
-        BigNumber.from(4),
-        testBorrowRateThresholds[2][0],
-        "lowerBorrow"
-      ),
-      testCreateFinding(
-        testQiTokens[3][0],
-        testQiTokens[3][1],
-        BigNumber.from(3),
-        testBorrowRateThresholds[3][0],
-        "lowerBorrow"
-      ),
-    ]);
-  });
-
-  it("should return 3 findings when 3 thresholds have been exceeded", async () => {
+  it("should return 4 findings when 4 thresholds have been exceeded", async () => {
     when(mockFetcher.getSupplyInterestRates)
       .calledWith(505, testQiTokens[0][1])
       .mockReturnValue(BigNumber.from(695695469456543)); // exceeded threshold
     when(mockFetcher.getBorrowInterestRates)
       .calledWith(505, testQiTokens[0][1])
-      .mockReturnValue(BigNumber.from(231231));
+      .mockReturnValue(BigNumber.from(795695469456543)); // exceeded threshold
 
     when(mockFetcher.getSupplyInterestRates)
       .calledWith(505, testQiTokens[1][1])
       .mockReturnValue(BigNumber.from(431231));
-    when(mockFetcher.getBorrowInterestRates).calledWith(505, testQiTokens[1][1]).mockReturnValue(BigNumber.from(3)); // dropped below threshold
+    when(mockFetcher.getBorrowInterestRates)
+      .calledWith(505, testQiTokens[1][1])
+      .mockReturnValue(BigNumber.from(3)); // dropped below threshold
 
     when(mockFetcher.getSupplyInterestRates)
       .calledWith(505, testQiTokens[2][1])
@@ -513,7 +371,9 @@ describe("Qi Tokens' interest rate thresholds excess agent test suite", () => {
       .calledWith(505, testQiTokens[2][1])
       .mockReturnValue(BigNumber.from(331231));
 
-    when(mockFetcher.getSupplyInterestRates).calledWith(505, testQiTokens[3][1]).mockReturnValue(BigNumber.from(4)); // dropped below threshold
+    when(mockFetcher.getSupplyInterestRates)
+      .calledWith(505, testQiTokens[3][1])
+      .mockReturnValue(BigNumber.from(4)); // dropped below threshold
     when(mockFetcher.getBorrowInterestRates)
       .calledWith(505, testQiTokens[3][1])
       .mockReturnValue(BigNumber.from(431200));
@@ -535,6 +395,13 @@ describe("Qi Tokens' interest rate thresholds excess agent test suite", () => {
         BigNumber.from(4),
         testSupplyRateThresholds[3][0],
         "lowerSupply"
+      ),
+      testCreateFinding(
+        testQiTokens[0][0],
+        testQiTokens[0][1],
+        BigNumber.from(795695469456543),
+        testBorrowRateThresholds[0][1],
+        "upperBorrow"
       ),
       testCreateFinding(
         testQiTokens[1][0],
