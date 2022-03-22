@@ -13,10 +13,12 @@ export const QI_TOKEN_CONTRACT = isTestnet
 
 const QI_DECIMALS: number = 18;
 const TOTAL_SUPPLY: BigNumber = BigNumber.from("7200000000").mul(`${10 ** QI_DECIMALS}`);
-const THRESHOLD_PERCENTAGE: number = 5;
-const THRESHOLD_AMOUNT: number = 1000000;
-export const TRANSFERRED_TOKEN_THRESHOLD: BigNumber = BigNumber.from(THRESHOLD_AMOUNT).mul(`${10 ** QI_DECIMALS}`);
-export const BALANCE_THRESHOLD: BigNumber = TOTAL_SUPPLY.mul(THRESHOLD_PERCENTAGE).div(100);
+const THRESHOLD_BALANCE_PERCENTAGE: number = 5;
+const THRESHOLD_TRANSFER_AMOUNT: number = 1000000;
+export const TRANSFERRED_TOKEN_THRESHOLD: BigNumber = BigNumber.from(THRESHOLD_TRANSFER_AMOUNT).mul(
+  `${10 ** QI_DECIMALS}`
+);
+export const BALANCE_THRESHOLD: BigNumber = TOTAL_SUPPLY.mul(THRESHOLD_BALANCE_PERCENTAGE).div(100);
 
 export const createTransferFinding = (log: LogDescription) => {
   return Finding.fromObject({

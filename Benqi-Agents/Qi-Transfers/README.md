@@ -7,13 +7,13 @@ This agent detects transfers of a large amount of `QI` tokens and accounts with 
 - Threshold for transferred token amount can be set at `src/utils.ts` line 17. The default amount is set to 1 million tokens.
 
 ```
-const THRESHOLD_AMOUNT: number = 1000000;
+const THRESHOLD_TRANSFER_AMOUNT: number = 1000000;
 ```
 
 - Threshold percentage of `QI` token total supply for balances can be set `src/utils.ts` line 16. The default value is set to 5 percent.
 
 ```
-const THRESHOLD_PERCENTAGE: number = 5;
+const THRESHOLD_BALANCE_PERCENTAGE: number = 5;
 ```
 
 ## Supported Chains
