@@ -5,6 +5,8 @@
 This agent detects large QI grants by monitoring `QiGranted` event logs in the
 Comptroller contract.
 
+The way a grant is classified as large can be modified in the `config.ts` file.
+
 ## Supported Chains
 
 - Avalanche
