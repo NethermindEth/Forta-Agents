@@ -17,24 +17,29 @@ const QI_IFACE = new ethers.utils.Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI
 const provideIsLarge = (
   qiAddress: string,
   comptrollerAddress: string,
-  agentConfig: AgentConfig
-): ((value: BigNumber) => Promise<boolean>) => {
+  agentConfig: AgentConfig,
+  provider?: any
+): ((value: BigNumber, block: number) => Promise<boolean>) => {
   const bnThreshold = BigNumber.from(agentConfig.threshold);
-  const qiContract = new ethers.Contract(qiAddress, QI_IFACE, getEthersProvider());
+  const qiContract = new ethers.Contract(qiAddress, QI_IFACE, provider);
 
   switch (agentConfig.thresholdMode) {
     case ThresholdMode.ABSOLUTE:
-      return async (value: BigNumber): Promise<boolean> => {
+      return async (value: BigNumber, _: number): Promise<boolean> => {
         return value.gte(bnThreshold);
       };
     case ThresholdMode.PERCENTAGE_TOTAL_SUPPLY:
-      return async (value: BigNumber): Promise<boolean> => {
-        const totalSupply = await qiContract.totalSupply();
+      return async (value: BigNumber, block: number): Promise<boolean> => {
+        const totalSupply = await qiContract.totalSupply({
+          blockTag: block,
+        });
         return value.gte(totalSupply.mul(bnThreshold).div(100));
       };
     case ThresholdMode.PERCENTAGE_COMP_BALANCE:
-      return async (value: BigNumber): Promise<boolean> => {
-        const compBalance = await qiContract.balanceOf(comptrollerAddress);
+      return async (value: BigNumber, block: number): Promise<boolean> => {
+        const compBalance = await qiContract.balanceOf(comptrollerAddress, {
+          blockTag: block - 1,
+        });
         return value.gte(compBalance.mul(bnThreshold).div(100));
       };
   }
@@ -43,9 +48,10 @@ const provideIsLarge = (
 export const provideHandleTransaction = (
   qiAddress: string,
   comptrollerAddress: string,
-  agentConfig: AgentConfig
+  agentConfig: AgentConfig,
+  provider?: any
 ): HandleTransaction => {
-  const isLarge = provideIsLarge(qiAddress, comptrollerAddress, agentConfig);
+  const isLarge = provideIsLarge(qiAddress, comptrollerAddress, agentConfig, provider);
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -54,14 +60,9 @@ export const provideHandleTransaction = (
 
     await Promise.all(
       events.map(async (log: LogDescription) => {
-        if (await isLarge(log.args.amount)) {
+        if (await isLarge(log.args.amount, txEvent.blockNumber)) {
           findings.push(
-            createFinding(
-              log.args.recipient,
-              log.args.amount,
-              agentConfig.thresholdMode,
-              agentConfig.threshold
-            )
+            createFinding(log.args.recipient, log.args.amount, agentConfig.thresholdMode, agentConfig.threshold)
           );
         }
       })
@@ -73,5 +74,5 @@ export const provideHandleTransaction = (
 
 export default {
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, CONFIG),
+  handleTransaction: provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, CONFIG, getEthersProvider()),
 };
