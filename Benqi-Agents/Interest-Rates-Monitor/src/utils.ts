@@ -4,10 +4,10 @@ import { BigNumber } from "ethers";
 export const QI_TOKENS: [
   name: string,
   address: string,
-  lowerBorrow: BigNumber,
-  upperBorrow: BigNumber,
   lowerSupply: BigNumber,
-  upperSupply: BigNumber
+  upperSupply: BigNumber,
+  lowerBorrow: BigNumber,
+  upperBorrow: BigNumber
 ][] = [
   [
     "qiAVAX",
