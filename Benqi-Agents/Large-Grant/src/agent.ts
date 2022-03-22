@@ -58,7 +58,7 @@ export const provideHandleTransaction = (
           findings.push(
             createFinding(
               log.args.recipient,
-              log.args.amount.toString(),
+              log.args.amount,
               agentConfig.thresholdMode,
               agentConfig.threshold
             )
