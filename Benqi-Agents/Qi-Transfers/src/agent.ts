@@ -4,7 +4,7 @@ import {
   EVENT_ABI,
   createTransferFinding,
   createLargeBalanceFinding,
-  TRANSFERED_TOKEN_THRESHOLD,
+  TRANSFERRED_TOKEN_THRESHOLD,
   BALANCE_THRESHOLD,
 } from "./utils";
 import { BigNumber } from "ethers";
@@ -26,7 +26,7 @@ export const provideHandleTransaction =
       const toAddress = log.args.to;
       const balance = await fetcher.getBalance(toAddress);
 
-      if (tokenAmount.gt(TRANSFERED_TOKEN_THRESHOLD)) {
+      if (tokenAmount.gt(TRANSFERRED_TOKEN_THRESHOLD)) {
         findings.push(createTransferFinding(log));
       }
 
