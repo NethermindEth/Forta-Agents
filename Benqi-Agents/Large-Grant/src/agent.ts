@@ -1,45 +1,71 @@
-import BigNumber from 'bignumber.js'
-import { 
-  BlockEvent, 
-  Finding, 
-  HandleBlock, 
-  HandleTransaction, 
-  TransactionEvent, 
-  FindingSeverity, 
-  FindingType 
-} from 'forta-agent'
+import { BigNumber, ethers } from "ethers";
+import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
+import { THRESHOLD, THRESHOLD_MODE } from "./config";
+import { createFinding } from "./finding";
+import {
+  COMPTROLLER_ADDRESS,
+  QI_ADDRESS,
+  QI_BALANCE_ABI,
+  QI_GRANTED_ABI,
+  QI_TOTAL_SUPPLY_ABI,
+  ThresholdMode,
+} from "./utils";
 
-let findingsCount = 0
+const QI_IFACE = new ethers.utils.Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI]);
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = []
+const provideIsLarge = (
+  qiAddress: string,
+  comptrollerAddress: string,
+  thresholdMode: ThresholdMode,
+  threshold: string
+): ((value: BigNumber) => Promise<boolean>) => {
+  const bnThreshold = BigNumber.from(threshold);
+  const qiContract = new ethers.Contract(qiAddress, QI_IFACE, getEthersProvider());
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // create finding if gas used is higher than threshold
-  const gasUsed = new BigNumber(txEvent.gasUsed)
-  if (gasUsed.isGreaterThan("1000000")) {
-    findings.push(Finding.fromObject({
-      name: "High Gas Used",
-      description: `Gas Used: ${gasUsed}`,
-      alertId: "FORTA-1",
-      severity: FindingSeverity.Medium,
-      type: FindingType.Suspicious
-    }))
-    findingsCount++
+  switch (thresholdMode) {
+    case ThresholdMode.ABSOLUTE:
+      return async (value: BigNumber): Promise<boolean> => {
+        return value.gte(bnThreshold);
+      };
+    case ThresholdMode.PERCENTAGE_TOTAL_SUPPLY:
+      return async (value: BigNumber): Promise<boolean> => {
+        const totalSupply = await qiContract.totalSupply();
+        return value.gte(totalSupply.mul(bnThreshold).div(100));
+      };
+    case ThresholdMode.PERCENTAGE_COMP_BALANCE:
+      return async (value: BigNumber): Promise<boolean> => {
+        const compBalance = await qiContract.balanceOf(comptrollerAddress);
+        return value.gte(compBalance.mul(bnThreshold).div(100));
+      };
   }
+};
 
-  return findings
-}
+export const provideHandleTransaction = (
+  qiAddress: string,
+  comptrollerAddress: string,
+  thresholdMode: ThresholdMode,
+  threshold: string
+): HandleTransaction => {
+  const isLarge = provideIsLarge(qiAddress, comptrollerAddress, thresholdMode, threshold);
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const events = txEvent.filterLog(QI_GRANTED_ABI, comptrollerAddress);
+
+    await Promise.all(
+      events.map(async (log: LogDescription) => {
+        if (await isLarge(log.args.amount)) {
+          findings.push(createFinding(log.args.recipient, log.args.amount.toString(), thresholdMode, threshold));
+        }
+      })
+    );
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
-}
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, THRESHOLD_MODE, THRESHOLD),
+};
