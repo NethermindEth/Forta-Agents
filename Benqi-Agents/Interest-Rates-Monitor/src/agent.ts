@@ -1,15 +1,20 @@
 import { BigNumber } from "ethers";
 import { findingCase, createFinding } from "./findings";
 import { BlockEvent, Finding, HandleBlock, getEthersProvider } from "forta-agent";
-import { QiTOKENS, BORROW_RATE_THRESHOLDS, SUPPLY_RATE_THRESHOLDS } from "./utils";
+import { QI_TOKENS } from "./utils";
 import Fetcher from "./fetcher";
 
 export const provideHandleBlock =
   (
     fetcher: Fetcher,
-    qiTokens: string[][], //QiTokens names & addresses
-    borrowRateThresholds: BigNumber[][], //Lower & upper borrow rate thresholds
-    supplyRateThresholds: BigNumber[][] //Lower & upper supply rate thresholds
+    qiTokens: [
+      name: string,
+      address: string,
+      lowerSupply: BigNumber,
+      upperSupply: BigNumber,
+      lowerBorrow: BigNumber,
+      lowerBorrow: BigNumber
+    ][] 
   ): HandleBlock =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
@@ -25,26 +30,22 @@ export const provideHandleBlock =
 
     //Check conditions to create finding
     qiTokenSupplyInterestRate.forEach((supplyRate, i) => {
-      if (supplyRate.lt(supplyRateThresholds[i][0])) {
-        findings.push(
-          createFinding(qiTokens[i][0], qiTokens[i][1], supplyRate, supplyRateThresholds[i][0], findingCase[2])
-        );
-      } else if (supplyRate.gt(supplyRateThresholds[i][1])) {
-        findings.push(
-          createFinding(qiTokens[i][0], qiTokens[i][1], supplyRate, supplyRateThresholds[i][1], findingCase[3])
-        );
+      //Lower supply threshold check
+      if (supplyRate.lt(qiTokens[i][2])) {
+        findings.push(createFinding(qiTokens[i][0], qiTokens[i][1], supplyRate, qiTokens[i][2], findingCase[0]));
+      } //Upper supply threshold check
+      else if (supplyRate.gt(qiTokens[i][3])) {
+        findings.push(createFinding(qiTokens[i][0], qiTokens[i][1], supplyRate, qiTokens[i][3], findingCase[1]));
       }
     });
 
     qiTokenBorrowInterestRate.forEach((borrowRate, i) => {
-      if (borrowRate.lt(borrowRateThresholds[i][0])) {
-        findings.push(
-          createFinding(qiTokens[i][0], qiTokens[i][1], borrowRate, borrowRateThresholds[i][0], findingCase[0])
-        );
-      } else if (borrowRate.gt(borrowRateThresholds[i][1])) {
-        findings.push(
-          createFinding(qiTokens[i][0], qiTokens[i][1], borrowRate, borrowRateThresholds[i][1], findingCase[1])
-        );
+      //Lower borrow threshold check
+      if (borrowRate.lt(qiTokens[i][4])) {
+        findings.push(createFinding(qiTokens[i][0], qiTokens[i][1], borrowRate, qiTokens[i][4], findingCase[2]));
+      } //Upper borrow threshold check
+      else if (borrowRate.gt(qiTokens[i][5])) {
+        findings.push(createFinding(qiTokens[i][0], qiTokens[i][1], borrowRate, qiTokens[i][5], findingCase[3]));
       }
     });
 
@@ -52,10 +53,5 @@ export const provideHandleBlock =
   };
 
 export default {
-  handleBlock: provideHandleBlock(
-    new Fetcher(getEthersProvider()),
-    QiTOKENS,
-    BORROW_RATE_THRESHOLDS,
-    SUPPLY_RATE_THRESHOLDS
-  ),
+  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), QI_TOKENS),
 };

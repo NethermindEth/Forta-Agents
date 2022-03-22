@@ -2,7 +2,7 @@ import Fetcher from "./fetcher";
 import { BigNumber } from "ethers";
 import { Interface } from "@ethersproject/abi";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { QiTOKENS_ABI } from "./utils";
+import { QI_TOKENS_ABI } from "./utils";
 
 //QiToken address, block number, borrow rate
 const TEST_BORROW_CASES: [string, number, BigNumber][] = [
@@ -23,7 +23,7 @@ const TEST_SUPPLY_CASES: [string, number, BigNumber][] = [
 describe("Interest rates fetcher test suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const testFetcher: Fetcher = new Fetcher(mockProvider as any);
-  const TEST_QI_IFACE: Interface = new Interface(QiTOKENS_ABI);
+  const TEST_QI_IFACE: Interface = new Interface(QI_TOKENS_ABI);
 
   beforeEach(() => {
     mockProvider.clear();

@@ -1,5 +1,5 @@
 import { Contract, BigNumber, providers } from "ethers";
-import { QiTOKENS_ABI } from "./utils";
+import { QI_TOKENS_ABI } from "./utils";
 import LRU from "lru-cache";
 
 export default class Fetcher {
@@ -14,7 +14,7 @@ export default class Fetcher {
   public async getSupplyInterestRates(block: number, tokenAddress: string): Promise<BigNumber> {
     const key: string = `supply-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
-    const qiTokenContract = new Contract(tokenAddress, QiTOKENS_ABI, this.provider);
+    const qiTokenContract = new Contract(tokenAddress, QI_TOKENS_ABI, this.provider);
     const supplyInterestRates: Promise<BigNumber> = qiTokenContract.supplyRatePerTimestamp({ blockTag: block });
     this.cache.set(key, supplyInterestRates);
     return supplyInterestRates;
@@ -23,7 +23,7 @@ export default class Fetcher {
   public async getBorrowInterestRates(block: number, tokenAddress: string): Promise<BigNumber> {
     const key: string = `borrow-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
-    const qiTokenContract = new Contract(tokenAddress, QiTOKENS_ABI, this.provider);
+    const qiTokenContract = new Contract(tokenAddress, QI_TOKENS_ABI, this.provider);
     const borrowInterestRates: Promise<BigNumber> = qiTokenContract.borrowRatePerTimestamp({ blockTag: block });
     this.cache.set(key, borrowInterestRates);
     return borrowInterestRates;
