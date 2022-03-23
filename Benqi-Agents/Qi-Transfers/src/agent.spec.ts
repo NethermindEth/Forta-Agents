@@ -38,7 +38,7 @@ const createTransferFinding = (logDesc: any) => {
     alertId: "BENQI-3-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "Benqi",
+    protocol: "Benqi Finance",
     metadata: {
       from: logDesc.args.from,
       to: logDesc.args.to,

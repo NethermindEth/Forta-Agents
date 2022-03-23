@@ -27,7 +27,7 @@ export const createTransferFinding = (log: LogDescription) => {
     alertId: "BENQI-3-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "Benqi",
+    protocol: "Benqi Finance",
     metadata: {
       from: log.args.from,
       to: log.args.to,
@@ -43,7 +43,7 @@ export const createLargeBalanceFinding = (account: string, balance: BigNumber) =
     alertId: "BENQI-3-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "Benqi",
+    protocol: "Benqi Finance",
     metadata: {
       account,
       balance: balance.toString(),
