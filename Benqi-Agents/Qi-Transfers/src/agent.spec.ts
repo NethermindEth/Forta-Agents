@@ -60,7 +60,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[2]).mockReturnValue(testBalances[2]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("aaa"), // address from
+      createAddress("0xaaa"), // address from
       testAccounts[2], // address to
       testTransferAmounts[2], // transferred amount
     ]);
@@ -79,7 +79,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[2]).mockReturnValue(testBalances[2]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("baa"), // address from
+      createAddress("0xbaa"), // address from
       testAccounts[2], // address to
       testTransferAmounts[0], // transferred amount
     ]);
@@ -98,7 +98,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
 
     const log1 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
-      createAddress("caa"), // address from
+      createAddress("0xcaa"), // address from
       testAccounts[0], // address to
       testTransferAmounts[0], // transferred amount
     ]);
@@ -119,18 +119,18 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("daa"), // address from
+      createAddress("0xdaa"), // address from
       testAccounts[2], // address to
       testTransferAmounts[0], // transferred amount
     ]);
 
     const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("dba"), // address from
+      createAddress("0xdba"), // address from
       testAccounts[1], // address to
       testTransferAmounts[1], // transferred amount
     ]);
     const log3 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
-      createAddress("dca"), // address from
+      createAddress("0xdca"), // address from
       testAccounts[0], // address to
       testTransferAmounts[0], // transferred amount
     ]);
@@ -151,7 +151,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("eaa"), // address from
+      createAddress("0xeaa"), // address from
       testAccounts[0], // address to
       testTransferAmounts[2], // transferred amount
     ]);
@@ -171,12 +171,12 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[1]).mockReturnValue(testBalances[1]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("faa"), // address from
+      createAddress("0xfaa"), // address from
       testAccounts[0], // address to
       testTransferAmounts[2], // transferred amount
     ]);
     const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("fba"), // address from
+      createAddress("0xfba"), // address from
       testAccounts[1], // address to
       testTransferAmounts[2], // transferred amount
     ]);
@@ -196,7 +196,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0]).mockReturnValue(testBalances[0]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("aba"), // address from
+      createAddress("0xaba"), // address from
       testAccounts[0], // address to
       testTransferAmounts[1], // transferred amount
     ]);
@@ -219,13 +219,13 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[1]).mockReturnValue(testBalances[1]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("aca"), // address from
+      createAddress("0xaca"), // address from
       testAccounts[0], // address to
       testTransferAmounts[1], // transferred amount
     ]);
 
     const log2 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("acb"), // address from
+      createAddress("0xacb"), // address from
       testAccounts[1], // address to
       testTransferAmounts[0], // transferred amount
     ]);
@@ -248,7 +248,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     const differentContract = createAddress("0xd4");
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
-      createAddress("ada"), // address from
+      createAddress("0xada"), // address from
       testAccounts[0], // address to
       testTransferAmounts[1], // transferred amount
     ]);
