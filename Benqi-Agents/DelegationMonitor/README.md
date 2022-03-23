@@ -30,4 +30,4 @@ This agent detects users with a huge balance delegating their votes.
 The agent behaviour can be verified with the following transactions:
 - 0x712b53c81428662ed906b1571831f2865cd79a7c2d9514551199f45c0469b3fb(1 findings)
 - 0x194b328faf28f652179af93ed9c51944289d64750a93847977a5e4f9d86a4bf1(1 findings)
-- 0xc8295477c18cb35e3a4465c07b162c454683b68000ccfb84b7943ef698558d3b (0 findings)
+- 0xc8295477c18cb35e3a4465c07b162c454683b68000ccfb84b7943ef698558d3b(0 findings)
