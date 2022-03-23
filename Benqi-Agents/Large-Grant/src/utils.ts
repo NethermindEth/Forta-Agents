@@ -1,9 +1,10 @@
 export const QI_GRANTED_ABI = "event QiGranted(address recipient, uint amount)";
 export const QI_TOTAL_SUPPLY_ABI = "function totalSupply() view returns (uint256)";
 export const QI_BALANCE_ABI = "function balanceOf(address account) view returns (uint256)";
+export const QI_TRANSFER_ABI = "event Transfer(address indexed from, address indexed to, uint256 amount)";
 
-export const COMPTROLLER_ADDRESS = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
-export const QI_ADDRESS = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5";
+export const COMPTROLLER_ADDRESS = "0x486af39519b4dc9a7fccd318217352830e8ad9b4";
+export const QI_ADDRESS = "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5";
 
 // ref. https://snowtrace.io/address/0x8729438eb15e2c8b576fcc6aecda6a148776c0f5#code
 export const QI_TOTAL_SUPPLY = "7200000000000000000000000000";
