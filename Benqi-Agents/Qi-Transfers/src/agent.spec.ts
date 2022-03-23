@@ -50,10 +50,16 @@ const createTransferFinding = (logDesc: any) => {
 describe("Benqi Token (QI) Transfer and Balance Tests", () => {
   let handleTransaction: HandleTransaction;
 
+  const transferredTokenThreshold = BigNumber.from("1000000").mul(`${10 ** 18}`); // 1 million tokens
+  const balanceThreshold = BigNumber.from("7200000000")
+    .mul(`${10 ** 18}`)
+    .mul(5) // 5% of total supply
+    .div(100);
+
   beforeEach(() => {
     resetAllWhenMocks();
 
-    handleTransaction = provideHandleTransaction(mockFetcher as any);
+    handleTransaction = provideHandleTransaction(mockFetcher as any, transferredTokenThreshold, balanceThreshold);
   });
 
   it("should return empty finding if transferred amount and account balance are below threshold", async () => {

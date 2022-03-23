@@ -13,7 +13,7 @@ import DataFetcher from "./data.fetcher";
 const FETCHER: DataFetcher = new DataFetcher(QI_TOKEN_CONTRACT, getEthersProvider());
 
 export const provideHandleTransaction =
-  (fetcher: DataFetcher): HandleTransaction =>
+  (fetcher: DataFetcher, transferredTokenThreshold: BigNumber, balanceThreshold: BigNumber): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const logs: LogDescription[] = txEvent.filterLog(EVENT_ABI, fetcher.qiTokenAddress);
@@ -26,11 +26,11 @@ export const provideHandleTransaction =
       const toAddress = log.args.to;
       const balance = await fetcher.getBalance(toAddress);
 
-      if (tokenAmount.gt(TRANSFERRED_TOKEN_THRESHOLD)) {
+      if (tokenAmount.gt(transferredTokenThreshold)) {
         findings.push(createTransferFinding(log));
       }
 
-      if (balance.gt(BALANCE_THRESHOLD)) {
+      if (balance.gt(balanceThreshold)) {
         findings.push(createLargeBalanceFinding(toAddress, balance));
       }
     }
@@ -39,5 +39,5 @@ export const provideHandleTransaction =
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(FETCHER),
+  handleTransaction: provideHandleTransaction(FETCHER, TRANSFERRED_TOKEN_THRESHOLD, BALANCE_THRESHOLD),
 };
