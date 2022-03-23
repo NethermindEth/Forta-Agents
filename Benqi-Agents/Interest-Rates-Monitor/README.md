@@ -6,6 +6,8 @@ This agent detects BenQi's `QiTokens` interest rates threshold excesses.
 
 > QiTokens can be added and thresholds can be changed in `src/utils.ts`.
 
+> In order to use the `PoC QiTokens Contracts`: 1) Set the `testnetMode` variable to `true` in `src/utils.ts`. 2) Change the `jsonRpcUrl` in `forta.config.json` to `https://api.avax-test.network/ext/bc/C/rpc`.
+
 ## Supported Chains
 
 - Avalanche

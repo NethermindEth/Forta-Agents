@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { findingCase, createFinding } from "./findings";
 import { BlockEvent, Finding, HandleBlock, getEthersProvider } from "forta-agent";
-import { QI_TOKENS } from "./utils";
+import { QI_TOKENS, POC_QI_TOKENS, testnetMode } from "./utils";
 import Fetcher from "./fetcher";
 
 export const provideHandleBlock =
@@ -14,7 +14,7 @@ export const provideHandleBlock =
       upperSupply: BigNumber,
       lowerBorrow: BigNumber,
       lowerBorrow: BigNumber
-    ][] 
+    ][]
   ): HandleBlock =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
@@ -53,5 +53,5 @@ export const provideHandleBlock =
   };
 
 export default {
-  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), QI_TOKENS),
+  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), testnetMode ? POC_QI_TOKENS : QI_TOKENS),
 };

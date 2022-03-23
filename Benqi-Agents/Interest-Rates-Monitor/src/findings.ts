@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, FixedNumber } from "ethers";
 
 export const findingCase: string[] = ["lowerSupply", "upperSupply", "lowerBorrow", "upperBorrow"];
 
@@ -24,9 +24,12 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           supplyInterestRate: interestRate.toString(),
           lowerRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${((interestRate.toNumber() - rateThreshold.toNumber()) / rateThreshold.toNumber())
-            .toFixed(2)
-            .toString()}%`,
+          thresholdExceededBy: `${FixedNumber.from(interestRate)
+            .subUnsafe(FixedNumber.from(rateThreshold))
+            .mulUnsafe(FixedNumber.from(100))
+            .divUnsafe(FixedNumber.from(rateThreshold))
+            .toString()
+            .slice(0, 5)}%`,
         },
       });
     case "upperSupply":
@@ -42,9 +45,12 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           supplyInterestRate: interestRate.toString(),
           upperRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${((interestRate.toNumber() - rateThreshold.toNumber()) / rateThreshold.toNumber())
-            .toFixed(2)
-            .toString()}%`,
+          thresholdExceededBy: `${FixedNumber.from(interestRate)
+            .subUnsafe(FixedNumber.from(rateThreshold))
+            .mulUnsafe(FixedNumber.from(100))
+            .divUnsafe(FixedNumber.from(rateThreshold))
+            .toString()
+            .slice(0, 5)}%`,
         },
       });
     case "lowerBorrow":
@@ -60,9 +66,12 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           borrowInterestRate: interestRate.toString(),
           lowerRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${((interestRate.toNumber() - rateThreshold.toNumber()) / rateThreshold.toNumber())
-            .toFixed(2)
-            .toString()}%`,
+          thresholdExceededBy: `${FixedNumber.from(interestRate)
+            .subUnsafe(FixedNumber.from(rateThreshold))
+            .mulUnsafe(FixedNumber.from(100))
+            .divUnsafe(FixedNumber.from(rateThreshold))
+            .toString()
+            .slice(0, 5)}%`,
         },
       });
     default:
@@ -78,9 +87,12 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           borrowInterestRate: interestRate.toString(),
           upperRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${((interestRate.toNumber() - rateThreshold.toNumber()) / rateThreshold.toNumber())
-            .toFixed(2)
-            .toString()}%`,
+          thresholdExceededBy: `${FixedNumber.from(interestRate)
+            .subUnsafe(FixedNumber.from(rateThreshold))
+            .mulUnsafe(FixedNumber.from(100))
+            .divUnsafe(FixedNumber.from(rateThreshold))
+            .toString()
+            .slice(0, 5)}%`,
         },
       });
   }

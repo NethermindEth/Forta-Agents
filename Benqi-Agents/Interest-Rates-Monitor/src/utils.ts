@@ -1,5 +1,7 @@
 import { BigNumber } from "ethers";
 
+export const testnetMode: boolean = false;
+
 //QiTokens names, addresses and thresholds
 export const QI_TOKENS: [
   name: string,
@@ -75,8 +77,81 @@ export const QI_TOKENS: [
   ],
 ];
 
+export const POC_QI_TOKENS: [
+  name: string,
+  address: string,
+  lowerSupply: BigNumber,
+  upperSupply: BigNumber,
+  lowerBorrow: BigNumber,
+  upperBorrow: BigNumber
+][] = [
+  [
+    "qiAVAX",
+    "0x22fdC4d8eEea0d219E15025d2BCDe38d948e9A13",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiBTC",
+    "0x106958DF060b0Bb19223C2666BF57fa9f065B6A0",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiETH",
+    "0x256eFdbBa8D5d2873027D9f8A1bad4BdcE51321c",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiUSDT",
+    "0x5785aFe403E0852E8b57A753529713045b43f886",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiLINK",
+    "0x8e6088d50779B5E7e5206bc5af937C618d5B021c",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiUSDC",
+    "0x0F654B634687e4c0d8E8540c3E7458218b933aa2",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiDAI",
+    "0x4842F6f7cD05BB09F190De02Af0564b323846B59",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+  [
+    "qiQI",
+    "0xBA1d29aDebbfb8f79eCa81a44f8354539eF32ADB",
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(2200000000), // upper supply rate threshold
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(2200000000), // upper borrow rate threshold
+  ],
+];
+
 export const QI_TOKENS_ABI: string[] = [
   "function borrowRatePerTimestamp() external view returns (uint)",
   "function supplyRatePerTimestamp() external view returns (uint)",
 ];
-
