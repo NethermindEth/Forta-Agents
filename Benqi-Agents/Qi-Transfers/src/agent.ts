@@ -24,7 +24,7 @@ export const provideHandleTransaction =
 
       // fetch balance of the destination address
       const toAddress = log.args.to;
-      const balance = await fetcher.getBalance(toAddress);
+      const balance = await fetcher.getBalance(toAddress, txEvent.blockNumber);
 
       if (tokenAmount.gt(transferredTokenThreshold)) {
         findings.push(createTransferFinding(log));

@@ -13,8 +13,8 @@ export default class DataFetcher {
   }
 
   // return the number of tokens held by the account
-  public async getBalance(account: string): Promise<BigNumber> {
-    const balance: BigNumber = await this.qiTokenContract.balanceOf(account, { blockTag: "latest" });
+  public async getBalance(account: string, blockNumber: number): Promise<BigNumber> {
+    const balance: BigNumber = await this.qiTokenContract.balanceOf(account, { blockTag: blockNumber });
     return balance;
   }
 }

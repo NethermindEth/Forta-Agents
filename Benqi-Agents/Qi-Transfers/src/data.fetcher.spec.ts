@@ -5,16 +5,16 @@ import { BigNumber } from "ethers";
 
 describe("DataFetcher tests suite", () => {
   // format: [benqiAddress, account, balanceCall]
-  const TEST_CASE: [string, string, BigNumber][] = [
-    [createAddress("0x1a"), createAddress("0x2a"), BigNumber.from("6000000000000000000000")],
-    [createAddress("0x1b"), createAddress("0x2b"), BigNumber.from("20000000000000000000")],
-    [createAddress("0x1c"), createAddress("0x2c"), BigNumber.from("40000000000000000")],
+  const TEST_CASE: [string, string, number, BigNumber][] = [
+    [createAddress("0x1a"), createAddress("0x2a"), 2, BigNumber.from("6000000000000000000000")],
+    [createAddress("0x1b"), createAddress("0x2b"), 3, BigNumber.from("20000000000000000000")],
+    [createAddress("0x1c"), createAddress("0x2c"), 4, BigNumber.from("40000000000000000")],
   ];
 
   const mockProvider: MockEthersProvider = new MockEthersProvider();
 
-  function createMockBalanceCall(account: string, benqiAddress: string, balanceCall: BigNumber) {
-    return mockProvider.addCallTo(benqiAddress, "latest", benqiInterface, "balanceOf", {
+  function createMockBalanceCall(account: string, benqiAddress: string, blockNumber: number, balanceCall: BigNumber) {
+    return mockProvider.addCallTo(benqiAddress, blockNumber, benqiInterface, "balanceOf", {
       inputs: [account],
       outputs: [balanceCall],
     });
@@ -23,12 +23,12 @@ describe("DataFetcher tests suite", () => {
   beforeEach(() => mockProvider.clear());
 
   it("should return the correct balance", async () => {
-    for (let [benqiAddress, account, balanceCall] of TEST_CASE) {
+    for (let [benqiAddress, account, blockNumber, balanceCall] of TEST_CASE) {
       const fetcher: DataFetcher = new DataFetcher(benqiAddress, mockProvider as any);
 
-      createMockBalanceCall(account, benqiAddress, balanceCall);
+      createMockBalanceCall(account, benqiAddress, blockNumber, balanceCall);
 
-      const fetchedbBalanceCall: BigNumber = await fetcher.getBalance(account);
+      const fetchedbBalanceCall: BigNumber = await fetcher.getBalance(account, blockNumber);
 
       expect(fetchedbBalanceCall).toStrictEqual(balanceCall);
     }
