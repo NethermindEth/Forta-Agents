@@ -11,7 +11,7 @@ import { BigNumber, providers, utils } from "ethers";
 import LRU from "lru-cache";
 import util from "./utils";
 
-const QI_CONTRACT: string = "0xd35FBb79bF20e5992DfE3972ef7ECD3cB0704a68";
+const QI_CONTRACT: string = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5";
 const AMOUNT_THRESHOLD: BigNumber = utils.parseEther("10000000.0");
 export const createFinding = (
   delegator: string,
@@ -25,7 +25,7 @@ export const createFinding = (
     alertId: "BENQI-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "BENQI",
+    protocol: "Benqi Finance",
     metadata: {
       delegator: delegator.toLowerCase(),
       fromDelegate: fromDelegate.toLowerCase(),
@@ -44,40 +44,25 @@ export function provideHandleTransaction(
     max: 10000,
   });
 
-  const BenqiContract = new ethers.Contract(
-    QiToken,
-    util.BALANCE_OF_FUNCTION,
-    provider
-  );
+  const BenqiContract = new ethers.Contract(QiToken, util.BALANCE_OF_FUNCTION, provider);
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const delegateChangedEvents = txEvent.filterLog(
-      util.DELEGATE_CHANGED_EVENT,
-      QiToken
-    );
+    const delegateChangedEvents = txEvent.filterLog(util.DELEGATE_CHANGED_EVENT, QiToken);
     await Promise.all(
       delegateChangedEvents.map(async (event) => {
         const delegator: string = event.args.delegator;
 
-        const balanceOfDelegator: BigNumber = await BenqiContract.balanceOf(
-          delegator,
-          {
-            blockTag: txEvent.blockNumber,
-          }
-        );
-
-        const blockNumber = txEvent.blockNumber;
+        const blockNumber: number = txEvent.blockNumber;
         const key: string = `${delegator}-${blockNumber}`;
-        cache.set(key, balanceOfDelegator);
 
-        let balance: BigNumber;
-
+        let balanceOfDelegator: BigNumber;
         if (cache.has(key)) {
-          balance = cache.get(key) as BigNumber;
+          balanceOfDelegator = cache.get(key) as BigNumber;
         } else {
-          balance = await BenqiContract.balanceOf(delegator, {
+          balanceOfDelegator = await BenqiContract.balanceOf(delegator, {
             blockTag: txEvent.blockNumber,
           });
+          cache.set(key, balanceOfDelegator);
         }
 
         if (balanceOfDelegator.gte(amountThreshold)) {
@@ -85,7 +70,7 @@ export function provideHandleTransaction(
             event.args.delegator,
             event.args.fromDelegate,
             event.args.toDelegate,
-            balance
+            balanceOfDelegator
           );
           findings.push(newFinding);
         }
@@ -97,9 +82,5 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    AMOUNT_THRESHOLD,
-    QI_CONTRACT,
-    getEthersProvider()
-  ),
+  handleTransaction: provideHandleTransaction(AMOUNT_THRESHOLD, QI_CONTRACT, getEthersProvider()),
 };
