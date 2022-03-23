@@ -15,7 +15,7 @@ import { createFinding } from "./finding";
 
 const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 
-const THRESHOLD_PERCENTAGE = 0.25;
+const THRESHOLD_PERCENTAGE = 0.001;
 
 // Array to track the QiToken pools
 let QITOKENS: Set<string> = new Set<string>();
@@ -27,12 +27,8 @@ export const getTotalSupply = async (qiToken: string, blockNumber: any) => {
     QITOKEN_IFACE.format(ethers.utils.FormatTypes.full),
     getEthersProvider()
   );
-  try {
-    return await qiTokenContract.totalSupply({ blockTag: blockNumber });
-  } catch (error) {
-    // Not sure what to do when there's an error
-  }
-};
+  return await qiTokenContract.totalSupply({ blockTag: blockNumber });
+}
 
 export const initialize = async (comptrollerAddr: string) => {
   // Setup a contract interface for the Comptroller contract
@@ -47,7 +43,7 @@ export const initialize = async (comptrollerAddr: string) => {
   qiTokens.forEach((qiToken: string) => {
     QITOKENS.add(qiToken.toLowerCase());
   });
-};
+}
 
 export const provideHandleTransaction = (
   qiTokensSet: Set<string>,
