@@ -11,7 +11,7 @@ import { BigNumber, providers, utils } from "ethers";
 import LRU from "lru-cache";
 import util from "./utils";
 
-const QI_CONTRACT: string = "0xd35FBb79bF20e5992DfE3972ef7ECD3cB0704a68";
+const QI_CONTRACT: string = "0xf5841E5df027ed086A749Ecc33BFE7e0Df02B06F";
 const AMOUNT_THRESHOLD: BigNumber = utils.parseEther("10000000.0");
 export const createFinding = (
   delegator: string,
