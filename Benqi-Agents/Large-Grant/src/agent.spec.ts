@@ -3,7 +3,7 @@ import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { QI_BALANCE_ABI, QI_GRANTED_ABI, QI_TOTAL_SUPPLY_ABI, ThresholdMode } from "./utils";
+import { QI_BALANCE_ABI, QI_GRANTED_ABI, QI_TOTAL_SUPPLY, QI_TOTAL_SUPPLY_ABI, ThresholdMode } from "./utils";
 import { MockEthersProvider } from "forta-agent-tools/lib/tests";
 
 const QI_ADDRESS = createAddress("0x1");
@@ -142,12 +142,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         thresholdMode: ThresholdMode.PERCENTAGE_TOTAL_SUPPLY,
         threshold: "30",
       };
-      const mockProvider = new MockEthersProvider();
-      const handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config, mockProvider);
-
-      beforeEach(() => {
-        mockProvider.clear();
-      });
+      const handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
 
       it("should ignore empty transactions", async () => {
         const txEvent = new TestTransactionEvent();
@@ -185,22 +180,16 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       });
 
       it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
-        const totalSupply = BigNumber.from("100");
         const block = 100;
-
-        mockProvider.addCallTo(QI_ADDRESS, block, QI_IFACE, "totalSupply", {
-          inputs: [],
-          outputs: [totalSupply],
-        });
 
         const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(totalSupply, BigNumber.from(config.threshold).sub(1).toString()),
+          percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).sub(1)),
         ]);
 
         const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(totalSupply, config.threshold),
+          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
         ]);
 
         const txEvent = new TestTransactionEvent()
@@ -211,27 +200,26 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const findings = await handleTransaction(txEvent);
 
         expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
+          createFinding(
+            RECIPIENT_ADDRESS,
+            percentageOf(QI_TOTAL_SUPPLY, config.threshold),
+            config.thresholdMode,
+            config.threshold
+          ),
         ]);
       });
 
       it("should detect multiple eligible events from the Comptroller contract", async () => {
-        const totalSupply = BigNumber.from("100");
         const block = 100;
-
-        mockProvider.addCallTo(QI_ADDRESS, block, QI_IFACE, "totalSupply", {
-          inputs: [],
-          outputs: [totalSupply],
-        });
 
         const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(totalSupply, config.threshold),
+          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
         ]);
 
         const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(totalSupply, BigNumber.from(config.threshold).add(1).toString()),
+          percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
         ]);
 
         const txEvent = new TestTransactionEvent()
@@ -242,10 +230,15 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const findings = await handleTransaction(txEvent);
 
         expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
           createFinding(
             RECIPIENT_ADDRESS,
-            BigNumber.from(config.threshold).add(1).toString(),
+            percentageOf(QI_TOTAL_SUPPLY, config.threshold),
+            config.thresholdMode,
+            config.threshold
+          ),
+          createFinding(
+            RECIPIENT_ADDRESS,
+            percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
             config.thresholdMode,
             config.threshold
           ),
@@ -313,7 +306,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
         const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(comptrollerBalance, BigNumber.from(config.threshold).sub(1).toString()),
+          percentageOf(comptrollerBalance, BigNumber.from(config.threshold).sub(1)),
         ]);
 
         const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
@@ -329,7 +322,12 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const findings = await handleTransaction(txEvent);
 
         expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
+          createFinding(
+            RECIPIENT_ADDRESS,
+            percentageOf(comptrollerBalance, config.threshold),
+            config.thresholdMode,
+            config.threshold
+          ),
         ]);
       });
 
@@ -349,7 +347,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
         const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
           RECIPIENT_ADDRESS,
-          percentageOf(comptrollerBalance, BigNumber.from(config.threshold).add(1).toString()),
+          percentageOf(comptrollerBalance, BigNumber.from(config.threshold).add(1)),
         ]);
 
         const txEvent = new TestTransactionEvent()
@@ -360,10 +358,15 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const findings = await handleTransaction(txEvent);
 
         expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
           createFinding(
             RECIPIENT_ADDRESS,
-            BigNumber.from(config.threshold).add(1).toString(),
+            percentageOf(comptrollerBalance, config.threshold),
+            config.thresholdMode,
+            config.threshold
+          ),
+          createFinding(
+            RECIPIENT_ADDRESS,
+            percentageOf(comptrollerBalance, BigNumber.from(config.threshold).add(1)),
             config.thresholdMode,
             config.threshold
           ),

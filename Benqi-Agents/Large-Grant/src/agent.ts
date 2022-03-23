@@ -9,6 +9,7 @@ import {
   QI_ADDRESS,
   QI_BALANCE_ABI,
   QI_GRANTED_ABI,
+  QI_TOTAL_SUPPLY,
   QI_TOTAL_SUPPLY_ABI,
   ThresholdMode,
 } from "./utils";
@@ -31,9 +32,7 @@ const provideIsLarge = (
       };
     case ThresholdMode.PERCENTAGE_TOTAL_SUPPLY:
       return async (value: BigNumber, block: number): Promise<boolean> => {
-        const totalSupply = await qiContract.totalSupply({
-          blockTag: block,
-        });
+        const totalSupply = BigNumber.from(QI_TOTAL_SUPPLY);
         return value.gte(totalSupply.mul(bnThreshold).div(100));
       };
     case ThresholdMode.PERCENTAGE_COMP_BALANCE:
