@@ -24,5 +24,7 @@ The threshold variable __X__ is `THERSHOLD_PERCENTAGE` which is located in `agen
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x92b971e2c84b79cf7df949ee3645f0e28310ac0fe94b7d436f34236dc8fc8d14 
-  - (Withdrawal of `7264199798` from total supply of `35508760798710315`)
+- 0xb7b8e8bddfe9b0fbef66abb9cc8d316c6c63c5a920f47fa0d5a3dab234b2c7fb (Multiple withdrawals)
+  - (Set `THRESHOLD_PERCENTAGE` to 0.10 for no findings)
+  - (Set `THRESHOLD_PERCENTAGE` to 0.05 for one finding)
+  - (Set `THRESHOLD_PERCENTAGE` to 0.01 for multiple findings)

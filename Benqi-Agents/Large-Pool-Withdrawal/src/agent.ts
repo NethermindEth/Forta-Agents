@@ -15,7 +15,7 @@ import { createFinding } from "./finding";
 
 const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 
-const THRESHOLD_PERCENTAGE = 0.001;
+const THRESHOLD_PERCENTAGE = 0.25;
 
 // Array to track the QiToken pools
 let QITOKENS: Set<string> = new Set<string>();
@@ -27,6 +27,7 @@ export const getTotalSupply = async (qiToken: string, blockNumber: any) => {
     QITOKEN_IFACE.format(ethers.utils.FormatTypes.full),
     getEthersProvider()
   );
+
   return await qiTokenContract.totalSupply({ blockTag: blockNumber });
 }
 
