@@ -31,8 +31,5 @@ export const provideHandleTransaction =
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    PERCENT,
-    new ReservesFetcher(getEthersProvider(), PGL_CONTRACT)
-  ),
+  handleTransaction: provideHandleTransaction(PERCENT, new ReservesFetcher(getEthersProvider(), PGL_CONTRACT)),
 };

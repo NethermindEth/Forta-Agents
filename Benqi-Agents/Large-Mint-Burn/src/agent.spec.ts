@@ -15,7 +15,7 @@ const createFinding = (name: string, args: any[]) => {
         alertId: "BENQI-8-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "BENQI",
+        protocol: "Benqi Finance",
         metadata: {
           sender: args[0].toLowerCase(),
           amount0: args[1].toString(),
@@ -28,7 +28,7 @@ const createFinding = (name: string, args: any[]) => {
         alertId: "BENQI-8-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "BENQI",
+        protocol: "Benqi Finance",
         metadata: {
           sender: args[0].toLowerCase(),
           amount0: args[1].toString(),
@@ -67,7 +67,7 @@ describe("Large PGL Burn-Mint agent tests suite", () => {
 
   // init the agent
   const handler = provideHandleTransaction(10, mockFetcher as any);
-  
+
   beforeEach(() => {
     mockFetcher.getReserves.mockClear();
     // set the reserves used in tests

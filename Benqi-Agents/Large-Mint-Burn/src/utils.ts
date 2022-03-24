@@ -28,7 +28,7 @@ export const createFinding = (log: LogDescription) => {
         alertId: "BENQI-8-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "BENQI",
+        protocol: "Benqi Finance",
         metadata: {
           sender: log.args.sender.toLowerCase(),
           amount0: log.args.amount0.toString(),
@@ -41,7 +41,7 @@ export const createFinding = (log: LogDescription) => {
         alertId: "BENQI-8-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "BENQI",
+        protocol: "Benqi Finance",
         metadata: {
           sender: log.args.sender.toLowerCase(),
           amount0: log.args.amount0.toString(),

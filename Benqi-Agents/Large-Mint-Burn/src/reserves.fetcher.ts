@@ -5,7 +5,7 @@ import { RESERVES_FUNCTION } from "./utils";
 export default class ReservesFetcher {
   provider: providers.Provider;
   private cache: LRU<string, Promise<[BigNumber, BigNumber]>>;
-  pglAddress: string; 
+  pglAddress: string;
   private pglContract: Contract;
 
   constructor(provider: providers.Provider, contractAddr: string) {
