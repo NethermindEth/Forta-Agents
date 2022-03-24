@@ -65,24 +65,21 @@ export const provideHandleTransaction = (
     // Convert the QiToken set into an array
     const qiTokens: string[] = Array.from(qiTokensSet);
 
-    // For each QiToken
+    // Get all `Redeem` logs from all QiToken addresses
+    const logs = tx.filterLog(QITOKEN_IFACE.getEvent("Redeem").format("full"), qiTokens);
+
+    // For each log
     await Promise.all(
-      qiTokens.map(async (qiToken) => {
-        // Get all `Redeem` events from QiTokens
-        const redeems = tx.filterLog(QITOKEN_IFACE.getEvent("Redeem").format("full"), qiToken);
-        // For each `Redeem` event
-        await Promise.all(
-          redeems.map(async (redeem) => {
-            // Get the number of tokens redeemed
-            const redeemTokens = redeem.args.redeemTokens;
-            // Get the total supply from the previous block
-            const totalSupply = await getTotalSupply(qiToken, tx.blockNumber - 1);
-            // If the amount of tokens redeemed is more than `thresholdPercentage` of `totalSupply`
-            if (totalSupply.div(redeemTokens).lt(1 / thresholdPercentage)) {
-              findings.push(createFinding(qiToken, totalSupply.toString(), redeemTokens.toString()));
-            }
-          })
-        );
+      logs.map(async (log) => {
+        // Get the number of tokens redeemed
+        const redeemTokens = log.args.redeemTokens;
+        // Get the total supply from the previous block
+        const totalSupply = await getTotalSupply(log.address, tx.blockNumber - 1);
+        // If the amount of tokens redeemed is more `thresholdPercentage` of `totalSupply`
+        if(totalSupply.div(redeemTokens).lt(1 / thresholdPercentage)) {
+          // Generate a finding
+          findings.push(createFinding(log.address, totalSupply.toString(), redeemTokens.toString()));
+        }
       })
     );
 
