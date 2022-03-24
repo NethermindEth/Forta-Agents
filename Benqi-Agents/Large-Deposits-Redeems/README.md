@@ -2,9 +2,9 @@
 
 ## Description
 
-This agent detects deposits and redeems in PGL staking contract where the pgl amount is high. 
+This agent detects deposits and redeems in PGL staking contract when the pgl amount is high. 
 > High is set as a percentage of the total PGL staked.
-> You can set the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**. 
+> You can adjust the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**. 
 
 ## Supported Chains
 
@@ -56,13 +56,13 @@ The agent behaviour can be verified with the following transactions:
   > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TESTNET_PGL_STAKING` instead of `PGL_STAKING_CONTRACT`.
 
   - 0x1bd7e1b2278177e3fbf2af5a20cfd229ceafa0e75722609477a5d35ef3e58500 
-    - `redeem` call. 
+    - `redeem` call 
     - `pglAmount`: 500
     - `totalSupplies`: 2000
     - `result`: generates a finding with **<=25%** percentage.
 
   - 0x03ec09c0f207000805a6c4f83cf9ff841a3ade28323277b09b7c4fe7f659419a 
-    - `deposit` call. 
+    - `deposit` call 
     - `pglAmount`: 150
     - `totalSupplies`: 1500
     - `result`: generates a finding with **<=10%** percentage.
