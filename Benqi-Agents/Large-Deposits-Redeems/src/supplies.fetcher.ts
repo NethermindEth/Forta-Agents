@@ -5,6 +5,7 @@ import { SUPPLIES_SIGNATURE } from "./utils";
 export default class SuppliesFetcher {
   provider: providers.Provider;
   private cache: LRU<string, Promise<BigNumber>>;
+  pglStakingAddress: string;
   private pglStakingContract: Contract;
 
   constructor(provider: providers.Provider, contractAddr: string) {
@@ -12,6 +13,7 @@ export default class SuppliesFetcher {
     this.cache = new LRU<string, Promise<BigNumber>>({
       max: 10000,
     });
+    this.pglStakingAddress = contractAddr;
     this.pglStakingContract = new Contract(contractAddr, SUPPLIES_SIGNATURE, provider);
   }
 

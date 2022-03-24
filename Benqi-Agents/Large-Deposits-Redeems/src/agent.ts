@@ -4,12 +4,12 @@ import SuppliesFetcher from "./supplies.fetcher";
 import { FUNCTION_SIGNATURES, PGL_STAKING_CONTRACT, THRESHOLD_PERCENTAGE } from "./utils";
 
 export const provideHandleTransaction =
-  (pglStakingContract: string, threshold_percentage: number, fetcher: SuppliesFetcher): HandleTransaction =>
+  (threshold_percentage: number, fetcher: SuppliesFetcher): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // get `deposit` and `redeem` calls in PGL staking contract.
-    const calls = txEvent.filterFunction(FUNCTION_SIGNATURES, pglStakingContract);
+    const calls = txEvent.filterFunction(FUNCTION_SIGNATURES, fetcher.pglStakingAddress);
 
     // Loop over calls
     await Promise.all(
@@ -31,7 +31,6 @@ export const provideHandleTransaction =
 
 export default {
   handleTransaction: provideHandleTransaction(
-    PGL_STAKING_CONTRACT,
     THRESHOLD_PERCENTAGE,
     new SuppliesFetcher(getEthersProvider(), PGL_STAKING_CONTRACT)
   ),

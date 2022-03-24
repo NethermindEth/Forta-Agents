@@ -54,16 +54,15 @@ const USERS = [createAddress("0xb1"), createAddress("0xb2"), createAddress("0xb3
 // mock Fetcher
 const mockGetSupplies = jest.fn();
 const mockFetcher = {
+  pglStakingAddress: TEST_PGL_STAKING,
   getTotalSupplies: mockGetSupplies,
 };
 
 // init the agent
-const handler = provideHandleTransaction(TEST_PGL_STAKING, 20, mockFetcher as any);
+const handler = provideHandleTransaction(20, mockFetcher as any);
 
-beforeEach(() => {
-  mockFetcher.getTotalSupplies.mockClear();
-  mockFetcher.getTotalSupplies.mockResolvedValue(BigNumber.from(1000));
-});
+// set the totalSupplies used in tests
+mockFetcher.getTotalSupplies.mockResolvedValue(BigNumber.from(1000));
 
 describe("Large Deposits-Redeems agent tests suite", () => {
   it("should ignore empty transactions", async () => {
