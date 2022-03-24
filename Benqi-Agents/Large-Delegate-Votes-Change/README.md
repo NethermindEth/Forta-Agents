@@ -6,14 +6,18 @@ This agent detects large increments in a delegate account's QI token vote
 balance by monitoring `DelegateVotesChanged` events emitted by the token
 contract.
 
+The threshold that determines whether a change is classified as large is
+adjustable in the `constants.ts` file.
+
 ## Supported Chains
 
 - Avalanche
 
 ## Alerts
 
-- BENQI-1-1
-  - Fired when a delegate account's vote balance increases by 30% or more.
+- BENQI-1
+  - Fired when a delegate account's vote balance increase, based on the
+  previous amount, is greater than or equal to a specified percentage.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
