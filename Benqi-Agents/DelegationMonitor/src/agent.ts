@@ -13,6 +13,7 @@ import util from "./utils";
 
 const QI_CONTRACT: string = "0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5";
 const AMOUNT_THRESHOLD: BigNumber = utils.parseEther("10000000.0");
+
 export const createFinding = (
   delegator: string,
   fromDelegate: string,
@@ -51,7 +52,6 @@ export function provideHandleTransaction(
     await Promise.all(
       delegateChangedEvents.map(async (event) => {
         const delegator: string = event.args.delegator;
-
         const blockNumber: number = txEvent.blockNumber;
         const key: string = `${delegator}-${blockNumber}`;
 
