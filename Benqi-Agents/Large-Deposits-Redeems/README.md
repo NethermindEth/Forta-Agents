@@ -31,7 +31,7 @@ This agent detects deposits and redeems in PGL staking contract where the pgl am
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
-
+### Mainnet (Avalanche)
 - 0x9d9e21b406829272571163ad1e4e0b77b13e86f367c9f2719309e58914af0385 
   - `deposit` call
   - `pglAmount`: 262185675274
@@ -49,3 +49,20 @@ The agent behaviour can be verified with the following transactions:
   - `pglAmount`: 3392276209
   - `totalSupplies`: 111275646568
   - `result`: generates a finding with **<=2%** percentage.
+
+
+  ### Testnet (Avalanche)
+  These transactions have been generated through our PoC contract deployed on avalanche testnet. 
+  > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TESTNET_PGL_STAKING` instead of `PGL_STAKING_CONTRACT`.
+
+  - 0x1bd7e1b2278177e3fbf2af5a20cfd229ceafa0e75722609477a5d35ef3e58500 
+    - `redeem` call. 
+    - `pglAmount`: 500
+    - `totalSupplies`: 2000
+    - `result`: generates a finding with **<=25%** percentage.
+
+  - 0x03ec09c0f207000805a6c4f83cf9ff841a3ade28323277b09b7c4fe7f659419a 
+    - `deposit` call. 
+    - `pglAmount`: 150
+    - `totalSupplies`: 1500
+    - `result`: generates a finding with **<=10%** percentage.
