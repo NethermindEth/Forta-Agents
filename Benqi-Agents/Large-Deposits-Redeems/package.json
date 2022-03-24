@@ -1,5 +1,5 @@
 {
-  "name": "benqi-8",
+  "name": "benqi-7",
   "version": "0.0.1",
   "description": "This agent detects deposits and redeems in pgl staking contract with large pgl amounts.",
   "scripts": {
@@ -20,6 +20,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "@types/lru-cache": "^5.1.1",
     "forta-agent": "^0.0.40"
   },
   "devDependencies": {
