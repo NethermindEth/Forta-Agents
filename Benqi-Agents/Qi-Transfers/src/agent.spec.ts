@@ -64,6 +64,14 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     handleTransaction = provideHandleTransaction(mockFetcher as any, transferredTokenThreshold, balanceThreshold);
   });
 
+  it("should ignore transactions without events", async () => {
+    const transactionEvent = new TestTransactionEvent();
+
+    const findings: Finding[] = await handleTransaction(transactionEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
   it("should return empty finding if transferred amount and account balance are below threshold", async () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[2], testBlock).mockReturnValue(testBalances[2]);
 
