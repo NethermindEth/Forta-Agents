@@ -98,7 +98,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     expect(findings).toStrictEqual([createTransferFinding(TEST_BENQI_IFACE.parseLog(log1))]);
   });
 
-  it("ignore different events on the same contract", async () => {
+  it("ignore other events on the same contract", async () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0], testBlock).mockReturnValue(testBalances[0]);
 
     const log1 = IRRELEVANT_EVENT_IFACE.encodeEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), [
@@ -194,7 +194,7 @@ describe("Benqi Token (QI) Transfer and Balance Tests", () => {
     ]);
   });
 
-  it("should return findings if transferred amount and account balance are above threshold", async () => {
+  it("should return 2 findings if transferred amount and account balance are above threshold", async () => {
     when(mockFetcher.getBalance).calledWith(testAccounts[0], testBlock).mockReturnValue(testBalances[0]);
 
     const log1 = TEST_BENQI_IFACE.encodeEventLog(TEST_BENQI_IFACE.getEvent("Transfer"), [
