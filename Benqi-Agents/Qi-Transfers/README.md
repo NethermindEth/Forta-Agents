@@ -37,7 +37,7 @@ const THRESHOLD_BALANCE_PERCENTAGE: number = 5;
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata includes:
-    - account: The account that gets the tokens
+    - account: The account that is receiving the tokens
     - balance: Balance of the account
 
 ## Test Data
