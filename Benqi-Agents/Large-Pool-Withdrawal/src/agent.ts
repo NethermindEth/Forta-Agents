@@ -18,7 +18,7 @@ const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 const THRESHOLD_PERCENTAGE = 0.25;
 
 // Array to track the QiToken pools
-let QITOKENS: Set<string> = new Set<string>();
+let QITOKENS: string[] = [];
 
 export const getTotalSupply = async (qiToken: string, blockNumber: any) => {
   // Create an ethers contract instance to query on-chain data
@@ -27,7 +27,6 @@ export const getTotalSupply = async (qiToken: string, blockNumber: any) => {
     QITOKEN_IFACE.format(ethers.utils.FormatTypes.full),
     getEthersProvider()
   );
-
   return await qiTokenContract.totalSupply({ blockTag: blockNumber });
 }
 
@@ -39,15 +38,11 @@ export const initialize = async (comptrollerAddr: string) => {
     getEthersProvider()
   );
   // Get all QiTokens
-  const qiTokens = await comptrollerContract.getAllMarkets();
-  // Add each qiToken to the set `QITOKENS`
-  qiTokens.forEach((qiToken: string) => {
-    QITOKENS.add(qiToken.toLowerCase());
-  });
+  QITOKENS = await comptrollerContract.getAllMarkets();
 }
 
 export const provideHandleTransaction = (
-  qiTokensSet: Set<string>,
+  qiTokens: string[],
   getTotalSupply: any,
   thresholdPercentage: number,
   comptrollerAddr: string
@@ -59,11 +54,8 @@ export const provideHandleTransaction = (
     // Check if any new QiTokens have been added to Comptroller
     const qiTokenAdds = tx.filterLog(COMPTROLLER_IFACE.getEvent("MarketListed").format("full"), comptrollerAddr);
     qiTokenAdds.forEach((qiTokenAdd) => {
-      qiTokensSet.add(qiTokenAdd.args.qiToken.toLowerCase());
+      qiTokens.push(qiTokenAdd.args.qiToken.toLowerCase());
     });
-
-    // Convert the QiToken set into an array
-    const qiTokens: string[] = Array.from(qiTokensSet);
 
     // Get all `Redeem` logs from all QiToken addresses
     const logs = tx.filterLog(QITOKEN_IFACE.getEvent("Redeem").format("full"), qiTokens);
