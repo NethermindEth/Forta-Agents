@@ -1,5 +1,4 @@
 export const QI_GRANTED_ABI = "event QiGranted(address recipient, uint amount)";
-export const QI_TOTAL_SUPPLY_ABI = "function totalSupply() view returns (uint256)";
 export const QI_BALANCE_ABI = "function balanceOf(address account) view returns (uint256)";
 export const QI_TRANSFER_ABI = "event Transfer(address indexed from, address indexed to, uint256 amount)";
 
@@ -12,10 +11,12 @@ export const QI_TOTAL_SUPPLY = "7200000000000000000000000000";
 export enum ThresholdMode {
   ABSOLUTE,
   PERCENTAGE_TOTAL_SUPPLY,
-  PERCENTAGE_COMP_BALANCE,
+  PERCENTAGE_COMPTROLLER_BALANCE,
 }
 
 export interface AgentConfig {
   thresholdMode: ThresholdMode;
   threshold: string;
+  qiAddress: string;
+  comptrollerAddress: string;
 }

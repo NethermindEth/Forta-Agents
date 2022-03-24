@@ -4,14 +4,7 @@ import { JsonRpcProvider } from "@ethersproject/providers/lib/json-rpc-provider"
 import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import {
-  QI_BALANCE_ABI,
-  QI_GRANTED_ABI,
-  QI_TOTAL_SUPPLY,
-  QI_TOTAL_SUPPLY_ABI,
-  QI_TRANSFER_ABI,
-  ThresholdMode,
-} from "./utils";
+import { QI_BALANCE_ABI, QI_GRANTED_ABI, QI_TOTAL_SUPPLY, QI_TRANSFER_ABI, ThresholdMode } from "./utils";
 import { MockEthersProvider } from "forta-agent-tools/lib/tests";
 
 const QI_ADDRESS = createAddress("0x1");
@@ -20,7 +13,7 @@ const RECIPIENT_ADDRESS = createAddress("0x3");
 const IRRELEVANT_ADDRESS = createAddress("0x4");
 
 const COMPTROLLER_IFACE = new Interface([QI_GRANTED_ABI]);
-const QI_IFACE = new Interface([QI_TOTAL_SUPPLY_ABI, QI_BALANCE_ABI, QI_TRANSFER_ABI]);
+const QI_IFACE = new Interface([QI_BALANCE_ABI, QI_TRANSFER_ABI]);
 
 export function createFinding(
   recipient: string,
@@ -52,13 +45,15 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
   describe("absolute threshold", () => {
     describe("handleTransaction", () => {
       const config = {
+        qiAddress: QI_ADDRESS,
+        comptrollerAddress: COMPTROLLER_ADDRESS,
         thresholdMode: ThresholdMode.ABSOLUTE,
         threshold: "100000",
       };
       let handleTransaction: HandleTransaction;
 
       beforeEach(() => {
-        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
+        handleTransaction = provideHandleTransaction(config);
       });
 
       it("should ignore empty transactions", async () => {
@@ -151,13 +146,15 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
   describe("percentage total supply threshold", () => {
     describe("handleTransaction", () => {
       const config = {
+        qiAddress: QI_ADDRESS,
+        comptrollerAddress: COMPTROLLER_ADDRESS,
         thresholdMode: ThresholdMode.PERCENTAGE_TOTAL_SUPPLY,
         threshold: "30",
       };
       let handleTransaction: HandleTransaction;
 
       beforeEach(() => {
-        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
+        handleTransaction = provideHandleTransaction(config);
       });
 
       it("should ignore empty transactions", async () => {
@@ -260,7 +257,9 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
   describe("percentage comptroller balance threshold", () => {
     describe("handleTransaction", () => {
       const config = {
-        thresholdMode: ThresholdMode.PERCENTAGE_COMP_BALANCE,
+        qiAddress: QI_ADDRESS,
+        comptrollerAddress: COMPTROLLER_ADDRESS,
+        thresholdMode: ThresholdMode.PERCENTAGE_COMPTROLLER_BALANCE,
         threshold: "30",
       };
       const initialBlock = 100;
@@ -275,7 +274,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
       beforeEach(() => {
         const provider = mockProvider as unknown as JsonRpcProvider;
-        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config, provider);
+        handleTransaction = provideHandleTransaction(config, provider);
 
         mockProvider.call.mockClear();
       });
