@@ -20,7 +20,7 @@ export const provideHandleTransaction =
 
     for (const log of logs) {
       // get transferred token amount
-      const tokenAmount = BigNumber.from(log.args.amount);
+      const tokenAmount = log.args.amount;
 
       // fetch balance of the destination address
       const toAddress = log.args.to;

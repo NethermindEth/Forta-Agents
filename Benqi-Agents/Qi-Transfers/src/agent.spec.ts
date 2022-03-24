@@ -44,7 +44,7 @@ const createTransferFinding = (logDesc: any) => {
     metadata: {
       from: logDesc.args.from,
       to: logDesc.args.to,
-      amount: BigNumber.from(logDesc.args.amount).toString(),
+      amount: logDesc.args.amount.toString(),
     },
   });
 };

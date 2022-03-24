@@ -31,7 +31,7 @@ export const createTransferFinding = (log: LogDescription) => {
     metadata: {
       from: log.args.from,
       to: log.args.to,
-      amount: BigNumber.from(log.args.amount).toString(),
+      amount: log.args.amount.toString(),
     },
   });
 };
