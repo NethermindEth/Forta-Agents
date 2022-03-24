@@ -1,7 +1,7 @@
 {
-  "name": "large-grant-agent",
+  "name": "large-qi-grant-agent",
   "version": "0.0.1",
-  "description": "Forta Agent that detects large grants in the BENQI Comptroller contract",
+  "description": "Forta Agent that detects large QI grants in the BENQI Comptroller contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
