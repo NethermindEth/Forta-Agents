@@ -30,7 +30,7 @@ export const getTotalSupply = async (qiToken: string, blockNumber: any) => {
     getEthersProvider()
   );
   return await qiTokenContract.totalSupply({ blockTag: blockNumber });
-}
+};
 
 export const initialize = async (comptrollerAddr: string) => {
   // Setup a contract interface for the Comptroller contract
@@ -41,7 +41,7 @@ export const initialize = async (comptrollerAddr: string) => {
   );
   // Get all QiTokens
   QITOKENS = await comptrollerContract.getAllMarkets();
-}
+};
 
 export const provideHandleTransaction = (
   qiTokens: string[],
@@ -70,7 +70,7 @@ export const provideHandleTransaction = (
         // Get the total supply from the previous block
         const totalSupply = await getTotalSupply(log.address, tx.blockNumber - 1);
         // If the amount of tokens redeemed is more `thresholdPercentage` of `totalSupply`
-        if(redeemTokens.gte(totalSupply.mul(thresholdPercentage).div(100))) {
+        if (redeemTokens.gte(totalSupply.mul(thresholdPercentage).div(100))) {
           // Generate a finding
           findings.push(createFinding(log.address, totalSupply.toString(), redeemTokens.toString()));
         }

@@ -97,7 +97,7 @@ describe("Benqi Finance Large Pool Withdrawal Agent Test Suite", () => {
     // Generate a `Redeem` event with a withdrawal of 700 tokens
     const log1 = QITOKEN_IFACE.encodeEventLog(QITOKEN_IFACE.getEvent("Redeem"), [USER_ADDR, 700, 700]);
 
-    // Generate a `Redeem` event with a withdrawal of 700 tokens
+    // Generate a `Redeem` event with a withdrawal of 2501 tokens
     const log2 = QITOKEN_IFACE.encodeEventLog(QITOKEN_IFACE.getEvent("Redeem"), [USER_ADDR, 2501, 2501]);
 
     // Construct the transaction
@@ -115,19 +115,23 @@ describe("Benqi Finance Large Pool Withdrawal Agent Test Suite", () => {
   });
 
   it("updates the set of qitokens when a new market is listed", async () => {
+    // The mock getTotalSupply returns 1000
+    mockGetTotalSupply.mockResolvedValue(BigNumber.from(1000));
+
     // Generate a `MarketListed` stating that a new market has been listed
-    const log = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("MarketListed"), [NEW_QITOKEN_ADDR]);
+    const log1 = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("MarketListed"), [NEW_QITOKEN_ADDR]);
+
+    // Generate a `Redeem` event with a withdrawal of 500 tokens
+    const log2 = QITOKEN_IFACE.encodeEventLog(QITOKEN_IFACE.getEvent("Redeem"), [USER_ADDR, 500, 500]);
 
     // Construct the transaction
-    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
-      COMPTROLLER_ADDR,
-      log.data,
-      ...log.topics
-    );
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(COMPTROLLER_ADDR, log1.data, ...log1.topics)
+      .addAnonymousEventLog(NEW_QITOKEN_ADDR, log2.data, ...log2.topics);
 
-    // Run the handler on the test transaction to detect the event 
-    await handler(tx);
-    // The array should contain the new QiToken
-    expect(initializeArray[1]).toStrictEqual(NEW_QITOKEN_ADDR);
+    // Run the handler on the test transaction
+    const findings: Finding[] = await handler(tx);
+    // A finding should be detected for the newly added QiToken address
+    expect(findings).toStrictEqual([createFinding(NEW_QITOKEN_ADDR, "1000", "500")]);
   });
 });
