@@ -1,7 +1,8 @@
 import { BigNumber, BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
+import { JsonRpcProvider } from "@ethersproject/providers/lib/json-rpc-provider";
 import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-agent";
-import agent from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import {
   QI_BALANCE_ABI,
@@ -57,8 +58,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       let handleTransaction: HandleTransaction;
 
       beforeEach(() => {
-        agent.provideInitialize(QI_ADDRESS, COMPTROLLER_ADDRESS, config)();
-        handleTransaction = agent.provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
+        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
       });
 
       it("should ignore empty transactions", async () => {
@@ -157,8 +157,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       let handleTransaction: HandleTransaction;
 
       beforeEach(() => {
-        agent.provideInitialize(QI_ADDRESS, COMPTROLLER_ADDRESS, config)();
-        handleTransaction = agent.provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
+        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
       });
 
       it("should ignore empty transactions", async () => {
@@ -264,23 +263,25 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         thresholdMode: ThresholdMode.PERCENTAGE_COMP_BALANCE,
         threshold: "30",
       };
+      const initialBlock = 100;
       const initialComptrollerBalance = BigNumber.from("500");
 
       let handleTransaction: HandleTransaction;
       const mockProvider = new MockEthersProvider();
-
-      mockProvider.addCallTo(QI_ADDRESS, undefined!, QI_IFACE, "balanceOf", {
+      mockProvider.addCallTo(QI_ADDRESS, initialBlock - 1, QI_IFACE, "balanceOf", {
         inputs: [COMPTROLLER_ADDRESS],
         outputs: [initialComptrollerBalance],
       });
 
       beforeEach(() => {
-        agent.provideInitialize(QI_ADDRESS, COMPTROLLER_ADDRESS, config, mockProvider)();
-        handleTransaction = agent.provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config);
+        const provider = mockProvider as unknown as JsonRpcProvider;
+        handleTransaction = provideHandleTransaction(QI_ADDRESS, COMPTROLLER_ADDRESS, config, provider);
+
+        mockProvider.call.mockClear();
       });
 
       it("should ignore empty transactions", async () => {
-        const txEvent = new TestTransactionEvent();
+        const txEvent = new TestTransactionEvent().setBlock(initialBlock);
         const findings = await handleTransaction(txEvent);
 
         expect(findings).toStrictEqual([]);
@@ -290,7 +291,9 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
         const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
+        const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
+          .addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
 
         const findings = await handleTransaction(txEvent);
 
@@ -303,11 +306,9 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
           config.threshold,
         ]);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(
-          IRRELEVANT_ADDRESS,
-          alertLog.data,
-          ...alertLog.topics
-        );
+        const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
+          .addAnonymousEventLog(IRRELEVANT_ADDRESS, alertLog.data, ...alertLog.topics);
 
         const findings = await handleTransaction(txEvent);
 
@@ -326,6 +327,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         ]);
 
         const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
 
@@ -353,6 +355,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         ]);
 
         const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
 
@@ -372,6 +375,14 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
             config.threshold
           ),
         ]);
+        expect(mockProvider.call).toHaveBeenCalledTimes(1);
+        expect(mockProvider.call).toHaveBeenCalledWith(
+          {
+            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+            to: QI_ADDRESS,
+          },
+          initialBlock - 1
+        );
       });
 
       it("should update the comptroller balance if there is a QI Transfer from the comptroller", async () => {
@@ -397,6 +408,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         ]);
 
         const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
           .addAnonymousEventLog(QI_ADDRESS, transferOut.data, ...transferOut.topics);
@@ -404,6 +416,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         const findingsBeforeTransfer = await handleTransaction(txEvent);
 
         const nextTxEvent = new TestTransactionEvent()
+          .setBlock(initialBlock + 1)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics);
 
@@ -418,6 +431,14 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
           createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
           createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
         ]);
+        expect(mockProvider.call).toHaveBeenCalledTimes(1);
+        expect(mockProvider.call).toHaveBeenCalledWith(
+          {
+            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+            to: QI_ADDRESS,
+          },
+          initialBlock - 1
+        );
       });
 
       it("should update the comptroller balance if there is a QI Transfer to the comptroller", async () => {
@@ -441,6 +462,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         ]);
 
         const txEvent = new TestTransactionEvent()
+          .setBlock(initialBlock)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics)
           .addAnonymousEventLog(QI_ADDRESS, transferTo.data, ...transferTo.topics);
@@ -453,6 +475,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         ]);
 
         const nextTxEvent = new TestTransactionEvent()
+          .setBlock(initialBlock + 1)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
           .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics);
 
@@ -467,6 +490,14 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         expect(findingsAfterTransfer).toStrictEqual([
           createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
         ]);
+        expect(mockProvider.call).toHaveBeenCalledTimes(1);
+        expect(mockProvider.call).toHaveBeenCalledWith(
+          {
+            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+            to: QI_ADDRESS,
+          },
+          initialBlock - 1
+        );
       });
     });
   });
