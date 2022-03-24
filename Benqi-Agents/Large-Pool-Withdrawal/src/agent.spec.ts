@@ -29,7 +29,7 @@ describe("Benqi Finance Large Pool Withdrawal Agent Test Suite", () => {
     // Setup the mock function to get total pool supply to be used by the agent
     mockGetTotalSupply = jest.fn();
     // Setup the handler
-    handler = provideHandleTransaction(initializeArray, mockGetTotalSupply, 0.25, COMPTROLLER_ADDR);
+    handler = provideHandleTransaction(initializeArray, mockGetTotalSupply, 25, COMPTROLLER_ADDR);
   });
 
   it("ignores empty transactions", async () => {

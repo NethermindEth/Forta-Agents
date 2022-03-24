@@ -15,7 +15,9 @@ import { createFinding } from "./finding";
 
 const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 
-const THRESHOLD_PERCENTAGE = 0.25;
+// The threshold for generating findings
+// The percentage is shown in decimal form. EG: 25% = 25
+const THRESHOLD_PERCENTAGE = 25;
 
 // Array to track the QiToken pools
 let QITOKENS: string[] = [];
@@ -68,7 +70,7 @@ export const provideHandleTransaction = (
         // Get the total supply from the previous block
         const totalSupply = await getTotalSupply(log.address, tx.blockNumber - 1);
         // If the amount of tokens redeemed is more `thresholdPercentage` of `totalSupply`
-        if(totalSupply.div(redeemTokens).lt(1 / thresholdPercentage)) {
+        if(redeemTokens.gte(totalSupply.mul(thresholdPercentage).div(100))) {
           // Generate a finding
           findings.push(createFinding(log.address, totalSupply.toString(), redeemTokens.toString()));
         }
