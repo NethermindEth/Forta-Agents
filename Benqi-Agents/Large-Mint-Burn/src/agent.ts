@@ -4,12 +4,12 @@ import ReservesFetcher from "./reserves.fetcher";
 import { createFinding, EVENTS_SIGNATURES, PERCENT, PGL_CONTRACT } from "./utils";
 
 export const provideHandleTransaction =
-  (pglContract: string, percent: number, fetcher: ReservesFetcher): HandleTransaction =>
+  (percent: number, fetcher: ReservesFetcher): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // Filter logs to get Burn and Mint event logs
-    const logs: LogDescription[] = txEvent.filterLog(EVENTS_SIGNATURES, pglContract);
+    const logs: LogDescription[] = txEvent.filterLog(EVENTS_SIGNATURES, fetcher.pglAddress);
 
     // Return empty findings in no log is reported.
     if (logs.length == 0) return findings;
@@ -32,7 +32,6 @@ export const provideHandleTransaction =
 
 export default {
   handleTransaction: provideHandleTransaction(
-    PGL_CONTRACT,
     PERCENT,
     new ReservesFetcher(getEthersProvider(), PGL_CONTRACT)
   ),

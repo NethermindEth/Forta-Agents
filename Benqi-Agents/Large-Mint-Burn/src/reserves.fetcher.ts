@@ -5,6 +5,7 @@ import { RESERVES_FUNCTION } from "./utils";
 export default class ReservesFetcher {
   provider: providers.Provider;
   private cache: LRU<string, Promise<[BigNumber, BigNumber]>>;
+  pglAddress: string; 
   private pglContract: Contract;
 
   constructor(provider: providers.Provider, contractAddr: string) {
@@ -12,6 +13,7 @@ export default class ReservesFetcher {
     this.cache = new LRU<string, Promise<[BigNumber, BigNumber]>>({
       max: 10000,
     });
+    this.pglAddress = contractAddr;
     this.pglContract = new Contract(contractAddr, RESERVES_FUNCTION, provider);
   }
 

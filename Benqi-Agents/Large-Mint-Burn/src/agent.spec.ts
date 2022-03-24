@@ -57,21 +57,23 @@ const TEST_DATA = [
   [createAddress("0xb3"), BigNumber.from(150), BigNumber.from(250), createAddress("0xc1")], // Burn event with large QI and WAVAX amounts
 ];
 
-// mock Fetcher
-const mockGetReserves = jest.fn();
-const mockFetcher = {
-  getReserves: mockGetReserves,
-};
-
-// init the agent
-const handler = provideHandleTransaction(TEST_PGL_CONTRACT, 10, mockFetcher as any);
-
-beforeEach(() => {
-  mockFetcher.getReserves.mockClear();
-  mockFetcher.getReserves.mockResolvedValue([BigNumber.from(1000), BigNumber.from(2000)]);
-});
-
 describe("Large PGL Burn-Mint agent tests suite", () => {
+  // mock Fetcher
+  const mockGetReserves = jest.fn();
+  const mockFetcher = {
+    pglAddress: TEST_PGL_CONTRACT,
+    getReserves: mockGetReserves,
+  };
+
+  // init the agent
+  const handler = provideHandleTransaction(10, mockFetcher as any);
+  
+  beforeEach(() => {
+    mockFetcher.getReserves.mockClear();
+    // set the reserves used in tests
+    mockFetcher.getReserves.mockResolvedValue([BigNumber.from(1000), BigNumber.from(2000)]);
+  });
+
   it("should ignore empty transactions", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
