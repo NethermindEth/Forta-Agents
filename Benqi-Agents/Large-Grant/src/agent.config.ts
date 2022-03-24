@@ -3,13 +3,13 @@ import { AgentConfig, ThresholdMode } from "./utils";
 const CONFIG: AgentConfig = {
   /**
    * AgentConfig.qiAddress:
-   *    The address of the QI token.
+   *    The (lowercase) address of the QI token.
    */
   qiAddress: "0x8729438eb15e2c8b576fcc6aecda6a148776c0f5",
 
   /**
    * AgentConfig.comptrollerAddress:
-   *    The address of the Comptroller contract.
+   *    The (lowercase) address of the Comptroller contract.
    */
   comptrollerAddress: "0x486af39519b4dc9a7fccd318217352830e8ad9b4",
 
