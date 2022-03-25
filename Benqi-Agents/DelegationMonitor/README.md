@@ -27,7 +27,8 @@ This agent detects users with a huge balance delegating their votes.
 
 ## Test Data
 
-There are no transactions including delegate votes on QI contract. We have deployed a PoC contract to emit the monitored events. The agent behaviour can be verified with the following test transactions (Avalanche):
+There are no transactions including delegate votes on QI contract. We have deployed a PoC contract to emit the monitored events. The agent behaviour can be verified with the following test transactions (Avalanche Testnet):
+
 > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TEST_QI_CONTRACT` instead of `QI_CONTRACT`.
 The agent behaviour can be verified with the following transactions:
 
