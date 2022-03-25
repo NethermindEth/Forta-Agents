@@ -234,7 +234,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
     let handleTransaction: HandleTransaction;
     const mockProvider = new MockEthersProvider();
-    
+
     mockProvider.addCallTo(QI_ADDRESS, initialBlock - 1, QI_IFACE, "balanceOf", {
       inputs: [COMPTROLLER_ADDRESS],
       outputs: [initialComptrollerBalance],
@@ -367,34 +367,30 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
         .setBlock(initialBlock + 1)
         .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
         .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
-      
+
       const nextFindings = await handleTransaction(nextTxEvent);
 
       // both logs should trigger findings
       expect(findings).toStrictEqual([
         createFinding(RECIPIENT_ADDRESS, percentageOf(initialComptrollerBalance, config.threshold)),
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(nextComptrollerBalance, config.threshold)
-        ),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(nextComptrollerBalance, config.threshold)),
       ]);
       // after the balance is updated, exactThresholdLog should not trigger a finding, since
       // nextComptrollerBalance > initialComptrollerBalance
       expect(nextFindings).toStrictEqual([
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(nextComptrollerBalance, config.threshold)
-        ),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(nextComptrollerBalance, config.threshold)),
       ]);
       expect(mockProvider.call).toHaveBeenCalledTimes(2);
-      expect(mockProvider.call).toHaveBeenNthCalledWith(1,
+      expect(mockProvider.call).toHaveBeenNthCalledWith(
+        1,
         {
           data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
           to: QI_ADDRESS,
         },
         initialBlock - 1 // previous block
       );
-      expect(mockProvider.call).toHaveBeenNthCalledWith(2,
+      expect(mockProvider.call).toHaveBeenNthCalledWith(
+        2,
         {
           data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
           to: QI_ADDRESS,
