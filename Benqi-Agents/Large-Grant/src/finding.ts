@@ -1,12 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { ThresholdMode } from "./utils";
 
-export function createFinding(
-  recipient: string,
-  amount: string,
-  thresholdMode: ThresholdMode,
-  threshold: string
-): Finding {
+export function createFinding(recipient: string, amount: string): Finding {
   return Finding.fromObject({
     name: "Large QI Grant",
     description: "There was a large QI Grant in the BENQI Comptroller contract",
@@ -17,8 +12,6 @@ export function createFinding(
     metadata: {
       recipient,
       amount: amount.toString(),
-      mode: ThresholdMode[thresholdMode],
-      threshold,
     },
   });
 }

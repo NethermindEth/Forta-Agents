@@ -15,12 +15,7 @@ const IRRELEVANT_ADDRESS = createAddress("0x4");
 const COMPTROLLER_IFACE = new Interface([QI_GRANTED_ABI]);
 const QI_IFACE = new Interface([QI_BALANCE_ABI, QI_TRANSFER_ABI]);
 
-export function createFinding(
-  recipient: string,
-  amount: string,
-  thresholdMode: ThresholdMode,
-  threshold: string
-): Finding {
+export function createFinding(recipient: string, amount: string): Finding {
   return Finding.fromObject({
     name: "Large QI Grant",
     description: "There was a large QI Grant in the BENQI Comptroller contract",
@@ -31,8 +26,6 @@ export function createFinding(
     metadata: {
       recipient,
       amount: amount,
-      mode: ThresholdMode[thresholdMode],
-      threshold,
     },
   });
 }
@@ -107,9 +100,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
       const findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
-      ]);
+      expect(findings).toStrictEqual([createFinding(RECIPIENT_ADDRESS, config.threshold)]);
     });
 
     it("should detect multiple eligible events from the Comptroller contract", async () => {
@@ -130,13 +121,8 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
-        createFinding(
-          RECIPIENT_ADDRESS,
-          BigNumber.from(config.threshold).add(1).toString(),
-          config.thresholdMode,
-          config.threshold
-        ),
+        createFinding(RECIPIENT_ADDRESS, config.threshold),
+        createFinding(RECIPIENT_ADDRESS, BigNumber.from(config.threshold).add(1).toString()),
       ]);
     });
   });
@@ -207,12 +193,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-          config.thresholdMode,
-          config.threshold
-        ),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(QI_TOTAL_SUPPLY, config.threshold)),
       ]);
     });
 
@@ -234,18 +215,8 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-          config.thresholdMode,
-          config.threshold
-        ),
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
-          config.thresholdMode,
-          config.threshold
-        ),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(QI_TOTAL_SUPPLY, config.threshold)),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1))),
       ]);
     });
   });
@@ -328,12 +299,7 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(initialComptrollerBalance, config.threshold),
-          config.thresholdMode,
-          config.threshold
-        ),
+        createFinding(RECIPIENT_ADDRESS, percentageOf(initialComptrollerBalance, config.threshold)),
       ]);
     });
 
@@ -356,17 +322,10 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, percentageOf(initialComptrollerBalance, config.threshold)),
         createFinding(
           RECIPIENT_ADDRESS,
-          percentageOf(initialComptrollerBalance, config.threshold),
-          config.thresholdMode,
-          config.threshold
-        ),
-        createFinding(
-          RECIPIENT_ADDRESS,
-          percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1)),
-          config.thresholdMode,
-          config.threshold
+          percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1))
         ),
       ]);
       expect(mockProvider.call).toHaveBeenCalledTimes(1);
@@ -417,13 +376,11 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
       const findingsAfterTransfer = await handleTransaction(nextTxEvent);
 
       // nextExactThresholdLog finding should not appear before the threshold absolute value is decreased
-      expect(findingsBeforeTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-      ]);
+      expect(findingsBeforeTransfer).toStrictEqual([createFinding(RECIPIENT_ADDRESS, exactThresholdValue)]);
       // both findings should appear after the threshold absolute value is decreased
       expect(findingsAfterTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
+        createFinding(RECIPIENT_ADDRESS, exactThresholdValue),
+        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue),
       ]);
       expect(mockProvider.call).toHaveBeenCalledTimes(1);
       expect(mockProvider.call).toHaveBeenCalledWith(
@@ -477,13 +434,11 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
 
       // both findings should appear before the threshold absolute value is increased
       expect(findingsBeforeTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
+        createFinding(RECIPIENT_ADDRESS, exactThresholdValue),
+        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue),
       ]);
       // exactThresholdLog finding should not appear after the threshold absolute value is increased
-      expect(findingsAfterTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
-      ]);
+      expect(findingsAfterTransfer).toStrictEqual([createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue)]);
       expect(mockProvider.call).toHaveBeenCalledTimes(1);
       expect(mockProvider.call).toHaveBeenCalledWith(
         {

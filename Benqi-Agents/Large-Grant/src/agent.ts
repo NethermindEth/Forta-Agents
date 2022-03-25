@@ -87,9 +87,7 @@ export const provideHandleTransaction = (agentConfig: AgentConfig, provider?: Js
     await Promise.all(
       events.map(async (log: LogDescription) => {
         if (isLarge(log.args.amount)) {
-          findings.push(
-            createFinding(log.args.recipient, log.args.amount, agentConfig.thresholdMode, agentConfig.threshold)
-          );
+          findings.push(createFinding(log.args.recipient, log.args.amount));
         }
       })
     );
