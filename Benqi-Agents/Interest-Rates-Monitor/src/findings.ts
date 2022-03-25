@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { BigNumber, FixedNumber } from "ethers";
+import { BigNumber } from "ethers";
 
 export const findingCase: string[] = ["lowerSupply", "upperSupply", "lowerBorrow", "upperBorrow"];
 

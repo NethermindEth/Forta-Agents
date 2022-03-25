@@ -54,7 +54,9 @@ This agent detects BenQi's `QiTokens` interest rates threshold excesses.
 
 ## Test Data
 
-In order to use the `PoC QiTokens Contracts`: 1) Set the `testnetMode` variable to `true` in `src/utils.ts`. 2) Change the `jsonRpcUrl` in `forta.config.json` to `https://api.avax-test.network/ext/bc/C/rpc`.
+In order to use the `PoC QiTokens Contracts`: 
+1. Set the `testnetMode` variable to `true` in `src/utils.ts`. 
+2. Change the `jsonRpcUrl` in `forta.config.json` to `https://api.avax-test.network/ext/bc/C/rpc`.
 
 ### Avalanche Testnet
 
