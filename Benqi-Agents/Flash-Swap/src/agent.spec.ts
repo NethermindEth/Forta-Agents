@@ -120,7 +120,7 @@ describe("Flash Swap agent alert test suite", () => {
     ]);
   })
 
-  it("should ignore swap function calls when that are regular swaps", async () => {
+  it("should ignore swap function calls that are regular swaps", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(testMsgSender)
       .setTo(testPglContract)
