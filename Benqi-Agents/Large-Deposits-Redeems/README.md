@@ -55,13 +55,13 @@ The agent behaviour can be verified with the following transactions:
   These transactions have been generated through our PoC contract deployed on avalanche testnet. 
   > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TESTNET_PGL_STAKING` instead of `PGL_STAKING_CONTRACT`.
 
-  - 0x1bd7e1b2278177e3fbf2af5a20cfd229ceafa0e75722609477a5d35ef3e58500 
+  - 0x554adca0e92abcf5ae60c5ccb4c5078ba1393f90f36339a436b31a395c530a9d 
     - `redeem` call. 
     - `pglAmount`: 500
     - `totalSupplies`: 2000
     - `result`: generates a finding with **<=25%** percentage.
 
-  - 0x03ec09c0f207000805a6c4f83cf9ff841a3ade28323277b09b7c4fe7f659419a 
+  - 0x16aa257b6a0fa23a85146e87dd90fcd26140bd0cba4c16e6f46c5e92e4e567ad 
     - `deposit` call. 
     - `pglAmount`: 150
     - `totalSupplies`: 1500

@@ -1,7 +1,7 @@
 // PGL Staking Contract address
 export const PGL_STAKING_CONTRACT = "0x784DA19e61cf348a8c54547531795ECfee2AfFd1";
 // Avalanche Testnet Staking contract address
-export const TESTNET_PGL_STAKING = "0x127D02DF38Ea031a4EBb6f4b225176a66e004F2e";
+export const TESTNET_PGL_STAKING = "0xC6A79ce121796A3d83F96242260b296370dA5346";
 
 // `deposit`, `redeem` functions signatures
 export const FUNCTION_SIGNATURES = [

@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract PglStakingContract {
-    using SafeMath for uint256;
 
     // Current contract admin address
     address public admin;
@@ -20,12 +18,12 @@ contract PglStakingContract {
 
     function deposit(uint256 pglAmount) external {
         require(pglAmount > 0, "Zero deposit");
-        totalSupplies = totalSupplies.add(pglAmount);
+        totalSupplies = totalSupplies + pglAmount;
     }
 
     function redeem(uint256 pglAmount) external  {
          require(pglAmount < totalSupplies, "Large amount");
-        totalSupplies = totalSupplies.sub(pglAmount);
+        totalSupplies = totalSupplies - pglAmount;
     }
 
     /**
@@ -33,9 +31,5 @@ contract PglStakingContract {
      */
     fallback() external {
 
-    }
-        modifier adminOnly {
-        require(msg.sender == admin, "admin only");
-        _;
     }
 }
