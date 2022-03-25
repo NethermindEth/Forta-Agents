@@ -7,6 +7,7 @@ const COMPTROLLER_ABI = [
 
 const QITOKEN_ABI = [
   "event Redeem(address redeemer, uint256 redeemAmount, uint256 redeemTokens)",
+  "function totalSupply() view returns (uint256)"
 ];
 
 export const COMPTROLLER_IFACE = new ethers.utils.Interface(COMPTROLLER_ABI);

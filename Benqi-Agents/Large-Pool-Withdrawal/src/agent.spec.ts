@@ -20,7 +20,6 @@ const USER_ADDR = createAddress("0xd1");
 describe("Benqi Finance Large Pool Withdrawal Agent Test Suite", () => {
   let handler: HandleTransaction;
   let mockGetTotalSupply: any;
-  //let initializeSet: Set<string>;
   let initializeArray: string[];
 
   beforeAll(() => {
