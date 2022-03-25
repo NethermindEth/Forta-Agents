@@ -17,7 +17,7 @@ const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 
 // The threshold for generating findings
 // The percentage is shown in decimal form. EG: 25% = 25
-const THRESHOLD_PERCENTAGE = 25;
+const THRESHOLD_PERCENTAGE = 20;
 
 // Array to track the QiToken pools
 let QITOKENS: string[] = [];
@@ -40,7 +40,8 @@ export const initialize = async (comptrollerAddr: string) => {
     getEthersProvider()
   );
   // Get all QiTokens
-  QITOKENS = await comptrollerContract.getAllMarkets();
+  let tokens = await comptrollerContract.getAllMarkets();
+  QITOKENS.push(...tokens);
 };
 
 export const provideHandleTransaction = (
