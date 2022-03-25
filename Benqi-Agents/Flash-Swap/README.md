@@ -21,10 +21,8 @@ This agent detects flash swaps occuring on the PGL contract.
 
 ## Test Data
 
-`TokenOne` deployed at this address: [0x7211759e79C6ebAB44A0B03E7703Db17800457a8](https://testnet.snowtrace.io/address/0x7211759e79C6ebAB44A0B03E7703Db17800457a8).
+Mock `TestPair` contract deployed on the Avalanche testnet at this address: [0x88C80C9d00D9583b252f8151D8489b5A35506e55](https://testnet.snowtrace.io/address/0x88C80C9d00D9583b252f8151D8489b5A35506e55#code).
 
-`TokenTwo` deployed at this address: [0x17736ce576318b08312bA939a24EB2A3992aC29C](https://testnet.snowtrace.io/address/0x17736ce576318b08312bA939a24EB2A3992aC29C).
+Transaction that should generate a Finding is this txn hash: [0x7ca549fafac6c8f8d3e1e810bf58bf62d86335c541a07ca8aa955deff36bce73](https://testnet.snowtrace.io/tx/0x7ca549fafac6c8f8d3e1e810bf58bf62d86335c541a07ca8aa955deff36bce73).
 
-`TokenPair` deployed at this address: []().
-
-`TestFlashSwap` deployed at this address: []().
+Transaction that should NOT generate a Finding is this txn hash: [0x884bf704ce2d960b3d3fd5e3d8542bcdc7a988dcc4473500dba9168bcb116a9a](https://testnet.snowtrace.io/tx/0x884bf704ce2d960b3d3fd5e3d8542bcdc7a988dcc4473500dba9168bcb116a9a).

@@ -28,7 +28,7 @@ const testCases: any[][] = [
   [BigNumber.from(100), BigNumber.from(100), createAddress("0xab03"), "0x12ab"],
   [BigNumber.from(300), BigNumber.from(300), createAddress("0xac04"), "0x34ac"],
   [BigNumber.from(500), BigNumber.from(500), createAddress("0xad05"), "0x45ad"],
-  [BigNumber.from(800), BigNumber.from(800), createAddress("0xae06"), "0x00"]
+  [BigNumber.from(800), BigNumber.from(800), createAddress("0xae06"), "0x"]
 ];
 
 const encodedSwapCalls: string[] = [

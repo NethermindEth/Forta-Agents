@@ -19,7 +19,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.5.0",
     "forta-agent": "^0.0.40"
   },
   "devDependencies": {
