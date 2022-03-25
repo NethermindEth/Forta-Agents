@@ -1,5 +1,5 @@
 {
-  "name": "Benqi-2",
+  "name": "benqi-2",
   "version": "0.0.1",
   "description": "This agent detects user with a huge balance delegating their votes",
   "scripts": {
