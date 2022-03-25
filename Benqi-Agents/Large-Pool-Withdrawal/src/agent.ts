@@ -18,12 +18,12 @@ const THRESHOLD_PERCENTAGE = 20;
 let QITOKENS: string[] = [];
 
 // Cache for totalSupply
-const cache: LRU<string, BigNumber> =  new LRU<string, BigNumber>({max: 10000});
+const cache: LRU<string, BigNumber> = new LRU<string, BigNumber>({ max: 10000 });
 
 export const getTotalSupply = async (qiToken: string, blockNumber: number): Promise<BigNumber> => {
   const key: string = `${qiToken}-${blockNumber}`;
   // check first if value is in cache
-  if(cache.has(key)) return cache.get(key) as BigNumber;
+  if (cache.has(key)) return cache.get(key) as BigNumber;
   // Create an ethers contract instance to query on-chain data
   const qiTokenContract = new ethers.Contract(
     qiToken,
