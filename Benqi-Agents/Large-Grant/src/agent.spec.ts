@@ -4,7 +4,7 @@ import { JsonRpcProvider } from "@ethersproject/providers/lib/json-rpc-provider"
 import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { QI_BALANCE_ABI, QI_GRANTED_ABI, QI_TOTAL_SUPPLY, QI_TRANSFER_ABI, ThresholdMode } from "./utils";
+import { QI_BALANCE_ABI, QI_GRANTED_ABI, QI_TOTAL_SUPPLY, ThresholdMode } from "./utils";
 import { MockEthersProvider } from "forta-agent-tools/lib/tests";
 
 const QI_ADDRESS = createAddress("0x1");
@@ -13,7 +13,7 @@ const RECIPIENT_ADDRESS = createAddress("0x3");
 const IRRELEVANT_ADDRESS = createAddress("0x4");
 
 const COMPTROLLER_IFACE = new Interface([QI_GRANTED_ABI]);
-const QI_IFACE = new Interface([QI_BALANCE_ABI, QI_TRANSFER_ABI]);
+const QI_IFACE = new Interface([QI_BALANCE_ABI]);
 
 export function createFinding(recipient: string, amount: string): Finding {
   return Finding.fromObject({
@@ -328,117 +328,6 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
           percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1))
         ),
       ]);
-      expect(mockProvider.call).toHaveBeenCalledTimes(1);
-      expect(mockProvider.call).toHaveBeenCalledWith(
-        {
-          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
-          to: QI_ADDRESS,
-        },
-        initialBlock - 1
-      );
-    });
-
-    it("should update the comptroller balance if there is a QI Transfer from the comptroller", async () => {
-      const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
-      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-        RECIPIENT_ADDRESS,
-        exactThresholdValue,
-      ]);
-
-      const transferOut = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
-        COMPTROLLER_ADDRESS,
-        RECIPIENT_ADDRESS,
-        exactThresholdValue,
-      ]);
-
-      const nextExactThresholdValue = percentageOf(
-        initialComptrollerBalance.sub(exactThresholdValue),
-        config.threshold
-      );
-      const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-        RECIPIENT_ADDRESS,
-        nextExactThresholdValue,
-      ]);
-
-      const txEvent = new TestTransactionEvent()
-        .setBlock(initialBlock)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
-        .addAnonymousEventLog(QI_ADDRESS, transferOut.data, ...transferOut.topics);
-
-      const findingsBeforeTransfer = await handleTransaction(txEvent);
-
-      const nextTxEvent = new TestTransactionEvent()
-        .setBlock(initialBlock + 1)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics);
-
-      const findingsAfterTransfer = await handleTransaction(nextTxEvent);
-
-      // nextExactThresholdLog finding should not appear before the threshold absolute value is decreased
-      expect(findingsBeforeTransfer).toStrictEqual([createFinding(RECIPIENT_ADDRESS, exactThresholdValue)]);
-      // both findings should appear after the threshold absolute value is decreased
-      expect(findingsAfterTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, exactThresholdValue),
-        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue),
-      ]);
-      expect(mockProvider.call).toHaveBeenCalledTimes(1);
-      expect(mockProvider.call).toHaveBeenCalledWith(
-        {
-          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
-          to: QI_ADDRESS,
-        },
-        initialBlock - 1
-      );
-    });
-
-    it("should update the comptroller balance if there is a QI Transfer to the comptroller", async () => {
-      const qiReceived = initialComptrollerBalance;
-      const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
-      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-        RECIPIENT_ADDRESS,
-        exactThresholdValue,
-      ]);
-
-      const transferTo = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
-        RECIPIENT_ADDRESS,
-        COMPTROLLER_ADDRESS,
-        qiReceived,
-      ]);
-
-      const nextExactThresholdValue = percentageOf(initialComptrollerBalance.add(qiReceived), config.threshold);
-      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-        RECIPIENT_ADDRESS,
-        nextExactThresholdValue,
-      ]);
-
-      const txEvent = new TestTransactionEvent()
-        .setBlock(initialBlock)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics)
-        .addAnonymousEventLog(QI_ADDRESS, transferTo.data, ...transferTo.topics);
-
-      const findingsBeforeTransfer = await handleTransaction(txEvent);
-
-      const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-        RECIPIENT_ADDRESS,
-        nextExactThresholdValue,
-      ]);
-
-      const nextTxEvent = new TestTransactionEvent()
-        .setBlock(initialBlock + 1)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
-        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics);
-
-      const findingsAfterTransfer = await handleTransaction(nextTxEvent);
-
-      // both findings should appear before the threshold absolute value is increased
-      expect(findingsBeforeTransfer).toStrictEqual([
-        createFinding(RECIPIENT_ADDRESS, exactThresholdValue),
-        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue),
-      ]);
-      // exactThresholdLog finding should not appear after the threshold absolute value is increased
-      expect(findingsAfterTransfer).toStrictEqual([createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue)]);
       expect(mockProvider.call).toHaveBeenCalledTimes(1);
       expect(mockProvider.call).toHaveBeenCalledWith(
         {
