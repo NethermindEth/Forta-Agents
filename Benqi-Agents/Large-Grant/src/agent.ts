@@ -34,14 +34,20 @@ const provideUpdateComptrollerBalance = (
   agentConfig: AgentConfig,
   provider?: JsonRpcProvider
 ): ((block: number) => Promise<void>) => {
+  let balanceBlock = -1;
+
   if (agentConfig.thresholdMode !== ThresholdMode.PERCENTAGE_COMPTROLLER_BALANCE) {
     return async () => {};
   } else {
     return async (block: number) => {
-      const qiContract = new Contract(agentConfig.qiAddress, QI_IFACE, provider);
-      comptrollerBalance = await qiContract.balanceOf(agentConfig.comptrollerAddress, {
-        blockTag: block - 1,
-      });
+      if (block !== balanceBlock) {
+        balanceBlock = block;
+
+        const qiContract = new Contract(agentConfig.qiAddress, QI_IFACE, provider);
+        comptrollerBalance = await qiContract.balanceOf(agentConfig.comptrollerAddress, {
+          blockTag: block - 1,
+        });
+      }
     };
   }
 };
