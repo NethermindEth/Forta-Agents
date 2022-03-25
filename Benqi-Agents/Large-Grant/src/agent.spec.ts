@@ -230,12 +230,19 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
     };
     const initialBlock = 100;
     const initialComptrollerBalance = BigNumber.from("500");
+    const nextComptrollerBalance = BigNumber.from("1000");
 
     let handleTransaction: HandleTransaction;
     const mockProvider = new MockEthersProvider();
+    
     mockProvider.addCallTo(QI_ADDRESS, initialBlock - 1, QI_IFACE, "balanceOf", {
       inputs: [COMPTROLLER_ADDRESS],
       outputs: [initialComptrollerBalance],
+    });
+
+    mockProvider.addCallTo(QI_ADDRESS, initialBlock, QI_IFACE, "balanceOf", {
+      inputs: [COMPTROLLER_ADDRESS],
+      outputs: [nextComptrollerBalance],
     });
 
     beforeEach(() => {
@@ -335,6 +342,64 @@ describe("Delegate-Votes-Monitor Agent test suite", () => {
           to: QI_ADDRESS,
         },
         initialBlock - 1
+      );
+    });
+
+    it("should update the Comptroller's QI balance", async () => {
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(initialComptrollerBalance, config.threshold),
+      ]);
+
+      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(nextComptrollerBalance, config.threshold),
+      ]);
+
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      const nextTxEvent = new TestTransactionEvent()
+        .setBlock(initialBlock + 1)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
+      
+      const nextFindings = await handleTransaction(nextTxEvent);
+
+      // both logs should trigger findings
+      expect(findings).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, percentageOf(initialComptrollerBalance, config.threshold)),
+        createFinding(
+          RECIPIENT_ADDRESS,
+          percentageOf(nextComptrollerBalance, config.threshold)
+        ),
+      ]);
+      // after the balance is updated, exactThresholdLog should not trigger a finding, since
+      // nextComptrollerBalance > initialComptrollerBalance
+      expect(nextFindings).toStrictEqual([
+        createFinding(
+          RECIPIENT_ADDRESS,
+          percentageOf(nextComptrollerBalance, config.threshold)
+        ),
+      ]);
+      expect(mockProvider.call).toHaveBeenCalledTimes(2);
+      expect(mockProvider.call).toHaveBeenNthCalledWith(1,
+        {
+          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+          to: QI_ADDRESS,
+        },
+        initialBlock - 1 // previous block
+      );
+      expect(mockProvider.call).toHaveBeenNthCalledWith(2,
+        {
+          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+          to: QI_ADDRESS,
+        },
+        initialBlock // previous block
       );
     });
   });
