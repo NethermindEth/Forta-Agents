@@ -42,7 +42,7 @@ describe("User with huge balance delegating their votes", () => {
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
-  
+
   it("should return no Findings due to incorrect event signature", async () => {
     const testDelegator: string = createAddress("0xabc268");
     const testFromDelegate: string = createAddress("0xabc842");
@@ -62,7 +62,7 @@ describe("User with huge balance delegating their votes", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(50)
       .addEventLog(badWorkSig, testBenqiToken, data, ...topics.slice(1));
-    
+
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -87,11 +87,11 @@ describe("User with huge balance delegating their votes", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(50)
       .addAnonymousEventLog(wrongBenqiToken, data, ...topics);
-    
+
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
-  
+
   it("should only return findings if value is equal to or greater than threshold", async () => {
     const TEST_DATA: string[][] = [
       [createAddress("0xabc238"), createAddress("0xabc872"), createAddress("0xdef914"), BigNumber.from(1).toString()],
@@ -114,11 +114,11 @@ describe("User with huge balance delegating their votes", () => {
 
       txEvent.addAnonymousEventLog(testBenqiToken, data, ...topics);
     }
-    
+
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([createFinding(TEST_DATA[1]), createFinding(TEST_DATA[2])]);
   });
-  
+
   it("should return multiple findings", async () => {
     const TEST_DATA: string[][] = [
       [createAddress("0xabc168"), createAddress("0xabc942"), createAddress("0xdef924"), BigNumber.from(600).toString()],
@@ -141,7 +141,7 @@ describe("User with huge balance delegating their votes", () => {
 
       txEvent.addAnonymousEventLog(testBenqiToken, data, ...topics);
     }
-    
+
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       createFinding(TEST_DATA[0]),
