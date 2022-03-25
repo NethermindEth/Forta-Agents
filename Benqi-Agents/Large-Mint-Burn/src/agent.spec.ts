@@ -133,7 +133,7 @@ describe("Large PGL Burn-Mint agent tests suite", () => {
   it("should return a finding when WAVAX amount is above the threshold", async () => {
     // Burn event with large WAVAX amount
     const log1 = PGL_IFACE.encodeEventLog(PGL_IFACE.getEvent("Burn"), TEST_DATA[6]);
-    // Burn event with large WAVAX amount
+    // Mint event with large WAVAX amount
     const log2 = PGL_IFACE.encodeEventLog(PGL_IFACE.getEvent("Mint"), TEST_DATA[2]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
