@@ -4,7 +4,7 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 // Address of the PGL contract.
 export const PGL_CONTRACT = "0xE530dC2095Ef5653205CF5ea79F8979a7028065c";
 // Address of PoC contract on Ropsten testnet.
-export const TESTNET_PGL_CONTRACT = "0x4e181F9f190e803DD2cAb193dEf2e2AaF5a84ab8";
+export const TESTNET_PGL_CONTRACT = "0xBF544D286749845b26BA6aA708939E8DF59557d7";
 // Mint, Burn events signatures.
 export const EVENTS_SIGNATURES = [
   "event Mint(address indexed sender, uint amount0, uint amount1)",

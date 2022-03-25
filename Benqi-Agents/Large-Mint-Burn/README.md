@@ -35,9 +35,9 @@ This agent detects Mints and Burns on PGL contract with large QI-WAVAX amounts.
 
 ## Test Data
 
-There are no transactions including large Mints/Burns on PGL contract. We have deployed a PoC contract to emit the monitored events. The agent behaviour can be verified with the following test transactions (Ropsten):
+There are no transactions including large Mints/Burns on PGL contract. We have deployed a PoC contract to emit the monitored events. The agent behaviour can be verified with the following test transactions (Avalanche testnet):
 > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TESTNET_PGL_CONTRACT` instead of `PGL_CONTRACT`.
 
-- 0x212324e7e0909810cbf002414488a7d448a219f5a7e06d824e7b43925287b8bd (`Mint` with regular amounts - no Finding generated).
-- 0xdf20b418ca234228ef4390ccd7d5d391bffaf20209075bfbf0fbe5ba0347fc67 (`Mint` with large QI amount - Finding generated).
-- 0xb4f867b6558c371b19b3f16e43468287f0d91e8b156a0b54ff3f3b957fa25ce4 (`Burn` with large QI-WAVAX amounts - Finding generated).
+- 0x23cef6f0235e7e8366632ed13a70207d289e1c18bdbe358b2d1bc6ca886ab09d (`Mint` with regular amounts - no Finding generated).
+- 0xd805d56437c3596c514512b414d63a972e16b7703287bd88f0051424443cc1ee (`Mint` with large QI amount - Finding generated).
+- 0x4079ab4fc50d53de2f531efb76fd46befdd0aeae62f3e1f8e405f5ab863d0846 (`Burn` with large QI-WAVAX amounts - Finding generated).
