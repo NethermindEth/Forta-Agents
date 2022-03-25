@@ -43,461 +43,455 @@ const percentageOf = (value: BigNumberish, percentage: BigNumberish): string => 
 
 describe("Delegate-Votes-Monitor Agent test suite", () => {
   describe("absolute threshold", () => {
-    describe("handleTransaction", () => {
-      const config = {
-        qiAddress: QI_ADDRESS,
-        comptrollerAddress: COMPTROLLER_ADDRESS,
-        thresholdMode: ThresholdMode.ABSOLUTE,
-        threshold: "100000",
-      };
-      let handleTransaction: HandleTransaction;
+    const config = {
+      qiAddress: QI_ADDRESS,
+      comptrollerAddress: COMPTROLLER_ADDRESS,
+      thresholdMode: ThresholdMode.ABSOLUTE,
+      threshold: "100000",
+    };
+    let handleTransaction: HandleTransaction;
 
-      beforeEach(() => {
-        handleTransaction = provideHandleTransaction(config);
-      });
+    beforeEach(() => {
+      handleTransaction = provideHandleTransaction(config);
+    });
 
-      it("should ignore empty transactions", async () => {
-        const txEvent = new TestTransactionEvent();
-        const findings = await handleTransaction(txEvent);
+    it("should ignore empty transactions", async () => {
+      const txEvent = new TestTransactionEvent();
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore other events from the Comptroller contract", async () => {
-        const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
-        const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
+    it("should ignore other events from the Comptroller contract", async () => {
+      const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
+      const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
+      const txEvent = new TestTransactionEvent().addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from other contracts", async () => {
-        const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          config.threshold,
-        ]);
+    it("should ignore QiGranted events from other contracts", async () => {
+      const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        config.threshold,
+      ]);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(
-          IRRELEVANT_ADDRESS,
-          alertLog.data,
-          ...alertLog.topics
-        );
+      const txEvent = new TestTransactionEvent().addAnonymousEventLog(
+        IRRELEVANT_ADDRESS,
+        alertLog.data,
+        ...alertLog.topics
+      );
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
-        const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          BigNumber.from(config.threshold).sub(1).toString(),
-        ]);
+    it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
+      const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        BigNumber.from(config.threshold).sub(1).toString(),
+      ]);
 
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          config.threshold,
-        ]);
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        config.threshold,
+      ]);
 
-        const txEvent = new TestTransactionEvent()
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
+      const txEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
-        ]);
-      });
+      expect(findings).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
+      ]);
+    });
 
-      it("should detect multiple eligible events from the Comptroller contract", async () => {
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          config.threshold,
-        ]);
+    it("should detect multiple eligible events from the Comptroller contract", async () => {
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        config.threshold,
+      ]);
 
-        const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        BigNumber.from(config.threshold).add(1).toString(),
+      ]);
+
+      const txEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
+        createFinding(
           RECIPIENT_ADDRESS,
           BigNumber.from(config.threshold).add(1).toString(),
-        ]);
-
-        const txEvent = new TestTransactionEvent()
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
-
-        const findings = await handleTransaction(txEvent);
-
-        expect(findings).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, config.threshold, config.thresholdMode, config.threshold),
-          createFinding(
-            RECIPIENT_ADDRESS,
-            BigNumber.from(config.threshold).add(1).toString(),
-            config.thresholdMode,
-            config.threshold
-          ),
-        ]);
-      });
+          config.thresholdMode,
+          config.threshold
+        ),
+      ]);
     });
   });
 
   describe("percentage total supply threshold", () => {
-    describe("handleTransaction", () => {
-      const config = {
-        qiAddress: QI_ADDRESS,
-        comptrollerAddress: COMPTROLLER_ADDRESS,
-        thresholdMode: ThresholdMode.PERCENTAGE_TOTAL_SUPPLY,
-        threshold: "30",
-      };
-      let handleTransaction: HandleTransaction;
+    const config = {
+      qiAddress: QI_ADDRESS,
+      comptrollerAddress: COMPTROLLER_ADDRESS,
+      thresholdMode: ThresholdMode.PERCENTAGE_TOTAL_SUPPLY,
+      threshold: "30",
+    };
+    let handleTransaction: HandleTransaction;
 
-      beforeEach(() => {
-        handleTransaction = provideHandleTransaction(config);
-      });
+    beforeEach(() => {
+      handleTransaction = provideHandleTransaction(config);
+    });
 
-      it("should ignore empty transactions", async () => {
-        const txEvent = new TestTransactionEvent();
-        const findings = await handleTransaction(txEvent);
+    it("should ignore empty transactions", async () => {
+      const txEvent = new TestTransactionEvent();
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore other events from the Comptroller contract", async () => {
-        const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
-        const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
+    it("should ignore other events from the Comptroller contract", async () => {
+      const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
+      const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
+      const txEvent = new TestTransactionEvent().addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from other contracts", async () => {
-        const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          config.threshold,
-        ]);
+    it("should ignore QiGranted events from other contracts", async () => {
+      const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        config.threshold,
+      ]);
 
-        const txEvent = new TestTransactionEvent().addAnonymousEventLog(
-          IRRELEVANT_ADDRESS,
-          alertLog.data,
-          ...alertLog.topics
-        );
+      const txEvent = new TestTransactionEvent().addAnonymousEventLog(
+        IRRELEVANT_ADDRESS,
+        alertLog.data,
+        ...alertLog.topics
+      );
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
-        const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).sub(1)),
-        ]);
+    it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
+      const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).sub(1)),
+      ]);
 
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-        ]);
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(QI_TOTAL_SUPPLY, config.threshold),
+      ]);
 
-        const txEvent = new TestTransactionEvent()
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
+      const txEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-            config.thresholdMode,
-            config.threshold
-          ),
-        ]);
-      });
-
-      it("should detect multiple eligible events from the Comptroller contract", async () => {
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+      expect(findings).toStrictEqual([
+        createFinding(
           RECIPIENT_ADDRESS,
           percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-        ]);
+          config.thresholdMode,
+          config.threshold
+        ),
+      ]);
+    });
 
-        const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+    it("should detect multiple eligible events from the Comptroller contract", async () => {
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(QI_TOTAL_SUPPLY, config.threshold),
+      ]);
+
+      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
+      ]);
+
+      const txEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        createFinding(
+          RECIPIENT_ADDRESS,
+          percentageOf(QI_TOTAL_SUPPLY, config.threshold),
+          config.thresholdMode,
+          config.threshold
+        ),
+        createFinding(
           RECIPIENT_ADDRESS,
           percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
-        ]);
-
-        const txEvent = new TestTransactionEvent()
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
-
-        const findings = await handleTransaction(txEvent);
-
-        expect(findings).toStrictEqual([
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(QI_TOTAL_SUPPLY, config.threshold),
-            config.thresholdMode,
-            config.threshold
-          ),
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(QI_TOTAL_SUPPLY, BigNumber.from(config.threshold).add(1)),
-            config.thresholdMode,
-            config.threshold
-          ),
-        ]);
-      });
+          config.thresholdMode,
+          config.threshold
+        ),
+      ]);
     });
   });
 
   describe("percentage comptroller balance threshold", () => {
-    describe("handleTransaction", () => {
-      const config = {
-        qiAddress: QI_ADDRESS,
-        comptrollerAddress: COMPTROLLER_ADDRESS,
-        thresholdMode: ThresholdMode.PERCENTAGE_COMPTROLLER_BALANCE,
-        threshold: "30",
-      };
-      const initialBlock = 100;
-      const initialComptrollerBalance = BigNumber.from("500");
+    const config = {
+      qiAddress: QI_ADDRESS,
+      comptrollerAddress: COMPTROLLER_ADDRESS,
+      thresholdMode: ThresholdMode.PERCENTAGE_COMPTROLLER_BALANCE,
+      threshold: "30",
+    };
+    const initialBlock = 100;
+    const initialComptrollerBalance = BigNumber.from("500");
 
-      let handleTransaction: HandleTransaction;
-      const mockProvider = new MockEthersProvider();
-      mockProvider.addCallTo(QI_ADDRESS, initialBlock - 1, QI_IFACE, "balanceOf", {
-        inputs: [COMPTROLLER_ADDRESS],
-        outputs: [initialComptrollerBalance],
-      });
+    let handleTransaction: HandleTransaction;
+    const mockProvider = new MockEthersProvider();
+    mockProvider.addCallTo(QI_ADDRESS, initialBlock - 1, QI_IFACE, "balanceOf", {
+      inputs: [COMPTROLLER_ADDRESS],
+      outputs: [initialComptrollerBalance],
+    });
 
-      beforeEach(() => {
-        const provider = mockProvider as unknown as JsonRpcProvider;
-        handleTransaction = provideHandleTransaction(config, provider);
+    beforeEach(() => {
+      const provider = mockProvider as unknown as JsonRpcProvider;
+      handleTransaction = provideHandleTransaction(config, provider);
 
-        mockProvider.call.mockClear();
-      });
+      mockProvider.call.mockClear();
+    });
 
-      it("should ignore empty transactions", async () => {
-        const txEvent = new TestTransactionEvent().setBlock(initialBlock);
-        const findings = await handleTransaction(txEvent);
+    it("should ignore empty transactions", async () => {
+      const txEvent = new TestTransactionEvent().setBlock(initialBlock);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore other events from the Comptroller contract", async () => {
-        const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
-        const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
+    it("should ignore other events from the Comptroller contract", async () => {
+      const irrelevantIface = new Interface(["event IrrelevantEvent()"]);
+      const log = irrelevantIface.encodeEventLog(irrelevantIface.getEvent("IrrelevantEvent"), []);
 
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, log.data, ...log.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from other contracts", async () => {
-        const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          config.threshold,
-        ]);
+    it("should ignore QiGranted events from other contracts", async () => {
+      const alertLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        config.threshold,
+      ]);
 
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(IRRELEVANT_ADDRESS, alertLog.data, ...alertLog.topics);
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(IRRELEVANT_ADDRESS, alertLog.data, ...alertLog.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([]);
-      });
+      expect(findings).toStrictEqual([]);
+    });
 
-      it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
-        const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).sub(1)),
-        ]);
+    it("should ignore QiGranted events from the Comptroller contract that do not meet the threshold", async () => {
+      const belowThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).sub(1)),
+      ]);
 
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          percentageOf(initialComptrollerBalance, config.threshold),
-        ]);
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(initialComptrollerBalance, config.threshold),
+      ]);
 
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, belowThresholdLog.data, ...belowThresholdLog.topics);
 
-        const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEvent);
 
-        expect(findings).toStrictEqual([
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(initialComptrollerBalance, config.threshold),
-            config.thresholdMode,
-            config.threshold
-          ),
-        ]);
-      });
-
-      it("should detect multiple eligible events from the Comptroller contract", async () => {
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+      expect(findings).toStrictEqual([
+        createFinding(
           RECIPIENT_ADDRESS,
           percentageOf(initialComptrollerBalance, config.threshold),
-        ]);
+          config.thresholdMode,
+          config.threshold
+        ),
+      ]);
+    });
 
-        const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+    it("should detect multiple eligible events from the Comptroller contract", async () => {
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(initialComptrollerBalance, config.threshold),
+      ]);
+
+      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1)),
+      ]);
+
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        createFinding(
+          RECIPIENT_ADDRESS,
+          percentageOf(initialComptrollerBalance, config.threshold),
+          config.thresholdMode,
+          config.threshold
+        ),
+        createFinding(
           RECIPIENT_ADDRESS,
           percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1)),
-        ]);
-
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics);
-
-        const findings = await handleTransaction(txEvent);
-
-        expect(findings).toStrictEqual([
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(initialComptrollerBalance, config.threshold),
-            config.thresholdMode,
-            config.threshold
-          ),
-          createFinding(
-            RECIPIENT_ADDRESS,
-            percentageOf(initialComptrollerBalance, BigNumber.from(config.threshold).add(1)),
-            config.thresholdMode,
-            config.threshold
-          ),
-        ]);
-        expect(mockProvider.call).toHaveBeenCalledTimes(1);
-        expect(mockProvider.call).toHaveBeenCalledWith(
-          {
-            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
-            to: QI_ADDRESS,
-          },
-          initialBlock - 1
-        );
-      });
-
-      it("should update the comptroller balance if there is a QI Transfer from the comptroller", async () => {
-        const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          exactThresholdValue,
-        ]);
-
-        const transferOut = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
-          COMPTROLLER_ADDRESS,
-          RECIPIENT_ADDRESS,
-          exactThresholdValue,
-        ]);
-
-        const nextExactThresholdValue = percentageOf(
-          initialComptrollerBalance.sub(exactThresholdValue),
+          config.thresholdMode,
           config.threshold
-        );
-        const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          nextExactThresholdValue,
-        ]);
+        ),
+      ]);
+      expect(mockProvider.call).toHaveBeenCalledTimes(1);
+      expect(mockProvider.call).toHaveBeenCalledWith(
+        {
+          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+          to: QI_ADDRESS,
+        },
+        initialBlock - 1
+      );
+    });
 
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
-          .addAnonymousEventLog(QI_ADDRESS, transferOut.data, ...transferOut.topics);
+    it("should update the comptroller balance if there is a QI Transfer from the comptroller", async () => {
+      const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        exactThresholdValue,
+      ]);
 
-        const findingsBeforeTransfer = await handleTransaction(txEvent);
+      const transferOut = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
+        COMPTROLLER_ADDRESS,
+        RECIPIENT_ADDRESS,
+        exactThresholdValue,
+      ]);
 
-        const nextTxEvent = new TestTransactionEvent()
-          .setBlock(initialBlock + 1)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics);
+      const nextExactThresholdValue = percentageOf(
+        initialComptrollerBalance.sub(exactThresholdValue),
+        config.threshold
+      );
+      const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        nextExactThresholdValue,
+      ]);
 
-        const findingsAfterTransfer = await handleTransaction(nextTxEvent);
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
+        .addAnonymousEventLog(QI_ADDRESS, transferOut.data, ...transferOut.topics);
 
-        // nextExactThresholdLog finding should not appear before the threshold absolute value is decreased
-        expect(findingsBeforeTransfer).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-        ]);
-        // both findings should appear after the threshold absolute value is decreased
-        expect(findingsAfterTransfer).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-          createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
-        ]);
-        expect(mockProvider.call).toHaveBeenCalledTimes(1);
-        expect(mockProvider.call).toHaveBeenCalledWith(
-          {
-            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
-            to: QI_ADDRESS,
-          },
-          initialBlock - 1
-        );
-      });
+      const findingsBeforeTransfer = await handleTransaction(txEvent);
 
-      it("should update the comptroller balance if there is a QI Transfer to the comptroller", async () => {
-        const qiReceived = initialComptrollerBalance;
-        const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
-        const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          exactThresholdValue,
-        ]);
+      const nextTxEvent = new TestTransactionEvent()
+        .setBlock(initialBlock + 1)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics);
 
-        const transferTo = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
-          RECIPIENT_ADDRESS,
-          COMPTROLLER_ADDRESS,
-          qiReceived,
-        ]);
+      const findingsAfterTransfer = await handleTransaction(nextTxEvent);
 
-        const nextExactThresholdValue = percentageOf(initialComptrollerBalance.add(qiReceived), config.threshold);
-        const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          nextExactThresholdValue,
-        ]);
+      // nextExactThresholdLog finding should not appear before the threshold absolute value is decreased
+      expect(findingsBeforeTransfer).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
+      ]);
+      // both findings should appear after the threshold absolute value is decreased
+      expect(findingsAfterTransfer).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
+        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
+      ]);
+      expect(mockProvider.call).toHaveBeenCalledTimes(1);
+      expect(mockProvider.call).toHaveBeenCalledWith(
+        {
+          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+          to: QI_ADDRESS,
+        },
+        initialBlock - 1
+      );
+    });
 
-        const txEvent = new TestTransactionEvent()
-          .setBlock(initialBlock)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics)
-          .addAnonymousEventLog(QI_ADDRESS, transferTo.data, ...transferTo.topics);
+    it("should update the comptroller balance if there is a QI Transfer to the comptroller", async () => {
+      const qiReceived = initialComptrollerBalance;
+      const exactThresholdValue = percentageOf(initialComptrollerBalance, config.threshold);
+      const exactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        exactThresholdValue,
+      ]);
 
-        const findingsBeforeTransfer = await handleTransaction(txEvent);
+      const transferTo = QI_IFACE.encodeEventLog(QI_IFACE.getEvent("Transfer"), [
+        RECIPIENT_ADDRESS,
+        COMPTROLLER_ADDRESS,
+        qiReceived,
+      ]);
 
-        const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
-          RECIPIENT_ADDRESS,
-          nextExactThresholdValue,
-        ]);
+      const nextExactThresholdValue = percentageOf(initialComptrollerBalance.add(qiReceived), config.threshold);
+      const aboveThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        nextExactThresholdValue,
+      ]);
 
-        const nextTxEvent = new TestTransactionEvent()
-          .setBlock(initialBlock + 1)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
-          .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics);
+      const txEvent = new TestTransactionEvent()
+        .setBlock(initialBlock)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, aboveThresholdLog.data, ...aboveThresholdLog.topics)
+        .addAnonymousEventLog(QI_ADDRESS, transferTo.data, ...transferTo.topics);
 
-        const findingsAfterTransfer = await handleTransaction(nextTxEvent);
+      const findingsBeforeTransfer = await handleTransaction(txEvent);
 
-        // both findings should appear before the threshold absolute value is increased
-        expect(findingsBeforeTransfer).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
-          createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
-        ]);
-        // exactThresholdLog finding should not appear after the threshold absolute value is increased
-        expect(findingsAfterTransfer).toStrictEqual([
-          createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
-        ]);
-        expect(mockProvider.call).toHaveBeenCalledTimes(1);
-        expect(mockProvider.call).toHaveBeenCalledWith(
-          {
-            data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
-            to: QI_ADDRESS,
-          },
-          initialBlock - 1
-        );
-      });
+      const nextExactThresholdLog = COMPTROLLER_IFACE.encodeEventLog(COMPTROLLER_IFACE.getEvent("QiGranted"), [
+        RECIPIENT_ADDRESS,
+        nextExactThresholdValue,
+      ]);
+
+      const nextTxEvent = new TestTransactionEvent()
+        .setBlock(initialBlock + 1)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, nextExactThresholdLog.data, ...nextExactThresholdLog.topics)
+        .addAnonymousEventLog(COMPTROLLER_ADDRESS, exactThresholdLog.data, ...exactThresholdLog.topics);
+
+      const findingsAfterTransfer = await handleTransaction(nextTxEvent);
+
+      // both findings should appear before the threshold absolute value is increased
+      expect(findingsBeforeTransfer).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, exactThresholdValue, config.thresholdMode, config.threshold),
+        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
+      ]);
+      // exactThresholdLog finding should not appear after the threshold absolute value is increased
+      expect(findingsAfterTransfer).toStrictEqual([
+        createFinding(RECIPIENT_ADDRESS, nextExactThresholdValue, config.thresholdMode, config.threshold),
+      ]);
+      expect(mockProvider.call).toHaveBeenCalledTimes(1);
+      expect(mockProvider.call).toHaveBeenCalledWith(
+        {
+          data: QI_IFACE.encodeFunctionData(QI_IFACE.getFunction("balanceOf"), [COMPTROLLER_ADDRESS]),
+          to: QI_ADDRESS,
+        },
+        initialBlock - 1
+      );
     });
   });
 });
