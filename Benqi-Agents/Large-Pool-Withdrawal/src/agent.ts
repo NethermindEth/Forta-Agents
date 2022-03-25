@@ -1,11 +1,4 @@
-import {
-  Finding,
-  FindingType,
-  FindingSeverity,
-  TransactionEvent,
-  HandleTransaction,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, TransactionEvent, HandleTransaction, getEthersProvider } from "forta-agent";
 
 import { ethers } from "ethers";
 
@@ -13,11 +6,11 @@ import { COMPTROLLER_IFACE, QITOKEN_IFACE } from "./abi";
 
 import { createFinding } from "./finding";
 
-const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
+const COMPTROLLER_ADDR = "0x49446968344BDdCB407158aC103eD233866F8cE5";
 
 // The threshold for generating findings
 // The percentage is shown in decimal form. EG: 25% = 25
-const THRESHOLD_PERCENTAGE = 20;
+const THRESHOLD_PERCENTAGE = 10;
 
 // Array to track the QiToken pools
 let QITOKENS: string[] = [];
