@@ -17,9 +17,9 @@ export default class DataFetcher {
 
   // return the number of tokens held by the account
   public async getBalance(account: string, blockNumber: number): Promise<BigNumber> {
-    const key: string = `${account + blockNumber}`;
+    const key: string = `${account}-${blockNumber}`;
 
-    if (this.cache.get(key) !== undefined) return this.cache.get(key) as BigNumber;
+    if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
     const balance: BigNumber = await this.qiTokenContract.balanceOf(account, { blockTag: blockNumber });
     this.cache.set(key, balance);
