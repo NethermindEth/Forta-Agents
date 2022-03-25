@@ -144,20 +144,6 @@ describe("Large PGL Burn-Mint agent tests suite", () => {
     expect(findings).toStrictEqual([createFinding("Burn", TEST_DATA[6]), createFinding("Mint", TEST_DATA[2])]);
   });
 
-  it("should return a finding when both QI-WAVAX amounts are above the threshold", async () => {
-    // Burn event with large QI-WAVAX amounts
-    const log1 = PGL_IFACE.encodeEventLog(PGL_IFACE.getEvent("Burn"), TEST_DATA[7]);
-    // Mint event with large QI-WAVAX amounts
-    const log2 = PGL_IFACE.encodeEventLog(PGL_IFACE.getEvent("Mint"), TEST_DATA[3]);
-
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(TEST_PGL_CONTRACT, log1.data, ...log1.topics)
-      .addAnonymousEventLog(TEST_PGL_CONTRACT, log2.data, ...log2.topics);
-
-    const findings: Finding[] = await handler(txEvent);
-    expect(findings).toStrictEqual([createFinding("Burn", TEST_DATA[7]), createFinding("Mint", TEST_DATA[3])]);
-  });
-
   it("should return multiple findings", async () => {
     // Burn event with large QI and WAVAX amounts
     const log1 = PGL_IFACE.encodeEventLog(PGL_IFACE.getEvent("Burn"), TEST_DATA[7]);
