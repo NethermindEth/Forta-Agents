@@ -27,7 +27,7 @@ The way a grant is classified as large can be modified in the `agent.config.ts` 
 
 Since there's no testing data in Avalanche mainnet, a PoC was developed
 and deployed in the Avalanche Fuji testnet. The PoC source code is inside
-the `src/PoC/` directory.
+the `PoC/` directory.
 
 The agent behaviour can be verified by:
 
