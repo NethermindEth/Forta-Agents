@@ -67,12 +67,6 @@ const testCreateFinding = (
           tokenAddress: address.toLowerCase(),
           supplyInterestRate: rate.toString(),
           lowerRateThreshold: threshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(rate)
-            .subUnsafe(FixedNumber.from(threshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(threshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
     case "upperSupply":
@@ -88,12 +82,6 @@ const testCreateFinding = (
           tokenAddress: address.toLowerCase(),
           supplyInterestRate: rate.toString(),
           upperRateThreshold: threshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(rate)
-            .subUnsafe(FixedNumber.from(threshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(threshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
     case "lowerBorrow":
@@ -109,12 +97,6 @@ const testCreateFinding = (
           tokenAddress: address.toLowerCase(),
           borrowInterestRate: rate.toString(),
           lowerRateThreshold: threshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(rate)
-            .subUnsafe(FixedNumber.from(threshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(threshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
     default:
@@ -130,12 +112,6 @@ const testCreateFinding = (
           tokenAddress: address.toLowerCase(),
           borrowInterestRate: rate.toString(),
           upperRateThreshold: threshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(rate)
-            .subUnsafe(FixedNumber.from(threshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(threshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
   }

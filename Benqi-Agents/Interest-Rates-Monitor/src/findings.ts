@@ -24,12 +24,6 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           supplyInterestRate: interestRate.toString(),
           lowerRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(interestRate)
-            .subUnsafe(FixedNumber.from(rateThreshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(rateThreshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
     case "upperSupply":
@@ -44,13 +38,7 @@ export const createFinding = (
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
           supplyInterestRate: interestRate.toString(),
-          upperRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(interestRate)
-            .subUnsafe(FixedNumber.from(rateThreshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(rateThreshold))
-            .toString()
-            .slice(0, 5)}%`,
+          upperRateThreshold: rateThreshold.toString(),          
         },
       });
     case "lowerBorrow":
@@ -66,12 +54,6 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           borrowInterestRate: interestRate.toString(),
           lowerRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(interestRate)
-            .subUnsafe(FixedNumber.from(rateThreshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(rateThreshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
     default:
@@ -87,12 +69,6 @@ export const createFinding = (
           tokenAddress: qiTokenAddress.toLowerCase(),
           borrowInterestRate: interestRate.toString(),
           upperRateThreshold: rateThreshold.toString(),
-          thresholdExceededBy: `${FixedNumber.from(interestRate)
-            .subUnsafe(FixedNumber.from(rateThreshold))
-            .mulUnsafe(FixedNumber.from(100))
-            .divUnsafe(FixedNumber.from(rateThreshold))
-            .toString()
-            .slice(0, 5)}%`,
         },
       });
   }

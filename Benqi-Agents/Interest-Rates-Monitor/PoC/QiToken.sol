@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract QiLink {
+contract QiToken {
     /**
      * @notice Borrow interest rate at the current timestamp
      */
