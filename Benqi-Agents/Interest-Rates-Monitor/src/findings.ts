@@ -38,7 +38,7 @@ export const createFinding = (
           token: qiTokenName,
           tokenAddress: qiTokenAddress.toLowerCase(),
           supplyInterestRate: interestRate.toString(),
-          upperRateThreshold: rateThreshold.toString(),          
+          upperRateThreshold: rateThreshold.toString(),
         },
       });
     case "lowerBorrow":
