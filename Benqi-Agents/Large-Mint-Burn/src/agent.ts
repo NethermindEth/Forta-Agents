@@ -18,13 +18,13 @@ export const provideHandleTransaction =
     const [reserve0, reserve1] = await fetcher.getReserves(txEvent.blockNumber - 1);
 
     // set threshold values
-    const threshold0 = reserve0.mul(percent).div(100); // QI threshold
-    const threshold1 = reserve1.mul(percent).div(100); // WAVAX threshold
+    const threshold0 = reserve0.mul(percent); // QI threshold
+    const threshold1 = reserve1.mul(percent); // WAVAX threshold
 
     // Loop over the logs
     logs.forEach((log) => {
       // Generate a finding if one of the amounts exceeds the threshold
-      if (BigNumber.from(log.args.amount0).gte(threshold0) || BigNumber.from(log.args.amount1).gte(threshold1))
+      if (BigNumber.from(log.args.amount0).mul(100).gte(threshold0) || BigNumber.from(log.args.amount1).mul(100).gte(threshold1))
         findings.push(createFinding(log));
     });
     return findings;
