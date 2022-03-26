@@ -74,7 +74,7 @@ export const provideHandleTransaction = (
         // Get the total supply from the previous block
         const totalSupply = await getTotalSupply(log.address, tx.blockNumber - 1);
         // If the amount of tokens redeemed is more `thresholdPercentage` of `totalSupply`
-        if (redeemTokens.gte(totalSupply.mul(thresholdPercentage).div(100))) {
+        if (redeemTokens.mul(100).gte(totalSupply.mul(thresholdPercentage))) {
           // Generate a finding
           findings.push(createFinding(log.address, totalSupply.toString(), redeemTokens.toString()));
         }
