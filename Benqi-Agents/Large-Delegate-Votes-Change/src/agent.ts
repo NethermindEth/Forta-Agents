@@ -10,8 +10,8 @@ import {
 import { DELEGATE_VOTES_CHANGED_ABI, PERCENTAGE_THRESHOLD, QI_ADDRESS } from "./constants";
 
 const isLarge = (previousBalance: BigNumber, newBalance: BigNumber, percentageThreshold: BigNumber): boolean => {
-  const absoluteThreshold = previousBalance.mul(BigNumber.from(100).add(percentageThreshold)).div(100);
-  return newBalance.gte(absoluteThreshold);
+  const absoluteThreshold = previousBalance.mul(BigNumber.from(100).add(percentageThreshold));
+  return newBalance.mul(100).gte(absoluteThreshold);
 };
 
 export const provideHandleTransaction = (
