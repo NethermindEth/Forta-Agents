@@ -21,11 +21,11 @@ const provideIsLarge = (agentConfig: AgentConfig): ((value: BigNumber) => boolea
     case ThresholdMode.PERCENTAGE_TOTAL_SUPPLY:
       return (value: BigNumber): boolean => {
         const totalSupply = BigNumber.from(QI_TOTAL_SUPPLY);
-        return value.gte(totalSupply.mul(bnThreshold).div(100));
+        return value.mul(100).gte(totalSupply.mul(bnThreshold));
       };
     case ThresholdMode.PERCENTAGE_COMPTROLLER_BALANCE:
       return (value: BigNumber): boolean => {
-        return value.gte(comptrollerBalance.mul(bnThreshold).div(100));
+        return value.mul(100).gte(comptrollerBalance.mul(bnThreshold));
       };
   }
 };
