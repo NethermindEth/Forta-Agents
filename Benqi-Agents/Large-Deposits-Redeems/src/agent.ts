@@ -19,10 +19,10 @@ export const provideHandleTransaction =
 
         // fetch the total staked PGL and compute the threshold.
         const totalSupplies = await fetcher.getTotalSupplies(txEvent.blockNumber - 1);
-        const threshold = totalSupplies.mul(threshold_percentage).div(100);
+        const threshold = totalSupplies.mul(threshold_percentage);
 
         // create a finding if the amount exceeds the threshold.
-        if (threshold.lte(pglAmount)) findings.push(createFinding(call.name, pglAmount, txEvent.from));
+        if (threshold.lte(pglAmount.mul(100))) findings.push(createFinding(call.name, pglAmount, txEvent.from));
       })
     );
     // return the findings
