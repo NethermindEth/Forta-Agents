@@ -1,26 +1,35 @@
-# Large Tether Transfer Agent
+# Role Changes
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This agent detects transactions Role changes related function calls in Ondo Registry
+> Functions:
+>
+> - addStrategist
+> - grantRole
+> - renounceRole
+> - revokeRole
+>
+> Registry: 0xf69c52bf2cf76250647c0bb5390d4ba8854a1d4a
+
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- ONDO-1
+  - Fired when a transaction execute one or more of the above functions in Ondo Registry
+  - Severity is always set to "Medium"
+  - Type is always set to "Suspicious"
+  - Metadata contains:
+    - `sender`: Address calling the function
+    - `method`: The name of the function invoked
+    - All the parameters of the function called
 
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- 0x7dc6b941d9aa6a09289a25f83af273f762e27e3149454c4788b6c2b64736456d (4 grantRole calls)

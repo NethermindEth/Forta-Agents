@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "ondo-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Ondo Role changes detector",
   "chainIds": [
     1
   ],
