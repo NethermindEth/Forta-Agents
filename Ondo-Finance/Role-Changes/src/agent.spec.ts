@@ -10,6 +10,8 @@ enum DESC {
   GRANT_ROLE = "grantRole",
   RENOUNCE_ROLE = "renounceRole",
   REVOKE_ROLE = "revokeRole",
+  NOT_REGISTRY = "notARegistryCall",
+  ENABLE_TOKENS = "enableTokens",
 }
 
 const role = (name: string) => keccak256(name);
@@ -56,10 +58,16 @@ describe("Role Changes agent test suite", () => {
       [DESC.GRANT_ROLE.toString()     , createAddress("0xe0a03"), createAddress("0x09"), role("Role-7"), createAddress("0xabc07")],
       [DESC.RENOUNCE_ROLE.toString()  , createAddress("0xe0a02"), registry, role("Role-8"), createAddress("0xabc08")],
       [DESC.REVOKE_ROLE.toString()    , createAddress("0xe0a01"), registry, role("Role-9"), createAddress("0xabc10")],
+      [DESC.NOT_REGISTRY.toString()   , createAddress("0xe0a123"), createAddress("0xdef1bad")],
+      [DESC.ENABLE_TOKENS.toString()  , createAddress("0xe0a321"), registry],
     ];
 
     const sender: string = createAddress("0x53d3");
-    const iface: utils.Interface = new utils.Interface(abi.REGISTRY);
+    const iface: utils.Interface = new utils.Interface([
+      ...abi.REGISTRY,
+      "function notARegistryCall()",
+      "function enableTokens() external", // Real Registry method
+    ]);
 
     const txn: TestTransactionEvent = new TestTransactionEvent().setFrom(sender);
 
