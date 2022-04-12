@@ -45,20 +45,34 @@ describe("Role Changes agent test suite", () => {
   });
 
   it("should return multiple role changes emitted in the correct registry", async () => {
-    const TEST_CASES: string[][] = [
-      [DESC.ADD_STRATEGIEST.toString(), createAddress("0xe0a30"), createAddress("0x00"), createAddress("0xdef1"), "Strategist-Role-1"],
+    const TEST_CASES: string[][] = [ // Format: method, sender, contract, ...method parameters
+      // not a registry call
+      [DESC.ADD_STRATEGIEST.toString(), createAddress("0xe0a30"), createAddress("0x00"), createAddress("0xdef1"), "Strategist-Role-1"], 
+      // valid registry call
       [DESC.GRANT_ROLE.toString()     , createAddress("0xe0a20"), registry, role("Role-1"), createAddress("0xabc01")],
+      // not a registry call
       [DESC.RENOUNCE_ROLE.toString()  , createAddress("0xe0a10"), createAddress("0x02"), role("Role-2"), createAddress("0xabc02")],
+      // not a registry call
       [DESC.REVOKE_ROLE.toString()    , createAddress("0xe0a09"), createAddress("0x03"), role("Role-3"), createAddress("0xabc03")],
+      // valid registry call
       [DESC.ADD_STRATEGIEST.toString(), createAddress("0xe0a08"), registry, createAddress("0xdeade0a"), "Strategist-Role-2"],
+      // valid registry call
       [DESC.GRANT_ROLE.toString()     , createAddress("0xe0a07"), registry, role("Role-4"), createAddress("0xabc04")],
+      // not a registry call
       [DESC.RENOUNCE_ROLE.toString()  , createAddress("0xe0a06"), createAddress("0x06"), role("Role-5"), createAddress("0xabc05")],
+      // not a registry call
       [DESC.REVOKE_ROLE.toString()    , createAddress("0xe0a05"), createAddress("0x07"), role("Role-6"), createAddress("0xabc06")],
+      // not a registry call
       [DESC.ADD_STRATEGIEST.toString(), createAddress("0xe0a04"), createAddress("0x08"), createAddress("0xfee"), "Strategist-Role-3"],
+      // not a registry call
       [DESC.GRANT_ROLE.toString()     , createAddress("0xe0a03"), createAddress("0x09"), role("Role-7"), createAddress("0xabc07")],
+      // valid registry call
       [DESC.RENOUNCE_ROLE.toString()  , createAddress("0xe0a02"), registry, role("Role-8"), createAddress("0xabc08")],
+      // valid registry call
       [DESC.REVOKE_ROLE.toString()    , createAddress("0xe0a01"), registry, role("Role-9"), createAddress("0xabc10")],
+      // not even a function in the registry
       [DESC.NOT_REGISTRY.toString()   , createAddress("0xe0a123"), createAddress("0xdef1bad")],
+      // valid registry call not being monitored
       [DESC.ENABLE_TOKENS.toString()  , createAddress("0xe0a321"), registry],
     ];
 
