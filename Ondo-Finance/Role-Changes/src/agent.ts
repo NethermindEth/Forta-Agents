@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, Trace, TransactionEvent } from "forta-agent";
 import abi from "./abi";
 import { utils } from "ethers";
 import { createFinding } from "./findings";
@@ -10,9 +10,22 @@ const provideHandleTransaction =
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    const desc: utils.TransactionDescription[] = txEvent.filterFunction(abi.REGISTRY, registry);
+    // manually iterating the traces to get the sender of each call
+    txEvent.traces.forEach((trace: Trace) => {
+      if(trace.action.to !== registry) return;
 
-    desc.forEach((txDesc: utils.TransactionDescription) => findings.push(createFinding(txDesc, txEvent.from)));
+      const txn = {
+        data:  trace.action.input,
+        value: trace.action.value,
+        to:    trace.action.to,
+      };
+
+      try {
+        const desc: utils.TransactionDescription = abi.REGISTRY_IFACE.parseTransaction(txn);
+        findings.push(createFinding(desc, trace.action.from));
+      }
+      catch (_) {}
+    });
 
     return findings;
   };
