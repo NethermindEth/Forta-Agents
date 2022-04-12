@@ -1,13 +1,9 @@
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { utils } from "ethers";
 
 export const createFinding = (desc: utils.TransactionDescription, from: string) => {
   // Create a list of the params of the function
-  const argumentsList: any[] = desc.functionFragment.inputs.map(obj => obj.name); 
+  const argumentsList: any[] = desc.functionFragment.inputs.map((obj) => obj.name);
   // create metadata
   const metadata: Record<string, string> = {
     method: desc.name,
