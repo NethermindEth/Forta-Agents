@@ -20,7 +20,7 @@ This agent detects transactions Role changes related function calls in Ondo Regi
 ## Alerts
 
 - ONDO-1
-  - Fired when a transaction execute one or more of the above functions in Ondo Registry
+  - Fired when a transaction executes one or more of the above functions in the Ondo `Registry` contract.
   - Severity is always set to "Medium"
   - Type is always set to "Suspicious"
   - Metadata contains:
