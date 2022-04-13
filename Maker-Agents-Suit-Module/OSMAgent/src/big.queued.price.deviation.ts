@@ -64,7 +64,7 @@ const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
 
 
 const decodeCurrentValue = (log: LogDescription): bigint =>
-  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.args[0].toString()) as any);
+  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.args[0]) as any);
 
 const getCurrentValues = (
   contractAddress: string,
