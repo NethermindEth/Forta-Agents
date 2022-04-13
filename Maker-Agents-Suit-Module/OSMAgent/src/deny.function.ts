@@ -30,15 +30,14 @@ export default function provideDenyFunctionHandler(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings :Finding[]= []
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
-    contracts.map((contract:string) =>
-    txEvent.filterFunction([DENY_FUNCTION_SIG], contract.toLowerCase()).map((tx: TransactionDescription)=>{
+    
+    txEvent.filterFunction([DENY_FUNCTION_SIG],contracts).map((desc: TransactionDescription)=>{
       const metadata = {
-        contract: contract,
-        deniedAddress: tx.args[0].toLowerCase(),
+        contract: txEvent.to,
+        deniedAddress: desc.args[0].toLowerCase(),
       }
      findings.push(createFinding(metadata))
     })
-    )
 
     return findings;
 

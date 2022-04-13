@@ -21,7 +21,6 @@ const CONTRACTS: string[][] = [ // index represent a timestamp
 ]
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 const relyIFace = new utils.Interface([RELY_FUNCTION_SIG]);
-//const ABI = new Web3().eth.abi;
 
 export const createFinding = (to: string, address: string) => {
     return Finding.fromObject({

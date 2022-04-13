@@ -6,12 +6,13 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import Web3 from "web3";
-import provideDenyFunctionHandler from "./deny.function";
+import provideDenyFunctionHandler, { DENY_FUNCTION_SIG } from "./deny.function";
 import {
   createAddress,
   TestTransactionEvent,
 } from "forta-agent-tools/lib/tests";
 import { when } from "jest-when";
+import { utils } from "ethers";
 
 const CONTRACTS: string[][] = [ // index represent a timestamp
   [], // no contracts at timestamp 0
@@ -19,8 +20,8 @@ const CONTRACTS: string[][] = [ // index represent a timestamp
   [createAddress("0xb0"), createAddress("0xb1"), createAddress("0xb2")],
   [createAddress("0xc0")],
 ]
-const ADDRESS = createAddress("0x1");
-const ABI = new Web3().eth.abi;
+const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
+const denyIface =  new utils.Interface([DENY_FUNCTION_SIG]);
 
 export const createFinding = (to: string, address: string) => {
   return Finding.fromObject({
@@ -51,22 +52,11 @@ describe("OSM Rely Function Agent", () => {
   it("should return a finding for one of the OSM contract", async () => {
     const _from = createAddress("0x2");
     const _to = CONTRACTS[1][0]; 
-    const _input: string = ABI.encodeFunctionCall(
-      {
-        name: "deny",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "_operator",
-          },
-        ],
-      },
-      [ADDRESS]
-    );
+    const _input: string = denyIface.encodeFunctionData("deny",[ADDRESSES[0]])
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTimestamp(1)
+      .setTo(_to)
       .addTraces({
         to: _to,
         from: _from,
@@ -74,63 +64,43 @@ describe("OSM Rely Function Agent", () => {
       });
 
     const findings: Finding[] = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([createFinding(_to, ADDRESS)]);
+    expect(findings).toStrictEqual([createFinding(_to, ADDRESSES[0])]);
   });
 
   it("should return multiple findings", async () => {
     const _from = createAddress("0x2");
-    const _input: string = ABI.encodeFunctionCall(
-      {
-        name: "deny",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "_operator",
-          },
-        ],
-      },
-      [ADDRESS]
-    );
+    const _input: string = denyIface.encodeFunctionData("deny",[ADDRESSES[0]])
+    const _input2: string = denyIface.encodeFunctionData("deny",[ADDRESSES[1]])
+
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTimestamp(2)
+      .setTo( CONTRACTS[2][2])
       .addTraces({
         to: CONTRACTS[2][2],
         from: _from,
         input: _input,
       },{
-        to: CONTRACTS[2][1],
+        to: CONTRACTS[2][2],
         from: _from,
-        input: _input,
+        input: _input2,
       });
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      createFinding(CONTRACTS[2][1], ADDRESS),
-      createFinding(CONTRACTS[2][2], ADDRESS),
+      createFinding(CONTRACTS[2][2], ADDRESSES[0]),
+      createFinding(CONTRACTS[2][2], ADDRESSES[1]),
     ]);
   });
 
   it("should return empty finding when OSM contract address does found", async () => {
     const _from = createAddress("0x2");
     const _to = createAddress("0x1"); // BAD ADDRESS
-    const _input: string = ABI.encodeFunctionCall(
-      {
-        name: "deny",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "_operator",
-          },
-        ],
-      },
-      [ADDRESS]
-    );
+    const _input: string = denyIface.encodeFunctionData("deny",[ADDRESSES[2]])
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTimestamp(3)
+      .setTo( CONTRACTS[2][2])
       .addTraces({
         to: _to,
         from: _from,
