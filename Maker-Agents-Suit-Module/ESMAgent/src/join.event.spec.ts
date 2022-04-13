@@ -18,7 +18,7 @@ describe("ESM Join Event Agent", () => {
     handleTransaction = provideESMJoinEventAgent(ALERT_ID, ADDRESS);
   });
 
-  it("should returns a finding if condition meets", async () => {
+  it("should returns a finding if condition is met", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
@@ -44,7 +44,7 @@ describe("ESM Join Event Agent", () => {
     ]);
   });
 
-  it("should returns empty finding if MKR condition does not meet", async () => {
+  it("should return an empty finding if MKR condition is not met", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
@@ -57,7 +57,7 @@ describe("ESM Join Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty finding cause of bad SIGNATURE", async () => {
+  it("should return an empty finding because of bad signature", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "bad sig",
       ADDRESS,
@@ -70,7 +70,7 @@ describe("ESM Join Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty finding cause of bad address", async () => {
+  it("should return an empty finding because of bad address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       "0x1",
