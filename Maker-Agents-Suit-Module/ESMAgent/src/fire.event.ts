@@ -7,12 +7,11 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType,
-  Log,
+  FindingType
 } from 'forta-agent';
 
+export const MAKER_ESM_FIRE_EVENT_ABI = 'event Fire()';
 export const MAKER_ESM_FIRE_EVENT_SIGNATURE = 'Fire()';
-export const MAKER_EVEREST_ID = '0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437';
 
 const createFindingGenerator = (
   alertID: string,
@@ -27,7 +26,6 @@ const createFindingGenerator = (
       severity: FindingSeverity.Critical,
       type: FindingType.Suspicious,
       protocol: 'Maker',
-      everestId: MAKER_EVEREST_ID,
       metadata: {
         ESM_address: ESM_address,
         from: _from,
@@ -42,7 +40,7 @@ const provideESMFireEventAgent = (
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideEventCheckerHandler(
       createFindingGenerator(_alertID, _contractAddress, txEvent.from),
-      MAKER_ESM_FIRE_EVENT_SIGNATURE,
+      MAKER_ESM_FIRE_EVENT_ABI,
       _contractAddress,
     );
 
