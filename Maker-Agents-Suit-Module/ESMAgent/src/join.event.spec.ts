@@ -1,7 +1,7 @@
 import {
   TestTransactionEvent,
   createAddress,
-} from 'forta-agent-tools';
+} from 'forta-agent-tools/lib/tests';
 import {
   Finding,
   HandleTransaction,
@@ -11,8 +11,7 @@ import {
 } from 'forta-agent';
 
 import provideESMJoinEventAgent, {
-  MAKER_ESM_JOIN_EVENT_SIGNATURE,
-  MAKER_EVEREST_ID,
+  MAKER_ESM_JOIN_EVENT_SIGNATURE
 } from './join.event';
 import { encodeParam } from './utils';
 
@@ -48,7 +47,6 @@ describe('ESM Join Event Agent', () => {
         protocol: 'Maker',
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
-        everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
           amount: AMOUNT_3,
