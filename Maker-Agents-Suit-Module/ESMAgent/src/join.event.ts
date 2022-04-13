@@ -1,7 +1,4 @@
-import {
-  FindingGenerator,
-  provideEventCheckerHandler,
-} from 'forta-agent-tools';
+import { FindingGenerator, provideEventCheckerHandler } from "forta-agent-tools";
 
 import {
   Finding,
@@ -10,25 +7,28 @@ import {
   FindingSeverity,
   FindingType,
   LogDescription,
-} from 'forta-agent';
+} from "forta-agent";
 
-export const MAKER_ESM_JOIN_EVENT_ABI = 'event Join(address indexed usr, uint256 wad)';
-export const MAKER_ESM_JOIN_EVENT_SIGNATURE = 'Join(address,uint256)';
+export const MAKER_ESM_JOIN_EVENT_ABI = "event Join(address indexed usr, uint256 wad)";
+export const MAKER_ESM_JOIN_EVENT_SIGNATURE = "Join(address,uint256)";
 export const MKR_DECIMALS = 18;
 
 const filterLog = (log: LogDescription, index?: number | undefined, array?: LogDescription[] | undefined): boolean => {
   const amount = log.args[1];
 
   return BigInt(amount) > BigInt(2 * 10 ** MKR_DECIMALS);
+  // To run the txn in the README, comment the line above
+  // and uncomment the line below (0.002 MKR threshold)
+  // return BigInt(amount) > BigInt(0.002 * 10 ** MKR_DECIMALS);
 };
 
 const createFindingGenerator = (_alertID: string): FindingGenerator => {
   return (metadata: { [key: string]: any } | undefined): Finding =>
     Finding.fromObject({
-      name: 'Maker ESM Join Event',
-      description: 'Greater than 2 MKR is sent to ESM contract.',
+      name: "Maker ESM Join Event",
+      description: "Greater than 2 MKR is sent to ESM contract.",
       alertId: _alertID,
-      protocol: 'Maker',
+      protocol: "Maker",
       severity: FindingSeverity.Medium,
       type: FindingType.Suspicious,
       metadata: {
@@ -38,16 +38,13 @@ const createFindingGenerator = (_alertID: string): FindingGenerator => {
     });
 };
 
-const provideESMJoinEventAgent = (
-  _alertID: string,
-  _contractAddress: string,
-): HandleTransaction => {
+const provideESMJoinEventAgent = (_alertID: string, _contractAddress: string): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideEventCheckerHandler(
       createFindingGenerator(_alertID),
       MAKER_ESM_JOIN_EVENT_ABI,
       _contractAddress,
-      filterLog,
+      filterLog
     );
 
     const findings: Finding[] = await agentHandler(txEvent);
