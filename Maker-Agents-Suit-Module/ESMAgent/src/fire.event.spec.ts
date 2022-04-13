@@ -7,12 +7,11 @@ import {
 } from 'forta-agent';
 import provideESMFireEventAgent, {
   MAKER_ESM_FIRE_EVENT_SIGNATURE,
-  MAKER_EVEREST_ID,
 } from './fire.event';
 import {
   createAddress,
   TestTransactionEvent,
-} from 'forta-agent-tools';
+} from 'forta-agent-tools/lib/tests';
 
 const ADDRESS = createAddress('0x1');
 const USER = createAddress('0x2');
@@ -40,7 +39,6 @@ describe('ESM Fire Event Agent', () => {
         severity: FindingSeverity.Critical,
         type: FindingType.Suspicious,
         protocol: 'Maker',
-        everestId: MAKER_EVEREST_ID,
         metadata: {
           ESM_address: ADDRESS,
           from: USER,
