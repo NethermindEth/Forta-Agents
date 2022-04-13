@@ -108,14 +108,13 @@ export const createLog = (address: string, ...topics: string[]): Log => {
   } as Log;
 };
 
-export const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent => 
+export const createTxEvent = (addresses: Set, ...logs: Log[]): TransactionEvent =>
   createTransactionEvent({
-    receipt: {
-      logs: logs,
-    } as Receipt,
+    logs: logs,
     transaction: {} as Transaction,
     block: {} as Block,
     addresses: addresses,
+    contractAddress: null,
   });
 
 export const createTestBlockEvent = (blockNumber: number): BlockEvent =>
