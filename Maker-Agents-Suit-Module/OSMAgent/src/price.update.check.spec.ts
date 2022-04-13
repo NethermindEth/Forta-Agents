@@ -9,7 +9,7 @@ import providePriceUpdateCheckHandler, {
   MEGAPOKER_CONTRACT,
 } from "./price.update.check";
 
-import { TestTransactionEvent } from "forta-agent-tools";
+import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
 const pokeFunctionSelector = "0x18178358";
 const previousHourForActivatingAgent = 1467018381;

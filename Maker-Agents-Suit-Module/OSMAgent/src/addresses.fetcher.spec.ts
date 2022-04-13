@@ -1,5 +1,5 @@
 import AddressesFetcher from './addresses.fetcher';
-import { createAddress } from 'forta-agent-tools';
+import { createAddress } from 'forta-agent-tools/lib/tests';
 
 
 describe("AddressesFetcher test suite", () => {

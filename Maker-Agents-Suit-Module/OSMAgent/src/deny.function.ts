@@ -1,3 +1,4 @@
+import { TransactionDescription } from "ethers/lib/utils";
 import {
   Finding,
   TransactionEvent,
@@ -5,15 +6,13 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
-import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import AddressesFetcher from "./addresses.fetcher";
 
-export const DENY_FUNCTION_SIG = "deny(address)";
+export const DENY_FUNCTION_SIG = "function deny(address)";
 
 export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
-  const deniedAddress: string = metadata?.arguments[0];
 
   return Finding.fromObject({
     name: "Maker OSM DENY Function",
@@ -21,29 +20,27 @@ export const createFinding = (
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
-    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
-    metadata: {
-      contract: metadata ? metadata.to : null,
-      deniedAddress: deniedAddress,
-    },
+    metadata,
   });
 };
-
-const createAgentHandler = (_contract: string): HandleTransaction =>
-  provideFunctionCallsDetectorHandler(createFinding, DENY_FUNCTION_SIG, {
-    to: _contract,
-  });
 
 export default function provideDenyFunctionHandler(
   fetcher: AddressesFetcher,
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings :Finding[]= []
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
+    contracts.map((contract:string) =>
+    txEvent.filterFunction([DENY_FUNCTION_SIG], contract.toLowerCase()).map((tx: TransactionDescription)=>{
+      const metadata = {
+        contract: contract,
+        deniedAddress: tx.args[0].toLowerCase(),
+      }
+     findings.push(createFinding(metadata))
+    })
+    )
 
-    const promises: Promise<Finding[]>[] = contracts.map((contract: string) =>
-      createAgentHandler(contract.toLowerCase())(txEvent)
-    );
+    return findings;
 
-    return Promise.all(promises).then((result: Finding[][]) => result.flat());
   };
 };

@@ -3,7 +3,7 @@ import { provideAgentHandler } from "./agent";
 import {
   createAddress,
   TestTransactionEvent,
-} from "forta-agent-tools";
+} from "forta-agent-tools/lib/tests";
 import Web3 from "web3";
 import { createFinding as deviationFinding } from "./big.queued.price.deviation";
 import { createFinding as priceUpdateFinding } from "./price.update.check";

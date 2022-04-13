@@ -1,3 +1,4 @@
+import { TransactionDescription } from "ethers/lib/utils";
 import {
   Finding,
   TransactionEvent,
@@ -5,15 +6,13 @@ import {
   FindingType,
   HandleTransaction,
 } from "forta-agent";
-import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import AddressesFetcher from "./addresses.fetcher";
 
-export const RELY_FUNCTION_SIG = "rely(address)";
+export const RELY_FUNCTION_SIG = "function rely(address)";
 
 export const createFinding = (
   metadata: { [key: string]: any } | undefined
 ): Finding => {
-  const reliedAddress: string = metadata?.arguments[0];
 
     return Finding.fromObject({
     name: "Maker OSM Contract RELY Function",
@@ -21,29 +20,26 @@ export const createFinding = (
     alertId: "MakerDAO-OSM-3",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
-    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
-    metadata: {
-      contract: metadata ? metadata.to : null,
-      reliedAddress: reliedAddress,
-    },
+    metadata
   });
 };
-
-const createAgentHandler = (_contract: string): HandleTransaction =>
-  provideFunctionCallsDetectorHandler(createFinding, RELY_FUNCTION_SIG, {
-    to: _contract,
-  });
 
 export default function provideRelyFunctionHandler(
   fetcher: AddressesFetcher,
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[]  = [];
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
+    contracts.map((contract:string) =>
+    txEvent.filterFunction([RELY_FUNCTION_SIG], contract.toLowerCase()).map((tx: TransactionDescription)=>{
+      const metadata = {
+        contract: contract,
+        reliedAddress: tx.args[0].toLowerCase(),
+      }
+     findings.push(createFinding(metadata))
+    })
+    )
 
-    const promises: Promise<Finding[]>[] = contracts.map((contract: string) =>
-      createAgentHandler(contract.toLowerCase())(txEvent)
-    );
-
-    return Promise.all(promises).then((result: Finding[][]) => result.flat());
+    return findings;
   };
 };

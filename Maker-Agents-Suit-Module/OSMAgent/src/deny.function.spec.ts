@@ -10,7 +10,7 @@ import provideDenyFunctionHandler from "./deny.function";
 import {
   createAddress,
   TestTransactionEvent,
-} from "forta-agent-tools";
+} from "forta-agent-tools/lib/tests";
 import { when } from "jest-when";
 
 const CONTRACTS: string[][] = [ // index represent a timestamp
@@ -29,7 +29,6 @@ export const createFinding = (to: string, address: string) => {
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
-    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contract: to,
       deniedAddress: address,

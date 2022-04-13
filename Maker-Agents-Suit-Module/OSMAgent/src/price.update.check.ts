@@ -5,19 +5,10 @@ import {
   FindingSeverity,
   FindingType,
 } from "forta-agent";
-import { provideFunctionCallsDetectorHandler } from "forta-agent-tools";
 import TimeTracker from "./time.tracker";
 
 export const MEGAPOKER_CONTRACT = "0x1cfd93a4864bec32c12c77594c2ec79deec16038";
-const functionSignature = "poke()";
-
-const functionCallDetector = provideFunctionCallsDetectorHandler(
-  () => {
-    return {} as Finding;
-  },
-  functionSignature,
-  { to: MEGAPOKER_CONTRACT }
-);
+const functionSignature = "function poke()";
 
 export const createFinding = (): Finding => {
   return Finding.fromObject({
@@ -26,9 +17,8 @@ export const createFinding = (): Finding => {
     alertId: "MakerDAO-OSM-4",
     severity: FindingSeverity.Critical,
     type: FindingType.Info,
-    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
-      MegaPokerContractMEGAPOKER_CONTRACT: MEGAPOKER_CONTRACT,
+      MegaPokerContract: MEGAPOKER_CONTRACT,
     },
   });
 };
@@ -46,7 +36,7 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
     }
 
     if (
-      (await functionCallDetector(txEvent)).length !== 0 &&
+      (txEvent.filterFunction(functionSignature, MEGAPOKER_CONTRACT)).length !== 0 &&
       timeTracker.isInFirstTenMins(timestamp)
     ) {
       timeTracker.updateFunctionWasCalled(true);

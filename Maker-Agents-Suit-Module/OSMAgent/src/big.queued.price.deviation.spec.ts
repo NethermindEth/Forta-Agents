@@ -5,7 +5,7 @@ import provideBigQueuedPriceDeviationHandler, {
 import {
   TestTransactionEvent,
   createAddress,
-} from "forta-agent-tools";
+} from "forta-agent-tools/lib/tests";
 import Web3 from "web3";
 
 const ADDRESSES = [

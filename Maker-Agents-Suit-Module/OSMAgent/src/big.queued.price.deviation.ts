@@ -1,17 +1,17 @@
 import {
-  Log,
   TransactionEvent,
   Trace,
   HandleTransaction,
   Finding,
   FindingType,
   FindingSeverity,
+  LogDescription,
 } from "forta-agent";
 import Web3 from "web3";
 import AddressesFetcher from "./addresses.fetcher";
 
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
-const LOG_VALUE_EVENT_SIGNATURE = "LogValue(bytes32)";
+const LOG_VALUE_EVENT_SIGNATURE = "event LogValue(bytes32)";
 
 export const createFinding = (
   contractAddress: string,
@@ -25,7 +25,6 @@ export const createFinding = (
     alertId: "MakerDAO-OSM-1",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Info,
-    everestId: "0xbabb5eed78212ab2db6705e6dfd53e7e5eaca437",
     metadata: {
       contractAddress: contractAddress,
       currentPrice: currentPrice.toString(),
@@ -64,15 +63,15 @@ const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
   ).map(decodeNextValue);
 
 
-const decodeCurrentValue = (log: Log): bigint =>
-  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.data) as any);
+const decodeCurrentValue = (log: LogDescription): bigint =>
+  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.args[0].toString()) as any);
 
 const getCurrentValues = (
   contractAddress: string,
   txEvent: TransactionEvent
 ) => {
   return txEvent
-    .filterEvent(LOG_VALUE_EVENT_SIGNATURE, contractAddress)
+    .filterLog(LOG_VALUE_EVENT_SIGNATURE, contractAddress)
     .map(decodeCurrentValue);
 };
 
