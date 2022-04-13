@@ -59,8 +59,7 @@ describe("DeployedAddressManager test suite", () => {
     getNonce.mockReturnValueOnce(10);
     await addressesManager.update();
 
-    for(let addr of deadContracts)
-      expect(addressesManager.isDeployedAddress(addr)).toStrictEqual(true);
+    for (let addr of deadContracts) expect(addressesManager.isDeployedAddress(addr)).toStrictEqual(true);
     expect(addressesManager.isDeployedAddress(addr2)).toStrictEqual(false);
 
     // check the getNonce parameters

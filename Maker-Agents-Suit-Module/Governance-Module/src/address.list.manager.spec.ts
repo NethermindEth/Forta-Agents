@@ -12,11 +12,11 @@ describe("ListManager tests suite", () => {
       createAddress("0xabc2"),
     ];
     const manager: AddressManager = new ListManager(addresses);
-    for(let addr of addresses){
+    for (let addr of addresses) {
       expect(manager.isKnownAddress(addr)).toStrictEqual(true);
     }
-    expect(manager.isKnownAddress(createAddress('0x10'))).toStrictEqual(false);
-    expect(manager.isKnownAddress(createAddress('0xd34d'))).toStrictEqual(false);
-    expect(manager.isKnownAddress(createAddress('0xc4f3'))).toStrictEqual(false);
-  })
+    expect(manager.isKnownAddress(createAddress("0x10"))).toStrictEqual(false);
+    expect(manager.isKnownAddress(createAddress("0xd34d"))).toStrictEqual(false);
+    expect(manager.isKnownAddress(createAddress("0xc4f3"))).toStrictEqual(false);
+  });
 });

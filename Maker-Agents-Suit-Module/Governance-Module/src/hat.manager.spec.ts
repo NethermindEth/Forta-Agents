@@ -1,8 +1,5 @@
 import HatManager from "./hat.manager";
-import { 
-  createAddr, 
-  createEncodedAddr, 
-} from "./utils";
+import { createAddr, createEncodedAddr } from "./utils";
 
 describe("Hat Manager test suite", () => {
   let hat: string;
@@ -21,11 +18,11 @@ describe("Hat Manager test suite", () => {
     hat = await hatManager.getAddress(1);
     expect(hat).toStrictEqual(addr1);
     // request uncached block
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(addr2))
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(addr2));
     hat = await hatManager.getAddress(2);
     expect(hat).toStrictEqual(addr2);
     // request uncached block
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(addr3))
+    web3CallMock.mockReturnValueOnce(createEncodedAddr(addr3));
     hat = await hatManager.getAddress(3);
     expect(hat).toStrictEqual(addr3);
     // request the cached value several times

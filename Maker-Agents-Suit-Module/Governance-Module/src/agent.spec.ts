@@ -1,38 +1,19 @@
-import { 
-  BlockEvent,
-  Finding, 
-  TransactionEvent,
-} from 'forta-agent';
+import { BlockEvent, Finding, TransactionEvent } from "forta-agent";
+import { provideHandleTransaction, provideHandleBlock, CHIEF_CONTRACT } from "./agent";
 import {
-  provideHandleTransaction,
-  provideHandleBlock,
-  CHIEF_CONTRACT,
-} from './agent';
-import { 
-  AddressManager, 
-  createAddr, 
-  createEncodedAddr, 
-  createEncodedUint256, 
-  toBalance, 
+  AddressManager,
+  createAddr,
+  createEncodedAddr,
+  createEncodedUint256,
+  toBalance,
   HatFinding,
   LiftFinding,
-} from './utils';
-import { 
-  runBlock, 
-  TestBlockEvent,
-  TestTransactionEvent, 
-} from 'forta-agent-tools';
-import { 
-  MKR_THRESHOLD as threshold,
-  createFinding as createHatFinding,
-} from './new.hat';
-import DeployedAddressesManager from './deployed.addresses.manager';
-import BigNumber from 'bignumber.js';
-import { 
-  LIFT_EVENT,
-  createFinding as createLiftFinding,
-} from './lift.events';
+} from "./utils";
 import { runBlock, TestBlockEvent, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { MKR_THRESHOLD as threshold, createFinding as createHatFinding } from "./new.hat";
+import DeployedAddressesManager from "./deployed.addresses.manager";
+import BigNumber from "bignumber.js";
+import { LIFT_EVENT, createFinding as createLiftFinding } from "./lift.events";
 
 const deadAddr: string = createAddr("0xdead");
 const deadContracts: string[] = [
@@ -47,7 +28,7 @@ const deadContracts: string[] = [
   "0x2f9b83b70bd51a3bf6b23f44649a6d6d2cb3ac5c",
   "0x872c81f3569758132e5f2ded064a7f54e129086c",
 ];
-const deadContractsEncoded = deadContracts.map(addr => createEncodedAddr(addr));
+const deadContractsEncoded = deadContracts.map((addr) => createEncodedAddr(addr));
 const chiefInLower: string = CHIEF_CONTRACT.toLowerCase();
 
 describe("Governance Module agent tests suite", () => {
@@ -63,7 +44,7 @@ describe("Governance Module agent tests suite", () => {
     agent = {
       handleTransaction: provideHandleTransaction(addrManager),
       handleBlock: provideHandleBlock(mockWeb3Call, addrManager),
-    }
+    };
   });
 
   it("should return empty findings if no lift event occur and hat conditons are met", async () => {
@@ -90,7 +71,9 @@ describe("Governance Module agent tests suite", () => {
 
     let findings: Finding[] = await runBlock(agent, block, tx);
     expect(findings).toStrictEqual([
-      createHatFinding("MakerDAO-GM-1", HatFinding.UnknownHat, {hat: deadContracts[2]}),
+      createHatFinding("MakerDAO-GM-1", HatFinding.UnknownHat, {
+        hat: deadContracts[2],
+      }),
     ]);
 
     // deadContract[2] deployed at block 5
@@ -128,7 +111,7 @@ describe("Governance Module agent tests suite", () => {
     ]);
   });
 
-  it('should report lift events alert only in the unknown addresses', async () => {
+  it("should report lift events alert only in the unknown addresses", async () => {
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[0]);
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[0]);
     mockWeb3Call.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
@@ -152,7 +135,7 @@ describe("Governance Module agent tests suite", () => {
     ]);
   });
 
-  it('should report block and transaction findings', async () => {
+  it("should report block and transaction findings", async () => {
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[0]);
     mockWeb3Call.mockReturnValueOnce(deadContractsEncoded[1]);
     mockWeb3Call.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));

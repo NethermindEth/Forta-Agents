@@ -1,16 +1,9 @@
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
+import { Finding, HandleBlock, BlockEvent } from "forta-agent";
+import { provideHatChecker, createFinding } from "./new.hat";
 import {
-  Finding, 
-  HandleBlock,
-  BlockEvent,
-} from 'forta-agent';
-import { 
-  provideHatChecker, 
-  createFinding,
-} from './new.hat';
-import { 
   AddressVerifier,
-  HatFinding, 
+  HatFinding,
   createAddr,
   createEncodedAddr,
   createEncodedUint256,
@@ -19,30 +12,24 @@ import {
   generateAddressVerifier,
   createTestBlockEvent,
   toBalance,
-} from './utils';
+} from "./utils";
 
 const alertId: string = "Test Findings";
 const contract: string = createAddr("0xA");
 const threshold: BigNumber = new BigNumber(20);
 const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
 
-describe('Chief Contract Hat Changes detector test suite', () => {
+describe("Chief Contract Hat Changes detector test suite", () => {
   const web3CallMock = jest.fn();
   let handleBlock: HandleBlock;
-  const callData = {to: contract, data: hatCall()};
+  const callData = { to: contract, data: hatCall() };
 
   beforeEach(() => {
     web3CallMock.mockClear();
-    handleBlock = provideHatChecker(
-      web3CallMock,
-      alertId,
-      contract,
-      isKnown,
-      threshold,
-    );
+    handleBlock = provideHatChecker(web3CallMock, alertId, contract, isKnown, threshold);
   });
 
-  it('Should report when hat is an unknown address', async () => {
+  it("Should report when hat is an unknown address", async () => {
     const block: number = 1;
     const hat: string = createAddr("0xDEAD");
     const previousHat: string = createAddr("0x1");
@@ -52,19 +39,13 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
 
     const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.UnknownHat,
-        { hat: hat.toLowerCase() },
-      ),
-    ]);
+    expect(findings).toStrictEqual([createFinding(alertId, HatFinding.UnknownHat, { hat: hat.toLowerCase() })]);
     expect(web3CallMock).toBeCalledTimes(2);
     expect(web3CallMock).nthCalledWith(1, callData, block - 1);
     expect(web3CallMock).nthCalledWith(2, callData, block);
   });
 
-  it('Should report when hat is modified', async () => {
+  it("Should report when hat is modified", async () => {
     const block: number = 2;
     const hat: string = createAddr("0xB");
     const previousHat: string = createAddr("0xDEAD");
@@ -74,31 +55,27 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
     web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
 
-
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.HatModified,
-        { 
-          hat: hat.toLowerCase(), 
-          previousHat: previousHat.toLowerCase() 
-        },
-      ),
+      createFinding(alertId, HatFinding.HatModified, {
+        hat: hat.toLowerCase(),
+        previousHat: previousHat.toLowerCase(),
+      }),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
     expect(web3CallMock).nthCalledWith(1, callData, block - 1);
     expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
+    expect(web3CallMock).nthCalledWith(
+      3,
       {
-        to: contract, 
+        to: contract,
         data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
+      },
+      block
     );
   });
 
-  it('Should report when hat approvals is below the threshold', async () => {
+  it("Should report when hat approvals is below the threshold", async () => {
     const block: number = 2;
     const hat: string = createAddr("0xC");
     const previousHat: string = hat;
@@ -110,29 +87,26 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.FewApprovals,
-        { 
-          hat: hat.toLowerCase(), 
-          MKR: toBalance(threshold.minus(1)).toString(),
-          threshold: toBalance(threshold).toString(),
-        },
-      ),
+      createFinding(alertId, HatFinding.FewApprovals, {
+        hat: hat.toLowerCase(),
+        MKR: toBalance(threshold.minus(1)).toString(),
+        threshold: toBalance(threshold).toString(),
+      }),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
     expect(web3CallMock).nthCalledWith(1, callData, block - 1);
     expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
+    expect(web3CallMock).nthCalledWith(
+      3,
       {
-        to: contract, 
+        to: contract,
         data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
+      },
+      block
     );
   });
 
-  it('Should report when hat is unknown and the approvals is below the threshold', async () => {
+  it("Should report when hat is unknown and the approvals is below the threshold", async () => {
     const block: number = 2;
     const hat: string = createAddr("0xD");
     const previousHat: string = createAddr("0xDEAD");
@@ -144,37 +118,30 @@ describe('Chief Contract Hat Changes detector test suite', () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.HatModified,
-        { 
-          hat: hat.toLowerCase(), 
-          previousHat: previousHat.toLowerCase() 
-        },
-      ),
-      createFinding(
-        alertId,
-        HatFinding.FewApprovals,
-        { 
-          hat: hat.toLowerCase(), 
-          MKR: toBalance(threshold.minus(1)).toString(),
-          threshold: toBalance(threshold).toString(),
-        },
-      ),
+      createFinding(alertId, HatFinding.HatModified, {
+        hat: hat.toLowerCase(),
+        previousHat: previousHat.toLowerCase(),
+      }),
+      createFinding(alertId, HatFinding.FewApprovals, {
+        hat: hat.toLowerCase(),
+        MKR: toBalance(threshold.minus(1)).toString(),
+        threshold: toBalance(threshold).toString(),
+      }),
     ]);
     expect(web3CallMock).toBeCalledTimes(3);
     expect(web3CallMock).nthCalledWith(1, callData, block - 1);
     expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
+    expect(web3CallMock).nthCalledWith(
+      3,
       {
-        to: contract, 
+        to: contract,
         data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
+      },
+      block
     );
   });
 
-  it('Should report 0 findings if hat remains valid', async () => {
+  it("Should report 0 findings if hat remains valid", async () => {
     const block: number = 2;
     const hat: string = createAddr("0xB");
     const previousHat: string = hat;
@@ -189,12 +156,13 @@ describe('Chief Contract Hat Changes detector test suite', () => {
     expect(web3CallMock).toBeCalledTimes(3);
     expect(web3CallMock).nthCalledWith(1, callData, block - 1);
     expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
+    expect(web3CallMock).nthCalledWith(
+      3,
       {
-        to: contract, 
+        to: contract,
         data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
+      },
+      block
     );
   });
 });
