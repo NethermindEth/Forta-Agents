@@ -1,5 +1,5 @@
 import { FindingGenerator, provideEventCheckerHandler } from "forta-agent-tools";
-
+import { BigNumber } from 'ethers';
 import {
   Finding,
   HandleTransaction,
@@ -11,15 +11,16 @@ import {
 
 export const MAKER_ESM_JOIN_EVENT_ABI = "event Join(address indexed usr, uint256 wad)";
 export const MAKER_ESM_JOIN_EVENT_SIGNATURE = "Join(address,uint256)";
-export const MKR_DECIMALS = 18;
 
+// Filter for amounts greater than the 2 MKR threshold
 const filterLog = (log: LogDescription, index?: number | undefined, array?: LogDescription[] | undefined): boolean => {
-  const amount = log.args[1];
-
-  return BigInt(amount) > BigInt(2 * 10 ** MKR_DECIMALS);
+  const amount: BigNumber = BigNumber.from(log.args[1]);
+  const threshold: BigNumber = BigNumber.from("2000000000000000000"); // 2 MKR
   // To run the txn in the README, comment the line above
   // and uncomment the line below (0.002 MKR threshold)
-  // return BigInt(amount) > BigInt(0.002 * 10 ** MKR_DECIMALS);
+  // const threshold: BigNumber = BigNumber.from("2000000000000000"); // 0.002 MKR
+
+  return amount.gt(threshold);
 };
 
 const createFindingGenerator = (_alertID: string): FindingGenerator => {
