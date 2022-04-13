@@ -1,5 +1,5 @@
 import { FindingGenerator, provideEventCheckerHandler } from "forta-agent-tools";
-import { BigNumber } from 'ethers';
+import { BigNumber } from "ethers";
 import {
   Finding,
   HandleTransaction,
