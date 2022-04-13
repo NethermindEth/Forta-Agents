@@ -1,8 +1,10 @@
-import Web3 from 'web3';
-export const web3 = new Web3();
+import {
+  encodeParameter,
+  decodeParameter
+} from 'forta-agent-tools';
 
 export const decodeParam = (type: string, param: string): any =>
-  web3.eth.abi.decodeParameter(type, param);
+  decodeParameter;
 
 export const encodeParam = (ptype: string, param: string): any =>
-  web3.eth.abi.encodeParameter(ptype, param);
+  encodeParameter(ptype, param);
