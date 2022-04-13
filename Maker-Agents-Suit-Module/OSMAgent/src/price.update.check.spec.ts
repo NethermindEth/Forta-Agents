@@ -1,8 +1,6 @@
 import {
   Finding,
   HandleTransaction,
-  FindingSeverity,
-  FindingType,
 } from "forta-agent";
 import providePriceUpdateCheckHandler, {
   createFinding,
