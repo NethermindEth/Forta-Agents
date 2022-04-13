@@ -32,6 +32,7 @@ import {
   LIFT_EVENT,
   createFinding as createLiftFinding,
 } from './lift.events';
+import { runBlock, TestBlockEvent, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
 const deadAddr: string = createAddr("0xdead");
 const deadContracts: string[] = [

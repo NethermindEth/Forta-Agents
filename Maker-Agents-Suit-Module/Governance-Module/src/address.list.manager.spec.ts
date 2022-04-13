@@ -1,4 +1,4 @@
-import { createAddress } from "forta-agent-tools";
+import { createAddress } from "forta-agent-tools/lib/tests";
 import ListManager from "./address.list.manager";
 import { AddressManager } from "./utils";
 
