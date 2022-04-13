@@ -30,15 +30,14 @@ export default function provideRelyFunctionHandler(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[]  = [];
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
-    contracts.map((contract:string) =>
-    txEvent.filterFunction([RELY_FUNCTION_SIG], contract.toLowerCase()).map((tx: TransactionDescription)=>{
+
+    txEvent.filterFunction([RELY_FUNCTION_SIG],contracts).map((desc: TransactionDescription)=>{
       const metadata = {
-        contract: contract,
-        reliedAddress: tx.args[0].toLowerCase(),
+        contract: txEvent.to,
+        reliedAddress: desc.args[0].toLowerCase(),
       }
      findings.push(createFinding(metadata))
     })
-    )
 
     return findings;
   };
