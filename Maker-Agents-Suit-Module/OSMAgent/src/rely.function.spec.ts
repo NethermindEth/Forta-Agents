@@ -12,7 +12,7 @@ const CONTRACTS: string[][] = [
   [createAddress("0xc0")],
 ];
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
-const relyIFace = new utils.Interface([RELY_FUNCTION_SIG]);
+const relyIface = new utils.Interface([RELY_FUNCTION_SIG]);
 
 export const createFinding = (to: string, address: string) => {
   return Finding.fromObject({
@@ -43,7 +43,7 @@ describe("OSM Rely Function Agent", () => {
   it("should return a finding for rely call on an OSM contract", async () => {
     const _from = createAddress("0x2");
     const _to = CONTRACTS[1][0];
-    const _input: string = relyIFace.encodeFunctionData("rely", [ADDRESSES[0]]);
+    const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(1).setTo(_to).addTraces({
       to: _to,
@@ -57,8 +57,8 @@ describe("OSM Rely Function Agent", () => {
 
   it("should return multiple findings", async () => {
     const _from = createAddress("0x2");
-    const _input: string = relyIFace.encodeFunctionData("rely", [ADDRESSES[0]]);
-    const _input2: string = relyIFace.encodeFunctionData("rely", [ADDRESSES[1]]);
+    const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
+    const _input2: string = relyIface.encodeFunctionData("rely", [ADDRESSES[1]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(2).setTo(CONTRACTS[2][2]).addTraces(
       {
@@ -83,7 +83,7 @@ describe("OSM Rely Function Agent", () => {
   it("should return empty finding when OSM contract address does found", async () => {
     const _from = createAddress("0x2");
     const _to = createAddress("0x1"); // BAD ADDRESS
-    const _input: string = relyIFace.encodeFunctionData("rely", [ADDRESSES[1]]);
+    const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[1]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(3).addTraces({
       to: _to,

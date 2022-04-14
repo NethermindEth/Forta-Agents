@@ -25,8 +25,8 @@ const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 const peek_ABI = new utils.Interface(["function peek() public view returns (bytes32, bool)"]);
 const poke_ABI = new utils.Interface(["function poke() external"]);
 const logIface = new utils.Interface(["event LogValue(bytes32 val)"]);
-const relyIFace = new utils.Interface([RELY_FUNCTION_SIG]);
-const denyIFace = new utils.Interface([DENY_FUNCTION_SIG]);
+const relyIface = new utils.Interface([RELY_FUNCTION_SIG]);
+const denyIface = new utils.Interface([DENY_FUNCTION_SIG]);
 
 describe("OSM Agent Test Suite", () => {
   let transactionHandler: HandleTransaction;
@@ -72,7 +72,7 @@ describe("OSM Agent Test Suite", () => {
 
     const _from = createAddress("0x5");
     const _to = addresses[0];
-    const _input: string = relyIFace.encodeFunctionData("rely", [createAddress("0x5")]);
+    const _input: string = relyIface.encodeFunctionData("rely", [createAddress("0x5")]);
 
     const txEvent = new TestTransactionEvent()
       .setTo(_to)
@@ -93,7 +93,7 @@ describe("OSM Agent Test Suite", () => {
 
     const _from = createAddress("0x2");
     const _to = addresses[0];
-    const _input: string = denyIFace.encodeFunctionData("deny", [createAddress("0x5")]);
+    const _input: string = denyIface.encodeFunctionData("deny", [createAddress("0x5")]);
 
     const txEvent = new TestTransactionEvent()
       .setTo(_to)
@@ -159,7 +159,7 @@ describe("OSM Agent Test Suite", () => {
 
     const _from = createAddress("0x2");
     const _to = addresses[0];
-    const _input: string = denyIFace.encodeFunctionData("deny", [createAddress("0x5")]);
+    const _input: string = denyIface.encodeFunctionData("deny", [createAddress("0x5")]);
 
     const txEvent3 = new TestTransactionEvent()
       .addTraces({
