@@ -5,7 +5,7 @@ import agent from "./agent";
 import { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
 
-const MakerDAO_ESM_CONTRACT = "0x29cfbd381043d00a98fd9904a431015fef07af2f";
+const MakerDAO_ESM_CONTRACT = "0x09e05fF6142F2f9de8B6B65855A1d56B6cfE4c58";
 const JOIN_EVENT_ALERTID = "MakerDAO-ESM-1";
 const FIRE_EVENT_ALERTID = "MakerDAO-ESM-2";
 
