@@ -6,7 +6,7 @@ import providePriceUpdateCheckHandler from "./price.update.check";
 import AddressesFetcher from "./addresses.fetcher";
 import axios from "axios";
 
-const API_ENDPOINT: string = "https://changelog.makerdao.com/releases/mainnet/1.9.10/contracts.json";
+const API_ENDPOINT: string = "https://chainlog.makerdao.com/api/mainnet/active.json";
 const ELAPSED_TIME_BETWEEN_UPDATES: number = 86400; // one day
 
 export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransaction => {
