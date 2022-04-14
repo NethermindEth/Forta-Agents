@@ -5,7 +5,6 @@ import {
   FindingType,
   TransactionEvent,
 } from "forta-agent";
-import Web3 from "web3";
 import provideDenyFunctionHandler, { DENY_FUNCTION_SIG } from "./deny.function";
 import {
   createAddress,

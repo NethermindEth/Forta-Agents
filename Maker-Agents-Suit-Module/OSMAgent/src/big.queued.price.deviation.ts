@@ -1,3 +1,4 @@
+import { Interface, parseBytes32String } from "ethers/lib/utils";
 import {
   TransactionEvent,
   Trace,
@@ -5,18 +6,18 @@ import {
   Finding,
   FindingType,
   FindingSeverity,
-  LogDescription,
 } from "forta-agent";
-import Web3 from "web3";
+
 import AddressesFetcher from "./addresses.fetcher";
 
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
 const LOG_VALUE_EVENT_SIGNATURE = "event LogValue(bytes32)";
+const ABI = new Interface(["function peek() public view returns (bytes32, bool)"]);
 
 export const createFinding = (
   contractAddress: string,
-  currentPrice: bigint,
-  queuedPrice: bigint
+  currentPrice: any,
+  queuedPrice: any
 ): Finding => {
   return Finding.fromObject({
     name: "MakerDAO OSM Contract Big Enqueued Price Deviation",
@@ -38,21 +39,13 @@ const correctFunctionCalled = (trace: Trace): boolean => {
 };
 
 const callWasSuccessful = (trace: Trace): boolean => {
-  const results = new Web3().eth.abi.decodeParameters(
-    ["bytes32", "bool"],
-    //@ts-ignore
-    trace.result.output
-  );
+  const results = ABI.decodeFunctionResult("peek",trace.result.output)
   return results[1];
 };
 
 const decodeNextValue = (trace: Trace): bigint => {
-  const results = new Web3().eth.abi.decodeParameters(
-    ["uint128", "bool"],
-    //@ts-ignore
-    trace.result.output
-  );
-  return BigInt(results[0]);
+  const results = ABI.decodeFunctionResult("peek",trace.result.output)
+  return BigInt(parseBytes32String(results[0]));
 };
 
 const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
@@ -62,17 +55,13 @@ const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
     callWasSuccessful(trace)
   ).map(decodeNextValue);
 
-
-const decodeCurrentValue = (log: LogDescription): bigint =>
-  BigInt(new Web3().eth.abi.decodeParameter("uint128", log.args[0]) as any);
-
 const getCurrentValues = (
   contractAddress: string,
   txEvent: TransactionEvent
 ) => {
   return txEvent
     .filterLog(LOG_VALUE_EVENT_SIGNATURE, contractAddress)
-    .map(decodeCurrentValue);
+    .map((log)=> BigInt(parseBytes32String(log.args[0])));
 };
 
 const abs = (a: bigint): bigint => a < 0 ? -a : a;

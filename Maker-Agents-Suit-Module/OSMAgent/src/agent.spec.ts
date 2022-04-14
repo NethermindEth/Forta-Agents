@@ -4,11 +4,14 @@ import {
   createAddress,
   TestTransactionEvent,
 } from "forta-agent-tools/lib/tests";
-import Web3 from "web3";
 import { createFinding as deviationFinding } from "./big.queued.price.deviation";
 import { createFinding as priceUpdateFinding } from "./price.update.check";
 import { createFinding as relyFinding } from "./rely.function.spec";
 import { createFinding as denyFinding } from "./deny.function.spec";
+import { utils } from "ethers";
+import { formatBytes32String } from "ethers/lib/utils";
+import { RELY_FUNCTION_SIG } from "./rely.function";
+import { DENY_FUNCTION_SIG } from "./deny.function";
 
 
 const addresses: string[] = [
@@ -27,7 +30,11 @@ const previousHourForActivatingAgent = 1467018381;
 const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 
-const web3: Web3 = new Web3();
+const peek_ABI = new utils.Interface(["function peek() public view returns (bytes32, bool)"]);
+const poke_ABI = new utils.Interface(["function poke() external"]);
+const logIface = new utils.Interface(["event LogValue(bytes32 val)"])
+const relyIFace = new utils.Interface([RELY_FUNCTION_SIG]);
+const denyIFace = new utils.Interface([DENY_FUNCTION_SIG]);
 
 describe("OSM Agent Test Suite", () => {
   let transactionHandler: HandleTransaction;
@@ -45,6 +52,8 @@ describe("OSM Agent Test Suite", () => {
 
   it("should returns findings from multiple handlers", async () => {
     let findings: Finding[] = [];
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+
     transactionHandler = provideAgentHandler(testAddresses);
 
     const txEvent1 = new TestTransactionEvent().setTimestamp(
@@ -58,13 +67,9 @@ describe("OSM Agent Test Suite", () => {
       .addTraces({
         from: addresses[0],
         input: peekFunctionSelector,
-        output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
+        output: peek_ABI.encodeFunctionResult("peek",[formatBytes32String("107"), true])
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        addresses[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      );
+      .addAnonymousEventLog(addresses[0], log.data, ...log.topics)
 
     findings = findings.concat(await transactionHandler(txEvent1));
     findings = findings.concat(await transactionHandler(txEvent2));
@@ -82,21 +87,10 @@ describe("OSM Agent Test Suite", () => {
 
     const _from = createAddress("0x5");
     const _to = addresses[0];
-    const _input: string = web3.eth.abi.encodeFunctionCall(
-      {
-        name: "rely",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "usr",
-          },
-        ],
-      },
-      [createAddress("0x5")]
-    );
+    const _input: string = relyIFace.encodeFunctionData("rely", [createAddress("0x5")]);
 
     const txEvent = new TestTransactionEvent()
+      .setTo(_to)
       .addTraces({
         to: _to,
         from: _from,
@@ -116,21 +110,10 @@ describe("OSM Agent Test Suite", () => {
 
     const _from = createAddress("0x2");
     const _to = addresses[0];
-    const _input: string = web3.eth.abi.encodeFunctionCall(
-      {
-        name: "deny",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "_operator",
-          },
-        ],
-      },
-      [createAddress("0x5")]
-    );
+    const _input: string = denyIFace.encodeFunctionData("deny", [createAddress("0x5")]);
 
     const txEvent = new TestTransactionEvent()
+      .setTo(_to)
       .addTraces({
         to: _to,
         from: _from,
@@ -164,18 +147,15 @@ describe("OSM Agent Test Suite", () => {
   it("should detects big price deviations", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
     const txEvent = new TestTransactionEvent()
       .addTraces({
         from: addresses[0],
         input: peekFunctionSelector,
-        output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
+        output: peek_ABI.encodeFunctionResult("peek",[formatBytes32String("107"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        addresses[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
+      .addAnonymousEventLog(  addresses[0], log.data, ...log.topics)
       .setTimestamp(lessThanTenMinutes);
 
     findings = findings.concat(await transactionHandler(txEvent));
@@ -188,6 +168,7 @@ describe("OSM Agent Test Suite", () => {
   it("should not return MakerDAO-OSM-4 finding if poke was already called in that hour", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
     const txEvent1 = new TestTransactionEvent()
       .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
@@ -196,30 +177,14 @@ describe("OSM Agent Test Suite", () => {
       .addTraces({
         from: addresses[0],
         input: peekFunctionSelector,
-        output: web3.eth.abi.encodeParameters(["uint256", "bool"], [107, true]),
+        output: peek_ABI.encodeFunctionResult("peek",[formatBytes32String("107"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        addresses[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
+      .addAnonymousEventLog(  addresses[0], log.data, ...log.topics)
       .setTimestamp(greaterThanTenMinutes);
 
     const _from = createAddress("0x2");
     const _to = addresses[0];
-    const _input: string = web3.eth.abi.encodeFunctionCall(
-      {
-        name: "deny",
-        type: "function",
-        inputs: [
-          {
-            type: "address",
-            name: "_operator",
-          },
-        ],
-      },
-      [createAddress("0x5")]
-    );
+    const _input: string = denyIFace.encodeFunctionData("deny", [createAddress("0x5")]);
 
     const txEvent3 = new TestTransactionEvent()
       .addTraces({

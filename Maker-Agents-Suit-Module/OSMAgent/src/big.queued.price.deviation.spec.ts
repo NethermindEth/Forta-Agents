@@ -6,7 +6,8 @@ import {
   TestTransactionEvent,
   createAddress,
 } from "forta-agent-tools/lib/tests";
-import Web3 from "web3";
+import { utils } from "ethers";
+import { formatBytes32String, parseBytes32String } from "ethers/lib/utils";
 
 const ADDRESSES = [
   createAddress("0x1"),
@@ -19,8 +20,8 @@ const CONTRACT_ADDRESSES: any = (addresses: string[]) => {
 };
 
 const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
-
-const web3: Web3 = new Web3();
+const ABI = new utils.Interface(["function peek() public view returns (bytes32, bool)"]);
+const logIface = new utils.Interface(["event LogValue(bytes32 val)"])
 
 describe("Big deviation queued price Tests", () => {
   let handleTransaction: HandleTransaction;
@@ -39,41 +40,36 @@ describe("Big deviation queued price Tests", () => {
   it("should returns a finding when the new price deviate too much", async () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
+      const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [107, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("107"), true])
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      );
+      .addAnonymousEventLog( ADDRESSES[0], log.data, ...log.topics)
+
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ADDRESSES[0], BigInt(100), BigInt(107)),
+      createFinding(ADDRESSES[0], 100, 107),
     ]);
   });
 
   it("should returns empty findings if the new price doesn't deviate too much", async () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
+     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [105, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("105"), true])
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      );
+      .addAnonymousEventLog( ADDRESSES[0], log.data, ...log.topics)
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -82,18 +78,16 @@ describe("Big deviation queued price Tests", () => {
 
   it("should returns empty findings if the Peek function wasn't called from the correct contract", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES([ADDRESSES[0]]));
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[1],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      );
+      .addAnonymousEventLog( ADDRESSES[0], log.data, ...log.topics)
+
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -107,7 +101,7 @@ describe("Big deviation queued price Tests", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: ADDRESSES[0],
       input: "0x11111111",
-      output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+      output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), true])      
     });
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -122,7 +116,7 @@ describe("Big deviation queued price Tests", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: ADDRESSES[0],
       input: PEEK_FUNCTION_SELECTOR,
-      output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, false]),
+      output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), false])      
     });
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -133,23 +127,17 @@ describe("Big deviation queued price Tests", () => {
   it("should returns empty findings if the event with deviated price is not emmited from the correct address", async () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
+      const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+      const log2 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("105")]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[1],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[0],
-        web3.eth.abi.encodeParameter("uint128", 105)
-      );
+      .addAnonymousEventLog( ADDRESSES[1], log1.data, ...log1.topics)
+      .addAnonymousEventLog( ADDRESSES[0], log2.data, ...log2.topics)
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -160,85 +148,68 @@ describe("Big deviation queued price Tests", () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
 
+    const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+    const log2 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("90")]);
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
+      .addAnonymousEventLog( ADDRESSES[0], log1.data, ...log1.topics)
       .addTraces({
         from: ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [118, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("118"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[1],
-        web3.eth.abi.encodeParameter("uint128", 90)
-      );
+      .addAnonymousEventLog( ADDRESSES[1], log2.data, ...log2.topics)
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ADDRESSES[0], BigInt(100), BigInt(108)),
-      createFinding(ADDRESSES[1], BigInt(90), BigInt(118)),
-    ]);
+      createFinding(ADDRESSES[0], 100, 108),
+      createFinding(ADDRESSES[1],  90,118)
+        ]);
   });
 
   it("should returns only findings from the Oracles with big deviations on new prices", async () => {
     handleTransaction =
       provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
-
+      const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+      const log2 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("90")]);
+      const log3 = logIface.encodeEventLog(logIface.getEvent("LogValue"),  [formatBytes32String("100")]);
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: ADDRESSES[0],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [108, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("108"), true])      
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[0],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
+      .addAnonymousEventLog( ADDRESSES[0], log1.data, ...log1.topics)
       .addTraces({
         from: ADDRESSES[1],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [118, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("118"), true]) 
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[1],
-        web3.eth.abi.encodeParameter("uint128", 90)
-      )
+      .addAnonymousEventLog( ADDRESSES[1], log2.data, ...log2.topics)
       .addTraces({
         from: ADDRESSES[2],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(["uint128", "bool"], [105, true]),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("105"), true]),
       })
-      .addEventLog(
-        "LogValue(bytes32)",
-        ADDRESSES[2],
-        web3.eth.abi.encodeParameter("uint128", 100)
-      )
+      .addAnonymousEventLog( ADDRESSES[2], log3.data, ...log3.topics)
       .addTraces({
         from: ADDRESSES[3],
         input: PEEK_FUNCTION_SELECTOR,
-        output: web3.eth.abi.encodeParameters(
-          ["uint128", "bool"],
-          [101, false]
-        ),
+        output: ABI.encodeFunctionResult("peek",[formatBytes32String("101"), false])      
+        
       });
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(ADDRESSES[0], BigInt(100), BigInt(108)),
-      createFinding(ADDRESSES[1], BigInt(90), BigInt(118)),
+      createFinding(ADDRESSES[0], 100, 108),
+      createFinding(ADDRESSES[1],  90,118),
     ]);
   });
 });
