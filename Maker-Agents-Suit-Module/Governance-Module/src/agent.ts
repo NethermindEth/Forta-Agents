@@ -2,16 +2,14 @@ import { BigNumber } from "ethers";
 import HatFetcher from "./hat.fetcher";
 import { AddressManager } from "./utils";
 import ListManager from "./address.list.manager";
-import provideHatChecker, { MKR_THRESHOLD } from "./new.hat";
+import provideHatChecker from "./new.hat";
 import DeployedAddressesManager from "./deployed.addresses.manager";
-import provideLiftEventsListener, { KNOWN_LIFTERS } from "./lift.events";
+import provideLiftEventsListener from "./lift.events";
 import { BlockEvent, Finding, getEthersProvider, HandleBlock, HandleTransaction } from "forta-agent";
+import config from "./config";
 
-export const SPELL_DEPLOYER: string = "0xda0c0de01d90a5933692edf03c7ce946c7c50445";
-export const CHIEF_CONTRACT: string = "0x0a3f6849f78076aefaDf113F5BED87720274dDC0";
-
-const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(SPELL_DEPLOYER, getEthersProvider());
-const LIFTER_MANAGER: ListManager = new ListManager(KNOWN_LIFTERS);
+const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(config.SPELL_DEPLOYER, getEthersProvider());
+const LIFTER_MANAGER: ListManager = new ListManager(config.KNOWN_LIFTERS);
 
 export function provideHandleTransaction(
   chief: string,
@@ -45,6 +43,6 @@ export function provideHandleBlock(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(CHIEF_CONTRACT, SPELLS_MANAGER, LIFTER_MANAGER),
-  handleBlock: provideHandleBlock(MKR_THRESHOLD, SPELLS_MANAGER, new HatFetcher(CHIEF_CONTRACT, getEthersProvider())),
+  handleTransaction: provideHandleTransaction(config.CHIEF_CONTRACT, SPELLS_MANAGER, LIFTER_MANAGER),
+  handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER, new HatFetcher(config.CHIEF_CONTRACT, getEthersProvider())),
 };

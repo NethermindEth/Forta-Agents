@@ -3,7 +3,6 @@ import { AddressVerifier, LiftFinding } from "./utils";
 import { utils } from "ethers";
 
 export const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
-export const KNOWN_LIFTERS: string[] = ["0x5cab1e5286529370880776461c53a0e47d74fb63"];
 
 const desc: {
   [key in LiftFinding]: string;

@@ -3,8 +3,6 @@ import { AddressVerifier, HatFinding } from "./utils";
 import { BigNumber } from "ethers";
 import HatFetcher from "./hat.fetcher";
 
-export const MKR_THRESHOLD: BigNumber = BigNumber.from(40000);
-
 const desc: {
   [key in HatFinding]: string;
 } = {

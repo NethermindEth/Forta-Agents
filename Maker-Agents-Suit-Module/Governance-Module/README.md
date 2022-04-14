@@ -5,9 +5,15 @@
 This agent detects: 
 - Transactions where a lift event occured in the Chief contract address with uknown addresses in the topics
 - Blocks where the Chief hat address is an unknown address
-- Blocks where the Chief hat address is changed or has less than 40000 MKR in approvals
-
+- Blocks where the Chief hat address is changed or has less than `MKR_THRESHOLD` in approvals
 > Chief contract address: `0x0a3f6849f78076aefaDf113F5BED87720274dDC0`
+> MKR_THRESHOLD: 40000
+
+There are some configurable variables in `src/config.ts`
+- `SPELL_DEPLOYER`: The deployer of all the spells
+- `CHIEF_CONTRACT`: the chief contract being monitored
+- `KNOWN_LIFTERS`: A list of valid lifters
+- `MKR_THRESHOLD`: The minumum number of approvals required for hat address
 
 ## Supported Chains
 
