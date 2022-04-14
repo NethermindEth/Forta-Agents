@@ -20,7 +20,7 @@ export default function provideDenyFunctionHandler(fetcher: AddressesFetcher): H
     const findings: Finding[] = [];
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
 
-    txEvent.filterFunction([DENY_FUNCTION_SIG], contracts).map((desc: TransactionDescription) => {
+    txEvent.filterFunction([DENY_FUNCTION_SIG], contracts).forEach((desc: TransactionDescription) => {
       const metadata = {
         contract: txEvent.to,
         deniedAddress: desc.args[0].toLowerCase(),
