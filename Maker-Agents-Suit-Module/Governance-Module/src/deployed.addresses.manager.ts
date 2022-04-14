@@ -1,7 +1,6 @@
 import { encode } from "rlp";
-import { keccak256 } from "web3-utils";
 import { AddressManager } from "./utils";
-import { providers } from "ethers";
+import { providers, utils } from "ethers";
 
 export default class DeployedAddressesManager implements AddressManager {
   private nonce: number;
@@ -23,7 +22,7 @@ export default class DeployedAddressesManager implements AddressManager {
       for (let i: number = this.nonce + 1; i <= nonce; ++i) {
         const input_arr = [this.deployer, i];
         const rlp_encoded = encode(input_arr);
-        const addr = "0x" + keccak256(rlp_encoded as any).slice(26);
+        const addr = "0x" + utils.keccak256(rlp_encoded as any).slice(26);
         this.deployedAddresses.add(addr);
       }
       this.nonce = nonce;
