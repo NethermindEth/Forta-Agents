@@ -17,7 +17,7 @@ const isKnown: AddressVerifier = generateAddressVerifier([
 ]);
 
 describe("Lift Events listener test suite", () => {
-  const handleTransaction: HandleTransaction = provider(alertId, chief, isKnown, topic);
+  const handleTransaction: HandleTransaction = provider(alertId, chief, isKnown, isKnown, topic);
 
   it("should return 0 findings if the chief is not involved in the tx", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();

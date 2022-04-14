@@ -28,7 +28,8 @@ export const createFinding = (alertId: string, unknown: string, finding: LiftFin
 export const provideLiftEventsListener = (
   alertId: string,
   contractAddress: string,
-  isKnown: AddressVerifier,
+  isKnownSpell: AddressVerifier,
+  isKnownLifter: AddressVerifier,
   topic: string = LIFT_EVENT
 ): HandleTransaction => {
   const contract: string = contractAddress.toLowerCase();
@@ -42,8 +43,8 @@ export const provideLiftEventsListener = (
       if (log.address === contract && log.topics.length >= 3 && log.topics[0] === topic) {
         const topic1: string = utils.defaultAbiCoder.decode(["address"], log.topics[1])[0].toLowerCase();
         const topic2: string = utils.defaultAbiCoder.decode(["address"], log.topics[2])[0].toLowerCase();
-        if (!isKnown(topic1)) findings.push(createFinding(alertId, topic1, LiftFinding.Lifter));
-        if (!isKnown(topic2)) findings.push(createFinding(alertId, topic2, LiftFinding.Spell));
+        if (!isKnownLifter(topic1)) findings.push(createFinding(alertId, topic1, LiftFinding.Lifter));
+        if (!isKnownSpell(topic2)) findings.push(createFinding(alertId, topic2, LiftFinding.Spell));
       }
     }
 

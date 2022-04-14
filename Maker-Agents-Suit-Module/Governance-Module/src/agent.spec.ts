@@ -37,7 +37,7 @@ describe("Governance Module agent tests suite", () => {
     mockProvider.clear();
     addrManager = new DeployedAddressesManager(deadAddr, mockProvider as any);
     agent = {
-      handleTransaction: provideHandleTransaction(chief, addrManager),
+      handleTransaction: provideHandleTransaction(chief, addrManager, addrManager),
       handleBlock: provideHandleBlock(threshold, addrManager, new HatFetcher(chief, mockProvider as any)),
     };
   });

@@ -10,11 +10,20 @@ import { BlockEvent, Finding, getEthersProvider, HandleBlock, HandleTransaction 
 export const SPELL_DEPLOYER: string = "0xda0c0de01d90a5933692edf03c7ce946c7c50445";
 export const CHIEF_CONTRACT: string = "0x0a3f6849f78076aefaDf113F5BED87720274dDC0";
 
-const spellsManager: AddressManager = new DeployedAddressesManager(SPELL_DEPLOYER, getEthersProvider());
-const liftersManager: ListManager = new ListManager(KNOWN_LIFTERS);
+const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(SPELL_DEPLOYER, getEthersProvider());
+const LIFTER_MANAGER: ListManager = new ListManager(KNOWN_LIFTERS);
 
-export function provideHandleTransaction(chief: string, addressManager: AddressManager): HandleTransaction {
-  return provideLiftEventsListener("MakerDAO-GM-2", chief, addressManager.isKnownAddress.bind(addressManager));
+export function provideHandleTransaction(
+  chief: string,
+  spellsManager: AddressManager,
+  lifterManager: AddressManager
+): HandleTransaction {
+  return provideLiftEventsListener(
+    "MakerDAO-GM-2", 
+    chief, 
+    spellsManager.isKnownAddress.bind(spellsManager),
+    lifterManager.isKnownAddress.bind(lifterManager),
+  );
 }
 
 export function provideHandleBlock(
@@ -36,6 +45,6 @@ export function provideHandleBlock(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(CHIEF_CONTRACT, liftersManager),
-  handleBlock: provideHandleBlock(MKR_THRESHOLD, spellsManager, new HatFetcher(CHIEF_CONTRACT, getEthersProvider())),
+  handleTransaction: provideHandleTransaction(CHIEF_CONTRACT, SPELLS_MANAGER, LIFTER_MANAGER),
+  handleBlock: provideHandleBlock(MKR_THRESHOLD, SPELLS_MANAGER, new HatFetcher(CHIEF_CONTRACT, getEthersProvider())),
 };
