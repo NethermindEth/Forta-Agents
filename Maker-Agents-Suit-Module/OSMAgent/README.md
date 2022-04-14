@@ -6,7 +6,7 @@ This agent detects:
 - `rely` method calls on an OSM contract.
 - `deny` method calls on an OSM contract.
 - When `poke` method on MegaPoker contract was not called in the first ten minutes of an hour.
-- When the enqueued price deviate more than 6% from current price on an OSM contract.
+- When the enqueued price deviates more than 6% from the current price on an OSM contract.
 
 > MegaPoker contract address: `0x2417c2762ec12f2696f62cfa5492953b9467dc81`
 > The api endpoint used to fetch addresses https://chainlog.makerdao.com/api/mainnet/active.json. Note that it can be updated by changing the constant `API_ENDPOINT` on agent.ts, Line 9. 
@@ -18,7 +18,7 @@ This agent detects:
 ## Alerts
 
 - MakerDAO-OSM-1
-  - Fired when the enqueued price deviates more than 6% from current price in an OSM contract.
+  - Fired when the enqueued price deviates more than 6% from the current price in an OSM contract.
   - Severity is always set to "info" .
   - Type is always set to "suspicious".
   - The metadata contains:
@@ -27,7 +27,7 @@ This agent detects:
     - `queuedPrice`: The queued price.
 
 - MakerDAO-OSM-2
-  - Fired when `deny` method is called on an OSM contract
+  - Fired when `deny` method is called in an OSM contract
   - Severity is always set to "medium".
   - Type is always set to "unknown".
   - The metadata contains:
@@ -35,7 +35,7 @@ This agent detects:
     - `deniedAddress`: The denied address.
 
 - MakerDAO-OSM-3
-  - Fired when `rely` method is called on an OSM contract
+  - Fired when `rely` method is called in an OSM contract
   - Severity is always set to "medium".
   - Type is always set to "unknown".
   - The metadata contains:
@@ -43,7 +43,7 @@ This agent detects:
     - `reliedAddress`: the relied address.
 
 - MakerDAO-OSM-4
-  - Fired when `poke` method from MegaPoker contract is not called in the first ten minutes of an hour.
+  - Fired when `poke` method from the MegaPoker contract is not called in the first ten minutes of an hour.
   - Severity is always set to "critical".
   - Type is always set to "unknown".
   - The metadata contains: 

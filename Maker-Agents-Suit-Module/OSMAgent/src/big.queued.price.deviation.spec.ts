@@ -16,7 +16,7 @@ const logIface = new utils.Interface(["event LogValue(bytes32 val)"]);
 describe("Big deviation queued price Tests", () => {
   let handleTransaction: HandleTransaction;
 
-  it("should returns empty findings if there are not traces", async () => {
+  it("should return an empty finding if there are not traces", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
 
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -26,7 +26,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns a finding when the new price deviate too much", async () => {
+  it("should return a finding when the new price deviates too much", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
@@ -43,7 +43,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([createFinding(ADDRESSES[0], 100, 107)]);
   });
 
-  it("should returns empty findings if the new price doesn't deviate too much", async () => {
+  it("should return an empty finding if the new price doesn't deviate too much", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
@@ -60,7 +60,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty findings if the Peek function wasn't called from the correct contract", async () => {
+  it("should return an empty finding if the Peek function wasn't called from the correct contract", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES([ADDRESSES[0]]));
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
@@ -77,7 +77,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty findings if Peek function wasn't called", async () => {
+  it("should return an empty finding if Peek function wasn't called", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
@@ -91,7 +91,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty findings if the Peek call wasn't successful", async () => {
+  it("should return an empty finding if the Peek call wasn't successful", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
 
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
@@ -105,7 +105,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns empty findings if the event with deviated price is not emmited from the correct address", async () => {
+  it("should return an empty finding if the event with deviated price was not emitted from the correct address", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
     const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
     const log2 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("105")]);
@@ -124,7 +124,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns multiple findings if there are multiple Oracles with big deviations in new prices", async () => {
+  it("should return multiple finding if there are multiple Oracles with big deviations in new prices", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
 
     const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
@@ -149,7 +149,7 @@ describe("Big deviation queued price Tests", () => {
     expect(findings).toStrictEqual([createFinding(ADDRESSES[0], 100, 108), createFinding(ADDRESSES[1], 90, 118)]);
   });
 
-  it("should returns only findings from the Oracles with big deviations on new prices", async () => {
+  it("should only return findings from the Oracles with big deviations on new prices", async () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(CONTRACT_ADDRESSES(ADDRESSES));
     const log1 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
     const log2 = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("90")]);

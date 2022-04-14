@@ -41,7 +41,7 @@ describe("OSM Rely Function Agent", () => {
     when(mockFetcher.get).calledWith(3).mockReturnValue(CONTRACTS[3]);
   });
 
-  it("should return a finding for one of the OSM contract", async () => {
+  it("should return a finding for one of the OSM contracts", async () => {
     const _from = createAddress("0x2");
     const _to = CONTRACTS[1][0];
     const _input: string = denyIface.encodeFunctionData("deny", [ADDRESSES[0]]);
@@ -81,7 +81,7 @@ describe("OSM Rely Function Agent", () => {
     ]);
   });
 
-  it("should return empty finding when OSM contract address does found", async () => {
+  it("should return an empty finding when deny is called on a different contract", async () => {
     const _from = createAddress("0x2");
     const _to = createAddress("0x1"); // BAD ADDRESS
     const _input: string = denyIface.encodeFunctionData("deny", [ADDRESSES[2]]);

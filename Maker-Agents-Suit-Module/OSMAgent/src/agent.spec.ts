@@ -30,7 +30,7 @@ const denyIface = new utils.Interface([DENY_FUNCTION_SIG]);
 describe("OSM Agent Test Suite", () => {
   let transactionHandler: HandleTransaction;
 
-  it("should returns empty findings is not expected events happens", async () => {
+  it("should return empty findings is not expected events happens", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
@@ -41,7 +41,7 @@ describe("OSM Agent Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should returns findings from multiple handlers", async () => {
+  it("should return findings from multiple handlers", async () => {
     let findings: Finding[] = [];
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
@@ -65,7 +65,7 @@ describe("OSM Agent Test Suite", () => {
     expect(findings).toStrictEqual([deviationFinding(addresses[0], 100, 107), priceUpdateFinding()]);
   });
 
-  it("should detects rely event", async () => {
+  it("should detect rely function calls", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
@@ -86,7 +86,7 @@ describe("OSM Agent Test Suite", () => {
     expect(findings).toStrictEqual([relyFinding(addresses[0], createAddress("0x5"))]);
   });
 
-  it("should detect deny function", async () => {
+  it("should detect deny function calls", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
@@ -107,7 +107,7 @@ describe("OSM Agent Test Suite", () => {
     expect(findings).toStrictEqual([denyFinding(addresses[0], createAddress("0x5"))]);
   });
 
-  it("should detects when poke was not called", async () => {
+  it("should detect when poke was not called", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
 
@@ -120,7 +120,7 @@ describe("OSM Agent Test Suite", () => {
     expect(findings).toStrictEqual([priceUpdateFinding()]);
   });
 
-  it("should detects big price deviations", async () => {
+  it("should detect big price deviations", async () => {
     let findings: Finding[] = [];
     transactionHandler = provideAgentHandler(testAddresses);
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);

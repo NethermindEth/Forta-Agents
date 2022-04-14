@@ -21,6 +21,7 @@ export const createFinding = (to: string, address: string) => {
     alertId: "MakerDAO-OSM-3",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
+    protocol: "Maker",
     metadata: {
       contract: to,
       reliedAddress: address,
@@ -40,7 +41,7 @@ describe("OSM Rely Function Agent", () => {
     when(mockFetcher.get).calledWith(3).mockReturnValue(CONTRACTS[3]);
   });
 
-  it("should return a finding for rely call on an OSM contract", async () => {
+  it("should return a finding for a rely call on an OSM contract", async () => {
     const _from = createAddress("0x2");
     const _to = CONTRACTS[1][0];
     const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
@@ -80,7 +81,7 @@ describe("OSM Rely Function Agent", () => {
     ]);
   });
 
-  it("should return empty finding when OSM contract address does found", async () => {
+  it("should return an empty finding when the call is not in an OSM contract", async () => {
     const _from = createAddress("0x2");
     const _to = createAddress("0x1"); // BAD ADDRESS
     const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[1]]);

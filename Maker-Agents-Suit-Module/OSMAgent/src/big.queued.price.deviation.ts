@@ -62,8 +62,8 @@ const checkOSMContract = (contractAddress: string, txEvent: TransactionEvent): F
   const currentValues: BigNumber[] = getCurrentValues(contractAddress, txEvent);
   const nextValues: BigNumber[] = getNextValuesForOSM(contractAddress, txEvent.traces);
 
-  const lessLenght: number = Math.min(currentValues.length, nextValues.length);
-  for (let i = 0; i < lessLenght; i++) {
+  const lessLength: number = Math.min(currentValues.length, nextValues.length);
+  for (let i = 0; i < lessLength; i++) {
     if (needToReport(currentValues[i], nextValues[i])) {
       return createFinding(contractAddress.toLowerCase(), currentValues[i], nextValues[i]);
     }

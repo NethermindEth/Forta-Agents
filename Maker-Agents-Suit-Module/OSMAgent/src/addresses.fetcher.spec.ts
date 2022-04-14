@@ -114,7 +114,7 @@ describe("AddressesFetcher test suite", () => {
 
     mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "test-error-occured")));
 
-    // should return empty address du to a failure fetching the addresses the first time
+    // should return empty address due to a failure fetching the addresses the first time
     let addresses: string[] = await fetcher.get(1);
     expect(addresses).toStrictEqual([]);
 
