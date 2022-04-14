@@ -2,6 +2,9 @@
   "name": "maker-osm",
   "version": "0.0.1",
   "description": "Forta Agents for monitoring MakerDAO Oracle security module",
+  "chainIds": [
+    1
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
