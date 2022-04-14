@@ -1,10 +1,9 @@
 import { Finding, HandleBlock, BlockEvent, FindingSeverity, FindingType } from "forta-agent";
-import { AddressVerifier, HatFinding, approvalsCall, PropertyFetcher, propertyFetcher } from "./utils";
-import BigNumber from "bignumber.js";
-import HatManager from "./hat.manager";
+import { AddressVerifier, HatFinding } from "./utils";
+import { BigNumber } from "ethers";
+import HatFetcher from "./hat.fetcher";
 
-export const MKR_THRESHOLD: BigNumber = new BigNumber(40000);
-const MKR_DECIMALS: number = 18;
+export const MKR_THRESHOLD: BigNumber = BigNumber.from(40000);
 
 const desc: {
   [key in HatFinding]: string;
@@ -26,46 +25,43 @@ export const createFinding = (alertId: string, finding: HatFinding, metadata: { 
   });
 
 export const provideHatChecker = (
-  web3Call: any,
   alertId: string,
-  contractAddress: string,
   isKnown: AddressVerifier,
-  threshold: BigNumber = MKR_THRESHOLD
+  threshold: BigNumber,
+  fetcher: HatFetcher
 ): HandleBlock => {
-  const realThreshold: BigNumber = threshold.multipliedBy(10 ** MKR_DECIMALS);
-  const getApprovals: PropertyFetcher = propertyFetcher(web3Call, contractAddress, approvalsCall, "uint256");
-  const hatManager: HatManager = new HatManager(web3Call, contractAddress);
+  const realThreshold: BigNumber = threshold.mul("1000000000000000000");
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
     const block: number = blockEvent.blockNumber;
     // Get Hat Information
-    const previousHat = await hatManager.getAddress(block - 1);
-    const hat: string = await hatManager.getAddress(block);
+    const previousHat = await fetcher.getHat(block - 1);
+    const hat: string = await fetcher.getHat(block);
 
     // Check if hat address is a known address
     if (!isKnown(hat)) {
-      findings.push(createFinding(alertId, HatFinding.UnknownHat, { hat: hat }));
+      findings.push(createFinding(alertId, HatFinding.UnknownHat, { hat: hat.toLowerCase() }));
     } else {
       // Compare with previous hat address
       if (hat !== previousHat) {
         findings.push(
           createFinding(alertId, HatFinding.HatModified, {
-            hat: hat,
-            previousHat: previousHat,
+            hat: hat.toLowerCase(),
+            previousHat: previousHat.toLowerCase(),
           })
         );
       }
 
       // Retrieve MKR for hat
-      const MKR: BigNumber = new BigNumber(await getApprovals(block, hat));
+      const MKR: BigNumber = await fetcher.getHatApprovals(block);
 
       // Send alarm if MKR is below threshold
-      if (realThreshold.isGreaterThan(MKR)) {
+      if (realThreshold.gt(MKR)) {
         findings.push(
           createFinding(alertId, HatFinding.FewApprovals, {
-            hat: hat,
+            hat: hat.toLowerCase(),
             MKR: MKR.toString(),
             threshold: realThreshold.toString(),
           })

@@ -1,22 +1,23 @@
 import { encode } from "rlp";
 import { keccak256 } from "web3-utils";
 import { AddressManager } from "./utils";
+import { providers } from "ethers";
 
 export default class DeployedAddressesManager implements AddressManager {
   private nonce: number;
   private deployer: string;
   private deployedAddresses: Set<string>;
-  private getNonce: any;
+  private provider: providers.JsonRpcProvider;
 
-  public constructor(deployer: string, getNonce: any) {
+  public constructor(deployer: string, provider: providers.JsonRpcProvider) {
     this.nonce = 0;
     this.deployer = deployer;
-    this.getNonce = getNonce;
+    this.provider = provider;
     this.deployedAddresses = new Set<string>();
   }
 
   public async update(block: string | number = "latest"): Promise<void> {
-    const nonce: number = await this.getNonce(this.deployer, block);
+    const nonce: number = await this.provider.getTransactionCount(this.deployer, block);
     if (nonce > this.nonce) {
       // Generate the contract addresses deployed by deployer associated with each one of the nonces
       for (let i: number = this.nonce + 1; i <= nonce; ++i) {
@@ -34,6 +35,6 @@ export default class DeployedAddressesManager implements AddressManager {
   }
 
   public isKnownAddress(addr: string): boolean {
-    return this.isDeployedAddress(addr);
+    return this.isDeployedAddress(addr.toLowerCase());
   }
 }
