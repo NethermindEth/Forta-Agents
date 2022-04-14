@@ -15,6 +15,7 @@ export const createFinding = (contractAddress: string, currentPrice: any, queued
     alertId: "MakerDAO-OSM-1",
     type: FindingType.Suspicious,
     severity: FindingSeverity.Info,
+    protocol: "Maker",
     metadata: {
       contractAddress: contractAddress,
       currentPrice: currentPrice.toString(),

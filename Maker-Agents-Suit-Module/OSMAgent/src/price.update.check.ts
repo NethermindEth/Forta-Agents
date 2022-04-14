@@ -10,6 +10,7 @@ export const createFinding = (): Finding => {
     description: "Poke() function not called within 10 minutes of the hour",
     alertId: "MakerDAO-OSM-4",
     severity: FindingSeverity.Critical,
+    protocol: "Maker",
     type: FindingType.Info,
     metadata: {
       MegaPokerContract: MEGAPOKER_CONTRACT,

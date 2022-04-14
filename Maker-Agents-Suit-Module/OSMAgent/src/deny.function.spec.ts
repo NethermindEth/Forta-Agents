@@ -21,6 +21,7 @@ export const createFinding = (to: string, address: string) => {
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
+    protocol: "Maker",
     metadata: {
       contract: to,
       deniedAddress: address,

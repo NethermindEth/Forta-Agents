@@ -23,7 +23,6 @@ const lessThanTenMinutes = 1467021981; // "Mon, 27 Jun 2016 10:06:21 GMT"
 const greaterThanTenMinutes = 1467022981; // "Mon, 27 Jun 2016 10:23:01 GMT"
 
 const peek_ABI = new utils.Interface(["function peek() public view returns (bytes32, bool)"]);
-const poke_ABI = new utils.Interface(["function poke() external"]);
 const logIface = new utils.Interface(["event LogValue(bytes32 val)"]);
 const relyIface = new utils.Interface([RELY_FUNCTION_SIG]);
 const denyIface = new utils.Interface([DENY_FUNCTION_SIG]);

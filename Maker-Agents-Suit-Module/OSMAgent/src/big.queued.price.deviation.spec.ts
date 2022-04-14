@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import provideBigQueuedPriceDeviationHandler, { createFinding } from "./big.queued.price.deviation";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { utils } from "ethers";
-import { formatBytes32String, parseBytes32String } from "ethers/lib/utils";
+import { formatBytes32String } from "ethers/lib/utils";
 
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3"), createAddress("0x4")];
 const CONTRACT_ADDRESSES: any = (addresses: string[]) => {

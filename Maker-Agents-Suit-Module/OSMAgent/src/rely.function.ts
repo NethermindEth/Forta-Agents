@@ -9,6 +9,7 @@ export const createFinding = (metadata: { [key: string]: any } | undefined): Fin
     name: "Maker OSM Contract RELY Function",
     description: "RELY Function is called",
     alertId: "MakerDAO-OSM-3",
+    protocol: "Maker",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
     metadata,
