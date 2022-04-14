@@ -17,8 +17,8 @@ const filterLog = (log: LogDescription, index?: number | undefined, array?: LogD
   const amount: BigNumber = BigNumber.from(log.args[1]);
   const threshold: BigNumber = BigNumber.from("2000000000000000000"); // 2 MKR
   // To run the txn in the README, comment the line above
-  // and uncomment the line below (0.002 MKR threshold)
-  // const threshold: BigNumber = BigNumber.from("2000000000000000"); // 0.002 MKR
+  // and uncomment the line below (0.0002 MKR threshold)
+  // const threshold: BigNumber = BigNumber.from("200000000000000"); // 0.0002 MKR
 
   return amount.gt(threshold);
 };
