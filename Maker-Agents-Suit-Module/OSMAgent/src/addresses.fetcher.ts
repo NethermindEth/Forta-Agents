@@ -5,7 +5,7 @@ export default class AddressesFetcher {
   private elapsedTime: number;
   private getter: any;
 
-  constructor(endpoint: string, getter: any, elapsedTime: number){
+  constructor(endpoint: string, getter: any, elapsedTime: number) {
     this.lastTime = -1;
     this.pipAddresses = [];
     this.endpoint = endpoint;
@@ -14,12 +14,12 @@ export default class AddressesFetcher {
   }
 
   private async fetch(timestamp: number): Promise<void> {
-    await this.getter.get(this.endpoint)
+    await this.getter
+      .get(this.endpoint)
       .then((response: Record<string, string>) => {
         const addresses: string[] = [];
-        for(let [key, address] of Object.entries(response.data)){
-          if(key.startsWith('PIP_'))
-            addresses.push(address.toLowerCase());
+        for (let [key, address] of Object.entries(response.data)) {
+          if (key.startsWith("PIP_")) addresses.push(address.toLowerCase());
         }
         this.lastTime = timestamp;
         this.pipAddresses = addresses;
@@ -30,8 +30,7 @@ export default class AddressesFetcher {
   }
 
   public async get(timestamp: number): Promise<string[]> {
-    if(this.lastTime === -1 || (this.lastTime + this.elapsedTime <= timestamp))
-      await this.fetch(timestamp)
+    if (this.lastTime === -1 || this.lastTime + this.elapsedTime <= timestamp) await this.fetch(timestamp);
     return this.pipAddresses;
   }
-};
+}

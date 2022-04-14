@@ -1,11 +1,5 @@
-import {
-  Finding,
-  HandleTransaction,
-} from "forta-agent";
-import providePriceUpdateCheckHandler, {
-  createFinding,
-  MEGAPOKER_CONTRACT,
-} from "./price.update.check";
+import { Finding, HandleTransaction } from "forta-agent";
+import providePriceUpdateCheckHandler, { createFinding, MEGAPOKER_CONTRACT } from "./price.update.check";
 
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
@@ -22,9 +16,7 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
+    const txEvent = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent));
 
@@ -35,12 +27,8 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      lessThanTenMinutes
-    );
-    const txEvent2 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
@@ -52,15 +40,11 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      previousHourForActivatingAgent
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
     const txEvent2 = new TestTransactionEvent()
       .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(lessThanTenMinutes);
-    const txEvent3 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
+    const txEvent3 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
@@ -73,15 +57,9 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      previousHourForActivatingAgent
-    );
-    const txEvent2 = new TestTransactionEvent().setTimestamp(
-      lessThanTenMinutes
-    );
-    const txEvent3 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
+    const txEvent3 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));
@@ -94,12 +72,8 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      previousHourForActivatingAgent
-    );
-    const txEvent2 = new TestTransactionEvent().setTimestamp(
-      lessThanTenMinutes
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
     const txEvent3 = new TestTransactionEvent()
       .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
@@ -115,12 +89,8 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      previousHourForActivatingAgent
-    );
-    const txEvent2 = new TestTransactionEvent().setTimestamp(
-      lessThanTenMinutes
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
     const txEvent3 = new TestTransactionEvent()
       .addTraces({ to: MEGAPOKER_CONTRACT, input: pokeFunctionSelector })
       .setTimestamp(greaterThanTenMinutes);
@@ -138,15 +108,9 @@ describe("Poker Method", () => {
     handleTransaction = providePriceUpdateCheckHandler();
     let findings: Finding[] = [];
 
-    const txEvent1 = new TestTransactionEvent().setTimestamp(
-      previousHourForActivatingAgent
-    );
-    const txEvent2 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
-    const txEvent3 = new TestTransactionEvent().setTimestamp(
-      greaterThanTenMinutes
-    );
+    const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
+    const txEvent2 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
+    const txEvent3 = new TestTransactionEvent().setTimestamp(greaterThanTenMinutes);
 
     findings = findings.concat(await handleTransaction(txEvent1));
     findings = findings.concat(await handleTransaction(txEvent2));

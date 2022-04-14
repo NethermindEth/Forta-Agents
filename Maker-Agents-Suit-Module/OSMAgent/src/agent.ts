@@ -9,17 +9,11 @@ import axios from "axios";
 const API_ENDPOINT: string = "https://changelog.makerdao.com/releases/mainnet/1.9.10/contracts.json";
 const ELAPSED_TIME_BETWEEN_UPDATES: number = 86400; // one day
 
-export const provideAgentHandler = (
-  fetcher: AddressesFetcher,
-): HandleTransaction => {
-  const bigDeviationNextPriceHandler: HandleTransaction =
-    provideBigQueuedPriceDeviationHandler(fetcher);
-  const denyFunctionHandler: HandleTransaction =
-    provideDenyFunctionHandler(fetcher);
-  const relyFunctionHandler: HandleTransaction =
-    provideRelyFunctionHandler(fetcher);
-  const priceUpdateCheckHandler: HandleTransaction =
-    providePriceUpdateCheckHandler();
+export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransaction => {
+  const bigDeviationNextPriceHandler: HandleTransaction = provideBigQueuedPriceDeviationHandler(fetcher);
+  const denyFunctionHandler: HandleTransaction = provideDenyFunctionHandler(fetcher);
+  const relyFunctionHandler: HandleTransaction = provideRelyFunctionHandler(fetcher);
+  const priceUpdateCheckHandler: HandleTransaction = providePriceUpdateCheckHandler();
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
@@ -34,9 +28,5 @@ export const provideAgentHandler = (
 };
 
 export default {
-  handleTransaction: provideAgentHandler(new AddressesFetcher(
-    API_ENDPOINT,
-    axios,
-    ELAPSED_TIME_BETWEEN_UPDATES,
-  )),
+  handleTransaction: provideAgentHandler(new AddressesFetcher(API_ENDPOINT, axios, ELAPSED_TIME_BETWEEN_UPDATES)),
 };
