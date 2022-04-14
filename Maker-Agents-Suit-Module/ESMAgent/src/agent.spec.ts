@@ -1,9 +1,9 @@
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
+import { encodeParameter } from "forta-agent-tools";
 import agent from "./agent";
 import { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
-import { encodeParam } from "./utils";
 
 const MakerDAO_ESM_CONTRACT = "0x29cfbd381043d00a98fd9904a431015fef07af2f";
 const JOIN_EVENT_ALERTID = "MakerDAO-ESM-1";
@@ -47,8 +47,8 @@ describe("Agent Handler", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
-      encodeParam("uint256", AMOUNT_3), // 3
-      encodeParam("address", USER)
+      encodeParameter("uint256", AMOUNT_3), // 3
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -74,8 +74,8 @@ describe("Agent Handler", () => {
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
         MakerDAO_ESM_CONTRACT,
-        encodeParam("uint256", AMOUNT_3), // 3
-        encodeParam("address", USER)
+        encodeParameter("uint256", AMOUNT_3), // 3
+        encodeParameter("address", USER)
       )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
@@ -115,8 +115,8 @@ describe("Agent Handler", () => {
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
         MakerDAO_ESM_CONTRACT,
-        encodeParam("uint256", AMOUNT_3), // 3
-        encodeParam("address", USER)
+        encodeParameter("uint256", AMOUNT_3), // 3
+        encodeParameter("address", USER)
       )
       .addEventLog("BAD SIGNATURE", MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
@@ -144,8 +144,8 @@ describe("Agent Handler", () => {
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
         MakerDAO_ESM_CONTRACT,
-        encodeParam("uint256", AMOUNT_1),
-        encodeParam("address", USER)
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
@@ -172,8 +172,8 @@ describe("Agent Handler", () => {
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
         "0x1", // bad address
-        encodeParam("uint256", AMOUNT_1),
-        encodeParam("address", USER)
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, "0x1")
       .setFrom(USER);
@@ -188,8 +188,8 @@ describe("Agent Handler", () => {
       .addEventLog(
         "0xabc", // bad signature
         MakerDAO_ESM_CONTRACT,
-        encodeParam("uint256", AMOUNT_1),
-        encodeParam("address", USER)
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
       .addEventLog("0xabc", MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
