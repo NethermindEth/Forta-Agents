@@ -4,7 +4,7 @@ import { when } from "jest-when";
 import abi from "./abi";
 
 class MockEthersProviderExtension extends MockEthersProvider {
-  public getTransactionCount = jest.fn();
+  public getTransactionCount: any;
 
   constructor() {
     super();
