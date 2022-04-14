@@ -20,7 +20,7 @@ export default function provideRelyFunctionHandler(fetcher: AddressesFetcher): H
     const findings: Finding[] = [];
     const contracts: string[] = await fetcher.get(txEvent.timestamp);
 
-    txEvent.filterFunction([RELY_FUNCTION_SIG], contracts).map((desc: TransactionDescription) => {
+    txEvent.filterFunction([RELY_FUNCTION_SIG], contracts).forEach((desc: TransactionDescription) => {
       const metadata = {
         contract: txEvent.to,
         reliedAddress: desc.args[0].toLowerCase(),
