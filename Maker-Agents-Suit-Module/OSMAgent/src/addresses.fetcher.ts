@@ -25,7 +25,7 @@ export default class AddressesFetcher {
         this.pipAddresses = addresses;
       })
       .catch((error: any) => {
-       // console.log("Failing to retrieve the addresses with error:", error);
+        // console.log("Failing to retrieve the addresses with error:", error);
       });
   }
 

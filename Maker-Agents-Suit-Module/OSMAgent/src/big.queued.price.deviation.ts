@@ -53,7 +53,7 @@ const getCurrentValues = (contractAddress: string, txEvent: TransactionEvent) =>
 const abs = (a: BigNumber): BigNumber => (a.lt(0) ? BigNumber.from(-a) : a);
 
 const needToReport = (currentValue: BigNumber, nextValue: BigNumber): boolean => {
-  const bigDeviation: BigNumber = (BigNumber.from(6).mul(currentValue)).div(BigNumber.from(100));
+  const bigDeviation: BigNumber = BigNumber.from(6).mul(currentValue).div(BigNumber.from(100));
   return abs(currentValue.sub(nextValue)).gt(bigDeviation);
 };
 
