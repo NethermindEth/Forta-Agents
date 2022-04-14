@@ -19,14 +19,14 @@ const isKnown: AddressVerifier = generateAddressVerifier([
 describe("Lift Events listener test suite", () => {
   const handleTransaction: HandleTransaction = provider(alertId, chief, isKnown, isKnown, topic);
 
-  it("should return 0 findings if the chief is not involved in the tx", async () => {
+  it("should return 0 findings from empty transaction", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return 0 findings if the event is not emitted correctly in the by the address", async () => {
+  it("should return 0 findings if the event is not emitted correctly by the address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addInvolvedAddresses(createAddress("0x1"), createAddress("0x2"), chief)
       .addAnonymousEventLog(createAddress("0x1"), "0x", topic, encodedAddr("0x2"), encodedAddr("0xdead"))
