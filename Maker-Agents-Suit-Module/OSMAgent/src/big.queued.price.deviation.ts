@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { Interface, parseBytes32String } from "ethers/lib/utils";
 import { TransactionEvent, Trace, HandleTransaction, Finding, FindingType, FindingSeverity } from "forta-agent";
 
@@ -31,9 +32,9 @@ const callWasSuccessful = (trace: Trace): boolean => {
   return results[1];
 };
 
-const decodeNextValue = (trace: Trace): bigint => {
+const decodeNextValue = (trace: Trace): BigNumber => {
   const results = ABI.decodeFunctionResult("peek", trace.result.output);
-  return BigInt(parseBytes32String(results[0]));
+  return BigNumber.from(parseBytes32String(results[0]));
 };
 
 const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
@@ -46,19 +47,19 @@ const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
 const getCurrentValues = (contractAddress: string, txEvent: TransactionEvent) => {
   return txEvent
     .filterLog(LOG_VALUE_EVENT_SIGNATURE, contractAddress)
-    .map((log) => BigInt(parseBytes32String(log.args[0])));
+    .map((log) => BigNumber.from(parseBytes32String(log.args[0])));
 };
 
-const abs = (a: bigint): bigint => (a < 0 ? -a : a);
+const abs = (a: BigNumber): BigNumber => (a.lt(0) ? BigNumber.from(-a) : a);
 
-const needToReport = (currentValue: bigint, nextValue: bigint): boolean => {
-  const bigDeviation: bigint = (BigInt(6) * currentValue) / BigInt(100);
-  return abs(currentValue - nextValue) > bigDeviation;
+const needToReport = (currentValue: BigNumber, nextValue: BigNumber): boolean => {
+  const bigDeviation: BigNumber = (BigNumber.from(6).mul(currentValue)).div(BigNumber.from(100));
+  return abs(currentValue.sub(nextValue)).gt(bigDeviation);
 };
 
 const checkOSMContract = (contractAddress: string, txEvent: TransactionEvent): Finding | null => {
-  const currentValues: bigint[] = getCurrentValues(contractAddress, txEvent);
-  const nextValues: bigint[] = getNextValuesForOSM(contractAddress, txEvent.traces);
+  const currentValues: BigNumber[] = getCurrentValues(contractAddress, txEvent);
+  const nextValues: BigNumber[] = getNextValuesForOSM(contractAddress, txEvent.traces);
 
   const lessLenght: number = Math.min(currentValues.length, nextValues.length);
   for (let i = 0; i < lessLenght; i++) {

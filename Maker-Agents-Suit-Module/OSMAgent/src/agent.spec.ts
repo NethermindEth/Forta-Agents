@@ -63,7 +63,7 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent2));
     findings = findings.concat(await transactionHandler(txEvent3));
 
-    expect(findings).toStrictEqual([deviationFinding(addresses[0], BigInt(100), BigInt(107)), priceUpdateFinding()]);
+    expect(findings).toStrictEqual([deviationFinding(addresses[0], 100, 107), priceUpdateFinding()]);
   });
 
   it("should detects rely event", async () => {
@@ -137,7 +137,7 @@ describe("OSM Agent Test Suite", () => {
 
     findings = findings.concat(await transactionHandler(txEvent));
 
-    expect(findings).toStrictEqual([deviationFinding(addresses[0], BigInt(100), BigInt(107))]);
+    expect(findings).toStrictEqual([deviationFinding(addresses[0], 100, 107)]);
   });
 
   it("should not return MakerDAO-OSM-4 finding if poke was already called in that hour", async () => {
@@ -174,7 +174,7 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent3));
 
     expect(findings).toStrictEqual([
-      deviationFinding(addresses[0], BigInt(100), BigInt(107)),
+      deviationFinding(addresses[0], 100, 107),
       denyFinding(addresses[0], createAddress("0x5")),
     ]);
   });
