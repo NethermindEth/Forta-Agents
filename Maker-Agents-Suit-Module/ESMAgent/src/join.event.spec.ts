@@ -1,8 +1,8 @@
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
+import { encodeParameter } from "forta-agent-tools";
 
 import provideESMJoinEventAgent, { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
-import { encodeParam } from "./utils";
 
 const ADDRESS = createAddress("0x1");
 const USER = createAddress("0x2");
@@ -22,8 +22,8 @@ describe("ESM Join Event Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      encodeParam("uint256", AMOUNT_3), // 3
-      encodeParam("address", USER)
+      encodeParameter("uint256", AMOUNT_3), // 3
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -48,8 +48,8 @@ describe("ESM Join Event Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       ADDRESS,
-      encodeParam("uint256", AMOUNT_1), //1
-      encodeParam("address", USER)
+      encodeParameter("uint256", AMOUNT_1), //1
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -61,8 +61,8 @@ describe("ESM Join Event Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "bad sig",
       ADDRESS,
-      encodeParam("uint256", AMOUNT_3), // 3
-      encodeParam("address", USER)
+      encodeParameter("uint256", AMOUNT_3), // 3
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -74,8 +74,8 @@ describe("ESM Join Event Agent", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       "0x1",
-      encodeParam("uint256", AMOUNT_1), // 3
-      encodeParam("address", USER)
+      encodeParameter("uint256", AMOUNT_1), // 3
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
