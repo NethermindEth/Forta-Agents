@@ -10,6 +10,7 @@ export const createFinding = (metadata: { [key: string]: any } | undefined): Fin
     description: "DENY Function is called",
     alertId: "MakerDAO-OSM-2",
     severity: FindingSeverity.Medium,
+    protocol: "Maker",
     type: FindingType.Info,
     metadata,
   });
