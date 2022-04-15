@@ -1,7 +1,8 @@
 import { Finding, HandleTransaction } from "forta-agent";
-import providePriceUpdateCheckHandler, { createFinding, MEGAPOKER_CONTRACT } from "./price.update.check";
+import providePriceUpdateCheckHandler, { createFinding } from "./price.update.check";
 
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { MEGAPOKER_CONTRACT } from "./utils";
 
 const pokeFunctionSelector = "0x18178358";
 const previousHourForActivatingAgent = 1467018381;

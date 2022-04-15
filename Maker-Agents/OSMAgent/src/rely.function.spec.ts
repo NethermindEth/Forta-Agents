@@ -1,16 +1,15 @@
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
-import provideRelyFunctionHandler, { RELY_FUNCTION_SIG } from "./rely.function";
+import provideRelyFunctionHandler from "./rely.function";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { when } from "jest-when";
 import { utils } from "ethers";
+import { RELY_FUNCTION_SIG } from "./utils";
 
-const CONTRACTS: string[][] = [
-  // index represent a timestamp
-  [], // no contracts at timestamp 0
-  [createAddress("0xa0"), createAddress("0xa1")],
-  [createAddress("0xb0"), createAddress("0xb1"), createAddress("0xb2")],
-  [createAddress("0xc0")],
-];
+const CONTRACTS: Map<string,string> = new Map<string,string> ([
+  ["PIP_ONE",createAddress("0xa1") ],
+  ["PIP_TWO",createAddress("0xa2") ],
+  ["PIP_THREE",createAddress("0xa3") ],
+])
+
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 const relyIface = new utils.Interface([RELY_FUNCTION_SIG]);
 
@@ -32,18 +31,19 @@ export const createFinding = (to: string, address: string) => {
 describe("OSM Rely Function Agent", () => {
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => {
-    const mockFetcher: any = { get: jest.fn() };
-    handleTransaction = provideRelyFunctionHandler(mockFetcher);
+  beforeAll(() => { 
+    const mockFetcher: any = { 
+      osmContracts: CONTRACTS,
+      getOsmAddresses:  jest.fn(),
+      updateAddresses: jest.fn(),
 
-    when(mockFetcher.get).calledWith(1).mockReturnValue(CONTRACTS[1]);
-    when(mockFetcher.get).calledWith(2).mockReturnValue(CONTRACTS[2]);
-    when(mockFetcher.get).calledWith(3).mockReturnValue(CONTRACTS[3]);
+    };
+    handleTransaction = provideRelyFunctionHandler(mockFetcher);
   });
 
   it("should return a finding for a rely call on an OSM contract", async () => {
     const _from = createAddress("0x2");
-    const _to = CONTRACTS[1][0];
+    const _to = CONTRACTS.get("PIP_ONE") as string;
     const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(1).setTo(_to).addTraces({
@@ -61,14 +61,14 @@ describe("OSM Rely Function Agent", () => {
     const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
     const _input2: string = relyIface.encodeFunctionData("rely", [ADDRESSES[1]]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(2).setTo(CONTRACTS[2][2]).addTraces(
+    const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(2).setTo(CONTRACTS.get("PIP_TWO") as string).addTraces(
       {
-        to: CONTRACTS[2][2],
+        to: CONTRACTS.get("PIP_TWO") as string,
         from: _from,
         input: _input,
       },
       {
-        to: CONTRACTS[2][2],
+        to: CONTRACTS.get("PIP_TWO") as string,
         from: _from,
         input: _input2,
       }
@@ -76,8 +76,8 @@ describe("OSM Rely Function Agent", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      createFinding(CONTRACTS[2][2], ADDRESSES[0]),
-      createFinding(CONTRACTS[2][2], ADDRESSES[1]),
+      createFinding(CONTRACTS.get("PIP_TWO") as string, ADDRESSES[0]),
+      createFinding(CONTRACTS.get("PIP_TWO") as string, ADDRESSES[1]),
     ]);
   });
 

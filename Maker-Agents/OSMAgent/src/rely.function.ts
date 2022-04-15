@@ -1,8 +1,7 @@
 import { TransactionDescription } from "ethers/lib/utils";
 import { Finding, TransactionEvent, FindingSeverity, FindingType, HandleTransaction } from "forta-agent";
 import AddressesFetcher from "./addresses.fetcher";
-
-export const RELY_FUNCTION_SIG = "function rely(address)";
+import { RELY_FUNCTION_SIG } from "./utils";
 
 export const createFinding = (metadata: { [key: string]: any } | undefined): Finding => {
   return Finding.fromObject({
@@ -19,7 +18,7 @@ export const createFinding = (metadata: { [key: string]: any } | undefined): Fin
 export default function provideRelyFunctionHandler(fetcher: AddressesFetcher): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const contracts: string[] = await fetcher.get(txEvent.timestamp);
+    const contracts: string[] = Array.from(fetcher.osmContracts.values());
 
     txEvent.filterFunction([RELY_FUNCTION_SIG], contracts).forEach((desc: TransactionDescription) => {
       const metadata = {

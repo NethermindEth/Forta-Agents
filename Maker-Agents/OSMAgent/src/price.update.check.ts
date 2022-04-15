@@ -1,8 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 import TimeTracker from "./time.tracker";
+import { MEGAPOKER_CONTRACT, POKE_FUNCTION_SIG } from "./utils";
 
-export const MEGAPOKER_CONTRACT = "0x1cfd93a4864bec32c12c77594c2ec79deec16038";
-const functionSignature = "function poke()";
 
 export const createFinding = (): Finding => {
   return Finding.fromObject({
@@ -31,7 +30,7 @@ export default function providePriceUpdateCheckHandler(): HandleTransaction {
     }
 
     if (
-      txEvent.filterFunction(functionSignature, MEGAPOKER_CONTRACT).length !== 0 &&
+      txEvent.filterFunction(POKE_FUNCTION_SIG, MEGAPOKER_CONTRACT).length !== 0 &&
       timeTracker.isInFirstTenMins(timestamp)
     ) {
       timeTracker.updateFunctionWasCalled(true);

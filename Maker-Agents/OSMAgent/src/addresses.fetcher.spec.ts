@@ -1,151 +1,69 @@
 import AddressesFetcher from "./addresses.fetcher";
-import { createAddress } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { CHAIN_LOG, FUNCTIONS_ABIS } from "./utils";
+import { formatBytes32String, Interface } from "ethers/lib/utils";
 
 describe("AddressesFetcher test suite", () => {
-  const mockAxios = { get: jest.fn() };
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
+  let fetcher: AddressesFetcher 
+  ;
+  const CONTRACTS: Map<string,string> = new Map<string,string> ([
+    [formatBytes32String("PIP_ONE"),createAddress("0xa1") ],
+    [formatBytes32String("PIP_TWO"),createAddress("0xa2") ],
+    [formatBytes32String("PIP_THREE"),createAddress("0xa3") ],
+    [formatBytes32String("NOPIP_ONE"),createAddress("0xa4") ],
+    [formatBytes32String("NOPIP_TWO"),createAddress("0xa5") ],
+    [formatBytes32String("NOPIP_THREE"),createAddress("0xa6") ],
+  ])
 
-  beforeEach(() => mockAxios.get.mockClear());
+  const initialize = () => {
+    fetcher = new AddressesFetcher(mockProvider as any, CHAIN_LOG);
+    mockProvider.clear()
+    
+    // call to list 
+    mockProvider.addCallTo(CHAIN_LOG, 1, new Interface(FUNCTIONS_ABIS), "list", {
+        inputs: [],
+        outputs: [ Array.from(CONTRACTS.keys())],
 
-  it("should return the PIP_ prefixed address", async () => {
-    const endpoint = "some-api-endpoint";
-    const fetcher: AddressesFetcher = new AddressesFetcher(endpoint, mockAxios, 10);
+    })
+    // call to getAddress 
+    CONTRACTS.forEach((address,key)=>{
+      mockProvider.addCallTo(CHAIN_LOG, 1,  new Interface(FUNCTIONS_ABIS), "getAddress", {
+        inputs: [key],
+        outputs: [address.toLowerCase()],
+      });
+    });
+  };
 
-    mockAxios.get.mockReturnValueOnce(
-      new Promise((resolve) =>
-        resolve({
-          data: {
-            No_PIP_data0: createAddress("0xa"),
-            PIP_data0: createAddress("0xb"),
-            No_PIP_data1: createAddress("0xab"),
-            PIP_data1: createAddress("0xc"),
-            PIP_data2: createAddress("0xd"),
-            PIP_data3: createAddress("0xe"),
-          },
-        })
-      )
-    );
+  it("should store only PIP_ prefixed addresses", async () => {
+    initialize()
+    await fetcher.getOsmAddresses(1);
 
-    const addresses: string[] = await fetcher.get(1);
-    expect(addresses).toStrictEqual([
-      createAddress("0xb"),
-      createAddress("0xc"),
-      createAddress("0xd"),
-      createAddress("0xe"),
-    ]);
+    expect (fetcher.osmContracts).toStrictEqual(new Map<string,string>([
+        [formatBytes32String("PIP_ONE"),createAddress("0xa1") ],
+        [formatBytes32String("PIP_TWO"),createAddress("0xa2") ],
+        [formatBytes32String("PIP_THREE"),createAddress("0xa3") ],
+    ]))
 
-    expect(mockAxios.get).toBeCalledTimes(1);
-    expect(mockAxios.get).toBeCalledWith(endpoint);
+
   });
 
-  it("should update the addresses", async () => {
-    const endpoint = "some-api-endpoint-v2";
-    const fetcher: AddressesFetcher = new AddressesFetcher(endpoint, mockAxios, 102);
-
-    mockAxios.get.mockReturnValueOnce(
-      new Promise((resolve) =>
-        resolve({
-          data: {
-            PIIP_data0: createAddress("0xa"),
-            PIP_data0: createAddress("0xb"),
-            No_PIP_data1: createAddress("0xab"),
-            PIP_data1: createAddress("0xc"),
-            PIP_data2: createAddress("0xd"),
-            PIP_data3: createAddress("0xe"),
-            OTHER: createAddress("0xdead"),
-          },
-        })
-      )
-    );
-
-    let addresses: string[] = await fetcher.get(1);
-    expect(addresses).toStrictEqual([
-      createAddress("0xb"),
-      createAddress("0xc"),
-      createAddress("0xd"),
-      createAddress("0xe"),
-    ]);
-
-    // no need to update the addresses
-    addresses = await fetcher.get(2);
-    expect(addresses).toStrictEqual([
-      createAddress("0xb"),
-      createAddress("0xc"),
-      createAddress("0xd"),
-      createAddress("0xe"),
-    ]);
-
-    // no need to update the addresses
-    addresses = await fetcher.get(20);
-    expect(addresses).toStrictEqual([
-      createAddress("0xb"),
-      createAddress("0xc"),
-      createAddress("0xd"),
-      createAddress("0xe"),
-    ]);
-
-    // time passed, update needed
-    mockAxios.get.mockReturnValueOnce(
-      new Promise((resolve) =>
-        resolve({
-          data: {
-            PIP_data3: createAddress("0xe"),
-            OTHER: createAddress("0xdead"),
-          },
-        })
-      )
-    );
-    addresses = await fetcher.get(103);
-    expect(addresses).toStrictEqual([createAddress("0xe")]);
-
-    expect(mockAxios.get).toBeCalledTimes(2);
-    expect(mockAxios.get).nthCalledWith(1, endpoint);
-    expect(mockAxios.get).nthCalledWith(2, endpoint);
-  });
-
-  it("should return the old addresses on failures", async () => {
-    const endpoint = "some-api-endpoint-v3";
-    const fetcher: AddressesFetcher = new AddressesFetcher(endpoint, mockAxios, 20);
-
-    const log = jest.fn();
-    const rejection = (reject: any, error: string) => {
-      log(error);
-      return reject(error);
-    };
-
-    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "test-error-occured")));
-
-    // should return empty address due to a failure fetching the addresses the first time
-    let addresses: string[] = await fetcher.get(1);
-    expect(addresses).toStrictEqual([]);
-
-    // fetching some addresses
-    mockAxios.get.mockReturnValueOnce(
-      new Promise((resolve) =>
-        resolve({
-          data: {
-            PIP_data0: createAddress("0x0"),
-            PIP_data1: createAddress("0x1"),
-          },
-        })
-      )
-    );
-
-    addresses = await fetcher.get(2);
-    expect(addresses).toStrictEqual([createAddress("0x0"), createAddress("0x1")]);
-
-    // time passed, update needed
-    mockAxios.get.mockReturnValueOnce(new Promise((resolve, reject) => rejection(reject, "test-api-is-shutdown")));
-    addresses = await fetcher.get(50);
-    // same addresses received
-    expect(addresses).toStrictEqual([createAddress("0x0"), createAddress("0x1")]);
-
-    expect(mockAxios.get).toBeCalledTimes(3);
-    expect(mockAxios.get).nthCalledWith(1, endpoint);
-    expect(mockAxios.get).nthCalledWith(2, endpoint);
-    expect(mockAxios.get).nthCalledWith(3, endpoint);
-
-    expect(log).toBeCalledTimes(2);
-    expect(log).nthCalledWith(1, "test-error-occured");
-    expect(log).nthCalledWith(2, "test-api-is-shutdown");
-  });
+  it("should update the addresses correctly", async () => {
+    initialize()
+    await fetcher.getOsmAddresses(1);
+    fetcher.updateAddresses("UpdateAddress",  [formatBytes32String("PIP_FOUR"),createAddress("0xa7") ])
+    expect (fetcher.osmContracts).toStrictEqual(new Map<string,string>([
+        [formatBytes32String("PIP_ONE"),createAddress("0xa1") ],
+        [formatBytes32String("PIP_TWO"),createAddress("0xa2") ],
+        [formatBytes32String("PIP_THREE"),createAddress("0xa3") ],
+        [formatBytes32String("PIP_FOUR"),createAddress("0xa7") ],
+    ]))
+    
+    fetcher.updateAddresses("RemoveAddress",[formatBytes32String("PIP_ONE")] )
+    expect (fetcher.osmContracts).toStrictEqual(new Map<string,string>([
+        [formatBytes32String("PIP_TWO"),createAddress("0xa2") ],
+        [formatBytes32String("PIP_THREE"),createAddress("0xa3") ],
+        [formatBytes32String("PIP_FOUR"),createAddress("0xa7") ]
+    ]))
+});
 });

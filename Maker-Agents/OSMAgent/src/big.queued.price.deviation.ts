@@ -1,12 +1,10 @@
 import { BigNumber } from "ethers";
-import { Interface, parseBytes32String } from "ethers/lib/utils";
+import { parseBytes32String } from "ethers/lib/utils";
 import { TransactionEvent, Trace, HandleTransaction, Finding, FindingType, FindingSeverity } from "forta-agent";
-
 import AddressesFetcher from "./addresses.fetcher";
+import { PEEK_FUNCTION_SELECTOR, LOG_VALUE_EVENT_SIGNATURE, PEEK_ABI } from "./utils";
 
-const PEEK_FUNCTION_SELECTOR = "0x59e02dd7";
-const LOG_VALUE_EVENT_SIGNATURE = "event LogValue(bytes32)";
-const ABI = new Interface(["function peek() public view returns (bytes32, bool)"]);
+
 
 export const createFinding = (contractAddress: string, currentPrice: any, queuedPrice: any): Finding => {
   return Finding.fromObject({
@@ -29,12 +27,12 @@ const correctFunctionCalled = (trace: Trace): boolean => {
 };
 
 const callWasSuccessful = (trace: Trace): boolean => {
-  const results = ABI.decodeFunctionResult("peek", trace.result.output);
+  const results = PEEK_ABI.decodeFunctionResult("peek", trace.result.output);
   return results[1];
 };
 
 const decodeNextValue = (trace: Trace): BigNumber => {
-  const results = ABI.decodeFunctionResult("peek", trace.result.output);
+  const results = PEEK_ABI.decodeFunctionResult("peek", trace.result.output);
   return BigNumber.from(parseBytes32String(results[0]));
 };
 
@@ -75,7 +73,8 @@ const checkOSMContract = (contractAddress: string, txEvent: TransactionEvent): F
 export default function provideBigQueuedPriceDeviationHandler(fetcher: AddressesFetcher): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const contractAddressesList: string[] = await fetcher.get(txEvent.timestamp);
+    const contractAddressesList: string[] = Array.from(fetcher.osmContracts.values());
+
     for (let i = 0; i < contractAddressesList.length; i++) {
       const finding: Finding | null = checkOSMContract(contractAddressesList[i], txEvent);
       if (finding !== null) {

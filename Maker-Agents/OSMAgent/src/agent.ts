@@ -1,15 +1,20 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import provideDenyFunctionHandler from "./deny.function";
 import provideRelyFunctionHandler from "./rely.function";
 import provideBigQueuedPriceDeviationHandler from "./big.queued.price.deviation";
 import providePriceUpdateCheckHandler from "./price.update.check";
 import AddressesFetcher from "./addresses.fetcher";
-import axios from "axios";
+import { CHAIN_LOG, EVENTS_ABIS } from "./utils";
 
-const API_ENDPOINT: string = "https://chainlog.makerdao.com/api/mainnet/active.json";
-const ELAPSED_TIME_BETWEEN_UPDATES: number = 86400; // one day
+let FETCHER : AddressesFetcher = new AddressesFetcher(getEthersProvider(),CHAIN_LOG);
+
+export const initialize = (fetcher: AddressesFetcher) => async ()=> {
+// fetch OSM addresses from the ChainLog contract.
+await fetcher.getOsmAddresses("latest");
+}
 
 export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransaction => {
+
   const bigDeviationNextPriceHandler: HandleTransaction = provideBigQueuedPriceDeviationHandler(fetcher);
   const denyFunctionHandler: HandleTransaction = provideDenyFunctionHandler(fetcher);
   const relyFunctionHandler: HandleTransaction = provideRelyFunctionHandler(fetcher);
@@ -17,6 +22,11 @@ export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransactio
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
+
+    // Update the contracts list.
+    txEvent.filterLog(EVENTS_ABIS,CHAIN_LOG).forEach((log) =>{
+       fetcher.updateAddresses(log.name, log.args.flat())
+    })
 
     findings = findings.concat(await bigDeviationNextPriceHandler(txEvent));
     findings = findings.concat(await denyFunctionHandler(txEvent));
@@ -28,5 +38,6 @@ export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransactio
 };
 
 export default {
-  handleTransaction: provideAgentHandler(new AddressesFetcher(API_ENDPOINT, axios, ELAPSED_TIME_BETWEEN_UPDATES)),
+  initialize: initialize(FETCHER),
+  handleTransaction: provideAgentHandler(FETCHER),
 };
