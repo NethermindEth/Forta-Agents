@@ -17,15 +17,15 @@ Description of each type of alert fired by this agent
 
 - MakerDAO-ESM-1
   - Fired when `Join` event with a value greater than 2 MKR is emitted.
-  - Severity is always set to "medium" .
-  - Type is always set to "suspicious".
+  - Severity is always set to "Medium" .
+  - Type is always set to "Suspicious".
   - The metadata contains:
     - `usr`: Address calling `join` method.
     - `amount`: Amount used for `join`.
 - MakerDAO-ESM-2
   - Fired when `Fire` event is emitted.
-  - Severity is always set to "critical".
-  - Type is always set to "suspicious".
+  - Severity is always set to "Critical".
+  - Type is always set to "Suspicious".
   - The metadata contains:
     - `ESM_address`: Address of ESM contract.
     - `from`: Address that initiated the transaction that caused the `Fire` event emission.

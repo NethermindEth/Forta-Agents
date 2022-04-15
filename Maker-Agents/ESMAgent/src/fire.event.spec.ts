@@ -36,7 +36,7 @@ describe("ESM Fire Event Agent", () => {
     ]);
   });
 
-  it("should return empty finding cause bad ADDRESS", async () => {
+  it("should return an empty finding because of a bad address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, "ox222")
       .setFrom(USER);
@@ -46,7 +46,7 @@ describe("ESM Fire Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty finding cause bad SIGNATURE", async () => {
+  it("should return an empty finding because of a bad signature", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("bad sig", ADDRESS).setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -54,7 +54,7 @@ describe("ESM Fire Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty finding cause bad SIGNATURE and bad ADDRESS", async () => {
+  it("should return an empty finding because of a bad signature and bad address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("bad sig", "0x222").setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
