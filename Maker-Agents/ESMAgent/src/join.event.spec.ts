@@ -83,7 +83,7 @@ describe("ESM Join Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return an empty finding because of bad signature and bad address", async () => {
+  it("should return an empty finding because of bad signature and a bad address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "bad sig",
       "0x1",

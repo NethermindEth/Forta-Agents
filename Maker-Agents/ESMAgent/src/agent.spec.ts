@@ -1,11 +1,17 @@
-import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
+import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { Finding, Initialize, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
 import { encodeParameter } from "forta-agent-tools";
+import { utils } from "ethers";
 import agent from "./agent";
 import { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
 
-const MakerDAO_ESM_CONTRACT = "0x09e05fF6142F2f9de8B6B65855A1d56B6cfE4c58";
+const MakerDAO_CHANGELOG_ADDRESS = createAddress("0xab");
+const MakerDAO_CHANGELOG_IFACE = new utils.Interface([
+  "function getAddress(bytes32 _key) public view returns (address addr)",
+]);
+const ESM_BYTES = "0xdeadBeef00000000000000000000000000000000000000000000000000000000";
+const MakerDAO_ESM_CONTRACT = createAddress("0xac");
 const JOIN_EVENT_ALERTID = "MakerDAO-ESM-1";
 const FIRE_EVENT_ALERTID = "MakerDAO-ESM-2";
 
@@ -15,12 +21,23 @@ const USER = createAddress("0x2");
 
 describe("Agent Handler", () => {
   let handleTransaction: HandleTransaction;
+  let initialize: Initialize;
+  const mockProvider: MockEthersProvider = new MockEthersProvider().addCallTo(
+    MakerDAO_CHANGELOG_ADDRESS,
+    1,
+    MakerDAO_CHANGELOG_IFACE,
+    "getAddress",
+    { inputs: [ESM_BYTES], outputs: [MakerDAO_ESM_CONTRACT] }
+  );
 
   beforeAll(() => {
+    initialize = agent.provideInitialize(MakerDAO_CHANGELOG_ADDRESS, ESM_BYTES, mockProvider as any);
     handleTransaction = agent.provideAgentHandler();
   });
 
   it("should return Fire event finding", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
       .setFrom(USER);
@@ -44,6 +61,8 @@ describe("Agent Handler", () => {
   });
 
   it("should return Join event finding", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
       MakerDAO_ESM_CONTRACT,
@@ -69,7 +88,9 @@ describe("Agent Handler", () => {
     ]);
   });
 
-  it("should return both Join and Fire event finding", async () => {
+  it("should return both Join and Fire event findings", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
@@ -111,6 +132,8 @@ describe("Agent Handler", () => {
   });
 
   it("should return just Join event finding", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
@@ -140,6 +163,8 @@ describe("Agent Handler", () => {
   });
 
   it("should return just Fire event finding", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
@@ -168,6 +193,8 @@ describe("Agent Handler", () => {
     ]);
   });
   it("should return empty finding if address is wrong", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
@@ -184,6 +211,8 @@ describe("Agent Handler", () => {
   });
 
   it("should return empty finding if signature is wrong", async () => {
+    initialize();
+
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         "0xabc", // bad signature

@@ -54,7 +54,7 @@ describe("ESM Fire Event Agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return an empty finding because of a bad signature and bad address", async () => {
+  it("should return an empty finding because of a bad signature and a bad address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("bad sig", "0x222").setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
