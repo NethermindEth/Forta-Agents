@@ -2,7 +2,6 @@ import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingT
 import TimeTracker from "./time.tracker";
 import { MEGAPOKER_CONTRACT, POKE_FUNCTION_SIG } from "./utils";
 
-
 export const createFinding = (): Finding => {
   return Finding.fromObject({
     name: "Method not called within the first 10 minutes",

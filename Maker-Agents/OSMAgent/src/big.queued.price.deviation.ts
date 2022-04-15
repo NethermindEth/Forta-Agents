@@ -4,8 +4,6 @@ import { TransactionEvent, Trace, HandleTransaction, Finding, FindingType, Findi
 import AddressesFetcher from "./addresses.fetcher";
 import { PEEK_FUNCTION_SELECTOR, LOG_VALUE_EVENT_SIGNATURE, PEEK_ABI } from "./utils";
 
-
-
 export const createFinding = (contractAddress: string, currentPrice: any, queuedPrice: any): Finding => {
   return Finding.fromObject({
     name: "MakerDAO OSM Contract Big Enqueued Price Deviation",

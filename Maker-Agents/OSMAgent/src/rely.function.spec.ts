@@ -4,11 +4,11 @@ import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests
 import { utils } from "ethers";
 import { RELY_FUNCTION_SIG } from "./utils";
 
-const CONTRACTS: Map<string,string> = new Map<string,string> ([
-  ["PIP_ONE",createAddress("0xa1") ],
-  ["PIP_TWO",createAddress("0xa2") ],
-  ["PIP_THREE",createAddress("0xa3") ],
-])
+const CONTRACTS: Map<string, string> = new Map<string, string>([
+  ["PIP_ONE", createAddress("0xa1")],
+  ["PIP_TWO", createAddress("0xa2")],
+  ["PIP_THREE", createAddress("0xa3")],
+]);
 
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 const relyIface = new utils.Interface([RELY_FUNCTION_SIG]);
@@ -31,12 +31,11 @@ export const createFinding = (to: string, address: string) => {
 describe("OSM Rely Function Agent", () => {
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => { 
-    const mockFetcher: any = { 
+  beforeAll(() => {
+    const mockFetcher: any = {
       osmContracts: CONTRACTS,
-      getOsmAddresses:  jest.fn(),
+      getOsmAddresses: jest.fn(),
       updateAddresses: jest.fn(),
-
     };
     handleTransaction = provideRelyFunctionHandler(mockFetcher);
   });
@@ -61,18 +60,21 @@ describe("OSM Rely Function Agent", () => {
     const _input: string = relyIface.encodeFunctionData("rely", [ADDRESSES[0]]);
     const _input2: string = relyIface.encodeFunctionData("rely", [ADDRESSES[1]]);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent().setTimestamp(2).setTo(CONTRACTS.get("PIP_TWO") as string).addTraces(
-      {
-        to: CONTRACTS.get("PIP_TWO") as string,
-        from: _from,
-        input: _input,
-      },
-      {
-        to: CONTRACTS.get("PIP_TWO") as string,
-        from: _from,
-        input: _input2,
-      }
-    );
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTimestamp(2)
+      .setTo(CONTRACTS.get("PIP_TWO") as string)
+      .addTraces(
+        {
+          to: CONTRACTS.get("PIP_TWO") as string,
+          from: _from,
+          input: _input,
+        },
+        {
+          to: CONTRACTS.get("PIP_TWO") as string,
+          from: _from,
+          input: _input2,
+        }
+      );
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([

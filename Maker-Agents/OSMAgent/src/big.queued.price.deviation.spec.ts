@@ -6,11 +6,11 @@ import { formatBytes32String } from "ethers/lib/utils";
 import { LOG_VALUE_EVENT_SIGNATURE, PEEK_ABI, PEEK_FUNCTION_SELECTOR } from "./utils";
 
 const ADDRESSES = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3"), createAddress("0x4")];
-const CONTRACTS: Map<string,string> = new Map<string,string> ([
-  ["PIP_ONE",createAddress("0xa1") ],
-  ["PIP_TWO",createAddress("0xa2") ],
-  ["PIP_THREE",createAddress("0xa3") ],
-])
+const CONTRACTS: Map<string, string> = new Map<string, string>([
+  ["PIP_ONE", createAddress("0xa1")],
+  ["PIP_TWO", createAddress("0xa2")],
+  ["PIP_THREE", createAddress("0xa3")],
+]);
 
 const logIface = new utils.Interface([LOG_VALUE_EVENT_SIGNATURE]);
 
@@ -18,17 +18,15 @@ describe("Big deviation queued price Tests", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    const mockFetcher: any = { 
+    const mockFetcher: any = {
       osmContracts: CONTRACTS,
-      getOsmAddresses:  jest.fn(),
+      getOsmAddresses: jest.fn(),
       updateAddresses: jest.fn(),
-
-    };    
+    };
     handleTransaction = provideBigQueuedPriceDeviationHandler(mockFetcher);
   });
 
   it("should return an empty finding if there are not traces", async () => {
-
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -85,7 +83,6 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should return an empty finding if Peek function wasn't called", async () => {
-
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: CONTRACTS.get("PIP_ONE"),
       input: "0x11111111",
@@ -98,7 +95,6 @@ describe("Big deviation queued price Tests", () => {
   });
 
   it("should return an empty finding if the Peek call wasn't successful", async () => {
-
     const txEvent: TransactionEvent = new TestTransactionEvent().addTraces({
       from: CONTRACTS.get("PIP_ONE"),
       input: PEEK_FUNCTION_SELECTOR,
@@ -134,7 +130,7 @@ describe("Big deviation queued price Tests", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addTraces({
-        from:CONTRACTS.get("PIP_ONE"),
+        from: CONTRACTS.get("PIP_ONE"),
         input: PEEK_FUNCTION_SELECTOR,
         output: PEEK_ABI.encodeFunctionResult("peek", [formatBytes32String("108"), true]),
       })
@@ -148,7 +144,10 @@ describe("Big deviation queued price Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(CONTRACTS.get("PIP_ONE") as string, 100, 108), createFinding(CONTRACTS.get("PIP_TWO") as string, 90, 118)]);
+    expect(findings).toStrictEqual([
+      createFinding(CONTRACTS.get("PIP_ONE") as string, 100, 108),
+      createFinding(CONTRACTS.get("PIP_TWO") as string, 90, 118),
+    ]);
   });
 
   it("should only return findings from the Oracles with big deviations on new prices", async () => {
@@ -163,7 +162,7 @@ describe("Big deviation queued price Tests", () => {
       })
       .addAnonymousEventLog(CONTRACTS.get("PIP_ONE"), log1.data, ...log1.topics)
       .addTraces({
-        from:CONTRACTS.get("PIP_TWO"),
+        from: CONTRACTS.get("PIP_TWO"),
         input: PEEK_FUNCTION_SELECTOR,
         output: PEEK_ABI.encodeFunctionResult("peek", [formatBytes32String("118"), true]),
       })
@@ -182,7 +181,9 @@ describe("Big deviation queued price Tests", () => {
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(CONTRACTS.get("PIP_ONE") as string, 100, 108), createFinding(CONTRACTS.get("PIP_TWO") as string, 90, 118)]);
+    expect(findings).toStrictEqual([
+      createFinding(CONTRACTS.get("PIP_ONE") as string, 100, 108),
+      createFinding(CONTRACTS.get("PIP_TWO") as string, 90, 118),
+    ]);
   });
-  
 });

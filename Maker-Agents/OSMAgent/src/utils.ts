@@ -1,17 +1,12 @@
 import { Interface } from "ethers/lib/utils";
 
-export const FUNCTIONS_ABIS = 
-[
-    "function list() public view returns (bytes32[] memory)", 
-    "function get(uint256 _index) public view returns (bytes32, address)",
-    "function getAddress(bytes32 _key) public view returns (address addr)",
-    "function count() public view returns (uint256)"
+export const FUNCTIONS_ABIS = [
+  "function list() public view returns (bytes32[] memory)",
+  "function get(uint256 _index) public view returns (bytes32, address)",
+  "function getAddress(bytes32 _key) public view returns (address addr)",
+  "function count() public view returns (uint256)",
 ];
-export const EVENTS_ABIS = 
-[
-    "event UpdateAddress(bytes32 key, address addr)", 
-    "event RemoveAddress(bytes32 key)"
-];
+export const EVENTS_ABIS = ["event UpdateAddress(bytes32 key, address addr)", "event RemoveAddress(bytes32 key)"];
 
 export const CHAIN_LOG = "0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F";
 

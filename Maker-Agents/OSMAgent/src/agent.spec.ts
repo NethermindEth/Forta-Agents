@@ -1,4 +1,3 @@
-
 import { Finding, HandleTransaction } from "forta-agent";
 import { provideAgentHandler } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
@@ -8,14 +7,20 @@ import { createFinding as relyFinding } from "./rely.function.spec";
 import { createFinding as denyFinding } from "./deny.function.spec";
 import { utils } from "ethers";
 import { formatBytes32String, Interface } from "ethers/lib/utils";
-import { RELY_FUNCTION_SIG, DENY_FUNCTION_SIG, PEEK_FUNCTION_SELECTOR, PEEK_ABI, EVENTS_ABIS, CHAIN_LOG } from "./utils";
+import {
+  RELY_FUNCTION_SIG,
+  DENY_FUNCTION_SIG,
+  PEEK_FUNCTION_SELECTOR,
+  PEEK_ABI,
+  EVENTS_ABIS,
+  CHAIN_LOG,
+} from "./utils";
 
-
-const CONTRACTS: Map<string,string> = new Map<string,string> ([
-    ["PIP_ONE",createAddress("0xa1") ],
-    ["PIP_TWO",createAddress("0xa2") ],
-    ["PIP_THREE",createAddress("0xa3") ],
-  ])
+const CONTRACTS: Map<string, string> = new Map<string, string>([
+  ["PIP_ONE", createAddress("0xa1")],
+  ["PIP_TWO", createAddress("0xa2")],
+  ["PIP_THREE", createAddress("0xa3")],
+]);
 const megaPokerAddress = "0x2417c2762ec12f2696f62cfa5492953b9467dc81";
 
 const pokeFunctionSelector = "0x18178358";
@@ -32,20 +37,19 @@ const denyIface = new utils.Interface([DENY_FUNCTION_SIG]);
 
 describe("OSM Agent Test Suite", () => {
   let transactionHandler: HandleTransaction;
-  let mockFetcher : any ; 
-  let updateAddresses =  jest.fn();
-  let getOsmAddresses=   jest.fn();
+  let mockFetcher: any;
+  let updateAddresses = jest.fn();
+  let getOsmAddresses = jest.fn();
   beforeAll(() => {
-     mockFetcher = { 
+    mockFetcher = {
       osmContracts: CONTRACTS,
       getOsmAddresses,
       updateAddresses,
-
-    };    
+    };
   });
-  beforeEach(()=>{
+  beforeEach(() => {
     transactionHandler = provideAgentHandler(mockFetcher);
-  })
+  });
 
   it("should return empty findings is not expected events happens", async () => {
     let findings: Finding[] = [];
@@ -58,7 +62,6 @@ describe("OSM Agent Test Suite", () => {
   });
 
   it("should return findings from multiple handlers", async () => {
-
     let findings: Finding[] = [];
     const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
 
@@ -77,7 +80,10 @@ describe("OSM Agent Test Suite", () => {
     findings = findings.concat(await transactionHandler(txEvent2));
     findings = findings.concat(await transactionHandler(txEvent3));
 
-    expect(findings).toStrictEqual([deviationFinding(CONTRACTS.get("PIP_TWO") as string, 100, 107), priceUpdateFinding()]);
+    expect(findings).toStrictEqual([
+      deviationFinding(CONTRACTS.get("PIP_TWO") as string, 100, 107),
+      priceUpdateFinding(),
+    ]);
   });
 
   it("should detect rely function calls", async () => {
@@ -191,33 +197,33 @@ describe("OSM Agent Test Suite", () => {
 
   it("should update addresses on UpdateAddress, RemoveAddress events", async () => {
     const iface = new Interface(EVENTS_ABIS);
-    const log = iface.encodeEventLog(iface.getEvent("UpdateAddress"), [formatBytes32String("PIP_FOUR"), createAddress("0x7")]);
+    const log = iface.encodeEventLog(iface.getEvent("UpdateAddress"), [
+      formatBytes32String("PIP_FOUR"),
+      createAddress("0x7"),
+    ]);
     const log2 = iface.encodeEventLog(iface.getEvent("RemoveAddress"), [formatBytes32String("PIP_THREE")]);
 
-    const wrongIface = new Interface(["event wrong()"])
+    const wrongIface = new Interface(["event wrong()"]);
     const log3 = wrongIface.encodeEventLog(wrongIface.getEvent("wrong"), []);
 
     // calls updateAddresses on UpdateAddress event
-    const txEvent1 = new TestTransactionEvent()
-    .addAnonymousEventLog(CHAIN_LOG, log.data, ...log.topics)
-    await transactionHandler(txEvent1)
+    const txEvent1 = new TestTransactionEvent().addAnonymousEventLog(CHAIN_LOG, log.data, ...log.topics);
+    await transactionHandler(txEvent1);
     expect(updateAddresses).toBeCalledTimes(1);
-  
-    updateAddresses.mockReset()
+
+    updateAddresses.mockReset();
 
     // calls updateAddresses on RemoveAddress event
-    const txEvent2 = new TestTransactionEvent()
-    .addAnonymousEventLog(CHAIN_LOG, log2.data, ...log2.topics)
-    await transactionHandler(txEvent2)
+    const txEvent2 = new TestTransactionEvent().addAnonymousEventLog(CHAIN_LOG, log2.data, ...log2.topics);
+    await transactionHandler(txEvent2);
     expect(updateAddresses).toBeCalledTimes(1);
 
     updateAddresses.mockReset();
     // does not call updateAddresses when the event or the contract are wrong
     const txEvent3 = new TestTransactionEvent()
-    .addAnonymousEventLog(createAddress("0x3"), log2.data, ...log2.topics) // wrong contract
-    .addAnonymousEventLog(CHAIN_LOG, log3.data, ...log3.topics) // wrong event
-    await transactionHandler(txEvent3)
+      .addAnonymousEventLog(createAddress("0x3"), log2.data, ...log2.topics) // wrong contract
+      .addAnonymousEventLog(CHAIN_LOG, log3.data, ...log3.topics); // wrong event
+    await transactionHandler(txEvent3);
     expect(updateAddresses).toBeCalledTimes(0);
   });
-  
 });
