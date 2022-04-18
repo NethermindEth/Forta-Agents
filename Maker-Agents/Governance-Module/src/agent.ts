@@ -1,41 +1,64 @@
-import { 
-  BlockEvent,
-  Finding,
-  getJsonRpcUrl,
-  HandleBlock, 
-  HandleTransaction, 
-} from 'forta-agent'
-import Web3 from "web3";
-import { AddressManager } from "./utils";  
+import { BigNumber, utils } from "ethers";
+import HatFetcher from "./hat.fetcher";
+import { AddressManager } from "./utils";
+import ListManager from "./address.list.manager";
 import provideHatChecker from "./new.hat";
-import provideLiftEventsListener, { KNOWN_LIFTERS } from "./lift.events";
-import DeployedAddressesManager from './deployed.addresses.manager';
-import ListManager from './address.list.manager';
+import DeployedAddressesManager from "./deployed.addresses.manager";
+import provideLiftEventsListener from "./lift.events";
+import { BlockEvent, Finding, getEthersProvider, HandleBlock, HandleTransaction, TransactionEvent } from "forta-agent";
+import config from "./config";
+import { EVENT_ABI } from "./abi";
+import AddressFetcher from "./address.fetcher";
 
-export const SPELL_DEPLOYER: string = "0xda0c0de01d90a5933692edf03c7ce946c7c50445";
-export const CHIEF_CONTRACT: string = "0x0a3f6849f78076aefaDf113F5BED87720274dDC0";
-const _web3 = new Web3(getJsonRpcUrl());
+const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(config.SPELL_DEPLOYER, getEthersProvider());
+const LIFTER_MANAGER: ListManager = new ListManager(config.KNOWN_LIFTERS);
+let CHIEF_FETCHER: AddressFetcher = new AddressFetcher(getEthersProvider(), config.CHAINLOG_CONTRACT);
 
-const spellsManager: AddressManager = 
-  new DeployedAddressesManager(SPELL_DEPLOYER, _web3.eth.getTransactionCount);
-const liftersManager: ListManager = new ListManager(KNOWN_LIFTERS);
-
-export function provideHandleTransaction(addressManager: AddressManager): HandleTransaction {
-  return provideLiftEventsListener(
-    "MakerDAO-GM-2", 
-    CHIEF_CONTRACT, 
-    addressManager.isKnownAddress.bind(addressManager),
-  );
+let chiefAddress: string = "";
+export const initialize = (chiefFetcher: AddressFetcher) => async () => {
+  chiefAddress = await chiefFetcher.getChiefAddress("latest");
 };
 
-export function provideHandleBlock(web3Call: any, addressManager: AddressManager): HandleBlock {
-  const handler: HandleBlock = provideHatChecker(
-    web3Call, 
-    "MakerDAO-GM-1", 
-    CHIEF_CONTRACT, 
-    addressManager.isKnownAddress.bind(addressManager),
-  );
+export const provideHandleTransaction = (
+  spellsManager: AddressManager,
+  lifterManager: AddressManager,
+  _chiefAddress?: string
+): HandleTransaction => {
+  return async (transactionEvent: TransactionEvent): Promise<Finding[]> => {
+    if (!_chiefAddress) _chiefAddress = chiefAddress;
+
+    // Listen to UpdateAddress event & Update the chief contract.
+    transactionEvent.filterLog(EVENT_ABI, config.CHAINLOG_CONTRACT).forEach((log) => {
+      if (log.args.key == utils.formatBytes32String("MCD_ADM")) {
+        _chiefAddress = log.args.addr;
+      }
+    });
+
+    const handler: HandleTransaction = provideLiftEventsListener(
+      "MakerDAO-GM-2",
+      _chiefAddress,
+      spellsManager.isKnownAddress.bind(spellsManager),
+      lifterManager.isKnownAddress.bind(lifterManager)
+    );
+
+    return handler(transactionEvent);
+  };
+};
+export const provideHandleBlock = (
+  threshold: BigNumber,
+  addressManager: AddressManager,
+  fetcher?: HatFetcher
+): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    if (!fetcher) {
+      fetcher = new HatFetcher(chiefAddress, getEthersProvider());
+    }
+    const handler: HandleBlock = provideHatChecker(
+      "MakerDAO-GM-1",
+      addressManager.isKnownAddress.bind(addressManager),
+      threshold,
+      fetcher
+    );
     // Update the SPELL_DEPLOYER's nonce
     await addressManager.update(blockEvent.blockNumber);
     return handler(blockEvent);
@@ -43,6 +66,7 @@ export function provideHandleBlock(web3Call: any, addressManager: AddressManager
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(liftersManager),
-  handleBlock: provideHandleBlock(_web3.eth.call, spellsManager),
-}
+  initialize: initialize(CHIEF_FETCHER),
+  handleTransaction: provideHandleTransaction(SPELLS_MANAGER, LIFTER_MANAGER),
+  handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER),
+};
