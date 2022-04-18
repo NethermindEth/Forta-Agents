@@ -20,21 +20,23 @@ export const initialize = (chiefFetcher: AddressFetcher) => async () => {
 };
 
 export const provideHandleTransaction = (
-  chiefAddress: string,
   spellsManager: AddressManager,
-  lifterManager: AddressManager
+  lifterManager: AddressManager,
+  _chiefAddress?: string
 ): HandleTransaction => {
   return async (transactionEvent: TransactionEvent): Promise<Finding[]> => {
+    if (!_chiefAddress) _chiefAddress = chiefAddress;
+
     // Listen to UpdateAddress event & Update the chief contract.
     transactionEvent.filterLog(EVENT_ABI, config.CHAINLOG_CONTRACT).forEach((log) => {
       if (log.args.key == utils.formatBytes32String("MCD_ADM")) {
-        chiefAddress = log.args.addr;
+        _chiefAddress = log.args.addr;
       }
     });
 
     const handler: HandleTransaction = provideLiftEventsListener(
       "MakerDAO-GM-2",
-      chiefAddress,
+      _chiefAddress,
       spellsManager.isKnownAddress.bind(spellsManager),
       lifterManager.isKnownAddress.bind(lifterManager)
     );
@@ -65,6 +67,6 @@ export const provideHandleBlock = (
 
 export default {
   initialize: initialize(CHIEF_FETCHER),
-  handleTransaction: provideHandleTransaction(chiefAddress, SPELLS_MANAGER, LIFTER_MANAGER),
+  handleTransaction: provideHandleTransaction(SPELLS_MANAGER, LIFTER_MANAGER),
   handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER),
 };
