@@ -1,12 +1,11 @@
 import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
 import { encodeParameter } from "forta-agent-tools";
-import { utils } from "ethers";
 import agent from "./agent";
 import { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
 
-const MakerDAO_ESM_CONTRACT = createAddress("0xac");
+const ESM_CONTRACT = createAddress("0xac");
 const JOIN_EVENT_ALERTID = "alert-1";
 const FIRE_EVENT_ALERTID = "alert-2";
 
@@ -17,13 +16,13 @@ const USER = createAddress("0x2");
 describe("Agent Handler", () => {
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => {
-    handleTransaction = agent.provideAgentHandler(MakerDAO_ESM_CONTRACT, JOIN_EVENT_ALERTID, FIRE_EVENT_ALERTID);
+  beforeEach(() => {
+    handleTransaction = agent.provideAgentHandler(JOIN_EVENT_ALERTID, FIRE_EVENT_ALERTID, ESM_CONTRACT);
   });
 
   it("should return Fire event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -37,7 +36,7 @@ describe("Agent Handler", () => {
         type: FindingType.Suspicious,
         protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
@@ -47,7 +46,7 @@ describe("Agent Handler", () => {
   it("should return Join event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      MakerDAO_ESM_CONTRACT,
+      ESM_CONTRACT,
       encodeParameter("uint256", AMOUNT_3), // 3
       encodeParameter("address", USER)
     );
@@ -74,11 +73,11 @@ describe("Agent Handler", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
+        ESM_CONTRACT,
         encodeParameter("uint256", AMOUNT_3), // 3
         encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -104,7 +103,7 @@ describe("Agent Handler", () => {
         type: FindingType.Suspicious,
         protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
@@ -115,11 +114,11 @@ describe("Agent Handler", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
+        ESM_CONTRACT,
         encodeParameter("uint256", AMOUNT_3), // 3
         encodeParameter("address", USER)
       )
-      .addEventLog("BAD SIGNATURE", MakerDAO_ESM_CONTRACT)
+      .addEventLog("BAD SIGNATURE", ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -144,11 +143,11 @@ describe("Agent Handler", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
+        ESM_CONTRACT,
         encodeParameter("uint256", AMOUNT_1),
         encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -162,7 +161,7 @@ describe("Agent Handler", () => {
         type: FindingType.Suspicious,
         protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
@@ -188,11 +187,11 @@ describe("Agent Handler", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         "0xabc", // bad signature
-        MakerDAO_ESM_CONTRACT,
+        ESM_CONTRACT,
         encodeParameter("uint256", AMOUNT_1),
         encodeParameter("address", USER)
       )
-      .addEventLog("0xabc", MakerDAO_ESM_CONTRACT)
+      .addEventLog("0xabc", ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
