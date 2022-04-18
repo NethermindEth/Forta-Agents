@@ -1,80 +1,66 @@
-import {
-  createAddress,
-  TestTransactionEvent,
-} from 'forta-agent-tools';
-import {
-  Finding,
-  HandleTransaction,
-  FindingSeverity,
-  FindingType,
-  TransactionEvent,
-} from 'forta-agent';
-import agent from './agent';
-import {
-  MAKER_ESM_FIRE_EVENT_SIGNATURE,
-  MAKER_EVEREST_ID,
-} from './fire.event';
-import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from './join.event';
-import { encodeParam } from './utils';
+import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
+import { encodeParameter } from "forta-agent-tools";
+import agent from "./agent";
+import { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
+import { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
 
-const MakerDAO_ESM_CONTRACT = '0x29cfbd381043d00a98fd9904a431015fef07af2f';
-const JOIN_EVENT_ALERTID = 'MakerDAO-ESM-1';
-const FIRE_EVENT_ALERTID = 'MakerDAO-ESM-2';
+const ESM_CONTRACT = createAddress("0xac");
+const JOIN_EVENT_ALERTID = "alert-1";
+const FIRE_EVENT_ALERTID = "alert-2";
 
-const AMOUNT_3 = '3000000000000000000'; // 3
-const AMOUNT_1 = '1000000000000000000'; // 1
-const USER = createAddress('0x2');
+const AMOUNT_3 = "3000000000000000000"; // 3
+const AMOUNT_1 = "1000000000000000000"; // 1
+const USER = createAddress("0x2");
 
-describe('Agent Handler', () => {
+describe("Agent Handler", () => {
   let handleTransaction: HandleTransaction;
 
-  beforeAll(() => {
-    handleTransaction = agent.provideAgentHandler();
+  beforeEach(() => {
+    handleTransaction = agent.provideAgentHandler(JOIN_EVENT_ALERTID, FIRE_EVENT_ALERTID, ESM_CONTRACT);
   });
 
-  it('should return Fire event finding', async () => {
+  it("should return Fire event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Fire Event',
-        description: 'Fire event emitted.',
+        name: "Maker ESM Fire Event",
+        description: "Fire event emitted.",
         alertId: FIRE_EVENT_ALERTID,
         severity: FindingSeverity.Critical,
         type: FindingType.Suspicious,
-        protocol: 'Maker',
-        everestId: MAKER_EVEREST_ID,
+        protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
     ]);
   });
 
-  it('should return Join event finding', async () => {
+  it("should return Join event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      MakerDAO_ESM_CONTRACT,
-      encodeParam('uint256', AMOUNT_3), // 3
-      encodeParam('address', USER),
+      ESM_CONTRACT,
+      encodeParameter("uint256", AMOUNT_3), // 3
+      encodeParameter("address", USER)
     );
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Join Event',
-        description: 'Greater than 2 MKR is sent to ESM contract.',
+        name: "Maker ESM Join Event",
+        description: "Greater than 2 MKR is sent to ESM contract.",
         alertId: JOIN_EVENT_ALERTID,
-        protocol: 'Maker',
+        protocol: "Maker",
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
-        everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
           amount: AMOUNT_3,
@@ -83,71 +69,68 @@ describe('Agent Handler', () => {
     ]);
   });
 
-  it('should return both Join and Fire event finding', async () => {
+  it("should return both Join and Fire event findings", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
-        encodeParam('uint256', AMOUNT_3), // 3
-        encodeParam('address', USER),
+        ESM_CONTRACT,
+        encodeParameter("uint256", AMOUNT_3), // 3
+        encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Join Event',
-        description: 'Greater than 2 MKR is sent to ESM contract.',
+        name: "Maker ESM Join Event",
+        description: "Greater than 2 MKR is sent to ESM contract.",
         alertId: JOIN_EVENT_ALERTID,
-        protocol: 'Maker',
+        protocol: "Maker",
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
-        everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
           amount: AMOUNT_3,
         },
       }),
       Finding.fromObject({
-        name: 'Maker ESM Fire Event',
-        description: 'Fire event emitted.',
+        name: "Maker ESM Fire Event",
+        description: "Fire event emitted.",
         alertId: FIRE_EVENT_ALERTID,
         severity: FindingSeverity.Critical,
         type: FindingType.Suspicious,
-        protocol: 'Maker',
-        everestId: MAKER_EVEREST_ID,
+        protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
     ]);
   });
 
-  it('should return just Join event finding', async () => {
+  it("should return just Join event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
-        encodeParam('uint256', AMOUNT_3), // 3
-        encodeParam('address', USER),
+        ESM_CONTRACT,
+        encodeParameter("uint256", AMOUNT_3), // 3
+        encodeParameter("address", USER)
       )
-      .addEventLog('BAD SIGNATURE', MakerDAO_ESM_CONTRACT)
+      .addEventLog("BAD SIGNATURE", ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Join Event',
-        description: 'Greater than 2 MKR is sent to ESM contract.',
+        name: "Maker ESM Join Event",
+        description: "Greater than 2 MKR is sent to ESM contract.",
         alertId: JOIN_EVENT_ALERTID,
-        protocol: 'Maker',
+        protocol: "Maker",
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
-        everestId: MAKER_EVEREST_ID,
         metadata: {
           usr: USER,
           amount: AMOUNT_3,
@@ -156,44 +139,43 @@ describe('Agent Handler', () => {
     ]);
   });
 
-  it('should return just Fire event finding', async () => {
+  it("should return just Fire event finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        MakerDAO_ESM_CONTRACT,
-        encodeParam('uint256', AMOUNT_1),
-        encodeParam('address', USER),
+        ESM_CONTRACT,
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, MakerDAO_ESM_CONTRACT)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: 'Maker ESM Fire Event',
-        description: 'Fire event emitted.',
+        name: "Maker ESM Fire Event",
+        description: "Fire event emitted.",
         alertId: FIRE_EVENT_ALERTID,
         severity: FindingSeverity.Critical,
         type: FindingType.Suspicious,
-        protocol: 'Maker',
-        everestId: MAKER_EVEREST_ID,
+        protocol: "Maker",
         metadata: {
-          ESM_address: MakerDAO_ESM_CONTRACT,
+          ESM_address: ESM_CONTRACT,
           from: USER,
         },
       }),
     ]);
   });
-  it('should return empty finding if address is wrong', async () => {
+  it("should return empty finding if address is wrong", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
-        '0x1', // bad address
-        encodeParam('uint256', AMOUNT_1),
-        encodeParam('address', USER),
+        "0x1", // bad address
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, '0x1')
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, "0x1")
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -201,15 +183,15 @@ describe('Agent Handler', () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it('should return empty finding if signature is wrong', async () => {
+  it("should return empty finding if signature is wrong", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        '0xabc', // bad signature
-        MakerDAO_ESM_CONTRACT,
-        encodeParam('uint256', AMOUNT_1),
-        encodeParam('address', USER),
+        "0xabc", // bad signature
+        ESM_CONTRACT,
+        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("address", USER)
       )
-      .addEventLog('0xabc', MakerDAO_ESM_CONTRACT)
+      .addEventLog("0xabc", ESM_CONTRACT)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);

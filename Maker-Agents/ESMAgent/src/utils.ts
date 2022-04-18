@@ -1,8 +1,6 @@
-import Web3 from 'web3';
-export const web3 = new Web3();
+import { utils } from "ethers";
 
-export const decodeParam = (type: string, param: string): any =>
-  web3.eth.abi.decodeParameter(type, param);
-
-export const encodeParam = (ptype: string, param: string): any =>
-  web3.eth.abi.encodeParameter(ptype, param);
+export const CHAINLOG_ADDRESS: string = "0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F";
+const CHAINLOG_ABI: string = "function getAddress(bytes32 _key) public view returns (address addr)";
+export const CHAINLOG_IFACE: utils.Interface = new utils.Interface([CHAINLOG_ABI]);
+export const ESM_KEY_BYTES: string = utils.formatBytes32String("MCD_ESM");
