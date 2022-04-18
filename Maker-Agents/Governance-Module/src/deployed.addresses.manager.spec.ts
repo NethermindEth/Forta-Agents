@@ -1,9 +1,9 @@
 import AddressManager from "./deployed.addresses.manager";
-import { createAddr } from "./utils";
+import { createAddress } from "forta-agent-tools/lib/tests";
 
-const addr1: string = createAddr("0x1");
-const addr2: string = createAddr("0x2");
-const dead: string = createAddr("0xdead");
+const addr1: string = createAddress("0x1");
+const addr2: string = createAddress("0x2");
+const dead: string = createAddress("0xdead");
 const deadContracts: string[] = [
   "0x2387b3383e89c164781d173b7aa14d9c46ed2642",
   "0x22bc2df58d96cbc5f2599f2c25d1e565974749ee",
@@ -19,7 +19,8 @@ const deadContracts: string[] = [
 
 describe("DeployedAddressManager test suite", () => {
   const getNonce: any = jest.fn();
-  let addressesManager: AddressManager = new AddressManager(dead, getNonce);
+  const provider: any = { getTransactionCount: getNonce };
+  let addressesManager: AddressManager = new AddressManager(dead, provider);
 
   it("Should update the deployed addresses at each nonce increasement", async () => {
     // advance nonce to 1
@@ -59,8 +60,7 @@ describe("DeployedAddressManager test suite", () => {
     getNonce.mockReturnValueOnce(10);
     await addressesManager.update();
 
-    for(let addr of deadContracts)
-      expect(addressesManager.isDeployedAddress(addr)).toStrictEqual(true);
+    for (let addr of deadContracts) expect(addressesManager.isDeployedAddress(addr)).toStrictEqual(true);
     expect(addressesManager.isDeployedAddress(addr2)).toStrictEqual(false);
 
     // check the getNonce parameters
