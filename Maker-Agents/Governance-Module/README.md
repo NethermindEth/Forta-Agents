@@ -11,7 +11,7 @@ This agent detects:
 
 There are some configurable variables in `src/config.ts`
 
-- `CHAINLOG_CONTRACT`: The chainlog contract being monitored
+- `CHAINLOG_CONTRACT`: The chainLog contract being monitored
 - `SPELL_DEPLOYER`: The deployer of all the spells
 - `KNOWN_LIFTERS`: A list of valid lifters
 - `MKR_THRESHOLD`: The minumum number of approvals required for hat address
