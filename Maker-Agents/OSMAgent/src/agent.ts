@@ -5,6 +5,7 @@ import provideBigQueuedPriceDeviationHandler from "./big.queued.price.deviation"
 import providePriceUpdateCheckHandler from "./price.update.check";
 import AddressesFetcher from "./addresses.fetcher";
 import { CHAIN_LOG, EVENTS_ABIS } from "./utils";
+import { parseBytes32String } from "ethers/lib/utils";
 
 let FETCHER: AddressesFetcher = new AddressesFetcher(getEthersProvider(), CHAIN_LOG);
 
@@ -24,7 +25,8 @@ export const provideAgentHandler = (fetcher: AddressesFetcher): HandleTransactio
 
     // Update the contracts list.
     txEvent.filterLog(EVENTS_ABIS, CHAIN_LOG).forEach((log) => {
-      fetcher.updateAddresses(log.name, log.args.flat());
+      const contractName = parseBytes32String(log.args[0]);
+      if (contractName.startsWith("PIP_")) fetcher.updateAddresses(log.name, log.args.flat());
     });
 
     findings = findings.concat(await bigDeviationNextPriceHandler(txEvent));

@@ -226,4 +226,28 @@ describe("OSM Agent Test Suite", () => {
     await transactionHandler(txEvent3);
     expect(updateAddresses).toBeCalledTimes(0);
   });
+
+  it("should igore UpdateAddress, RemoveAddress events with no osm Contracts", async () => {
+    const iface = new Interface(EVENTS_ABIS);
+    const log = iface.encodeEventLog(iface.getEvent("UpdateAddress"), [
+      formatBytes32String("NOPIP_FOUR"),
+      createAddress("0x8"),
+    ]);
+    const log2 = iface.encodeEventLog(iface.getEvent("RemoveAddress"), [formatBytes32String("NOPIP_THREE")]);
+
+    const wrongIface = new Interface(["event wrong()"]);
+    const log3 = wrongIface.encodeEventLog(wrongIface.getEvent("wrong"), []);
+
+    // calls updateAddresses on UpdateAddress event
+    const txEvent1 = new TestTransactionEvent().addAnonymousEventLog(CHAIN_LOG, log.data, ...log.topics);
+    await transactionHandler(txEvent1);
+    expect(updateAddresses).toBeCalledTimes(0);
+
+    updateAddresses.mockReset();
+
+    // calls updateAddresses on RemoveAddress event
+    const txEvent2 = new TestTransactionEvent().addAnonymousEventLog(CHAIN_LOG, log2.data, ...log2.topics);
+    await transactionHandler(txEvent2);
+    expect(updateAddresses).toBeCalledTimes(0);
+  });
 });
