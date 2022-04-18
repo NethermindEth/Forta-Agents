@@ -1,5 +1,11 @@
 {
+<<<<<<< HEAD
   "printWidth": 120,
   "trailingComma": "es5",
   "singleQuote": false
+=======
+  "singleQuote": true,
+  "trailingComma": "all",
+  "tabWidth": 2
+>>>>>>> @maker/esm_agent
 }
