@@ -26,7 +26,7 @@ describe("Big deviation queued price Tests", () => {
     handleTransaction = provideBigQueuedPriceDeviationHandler(mockFetcher);
   });
 
-  it("should return an empty finding if there are not traces", async () => {
+  it("should return an empty finding if there are not any traces", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
 
     const findings: Finding[] = await handleTransaction(txEvent);
