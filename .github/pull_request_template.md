@@ -28,6 +28,7 @@ _Put an `x` in the boxes that apply_
 - [ ] Tests cover all the paths (i.e. negative & positive test cases)
 - [ ] When the tests complete, no warning/errors are shown
 - [ ] `npm start` works without errors when executed using a jsonRpcUrl for each of the networks specified in the README
+- [ ] The networks specified in the README and the networks are listed in the `package.json` are the same
 - [ ] The code does what the README describes
 - [ ] Network calls are properly being cached (if duplicated calls can occur)
 - [ ] A performance review has been done (e.g. `Promise.all` is used whenever possible)
@@ -38,6 +39,7 @@ _Put an `x` in the boxes that apply_
 - [ ] `ABI`s match the contracts used / `args` used from `LogDescriptions` exists in the `ABI`s
 - [ ] The agent follows Forta recommended [best practices](https://docs.forta.network/en/latest/best-practices/)
 - [ ] Agent can recover from failed error calls when they can fail (e.g. errors are being caught on calls that can fail)
+- [ ] `repository` is added in the `package.json`
 
 ## Comments (optional)
 
