@@ -9,7 +9,7 @@ This agent detects:
 - When the enqueued price deviates more than 6% from the current price on an OSM contract.
 
 > MegaPoker contract address: `0x2417c2762ec12f2696f62cfa5492953b9467dc81`
-> The api endpoint used to fetch addresses https://chainlog.makerdao.com/api/mainnet/active.json. Note that it can be updated by changing the constant `API_ENDPOINT` on agent.ts, Line 9. 
+> OSM contracts addresses are fetched from the ChainLog contract `0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F`
 
 ## Supported Chains
 
