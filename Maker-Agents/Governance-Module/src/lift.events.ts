@@ -5,24 +5,27 @@ import { utils } from "ethers";
 export const LIFT_EVENT: string = "0x3c278bd500000000000000000000000000000000000000000000000000000000";
 
 const desc: {
-  [key in LiftFinding]: string;
+  [key in LiftFinding]: [string, FindingSeverity];
 } = {
-  [LiftFinding.Lifter]: "Lifter is an unknown address",
-  [LiftFinding.Spell]: "Spell is an unknown address",
+  [LiftFinding.Lifter]: ["Lifter is an unknown address", FindingSeverity.Low],
+  [LiftFinding.Spell]: ["Spell is an unknown address", FindingSeverity.High],
 };
 
-export const createFinding = (alertId: string, unknown: string, finding: LiftFinding): Finding =>
-  Finding.fromObject({
+export const createFinding = (alertId: string, unknown: string, finding: LiftFinding): Finding => {
+  const [_description, _severity] = desc[finding];
+
+  return Finding.fromObject({
     name: "MakerDAO's Chief contract lift event detected",
-    description: desc[finding],
+    description: _description,
     alertId: alertId,
-    type: FindingType.Suspicious,
-    severity: FindingSeverity.High,
+    type: FindingType.Info,
+    severity: _severity,
     protocol: "Maker",
     metadata: {
       address: unknown,
     },
   });
+}
 
 export const provideLiftEventsListener = (
   alertId: string,

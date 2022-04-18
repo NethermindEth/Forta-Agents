@@ -4,23 +4,26 @@ import { BigNumber } from "ethers";
 import HatFetcher from "./hat.fetcher";
 
 const desc: {
-  [key in HatFinding]: string;
+  [key in HatFinding]: [string, FindingSeverity];
 } = {
-  [HatFinding.UnknownHat]: "Hat is an unknown address",
-  [HatFinding.HatModified]: "Hat address modified",
-  [HatFinding.FewApprovals]: "Hat MKR is below the threshold",
+  [HatFinding.UnknownHat]: ["Hat is an unknown address", FindingSeverity.High],
+  [HatFinding.HatModified]: ["Hat address modified", FindingSeverity.Low],
+  [HatFinding.FewApprovals]: ["Hat MKR is below the threshold", FindingSeverity.High],
 };
 
-export const createFinding = (alertId: string, finding: HatFinding, metadata: { [key: string]: string } = {}) =>
-  Finding.fromObject({
+export const createFinding = (alertId: string, finding: HatFinding, metadata: { [key: string]: string } = {}) => {
+  const [_description, _severity] = desc[finding];
+
+  return Finding.fromObject({
     name: "MakerDAO's Chief contract Hat Alert",
-    description: desc[finding],
+    description: _description,
     alertId: alertId,
-    type: FindingType.Suspicious,
-    severity: FindingSeverity.High,
+    type: FindingType.Info,
+    severity: _severity,
     protocol: "Maker",
     metadata: metadata,
   });
+}
 
 export const provideHatChecker = (
   alertId: string,

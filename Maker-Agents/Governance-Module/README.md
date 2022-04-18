@@ -29,8 +29,10 @@ Describe each of the type of alerts fired by this agent
     - Is an unknown address
     - Is changed to a different address
     - Has less than 40000 MKR in approvals
-  - Severity is always set to "high"
-  - Type is always set to "suspicious"
+  - Severity is:
+    - set to "Low" when hat is changes
+    - set to "High" in other cases
+  - Type is always set to "Info"
   - The metadata can contains:
     - `hat` address (Always)
     - `previousHat` address (When the hat is changed)
@@ -40,8 +42,10 @@ Describe each of the type of alerts fired by this agent
   - Fired on transaction where a lift event occured in the Chief contract and:
     - Lifter (topic 1) is an unknown address
     - Spell (topic 2) is an unknown address
-  - Severity is always set to "high"
-  - Type is always set to "suspicious"
+  - Severity is: 
+    - set to "Low" when lifter is unknown
+    - set to "High" when spell is unknown
+  - Type is always set to "Info"
   - The metadata contains the unknown address that cause the alert
 
 ## Test Data
