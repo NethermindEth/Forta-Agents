@@ -1,200 +1,113 @@
-import BigNumber from 'bignumber.js';
-import {
-  Finding, 
-  HandleBlock,
-  BlockEvent,
-} from 'forta-agent';
-import { 
-  provideHatChecker, 
-  createFinding,
-} from './new.hat';
-import { 
-  AddressVerifier,
-  HatFinding, 
-  createAddr,
-  createEncodedAddr,
-  createEncodedUint256,
-  hatCall,
-  approvalsCall,
-  generateAddressVerifier,
-  createTestBlockEvent,
-  toBalance,
-} from './utils';
+import { BigNumber } from "ethers";
+import HatFetcher from "./hat.fetcher";
+import { mockWrapper } from "./test.utils";
+import { provideHatChecker, createFinding } from "./new.hat";
+import { Finding, HandleBlock, BlockEvent } from "forta-agent";
+import { createAddress, TestBlockEvent } from "forta-agent-tools/lib/tests";
+import { AddressVerifier, HatFinding, generateAddressVerifier, toBalance } from "./utils";
 
 const alertId: string = "Test Findings";
-const contract: string = createAddr("0xA");
-const threshold: BigNumber = new BigNumber(20);
-const isKnown: AddressVerifier = generateAddressVerifier("0xb", "0xc", "0xd");
+const chief: string = createAddress("0xa");
+const threshold: BigNumber = BigNumber.from(20);
+const isKnown: AddressVerifier = generateAddressVerifier([
+  createAddress("0xb"),
+  createAddress("0xc"),
+  createAddress("0xd"),
+]);
 
-describe('Chief Contract Hat Changes detector test suite', () => {
-  const web3CallMock = jest.fn();
+describe("Chief Contract Hat Changes detector test suite", () => {
   let handleBlock: HandleBlock;
-  const callData = {to: contract, data: hatCall()};
+  const { setHat, setApproval, mockProvider } = mockWrapper(chief);
+  const fetcher: HatFetcher = new HatFetcher(chief, mockProvider as any);
 
   beforeEach(() => {
-    web3CallMock.mockClear();
-    handleBlock = provideHatChecker(
-      web3CallMock,
-      alertId,
-      contract,
-      isKnown,
-      threshold,
-    );
+    mockProvider.clear();
+    handleBlock = provideHatChecker(alertId, isKnown, threshold, fetcher);
   });
 
-  it('Should report when hat is an unknown address', async () => {
+  it("should report when hat is an unknown address", async () => {
     const block: number = 1;
-    const hat: string = createAddr("0xDEAD");
-    const previousHat: string = createAddr("0x1");
-    const blockEvent: BlockEvent = createTestBlockEvent(block);
+    const hat: string = createAddress("0xDEAD");
+    const previousHat: string = createAddress("0x1");
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
+    setHat(block - 1, previousHat);
+    setHat(block, hat);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([createFinding(alertId, HatFinding.UnknownHat, { hat: hat.toLowerCase() })]);
+  });
+
+  it("should report when hat is modified", async () => {
+    const block: number = 2;
+    const hat: string = createAddress("0xB");
+    const previousHat: string = createAddress("0xDEAD");
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block);
+
+    setHat(block - 1, previousHat);
+    setApproval(block, hat, toBalance(threshold));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.UnknownHat,
-        { hat: hat.toLowerCase() },
-      ),
+      createFinding(alertId, HatFinding.HatModified, {
+        hat: hat.toLowerCase(),
+        previousHat: previousHat.toLowerCase(),
+      }),
     ]);
-    expect(web3CallMock).toBeCalledTimes(2);
-    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
-    expect(web3CallMock).nthCalledWith(2, callData, block);
   });
 
-  it('Should report when hat is modified', async () => {
+  it("should report when hat approvals is below the threshold", async () => {
     const block: number = 2;
-    const hat: string = createAddr("0xB");
-    const previousHat: string = createAddr("0xDEAD");
-    const blockEvent: BlockEvent = createTestBlockEvent(block);
-
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
-
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.HatModified,
-        { 
-          hat: hat.toLowerCase(), 
-          previousHat: previousHat.toLowerCase() 
-        },
-      ),
-    ]);
-    expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
-    expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
-      {
-        to: contract, 
-        data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
-    );
-  });
-
-  it('Should report when hat approvals is below the threshold', async () => {
-    const block: number = 2;
-    const hat: string = createAddr("0xC");
+    const hat: string = createAddress("0xC");
     const previousHat: string = hat;
-    const blockEvent: BlockEvent = createTestBlockEvent(block);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.FewApprovals,
-        { 
-          hat: hat.toLowerCase(), 
-          MKR: toBalance(threshold.minus(1)).toString(),
-          threshold: toBalance(threshold).toString(),
-        },
-      ),
-    ]);
-    expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
-    expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
-      {
-        to: contract, 
-        data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
-    );
-  });
-
-  it('Should report when hat is unknown and the approvals is below the threshold', async () => {
-    const block: number = 2;
-    const hat: string = createAddr("0xD");
-    const previousHat: string = createAddr("0xDEAD");
-    const blockEvent: BlockEvent = createTestBlockEvent(block);
-
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold.minus(1))));
+    setHat(block - 1, previousHat);
+    setApproval(block, hat, toBalance(threshold).sub(1));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding(
-        alertId,
-        HatFinding.HatModified,
-        { 
-          hat: hat.toLowerCase(), 
-          previousHat: previousHat.toLowerCase() 
-        },
-      ),
-      createFinding(
-        alertId,
-        HatFinding.FewApprovals,
-        { 
-          hat: hat.toLowerCase(), 
-          MKR: toBalance(threshold.minus(1)).toString(),
-          threshold: toBalance(threshold).toString(),
-        },
-      ),
+      createFinding(alertId, HatFinding.FewApprovals, {
+        hat: hat.toLowerCase(),
+        MKR: toBalance(threshold).sub(1).toString(),
+        threshold: toBalance(threshold).toString(),
+      }),
     ]);
-    expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
-    expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
-      {
-        to: contract, 
-        data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
-    );
   });
 
-  it('Should report 0 findings if hat remains valid', async () => {
+  it("should report when hat is unknown and the approvals is below the threshold", async () => {
     const block: number = 2;
-    const hat: string = createAddr("0xB");
+    const hat: string = createAddress("0xD");
+    const previousHat: string = createAddress("0xDEAD");
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block);
+
+    setHat(block - 1, previousHat);
+    setApproval(block, hat, toBalance(threshold).sub(1));
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([
+      createFinding(alertId, HatFinding.HatModified, {
+        hat: hat.toLowerCase(),
+        previousHat: previousHat.toLowerCase(),
+      }),
+      createFinding(alertId, HatFinding.FewApprovals, {
+        hat: hat.toLowerCase(),
+        MKR: toBalance(threshold).sub(1).toString(),
+        threshold: toBalance(threshold).toString(),
+      }),
+    ]);
+  });
+
+  it("should report 0 findings if hat remains valid", async () => {
+    const block: number = 2;
+    const hat: string = createAddress("0xB");
     const previousHat: string = hat;
-    const blockEvent: BlockEvent = createTestBlockEvent(block);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block);
 
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(previousHat));
-    web3CallMock.mockReturnValueOnce(createEncodedAddr(hat));
-    web3CallMock.mockReturnValueOnce(createEncodedUint256(toBalance(threshold)));
+    setHat(block - 1, previousHat);
+    setApproval(block, hat, toBalance(threshold));
 
     const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
-    expect(web3CallMock).toBeCalledTimes(3);
-    expect(web3CallMock).nthCalledWith(1, callData, block - 1);
-    expect(web3CallMock).nthCalledWith(2, callData, block);
-    expect(web3CallMock).nthCalledWith(3, 
-      {
-        to: contract, 
-        data: approvalsCall(hat.toLowerCase()),
-      }, 
-      block,
-    );
   });
 });
