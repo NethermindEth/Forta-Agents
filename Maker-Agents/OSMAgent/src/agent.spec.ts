@@ -227,7 +227,7 @@ describe("OSM Agent Test Suite", () => {
     expect(updateAddresses).toBeCalledTimes(0);
   });
 
-  it("should igore UpdateAddress, RemoveAddress events with no osm Contracts", async () => {
+  it("should ignore UpdateAddress, RemoveAddress events with no osm Contracts", async () => {
     const iface = new Interface(EVENTS_ABIS);
     const log = iface.encodeEventLog(iface.getEvent("UpdateAddress"), [
       formatBytes32String("NOPIP_FOUR"),
