@@ -1,4 +1,4 @@
-import provideESMJoinEventAgent from "./join.event";
+import provideESMJoinEventAgent from "./join.event"; 
 import provideESMFireEventAgent from "./fire.event";
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { CHAINLOG_ADDRESS } from "./utils";
