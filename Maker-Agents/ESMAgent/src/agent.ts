@@ -5,7 +5,7 @@ import { Contract, providers, utils } from "ethers";
 
 const MakerDAO_CHANGELOG_ADDRESS: string = "0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F";
 const ESM_CONTRACT_BYTES: string = utils.formatBytes32String("MCD_ESM");
-let MakerDAO_ESM_ADDRESS: string;
+let MakerDAO_ESM_ADDRESS: string = "";
 
 const JOIN_EVENT_ALERTID: string = "MakerDAO-ESM-1";
 const FIRE_EVENT_ALERTID: string = "MakerDAO-ESM-2";
@@ -17,15 +17,13 @@ const provideInitialize = (address: string, bytes: string, provider: providers.P
       new utils.Interface(["function getAddress(bytes32 _key) public view returns (address addr)"]),
       provider
     );
-    console.log("made it here 01");
     MakerDAO_ESM_ADDRESS = await changeLogContract.getAddress(bytes);
-    console.log("made it here 02");
   };
 };
 
-const provideAgentHandler = (): HandleTransaction => {
-  const joinEventHandler = provideESMJoinEventAgent(JOIN_EVENT_ALERTID, MakerDAO_ESM_ADDRESS);
-  const fireEventHandler = provideESMFireEventAgent(FIRE_EVENT_ALERTID, MakerDAO_ESM_ADDRESS);
+const provideAgentHandler = (esmAddress: string, joinEvent: string, fireEvent: string): HandleTransaction => {
+  const joinEventHandler = provideESMJoinEventAgent(joinEvent, esmAddress);
+  const fireEventHandler = provideESMFireEventAgent(fireEvent, esmAddress);
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
@@ -40,5 +38,5 @@ export default {
   provideInitialize,
   intialize: provideInitialize(MakerDAO_CHANGELOG_ADDRESS, ESM_CONTRACT_BYTES, getEthersProvider()),
   provideAgentHandler,
-  handleTransaction: provideAgentHandler(),
+  handleTransaction: provideAgentHandler(MakerDAO_ESM_ADDRESS, JOIN_EVENT_ALERTID, FIRE_EVENT_ALERTID),
 };
