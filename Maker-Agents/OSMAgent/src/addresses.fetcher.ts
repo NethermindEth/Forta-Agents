@@ -1,37 +1,40 @@
+import { providers, Contract } from "ethers";
+import { parseBytes32String } from "ethers/lib/utils";
+import { FUNCTIONS_ABIS, EVENTS_ABIS } from "./utils";
+
 export default class AddressesFetcher {
-  private endpoint: string;
-  private lastTime: number;
-  private pipAddresses: string[];
-  private elapsedTime: number;
-  private getter: any;
+  provider: providers.Provider;
+  chainLogAddress: string;
+  osmContracts: Map<string, string>;
+  private chainLogContract: Contract;
 
-  constructor(endpoint: string, getter: any, elapsedTime: number){
-    this.lastTime = -1;
-    this.pipAddresses = [];
-    this.endpoint = endpoint;
-    this.getter = getter;
-    this.elapsedTime = elapsedTime;
+  constructor(provider: providers.Provider, contractAddr: string) {
+    this.provider = provider;
+    this.chainLogAddress = contractAddr;
+    this.chainLogContract = new Contract(contractAddr, [FUNCTIONS_ABIS, EVENTS_ABIS].flat(), provider);
+    this.osmContracts = new Map();
   }
 
-  private async fetch(timestamp: number): Promise<void> {
-    await this.getter.get(this.endpoint)
-      .then((response: Record<string, string>) => {
-        const addresses: string[] = [];
-        for(let [key, address] of Object.entries(response.data)){
-          if(key.startsWith('PIP_'))
-            addresses.push(address.toLowerCase());
-        }
-        this.lastTime = timestamp;
-        this.pipAddresses = addresses;
-      })
-      .catch((error: any) => {
-        console.log("Failing to retrieve the addresses with error:", error);
-      });
+  // fetches all OSM addresses (starting with PIP_)
+  public async getOsmAddresses(block: string | number) {
+    // get keys list
+    const list: string[] = await this.chainLogContract.list({ blockTag: block });
+    // save addresses of keys starting with PIP_
+    for (let key of list) {
+      const name = parseBytes32String(key);
+      if (name.startsWith("PIP_"))
+        this.osmContracts.set(key, (await this.chainLogContract.getAddress(key, { blockTag: block })).toLowerCase());
+    }
   }
 
-  public async get(timestamp: number): Promise<string[]> {
-    if(this.lastTime === -1 || (this.lastTime + this.elapsedTime <= timestamp))
-      await this.fetch(timestamp)
-    return this.pipAddresses;
+  // Update the addresses list
+  public updateAddresses(name: string, args: string[]) {
+    if (name === "UpdateAddress") {
+      // update the address associated with the key.
+      this.osmContracts.set(args[0], args[1]);
+    } else {
+      // remove key-value.
+      this.osmContracts.delete(args[0]);
+    }
   }
-};
+}
