@@ -6,7 +6,9 @@ This agent detects:
 - `Fire` event emissions by the ESM contract.
 - `Join` event emissions by the ESM contract with a value greater than 2 MKR.
 
-> Emergency Shutdown contract address: `0x09e05fF6142F2f9de8B6B65855A1d56B6cfE4c58`
+> Note: The Emergency Shutdown contract address is gotten from calling `getAddress` in the ChainLog contract with a `bytes32` representation of `"MCD_ESM"` as the argument.
+ChainLog contract address: `0xdA0Ab1e0017DEbCd72Be8599041a2aa3bA7e740F`
+
 ## Supported Chains
 
 - Ethereum
