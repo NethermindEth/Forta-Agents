@@ -25,7 +25,7 @@ export const createFinding = (alertId: string, unknown: string, finding: LiftFin
       address: unknown,
     },
   });
-}
+};
 
 export const provideLiftEventsListener = (
   alertId: string,

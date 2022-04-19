@@ -18,8 +18,16 @@ const isKnown: AddressVerifier = generateAddressVerifier([
 describe("Chief Contract Hat Changes detector test suite", () => {
   let handleBlock: HandleBlock;
   const { setHat, setApproval, mockProvider } = mockWrapper(chief);
-  const fetcher: HatFetcher = new HatFetcher(chief, mockProvider as any);
+  let fetcher: HatFetcher;
+  let mockAddressFetcher: any;
 
+  beforeAll(() => {
+    mockAddressFetcher = {
+      getChiefAddress: jest.fn(),
+      chiefAddress: chief,
+    };
+    fetcher = new HatFetcher(mockAddressFetcher, mockProvider as any);
+  });
   beforeEach(() => {
     mockProvider.clear();
     handleBlock = provideHatChecker(alertId, isKnown, threshold, fetcher);

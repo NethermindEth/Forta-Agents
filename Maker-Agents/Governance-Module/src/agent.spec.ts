@@ -32,13 +32,20 @@ describe("Governance Module agent tests suite", () => {
   const threshold = BigNumber.from(40000);
   const chief: string = createAddress("0xda0");
   const { setHat, setApproval, mockProvider } = mockWrapper(chief);
+  let mockAddressFetcher: any;
 
+  beforeAll(() => {
+    mockAddressFetcher = {
+      getChiefAddress: jest.fn(),
+      chiefAddress: chief,
+    };
+  });
   beforeEach(() => {
     mockProvider.clear();
     addrManager = new DeployedAddressesManager(deadAddr, mockProvider as any);
     agent = {
-      handleTransaction: provideHandleTransaction(addrManager, addrManager, chief),
-      handleBlock: provideHandleBlock(threshold, addrManager, new HatFetcher(chief, mockProvider as any)),
+      handleTransaction: provideHandleTransaction(addrManager, addrManager, mockAddressFetcher),
+      handleBlock: provideHandleBlock(threshold, addrManager, new HatFetcher(mockAddressFetcher, mockProvider as any)),
     };
   });
 

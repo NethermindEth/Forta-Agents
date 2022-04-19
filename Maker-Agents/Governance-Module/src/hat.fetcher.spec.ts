@@ -9,8 +9,16 @@ describe("HatFetcher test suite", () => {
   const addr2: string = createAddress("0x2");
   const addr3: string = createAddress("0x3");
   const { setHat, setApproval, mockProvider } = mockWrapper(chief);
-  let hatFetcher: HatFetcher = new HatFetcher(chief, mockProvider as any);
+  let mockAddressFetcher: any;
+  let hatFetcher: HatFetcher;
 
+  beforeAll(() => {
+    mockAddressFetcher = {
+      getChiefAddress: jest.fn(),
+      chiefAddress: chief,
+    };
+    hatFetcher = new HatFetcher(mockAddressFetcher, mockProvider as any);
+  });
   beforeEach(() => mockProvider.clear());
 
   it("should fetch the hat properly", async () => {
@@ -31,6 +39,7 @@ describe("HatFetcher test suite", () => {
     hat = await hatFetcher.getHat(20);
     expect(hat).toStrictEqual(addr3);
     // request the cached value several times
+    mockProvider.clear();
     hat = await hatFetcher.getHat(20);
     expect(hat).toStrictEqual(addr3);
     hat = await hatFetcher.getHat(20);
