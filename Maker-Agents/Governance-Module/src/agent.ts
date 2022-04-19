@@ -14,9 +14,9 @@ const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(config.SPELL
 const LIFTER_MANAGER: ListManager = new ListManager(config.KNOWN_LIFTERS);
 let CHIEF_FETCHER: AddressFetcher = new AddressFetcher(getEthersProvider(), config.CHAINLOG_CONTRACT);
 
-let chiefAddress: string = "";
+
 export const initialize = (chiefFetcher: AddressFetcher) => async () => {
-  chiefAddress = await chiefFetcher.getChiefAddress("latest");
+  await chiefFetcher.getChiefAddress("latest");
 };
 
 export const provideHandleTransaction = (
