@@ -36,8 +36,7 @@ describe("AddressesFetcher test suite", () => {
       [formatBytes32String("NOPIP_THREE"), createAddress("0xa63")],
     ]),
   ];
-
-  const initialize = () => {
+  beforeAll(() => {
     for (let i = 0; i < CONTRACTS.length; i++) {
       const block = i + 1;
       // call to list
@@ -53,10 +52,9 @@ describe("AddressesFetcher test suite", () => {
         });
       });
     }
-  };
+  });
 
   it("should store only PIP_ prefixed addresses", async () => {
-    initialize();
     for (let block = 1; block <= CONTRACTS.length; block++) {
       await fetcher.getOsmAddresses(block);
 
@@ -71,8 +69,6 @@ describe("AddressesFetcher test suite", () => {
   });
 
   it("should update the addresses correctly", async () => {
-    initialize();
-
     for (let block = 1; block <= CONTRACTS.length; block++) {
       await fetcher.getOsmAddresses(block);
 
