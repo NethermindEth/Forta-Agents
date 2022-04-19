@@ -39,6 +39,7 @@ describe("HatFetcher test suite", () => {
     hat = await hatFetcher.getHat(20);
     expect(hat).toStrictEqual(addr3);
     // request the cached value several times
+    mockProvider.clear();
     hat = await hatFetcher.getHat(20);
     expect(hat).toStrictEqual(addr3);
     hat = await hatFetcher.getHat(20);
