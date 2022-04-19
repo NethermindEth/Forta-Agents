@@ -23,20 +23,21 @@ export default class HatFetcher {
     if (this.block !== block) {
       this.block = block;
       this.approvals = BigNumber.from(-1);
-      // create a new contract instance if chiefAddress has been updated
-      if (this.chiefContract.address != this.chiefFetcher.chiefAddress)
-        this.chiefContract = new Contract(this.chiefFetcher.chiefAddress, abi.CHIEF, this.provider);
+      this.setChiefContract();
       this.hat = await this.chiefContract.hat({ blockTag: block });
     }
     return this.hat;
   }
 
   public async getHatApprovals(block: number) {
+    this.setChiefContract();
+    if (this.approvals.eq(-1)) this.approvals = await this.chiefContract.approvals(this.hat, { blockTag: block });
+    return this.approvals;
+  }
+
+  private setChiefContract() {
     // create a new contract instance if chiefAddress has been updated
     if (this.chiefContract.address != this.chiefFetcher.chiefAddress)
       this.chiefContract = new Contract(this.chiefFetcher.chiefAddress, abi.CHIEF, this.provider);
-
-    if (this.approvals.eq(-1)) this.approvals = await this.chiefContract.approvals(this.hat, { blockTag: block });
-    return this.approvals;
   }
 }
