@@ -1,28 +1,33 @@
-import AddressFetcher from "./address.fetcher";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { CHAINLOG_ADDRESS, CHAINLOG_IFACE } from "./utils";
-import { formatBytes32String } from "ethers/lib/utils";
+import AddressFetcher from "./address.fetcher";
+import { CHAINLOG_ADDRESS, CHAINLOG_IFACE, ESM_KEY_BYTES } from "./utils";
 
 describe("AddressFetcher test suite", () => {
+  // Format: [esmAddress, blockNumber]
+  const TEST_CASES: [string, number][] = [
+    [createAddress("0x1"), 1],
+    [createAddress("0x2"), 2],
+    [createAddress("0x3"), 3],
+    [createAddress("0x4"), 4],
+  ];
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  let fetcher: AddressFetcher;
-  const ESM_CONTRACT: string = createAddress("0x1");
+  const fetcher: AddressFetcher = new AddressFetcher(mockProvider as any, CHAINLOG_ADDRESS);
 
-  const initialize = () => {
-    fetcher = new AddressFetcher(mockProvider as any, CHAINLOG_ADDRESS);
-    mockProvider.clear();
-    const key: string = formatBytes32String("MCD_ESM"); // ESM contract's key value
-
-    // call to getAddress
-    mockProvider.addCallTo(CHAINLOG_ADDRESS, 1, CHAINLOG_IFACE, "getAddress", {
-      inputs: [key],
-      outputs: [ESM_CONTRACT],
+  function createGetAddressCall(blockNumber: number, esmAddress: string) {
+    return mockProvider.addCallTo(CHAINLOG_ADDRESS, blockNumber, CHAINLOG_IFACE, "getAddress", {
+      inputs: [ESM_KEY_BYTES],
+      outputs: [esmAddress],
     });
-  };
+  }
+
+  beforeEach(() => mockProvider.clear());
 
   it("should store correct MCD_ESM address", async () => {
-    initialize();
-    await fetcher.getEsmAddress(1);
-    expect(fetcher.esmAddress).toStrictEqual(ESM_CONTRACT);
+    for (let [esmAddress, blockNumber] of TEST_CASES) {
+      createGetAddressCall(blockNumber, esmAddress);
+
+      const fetchedEsmAddress: string = await fetcher.getEsmAddress(blockNumber);
+      expect(fetchedEsmAddress).toStrictEqual(esmAddress);
+    }
   });
 });

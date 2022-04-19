@@ -1,5 +1,3 @@
-import { FindingGenerator, provideEventCheckerHandler } from "forta-agent-tools";
-import { BigNumber } from "ethers";
 import {
   Finding,
   HandleTransaction,
@@ -8,6 +6,9 @@ import {
   FindingType,
   LogDescription,
 } from "forta-agent";
+import { FindingGenerator, provideEventCheckerHandler } from "forta-agent-tools";
+import { BigNumber } from "ethers";
+import AddressFetcher from "./address.fetcher";
 
 export const MAKER_ESM_JOIN_EVENT_ABI = "event Join(address indexed usr, uint256 wad)";
 export const MAKER_ESM_JOIN_EVENT_SIGNATURE = "Join(address,uint256)";
@@ -39,12 +40,12 @@ const createFindingGenerator = (_alertID: string): FindingGenerator => {
     });
 };
 
-const provideESMJoinEventAgent = (_alertID: string, _contractAddress: string): HandleTransaction => {
+const provideESMJoinEventAgent = (_alertID: string, fetcher: AddressFetcher): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideEventCheckerHandler(
       createFindingGenerator(_alertID),
       MAKER_ESM_JOIN_EVENT_ABI,
-      _contractAddress,
+      fetcher.esmAddress,
       filterLog
     );
 

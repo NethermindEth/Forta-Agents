@@ -1,10 +1,9 @@
-import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
 import { encodeParameter } from "forta-agent-tools";
-
+import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import provideESMJoinEventAgent, { MAKER_ESM_JOIN_EVENT_SIGNATURE } from "./join.event";
 
-const ADDRESS = createAddress("0x1");
+const ESM_ADDRESS = createAddress("0x1");
 const USER = createAddress("0x2");
 const ALERT_ID = "testID";
 
@@ -15,13 +14,17 @@ describe("ESM Join Event Agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideESMJoinEventAgent(ALERT_ID, ADDRESS);
+    const mockFetcher: any = {
+      esmAddress: ESM_ADDRESS,
+      getEsmAddress: jest.fn(),
+    };
+    handleTransaction = provideESMJoinEventAgent(ALERT_ID, mockFetcher);
   });
 
   it("should return a finding if condition is met", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      ADDRESS,
+      ESM_ADDRESS,
       encodeParameter("uint256", AMOUNT_3), // 3
       encodeParameter("address", USER)
     );
@@ -47,7 +50,7 @@ describe("ESM Join Event Agent", () => {
   it("should return an empty finding if MKR condition is not met", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       MAKER_ESM_JOIN_EVENT_SIGNATURE,
-      ADDRESS,
+      ESM_ADDRESS,
       encodeParameter("uint256", AMOUNT_1), //1
       encodeParameter("address", USER)
     );
@@ -60,7 +63,7 @@ describe("ESM Join Event Agent", () => {
   it("should return an empty finding because of bad signature", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       "bad sig",
-      ADDRESS,
+      ESM_ADDRESS,
       encodeParameter("uint256", AMOUNT_3), // 3
       encodeParameter("address", USER)
     );

@@ -31,6 +31,7 @@
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
+    "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",
     "ts-jest": "^27.0.3",
