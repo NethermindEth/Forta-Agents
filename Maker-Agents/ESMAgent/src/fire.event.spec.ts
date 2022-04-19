@@ -1,8 +1,8 @@
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent } from "forta-agent";
-import provideESMFireEventAgent, { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import provideESMFireEventAgent, { MAKER_ESM_FIRE_EVENT_SIGNATURE } from "./fire.event";
 
-const ADDRESS = createAddress("0x1");
+const ESM_ADDRESS = createAddress("0x1");
 const USER = createAddress("0x2");
 const ALERT_ID = "testID";
 
@@ -10,12 +10,16 @@ describe("ESM Fire Event Agent", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideESMFireEventAgent(ALERT_ID, ADDRESS);
+    const mockFetcher: any = {
+      esmAddress: ESM_ADDRESS,
+      getEsmAddress: jest.fn(),
+    };
+    handleTransaction = provideESMFireEventAgent(ALERT_ID, mockFetcher);
   });
 
   it("should return a finding", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ADDRESS)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_ADDRESS)
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -29,7 +33,7 @@ describe("ESM Fire Event Agent", () => {
         type: FindingType.Suspicious,
         protocol: "Maker",
         metadata: {
-          ESM_address: ADDRESS,
+          ESM_address: ESM_ADDRESS,
           from: USER,
         },
       }),
@@ -47,7 +51,7 @@ describe("ESM Fire Event Agent", () => {
   });
 
   it("should return an empty finding because of a bad signature", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("bad sig", ADDRESS).setFrom(USER);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog("bad sig", ESM_ADDRESS).setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
 
