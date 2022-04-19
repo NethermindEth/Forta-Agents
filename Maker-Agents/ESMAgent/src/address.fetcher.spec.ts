@@ -26,8 +26,8 @@ describe("AddressFetcher test suite", () => {
     for (let [esmAddress, blockNumber] of TEST_CASES) {
       createGetAddressCall(blockNumber, esmAddress);
 
-      const fetchedEsmAddres: string = await fetcher.getEsmAddress(blockNumber);
-      expect(fetchedEsmAddres).toStrictEqual(esmAddress);
+      const fetchedEsmAddress: string = await fetcher.getEsmAddress(blockNumber);
+      expect(fetchedEsmAddress).toStrictEqual(esmAddress);
     }
   });
 });
