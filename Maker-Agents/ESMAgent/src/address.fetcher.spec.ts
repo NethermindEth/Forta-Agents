@@ -11,6 +11,7 @@ describe("AddressFetcher test suite", () => {
     [createAddress("0x4"), 4],
   ];
   const mockProvider: MockEthersProvider = new MockEthersProvider();
+  const fetcher: AddressFetcher = new AddressFetcher(mockProvider as any, CHAINLOG_ADDRESS);
 
   function createGetAddressCall(blockNumber: number, esmAddress: string) {
     return mockProvider.addCallTo(CHAINLOG_ADDRESS, blockNumber, CHAINLOG_IFACE, "getAddress", {
@@ -23,7 +24,6 @@ describe("AddressFetcher test suite", () => {
 
   it("should store correct MCD_ESM address", async () => {
     for (let [esmAddress, blockNumber] of TEST_CASES) {
-      const fetcher: AddressFetcher = new AddressFetcher(mockProvider as any, CHAINLOG_ADDRESS);
       createGetAddressCall(blockNumber, esmAddress);
 
       const fetchedEsmAddres: string = await fetcher.getEsmAddress(blockNumber);
