@@ -160,7 +160,7 @@ describe("Agent Handler", () => {
       .addEventLog(
         MAKER_ESM_JOIN_EVENT_SIGNATURE,
         ESM_CONTRACT,
-        encodeParameter("uint256", AMOUNT_1),
+        encodeParameter("uint256", AMOUNT_1), // Amount below threshold
         encodeParameter("address", USER)
       )
       .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT)
@@ -192,7 +192,7 @@ describe("Agent Handler", () => {
         encodeParameter("uint256", AMOUNT_1),
         encodeParameter("address", USER)
       )
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, "0x1")
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, "0x1") // 0x1 is the bad address
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -208,7 +208,7 @@ describe("Agent Handler", () => {
         encodeParameter("uint256", AMOUNT_1),
         encodeParameter("address", USER)
       )
-      .addEventLog("0xabc", ESM_CONTRACT)
+      .addEventLog("0xabc", ESM_CONTRACT) // 0xabc is the bad signature
       .setFrom(USER);
 
     const findings: Finding[] = await handleTransaction(txEvent);
@@ -219,7 +219,7 @@ describe("Agent Handler", () => {
   it("should return a Fire event finding AFTER a ESM contract address update", async () => {
     const txEventOne: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        UPDATE_ADDR_SIG,
+        UPDATE_ADDR_SIG, // UpdateAddress event signature
         CHAINLOG_CONTRACT,
         encodeParameters(["bytes32", "address"], [ESM_KEY_BYTES, ESM_CONTRACT_UPDATE])
       )
@@ -230,7 +230,7 @@ describe("Agent Handler", () => {
     expect(findings).toStrictEqual([]);
 
     const txEventTwo: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT_UPDATE)
+      .addEventLog(MAKER_ESM_FIRE_EVENT_SIGNATURE, ESM_CONTRACT_UPDATE) // Using updated ESM address
       .setFrom(USER);
 
     findings = await handleTransaction(txEventTwo);
@@ -254,9 +254,9 @@ describe("Agent Handler", () => {
   it("should return Join event finding AFTER a ESM contract address update", async () => {
     const txEventOne: TransactionEvent = new TestTransactionEvent()
       .addEventLog(
-        UPDATE_ADDR_SIG,
+        UPDATE_ADDR_SIG, // UpdateAddress event signature
         CHAINLOG_CONTRACT,
-        encodeParameters(["bytes32", "address"], [ESM_KEY_BYTES, ESM_CONTRACT_UPDATE])
+        encodeParameters(["bytes32", "address"], [ESM_KEY_BYTES, ESM_CONTRACT_UPDATE]) // Using updated ESM address
       )
       .setFrom(USER);
 

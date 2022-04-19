@@ -27,7 +27,7 @@ const provideAgentHandler = (
     let findings: Finding[] = [];
 
     // Listen to UpdateAddress event & update the ESM contract.
-    txEvent.filterLog(UPDATE_ADDR_ABI, chainLogAddr).forEach(async (log) => {
+    txEvent.filterLog(UPDATE_ADDR_ABI, chainLogAddr).forEach((log) => {
       if (log.args.key === utils.formatBytes32String("MCD_ESM")) {
         fetcher.esmAddress = log.args.addr.toLowerCase();
       }
