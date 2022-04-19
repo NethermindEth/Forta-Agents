@@ -7,6 +7,7 @@ import { formatBytes32String } from "ethers/lib/utils";
 describe("AddressFetcher test suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   let fetcher: AddressFetcher = new AddressFetcher(mockProvider as any, config.CHAINLOG_CONTRACT);
+  const key: string = formatBytes32String("MCD_ADM"); // chief contract's key value
 
   // Format: [chiefAddress, blockNumber]
   const TEST_CASES: [string, number][] = [
@@ -15,9 +16,6 @@ describe("AddressFetcher test suite", () => {
     [createAddress("0x3"), 3],
     [createAddress("0x4"), 4],
   ];
-
-  fetcher = new AddressFetcher(mockProvider as any, config.CHAINLOG_CONTRACT);
-  const key: string = formatBytes32String("MCD_ADM"); // chief contract's key value
 
   function createGetAddressCall(blockNumber: number, chiefAddress: string) {
     mockProvider.addCallTo(config.CHAINLOG_CONTRACT, blockNumber, CHAINLOG_IFACE, "getAddress", {
