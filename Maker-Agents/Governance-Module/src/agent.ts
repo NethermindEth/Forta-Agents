@@ -45,12 +45,10 @@ export const provideHandleTransaction = (
 export const provideHandleBlock = (
   threshold: BigNumber,
   addressManager: AddressManager,
-  fetcher?: HatFetcher
+  fetcher: HatFetcher
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    if (!fetcher) {
-      fetcher = new HatFetcher(chiefAddress, getEthersProvider());
-    }
+   
     const handler: HandleBlock = provideHatChecker(
       "MakerDAO-GM-1",
       addressManager.isKnownAddress.bind(addressManager),
@@ -66,5 +64,5 @@ export const provideHandleBlock = (
 export default {
   initialize: initialize(CHIEF_FETCHER),
   handleTransaction: provideHandleTransaction(SPELLS_MANAGER, LIFTER_MANAGER, CHIEF_FETCHER),
-  handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER),
+  handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER, new HatFetcher(CHIEF_FETCHER, getEthersProvider())),
 };

@@ -23,7 +23,7 @@ export const createFinding = (alertId: string, finding: HatFinding, metadata: { 
     protocol: "Maker",
     metadata: metadata,
   });
-}
+};
 
 export const provideHatChecker = (
   alertId: string,
