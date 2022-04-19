@@ -24,7 +24,7 @@ const createFindingGenerator = (alertID: string, ESM_address: string, _from: str
 const provideESMFireEventAgent = (_alertID: string, fetcher: AddressFetcher): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const agentHandler = provideEventCheckerHandler(
-      createFindingGenerator(_alertID, await fetcher.esmAddress, txEvent.from),
+      createFindingGenerator(_alertID, fetcher.esmAddress, txEvent.from),
       MAKER_ESM_FIRE_EVENT_ABI,
       fetcher.esmAddress
     );
