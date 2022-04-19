@@ -14,7 +14,6 @@ const SPELLS_MANAGER: AddressManager = new DeployedAddressesManager(config.SPELL
 const LIFTER_MANAGER: ListManager = new ListManager(config.KNOWN_LIFTERS);
 let CHIEF_FETCHER: AddressFetcher = new AddressFetcher(getEthersProvider(), config.CHAINLOG_CONTRACT);
 
-
 export const initialize = (chiefFetcher: AddressFetcher) => async () => {
   await chiefFetcher.getChiefAddress("latest");
 };
@@ -48,7 +47,6 @@ export const provideHandleBlock = (
   fetcher: HatFetcher
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-   
     const handler: HandleBlock = provideHatChecker(
       "MakerDAO-GM-1",
       addressManager.isKnownAddress.bind(addressManager),
@@ -64,5 +62,9 @@ export const provideHandleBlock = (
 export default {
   initialize: initialize(CHIEF_FETCHER),
   handleTransaction: provideHandleTransaction(SPELLS_MANAGER, LIFTER_MANAGER, CHIEF_FETCHER),
-  handleBlock: provideHandleBlock(config.MKR_THRESHOLD, SPELLS_MANAGER, new HatFetcher(CHIEF_FETCHER, getEthersProvider())),
+  handleBlock: provideHandleBlock(
+    config.MKR_THRESHOLD,
+    SPELLS_MANAGER,
+    new HatFetcher(CHIEF_FETCHER, getEthersProvider())
+  ),
 };
