@@ -26,7 +26,7 @@ const provideESMFireEventAgent = (_alertID: string, fetcher: AddressFetcher): Ha
     const agentHandler = provideEventCheckerHandler(
       createFindingGenerator(_alertID, await fetcher.esmAddress, txEvent.from),
       MAKER_ESM_FIRE_EVENT_ABI,
-      await fetcher.esmAddress
+      fetcher.esmAddress
     );
 
     const findings: Finding[] = await agentHandler(txEvent);

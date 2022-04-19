@@ -45,7 +45,7 @@ const provideESMJoinEventAgent = (_alertID: string, fetcher: AddressFetcher): Ha
     const agentHandler = provideEventCheckerHandler(
       createFindingGenerator(_alertID),
       MAKER_ESM_JOIN_EVENT_ABI,
-      await fetcher.esmAddress,
+      fetcher.esmAddress,
       filterLog
     );
 
