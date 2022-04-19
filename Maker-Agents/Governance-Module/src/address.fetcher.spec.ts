@@ -29,8 +29,8 @@ describe("AddressFetcher test suite", () => {
   it("should store correct MCD_ADM address", async () => {
     for (let [chiefAddress, blockNumber] of TEST_CASES) {
       createGetAddressCall(blockNumber, chiefAddress);
-      const fetchedChiefAddres: string = await fetcher.getChiefAddress(blockNumber);
-      expect(fetchedChiefAddres).toStrictEqual(chiefAddress);
+      const fetchedChiefAddress: string = await fetcher.getChiefAddress(blockNumber);
+      expect(fetchedChiefAddress).toStrictEqual(chiefAddress);
     }
   });
 });
