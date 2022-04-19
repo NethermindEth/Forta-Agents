@@ -6,13 +6,7 @@ import { BlockEvent, Finding, TransactionEvent } from "forta-agent";
 import { AddressManager, toBalance, HatFinding, LiftFinding } from "./utils";
 import { LIFT_EVENT, createFinding as createLiftFinding } from "./lift.events";
 import { provideHandleTransaction, provideHandleBlock } from "./agent";
-import {
-  runBlock,
-  TestBlockEvent,
-  TestTransactionEvent,
-  createAddress,
-  MockEthersProvider,
-} from "forta-agent-tools/lib/tests";
+import { runBlock, TestBlockEvent, TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { mockWrapper } from "./test.utils";
 
 const encodedAddr = (addr: string) => utils.defaultAbiCoder.encode(["address"], [createAddress(addr)]);
