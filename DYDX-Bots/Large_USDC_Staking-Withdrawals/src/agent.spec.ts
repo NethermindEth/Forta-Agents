@@ -1,74 +1,130 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, ethers, TransactionEvent } from "forta-agent";
+import { encodeParameter, encodeParameters } from "forta-agent-tools";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { BigNumber } from "ethers";
+import { provideHandleTransaction } from "./agent";
+import { STAKED_SIG, WITHDREW_STAKE_SIG, WITHDREW_DEBT_SIG } from "./utils";
+import { when } from "jest-when";
 
-describe("high tether transfer agent", () => {
+const testProxyAddr: string = createAddress("0xab");
+const testProxyStakeTokenBalance: BigNumber = BigNumber.from("9000000000000000000"); // 9
+const testStaker: string = createAddress("0xac");
+const testAmounts: BigNumber[] = [
+  BigNumber.from("5000000000000000000"),
+  BigNumber.from("6000000000000000000"),
+  BigNumber.from("7000000000000000000"),
+];
+
+describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+  let mockFetcher: any;
 
+  // CONFIRM beforeAll IS WHAT SHOULD BE USED
+  // (VS. beforeEach, etc.)
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    mockFetcher = {
+      getBalanceOf: jest.fn(),
+    };
+    when(mockFetcher.getBalanceOf).calledWith(testProxyAddr, "latest").mockReturnValue(testProxyStakeTokenBalance);
+    handleTransaction = provideHandleTransaction(testProxyAddr, mockFetcher);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("should return 0 findings in empty transactions", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(mockTxEvent);
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  it("should detect a large Staked event", async () => {
+    const testSpender: string = createAddress("0x1");
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
+    const testTopics = encodeParameter("address", testStaker);
+    const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog(STAKED_SIG, testProxyAddr, testData, testTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: `Large stake on Liquidity Moudle contract`,
+        description: "Staked event was emitted in Liquidity Module contract with a large amount",
+        alertId: "DYDX-14-1",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          staker: testStaker,
+          spender: testSpender,
+          amount: testAmounts[0].toString()
         },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+      })
+    ]);
+  });
 
-      const findings = await handleTransaction(mockTxEvent);
+  it("should detect a large withdrew stake event", async () => {
+    const testRecipient: string = createAddress("0x2");
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
+    const testTopics = encodeParameter("address", testStaker);
+    const testData = encodeParameters(["address", "uint256"], [testRecipient, testAmounts[1]]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testData, testTopics);
+
+      const findings = await handleTransaction(txEvent);
+
       expect(findings).toStrictEqual([
         Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
+          name: "Large stake withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS STAKE WITHDRAWAL
+          description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-2",
+          severity: FindingSeverity.Info,
           type: FindingType.Info,
+          protocol: "dYdX",
           metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
+              staker: testStaker.toLowerCase(),
+              recipient: testRecipient.toLowerCase(),
+              amount: testAmounts[1].toString()
           },
-        }),
+        })
       ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  });
+
+  it("should detect a large withdrew debt event", async () => {
+    const testRecipient: string = createAddress("0x3");
+    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000");
+
+    const testTopics = encodeParameter("address", testStaker);
+    const testData = encodeParameters(["address", "uint256", "uint256"], [testRecipient, testAmounts[2], testNewDebtBal]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testData, testTopics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large debt withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS DEBT WITHDRAWAL
+          description: "WithdrewDebt event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+              staker: testStaker.toLowerCase(),
+              recipient: testRecipient.toLowerCase(),
+              amount: testAmounts[2].toString(),
+              newDebtBalance: testNewDebtBal.toString()
+          },
+        })
+      ]);
   });
 });
