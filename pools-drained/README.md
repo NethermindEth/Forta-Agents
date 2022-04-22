@@ -1,23 +1,21 @@
-# Large Tether Transfer Agent
+# Pools Drained
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot try to detects Uniswap pools being drained.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- NETHFORTA-UNI
+  - Fired when a transaction contains a Uniswap pool with an amount of token transfers over the expected amount given the pool interactions executed in it.
+  - Severity is always set to "Critical"
+  - Type is always set to "Suspicious"
+  - Metadata contains
+    - `pairs`: The list of pools that migh have been drained in the transaction.
 
 ## Test Data
 
