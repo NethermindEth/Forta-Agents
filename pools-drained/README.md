@@ -23,4 +23,4 @@ Describe each of the type of alerts fired by this agent
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- 0x81e9918e248d14d78ff7b697355fd9f456c6d7881486ed14fdfb69db16631154 (USDT-TCR drained)

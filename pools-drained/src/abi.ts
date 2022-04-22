@@ -59,12 +59,16 @@ const TRANSFER: string[] = [
 
 const V2_IFACE: Interface = new Interface(V2_PAIR);
 const V3_IFACE: Interface = new Interface(V3_PAIR);
+const COMMON_IFACE: Interface = new Interface(COMMON);
+const TRANSFER_IFACE: Interface = new Interface(TRANSFER);
 
 export default {
   V2_PAIR,
   V3_PAIR,
   COMMON,
+  TRANSFER,
   V2_IFACE,
   V3_IFACE,
-  TRANSFER,
+  COMMON_IFACE,
+  TRANSFER_IFACE,
 };
