@@ -18,12 +18,7 @@ const v2Create2 = (token0: string, token1: string) => {
 };
 
 const v3Create2 = (token0: string, token1: string, fee: BigNumberish) => {
-  const salt: string = keccak256(
-    defaultAbiCoder.encode(
-      ["address", "address", "uint24"],
-      [token0, token1, fee],
-    )
-  );
+  const salt: string = keccak256(defaultAbiCoder.encode(["address", "address", "uint24"], [token0, token1, fee]));
   return create2(V3_FACTORY, salt, V3_PAIR_INIT_CODE).toLowerCase();
 };
 
@@ -32,12 +27,11 @@ type Evaluator = (_: any) => number;
 const fixedValue = (value: number) => (_: Desc) => value;
 
 const V2_MAP: Record<string, Evaluator> = {
-  "mint": fixedValue(1),
-  "burn": fixedValue(1),
-  "skim": fixedValue(1),
-  "swap": (desc: Desc) => {
-    if((desc.args.data === "0x") || BigNumber.from(desc.args.data).eq(0))
-      return 1;
+  mint: fixedValue(1),
+  burn: fixedValue(1),
+  skim: fixedValue(1),
+  swap: (desc: Desc) => {
+    if (desc.args.data === "0x" || BigNumber.from(desc.args.data).eq(0)) return 1;
     return 2;
   },
 };
@@ -45,12 +39,12 @@ const V2_MAP: Record<string, Evaluator> = {
 const v2Transfers = (desc: Desc) => V2_MAP[desc.name](desc);
 
 const V3_MAP: Record<string, Evaluator> = {
-  "mint": fixedValue(1),
-  "burn": fixedValue(1),
-  "collect": fixedValue(1),
-  "collectProtocol": fixedValue(1),
-  "swap": fixedValue(1),
-  "flash": fixedValue(2),
+  mint: fixedValue(1),
+  burn: fixedValue(1),
+  collect: fixedValue(1),
+  collectProtocol: fixedValue(1),
+  swap: fixedValue(1),
+  flash: fixedValue(2),
 };
 
 const v3Transfers = (desc: Desc) => V3_MAP[desc.name](desc);

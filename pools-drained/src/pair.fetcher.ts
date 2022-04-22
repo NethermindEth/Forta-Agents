@@ -11,13 +11,12 @@ export default class PairFetcher {
 
   constructor(provider: providers.JsonRpcProvider) {
     this.provider = provider;
-    this.cache = new LRU<string, any[]>({max: 10000});
-  };
+    this.cache = new LRU<string, any[]>({ max: 10000 });
+  }
 
   public async getV2Data(pair: string, block: number): Promise<V2_DATA> {
     const key: string = `V2-${pair}-${block}`;
-    if(this.cache.has(key))
-      return this.cache.get(key) as V2_DATA;
+    if (this.cache.has(key)) return this.cache.get(key) as V2_DATA;
 
     const contract: Contract = new Contract(pair, abi.COMMON, this.provider);
     let output: V2_DATA;
@@ -32,12 +31,11 @@ export default class PairFetcher {
     }
     this.cache.set(key, output);
     return output;
-  };
+  }
 
   public async getV3Data(pair: string, block: number): Promise<V3_DATA> {
     const key: string = `V3-${pair}-${block}`;
-    if(this.cache.has(key))
-      return this.cache.get(key) as V3_DATA;
+    if (this.cache.has(key)) return this.cache.get(key) as V3_DATA;
 
     const contract: Contract = new Contract(pair, abi.COMMON, this.provider);
     let output: V3_DATA;
@@ -53,5 +51,5 @@ export default class PairFetcher {
     }
     this.cache.set(key, output);
     return output;
-  };
-};
+  }
+}
