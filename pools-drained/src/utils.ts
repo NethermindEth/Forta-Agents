@@ -14,7 +14,7 @@ const V3_PAIR_INIT_CODE: string = "0xe34f199b19b2b4f47f68442619d555527d244f78a32
 
 const v2Create2 = (token0: string, token1: string) => {
   const salt: string = keccak256(token0.concat(token1.slice(2)));
-  return create2(V2_FACTORY, salt, V2_PAIR_INIT_CODE);
+  return create2(V2_FACTORY, salt, V2_PAIR_INIT_CODE).toLowerCase();
 };
 
 const v3Create2 = (token0: string, token1: string, fee: BigNumberish) => {
@@ -24,7 +24,7 @@ const v3Create2 = (token0: string, token1: string, fee: BigNumberish) => {
       [token0, token1, fee],
     )
   );
-  return create2(V3_FACTORY, salt, V3_PAIR_INIT_CODE);
+  return create2(V3_FACTORY, salt, V3_PAIR_INIT_CODE).toLowerCase();
 };
 
 type Evaluator = (_: any) => number;

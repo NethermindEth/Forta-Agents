@@ -14,7 +14,7 @@ import PairFetcher from "./pair.fetcher";
 
 type Desc = ethers.TransactionDescription;
 
-const provideHandleTransaction = (fetcher: PairFetcher) => 
+export const provideHandleTransaction = (fetcher: PairFetcher) => 
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
@@ -31,7 +31,7 @@ const provideHandleTransaction = (fetcher: PairFetcher) =>
         try { // is pair V2
           const desc: Desc = abi.V2_IFACE.parseTransaction(txn);
           const [valid, token0, token1] = await fetcher.getV2Data(txn.to, txEvent.blockNumber);
-          if(valid && (utils.v2Create2(token0, token1).toLowerCase() === txn.to)){
+          if(valid && (utils.v2Create2(token0, token1) === txn.to)){
             if(!pairs.has(txn.to)){
               pairs.add(txn.to);
               details[txn.to] = {
@@ -47,7 +47,7 @@ const provideHandleTransaction = (fetcher: PairFetcher) =>
         try { // is pair V3
           const desc: Desc = abi.V3_IFACE.parseTransaction(txn);
           const [valid, token0, token1, fee] = await fetcher.getV3Data(txn.to, txEvent.blockNumber);
-          if(valid && (utils.v3Create2(token0, token1, fee).toLowerCase() === txn.to)){
+          if(valid && (utils.v3Create2(token0, token1, fee) === txn.to)){
             if(!pairs.has(txn.to)){
               pairs.add(txn.to);
               details[txn.to] = {
