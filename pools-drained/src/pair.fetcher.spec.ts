@@ -61,7 +61,7 @@ describe("PairFetcher test suite", () => {
     }
   });
 
-  it("should return false for non pairs", async () => {
+  it("should return the correct values of valid pairs", async () => {
     const blocks: number[] = [13, 21412, 12, 2, 456];
 
     for (let block of blocks) {

@@ -68,7 +68,7 @@ export const provideHandleTransaction = (fetcher: PairFetcher) => async (txEvent
   const transfers: LogDescription[] = txEvent.filterLog(abi.TRANSFER);
 
   transfers.forEach((transfer: LogDescription) => {
-    const token: string = transfer.address.toLowerCase();
+    const token: string = transfer.address;
     const to: string = transfer.args.to.toLowerCase();
     const from: string = transfer.args.from.toLowerCase();
     if (pairs.has(to) && Object.keys(details[to]).includes(token)) {

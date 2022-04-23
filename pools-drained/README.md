@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot try to detects Uniswap V2/V3 pools being drained.
+This bot tries to detect Uniswap V2/V3 pools being drained.
 
 ## Supported Chains
 
