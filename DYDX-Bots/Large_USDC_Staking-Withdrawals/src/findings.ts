@@ -4,7 +4,7 @@ export const createFinding = (name: string, args: any) => {
   switch (name) {
     case "Staked":
       return Finding.fromObject({
-        name: `Large stake on Liquidity Moudle contract`,
+        name: "Large stake on Liquidity Moudle contract",
         description: `${name} event was emitted in Liquidity Module contract with a large amount`,
         alertId: "DYDX-14-1",
         severity: FindingSeverity.Info,
@@ -13,12 +13,12 @@ export const createFinding = (name: string, args: any) => {
         metadata: {
           staker: args.staker.toLowerCase(),
           spender: args.spender.toLowerCase(),
-          amount: args.amount.toString()
+          amount: args.amount.toString(),
         },
       });
 
     case "WithdrewStake":
-    return Finding.fromObject({
+      return Finding.fromObject({
         name: "Large stake withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS STAKE WITHDRAWAL
         description: `${name} event was emitted in Liquidity Module contract with a large amount`,
         alertId: "DYDX-14-2",
@@ -26,11 +26,11 @@ export const createFinding = (name: string, args: any) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-            staker: args.staker.toLowerCase(),
-            recipient: args.recipient.toLowerCase(),
-            amount: args.amount.toString()
+          staker: args.staker.toLowerCase(),
+          recipient: args.recipient.toLowerCase(),
+          amount: args.amount.toString(),
         },
-    });
+      });
 
     default: // NOTE: CONFIRM IT IS NEEDED TO HAVE 'default'
     case "WithdrewDebt":
@@ -42,10 +42,10 @@ export const createFinding = (name: string, args: any) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-            staker: args.staker.toLowerCase(),
-            recipient: args.recipient.toLowerCase(),
-            amount: args.amount.toString(),
-            newDebtBalance: args.newDebtBalance.toString()
+          staker: args.staker.toLowerCase(),
+          recipient: args.recipient.toLowerCase(),
+          amount: args.amount.toString(),
+          newDebtBalance: args.newDebtBalance.toString(),
         },
       });
   }
