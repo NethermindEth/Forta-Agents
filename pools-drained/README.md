@@ -7,6 +7,15 @@ This bot tries to detect Uniswap V2/V3 pools being drained.
 ## Supported Chains
 
 - Ethereum
+- Optimism
+- Arbitrum
+- Polygon
+- All testnets related to above chains
+  
+> Note that Unisawp V2 is only deployed on Ethereum mainnet/testnets. The bot will work on
+> other networks but will never return a finding because of the factories used
+> V2 Factory: 0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f
+> V3 Factory: 0x1f98431c8ad98523631ae4a59f267346ea31f984
 
 ## Alerts
 
