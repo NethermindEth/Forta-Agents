@@ -1,26 +1,41 @@
-# Large Tether Transfer Agent
+# Large Staking Deposit/Withdrawal Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects deposits and withdrawals in the Liquidity Moudle contract when the `amount` is high.
+> High is set as a percentage of the total USDC staked.
+> You can adjust the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**. 
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
-
-## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- DYDX-14-1
+  - Fired when `Staked` event is emitted with an `amount` that exceeds the threshold.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `staker`: The address who will receive the stake.
+    - `spender`: The address who can spend the stake.
+    - `amount`: The amount to stake.
+- DYDX-14-2
+  - Fired when `WithdrewStake` event is emitted with an `amount` that exceeds the threshold.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `staker`: The `msg.sender ` that initiated the `withdrawStake` call.
+    - `recipient`: The address that should receive the funds.
+    - `amount`: The amount withdrawn from the sender's inactive balance.
+- DYDX-14-3
+  - Fired when `WithdrewDebt` event is emitted with an `amount` that exceeds the threshold.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `staker`: The `msg.sender` that initiated the `withdrawDebt` call.
+    - `recipient`: The address that should receive the funds.
+    - `amount`: The token amount withdrawn from the sender's debt balance.
+    - `newDebtBalance`: The balance after `amount` has been withdrawn.
