@@ -16,3 +16,5 @@ export const WITHDREW_DEBT_SIG: string = "WithdrewDebt(address,address,uint256,u
 export const USDC_ADDRESS: string = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 const USDC_ABI: string = "function balanceOf(address account) external view returns (uint256)";
 export const USDC_IFACE: utils.Interface = new utils.Interface([USDC_ABI]);
+
+export const THRESHOLD_PERCENTAGE: number = 20;
