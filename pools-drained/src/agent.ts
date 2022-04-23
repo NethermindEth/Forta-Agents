@@ -64,7 +64,7 @@ export const provideHandleTransaction = (fetcher: PairFetcher) => async (txEvent
     })
   );
 
-  const drained: Record<string, boolean> = {};
+  const drained: Set<string> = new Set<string>();
   const transfers: LogDescription[] = txEvent.filterLog(abi.TRANSFER);
 
   transfers.forEach((transfer: LogDescription) => {
@@ -73,16 +73,15 @@ export const provideHandleTransaction = (fetcher: PairFetcher) => async (txEvent
     const from: string = transfer.args.from.toLowerCase();
     if (pairs.has(to) && Object.keys(details[to]).includes(token)) {
       details[to][token] -= 1;
-      if (details[to][token] < 0) drained[to] = true;
+      if (details[to][token] < 0) drained.add(to);
     }
     if (pairs.has(from) && Object.keys(details[from]).includes(token)) {
       details[from][token] -= 1;
-      if (details[from][token] < 0) drained[from] = true;
+      if (details[from][token] < 0) drained.add(from);
     }
   });
 
-  const pairsInDanger: string[] = Object.keys(drained);
-  if (pairsInDanger.length > 0) {
+  if (drained.size > 0) {
     findings.push(
       Finding.fromObject({
         name: "Uniswap pools suspicious activities",
@@ -92,7 +91,7 @@ export const provideHandleTransaction = (fetcher: PairFetcher) => async (txEvent
         severity: FindingSeverity.Critical,
         protocol: "Uniswap",
         metadata: {
-          pairs: pairsInDanger.toString(),
+          pairs: Array.from(drained).toString(),
         },
       })
     );
