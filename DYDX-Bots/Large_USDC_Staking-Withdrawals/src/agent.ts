@@ -1,5 +1,5 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import {
   PROXY_ADDRESS,
@@ -26,9 +26,9 @@ export function provideHandleTransaction(
       // NOTE: ^ CALLING getBalanceOf WITH THE "latest" BLOCK WILL GET YOU THE BALANCE AFTER
       // THE TRANSACTION HAS TAKEN PLACE. CALL IT WITH blocNumber -1?
 
-      // If amount is greater than or equal to half of
-      // the token balance of the proxy contract.
-      if (log.args.amount.gte(proxyBalance.mul(thresholdPercentage / 100))) {
+      const thresholdAmount: BigNumber = proxyBalance.mul(thresholdPercentage);
+
+      if (thresholdAmount.lte(log.args.amount.mul(100))) {
         findings.push(createFinding(log.name, log.args));
       }
     });
