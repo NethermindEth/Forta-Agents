@@ -247,4 +247,37 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
       })
     ]);
   });
+
+  it("should not detect an incorrect event", async () => {
+    const testSpender: string = createAddress("0x9");
+
+    const testTopics = encodeParameter("address", testStaker);
+    const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog("wrongSig", testProxyAddr, testData, testTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect an event emission from the wrong contract", async () => {
+    const wrongProxyAddress: string = createAddress("0xd34d");
+    const testSpender: string = createAddress("0x11");
+
+    const testTopics = encodeParameter("address", testStaker);
+    const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog(STAKED_SIG, wrongProxyAddress, testData, testTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
 });
