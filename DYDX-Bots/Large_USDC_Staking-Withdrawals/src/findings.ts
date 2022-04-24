@@ -19,7 +19,7 @@ export const createFinding = (name: string, args: any) => {
 
     case "WithdrewStake":
       return Finding.fromObject({
-        name: "Large stake withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS STAKE WITHDRAWAL
+        name: "Large stake withdrawal on Liquidity Module contract",
         description: `${name} event was emitted in Liquidity Module contract with a large amount`,
         alertId: "DYDX-14-2",
         severity: FindingSeverity.Info,
@@ -32,10 +32,9 @@ export const createFinding = (name: string, args: any) => {
         },
       });
 
-    default: // NOTE: CONFIRM IT IS NEEDED TO HAVE 'default'
-    case "WithdrewDebt":
+    default:
       return Finding.fromObject({
-        name: "Large debt withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS DEBT WITHDRAWAL
+        name: "Large debt withdrawal on Liquidity Module contract",
         description: `${name} event was emitted in Liquidity Module contract with a large amount`,
         alertId: "DYDX-14-3",
         severity: FindingSeverity.Info,
