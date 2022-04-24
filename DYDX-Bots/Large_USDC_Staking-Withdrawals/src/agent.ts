@@ -1,5 +1,5 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import {
   PROXY_ADDRESS,
@@ -22,12 +22,15 @@ export function provideHandleTransaction(
     const findings: Finding[] = [];
 
     txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], proxyAddress).forEach(async (log) => {
-      const proxyBalance: BigNumber = BigNumber.from(await fetcher.getBalanceOf(proxyAddress, "latest"));
-      // NOTE: ^ CALLING getBalanceOf WITH THE "latest" BLOCK WILL GET YOU THE BALANCE AFTER
-      // THE TRANSACTION HAS TAKEN PLACE. CALL IT WITH blocNumber -1?
+      // Get the stake token balance of the proxy contract at the previous block
+      // (before the transaction, and subsequent event emission ocurred)
+      const proxyBalance: BigNumber = BigNumber.from(await fetcher.getBalanceOf(proxyAddress, txEvent.blockNumber - 1));
 
+      // Find the threshold amount from the percentage
       const thresholdAmount: BigNumber = proxyBalance.mul(thresholdPercentage);
 
+      // If `amount` is greater than the threshold,
+      // create a Finding
       if (thresholdAmount.lte(log.args.amount.mul(100))) {
         findings.push(createFinding(log.name, log.args));
       }
