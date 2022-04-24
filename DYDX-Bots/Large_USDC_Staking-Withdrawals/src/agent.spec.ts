@@ -7,18 +7,21 @@ import { STAKED_SIG, WITHDREW_STAKE_SIG, WITHDREW_DEBT_SIG } from "./utils";
 import { when } from "jest-when";
 
 const testProxyAddr: string = createAddress("0xab");
-const testProxyStakeTokenBalance: BigNumber = BigNumber.from("9000000000000000000"); // 9
+const testProxyStakeTokenBalance: BigNumber = BigNumber.from("15000000000000000000"); // 15
 const testThresholdPercentage: number = 20;
 const testStaker: string = createAddress("0xac");
 const testAmounts: BigNumber[] = [
   BigNumber.from("5000000000000000000"), // 5
   BigNumber.from("6000000000000000000"), // 6
   BigNumber.from("7000000000000000000"), // 7
+  BigNumber.from("8000000000000000000"), // 8
+  BigNumber.from("9000000000000000000"), // 9
 ];
 const testLowAmounts: BigNumber[] = [
   BigNumber.from("1000000000000000"), // .001
   BigNumber.from("2000000000000000"), // .002
   BigNumber.from("3000000000000000"), // .003
+  BigNumber.from("4000000000000000"), // .004
 ];
 
 describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
@@ -57,7 +60,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: `Large stake on Liquidity Moudle contract`,
+        name: "Large stake on Liquidity Moudle contract",
         description: "Staked event was emitted in Liquidity Module contract with a large amount",
         alertId: "DYDX-14-1",
         severity: FindingSeverity.Info,
@@ -73,7 +76,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large Staked event", async () => {
-    const testSpender: string = createAddress("0x1");
+    const testSpender: string = createAddress("0x2");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testSpender, testLowAmounts[0]]);
@@ -89,7 +92,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect a large WithdrewStake event", async () => {
-    const testRecipient: string = createAddress("0x2");
+    const testRecipient: string = createAddress("0x3");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testRecipient, testAmounts[1]]);
@@ -103,7 +106,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Large stake withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS STAKE WITHDRAWAL
+        name: "Large stake withdrawal on Liquidity Module contract",
         description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
         alertId: "DYDX-14-2",
         severity: FindingSeverity.Info,
@@ -119,7 +122,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large WithdrewStake event", async () => {
-    const testRecipient: string = createAddress("0x2");
+    const testRecipient: string = createAddress("0x4");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testRecipient, testLowAmounts[1]]);
@@ -135,8 +138,8 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect a large withdrew debt event", async () => {
-    const testRecipient: string = createAddress("0x3");
-    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000");
+    const testRecipient: string = createAddress("0x5");
+    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(
@@ -153,7 +156,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Large debt withdrawal on Liquidity Module contract", // NOTE: CONFIRM IT IS DEBT WITHDRAWAL
+        name: "Large debt withdrawal on Liquidity Module contract",
         description: "WithdrewDebt event was emitted in Liquidity Module contract with a large amount",
         alertId: "DYDX-14-3",
         severity: FindingSeverity.Info,
@@ -170,8 +173,8 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large WithdrewDebt event", async () => {
-    const testRecipient: string = createAddress("0x3");
-    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000");
+    const testRecipient: string = createAddress("0x6");
+    const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(
@@ -187,5 +190,61 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect both a large Staked event and large WithdrewStake event", async () => {
+    const testSpender: string = createAddress("0x7");
+    const testRecipient: string = createAddress("0x8");
+    const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5
+
+    const testStakedTopics = encodeParameter("address", testStaker);
+    const testStakedData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[3]]);
+
+    const testWithdrewDebtTopics = encodeParameter("address", testStaker);
+    const testWithdrewDebtData = encodeParameters(
+      ["address", "uint256", "uint256"],
+      [testRecipient, testLowAmounts[3], testNewDebtBal]
+    );
+
+    const testWithdrewStakeTopics = encodeParameter("address", testStaker);
+    const testWithdrewStakeData = encodeParameters(["address", "uint256"], [testRecipient, testAmounts[4]]);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testProxyAddr)
+      .setFrom(testStaker)
+      .addEventLog(STAKED_SIG, testProxyAddr, testStakedData, testStakedTopics)
+      .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testWithdrewDebtData, testWithdrewDebtTopics)
+      .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testWithdrewStakeData, testWithdrewStakeTopics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: `Large stake on Liquidity Moudle contract`,
+        description: "Staked event was emitted in Liquidity Module contract with a large amount",
+        alertId: "DYDX-14-1",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          staker: testStaker,
+          spender: testSpender,
+          amount: testAmounts[3].toString(),
+        },
+      }),
+      Finding.fromObject({
+        name: "Large stake withdrawal on Liquidity Module contract",
+        description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+        alertId: "DYDX-14-2",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          staker: testStaker.toLowerCase(),
+          recipient: testRecipient.toLowerCase(),
+          amount: testAmounts[4].toString(),
+        },
+      })
+    ]);
   });
 });
