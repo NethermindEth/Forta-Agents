@@ -6,6 +6,7 @@ import { provideHandleTransaction } from "./agent";
 import { STAKED_SIG, WITHDREW_STAKE_SIG, WITHDREW_DEBT_SIG } from "./utils";
 import { when } from "jest-when";
 
+const testBlockNumber: number = 2;
 const testProxyAddr: string = createAddress("0xab");
 const testProxyStakeTokenBalance: BigNumber = BigNumber.from("15000000000000000000"); // 15
 const testThresholdPercentage: number = 20;
@@ -34,7 +35,9 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     mockFetcher = {
       getBalanceOf: jest.fn(),
     };
-    when(mockFetcher.getBalanceOf).calledWith(testProxyAddr, "latest").mockReturnValue(testProxyStakeTokenBalance);
+    when(mockFetcher.getBalanceOf)
+      .calledWith(testProxyAddr, testBlockNumber - 1)
+      .mockReturnValue(testProxyStakeTokenBalance);
     handleTransaction = provideHandleTransaction(testProxyAddr, mockFetcher, testThresholdPercentage);
   });
 
@@ -54,6 +57,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(STAKED_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -84,6 +88,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(STAKED_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -100,6 +105,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -130,6 +136,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -150,6 +157,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -185,6 +193,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -212,6 +221,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(STAKED_SIG, testProxyAddr, testStakedData, testStakedTopics)
       .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testWithdrewDebtData, testWithdrewDebtTopics)
       .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testWithdrewStakeData, testWithdrewStakeTopics);
@@ -244,7 +254,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
           recipient: testRecipient.toLowerCase(),
           amount: testAmounts[4].toString(),
         },
-      })
+      }),
     ]);
   });
 
@@ -257,6 +267,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog("wrongSig", testProxyAddr, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
@@ -274,6 +285,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(testProxyAddr)
       .setFrom(testStaker)
+      .setBlock(testBlockNumber)
       .addEventLog(STAKED_SIG, wrongProxyAddress, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
