@@ -31,7 +31,7 @@ const callWasSuccessful = (trace: Trace): boolean => {
 
 const decodeNextValue = (trace: Trace): BigNumber => {
   const results = PEEK_ABI.decodeFunctionResult("peek", trace.result.output);
-  return BigNumber.from(parseBytes32String(results[0]));
+  return BigNumber.from(results[0]);
 };
 
 const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
@@ -42,16 +42,12 @@ const getNextValuesForOSM = (contractAddress: string, traces: Trace[]) =>
     .map(decodeNextValue);
 
 const getCurrentValues = (contractAddress: string, txEvent: TransactionEvent) => {
-  return txEvent
-    .filterLog(LOG_VALUE_EVENT_SIGNATURE, contractAddress)
-    .map((log) => BigNumber.from(parseBytes32String(log.args[0])));
+  return txEvent.filterLog(LOG_VALUE_EVENT_SIGNATURE, contractAddress).map((log) => BigNumber.from(log.args[0]));
 };
-
-const abs = (a: BigNumber): BigNumber => (a.lt(0) ? BigNumber.from(-a) : a);
 
 const needToReport = (currentValue: BigNumber, nextValue: BigNumber): boolean => {
   const bigDeviation: BigNumber = BigNumber.from(6).mul(currentValue).div(BigNumber.from(100));
-  return abs(currentValue.sub(nextValue)).gt(bigDeviation);
+  return currentValue.sub(nextValue).abs().gt(bigDeviation);
 };
 
 const checkOSMContract = (contractAddress: string, txEvent: TransactionEvent): Finding | null => {

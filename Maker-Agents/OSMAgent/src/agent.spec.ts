@@ -6,7 +6,7 @@ import { createFinding as priceUpdateFinding } from "./price.update.check";
 import { createFinding as relyFinding } from "./rely.function.spec";
 import { createFinding as denyFinding } from "./deny.function.spec";
 import { utils } from "ethers";
-import { formatBytes32String, Interface } from "ethers/lib/utils";
+import { defaultAbiCoder, formatBytes32String, Interface } from "ethers/lib/utils";
 import {
   RELY_FUNCTION_SIG,
   DENY_FUNCTION_SIG,
@@ -63,7 +63,7 @@ describe("OSM Agent Test Suite", () => {
 
   it("should return findings from multiple handlers", async () => {
     let findings: Finding[] = [];
-    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [defaultAbiCoder.encode(["uint256"], [100])]);
 
     const txEvent1 = new TestTransactionEvent().setTimestamp(previousHourForActivatingAgent);
     const txEvent2 = new TestTransactionEvent().setTimestamp(lessThanTenMinutes);
@@ -72,7 +72,7 @@ describe("OSM Agent Test Suite", () => {
       .addTraces({
         from: CONTRACTS.get("PIP_TWO") as string,
         input: peekFunctionSelector,
-        output: peek_ABI.encodeFunctionResult("peek", [formatBytes32String("107"), true]),
+        output: peek_ABI.encodeFunctionResult("peek", [defaultAbiCoder.encode(["uint256"], [107]), true]),
       })
       .addAnonymousEventLog(CONTRACTS.get("PIP_TWO") as string, log.data, ...log.topics);
 
@@ -140,13 +140,13 @@ describe("OSM Agent Test Suite", () => {
 
   it("should detect big price deviations", async () => {
     let findings: Finding[] = [];
-    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [defaultAbiCoder.encode(["uint256"], [100])]);
 
     const txEvent = new TestTransactionEvent()
       .addTraces({
         from: CONTRACTS.get("PIP_ONE") as string,
         input: peekFunctionSelector,
-        output: peek_ABI.encodeFunctionResult("peek", [formatBytes32String("107"), true]),
+        output: peek_ABI.encodeFunctionResult("peek", [defaultAbiCoder.encode(["uint256"], [107]), true]),
       })
       .addAnonymousEventLog(CONTRACTS.get("PIP_ONE") as string, log.data, ...log.topics)
       .setTimestamp(lessThanTenMinutes);
@@ -158,7 +158,7 @@ describe("OSM Agent Test Suite", () => {
 
   it("should not return MakerDAO-OSM-4 finding if poke was already called in that hour", async () => {
     let findings: Finding[] = [];
-    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [formatBytes32String("100")]);
+    const log = logIface.encodeEventLog(logIface.getEvent("LogValue"), [defaultAbiCoder.encode(["uint256"], [100])]);
 
     const txEvent1 = new TestTransactionEvent()
       .addTraces({ to: megaPokerAddress, input: pokeFunctionSelector })
@@ -167,7 +167,7 @@ describe("OSM Agent Test Suite", () => {
       .addTraces({
         from: CONTRACTS.get("PIP_ONE"),
         input: PEEK_FUNCTION_SELECTOR,
-        output: PEEK_ABI.encodeFunctionResult("peek", [formatBytes32String("107"), true]),
+        output: PEEK_ABI.encodeFunctionResult("peek", [defaultAbiCoder.encode(["uint256"], [107]), true]),
       })
       .addAnonymousEventLog(CONTRACTS.get("PIP_ONE"), log.data, ...log.topics)
       .setTimestamp(greaterThanTenMinutes);
