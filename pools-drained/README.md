@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot tries to detect Uniswap V2/V3 pools being drained.
+This bot tries to detect Uniswap V2/V3 pools being drained. It accomplishes this by detecting when a Uniswap pool transaction contains an amount of token transfers greater than the expected amount of transfers. The expected amount is derived from the interactions executed within the pool.
 
 ## Supported Chains
 
@@ -10,17 +10,18 @@ This bot tries to detect Uniswap V2/V3 pools being drained.
 - Optimism
 - Arbitrum
 - Polygon
-- All testnets related to above chains
+- All testnets related to the above chains
   
-> Note that Unisawp V2 is only deployed on Ethereum mainnet/testnets. The bot will work on
-> other networks but will never return a finding because of the factories used
+> Note that Uniswap V2 is only deployed on Ethereum mainnet/testnets. The bot will work 
+> on other networks but will never return a finding if the Uniswap factories on that 
+> network doesn't correspond to the ones used in the bot.
 > V2 Factory: 0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f
 > V3 Factory: 0x1f98431c8ad98523631ae4a59f267346ea31f984
 
 ## Alerts
 
 - NETHFORTA-UNI
-  - Fired when a transaction contains a Uniswap pool with an amount of token transfers over the expected amount given the pool interactions executed in it.
+  - Fired when a transaction contains an amount of token transfers that are greater than expected. (See "Description" for more info)
   - Severity is always set to "Critical"
   - Type is always set to "Suspicious"
   - Metadata contains
