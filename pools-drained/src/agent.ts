@@ -75,7 +75,7 @@ export const provideHandleTransaction = (fetcher: PairFetcher) => async (txEvent
       details[to][token] -= 1;
       if (details[to][token] < 0) drained.add(to);
     }
-    if (pairs.has(from) && Object.keys(details[from]).includes(token)) {
+    if (pairs.has(from) && Object.keys(details[from]).includes(token) && token !== to) {
       details[from][token] -= 1;
       if (details[from][token] < 0) drained.add(from);
     }
