@@ -9,7 +9,7 @@ const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 const APESWAP_FACTORY: string = "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6";
 const INIT_CODE: string = "0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b";
 
-const apePaircreate2 = (token0: string, token1: string) => {
+const apePairCreate2 = (token0: string, token1: string) => {
   let salt: string = utils.solidityKeccak256(["address", "address"], [token0, token1]);
   return getCreate2Address(APESWAP_FACTORY, salt, INIT_CODE).toLowerCase();
 };
@@ -63,7 +63,7 @@ const createFinding = (log: LogDescription, token0: string, token1: string): Fin
 export default {
   POOL_SUPPLY_THRESHOLD,
   AMOUNT_THRESHOLD_PERCENTAGE,
-  apePaircreate2,
+  apePairCreate2,
   FUNCTIONS_ABI,
   FUNCTIONS_IFACE,
   EVENTS_ABI,

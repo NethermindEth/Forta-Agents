@@ -14,7 +14,7 @@ export const provideHandleTransaction =
       logs.map(async (log) => {
         try {
           const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
-          if (valid && log.address === utils.apePaircreate2(token0, token1)) {
+          if (valid && log.address === utils.apePairCreate2(token0, token1)) {
             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
             if (
               totalSupply.gt(poolSupplyThreshold) &&
