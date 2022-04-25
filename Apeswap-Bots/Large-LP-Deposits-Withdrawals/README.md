@@ -12,7 +12,7 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
 ## Alerts
 
 - APESWAP-9-1
-  - Fired when `Mint` event is emitted with `amount0`/`amount1` that exceed the threshold from a pool with a large `totalSupply`. 
+  - Fired when a `Mint` event is emitted with `amount0`/`amount1` that exceed the threshold from a pool with a large `totalSupply`. 
   - Severity is always set to "Info". 
   - Type is always set to "Info".
   - Metadata contains:
@@ -23,7 +23,7 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
     - `amount1`: The amount of token1 deposited.
   
 - APESWAP-9-2
-  - Fired when `Burn` event is emitted with `amount0`/`amount1` that exceed the threshold from a pool with a large `totalSupply`. 
+  - Fired when a `Burn` event is emitted with `amount0`/`amount1` that exceed the threshold from a pool with a large `totalSupply`. 
   - Severity is always set to "Info". 
   - Type is always set to "Info".
   - Metadata contains:
