@@ -47,6 +47,7 @@ describe("PairFetcher test suite", () => {
 
   it("should return false for non pairs", async () => {
     const nonPairs: [string, number][] = [
+      // addr, blockNumber
       [createAddress("0xdead"), 23],
       [createAddress("0xf00"), 91289],
       [createAddress("0xe0a"), 12],

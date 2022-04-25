@@ -27,10 +27,10 @@ type Evaluator = (_: any) => number;
 const fixedValue = (value: number) => (_: Desc) => value;
 
 const V2_MAP: Record<string, Evaluator> = {
-  mint: fixedValue(1),
-  burn: fixedValue(1),
-  skim: fixedValue(1),
-  swap: (desc: Desc) => {
+  mint: fixedValue(1),    // One txn per token despositing funds
+  burn: fixedValue(1),    // One txn per token sending funds to the burner
+  skim: fixedValue(1),    // One txn per token forcing balances to match reserves
+  swap: (desc: Desc) => { // One txn per token if it is a regular swap, two txns if it is a flash loan
     if (desc.args.data === "0x" || BigNumber.from(desc.args.data).eq(0)) return 1;
     return 2;
   },
@@ -39,12 +39,12 @@ const V2_MAP: Record<string, Evaluator> = {
 const v2Transfers = (desc: Desc) => V2_MAP[desc.name](desc);
 
 const V3_MAP: Record<string, Evaluator> = {
-  mint: fixedValue(1),
-  burn: fixedValue(1),
-  collect: fixedValue(1),
-  collectProtocol: fixedValue(1),
-  swap: fixedValue(1),
-  flash: fixedValue(2),
+  mint: fixedValue(1),             // One txn per token despositing funds
+  burn: fixedValue(1),             // One txn per token sending funds to the burner
+  collect: fixedValue(1),          // One txn per token sending collected funds
+  collectProtocol: fixedValue(1),  // One txn per token sending collected funds
+  swap: fixedValue(1),             // One txn per token executing the swap
+  flash: fixedValue(2),            // Two txn per token executing the flashloan
 };
 
 const v3Transfers = (desc: Desc) => V3_MAP[desc.name](desc);
