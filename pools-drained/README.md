@@ -1,4 +1,4 @@
-# Pools Drained
+# Pools Drained Bot
 
 ## Description
 
