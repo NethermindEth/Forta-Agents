@@ -352,4 +352,33 @@ describe("Pool drained test suite", () => {
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([createFinding(v3.pair, v2.pair)]);
   });
+
+  it("should handle correctly tokens with fee on transfers", async () => {
+    const t0: string = createAddress("0x70");
+    const t1: string = createAddress("0x71");
+    const pair: string = utils.v2Create2(t0, t1);
+    const block: number = 15;
+
+    addV2Pair(pair, t0, t1, block);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setBlock(block)
+      .addInterfaceEventLog(abi.TRANSFER_IFACE.getEvent("Transfer"), t0, [pair, createAddress("0xf"), 17])
+      // t0 fee payment
+      .addInterfaceEventLog(abi.TRANSFER_IFACE.getEvent("Transfer"), t0, [pair, t0, 2])
+      .addInterfaceEventLog(abi.TRANSFER_IFACE.getEvent("Transfer"), t1, [pair, createAddress("0xff"), 170])
+      // t1 fee payment
+      .addInterfaceEventLog(abi.TRANSFER_IFACE.getEvent("Transfer"), t1, [pair, t1, 20])
+      .addTraces({
+        to: pair,
+        input: abi.V3_IFACE.encodeFunctionData(abi.V3_IFACE.getFunction("collectProtocol"), [
+          createAddress("0xf"),
+          15,
+          14,
+        ]),
+      });
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 });
