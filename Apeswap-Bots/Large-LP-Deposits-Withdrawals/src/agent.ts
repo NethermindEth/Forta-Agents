@@ -18,8 +18,8 @@ export const provideHandleTransaction =
             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
             if (
               totalSupply.gt(poolSupplyThreshold) &&
-              log.args.amount0.mul(100).gt(balance0.mul(amountThresholdPercentage)) |
-                log.args.amount1.mul(100).gt(balance1.mul(amountThresholdPercentage))
+              (log.args.amount0.mul(100).gt(balance0.mul(amountThresholdPercentage)) ||
+                log.args.amount1.mul(100).gt(balance1.mul(amountThresholdPercentage)))
             ) {
               findings.push(utils.createFinding(log, token0, token1));
             }
