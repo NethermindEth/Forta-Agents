@@ -19,8 +19,8 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
     - `pool`: The address of the pool.
     - `token0`: The address of token0.
     - `amount0`: The amount of token0 deposited.
-    - `token`: The address of token1.
-    - `amount`: The amount of token1 deposited.
+    - `token1`: The address of token1.
+    - `amount1`: The amount of token1 deposited.
   
 - APESWAP-9-2
   - Fired when `Burn` event is emitted with `amount0`/`amount1` that exceed the threshold from a pool with a large `totalSupply`. 
@@ -30,5 +30,5 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
     - `pool`: The address of the pool.
     - `token0`: The address of token0.
     - `amount0`: The amount of token0 withdrawn.
-    - `token`: The address of token1.
-    - `amount`: The amount of token1 withdrawn.
+    - `token1`: The address of token1.
+    - `amount1`: The amount of token1 withdrawn.
