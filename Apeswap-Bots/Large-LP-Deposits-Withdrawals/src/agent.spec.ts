@@ -71,14 +71,6 @@ const FAIL_CASES: [string, string, string, string, BigNumber, boolean][] = [
     BigNumber.from(65000), // low totalSupply
     true,
   ],
-  [
-    createAddress("0x4352"),
-    createAddress("0x1212"),
-    "95946954695694595",
-    "94560486540960954",
-    BigNumber.from(352304043034),
-    false, //not a pool
-  ],
 ];
 
 //balance0, balance1
@@ -273,6 +265,36 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
       testCreateFinding("Burn", pool, CASES[0][0], CASES[0][2], CASES[0][1], CASES[0][3]),
       testCreateFinding("Burn", pool, CASES[3][0], CASES[3][2], CASES[3][1], CASES[3][3]),
       testCreateFinding("Mint", pool, CASES[4][0], CASES[4][2], CASES[4][1], CASES[4][3]),
+    ]);
+  });
+
+  it("should return 2 findings when 2 large LP deposits/withdrawals happen in different Apeswap pools", async () => {
+    const pool0: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
+    when(mockGetPoolData).calledWith(77074, pool0).mockReturnValue([true, CASES[0][0], CASES[0][1], CASES[0][4]]);
+    when(mockGetPoolBalance)
+      .calledWith(77074, pool0, CASES[0][0], CASES[0][1])
+      .mockReturnValue([BALANCES[0][0], BALANCES[0][1]]);
+
+    const pool1: string = utils.apePairCreate2(CASES[1][0], CASES[1][1]);
+    when(mockGetPoolData).calledWith(77074, pool1).mockReturnValue([true, CASES[1][0], CASES[1][1], CASES[1][4]]);
+    when(mockGetPoolBalance)
+      .calledWith(77074, pool1, CASES[1][0], CASES[1][1])
+      .mockReturnValue([BALANCES[1][0], BALANCES[1][1]]);
+
+    const event0 = utils.EVENTS_IFACE.getEvent("Burn");
+    const event1 = utils.EVENTS_IFACE.getEvent("Mint");
+    const log0 = utils.EVENTS_IFACE.encodeEventLog(event0, [pool0, CASES[0][2], CASES[0][3], createAddress("0xafbb")]);
+    const log1 = utils.EVENTS_IFACE.encodeEventLog(event1, [pool1, CASES[1][2], CASES[1][3]]);
+
+    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+      .setBlock(77075)
+      .addAnonymousEventLog(pool0, log0.data, ...log0.topics)
+      .addAnonymousEventLog(pool1, log1.data, ...log1.topics);
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      testCreateFinding("Burn", pool0, CASES[0][0], CASES[0][2], CASES[0][1], CASES[0][3]),
+      testCreateFinding("Mint", pool1, CASES[1][0], CASES[1][2], CASES[1][1], CASES[1][3]),
     ]);
   });
 });
