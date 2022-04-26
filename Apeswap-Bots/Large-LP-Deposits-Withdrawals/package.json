@@ -37,5 +37,6 @@
     "prettier": "^2.6.0",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
-  }
+  },
+  "repository": "https://github.com/NethermindEth/Forta-Agents/Apeswap-Bots/Large-LP-Deposits-Withdrawals"
 }
