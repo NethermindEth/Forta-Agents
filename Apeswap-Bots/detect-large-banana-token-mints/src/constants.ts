@@ -1,0 +1,7 @@
+export const GLOBALS = {
+  BANANA_CONTRACT_ADDRESS_BNBCHAIN: "0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95",
+  BANANA_CONTRACT_ADDRESS_POLYGON: "0x5d47bAbA0d66083C52009271faF3F50DCc01023C",
+  BANANA_MINT_FUNCTION: "function mint(uint256 amount)",
+  BANANA_MINT_EVENT: "event Transfer (address from, address to, uint256 value)",
+  BANANA_MINT_AMOUNT: 20,
+};
