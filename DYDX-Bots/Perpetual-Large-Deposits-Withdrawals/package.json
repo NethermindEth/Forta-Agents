@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "dydx-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Bot to detect large deposits and withdrawals on dydx perpetual contract",
   "chainIds": [
     1
   ],
@@ -25,6 +25,7 @@
     "forta-agent": "^0.1.3"
   },
   "devDependencies": {
+    "forta-agent-tools": "^2.0.5",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",

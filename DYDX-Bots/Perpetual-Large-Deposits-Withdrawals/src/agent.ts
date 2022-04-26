@@ -1,68 +1,73 @@
+import { BigNumber } from "ethers";
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
+  getEthersProvider,
   HandleTransaction,
+  LogDescription,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
 } from "forta-agent";
+import BalanceFetcher from "./balance.fetcher";
+import { createFinding } from "./findings";
+import { EVENTS, extractTokenAddress, PERPETUAL_CONTRACT } from "./utils";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const PERCENTAGE: BigNumber = BigNumber.from(10);
+const THRESHOLD: BigNumber = BigNumber.from(1000000).mul(10 ** 6); // 1M tokens threshold
+// Use the threshold below for test transactions
+//const THRESHOLD: BigNumber = BigNumber.from(100000).mul(10 ** 6);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export const provideHandleTransaction =
+  (
+    mode: string,
+    threshold: BigNumber,
+    fetcher: BalanceFetcher
+  ): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const logs: LogDescription[] = txEvent.filterLog(
+      EVENTS,
+      fetcher.perpetualAddress
+    );
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
+    for (let log of logs) {
+      // get the quantizedAmount
+      const quantizedAmount: BigNumber = BigNumber.from(
+        log.args.quantizedAmount
       );
-      findingsCount++;
+      console.log(quantizedAmount.toNumber());
+      // get assetType
+      const assetType = BigNumber.from(log.args.assetType);
+      // extract the token address from asset Type. Can Be ETH too.
+      // TODO: Complete extractTokenAddress function logic.
+      // const token = await extractTokenAddress(assetType, fetcher.provider);
+
+      // set the threshold.
+      let _threshold: BigNumber;
+      if (mode === "STATIC") _threshold = threshold;
+      else {
+        const token = await extractTokenAddress(assetType, fetcher.provider);
+
+        // fetch token balance of the contract and set threshold
+        const totalBalance: BigNumber = await fetcher.getBalance(
+          token,
+          txEvent.blockNumber - 1
+        );
+        _threshold = BigNumber.from(totalBalance).mul(threshold).div(100);
+      }
+
+      if (quantizedAmount.gte(_threshold))
+        findings.push(
+          createFinding(log.name, assetType.toHexString(), log.args)
+        );
     }
-  });
 
-  return findings;
-};
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    return findings;
+  };
 
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(
+    "STATIC",
+    THRESHOLD,
+    new BalanceFetcher(getEthersProvider(), PERPETUAL_CONTRACT)
+  ),
 };
