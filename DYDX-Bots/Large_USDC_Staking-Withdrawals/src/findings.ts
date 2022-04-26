@@ -4,7 +4,7 @@ export const createFinding = (name: string, args: any) => {
   switch (name) {
     case "Staked":
       return Finding.fromObject({
-        name: "Large stake on Liquidity Moudle contract",
+        name: "Large stake on Liquidity Module contract",
         description: `${name} event was emitted in Liquidity Module contract with a large amount`,
         alertId: "DYDX-14-1",
         severity: FindingSeverity.Info,
