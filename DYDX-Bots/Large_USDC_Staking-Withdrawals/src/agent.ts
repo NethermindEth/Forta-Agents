@@ -19,22 +19,26 @@ export function provideHandleTransaction(
   thresholdPercentage: number
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    let findings: Finding[] = [];
 
-    txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], proxyAddress).forEach(async (log) => {
-      // Get the stake token balance of the proxy contract at the previous block
-      // (before the transaction, and subsequent event emission ocurred)
-      const proxyBalance: BigNumber = BigNumber.from(await fetcher.getBalanceOf(proxyAddress, txEvent.blockNumber - 1));
+    await Promise.all(
+      txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], proxyAddress).map(async (log) => {
+        // Get the stake token balance of the proxy contract at the previous block
+        // (before the transaction, and subsequent event emission ocurred)
+        const proxyBalance: BigNumber = BigNumber.from(
+          await fetcher.getBalanceOf(proxyAddress, txEvent.blockNumber - 1)
+        );
 
-      // Find the threshold amount from the percentage
-      const thresholdAmount: BigNumber = proxyBalance.mul(thresholdPercentage);
+        // Find the threshold amount from the percentage
+        const thresholdAmount: BigNumber = proxyBalance.mul(thresholdPercentage);
 
-      // If `amount` is greater than the threshold,
-      // create a Finding
-      if (thresholdAmount.lte(log.args.amount.mul(100))) {
-        findings.push(createFinding(log.name, log.args));
-      }
-    });
+        // If `amount` is greater than the threshold,
+        // create a Finding
+        if (thresholdAmount.lte(log.args.amount.mul(100))) {
+          findings.push(createFinding(log.name, log.args));
+        }
+      })
+    );
 
     return findings;
   };
