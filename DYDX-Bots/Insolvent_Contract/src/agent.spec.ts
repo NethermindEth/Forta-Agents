@@ -8,14 +8,14 @@ import { IMPLEMENTATION_IFACE } from "./utils";
 const testProxyAddr: string = createAddress("0xab");
 const testBlockNumbers: number[] = [2, 42, 92];
 const testBorrowerDebtBalance: BigNumber[] = [
-  BigNumber.from("5000000000000000000"),  // 5
+  BigNumber.from("5000000000000000000"), // 5
   BigNumber.from("10000000000000000000"), // 10
-  BigNumber.from("15000000000000000000")  // 15
+  BigNumber.from("15000000000000000000"), // 15
 ];
 const testActiveBalanceCurrentEpoch: BigNumber[] = [
-  BigNumber.from("2000000000000000000"),  // 2
+  BigNumber.from("2000000000000000000"), // 2
   BigNumber.from("12000000000000000000"), // 12
-  BigNumber.from("15000000000000000000")  // 15
+  BigNumber.from("15000000000000000000"), // 15
 ];
 
 describe("high tether transfer agent", () => {
