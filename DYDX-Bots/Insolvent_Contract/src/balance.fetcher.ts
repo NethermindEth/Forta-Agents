@@ -16,6 +16,7 @@ export default class BalanceFetcher {
     this.proxyAddress = proxyAddr;
     // Create proxy contract instance using the Interface of the implementation contract
     // source: https://github.com/ethers-io/ethers.js/issues/182#issuecomment-826387240
+    // NOTE: IF THIS DOESN'T WORK, TRY await provider.call({ to: proxyAddress, data: IMPLEMENTATION_IFACE.getSigHash("/*function name*/")})/
     this.proxyContract = new Contract(proxyAddr, IMPLEMENTATION_IFACE, provider);
   }
 
