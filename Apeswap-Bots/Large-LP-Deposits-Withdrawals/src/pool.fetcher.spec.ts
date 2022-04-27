@@ -69,7 +69,7 @@ describe("Apeswap pool fetcher test suite", () => {
     }
   });
 
-  it("should return values of correct pairs", async () => {
+  it("should return data of correct pairs", async () => {
     for (let [pool, token0, token1, supply, block] of POOLS) {
       mockProvider.addCallTo(pool, block, utils.FUNCTIONS_IFACE, "token0", {
         inputs: [],

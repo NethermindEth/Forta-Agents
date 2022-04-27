@@ -146,7 +146,7 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
     mockFetcher.getPoolData.mockClear();
   });
 
-  it("should return no findings for other than Burn/Mint events", async () => {
+  it("should ignore other event logs on Apeswap pools", async () => {
     const pool: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(43, pool).mockReturnValue([CASES[0][5], CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
@@ -182,7 +182,7 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
     ]);
   });
 
-  it("should not return a finding when there is a large LP deposit to a non-Apeswap pool", async () => {
+  it("should ignore large LP deposits to a non-Apeswap pool", async () => {
     const pool: string = createAddress("0x6767"); //not Apeswap pool
     when(mockGetPoolData).calledWith(41003, pool).mockReturnValue([CASES[1][5], CASES[1][0], CASES[1][1], CASES[1][4]]);
     when(mockGetPoolBalance)
@@ -199,7 +199,7 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should not return a finding for non-large LP deposits/withdrawals", async () => {
+  it("should ignore non-large LP deposits/withdrawals", async () => {
     const pool: string = utils.apePairCreate2(FAIL_CASES[0][0], FAIL_CASES[0][1]);
     when(mockGetPoolData)
       .calledWith(43003, pool)
@@ -242,7 +242,7 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return 3 findings when 3 large LP deposits/withdrawals from the same Apeswap pool happen in a transaction", async () => {
+  it("should return 3 findings when 3 large LP deposits/withdrawals from the same Apeswap pool are executed", async () => {
     const pool: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(7774, pool).mockReturnValue([true, CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
@@ -268,7 +268,7 @@ describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
     ]);
   });
 
-  it("should return 2 findings when 2 large LP deposits/withdrawals happen in different Apeswap pools", async () => {
+  it("should return 2 findings when 2 large LP deposits/withdrawals are executed in different Apeswap pools", async () => {
     const pool0: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(77074, pool0).mockReturnValue([true, CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
