@@ -18,7 +18,7 @@ export default class BalanceFetcher {
   }
 
   public async getBalanceOf(address: string, block: string | number): Promise<BigNumber> {
-    const key: string = `${this.stakeTokenContract} - ${address} - ${block}`;
+    const key: string = `${address} - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
     const balance = await this.stakeTokenContract.balanceOf(address, { blockTag: block });
