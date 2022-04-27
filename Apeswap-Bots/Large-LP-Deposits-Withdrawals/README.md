@@ -38,4 +38,4 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
 The bot behaviour can be verified with the following transaction:
 
 - [0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72](https://bscscan.com/tx/0xf04d2f2b6a0c669535d71930d8278fc9b54ef78ade7e278e31d5ec630aeb8c72) 
-  > `AMOUNT_THRESHOLD_PERCENTAGE` should be set to 1.
+  > `AMOUNT_THRESHOLD_PERCENTAGE` should be set to <= 3 for this test transaction.

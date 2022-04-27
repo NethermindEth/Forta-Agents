@@ -4,7 +4,7 @@ import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-age
 import { getCreate2Address } from "@ethersproject/address";
 
 const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("100000000000000000000000");
-const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(1);
+const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 
 const APESWAP_FACTORY: string = "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6";
 const INIT_CODE: string = "0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b";
