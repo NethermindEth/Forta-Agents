@@ -10,10 +10,15 @@ export function provideHandleBlock(fetcher: BalanceFetcher): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const totalBorrowerDebtBalance: BigNumber = await fetcher.getTotalBorrowerDebtBalance(blockEvent.blockNumber);
-    const totalActiveBalanceCurrentEpoch: BigNumber = await fetcher.getTotalActiveBalanceCurrentEpoch(
-      blockEvent.blockNumber
-    );
+    let totalBorrowerDebtBalance: BigNumber;
+    let totalActiveBalanceCurrentEpoch: BigNumber;
+
+    await Promise.all([
+      totalBorrowerDebtBalance = await fetcher.getTotalBorrowerDebtBalance(blockEvent.blockNumber),
+      totalActiveBalanceCurrentEpoch = await fetcher.getTotalActiveBalanceCurrentEpoch(
+        blockEvent.blockNumber
+      )
+    ]);
 
     if (totalBorrowerDebtBalance.gt(totalActiveBalanceCurrentEpoch)) {
       findings.push(createFinding(totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch));
