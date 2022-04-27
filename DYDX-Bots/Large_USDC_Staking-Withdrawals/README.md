@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects deposits and withdrawals in the Liquidity Moudle contract when the `amount` is high.
+This bot detects deposits and withdrawals in the Liquidity Module contract when the `amount` is high.
 > High is set as a percentage of the total USDC staked.
 > You can adjust the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**. 
 
