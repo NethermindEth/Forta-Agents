@@ -13,7 +13,7 @@ export function provideHandleBlock(fetcher: BalanceFetcher): HandleBlock {
     const totalBorrowerDebtBalance: BigNumber = await fetcher.getTotalBorrowerDebtBalance(blockEvent.blockNumber);
     const totalActiveBalanceCurrentEpoch: BigNumber = await fetcher.getTotalActiveBalanceCurrentEpoch(blockEvent.blockNumber);
 
-    if (totalBorrowerDebtBalance.gte(totalActiveBalanceCurrentEpoch)) {
+    if (totalBorrowerDebtBalance.gt(totalActiveBalanceCurrentEpoch)) {
       findings.push(createFinding(totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch));
     }
 
