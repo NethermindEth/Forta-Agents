@@ -2,6 +2,7 @@ import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
+import { when, resetAllWhenMocks } from "jest-when";
 
 describe("Balance Fetcher test suite", () => {
   const testProxyAddress: string = createAddress("0xab");
@@ -12,30 +13,25 @@ describe("Balance Fetcher test suite", () => {
     [BigNumber.from("30"), BigNumber.from("90"), 3],
     [BigNumber.from("40"), BigNumber.from("95"), 4],
   ];
-  const mockProvider: MockEthersProvider = new MockEthersProvider();
+  // const mockProvider: MockEthersProvider = new MockEthersProvider();
+  const mockProvider: any = {
+    call: jest.fn()
+  };
   const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddress);
 
   function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber, blockNumber: number) {
-    return mockProvider.addCallTo(testProxyAddress, blockNumber, IMPLEMENTATION_IFACE, "getTotalBorrowerDebtBalance", {
-      inputs: [],
-      outputs: [totalBorrowerDebtBalance],
-    });
+    when(mockProvider.call)
+      .calledWith({ to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance") }, blockNumber)
+      .mockReturnValue(totalBorrowerDebtBalance);
   }
 
   function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber, blockNumber: number) {
-    return mockProvider.addCallTo(
-      testProxyAddress,
-      blockNumber,
-      IMPLEMENTATION_IFACE,
-      "getTotalActiveBalanceCurrentEpoch",
-      {
-        inputs: [],
-        outputs: [totalActiveBalanceCurrentEpoch],
-      }
-    );
+    when(mockProvider.call)
+      .calledWith({ to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch") }, blockNumber)
+      .mockReturnValue(totalActiveBalanceCurrentEpoch);
   }
 
-  beforeEach(() => mockProvider.clear());
+  beforeEach(() => resetAllWhenMocks());
 
   it("should store correct total borrower debt balance amount", async () => {
     for (let [totalBorrowerDebtBalance, , blockNumber] of TEST_CASES) {
@@ -46,7 +42,7 @@ describe("Balance Fetcher test suite", () => {
     }
 
     // clear mock to use cache
-    mockProvider.clear();
+    resetAllWhenMocks();
     for (let [totalBorrowerDebtBalance, , blockNumber] of TEST_CASES) {
       createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance, blockNumber);
 
@@ -64,7 +60,7 @@ describe("Balance Fetcher test suite", () => {
     }
 
     // clear mock to use cache
-    mockProvider.clear();
+    resetAllWhenMocks();
     for (let [, totalActiveBalanceCurrentEpoch, blockNumber] of TEST_CASES) {
       createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch, blockNumber);
 
