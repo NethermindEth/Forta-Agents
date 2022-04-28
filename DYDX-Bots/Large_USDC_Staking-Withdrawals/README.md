@@ -39,3 +39,21 @@ Describe each of the type of alerts fired by this agent
     - `recipient`: The address that should receive the funds.
     - `amount`: The token amount withdrawn from the sender's debt balance.
     - `newDebtBalance`: The balance after `amount` has been withdrawn.
+
+## Test Data
+
+> Note: To test the following, follow the comments in `utils.ts`.
+
+The bot behaviour can be verified with the following contracts on the Kovan ETH testnet:
+
+[0x9bc9a7D5ed679C17abECE73461Cbba9433B541c5](https://kovan.etherscan.io/address/0x9bc9a7d5ed679c17abece73461cbba9433b541c5) - `TestToken`.
+
+[0x5b7eA2cEaAA5EcC511B453505d260eFB1fBa4fDF](https://kovan.etherscan.io/address/0x5b7eA2cEaAA5EcC511B453505d260eFB1fBa4fDF) - `TestModule`.
+
+To test specific event emissions, use the following transactions on the Kovan ETH testnet:
+
+[0x308518b82a939e20b47d5b6b4c11fd16a7c530468e216086d14dcc9b5998f377](https://kovan.etherscan.io/tx/0x308518b82a939e20b47d5b6b4c11fd16a7c530468e216086d14dcc9b5998f377) - `Staked` event.
+
+[0xc6a122dec8b4ab44fce024cd0ab5519d52ee3d4995ae52f2a5c6884fe1c8ded4](https://kovan.etherscan.io/tx/0xc6a122dec8b4ab44fce024cd0ab5519d52ee3d4995ae52f2a5c6884fe1c8ded4) - `WithdrewStake` event.
+
+[0x10bba6b7581b5a4f2b7e5aa7a4d8b57e31264c2ed0e510724d4ae3f730bc68a2](https://kovan.etherscan.io/tx/0x10bba6b7581b5a4f2b7e5aa7a4d8b57e31264c2ed0e510724d4ae3f730bc68a2) - `WithdrewDebt` event.
