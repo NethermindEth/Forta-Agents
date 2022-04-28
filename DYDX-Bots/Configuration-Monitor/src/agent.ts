@@ -1,68 +1,61 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
 } from "forta-agent";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+export const MONITORED_EVENTS = [
+  "event LogGlobalConfigurationRegistered(bytes32 configHash)",
+  "event LogGlobalConfigurationApplied(bytes32 configHash)",
+  "event LogGlobalConfigurationRemoved(bytes32 configHash)",
+];
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
+//const TEST_PROXY = "";
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+export const provideHandleTransaction = (
+  perpetualAddress: string
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
+    // Listen to the monitored events and generate findings for each.
+    txEvent.filterLog(MONITORED_EVENTS, perpetualAddress).forEach((log) => {
+      const description =
+        log.name === "LogGlobalConfigurationRegistered"
+          ? "registered"
+          : "LogGlobalConfigurationApplied"
+          ? "applied"
+          : "removed";
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+      const alertId =
+        log.name === "LogGlobalConfigurationRegistered"
+          ? "DYDX-3-1"
+          : "LogGlobalConfigurationApplied"
+          ? "DYDX-3-2"
+          : "DYDX-3-3";
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
       findings.push(
         Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
+          name: `A global configuration hash has been ${description}`,
+          description: `${log.name} event emitted on perpetual contract`,
+          alertId: alertId,
+          severity: FindingSeverity.Info,
           type: FindingType.Info,
+          protocol: "DYDX",
           metadata: {
-            to,
-            from,
+            configHash: log.args.configHash,
           },
         })
       );
-      findingsCount++;
-    }
-  });
+    });
 
-  return findings;
+    return findings;
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(PERPETUAL_PROXY),
 };

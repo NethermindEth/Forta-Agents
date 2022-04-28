@@ -1,26 +1,39 @@
-# Large Tether Transfer Agent
+# Global configuration monitor
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects changes in the global configuration hash on dYdX perpetual exchange.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- DYDX-3-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when `LogGlobalConfigurationRegistered` event is emitted on the perpetual contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `ConfigHash`: hash of the registered global configuration.
+
+- DYDX-3-2
+
+  - Fired when `LogGlobalConfigurationApplied` event is emitted on the perpetual contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+
+    - `ConfigHash`: hash of the applied global configuration.
+
+- DYDX-3-3
+- Fired when `LogGlobalConfigurationRemoved` event is emitted on the perpetual contract.
+- Severity is always set to "Info".
+- Type is always set to "Info".
+- Metadata includes:
+  - `ConfigHash`: hash of the removed global configuration.
 
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
