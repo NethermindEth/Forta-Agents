@@ -1,74 +1,112 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { Interface } from "ethers/lib/utils";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { provideHandleTransaction } from "./agent";
+import { EVENTS_SIGNATURES } from "./agent";
 
-describe("high tether transfer agent", () => {
-  let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+const createFinding = (name: string, from: string) => {
+  const description = name === "LogFrozen" ? "Frozen" : "UnFrozen";
+  const alertId = name === "LogFrozen" ? "dydx-2-1" : "dydx-2-2";
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+  return Finding.fromObject({
+    name: `Perpetual exchange contract is ${description}`,
+    description: `${name} event emitted on perpetual contract`,
+    alertId: alertId,
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata: {
+      from: from,
+    },
+  });
+};
+
+describe("Frozen state monitor tests suite", () => {
+  const perpetual = createAddress("0x1");
+  const PERPETUAL_IFACE = new Interface(EVENTS_SIGNATURES);
+
+  const handler: HandleTransaction = provideHandleTransaction(perpetual);
+
+  it("should ignore empty transactions", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent();
+
+    const findings = await handler(tx);
+    expect(findings).toStrictEqual([]);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("should ignore LogFrozen, LogUnFrozen events from other contracts", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogFrozen"), []);
+    const log2 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogUnFrozen"), []);
 
-      const findings = await handleTransaction(mockTxEvent);
-
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0xb1"))
+      .addAnonymousEventLog(
+        // Different contract address
+        createAddress("0xa1"),
+        log1.data,
+        ...log1.topics
+      )
+      .addAnonymousEventLog(
+        // Different contract address
+        createAddress("0xa1"),
+        log2.data,
+        ...log2.topics
       );
-    });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 
-      const findings = await handleTransaction(mockTxEvent);
+  it("should ignore other events on pereptual contract", async () => {
+    const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+    const log1 = DIFFERENT_IFACE.encodeEventLog(DIFFERENT_IFACE.getEvent("otherEvent"), []);
+
+    const tx: TransactionEvent = new TestTransactionEvent().setFrom(createAddress("0xb1")).addAnonymousEventLog(
+      // perpetual contract address
+      perpetual,
+      log1.data,
+      ...log1.topics
+    );
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect LogFrozen events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogFrozen"), []);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0xb1"))
+      .addAnonymousEventLog(perpetual, log1.data, ...log1.topics);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([createFinding("LogFrozen", createAddress("0xb1"))]);
+  });
+
+  it("should detect LogUnFrozen events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogUnFrozen"), []);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0xb2"))
+      .addAnonymousEventLog(perpetual, log1.data, ...log1.topics);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([createFinding("LogUnFrozen", createAddress("0xb2"))]);
+  });
+  it("should detect multiple events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogFrozen"), []);
+
+    const log2 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogUnFrozen"), []);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0xb1"))
+      .addAnonymousEventLog(perpetual, log1.data, ...log1.topics)
+      .addAnonymousEventLog(perpetual, log2.data, ...log2.topics);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding("LogFrozen", createAddress("0xb1")),
+      createFinding("LogUnFrozen", createAddress("0xb1")),
+    ]);
   });
 });

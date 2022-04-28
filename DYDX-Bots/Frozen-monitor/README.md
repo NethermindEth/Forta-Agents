@@ -1,26 +1,30 @@
-# Large Tether Transfer Agent
+# Frozen state monitor
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects frozen state changes in dYdX perpetual exchange contract.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- DYDX-2-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when `LogFrozen` event is emitted on dYdX perpetual exchange contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `from`: address running the transaction where the event was emitted.
+
+- DYDX-2-2
+  - Fired when `LogUnFrozen` event is emitted on dYdX perpetual exchange contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `from`: address running the transaction where the event was emitted.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+The bot behaviour can be verified with the following transactions:
