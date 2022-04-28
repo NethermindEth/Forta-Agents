@@ -4,6 +4,7 @@
 
 This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`/`amount1` and the pool's `totalSupply` are high.
 > The thresholds `AMOUNT_THRESHOLD_PERCENTAGE`, `POOL_SUPPLY_THRESHOLD` of what is considered high, can be adjusted in **src/utils.ts**.
+
 > To switch to Polygon network, set `onPolygon` to `true` in **src/utils.ts**.
 
 ## Supported Chains
