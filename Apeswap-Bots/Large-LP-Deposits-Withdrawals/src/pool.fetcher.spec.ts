@@ -84,12 +84,12 @@ describe("Apeswap pool fetcher test suite", () => {
         outputs: [supply],
       });
 
-      const [valid, , ,] = await testFetcher.getPoolData(block, pool);
-      expect(valid).toStrictEqual(true);
+      const [valid, t0, t1, sup] = await testFetcher.getPoolData(block, pool);
+      expect([valid, t0, t1, sup]).toStrictEqual([true, token0, token1, supply]);
 
       //Use cached values
       mockProvider.clear();
-      expect(valid).toStrictEqual(true);
+      expect([valid, t0, t1, sup]).toStrictEqual([true, token0, token1, supply]);
     }
   });
 
