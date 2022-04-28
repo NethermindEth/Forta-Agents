@@ -6,7 +6,7 @@ import { EVENTS_SIGNATURES } from "./agent";
 
 const createFinding = (name: string, from: string) => {
   const description = name === "LogFrozen" ? "Frozen" : "UnFrozen";
-  const alertId = name === "LogFrozen" ? "dydx-2-1" : "dydx-2-2";
+  const alertId = name === "LogFrozen" ? "DYDX-2-1" : "DYDX-2-2";
 
   return Finding.fromObject({
     name: `Perpetual exchange contract is ${description}`,
@@ -14,6 +14,7 @@ const createFinding = (name: string, from: string) => {
     alertId: alertId,
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "DYDX",
     metadata: {
       from: from,
     },

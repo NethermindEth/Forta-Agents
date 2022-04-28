@@ -10,7 +10,7 @@ export const provideHandleTransaction = (perpetualAddress: string): HandleTransa
     // Listen to `LogFrozen` `LogUnFrozen` events and generate findings for each.
     txEvent.filterLog(EVENTS_SIGNATURES, perpetualAddress).forEach((log) => {
       const description = log.name === "LogFrozen" ? "Frozen" : "UnFrozen";
-      const alertId = log.name === "LogFrozen" ? "dydx-2-1" : "dydx-2-2";
+      const alertId = log.name === "LogFrozen" ? "DYDX-2-1" : "DYDX-2-2";
 
       findings.push(
         Finding.fromObject({
@@ -19,6 +19,7 @@ export const provideHandleTransaction = (perpetualAddress: string): HandleTransa
           alertId: alertId,
           severity: FindingSeverity.Info,
           type: FindingType.Info,
+          protocol: "DYDX",
           metadata: {
             from: txEvent.from,
           },
