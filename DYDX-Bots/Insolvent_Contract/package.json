@@ -5,6 +5,7 @@
   "chainIds": [
     1
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Insolvent_Contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
