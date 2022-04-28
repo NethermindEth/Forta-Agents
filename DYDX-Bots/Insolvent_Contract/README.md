@@ -20,6 +20,8 @@ This bot detects when the contract is insolvent. Insolvency is refers to when `t
 
 ## Test Data
 
+> Note: To test the following, follow the comments in `utils.ts`.
+
 The bot behaviour can be verified with the following contracts:
 
 [0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F](https://kovan.etherscan.io/address/0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F) - `TestImplemenation`.
