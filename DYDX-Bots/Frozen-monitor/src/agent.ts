@@ -1,7 +1,8 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 
 export const EVENTS_SIGNATURES = ["event LogFrozen()", "event LogUnFrozen()"];
-export const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
+const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
+const TEST_PROXY = "0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6";
 
 export const provideHandleTransaction = (perpetualAddress: string): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
