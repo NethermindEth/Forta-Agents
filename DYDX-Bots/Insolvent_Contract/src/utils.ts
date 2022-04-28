@@ -1,5 +1,5 @@
 import { Interface } from "@ethersproject/abi";
-import { utils } from "ethers";
+import { utils, BigNumber } from "ethers";
 
 export const PROXY_ADDRESS: string = "0x5Aa653A076c1dbB47cec8C1B4d152444CAD91941"; // Mainnet proxy address
 // Uncomment line below, and comment out line above, to test the bot with the Kovan testnet
@@ -13,3 +13,5 @@ export const IMPLEMENTATION_IFACE: utils.Interface = new Interface([
   GET_TOTAL_BORROWER_DEBT_BALANCE_ABI,
   GET_TOTAL_ACTIVE_BALANCE_CURRENT_EPOCH_ABI,
 ]);
+
+export const THRESHOLD_AMOUNT: BigNumber = BigNumber.from("500000000000000000000000"); // 500,000
