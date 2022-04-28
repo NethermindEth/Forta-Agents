@@ -3,11 +3,16 @@ import { Interface } from "@ethersproject/abi";
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 import { getCreate2Address } from "@ethersproject/address";
 
+const onPolygon: boolean = false;
 const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("100000000000000000000000");
 const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 
-const APESWAP_FACTORY: string = "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6";
-const INIT_CODE: string = "0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b";
+const APESWAP_FACTORY: string = onPolygon
+  ? "0xCf083Be4164828f00cAE704EC15a36D711491284"
+  : "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6";
+const INIT_CODE: string = onPolygon
+  ? "0x511f0f358fe530cda0859ec20becf391718fdf5a329be02f4c95361f3d6a42d8"
+  : "0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b";
 
 const apePairCreate2 = (token0: string, token1: string) => {
   let salt: string = utils.solidityKeccak256(["address", "address"], [token0, token1]);
