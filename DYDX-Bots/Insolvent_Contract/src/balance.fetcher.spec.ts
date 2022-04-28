@@ -6,7 +6,7 @@ import { when, resetAllWhenMocks } from "jest-when";
 
 describe("Balance Fetcher test suite", () => {
   const testProxyAddress: string = createAddress("0xab");
-  // Format: [totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch, blockNumber]
+  // Format: [totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch]
   const TEST_CASES: [BigNumber, BigNumber][] = [
     [BigNumber.from("10"), BigNumber.from("80")],
     [BigNumber.from("20"), BigNumber.from("85")],
