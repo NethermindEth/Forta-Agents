@@ -24,7 +24,6 @@ This bot detects changes in the global configuration hash on dYdX perpetual exch
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata includes:
-
     - `ConfigHash`: hash of the applied global configuration.
 
 - DYDX-3-3
@@ -36,7 +35,7 @@ This bot detects changes in the global configuration hash on dYdX perpetual exch
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 
 ### Mainnet
 
