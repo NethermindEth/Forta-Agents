@@ -12,19 +12,17 @@ export const provideHandleTransaction =
 
     await Promise.all(
       logs.map(async (log) => {
-        try {
-          const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
-          if (valid && log.address === utils.apePairCreate2(token0, token1)) {
-            const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
-            if (
-              totalSupply.gt(poolSupplyThreshold) &&
-              (log.args.amount0.mul(100).gt(balance0.mul(amountThresholdPercentage)) ||
-                log.args.amount1.mul(100).gt(balance1.mul(amountThresholdPercentage)))
-            ) {
-              findings.push(utils.createFinding(log, token0, token1));
-            }
+        const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
+        if (valid && log.address === utils.apePairCreate2(token0, token1)) {
+          const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
+          if (
+            totalSupply.gt(poolSupplyThreshold) &&
+            (log.args.amount0.mul(100).gt(balance0.mul(amountThresholdPercentage)) ||
+              log.args.amount1.mul(100).gt(balance1.mul(amountThresholdPercentage)))
+          ) {
+            findings.push(utils.createFinding(log, token0, token1));
           }
-        } catch (err) {}
+        }
       })
     );
 
