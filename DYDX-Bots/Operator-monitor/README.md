@@ -1,26 +1,45 @@
-# Large Tether Transfer Agent
+# DYDX Operator monitor
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects when an operator is added or removed from dydx perpetual exchange
+
+> Perpetual proxy contract: `0xD54f502e184B6B739d7D27a6410a67dc462D69c8`.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- DYDX-4-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when `LogOperatorAdded` event is emitted on dydx pereptual contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `operator`: Address of the operator that was added.
+
+- DYDX-4-2
+  - Fired when `LogOperatorRemoved` event is emitted on dydx pereptual contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `operator`: Address of the operator that was removed.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+### Mainnet
+
+- 0x58cf4814925be98279803694aef144e1d9f6bc24ebc98547f54ea27858d65286 (`LogOperatorAdded` event)
+- 0xb4708af9f63e3145441159d75bff4fa4b29064dadfcfa9176a294842e1cd5631 ( `LogOperatorRemoved` event)
+
+### Ropsten Testnet
+
+> Transactions were generated through our PoC contract deployed on Ropsten testnet.
+> To test the transactions, `PERPETUAL_PROXY` should be changed to `TEST_PROXY` in `agent.ts` Line 48.
+
+- 0x16acf4518c6df30592d61d99f638b950da3cfd53739442e135c12fd6b2f19101 (`LogOperatorAdded` event)
+- 0xd29099f03f7797e49d2689e127df119df5d4cb6b43329ed5687865f8e2ed23b5 ( `LogOperatorRemoved` event)

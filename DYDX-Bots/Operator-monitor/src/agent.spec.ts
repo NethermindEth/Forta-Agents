@@ -1,74 +1,166 @@
+import { Interface } from "ethers/lib/utils";
 import {
   FindingType,
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent,
-  ethers,
+  TransactionEvent,
 } from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import {
+  createAddress,
+  TestTransactionEvent,
+} from "forta-agent-tools/lib/tests";
+import { provideHandleTransaction } from "./agent";
+import { MONITORED_EVENTS } from "./agent";
 
-describe("high tether transfer agent", () => {
-  let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+// function to generate test findings
+const createFinding = (name: string, operator: string) => {
+  const description = name === "LogOperatorAdded" ? "added to" : "removed from";
+  const alertId = name === "LogFrozen" ? "DYDX-4-1" : "DYDX-4-2";
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+  return Finding.fromObject({
+    name: `An operator has been ${description} dydx perpetual exchange.`,
+    description: `${name} event emitted on perpetual contract`,
+    alertId: alertId,
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "DYDX",
+    metadata: {
+      operator: operator.toLowerCase(),
+    },
+  });
+};
+
+describe("Operator monitor tests suite", () => {
+  const perpetual = createAddress("0x1");
+  const PERPETUAL_IFACE = new Interface(MONITORED_EVENTS);
+
+  const handler: HandleTransaction = provideHandleTransaction(perpetual);
+
+  it("should ignore empty transactions", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent();
+
+    const findings = await handler(tx);
+    expect(findings).toStrictEqual([]);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("should ignore LogOperatorAdded, LogOperatorRemoved events from other contracts", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
+      [createAddress("0xf0")]
+    );
+    const log2 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
+      [createAddress("0xf0")]
+    );
 
-      const findings = await handleTransaction(mockTxEvent);
-
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(
+        // Different contract address
+        createAddress("0xa1"),
+        log1.data,
+        ...log1.topics
+      )
+      .addAnonymousEventLog(
+        // Different contract address
+        createAddress("0xa1"),
+        log2.data,
+        ...log2.topics
       );
-    });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 
-      const findings = await handleTransaction(mockTxEvent);
+  it("should ignore other events on pereptual contract", async () => {
+    const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
+    const log1 = DIFFERENT_IFACE.encodeEventLog(
+      DIFFERENT_IFACE.getEvent("otherEvent"),
+      []
+    );
+
+    const tx: TransactionEvent =
+      new TestTransactionEvent().addAnonymousEventLog(
+        // perpetual contract address
+        perpetual,
+        log1.data,
+        ...log1.topics
       );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect LogOperatorAdded events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
+      [createAddress("0xf1")]
+    );
+
+    const tx: TransactionEvent =
+      new TestTransactionEvent().addAnonymousEventLog(
+        perpetual,
+        log1.data,
+        ...log1.topics
       );
-    });
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding("LogOperatorAdded", createAddress("0xf1")),
+    ]);
+  });
+
+  it("should detect LogOperatorRemoved events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
+      [createAddress("0xf2")]
+    );
+
+    const tx: TransactionEvent =
+      new TestTransactionEvent().addAnonymousEventLog(
+        perpetual,
+        log1.data,
+        ...log1.topics
+      );
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding("LogOperatorRemoved", createAddress("0xf2")),
+    ]);
+  });
+
+  it("should detect multiple events on perpetual contract", async () => {
+    const log1 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
+      [createAddress("0xf3")]
+    );
+
+    const log2 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
+      [createAddress("0xf4")]
+    );
+    const log3 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
+      [createAddress("0xf5")]
+    );
+    const log4 = PERPETUAL_IFACE.encodeEventLog(
+      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
+      [createAddress("0xf6")]
+    );
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(perpetual, log1.data, ...log1.topics)
+      .addAnonymousEventLog(perpetual, log2.data, ...log2.topics)
+      .addAnonymousEventLog(perpetual, log3.data, ...log3.topics)
+      .addAnonymousEventLog(perpetual, log4.data, ...log4.topics);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding("LogOperatorAdded", createAddress("0xf3")),
+      createFinding("LogOperatorRemoved", createAddress("0xf4")),
+      createFinding("LogOperatorRemoved", createAddress("0xf5")),
+      createFinding("LogOperatorAdded", createAddress("0xf6")),
+    ]);
   });
 });

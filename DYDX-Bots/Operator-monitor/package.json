@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "dydx-operator-monitor",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "This bot detects when an operator is added or removed from dydx perpetual exchange",
   "chainIds": [
     1
   ],
@@ -19,10 +19,12 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.3"
+    "forta-agent": "^0.1.3",
+    "forta-agent-tools": "^2.0.5"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

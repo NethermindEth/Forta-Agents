@@ -1,68 +1,49 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
 } from "forta-agent";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+export const MONITORED_EVENTS = [
+  " event LogOperatorAdded(address operator)",
+  "event LogOperatorRemoved(address operator)",
+];
+const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
+const TEST_PROXY = "0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6";
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export const provideHandleTransaction = (
+  perpetualAddress: string
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    // Listen to `LogOperatorAdded` `LogOperatorRemoved` events and generate findings for each.
+    txEvent.filterLog(MONITORED_EVENTS, perpetualAddress).forEach((log) => {
+      const description =
+        log.name === "LogOperatorAdded" ? "added to" : "removed from";
+      const alertId = log.name === "LogFrozen" ? "DYDX-4-1" : "DYDX-4-2";
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
       findings.push(
         Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
+          name: `An operator has been ${description} dydx perpetual exchange.`,
+          description: `${log.name} event emitted on perpetual contract`,
+          alertId: alertId,
+          severity: FindingSeverity.Info,
           type: FindingType.Info,
+          protocol: "DYDX",
           metadata: {
-            to,
-            from,
+            operator: log.args.operator.toLowerCase(),
           },
         })
       );
-      findingsCount++;
-    }
-  });
+    });
 
-  return findings;
+    return findings;
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(PERPETUAL_PROXY),
 };
