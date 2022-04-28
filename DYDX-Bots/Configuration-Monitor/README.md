@@ -37,3 +37,17 @@ This bot detects changes in the global configuration hash on dYdX perpetual exch
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
+
+### Mainnet
+
+- 0xfae8cd14d464e8a22d829c579b52a85ebb34ad880e4988022c2785be6c4c9afd (`LogGlobalConfigurationRegistered` event)
+- 0x537eb31c5d265e25c993c75b9716042758a9fedfcd4dd47e8439936781f55fdc (`LogGlobalConfigurationApplied` event)
+
+### Ropsten Testnet
+
+> Transactions were generated through our PoC contract deployed on Ropsten testnet.
+> To test the transactions, `PERPETUAL_PROXY` should be changed to `TEST_PROXY` in `agent.ts` Line 51.
+
+- 0xced12eb03c0f5d3bc1f2c7fc341207b6b07ce7b80290bfe36118fb428d79de93 (`LogGlobalConfigurationRegistered` event)
+- 0x3e3edfdb159f1083e3f0a05e69ca53661ad8948a39eec62908c74fa3b4703e91 (`LogGlobalConfigurationApplied` event)
+- 0x0f1f9946ea28257c94bc312b71890759e553b6ff33786e60e2e07cb75c290635 (`LogGlobalConfigurationRemoved` event)
