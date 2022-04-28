@@ -124,7 +124,7 @@ const testCreateFinding = (
   }
 };
 
-describe("Apeswap Large LP Deposit/Withdrawl bot test suite", () => {
+describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   const mockGetPoolData = jest.fn();
   const mockGetPoolBalance = jest.fn();
   const mockFetcher = {
