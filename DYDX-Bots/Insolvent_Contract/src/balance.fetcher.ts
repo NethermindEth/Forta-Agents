@@ -20,10 +20,13 @@ export default class BalanceFetcher {
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
     const balance: BigNumber = BigNumber.from(
-      await this.provider.call({
-        to: this.proxyAddress,
-        data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance"),
-      }, "latest")
+      await this.provider.call(
+        {
+          to: this.proxyAddress,
+          data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance"),
+        },
+        "latest"
+      )
     );
     this.cache.set(key, balance);
     return balance;
@@ -34,10 +37,13 @@ export default class BalanceFetcher {
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
     const balance: BigNumber = BigNumber.from(
-      await this.provider.call({
-        to: this.proxyAddress,
-        data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch"),
-      }, "latest")
+      await this.provider.call(
+        {
+          to: this.proxyAddress,
+          data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch"),
+        },
+        "latest"
+      )
     );
     this.cache.set(key, balance);
     return balance;

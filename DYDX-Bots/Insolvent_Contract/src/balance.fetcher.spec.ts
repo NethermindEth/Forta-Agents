@@ -15,19 +15,25 @@ describe("Balance Fetcher test suite", () => {
   ];
 
   const mockProvider: any = {
-    call: jest.fn()
+    call: jest.fn(),
   };
   const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddress);
 
   function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber) {
     when(mockProvider.call)
-      .calledWith({ to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance") }, "latest")
+      .calledWith(
+        { to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance") },
+        "latest"
+      )
       .mockReturnValue(totalBorrowerDebtBalance);
   }
 
   function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber) {
     when(mockProvider.call)
-      .calledWith({ to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch") }, "latest")
+      .calledWith(
+        { to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch") },
+        "latest"
+      )
       .mockReturnValue(totalActiveBalanceCurrentEpoch);
   }
 

@@ -28,4 +28,4 @@ The bot behaviour can be verified with the following contracts:
 
 [0xe9511Faa2B2ccE548A5999b4bC3772e6a0f1C14A](https://kovan.etherscan.io/address/0xe9511Faa2B2ccE548A5999b4bC3772e6a0f1C14A) - `TestProxy`.
 
-You can test it with this specific block [31286275](https://kovan.etherscan.io/block/31286275). Alternatively, you can use the setter functions in the `testProxy` contract to toggle both `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch` to test them in real time. This is because the bot checks these values in every block.
+You can test it with this specific block [31303087](https://kovan.etherscan.io/block/31303087). Alternatively, you can use the setter functions in the `testProxy` contract to toggle both `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch` to test them in real time. This is because the bot checks these values in every block.
