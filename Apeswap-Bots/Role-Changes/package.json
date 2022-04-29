@@ -5,6 +5,7 @@
     "chainIds": [
       56
     ],
+    "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/Role-Changes",
     "scripts": {
       "build": "tsc",
       "start": "npm run start:dev",
