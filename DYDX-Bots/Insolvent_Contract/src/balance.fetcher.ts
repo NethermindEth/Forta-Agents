@@ -1,4 +1,4 @@
-import { providers, BigNumber } from "ethers";
+import { providers, BigNumber, Contract } from "ethers";
 import LRU from "lru-cache";
 import { IMPLEMENTATION_IFACE } from "./utils";
 
@@ -6,6 +6,7 @@ export default class BalanceFetcher {
   readonly provider: providers.Provider;
   private cache: LRU<string, BigNumber>;
   readonly proxyAddress: string;
+  private proxyContract: Contract;
 
   constructor(provider: providers.Provider, proxyAddr: string) {
     this.provider = provider;
@@ -13,38 +14,24 @@ export default class BalanceFetcher {
       max: 10000,
     });
     this.proxyAddress = proxyAddr;
+    // Using implementation ABI since I am calling the proxy's fallback function
+    this.proxyContract = new Contract(proxyAddr, IMPLEMENTATION_IFACE, provider);
   }
 
   public async getTotalBorrowerDebtBalance(block: string | number): Promise<BigNumber> {
-    const key: string = `totalBorrowerDebtBalance - ${block}`;
+    const key: string = `${this.proxyContract} - totalBorrowerDebtBalance - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
-    const balance: BigNumber = BigNumber.from(
-      await this.provider.call(
-        {
-          to: this.proxyAddress,
-          data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance"),
-        },
-        "latest"
-      )
-    );
+    const balance = await this.proxyContract.getTotalBorrowerDebtBalance({ blockTag: block });
     this.cache.set(key, balance);
     return balance;
   }
 
   public async getTotalActiveBalanceCurrentEpoch(block: string | number): Promise<BigNumber> {
-    const key: string = `totalActiveBalanceCurrentEpoch - ${block}`;
+    const key: string = `${this.proxyContract} - totalActiveBalanceCurrentEpoch - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
-    const balance: BigNumber = BigNumber.from(
-      await this.provider.call(
-        {
-          to: this.proxyAddress,
-          data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch"),
-        },
-        "latest"
-      )
-    );
+    const balance = await this.proxyContract.getTotalActiveBalanceCurrentEpoch({ blockTag: block });
     this.cache.set(key, balance);
     return balance;
   }
