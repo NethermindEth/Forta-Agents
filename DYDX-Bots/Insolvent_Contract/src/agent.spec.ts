@@ -1,7 +1,6 @@
 import { FindingType, FindingSeverity, Finding, HandleBlock, BlockEvent } from "forta-agent";
-import { createAddress, TestBlockEvent } from "forta-agent-tools/lib/tests";
+import { createAddress, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
-import { when, resetAllWhenMocks } from "jest-when";
 import { provideHandleBlock } from "./agent";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
@@ -23,34 +22,31 @@ const testActiveBalanceCurrentEpoch: BigNumber[] = [
 ];
 
 describe("high tether transfer agent", () => {
-  const mockProvider: any = {
-    call: jest.fn(),
-  };
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
   const balanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddr);
 
-  function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber) {
-    when(mockProvider.call)
-      .calledWith({ to: testProxyAddr, data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance") }, "latest")
-      .mockReturnValueOnce(totalBorrowerDebtBalance);
-  }
+  const createGetTotalBorrowerDebtBalance = (totalBorrowerDebtBalance: BigNumber, blockNumber: number) => {
+    mockProvider.addCallTo(testProxyAddr, blockNumber, IMPLEMENTATION_IFACE, "getTotalBorrowerDebtBalance", {
+      inputs: [],
+      outputs: [totalBorrowerDebtBalance],
+    });
+  };
 
-  function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber) {
-    when(mockProvider.call)
-      .calledWith(
-        { to: testProxyAddr, data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch") },
-        "latest"
-      )
-      .mockReturnValueOnce(totalActiveBalanceCurrentEpoch);
-  }
+  const createGetTotalActiveBalanceCurrentEpoch = (totalActiveBalanceCurrentEpoch: BigNumber, blockNumber: number) => {
+    mockProvider.addCallTo(testProxyAddr, blockNumber, IMPLEMENTATION_IFACE, "getTotalActiveBalanceCurrentEpoch", {
+      inputs: [],
+      outputs: [totalActiveBalanceCurrentEpoch],
+    });
+  };
 
   const handleBlock: HandleBlock = provideHandleBlock(balanceFetcher, testThreshold);
 
-  beforeEach(() => resetAllWhenMocks());
+  beforeEach(() => mockProvider.clear());
 
   it("should detect a contract in an insolvent state", async () => {
     // (testBorrowerDebtBalance[0] - testActiveBalanceCurrentEpoch[0]) > testThreshold
-    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[0]);
-    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[0]);
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[0], testBlockNumbers[0]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[0], testBlockNumbers[0]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[0]);
 
@@ -74,8 +70,8 @@ describe("high tether transfer agent", () => {
 
   it("should not return a finding if contract is not insolvent", async () => {
     // (testBorrowerDebtBalance[1] - testActiveBalanceCurrentEpoch[1]) < testThreshold
-    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[1]);
-    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[1]);
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[1], testBlockNumbers[1]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[1], testBlockNumbers[1]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[1]);
 
@@ -86,8 +82,8 @@ describe("high tether transfer agent", () => {
 
   it("should not return a finding if total borrower debt balance and total active balance current epoch are the same", async () => {
     // testBorrowerDebtBalance[2] === testActiveBalanceCurrentEpoch[2]
-    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[2]);
-    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[2]);
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[2], testBlockNumbers[2]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[2], testBlockNumbers[2]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[2]);
 
@@ -98,8 +94,8 @@ describe("high tether transfer agent", () => {
 
   it("should not return a finding if total borrower debt balance is less than total active balance current epoch", async () => {
     // testBorrowerDebtBalance[3] < testActiveBalanceCurrentEpoch[3]
-    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[3]);
-    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[3]);
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[3], testBlockNumbers[3]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[3], testBlockNumbers[3]);
 
     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[3]);
 
