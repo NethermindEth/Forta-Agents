@@ -1,10 +1,11 @@
 import { HandleTransaction, Finding, FindingSeverity, FindingType } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, utils as ethers } from "ethers";
 import { provideHandleTransaction } from "./agent";
 import { Interface } from "@ethersproject/abi";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import utils from "./utils";
 import { when } from "jest-when";
+import { getCreate2Address } from "@ethersproject/address";
 
 const mockEvent: string = "event MockEvent (address indexed sender, uint amount0, uint amount1)";
 const mockIface: Interface = new Interface([mockEvent]);
@@ -132,10 +133,20 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
     getPoolBalance: mockGetPoolBalance,
   };
 
+  const mockApePairCreate2 = (token0: string, token1: string): string => {
+    let salt: string = ethers.solidityKeccak256(["address", "address"], [token0, token1]);
+    return getCreate2Address(
+      createAddress("0xadd0"),
+      salt,
+      "0x511f0f358fe530cda0859ec20becf391718fdf5a329be02f4c95361f3d6a42d8"
+    ).toLowerCase();
+  };
+
   const TEST_POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from(100000);
   const TEST_AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(3);
 
   const handleTransaction: HandleTransaction = provideHandleTransaction(
+    mockApePairCreate2,
     mockFetcher as any,
     TEST_POOL_SUPPLY_THRESHOLD,
     TEST_AMOUNT_THRESHOLD_PERCENTAGE
@@ -147,7 +158,7 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should ignore other event logs on Apeswap pools", async () => {
-    const pool: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
+    const pool: string = mockApePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(43, pool).mockReturnValue([CASES[0][5], CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
       .calledWith(43, pool, CASES[0][0], CASES[0][1])
@@ -164,7 +175,7 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should return a finding when there is a large LP withdrawal from a large Apeswap pool", async () => {
-    const pool: string = utils.apePairCreate2(CASES[1][0], CASES[1][1]);
+    const pool: string = mockApePairCreate2(CASES[1][0], CASES[1][1]);
     when(mockGetPoolData).calledWith(4003, pool).mockReturnValue([CASES[1][5], CASES[1][0], CASES[1][1], CASES[1][4]]);
     when(mockGetPoolBalance)
       .calledWith(4003, pool, CASES[1][0], CASES[1][1])
@@ -200,7 +211,7 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should ignore non-large LP deposits/withdrawals", async () => {
-    const pool: string = utils.apePairCreate2(FAIL_CASES[0][0], FAIL_CASES[0][1]);
+    const pool: string = mockApePairCreate2(FAIL_CASES[0][0], FAIL_CASES[0][1]);
     when(mockGetPoolData)
       .calledWith(43003, pool)
       .mockReturnValue([FAIL_CASES[0][5], FAIL_CASES[0][0], FAIL_CASES[0][1], FAIL_CASES[0][4]]);
@@ -224,7 +235,7 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should not return a finding for non-large Apeswap pools", async () => {
-    const pool: string = utils.apePairCreate2(FAIL_CASES[1][0], FAIL_CASES[1][1]);
+    const pool: string = mockApePairCreate2(FAIL_CASES[1][0], FAIL_CASES[1][1]);
     when(mockGetPoolData)
       .calledWith(45003, pool)
       .mockReturnValue([FAIL_CASES[1][5], FAIL_CASES[1][0], FAIL_CASES[1][1], FAIL_CASES[1][4]]);
@@ -243,7 +254,7 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should return 3 findings when 3 large LP deposits/withdrawals from the same Apeswap pool are executed", async () => {
-    const pool: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
+    const pool: string = mockApePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(7774, pool).mockReturnValue([true, CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
       .calledWith(7774, pool, CASES[0][0], CASES[0][1])
@@ -269,13 +280,13 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
   });
 
   it("should return 2 findings when 2 large LP deposits/withdrawals are executed in different Apeswap pools", async () => {
-    const pool0: string = utils.apePairCreate2(CASES[0][0], CASES[0][1]);
+    const pool0: string = mockApePairCreate2(CASES[0][0], CASES[0][1]);
     when(mockGetPoolData).calledWith(77074, pool0).mockReturnValue([true, CASES[0][0], CASES[0][1], CASES[0][4]]);
     when(mockGetPoolBalance)
       .calledWith(77074, pool0, CASES[0][0], CASES[0][1])
       .mockReturnValue([BALANCES[0][0], BALANCES[0][1]]);
 
-    const pool1: string = utils.apePairCreate2(CASES[1][0], CASES[1][1]);
+    const pool1: string = mockApePairCreate2(CASES[1][0], CASES[1][1]);
     when(mockGetPoolData).calledWith(77074, pool1).mockReturnValue([true, CASES[1][0], CASES[1][1], CASES[1][4]]);
     when(mockGetPoolBalance)
       .calledWith(77074, pool1, CASES[1][0], CASES[1][1])
