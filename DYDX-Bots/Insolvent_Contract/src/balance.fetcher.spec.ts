@@ -1,6 +1,5 @@
-import { createAddress } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
-import { when, resetAllWhenMocks } from "jest-when";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
 
@@ -14,43 +13,43 @@ describe("Balance Fetcher test suite", () => {
     [BigNumber.from("40"), BigNumber.from("95"), 4],
   ];
 
-  const mockProvider: any = {
-    call: jest.fn(),
-  };
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
   const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddress);
 
-  function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber) {
-    when(mockProvider.call)
-      .calledWith(
-        { to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalBorrowerDebtBalance") },
-        "latest"
-      )
-      .mockReturnValue(totalBorrowerDebtBalance);
+  function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber, blockNumber: number) {
+    return mockProvider.addCallTo(testProxyAddress, blockNumber, IMPLEMENTATION_IFACE, "getTotalBorrowerDebtBalance", {
+      inputs: [],
+      outputs: [totalBorrowerDebtBalance],
+    });
   }
 
-  function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber) {
-    when(mockProvider.call)
-      .calledWith(
-        { to: testProxyAddress, data: IMPLEMENTATION_IFACE.getSighash("getTotalActiveBalanceCurrentEpoch") },
-        "latest"
-      )
-      .mockReturnValue(totalActiveBalanceCurrentEpoch);
+  function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber, blockNumber: number) {
+    return mockProvider.addCallTo(
+      testProxyAddress,
+      blockNumber,
+      IMPLEMENTATION_IFACE,
+      "getTotalActiveBalanceCurrentEpoch",
+      {
+        inputs: [],
+        outputs: [totalActiveBalanceCurrentEpoch],
+      }
+    );
   }
 
-  beforeEach(() => resetAllWhenMocks());
+  beforeEach(() => mockProvider.clear());
 
   it("should store correct total borrower debt balance amount", async () => {
     for (let [totalBorrowerDebtBalance, , blockNumber] of TEST_CASES) {
-      createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance);
+      createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance, blockNumber);
 
       const fetchedDebtBalance: BigNumber = await fetcher.getTotalBorrowerDebtBalance(blockNumber);
       expect(fetchedDebtBalance).toStrictEqual(totalBorrowerDebtBalance);
     }
 
     // clear mock to use cache
-    resetAllWhenMocks();
+    mockProvider.clear();
     for (let [totalBorrowerDebtBalance, , blockNumber] of TEST_CASES) {
-      createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance);
+      createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance, blockNumber);
 
       const fetchedDebtBalance: BigNumber = await fetcher.getTotalBorrowerDebtBalance(blockNumber);
       expect(fetchedDebtBalance).toStrictEqual(totalBorrowerDebtBalance);
@@ -59,16 +58,16 @@ describe("Balance Fetcher test suite", () => {
 
   it("should store correct total active balance current epoch amount", async () => {
     for (let [, totalActiveBalanceCurrentEpoch, blockNumber] of TEST_CASES) {
-      createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch);
+      createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch, blockNumber);
 
       const fetchedActiveBalance: BigNumber = await fetcher.getTotalActiveBalanceCurrentEpoch(blockNumber);
       expect(fetchedActiveBalance).toStrictEqual(totalActiveBalanceCurrentEpoch);
     }
 
     // clear mock to use cache
-    resetAllWhenMocks();
+    mockProvider.clear();
     for (let [, totalActiveBalanceCurrentEpoch, blockNumber] of TEST_CASES) {
-      createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch);
+      createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch, blockNumber);
 
       const fetchedActiveBalance: BigNumber = await fetcher.getTotalActiveBalanceCurrentEpoch(blockNumber);
       expect(fetchedActiveBalance).toStrictEqual(totalActiveBalanceCurrentEpoch);
