@@ -2,22 +2,19 @@ import { Finding, HandleTransaction, TransactionEvent, LogDescription, getEthers
 import PoolFetcher from "./pool.fetcher";
 import { BigNumber, providers } from "ethers";
 import utils from "./utils";
+import NetworkData from "./network";
+import NetworkManager from "./network";
+
+const networkManager = new NetworkManager();
 
 export const initialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
-
-  const APESWAP_FACTORY =
-    chainId === 137 ? "0xCf083Be4164828f00cAE704EC15a36D711491284" : "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6";
-  const INIT_CODE =
-    chainId === 137
-      ? "0x511f0f358fe530cda0859ec20becf391718fdf5a329be02f4c95361f3d6a42d8"
-      : "0xf4ccce374816856d11f00e4069e7cada164065686fbef53c6167a63ec2fd8c5b";
-
-  utils.initialized.push(APESWAP_FACTORY, INIT_CODE);
+  networkManager.setNetwork(chainId);
 };
 
 export const provideHandleTransaction =
   (
+    data: NetworkData,
     getPair: any,
     fetcher: PoolFetcher,
     poolSupplyThreshold: BigNumber,
@@ -27,11 +24,11 @@ export const provideHandleTransaction =
     const findings: Finding[] = [];
     const block: number = txEvent.blockNumber;
     const logs: LogDescription[] = txEvent.filterLog(utils.EVENTS_ABI);
-
+    
     await Promise.all(
       logs.map(async (log) => {
         const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
-        if (valid && log.address === getPair(token0, token1)) {
+        if (valid && log.address === getPair(token0, token1, data)) {
           const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
           if (
             totalSupply.gt(poolSupplyThreshold) &&
@@ -50,6 +47,7 @@ export const provideHandleTransaction =
 export default {
   initialize: initialize(getEthersProvider()),
   handleTransaction: provideHandleTransaction(
+    networkManager,
     utils.apePairCreate2,
     new PoolFetcher(getEthersProvider()),
     utils.POOL_SUPPLY_THRESHOLD,

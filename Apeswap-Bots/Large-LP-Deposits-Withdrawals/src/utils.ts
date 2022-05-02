@@ -2,16 +2,17 @@ import { BigNumber, utils } from "ethers";
 import { Interface } from "@ethersproject/abi";
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 import { getCreate2Address } from "@ethersproject/address";
+import NetworkData from "./network";
 
 const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("100000000000000000000000");
-const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
+const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(2);
 
 // [APESWAP_FACTORY, INIT_CODE] from the initializer function
 export const initialized: string[] = [];
 
-const apePairCreate2 = (token0: string, token1: string): string => {
+const apePairCreate2 = (token0: string, token1: string, networkData: NetworkData): string => {
   let salt: string = utils.solidityKeccak256(["address", "address"], [token0, token1]);
-  return getCreate2Address(initialized[0], salt, initialized[1]).toLowerCase();
+  return getCreate2Address(networkData.factory, salt, networkData.init).toLowerCase();
 };
 
 const EVENTS_ABI: string[] = [

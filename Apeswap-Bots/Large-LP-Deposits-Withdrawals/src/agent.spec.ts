@@ -6,6 +6,7 @@ import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests
 import utils from "./utils";
 import { when } from "jest-when";
 import { getCreate2Address } from "@ethersproject/address";
+import { keccak256 } from "forta-agent/dist/sdk/utils";
 
 const mockEvent: string = "event MockEvent (address indexed sender, uint amount0, uint amount1)";
 const mockIface: Interface = new Interface([mockEvent]);
@@ -133,19 +134,20 @@ describe("Apeswap Large LP Deposit/Withdrawal bot test suite", () => {
     getPoolBalance: mockGetPoolBalance,
   };
 
+  const mockNetworkManager = {
+    setNetwork: jest.fn(),
+  };
+
   const mockApePairCreate2 = (token0: string, token1: string): string => {
     let salt: string = ethers.solidityKeccak256(["address", "address"], [token0, token1]);
-    return getCreate2Address(
-      createAddress("0xadd0"),
-      salt,
-      "0x511f0f358fe530cda0859ec20becf391718fdf5a329be02f4c95361f3d6a42d8"
-    ).toLowerCase();
+    return getCreate2Address(createAddress("0xadd0"), salt, keccak256("0xababa")).toLowerCase();
   };
 
   const TEST_POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from(100000);
   const TEST_AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(3);
 
   const handleTransaction: HandleTransaction = provideHandleTransaction(
+    mockNetworkManager as any,
     mockApePairCreate2,
     mockFetcher as any,
     TEST_POOL_SUPPLY_THRESHOLD,
