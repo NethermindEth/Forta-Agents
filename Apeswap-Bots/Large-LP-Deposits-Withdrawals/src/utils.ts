@@ -5,7 +5,7 @@ import { getCreate2Address } from "@ethersproject/address";
 import NetworkData from "./network";
 
 const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("100000000000000000000000");
-const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(2);
+const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 
 // [APESWAP_FACTORY, INIT_CODE] from the initializer function
 export const initialized: string[] = [];
