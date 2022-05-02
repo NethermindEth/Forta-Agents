@@ -10,12 +10,9 @@ export function provideHandleBlock(fetcher: BalanceFetcher, threshold: BigNumber
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    let totalBorrowerDebtBalance: BigNumber;
-    let totalActiveBalanceCurrentEpoch: BigNumber;
-
-    await Promise.all([
-      (totalBorrowerDebtBalance = await fetcher.getTotalBorrowerDebtBalance(blockEvent.blockNumber)),
-      (totalActiveBalanceCurrentEpoch = await fetcher.getTotalActiveBalanceCurrentEpoch(blockEvent.blockNumber)),
+    const [totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch] = await Promise.all([
+      fetcher.getTotalBorrowerDebtBalance(blockEvent.blockNumber),
+      fetcher.getTotalActiveBalanceCurrentEpoch(blockEvent.blockNumber),
     ]);
 
     // If the difference between `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch`
