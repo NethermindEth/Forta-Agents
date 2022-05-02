@@ -1,56 +1,57 @@
-import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
-
-import { GLOBALS } from "./constants";
+import {
+  BlockEvent,
+  Finding,
+  HandleBlock,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+} from "forta-agent";
 
 import { formatEther } from "@ethersproject/units";
 
-const { BANANA_CONTRACT_ADDRESS_BNBCHAIN, BANANA_MINT_FUNCTION, BANANA_MINT_AMOUNT } = GLOBALS;
+import { createFinding, contractMetaData, contractType } from "./utils";
 
-let findingsCount = 0;
+import { GLOBALS } from "./constants";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+const { BANANA_MINT_FUNCTION, BANANA_MINT_AMOUNT } = GLOBALS;
+export let exportedNetwork: string;
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+const mintTxHandler = (functionAbi: string | string[], contractInfo: contractType): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  // filter transaction logs for Banana token mints
-  const bananaMints = txEvent.filterFunction(BANANA_MINT_FUNCTION, BANANA_CONTRACT_ADDRESS_BNBCHAIN);
+    const bananaMints = txEvent.filterFunction(functionAbi);
 
-  const { from, to } = txEvent.transaction;
-  const txTo: any = to;
+    bananaMints.forEach((bananaMint) => {
+      const { transaction, network } = txEvent;
 
-  bananaMints.forEach((bananaMint) => {
-    const { args } = bananaMint;
+      const txTo: string | undefined = transaction.to?.toString();
 
-    const [txValue] = args;
+      const { args } = bananaMint;
+      const [amount] = args;
 
-    const formattedValue: any = formatEther(txValue);
+      const txValue: string = formatEther(amount);
 
-    if (formattedValue > BANANA_MINT_AMOUNT) {
-      findings.push(
-        Finding.fromObject({
-          name: "Large Banana Mint",
-          description: `Large amount of BANANA minted: ${formattedValue}`,
-          protocol: "Apeswap-1",
-          alertId: "APESWAP-1",
-          severity: FindingSeverity.Critical,
-          type: FindingType.Suspicious,
-          metadata: {
-            value: formattedValue,
-            from,
-            to: txTo,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-  return findings;
+      const botMetaData = {
+        from: transaction.from,
+        to: txTo,
+        value: txValue,
+        network: network.toString(),
+      };
+
+      const txValueToNum: number = parseFloat(txValue);
+
+      if (txValueToNum >= BANANA_MINT_AMOUNT) {
+        findings.push(createFinding(botMetaData));
+      }
+    });
+    return findings;
+  };
 };
 
 export default {
-  handleTransaction,
+  handleTransaction: mintTxHandler(BANANA_MINT_FUNCTION, contractMetaData),
 };
 
-export { BANANA_CONTRACT_ADDRESS_BNBCHAIN, BANANA_MINT_FUNCTION, BANANA_MINT_AMOUNT };
+export { mintTxHandler };

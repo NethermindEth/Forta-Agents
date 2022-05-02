@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with large Banana mints
+This bot detects transactions with large Banana mints
 
 ## Supported Chains
 
@@ -27,3 +27,4 @@ Describe each of the type of alerts fired by this agent
 The agent behaviour can be verified with the following transactions:
 
 - 0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9 (25,000 BANANA )
+
