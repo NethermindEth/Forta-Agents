@@ -6,7 +6,7 @@ This bot detects role (ownership/dev) changes in Apeswap's `MasterApe` and `Mast
 
 ## Supported Chains
 
-- Binance Smart Chain
+- BNB Smart Chain
 
 ## Alerts
 
