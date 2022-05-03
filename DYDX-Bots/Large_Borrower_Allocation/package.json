@@ -1,10 +1,11 @@
 {
-  "name": "forta-agent-starter",
+  "name": "dydx-16",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detect large borrower allocation",
   "chainIds": [
     1
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Large_Borrower_Allocation",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
