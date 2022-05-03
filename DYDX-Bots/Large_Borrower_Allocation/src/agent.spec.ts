@@ -13,38 +13,38 @@ const testCases: any[][] = [
   // Format: borrower, oldAllocation, newAllocation, epochNumber
   [
     createAddress("0xad"),
-    BigNumber.from("10000000000000000000"),  // 10
-    BigNumber.from("15000000000000000000"),  // 15
+    BigNumber.from("10000000000000000000"), // 10
+    BigNumber.from("15000000000000000000"), // 15
     BigNumber.from("100000000000000000000"), // 100
   ],
   [
     createAddress("0xae"),
-    BigNumber.from("11000000000000000000"),  // 11
-    BigNumber.from("17000000000000000000"),  // 17
+    BigNumber.from("11000000000000000000"), // 11
+    BigNumber.from("17000000000000000000"), // 17
     BigNumber.from("150000000000000000000"), // 150
   ],
   [
     createAddress("0xaf"),
-    BigNumber.from("8000000000000000000"),   // 8
-    BigNumber.from("10000000000000000000"),  // 10
+    BigNumber.from("8000000000000000000"), // 8
+    BigNumber.from("10000000000000000000"), // 10
     BigNumber.from("200000000000000000000"), // 200
   ],
   [
     createAddress("0xad2"),
-    BigNumber.from("11000000000000000000"),  // 11
-    BigNumber.from("14000000000000000000"),  // 14
+    BigNumber.from("11000000000000000000"), // 11
+    BigNumber.from("14000000000000000000"), // 14
     BigNumber.from("250000000000000000000"), // 250
   ],
   [
     createAddress("0xae2"),
-    BigNumber.from("6000000000000000000"),   // 6
-    BigNumber.from("9000000000000000000"),   // 9
+    BigNumber.from("6000000000000000000"), // 6
+    BigNumber.from("9000000000000000000"), // 9
     BigNumber.from("300000000000000000000"), // 300
   ],
   [
     createAddress("0xaf2"),
-    BigNumber.from("5000000000000000000"),   // 5
-    BigNumber.from("18000000000000000000"),  // 18
+    BigNumber.from("5000000000000000000"), // 5
+    BigNumber.from("18000000000000000000"), // 18
     BigNumber.from("350000000000000000000"), // 350
   ],
 ];

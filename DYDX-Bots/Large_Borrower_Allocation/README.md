@@ -20,3 +20,17 @@ This bot detects when a borrower's allocation is high. The bot listens to `Sched
     - `oldAllocation`: Previous allocation of borrower.
     - `newAllocation`: New allocation of borrower.
     - `epochNumber`: Current epoch number.
+
+## Test Data
+
+> Note: To test the following, follow the comments in `utils.ts`.
+
+The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
+
+[0x9670277EcB0b56f52E113c9c3833681d2Af7d253](https://kovan.etherscan.io/address/0x9670277ecb0b56f52e113c9c3833681d2af7d253) - `TestProxy`.
+
+[0x9FEF477a7e6cA08E60192e42016E99eF0DE6F2C9](https://kovan.etherscan.io/address/0x9FEF477a7e6cA08E60192e42016E99eF0DE6F2C9) - `TestImplementation`.
+
+To test specific event emissions, use the following transactions on the Kovan ETH testnet:
+
+[0x0c5539f947e36fc83a7e5a52f819039888116a3aedc804207dffd040e96a3c98](https://kovan.etherscan.io/tx/0x0c5539f947e36fc83a7e5a52f819039888116a3aedc804207dffd040e96a3c98) - `ScheduledBorrowerAllocationChange` event.
