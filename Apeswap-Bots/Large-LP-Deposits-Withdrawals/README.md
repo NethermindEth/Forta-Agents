@@ -8,7 +8,7 @@ This bot detects LP deposits and withdrawals in Apeswap pools when the `amount0`
 
 ## Supported Chains
 
-- Binance Smart Chain
+- BNB Smart Chain
 - Polygon
 
 ## Alerts
