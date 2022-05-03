@@ -21,8 +21,12 @@ export const MULTISIGS: string[] = [
 
 
 export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
+  const fetcher = utils.createFetcher(web3);
+
   return async (txEvent: TransactionEvent) => {
-    const addresses: string[] = await Promise.all(MULTISIGS.map((ens: string) => web3.eth.ens.getAddress(ens)));
+    const block: number = txEvent.blockNumber;
+    const addresses: string[] = await Promise.all(MULTISIGS.map((ens: string) => fetcher(block, ens)));
+
     const handlers: HandleTransaction[] = addresses.map(
       (addr: string, i: number) => [
         provideEventCheckerHandler(

@@ -26,11 +26,12 @@ abiDecoder.addABI(routerContract);
 const factoryContract = new web3.eth.Contract(
   factory as any,
   "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-);
+);  
 
 const usdcAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"; // change
 const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // change
 const contractAddress = "0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f";
+const methodId = "0x8803dbee"; //methodId of Uniswap Swaps "0x8803dbee" 
 // const contractAddress = await factoryContract.methods
 // .getPair(usdcAddress, usdtAddress)
 // .call();
@@ -53,14 +54,13 @@ function provideHandleTransaction(
     // extract all swap events
     for (let i in txs) {
       const data = await web3.eth.getTransaction(txs[i]);
-
-      const decodedData = abiDecoder.decodeMethod(data.input);
+      const id = (data.input).slice(0,10);
 
       if (
-        data.to === contractAddress &&
-        decodedData != undefined &&
-        decodedData.name === "swapTokensForExactTokens"
+        methodId === id &&
+        data.to === contractAddress
       ) {
+      const decodedData = abiDecoder.decodeMethod(data.input);
         swapTxs.push(decodedData);
       }
     }
@@ -73,11 +73,8 @@ function provideHandleTransaction(
     let r2 = await token1Contract.methods.balanceOf(contractAddress).call(); // token1 reserves
 
     for (let i = 0; i < swapTxs.length - 2; ) {
-      const tx1 = swapTxs[i].params;
-      const tx2 = swapTxs[i + 1].params;
-      const x = tx1[0].value;
-      const v = tx2[0].value;
-      const m = tx2[1].value;
+      const [x] = swapTxs[i].params.map((y: any) => y.value); //Mapping to get AmountIn of Tx1
+      const [v, m] = swapTxs[i+1].params.map((z: any) => z.value); //Mapping to get AmountIn & AmountOutMin
 
       if (
         detectIfAttackPossible(

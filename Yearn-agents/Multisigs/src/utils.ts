@@ -1,6 +1,6 @@
-import { Finding, FindingSeverity, FindingType, HandleTransaction, Log } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, Log } from "forta-agent";
 import { decodeParameter, decodeParameters, FindingGenerator } from "forta-agent-tools";
-
+import LRU from "lru-cache";
 
 // Signatures
 const ADDED_OWNER: string = "AddedOwner(address)";
@@ -8,6 +8,19 @@ const REMOVED_OWNER: string = "RemovedOwner(address)";
 const EXECUTION_SUCCESS: string = "ExecutionSuccess(bytes32,uint256)";
 const EXECUTION_FAILURE: string = "ExecutionFailure(bytes32,uint256)";
 const TRANSFER: string = "Transfer(address,address,uint256)";
+
+const createFetcher = (web3: any) => {
+  const cache: LRU<string, string> = new LRU<string, string>({ max: 100 });
+
+  return async (block: number, ens: string): Promise<string> => {
+    const key: string = `${block}-${ens}`;
+    if(cache.has(key))
+      return cache.get(key) as string;
+    const addr: string = await web3.eth.ens.getAddress(ens);
+    cache.set(key, addr);
+    return addr;
+  }
+}
 
 const provideOwnerAddedFindingGenerator = (ens: string): FindingGenerator => 
   (metadata?: {[key: string]: any}): Finding => Finding.fromObject({
@@ -149,4 +162,5 @@ export default {
   EXECUTION_SUCCESS,
   EXECUTION_FAILURE,
   TRANSFER,
+  createFetcher,
 };
