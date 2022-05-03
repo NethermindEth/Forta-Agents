@@ -1,74 +1,242 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { encodeParameter, encodeParameters } from "forta-agent-tools";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { BigNumber } from "ethers";
+import { provideHandleTransaction } from "./agent";
+import { BLACKOUT_WINDOW_CHANGED_SIG, EPOCH_PARAMS_CHANGED_SIG, REWARDS_PER_SECOND_UPDATED_SIG } from "./utils";
 
-describe("high tether transfer agent", () => {
+const testSafetyModule: string = createAddress("0xab");
+const testLiquidityModule: string = createAddress("0xac");
+const testModuleAddresses: string[] = [testSafetyModule, testLiquidityModule];
+
+const testSender: string = createAddress("0xad");
+
+describe("Parameter Changes Monitor Test Suite", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction(testModuleAddresses);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("should return 0 findings in empty transactions", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(mockTxEvent);
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  it("should detect a BlackoutWindowChanged event emission from both the safety and liquidity modules", async () => {
+    const testDataOne = encodeParameter("uint256", BigNumber.from("100000000000000000000")); // 100
+    const testDataTwo = encodeParameter("uint256", BigNumber.from("350000000000000000000")); // 350
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testSafetyModule)
+      .setFrom(testSender)
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testSafetyModule, testDataOne)
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testLiquidityModule, testDataTwo);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "Blackout window has changed",
+        description: `BlackoutWindowChanged event was emitted from the address ${testSafetyModule}`,
+        alertId: "DYDX-17-1",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          blackoutWindow: BigNumber.from("100000000000000000000").toString(),
         },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+      }),
+      Finding.fromObject({
+        name: "Blackout window has changed",
+        description: `BlackoutWindowChanged event was emitted from the address ${testLiquidityModule}`,
+        alertId: "DYDX-17-1",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          blackoutWindow: BigNumber.from("350000000000000000000").toString(),
+        },
+      }),
+    ]);
+  });
 
-      const findings = await handleTransaction(mockTxEvent);
+  it("should detect a EpochParametersChanged event emission from both the safety and liquidity modules", async () => {
+    const testDataOne = encodeParameters(
+      ["uint128", "uint128"],
+      [BigNumber.from("250000000000000000000"), BigNumber.from("275000000000000000000")]
+    ); // 250, 275
+    const testDataTwo = encodeParameters(
+      ["uint128", "uint128"],
+      [BigNumber.from("5500000000000000000000"), BigNumber.from("775000000000000000000")]
+    ); // 550, 775
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testSafetyModule)
+      .setFrom(testSender)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testSafetyModule, testDataOne)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testLiquidityModule, testDataTwo);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "Epoch parameters have changed",
+        description: `EpochParametersChanged event was emitted from the address ${testSafetyModule}`,
+        alertId: "DYDX-17-2",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          interval: BigNumber.from("250000000000000000000").toString(),
+          offset: BigNumber.from("275000000000000000000").toString(),
+        },
+      }),
+      Finding.fromObject({
+        name: "Epoch parameters have changed",
+        description: `EpochParametersChanged event was emitted from the address ${testLiquidityModule}`,
+        alertId: "DYDX-17-2",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          interval: BigNumber.from("5500000000000000000000").toString(),
+          offset: BigNumber.from("775000000000000000000").toString(),
+        },
+      }),
+    ]);
+  });
+
+  it("should detect a RewardsPerSecondUpdated event emission from both the safety and liquidity modules", async () => {
+    const testDataOne = encodeParameter("uint256", BigNumber.from("500000000000000000000")); // 500
+    const testDataTwo = encodeParameter("uint256", BigNumber.from("750000000000000000000")); // 750
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testSafetyModule)
+      .setFrom(testSender)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testSafetyModule, testDataOne)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testLiquidityModule, testDataTwo);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "Rewards per second have been updated",
+        description: `RewardsPerSecondUpdated event was emitted from the address ${testSafetyModule}`,
+        alertId: "DYDX-17-3",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          emissionPerSecond: BigNumber.from("500000000000000000000").toString(),
+        },
+      }),
+      Finding.fromObject({
+        name: "Rewards per second have been updated",
+        description: `RewardsPerSecondUpdated event was emitted from the address ${testLiquidityModule}`,
+        alertId: "DYDX-17-3",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          emissionPerSecond: BigNumber.from("750000000000000000000").toString(),
+        },
+      }),
+    ]);
+  });
+
+  it("should not detect the events emitting from the incorrect contract", async () => {
+    const wrongContract: string = createAddress("0xd34d");
+
+    const testDataOne = encodeParameter("uint256", BigNumber.from("500000000000000000000")); // 500
+    const testDataTwo = encodeParameters(
+      ["uint128", "uint128"],
+      [BigNumber.from("5500000000000000000000"), BigNumber.from("775000000000000000000")] // 550, 775
+    );
+    const testDataThree = encodeParameter("uint256", BigNumber.from("750000000000000000000")); // 750
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(wrongContract)
+      .setFrom(testSender)
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, wrongContract, testDataOne)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, wrongContract, testDataTwo)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, wrongContract, testDataThree);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect another event emission from either the safety nor liquidity modules", async () => {
+    const wrongEventSig: string = "wrongEvent(uint256)";
+    const testDataOne = encodeParameter("uint256", BigNumber.from("500000000000000000000")); // 500
+    const testDataTwo = encodeParameter("uint256", BigNumber.from("750000000000000000000")); // 750
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testSafetyModule)
+      .setFrom(testSender)
+      .addEventLog(wrongEventSig, testSafetyModule, testDataOne)
+      .addEventLog(wrongEventSig, testLiquidityModule, testDataTwo);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect various combinations of event emissions and module contracts", async () => {
+    const testDataOne = encodeParameter("uint256", BigNumber.from("500000000000000000000")); // 500
+    const testDataTwo = encodeParameters(
+      ["uint128", "uint128"],
+      [BigNumber.from("5500000000000000000000"), BigNumber.from("775000000000000000000")] // 550, 775
+    );
+    const testDataThree = encodeParameter("uint256", BigNumber.from("750000000000000000000")); // 750
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testLiquidityModule)
+      .setFrom(testSender)
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testSafetyModule, testDataOne)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testLiquidityModule, testDataTwo)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testSafetyModule, testDataThree);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        name: "Blackout window has changed",
+        description: `BlackoutWindowChanged event was emitted from the address ${testSafetyModule}`,
+        alertId: "DYDX-17-1",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          blackoutWindow: BigNumber.from("500000000000000000000").toString(),
+        },
+      }),
+      Finding.fromObject({
+        name: "Epoch parameters have changed",
+        description: `EpochParametersChanged event was emitted from the address ${testLiquidityModule}`,
+        alertId: "DYDX-17-2",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          interval: BigNumber.from("5500000000000000000000").toString(),
+          offset: BigNumber.from("775000000000000000000").toString(),
+        },
+      }),
+      Finding.fromObject({
+        name: "Rewards per second have been updated",
+        description: `RewardsPerSecondUpdated event was emitted from the address ${testSafetyModule}`,
+        alertId: "DYDX-17-3",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "dYdX",
+        metadata: {
+          emissionPerSecond: BigNumber.from("750000000000000000000").toString(),
+        },
+      })
+    ]);
   });
 });
