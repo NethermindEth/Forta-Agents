@@ -17,6 +17,7 @@ This agent detects changes to the `FeeTo` and `FeeToSetter` addresses on `ApeFac
   - Type is always set to "Info".
   - Metadata contains:
     - `feeTo`: New feeTo address.
+  - Addresses contain the `ApeFactory` contract address.
 
 - APESWAP-7-2
   - Fired when the `setFeeToSetter` function is called on `ApeFactory`.
@@ -24,6 +25,7 @@ This agent detects changes to the `FeeTo` and `FeeToSetter` addresses on `ApeFac
   - Type is always set to "Info".
   - Metadata contains:
     - `feeToSetter`: New feeToSetter address.
+  - Addresses contain the `ApeFactory` contract address.
   
 ## Test Data
 
