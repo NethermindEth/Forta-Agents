@@ -34,8 +34,6 @@ This agent detects parameter changes to both the Safety Module and Liquidity Mod
 
 ## Test Data
 
-> Note: To test the following, follow the comments in `utils.ts`.
-
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0x6dEA282B05C76cC9249513554A3C4Bf646908344](https://kovan.etherscan.io/address/0x6dea282b05c76cc9249513554a3c4bf646908344) - `TestProxy`.

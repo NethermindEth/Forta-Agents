@@ -3,11 +3,8 @@ import { encodeParameter, encodeParameters } from "forta-agent-tools";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { provideHandleTransaction } from "./agent";
+import NetworkManager from "./network";
 import { BLACKOUT_WINDOW_CHANGED_SIG, EPOCH_PARAMS_CHANGED_SIG, REWARDS_PER_SECOND_UPDATED_SIG } from "./utils";
-
-const testSafetyModule: string = createAddress("0xab");
-const testLiquidityModule: string = createAddress("0xac");
-const testModuleAddresses: string[] = [testSafetyModule, testLiquidityModule];
 
 const testSender: string = createAddress("0xad");
 
@@ -35,8 +32,14 @@ const testCases: BigNumber[] = [
 describe("Parameter Changes Monitor Test Suite", () => {
   let handleTransaction: HandleTransaction;
 
+  const mockNetworkManager: NetworkManager = {
+    safetyModule: createAddress("0xab"),
+    liquidityModule: createAddress("0xac"),
+    setNetwork: jest.fn(),
+  };
+
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(testModuleAddresses);
+    handleTransaction = provideHandleTransaction(mockNetworkManager);
   });
 
   it("should return 0 findings in empty transactions", async () => {
@@ -51,17 +54,17 @@ describe("Parameter Changes Monitor Test Suite", () => {
     const testDataTwo = encodeParameter("uint256", testCases[1]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testSafetyModule)
+      .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testSafetyModule, testDataOne)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testLiquidityModule, testDataTwo);
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${testSafetyModule}`,
+        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -72,7 +75,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
       }),
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${testLiquidityModule}`,
+        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -89,17 +92,17 @@ describe("Parameter Changes Monitor Test Suite", () => {
     const testDataTwo = encodeParameters(["uint128", "uint128"], [testCases[4], testCases[5]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testSafetyModule)
+      .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testSafetyModule, testDataOne)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testLiquidityModule, testDataTwo);
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${testSafetyModule}`,
+        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -111,7 +114,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${testLiquidityModule}`,
+        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -129,17 +132,17 @@ describe("Parameter Changes Monitor Test Suite", () => {
     const testDataTwo = encodeParameter("uint256", testCases[7]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testSafetyModule)
+      .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testSafetyModule, testDataOne)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testLiquidityModule, testDataTwo);
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.safetyModule, testDataOne)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${testSafetyModule}`,
+        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.safetyModule}`,
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -150,7 +153,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${testLiquidityModule}`,
+        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.liquidityModule}`,
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -187,10 +190,10 @@ describe("Parameter Changes Monitor Test Suite", () => {
     const testDataTwo = encodeParameter("uint256", testCases[13]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testSafetyModule)
+      .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(wrongEventSig, testSafetyModule, testDataOne)
-      .addEventLog(wrongEventSig, testLiquidityModule, testDataTwo);
+      .addEventLog(wrongEventSig, mockNetworkManager.safetyModule, testDataOne)
+      .addEventLog(wrongEventSig, mockNetworkManager.liquidityModule, testDataTwo);
 
     const findings = await handleTransaction(txEvent);
 
@@ -203,18 +206,18 @@ describe("Parameter Changes Monitor Test Suite", () => {
     const testDataThree = encodeParameter("uint256", testCases[17]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testLiquidityModule)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, testSafetyModule, testDataOne)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, testLiquidityModule, testDataTwo)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, testSafetyModule, testDataThree);
+      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
+      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo)
+      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.safetyModule, testDataThree);
 
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${testSafetyModule}`,
+        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -225,7 +228,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${testLiquidityModule}`,
+        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -237,7 +240,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${testSafetyModule}`,
+        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.safetyModule}`,
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,

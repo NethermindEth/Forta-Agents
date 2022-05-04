@@ -1,15 +1,25 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { MODULE_ADDRESSES, EVENTS } from "./utils";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { providers } from "ethers";
+import NetworkData from "./network";
+import NetworkManager from "./network";
+import { EVENTS } from "./utils";
 import { createFinding } from "./findings";
 
-export function provideHandleTransaction(proxyAddresses: string[]): HandleTransaction {
+const networkManager = new NetworkManager();
+
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+};
+
+export function provideHandleTransaction(networkManager: NetworkData): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // If any of the desired events are emitted by either
     // the Safety Module or Liquidity Module contracts,
     // create a finding
-    txEvent.filterLog(EVENTS, proxyAddresses).map((log) => {
+    txEvent.filterLog(EVENTS, [networkManager.safetyModule, networkManager.liquidityModule]).map((log) => {
       findings.push(createFinding(log.name, log.args, log.address));
     });
 
@@ -18,5 +28,6 @@ export function provideHandleTransaction(proxyAddresses: string[]): HandleTransa
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(MODULE_ADDRESSES),
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
