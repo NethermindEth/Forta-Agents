@@ -16,6 +16,7 @@ This agent detects parameter changes to both the Safety Module and Liquidity Mod
   - Type is always set to "Info".
   - Metadata includes:
     - `blackoutWindow`: New blackout window.
+  - Addresses is the address from which the event was emitted.
 
 - DYDX-17-2
   - Fired when `EpochParametersChanged` event is emitted.
@@ -24,6 +25,7 @@ This agent detects parameter changes to both the Safety Module and Liquidity Mod
   - Metadata includes:
     - `interval`: New interval epoch parameter.
     - `offset`: New offset epoch parameter.
+  - Addresses is the address from which the event was emitted.
 
 - DYDX-17-3
   - Fired when `RewardsPerSecondUpdated` event is emitted.
@@ -31,6 +33,7 @@ This agent detects parameter changes to both the Safety Module and Liquidity Mod
   - Type is always set to "Info".
   - Metadata includes:
     - `emissionPerSecond`: The new number of rewards tokens to give out each second.
+  - Addresses is the address from which the event was emitted.
 
 ## Test Data
 

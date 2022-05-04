@@ -64,7 +64,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
+        description: "BlackoutWindowChanged event was emitted",
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -72,10 +72,11 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[0].toString(),
         },
+        addresses: [mockNetworkManager.safetyModule]
       }),
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
+        description: "BlackoutWindowChanged event was emitted",
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -83,6 +84,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[1].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
     ]);
   });
@@ -102,7 +104,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
+        description: "EpochParametersChanged event was emitted",
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -111,10 +113,11 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[2].toString(),
           offset: testCases[3].toString(),
         },
+        addresses: [mockNetworkManager.safetyModule]
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
+        description: "EpochParametersChanged event was emitted",
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -123,6 +126,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[4].toString(),
           offset: testCases[5].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
     ]);
   });
@@ -142,7 +146,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.safetyModule}`,
+        description: "RewardsPerSecondUpdated event was emitted",
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -150,10 +154,11 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[6].toString(),
         },
+        addresses: [mockNetworkManager.safetyModule]
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.liquidityModule}`,
+        description: "RewardsPerSecondUpdated event was emitted",
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -161,6 +166,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[7].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
     ]);
   });
@@ -217,7 +223,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Blackout window has changed",
-        description: `BlackoutWindowChanged event was emitted from the address ${mockNetworkManager.safetyModule}`,
+        description: "BlackoutWindowChanged event was emitted",
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -225,10 +231,11 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[14].toString(),
         },
+        addresses: [mockNetworkManager.safetyModule]
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `EpochParametersChanged event was emitted from the address ${mockNetworkManager.liquidityModule}`,
+        description: "EpochParametersChanged event was emitted",
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -237,10 +244,11 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[15].toString(),
           offset: testCases[16].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `RewardsPerSecondUpdated event was emitted from the address ${mockNetworkManager.safetyModule}`,
+        description: "RewardsPerSecondUpdated event was emitted",
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -248,6 +256,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[17].toString(),
         },
+        addresses: [mockNetworkManager.safetyModule]
       }),
     ]);
   });

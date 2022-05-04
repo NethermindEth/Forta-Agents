@@ -6,7 +6,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
     case "BlackoutWindowChanged":
       return Finding.fromObject({
         name: "Blackout window has changed",
-        description: `${name} event was emitted from the address ${logAddress}`,
+        description: `${name} event was emitted`,
         alertId: "DYDX-17-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -14,12 +14,13 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         metadata: {
           blackoutWindow: args.blackoutWindow.toString(),
         },
+        addresses: [logAddress]
       });
 
     case "EpochParametersChanged":
       return Finding.fromObject({
         name: "Epoch parameters have changed",
-        description: `${name} event was emitted from the address ${logAddress}`,
+        description: `${name} event was emitted`,
         alertId: "DYDX-17-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -28,12 +29,13 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
           interval: args.epochParameters[0].toString(),
           offset: args.epochParameters[1].toString(),
         },
+        addresses: [logAddress]
       });
 
     default:
       return Finding.fromObject({
         name: "Rewards per second have been updated",
-        description: `${name} event was emitted from the address ${logAddress}`,
+        description: `${name} event was emitted`,
         alertId: "DYDX-17-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
@@ -41,6 +43,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         metadata: {
           emissionPerSecond: args.emissionPerSecond.toString(),
         },
+        addresses: [logAddress]
       });
   }
 };
