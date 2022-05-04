@@ -6,6 +6,9 @@ export function provideHandleTransaction(proxyAddresses: string[]): HandleTransa
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
+    // If any of the desired events are emitted by either
+    // the Safety Module or Liquidity Module contracts,
+    // create a finding
     txEvent.filterLog(EVENTS, proxyAddresses).map((log) => {
       findings.push(createFinding(log.name, log.args, log.address));
     });
