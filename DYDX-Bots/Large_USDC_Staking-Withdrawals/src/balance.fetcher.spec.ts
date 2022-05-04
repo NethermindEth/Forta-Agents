@@ -35,8 +35,6 @@ describe("Balance Fetcher test suite", () => {
     // clear mock to use cache
     mockProvider.clear();
     for (let [proxyAddress, proxyStakeTokenAmount, blockNumber] of TEST_CASES) {
-      createBalanceOfCall(proxyAddress, proxyStakeTokenAmount, blockNumber);
-
       const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(proxyAddress, blockNumber);
       expect(fetchedTokenAmount).toStrictEqual(proxyStakeTokenAmount);
     }
