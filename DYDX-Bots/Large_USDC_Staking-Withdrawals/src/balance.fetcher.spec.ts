@@ -5,7 +5,7 @@ import BalanceFetcher from "./balance.fetcher";
 import { USDC_IFACE } from "./utils";
 
 describe("Balance Fetcher test suite", () => {
-  // Format: [proxyAddress, proxyTokenAmount, blockNumber]
+  // Format: [moduleAddress, moduleTokenAmount, blockNumber]
   const TEST_CASES: [string, BigNumber, number][] = [
     [createAddress("0x1"), BigNumber.from("10"), 1],
     [createAddress("0x2"), BigNumber.from("20"), 2],
@@ -18,30 +18,38 @@ describe("Balance Fetcher test suite", () => {
     usdcAddress: createAddress("0xac"),
     setNetwork: jest.fn(),
   };
-  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
+  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any);
 
-  function createBalanceOfCall(proxyAddress: string, tokenAmount: BigNumber, blockNumber: number) {
+  function createBalanceOfCall(moduleAddress: string, tokenAmount: BigNumber, blockNumber: number) {
     return mockProvider.addCallTo(mockNetworkManager.usdcAddress, blockNumber, USDC_IFACE, "balanceOf", {
-      inputs: [proxyAddress],
+      inputs: [moduleAddress],
       outputs: [tokenAmount],
     });
   }
 
   beforeEach(() => mockProvider.clear());
 
-  it("should store correct stake token amount of proxy address", async () => {
-    for (let [proxyAddress, proxyStakeTokenAmount, blockNumber] of TEST_CASES) {
-      createBalanceOfCall(proxyAddress, proxyStakeTokenAmount, blockNumber);
+  it("should store correct stake token amount of module address", async () => {
+    for (let [moduleAddress, moduleStakeTokenAmount, blockNumber] of TEST_CASES) {
+      createBalanceOfCall(moduleAddress, moduleStakeTokenAmount, blockNumber);
 
-      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(proxyAddress, blockNumber);
-      expect(fetchedTokenAmount).toStrictEqual(proxyStakeTokenAmount);
+      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(
+        moduleAddress,
+        mockNetworkManager.usdcAddress,
+        blockNumber
+      );
+      expect(fetchedTokenAmount).toStrictEqual(moduleStakeTokenAmount);
     }
 
     // clear mock to use cache
     mockProvider.clear();
-    for (let [proxyAddress, proxyStakeTokenAmount, blockNumber] of TEST_CASES) {
-      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(proxyAddress, blockNumber);
-      expect(fetchedTokenAmount).toStrictEqual(proxyStakeTokenAmount);
+    for (let [moduleAddress, moduleStakeTokenAmount, blockNumber] of TEST_CASES) {
+      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(
+        moduleAddress,
+        mockNetworkManager.usdcAddress,
+        blockNumber
+      );
+      expect(fetchedTokenAmount).toStrictEqual(moduleStakeTokenAmount);
     }
   });
 });
