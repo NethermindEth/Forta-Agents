@@ -7,6 +7,8 @@ import NetworkManager from "./network";
 
 const TEST_MASTER_APE: string = createAddress("0x9898");
 const TEST_MASTER_APE_ADMIN: string = createAddress("0x7171");
+const TEST_MINI_APE_V2: string = createAddress("0xaeea");
+const TEST_MINI_COMPLEX_REWARDER_TIME: string = createAddress("0x868a");
 
 const WRONG_IFACE: Interface = new Interface([
   "event WrongEvent(address indexed previousOwner, address indexed newOwner)",
@@ -79,12 +81,13 @@ const testCreateFinding = (operation: string, contract: string, args: any[]) => 
 };
 
 describe("Apeswap role changes bot test suite", () => {
-
   const mockNetworkManager: NetworkManager = {
     masterApe: TEST_MASTER_APE,
     masterApeAdmin: TEST_MASTER_APE_ADMIN,
+    miniApeV2: TEST_MINI_APE_V2,
+    miniComplexRewarderTime: TEST_MINI_COMPLEX_REWARDER_TIME,
     setNetwork: jest.fn(),
-  }
+  };
 
   const handleTransaction: HandleTransaction = provideHandleTransaction(mockNetworkManager);
 
@@ -100,6 +103,17 @@ describe("Apeswap role changes bot test suite", () => {
       })
       .addAnonymousEventLog(mockNetworkManager.masterApe, log.data, ...log.topics)
       .addAnonymousEventLog(mockNetworkManager.masterApeAdmin, log.data, ...log.topics);
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore other event logs on MiniApeV2 and MiniComplexRewarderTime contracts", async () => {
+    const event = WRONG_IFACE.getEvent("WrongEvent");
+    const log = WRONG_IFACE.encodeEventLog(event, [...CASES[0]]);
+    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(mockNetworkManager.miniApeV2, log.data, ...log.topics)
+      .addAnonymousEventLog(mockNetworkManager.miniComplexRewarderTime, log.data, ...log.topics);
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -161,6 +175,28 @@ describe("Apeswap role changes bot test suite", () => {
       testCreateFinding("OwnershipTransferred", "MasterApeAdmin", CASES[4]),
       testCreateFinding("OwnershipRenounced", "MasterApeAdmin", CASES[5]),
       testCreateFinding("dev", "MasterApe", CASES[3]),
+    ]);
+  });
+
+  it("should return findings when role changes happen on MiniApeV2 and MiniComplexRewarderTime contracts", async () => {
+    const event1 = utils.EVENTS_IFACE.getEvent("OwnershipTransferred");
+    const log1 = utils.EVENTS_IFACE.encodeEventLog(event1, [...CASES[0]]);
+    const log3 = utils.EVENTS_IFACE.encodeEventLog(event1, [...CASES[1]]);
+    const log4 = utils.EVENTS_IFACE.encodeEventLog(event1, [...CASES[4]]);
+    const log5 = utils.EVENTS_IFACE.encodeEventLog(event1, [...CASES[5]]);
+
+    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+      .addAnonymousEventLog(mockNetworkManager.miniApeV2, log1.data, ...log1.topics)
+      .addAnonymousEventLog(mockNetworkManager.miniApeV2, log3.data, ...log3.topics)
+      .addAnonymousEventLog(mockNetworkManager.miniComplexRewarderTime, log4.data, ...log4.topics)
+      .addAnonymousEventLog(mockNetworkManager.miniComplexRewarderTime, log5.data, ...log5.topics);
+
+    const findings: Finding[] = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      testCreateFinding("OwnershipTransferred", "MiniApeV2", CASES[0]),
+      testCreateFinding("OwnershipRenounced", "MiniApeV2", CASES[1]),
+      testCreateFinding("OwnershipTransferred", "MiniComplexRewarderTime", CASES[4]),
+      testCreateFinding("OwnershipRenounced", "MiniComplexRewarderTime", CASES[5]),
     ]);
   });
 });
