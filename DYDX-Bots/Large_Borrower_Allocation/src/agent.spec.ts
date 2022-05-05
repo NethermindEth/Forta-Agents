@@ -96,6 +96,7 @@ describe("Large Borrower Allocation test suite", () => {
           newAllocation: testCases[0][2].toString(),
           epochNumber: testCases[0][3].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
     ]);
   });
@@ -181,6 +182,7 @@ describe("Large Borrower Allocation test suite", () => {
           newAllocation: testCases[3][2].toString(),
           epochNumber: testCases[3][3].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
       Finding.fromObject({
         name: "Large borrower allocation change detected on dYdX perpetual exchange.",
@@ -195,6 +197,7 @@ describe("Large Borrower Allocation test suite", () => {
           newAllocation: testCases[5][2].toString(),
           epochNumber: testCases[5][3].toString(),
         },
+        addresses: [mockNetworkManager.liquidityModule]
       }),
     ]);
   });

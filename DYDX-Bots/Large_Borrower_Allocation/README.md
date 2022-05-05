@@ -20,6 +20,7 @@ This bot detects when a borrower's allocation is high. The bot listens to `Sched
     - `oldAllocation`: Previous allocation of borrower.
     - `newAllocation`: New allocation of borrower.
     - `epochNumber`: Current epoch number.
+  - Addresses is the address from which the event was emitted.
 
 ## Test Data
 

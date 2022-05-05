@@ -14,5 +14,6 @@ export const createFinding = (log: LogDescription) => {
       newAllocation: log.args.newAllocation.toString(),
       epochNumber: log.args.epochNumber.toString(),
     },
+    addresses: [log.address]
   });
 };
