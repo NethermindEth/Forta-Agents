@@ -2,14 +2,6 @@ import { Interface } from "@ethersproject/abi";
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 import { utils as ethers } from "ethers";
 
-const testMode: boolean = false;
-const MASTER_APE: string = testMode
-  ? "0x062cdBba9348d65BD225e90224159d1e2d4326D8"
-  : "0x5c8D727b265DBAfaba67E050f2f739cAeEB4A6F9";
-const MASTER_APE_ADMIN: string = testMode
-  ? "0x22fdC4d8eEea0d219E15025d2BCDe38d948e9A13"
-  : "0x9fed2bc7f0b4f4350b52e29e0a3c2bf5ebc3cc0a";
-
 const EVENTS_ABI: string[] = [
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
   "event TransferredFarmAdmin(address indexed previousFarmAdmin, address indexed newFarmAdmin)",
@@ -79,8 +71,6 @@ const createFunctionFinding = (call: ethers.TransactionDescription): Finding => 
 };
 
 export default {
-  MASTER_APE,
-  MASTER_APE_ADMIN,
   EVENTS_ABI,
   EVENTS_IFACE,
   FUNCTIONS_ABI,

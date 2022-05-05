@@ -3,6 +3,7 @@ import { Finding, FindingType, FindingSeverity, HandleTransaction } from "forta-
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import utils from "./utils";
+import NetworkManager from "./network";
 
 const TEST_MASTER_APE: string = createAddress("0x9898");
 const TEST_MASTER_APE_ADMIN: string = createAddress("0x7171");
@@ -78,7 +79,14 @@ const testCreateFinding = (operation: string, contract: string, args: any[]) => 
 };
 
 describe("Apeswap role changes bot test suite", () => {
-  const handleTransaction: HandleTransaction = provideHandleTransaction(TEST_MASTER_APE, TEST_MASTER_APE_ADMIN);
+
+  const mockNetworkManager: NetworkManager = {
+    masterApe: TEST_MASTER_APE,
+    masterApeAdmin: TEST_MASTER_APE_ADMIN,
+    setNetwork: jest.fn(),
+  }
+
+  const handleTransaction: HandleTransaction = provideHandleTransaction(mockNetworkManager);
 
   it("should ignore other event logs and function calls on MasterApe and MasterApeAdmin contracts", async () => {
     const event = WRONG_IFACE.getEvent("WrongEvent");
@@ -86,12 +94,12 @@ describe("Apeswap role changes bot test suite", () => {
     const txEvent: TestTransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0x63a4"))
       .addTraces({
-        to: TEST_MASTER_APE,
+        to: mockNetworkManager.masterApe,
         from: createAddress("0x63a4"),
         input: WRONG_IFACE.encodeFunctionData("wrongFunction", CASES[3]),
       })
-      .addAnonymousEventLog(TEST_MASTER_APE, log.data, ...log.topics)
-      .addAnonymousEventLog(TEST_MASTER_APE_ADMIN, log.data, ...log.topics);
+      .addAnonymousEventLog(mockNetworkManager.masterApe, log.data, ...log.topics)
+      .addAnonymousEventLog(mockNetworkManager.masterApeAdmin, log.data, ...log.topics);
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -135,15 +143,15 @@ describe("Apeswap role changes bot test suite", () => {
     const txEvent: TestTransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xbba4"))
       .addTraces({
-        to: TEST_MASTER_APE,
+        to: mockNetworkManager.masterApe,
         from: createAddress("0xbba4"),
         input: utils.FUNCTIONS_IFACE.encodeFunctionData("dev", CASES[3]),
       })
-      .addAnonymousEventLog(TEST_MASTER_APE, log1.data, ...log1.topics)
-      .addAnonymousEventLog(TEST_MASTER_APE, log3.data, ...log3.topics)
-      .addAnonymousEventLog(TEST_MASTER_APE_ADMIN, log2.data, ...log2.topics)
-      .addAnonymousEventLog(TEST_MASTER_APE_ADMIN, log4.data, ...log4.topics)
-      .addAnonymousEventLog(TEST_MASTER_APE_ADMIN, log5.data, ...log5.topics);
+      .addAnonymousEventLog(mockNetworkManager.masterApe, log1.data, ...log1.topics)
+      .addAnonymousEventLog(mockNetworkManager.masterApe, log3.data, ...log3.topics)
+      .addAnonymousEventLog(mockNetworkManager.masterApeAdmin, log2.data, ...log2.topics)
+      .addAnonymousEventLog(mockNetworkManager.masterApeAdmin, log4.data, ...log4.topics)
+      .addAnonymousEventLog(mockNetworkManager.masterApeAdmin, log5.data, ...log5.topics);
 
     const findings: Finding[] = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([

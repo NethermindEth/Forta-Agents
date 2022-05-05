@@ -47,8 +47,7 @@ This bot detects role (ownership/dev) changes in Apeswap's `MasterApe` and `Mast
     
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on **BSC testnet**:
+The bot behaviour can be verified with the following transactions on **BSC testnet** (PoC):
 - [0xef3949f07676b3443fc863deb214b3e2bc5bfbb10feaae8bf99fc27b531ef9f7](https://testnet.bscscan.com/tx/0xef3949f07676b3443fc863deb214b3e2bc5bfbb10feaae8bf99fc27b531ef9f7) 
 - [0x1fdbdcdace68778c14ca5e7f6e2551e07a2cd71bc53d345ad240be55ed08b1b4](https://testnet.bscscan.com/tx/0x1fdbdcdace68778c14ca5e7f6e2551e07a2cd71bc53d345ad240be55ed08b1b4)
 
-> In order to use the testnet PoC contracts, `testNet` should be set to true in **src/utils.ts**.
