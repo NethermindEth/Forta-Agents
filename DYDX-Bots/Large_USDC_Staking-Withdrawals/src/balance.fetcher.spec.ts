@@ -1,10 +1,10 @@
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
+import NetworkManager from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { USDC_IFACE } from "./utils";
 
 describe("Balance Fetcher test suite", () => {
-  const testTokenAddress: string = createAddress("0xab");
   // Format: [proxyAddress, proxyTokenAmount, blockNumber]
   const TEST_CASES: [string, BigNumber, number][] = [
     [createAddress("0x1"), BigNumber.from("10"), 1],
@@ -13,10 +13,15 @@ describe("Balance Fetcher test suite", () => {
     [createAddress("0x4"), BigNumber.from("40"), 4],
   ];
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testTokenAddress);
+  const mockNetworkManager: NetworkManager = {
+    liquidityModule: createAddress("0xab"),
+    usdcAddress: createAddress("0xac"),
+    setNetwork: jest.fn(),
+  };
+  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
 
   function createBalanceOfCall(proxyAddress: string, tokenAmount: BigNumber, blockNumber: number) {
-    return mockProvider.addCallTo(testTokenAddress, blockNumber, USDC_IFACE, "balanceOf", {
+    return mockProvider.addCallTo(mockNetworkManager.usdcAddress, blockNumber, USDC_IFACE, "balanceOf", {
       inputs: [proxyAddress],
       outputs: [tokenAmount],
     });
