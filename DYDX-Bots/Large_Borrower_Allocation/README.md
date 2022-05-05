@@ -24,8 +24,6 @@ This bot detects when a borrower's allocation is high. The bot listens to `Sched
 
 ## Test Data
 
-> Note: To test the following, follow the comments in `utils.ts`.
-
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0x9670277EcB0b56f52E113c9c3833681d2Af7d253](https://kovan.etherscan.io/address/0x9670277ecb0b56f52e113c9c3833681d2af7d253) - `TestProxy`.
