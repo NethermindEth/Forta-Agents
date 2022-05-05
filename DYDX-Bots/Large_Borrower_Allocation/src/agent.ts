@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { BigNumber, providers } from "ethers";
 import NetworkData from "./network";
 import NetworkManager from "./network";
@@ -28,5 +28,6 @@ export function provideHandleTransaction(networkManager: NetworkData, threshold:
 }
 
 export default {
+  initialize: provideInitialize(getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager, THRESHOLD),
 };
