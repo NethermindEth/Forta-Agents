@@ -65,7 +65,7 @@ const TOKEN_CONTRACT: testTokenType = {
   name: "Test token",
 };
 
-describe("address inclusion and exclusion bot test", () => {
+describe("address inclusion and exclusion bot test suite", () => {
   const handleTransaction: HandleTransaction = provideBotHandler(TOKEN_CONTRACT);
   const transferTransactionData = encodeFunctionCall(
     createFunctionInterface("transfer", { name: "value", type: "uint256" }, { name: "to", type: "address" }),
@@ -79,7 +79,7 @@ describe("address inclusion and exclusion bot test", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it(`should return empty findings if there is an inclusion/exclusion function call not invoked from ${TOKEN_CONTRACT.name}`, async () => {
+  it("should return empty findings if there is an inclusion/exclusion function call not invoked from Test token", async () => {
     let txEvent: TransactionEvent = new TestTransactionEvent()
       .setData(createExclusionTransactionData(createAddress("0x1237")))
       .setTo(createAddress("0x568A"));
@@ -95,7 +95,7 @@ describe("address inclusion and exclusion bot test", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it(`should return a finding if there is an inclusion/exclusion function invocation from  ${TOKEN_CONTRACT.name}`, async () => {
+  it("should return a finding if there is an inclusion/exclusion function invocation from  Test token", async () => {
     let txEvent: TransactionEvent = new TestTransactionEvent()
       .setData(createExclusionTransactionData(createAddress("0x1237")))
       .setTo(TOKEN_CONTRACT.address);
@@ -119,37 +119,16 @@ describe("address inclusion and exclusion bot test", () => {
       },
       {
         input: createInclusionTransactionData(createAddress("0x943")),
+        to: createAddress("0x765"),
+      },
+      {
+        input: createInclusionTransactionData(createAddress("0x943")),
         to: TOKEN_CONTRACT.address,
       },
       {
         input: createExclusionTransactionData(createAddress("0x987")),
         to: TOKEN_CONTRACT.address,
-      }
-    );
-    let findings: Finding[] = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(createAddress("0x345"), "excludeAccount", TOKEN_CONTRACT),
-      testCreateFinding(createAddress("0x943"), "includeAccount", TOKEN_CONTRACT),
-      testCreateFinding(createAddress("0x987"), "excludeAccount", TOKEN_CONTRACT),
-    ]);
-  });
-
-  it("should correctly return findings when there are multiple internal txns", async () => {
-    let txEvent: TransactionEvent = new TestTransactionEvent().addTraces(
-      {
-        input: createExclusionTransactionData(createAddress("0x345")),
-        to: TOKEN_CONTRACT.address,
       },
-      {
-        input: createInclusionTransactionData(createAddress("0x943")),
-        to: createAddress("0x765"),
-      },
-      {
-        input: createInclusionTransactionData(createAddress("0x987")),
-        to: TOKEN_CONTRACT.address,
-      },
-
       {
         input: transferTransactionData,
         to: TOKEN_CONTRACT.address,
@@ -159,7 +138,8 @@ describe("address inclusion and exclusion bot test", () => {
 
     expect(findings).toStrictEqual([
       testCreateFinding(createAddress("0x345"), "excludeAccount", TOKEN_CONTRACT),
-      testCreateFinding(createAddress("0x987"), "includeAccount", TOKEN_CONTRACT),
+      testCreateFinding(createAddress("0x943"), "includeAccount", TOKEN_CONTRACT),
+      testCreateFinding(createAddress("0x987"), "excludeAccount", TOKEN_CONTRACT),
     ]);
   });
 });
