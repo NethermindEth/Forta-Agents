@@ -1,0 +1,31 @@
+{
+  "name": "vesper-forta-module",
+  "version": "1.0.2",
+  "description": "Common function required by Vesper to run Forta bots",
+  "main": "index.ts",
+  "type": "module",
+  "author": "Virendra Patidar",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@types/jest-when": "^2.7.3",
+    "@types/lru-cache": "^5.1.1",
+    "axios": "^0.26.0",
+    "bignumber.js": "^9.0.1",
+    "forta-agent": "^0.0.32",
+    "forta-agent-tools": "^1.0.32",
+    "jest-when": "^3.4.1",
+    "lru-cache": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@types/lru-cache": "^5.1.1",
+    "@types/nodemon": "^1.19.0",
+    "jest": "^27.0.6",
+    "nodemon": "^2.0.8",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.4"
+  }
+}
