@@ -1,5 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, providers } from "ethers";
+import NetworkData from "./network";
+import NetworkManager from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import {
   PROXY_ADDRESS,
@@ -11,10 +13,17 @@ import {
 } from "./utils";
 import { createFinding } from "./findings";
 
-const USDC_BAL_FETCHER: BalanceFetcher = new BalanceFetcher(getEthersProvider(), USDC_ADDRESS);
+const networkManager = new NetworkManager();
+
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+};
+
+const USDC_BAL_FETCHER: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
 
 export function provideHandleTransaction(
-  proxyAddress: string,
+  networkManager: NetworkData,
   fetcher: BalanceFetcher,
   thresholdPercentage: number
 ): HandleTransaction {
@@ -22,11 +31,11 @@ export function provideHandleTransaction(
     let findings: Finding[] = [];
 
     await Promise.all(
-      txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], proxyAddress).map(async (log) => {
+      txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], networkManager.liquidityModule).map(async (log) => {
         // Get the stake token balance of the proxy contract at the previous block
         // (before the transaction, and subsequent event emission ocurred)
         const proxyBalance: BigNumber = BigNumber.from(
-          await fetcher.getBalanceOf(proxyAddress, txEvent.blockNumber - 1)
+          await fetcher.getBalanceOf(networkManager.liquidityModule, txEvent.blockNumber - 1)
         );
 
         // Find the threshold amount from the percentage
@@ -45,5 +54,6 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(PROXY_ADDRESS, USDC_BAL_FETCHER, THRESHOLD_PERCENTAGE),
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, USDC_BAL_FETCHER, THRESHOLD_PERCENTAGE),
 };

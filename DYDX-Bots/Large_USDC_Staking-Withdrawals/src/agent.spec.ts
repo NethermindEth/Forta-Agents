@@ -3,12 +3,11 @@ import { encodeParameter, encodeParameters } from "forta-agent-tools";
 import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { provideHandleTransaction } from "./agent";
+import NetworkManager from "./network";
 import { STAKED_SIG, WITHDREW_STAKE_SIG, WITHDREW_DEBT_SIG, USDC_IFACE } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
-const testProxyAddr: string = createAddress("0xab");
-const testStakeTokenAddress: string = createAddress("0xad");
-const testProxyStakeTokenBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10
+const testModuleUsdcBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10
 const testThresholdPercentage: number = 20;
 const testStaker: string = createAddress("0xac");
 const testBlockNumbers: number[] = [2, 42, 92, 360, 444, 3500, 90210, 972011, 3524233];
@@ -28,16 +27,21 @@ const testLowAmounts: BigNumber[] = [
 
 describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const balanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testStakeTokenAddress);
+  const mockNetworkManager: NetworkManager = {
+    liquidityModule: createAddress("0xab"),
+    usdcAddress: createAddress("0xad"),
+    setNetwork: jest.fn(),
+  };
+  const balanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
   const handleTransaction: HandleTransaction = provideHandleTransaction(
-    testProxyAddr,
+    mockNetworkManager,
     balanceFetcher,
     testThresholdPercentage
   );
 
-  const createBalanceOfCall = (proxyAddress: string, tokenAmount: BigNumber, blockNumber: number) => {
-    mockProvider.addCallTo(testStakeTokenAddress, blockNumber, USDC_IFACE, "balanceOf", {
-      inputs: [proxyAddress],
+  const createBalanceOfCall = (moduleAddress: string, tokenAmount: BigNumber, blockNumber: number) => {
+    mockProvider.addCallTo(mockNetworkManager.usdcAddress, blockNumber, USDC_IFACE, "balanceOf", {
+      inputs: [moduleAddress],
       outputs: [tokenAmount],
     });
   };
@@ -54,17 +58,17 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect a large Staked event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[0] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[0] - 1);
     const testSpender: string = createAddress("0x1");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[0])
-      .addEventLog(STAKED_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(STAKED_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -86,17 +90,17 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large Staked event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[1] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[1] - 1);
     const testSpender: string = createAddress("0x2");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testSpender, testLowAmounts[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[1])
-      .addEventLog(STAKED_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(STAKED_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -104,17 +108,17 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect a large WithdrewStake event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[2] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[2] - 1);
     const testRecipient: string = createAddress("0x3");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testRecipient, testAmounts[1]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[2])
-      .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(WITHDREW_STAKE_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -136,17 +140,17 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large WithdrewStake event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[3] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[3] - 1);
     const testRecipient: string = createAddress("0x4");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testRecipient, testLowAmounts[1]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[3])
-      .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(WITHDREW_STAKE_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -154,7 +158,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect a large WithdrewDebt event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[4] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[4] - 1);
     const testRecipient: string = createAddress("0x5");
     const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3
 
@@ -165,10 +169,10 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[4])
-      .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(WITHDREW_DEBT_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -191,7 +195,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect a non-large WithdrewDebt event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[5] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[5] - 1);
     const testRecipient: string = createAddress("0x6");
     const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4
 
@@ -202,10 +206,10 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[5])
-      .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testData, testTopics);
+      .addEventLog(WITHDREW_DEBT_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -213,7 +217,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should detect both a large Staked event and large WithdrewStake event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[6] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[6] - 1);
     const testSpender: string = createAddress("0x7");
     const testRecipient: string = createAddress("0x8");
     const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5
@@ -231,12 +235,12 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const testWithdrewStakeData = encodeParameters(["address", "uint256"], [testRecipient, testAmounts[4]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[6])
-      .addEventLog(STAKED_SIG, testProxyAddr, testStakedData, testStakedTopics)
-      .addEventLog(WITHDREW_DEBT_SIG, testProxyAddr, testWithdrewDebtData, testWithdrewDebtTopics)
-      .addEventLog(WITHDREW_STAKE_SIG, testProxyAddr, testWithdrewStakeData, testWithdrewStakeTopics);
+      .addEventLog(STAKED_SIG, mockNetworkManager.liquidityModule, testStakedData, testStakedTopics)
+      .addEventLog(WITHDREW_DEBT_SIG, mockNetworkManager.liquidityModule, testWithdrewDebtData, testWithdrewDebtTopics)
+      .addEventLog(WITHDREW_STAKE_SIG, mockNetworkManager.liquidityModule, testWithdrewStakeData, testWithdrewStakeTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -271,17 +275,17 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect an incorrect event", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[7] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[7] - 1);
     const testSpender: string = createAddress("0x9");
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[7])
-      .addEventLog("wrongSig", testProxyAddr, testData, testTopics);
+      .addEventLog("wrongSig", mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -289,7 +293,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   });
 
   it("should not detect an event emission from the wrong contract", async () => {
-    createBalanceOfCall(testProxyAddr, testProxyStakeTokenBalance, testBlockNumbers[8] - 1);
+    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[8] - 1);
     const wrongProxyAddress: string = createAddress("0xd34d");
     const testSpender: string = createAddress("0x11");
 
@@ -297,7 +301,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     const testData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[0]]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxyAddr)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testStaker)
       .setBlock(testBlockNumbers[8])
       .addEventLog(STAKED_SIG, wrongProxyAddress, testData, testTopics);
