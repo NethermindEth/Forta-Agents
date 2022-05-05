@@ -1,14 +1,23 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { BigNumber } from "ethers";
-import { PROXY_ADDRESS, THRESHOLD, SCHED_BORROW_ALLOC_CHANGE_EVENT } from "./utils";
+import { BigNumber, providers } from "ethers";
+import NetworkData from "./network";
+import NetworkManager from "./network";
+import { THRESHOLD, SCHED_BORROW_ALLOC_CHANGE_EVENT } from "./utils";
 import { createFinding } from "./findings";
 
-export function provideHandleTransaction(proxyAddress: string, threshold: BigNumber): HandleTransaction {
+const networkManager = new NetworkManager();
+
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+};
+
+export function provideHandleTransaction(networkManager: NetworkData, threshold: BigNumber): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // If `newAllocation` is greater than `threshold`, create a finding
-    txEvent.filterLog([SCHED_BORROW_ALLOC_CHANGE_EVENT], proxyAddress).map((log) => {
+    txEvent.filterLog([SCHED_BORROW_ALLOC_CHANGE_EVENT], networkManager.liquidityModule).map((log) => {
       if (log.args.newAllocation.gt(threshold)) {
         findings.push(createFinding(log));
       }
@@ -19,5 +28,5 @@ export function provideHandleTransaction(proxyAddress: string, threshold: BigNum
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(PROXY_ADDRESS, THRESHOLD),
+  handleTransaction: provideHandleTransaction(networkManager, THRESHOLD),
 };

@@ -3,9 +3,9 @@ import { encodeParameter, encodeParameters } from "forta-agent-tools";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { provideHandleTransaction } from "./agent";
+import NetworkManager from "./network";
 import { SCHED_BORROW_ALLOC_CHANGE_SIG } from "./utils";
 
-const testProxy: string = createAddress("0xab");
 const testSender: string = createAddress("0xac");
 const testThreshold: BigNumber = BigNumber.from("12000000000000000000"); // 12
 
@@ -52,8 +52,13 @@ const testCases: any[][] = [
 describe("Large Borrower Allocation test suite", () => {
   let handleTransaction: HandleTransaction;
 
+  const mockNetworkManager: NetworkManager = {
+    liquidityModule: createAddress("0xab"),
+    setNetwork: jest.fn(),
+  };
+
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(testProxy, testThreshold);
+    handleTransaction = provideHandleTransaction(mockNetworkManager, testThreshold);
   });
 
   it("should return 0 findings in empty transactions", async () => {
@@ -71,9 +76,9 @@ describe("Large Borrower Allocation test suite", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxy)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
-      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, testProxy, testData, testTopics);
+      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -122,9 +127,9 @@ describe("Large Borrower Allocation test suite", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxy)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
-      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, testProxy, testData, testTopics);
+      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, mockNetworkManager.liquidityModule, testData, testTopics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -154,11 +159,11 @@ describe("Large Borrower Allocation test suite", () => {
     );
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testProxy)
+      .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
-      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, testProxy, testDataOne, testTopicsOne)
-      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, testProxy, testDataTwo, testTopicsTwo)
-      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, testProxy, testDataThree, testTopicsThree);
+      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, mockNetworkManager.liquidityModule, testDataOne, testTopicsOne)
+      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, mockNetworkManager.liquidityModule, testDataTwo, testTopicsTwo)
+      .addEventLog(SCHED_BORROW_ALLOC_CHANGE_SIG, mockNetworkManager.liquidityModule, testDataThree, testTopicsThree);
 
     const findings = await handleTransaction(txEvent);
 
