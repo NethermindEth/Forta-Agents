@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects role (ownership/dev) changes in Apeswap's `MasterApe` and `MasterApeAdmin` contracts.
+This bot detects role (Owner/Admin/Dev) changes in Apeswap's `MasterApe` and `MasterApeAdmin` contracts.
 
 ## Supported Chains
 
