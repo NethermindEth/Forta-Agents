@@ -35,7 +35,6 @@ const testCreateFinding = (
       metadata: {
         feeTo: address.toLowerCase(),
       },
-      addresses: [contract.factory],
     });
   } else
     return Finding.fromObject({
@@ -48,7 +47,6 @@ const testCreateFinding = (
       metadata: {
         feeToSetter: address.toLowerCase(),
       },
-      addresses: [contract.factory],
     });
 };
 
@@ -66,7 +64,7 @@ const CASES: string[] = [
 describe("Apeswap role changes bot test suite", () => {
   const mockNetworkManager: NetworkManager = {
     factory: TEST_APEFACTORY_CONTRACT,
-    setNetwork: jest.fn(),    
+    setNetwork: jest.fn(),
   };
   const handleTx: HandleTransaction = handleTransaction(
     mockNetworkManager as any

@@ -25,7 +25,6 @@ const createFinding = (
       metadata: {
         feeTo: call.args._feeTo.toLowerCase(),
       },
-      addresses: [contract.factory],
     });
   } else
     return Finding.fromObject({
@@ -38,7 +37,6 @@ const createFinding = (
       metadata: {
         feeToSetter: call.args._feeToSetter.toLowerCase(),
       },
-      addresses: [contract.factory],
     });
 };
 
