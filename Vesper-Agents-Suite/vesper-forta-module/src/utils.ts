@@ -2,6 +2,7 @@ import {
   encodeFunctionCall,
   decodeParameters,
 } from "forta-agent-tools";
+import { providers } from "ethers";
 import { AbiItem } from "web3-utils";
 
 export type Fetcher = (block: number | string, ...params: string[]) => Promise<any>;
@@ -20,4 +21,11 @@ export const createFetcher = (
   };
 
 
-
+export function provideGetNetworkId(
+  ethersProvider: providers.JsonRpcProvider
+): Promise<number> {
+  return ethersProvider.send(
+    'net_version',
+    []
+  )
+}

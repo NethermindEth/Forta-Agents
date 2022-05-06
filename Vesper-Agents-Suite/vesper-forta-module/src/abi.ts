@@ -1,6 +1,6 @@
 import { AbiItem } from "web3-utils";
 
-const STRATEGY: AbiItem = {
+export const STRATEGY: AbiItem = {
   name: "strategy",
   type: "function",
   inputs: [
@@ -17,7 +17,29 @@ const STRATEGY: AbiItem = {
   ],
 } as AbiItem;
 
-const GET_STRATEGIES: AbiItem = {
+export const Strategy_ABI = [
+  {
+    inputs: [],
+    name: "isLossMaking",
+    outputs: [
+      {
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "NAME",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function"
+  }
+] as AbiItem[];
+
+export const GET_STRATEGIES: AbiItem = {
   name: "getStrategies",
   type: "function",
   inputs: [],
@@ -29,7 +51,7 @@ const GET_STRATEGIES: AbiItem = {
   ],
 } as AbiItem;
 
-const PoolABI: AbiItem = {
+export const Pool_ABI: AbiItem = {
   name: "poolAccountant",
   type: "function",
   inputs: [],
@@ -41,7 +63,7 @@ const PoolABI: AbiItem = {
   ],
 } as AbiItem;
 
-export const Accountant_ABI = 
+export const Accountant_ABI =
   {
     name: "strategy",
     type: "function",
@@ -98,7 +120,8 @@ export const Accountant_ABI =
 
 export default {
   STRATEGY,
+  Strategy_ABI,
   GET_STRATEGIES,
-  PoolABI,
+  Pool_ABI,
   Accountant_ABI,
 };
