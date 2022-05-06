@@ -1,37 +1,52 @@
 import { Interface } from "@ethersproject/abi";
 import {
+  ethers,
   Finding,
   FindingSeverity,
   FindingType,
-  LogDescription,
+  getEthersProvider,
 } from "forta-agent";
 
-const TIMELOCKV2_SECURE: string = "0x211cBF06441BeB429677a011eAd947Eb6716054E";
-const TIMELOCKV2_GENERAL: string = "0xA0528d54E722eDDA62A844431dCE7Ebb1c70325e";
+interface MetaDataI {
+  feeType: "tax" | "reflect";
+  previousFee: string;
+  currentFee: string;
+}
+const REFLECT_TOKEN_ADDRESS: string =
+  "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299";
 
-const EVENT_ABI: string =
-  "event MinDelayChange(uint256 oldDuration, uint256 newDuration)";
-const EVENT_IFACE: Interface = new Interface([EVENT_ABI]);
+const EVENT_ABI: string[] = [
+  "event UpdateTaxFee(uint256 previousTaxFee, uint256 newTaxFee)",
+  "event Transfer(address indexed from, address indexed to, uint256 value)",
+];
+const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
-const createFinding = (log: LogDescription, name: string): Finding => {
+const TRANSACTIONS_IFACE: ethers.utils.Interface = new ethers.utils.Interface([
+  "function reflect(uint256 tAmount) external",
+]);
+const provider = getEthersProvider();
+
+const createFinding = (tokenName: string, metaData: MetaDataI): Finding => {
   return Finding.fromObject({
-    name: "Timelock - Min delay changed",
-    description: `Min delay changed on Apeswap's ${name} contract`,
-    alertId: "APESWAP-12",
+    name: "Detect Fees Related To The Token",
+    description: `Fee related to the ${tokenName} token has been changed`,
+    alertId: "APESWAP-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",
     metadata: {
-      oldDuration: log.args.oldDuration.toString(),
-      newDuration: log.args.newDuration.toString(),
+      feeType: metaData.feeType,
+      previousFee: metaData.previousFee,
+      currentFee: metaData.currentFee,
     },
   });
 };
 
 export default {
-  TIMELOCKV2_SECURE,
-  TIMELOCKV2_GENERAL,
+  REFLECT_TOKEN_ADDRESS,
   EVENT_ABI,
-  EVENT_IFACE,
+  EVENTS_IFACE,
   createFinding,
+  provider,
+  TRANSACTIONS_IFACE,
 };
