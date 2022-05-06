@@ -1,34 +1,32 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { BigNumber, providers } from "ethers";
-import NetworkData from "./network";
 import NetworkManager from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI, THRESHOLD_PERCENTAGE } from "./utils";
 import { createFinding } from "./findings";
 
-const networkManager = new NetworkManager();
+let data: any = {
+  networkManager: new NetworkManager(),
+};
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
-  networkManager.setNetwork(chainId);
+  data.networkManager.setNetwork(chainId);
+  data.balanceFetcher = new BalanceFetcher(getEthersProvider(), data.networkManager);
 };
 
-export function provideHandleTransaction(
-  networkData: NetworkData,
-  fetcher: BalanceFetcher,
-  thresholdPercentage: number
-): HandleTransaction {
+export function provideHandleTransaction(data: any, thresholdPercentage: number): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
     await Promise.all(
       txEvent
-        .filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], networkData.liquidityModule)
+        .filterLog([STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI], data.networkManager.liquidityModule)
         .map(async (log) => {
           // Get the stake token balance of the module contract at the previous block
           // (before the transaction, and the subsequent event emission)
           const moduleBalance: BigNumber = BigNumber.from(
-            await fetcher.getBalanceOf(networkData.liquidityModule, networkData.usdcAddress, txEvent.blockNumber - 1)
+            await data.balanceFetcher.getBalanceOf(data.networkManager.liquidityModule, txEvent.blockNumber - 1)
           );
 
           // Find the threshold amount from the percentage
@@ -49,8 +47,7 @@ export function provideHandleTransaction(
 export default {
   initialize: provideInitialize(getEthersProvider()),
   handleTransaction: provideHandleTransaction(
-    networkManager,
-    new BalanceFetcher(getEthersProvider()),
+    data,
     THRESHOLD_PERCENTAGE
   ),
 };

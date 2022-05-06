@@ -8,12 +8,12 @@ export default class BalanceFetcher {
   private cache: LRU<string, Promise<BigNumber>>;
   private usdcContract: Contract;
 
-  constructor(provider: providers.Provider, networkData: NetworkData) {
+  constructor(provider: providers.Provider, networkManager: NetworkData) {
     this.provider = provider;
     this.cache = new LRU<string, Promise<BigNumber>>({
       max: 10000,
     });
-    this.usdcContract = new Contract(networkData.usdcAddress, USDC_IFACE, provider);
+    this.usdcContract = new Contract(networkManager.usdcAddress, USDC_IFACE, provider);
   }
 
   public async getBalanceOf(moduleAddress: string, block: string | number): Promise<BigNumber> {
