@@ -18,7 +18,7 @@ describe("Balance Fetcher test suite", () => {
     usdcAddress: createAddress("0xac"),
     setNetwork: jest.fn(),
   };
-  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any);
+  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
 
   function createBalanceOfCall(moduleAddress: string, tokenAmount: BigNumber, blockNumber: number) {
     return mockProvider.addCallTo(mockNetworkManager.usdcAddress, blockNumber, USDC_IFACE, "balanceOf", {
@@ -33,22 +33,14 @@ describe("Balance Fetcher test suite", () => {
     for (let [moduleAddress, moduleStakeTokenAmount, blockNumber] of TEST_CASES) {
       createBalanceOfCall(moduleAddress, moduleStakeTokenAmount, blockNumber);
 
-      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(
-        moduleAddress,
-        mockNetworkManager.usdcAddress,
-        blockNumber
-      );
+      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(moduleAddress, blockNumber);
       expect(fetchedTokenAmount).toStrictEqual(moduleStakeTokenAmount);
     }
 
     // clear mock to use cache
     mockProvider.clear();
     for (let [moduleAddress, moduleStakeTokenAmount, blockNumber] of TEST_CASES) {
-      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(
-        moduleAddress,
-        mockNetworkManager.usdcAddress,
-        blockNumber
-      );
+      const fetchedTokenAmount: BigNumber = await fetcher.getBalanceOf(moduleAddress, blockNumber);
       expect(fetchedTokenAmount).toStrictEqual(moduleStakeTokenAmount);
     }
   });
