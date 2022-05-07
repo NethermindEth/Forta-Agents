@@ -98,18 +98,15 @@ describe("Apeswap token fees updates test suite", () => {
 
   it("should return a finding when reflect transaction is submitted", async () => {
     const blockTag = 1111;
-    const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(
-      blockTag
-    );
 
-    mockSigner.setAddress(from).allowTransaction(
-      from,
-      TEST_REFLECT_TOKEN,
-      utils.TRANSACTIONS_IFACE,
-      "reflect",
-      [tAmount],
-      { confirmations: 42, blockTag } // receipt data
-    );
+    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+      .setBlock(blockTag)
+      .addTraces({
+        to: TEST_REFLECT_TOKEN,
+        input: utils.TRANSACTIONS_IFACE.encodeFunctionData("reflect", [
+          tAmount,
+        ]),
+      });
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([findingTestCases[1]]);

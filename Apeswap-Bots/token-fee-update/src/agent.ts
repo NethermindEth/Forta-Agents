@@ -5,6 +5,7 @@ import {
   LogDescription,
   TransactionEvent,
 } from "forta-agent";
+
 import utils from "./utils";
 
 export const handleTransaction =
@@ -14,6 +15,25 @@ export const handleTransaction =
   ): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
+
+    // In case someone submitted reflect transaction
+    const reflectFunctions = txEvent.filterFunction(
+      utils.REFLECT_TRANSACTION,
+      reflectTokenAddress
+    );
+
+    if (reflectFunctions.length > 0) {
+      reflectFunctions.forEach((reflectFunction) => {
+        findings.push(
+          utils.createFinding({
+            feeType: "reflect",
+            previousFee: reflectFunction.args[0].toString(),
+            currentFee: reflectFunction.args[0].toString(),
+          })
+        );
+      });
+    }
+
     const updateTaxAndTransferLogs = txEvent.filterLog(
       utils.EVENT_ABI,
       reflectTokenAddress

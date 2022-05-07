@@ -15,6 +15,8 @@ interface MetaDataI {
 const REFLECT_TOKEN_ADDRESS: string =
   "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299";
 
+const REFLECT_TRANSACTION: string = "function reflect(uint256 tAmount)";
+
 const EVENT_ABI: string[] = [
   "event UpdateTaxFee(uint256 previousTaxFee, uint256 newTaxFee)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
@@ -22,7 +24,7 @@ const EVENT_ABI: string[] = [
 
 enum EVENTS_NAME {
   UpdateTaxFee = "UpdateTaxFee",
-  Transfer= "Transfer",
+  Transfer = "Transfer",
 }
 
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
@@ -30,6 +32,7 @@ const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 const TRANSACTIONS_IFACE: ethers.utils.Interface = new ethers.utils.Interface([
   "function reflect(uint256 tAmount) external",
 ]);
+
 const provider = getEthersProvider();
 
 const createFinding = (metaData: MetaDataI): Finding => {
@@ -50,6 +53,7 @@ const createFinding = (metaData: MetaDataI): Finding => {
 
 export default {
   REFLECT_TOKEN_ADDRESS,
+  REFLECT_TRANSACTION,
   EVENT_ABI,
   EVENTS_IFACE,
   EVENTS_NAME,
