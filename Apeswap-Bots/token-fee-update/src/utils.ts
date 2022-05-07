@@ -19,6 +19,12 @@ const EVENT_ABI: string[] = [
   "event UpdateTaxFee(uint256 previousTaxFee, uint256 newTaxFee)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
+
+enum EVENTS_NAME {
+  UpdateTaxFee = "UpdateTaxFee",
+  Transfer= "Transfer",
+}
+
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
 const TRANSACTIONS_IFACE: ethers.utils.Interface = new ethers.utils.Interface([
@@ -26,10 +32,10 @@ const TRANSACTIONS_IFACE: ethers.utils.Interface = new ethers.utils.Interface([
 ]);
 const provider = getEthersProvider();
 
-const createFinding = (tokenName: string, metaData: MetaDataI): Finding => {
+const createFinding = (metaData: MetaDataI): Finding => {
   return Finding.fromObject({
     name: "Detect Fees Related To The Token",
-    description: `Fee related to the ${tokenName} token has been changed`,
+    description: `token ${metaData.feeType} fee has been changed`,
     alertId: "APESWAP-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -46,6 +52,7 @@ export default {
   REFLECT_TOKEN_ADDRESS,
   EVENT_ABI,
   EVENTS_IFACE,
+  EVENTS_NAME,
   createFinding,
   provider,
   TRANSACTIONS_IFACE,

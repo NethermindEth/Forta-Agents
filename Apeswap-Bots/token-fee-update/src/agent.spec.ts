@@ -16,28 +16,43 @@ import { handleTransaction } from "./agent";
 import utils from "./utils";
 
 const TEST_REFLECT_TOKEN: string = createAddress("0xcdcd");
-const tokenName: string = "GNANA Token";
 
 const from = createAddress("0xcdcd");
 const tAmount = ethers.utils.parseEther("1");
 
-const previousFee = ethers.utils.parseEther("1");
-const currentFee = ethers.utils.parseEther("2");
+const previousFee = "1";
+const currentFee = "2";
 
-const findingTest = Finding.fromObject({
-  name: "Detect Fees Related To The Token",
-  description: `Fee related to the ${tokenName} token has been changed`,
-  alertId: "APESWAP-3",
-  severity: FindingSeverity.Info,
-  type: FindingType.Info,
-  protocol: "Apeswap",
-  metadata: {
-    feeType: "tax",
-    previousFee: ethers.utils.formatEther(previousFee),
-    currentFee: ethers.utils.formatEther(currentFee),
-  },
-  addresses: [],
-});
+const findingTestCases = [
+  Finding.fromObject({
+    name: "Detect Fees Related To The Token",
+    description: `token tax fee has been changed`,
+    alertId: "APESWAP-3",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Apeswap",
+    metadata: {
+      feeType: "tax",
+      previousFee: previousFee,
+      currentFee: currentFee,
+    },
+    addresses: [],
+  }),
+  Finding.fromObject({
+    name: "Detect Fees Related To The Token",
+    description: `token reflect fee has been changed`,
+    alertId: "APESWAP-3",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Apeswap",
+    metadata: {
+      feeType: "reflect",
+      previousFee: tAmount.toString(),
+      currentFee: tAmount.toString(),
+    },
+    addresses: [],
+  }),
+];
 
 describe("Apeswap token fees updates test suite", () => {
   let handleTx: HandleTransaction;
@@ -49,23 +64,17 @@ describe("Apeswap token fees updates test suite", () => {
   });
 
   it("should return a finding when UpdateFees event emitted", async () => {
-    const previousFee = ethers.utils.parseEther("1");
-    const currentFee = ethers.utils.parseEther("2");
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
-    const log = utils.EVENTS_IFACE.encodeEventLog(event, [
-      previousFee,
-      currentFee,
-    ]);
 
     const txEvent: TestTransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(
+      new TestTransactionEvent().addInterfaceEventLog(
+        event,
         TEST_REFLECT_TOKEN,
-        log.data,
-        ...log.topics
+        [previousFee, currentFee]
       );
 
     const findings: Finding[] = await handleTx(txEvent);
-    expect(findings).toStrictEqual([findingTest]);
+    expect(findings).toStrictEqual([findingTestCases[0]]);
   });
 
   it("should return a finding when transfer event is emitted", async () => {
@@ -84,7 +93,7 @@ describe("Apeswap token fees updates test suite", () => {
       );
 
     const findings: Finding[] = await handleTx(txEvent);
-    expect(findings).toStrictEqual([findingTest]);
+    expect(findings).toStrictEqual([findingTestCases[1]]);
   });
 
   it("should return a finding when reflect transaction is submitted", async () => {
@@ -103,6 +112,6 @@ describe("Apeswap token fees updates test suite", () => {
     );
 
     const findings: Finding[] = await handleTx(txEvent);
-    expect(findings).toStrictEqual([findingTest]);
+    expect(findings).toStrictEqual([findingTestCases[1]]);
   });
 });
