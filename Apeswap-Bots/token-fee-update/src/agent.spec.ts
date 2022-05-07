@@ -42,16 +42,8 @@ const findingTest = Finding.fromObject({
 describe("Apeswap token fees updates test suite", () => {
   let handleTx: HandleTransaction;
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const mockSigner: MockEthersSigner = new MockEthersSigner(mockProvider)
-    .setAddress(from)
-    .allowTransaction(
-      from,
-      TEST_REFLECT_TOKEN,
-      utils.TRANSACTIONS_IFACE,
-      "reflect",
-      [tAmount],
-      { confirmations: 42 } // receipt data
-    );
+  const mockSigner: MockEthersSigner = new MockEthersSigner(mockProvider);
+
   beforeAll(() => {
     handleTx = handleTransaction(TEST_REFLECT_TOKEN, mockSigner as any);
   });
@@ -96,7 +88,19 @@ describe("Apeswap token fees updates test suite", () => {
   });
 
   it("should return a finding when reflect transaction is submitted", async () => {
-    const txEvent: TestTransactionEvent = new TestTransactionEvent();
+    const blockTag = 1111;
+    const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(
+      blockTag
+    );
+
+    mockSigner.setAddress(from).allowTransaction(
+      from,
+      TEST_REFLECT_TOKEN,
+      utils.TRANSACTIONS_IFACE,
+      "reflect",
+      [tAmount],
+      { confirmations: 42, blockTag } // receipt data
+    );
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([findingTest]);
