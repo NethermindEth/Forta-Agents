@@ -9,7 +9,7 @@ export const EVENT_ABI =
 export const BALANCE_OF_ABI = [
   "function balanceOf(address account) public view  returns (uint256)"];
 export const APESWAP_INTERFACE = new ethers.utils.Interface(BALANCE_OF_ABI);
-export const GNANA_TOKEN_CONTRACT = "0xf467150A281719913Cdb60cF0d18859c0DD724A4";
+export const GNANA_TOKEN_CONTRACT = "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299";
 export const GNANA_DECIMALS: number = 18;
 export const THRESHOLD_BALANCE_PERCENTAGE: number = 1;
 const TOTAL_SUPPLY: BigNumber = BigNumber.from("3000000000").mul(`${10 ** GNANA_DECIMALS}`);
