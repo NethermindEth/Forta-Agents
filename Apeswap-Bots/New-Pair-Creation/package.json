@@ -1,9 +1,9 @@
 {
-  "name": "forta-agent-starter",
+  "name": "apeswap-8",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects new pair creation on Apeswap DEX",
   "chainIds": [
-    1
+    56
   ],
   "scripts": {
     "build": "tsc",
