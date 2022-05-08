@@ -5,7 +5,7 @@
 - Supported tokens: `GNANA`
 - Returns a finding every time token parameters are updated:
   - `TaxFees` fee changes: configuration changed by the owner
-  - `reflect` fee changes: ratio between reflected tokens and total supply
+- When tax fee changes `rFee` deduct the `TaxFees` from the `rAmount` and `tFee` deduct the `TaxFees` from the `tAmount`
 
 ## Supported Chains
 
@@ -14,14 +14,10 @@
 ## Alerts
 
 - APESWAP-3
-  - Fired when `UpdateTaxFee` and `Transfer` event is emitted on `RBEP20`. And when the ratio between total supply and reflect supply changes. (The ratio change after `reflect`, `transfer` and `transferFrom` transactions on `RBEP20`)
+  - Fired when `UpdateTaxFee` event is emitted on `RBEP20`.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-    - `feeType`: tax or reflect fee
     - `previousFee`: Previous fee amount
     - `currentFee`: New fee amount
 
-## Test Data
-
-The bot behavior can be verified with the following transaction:

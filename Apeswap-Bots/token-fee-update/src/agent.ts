@@ -1,5 +1,4 @@
 import {
-  ethers,
   Finding,
   HandleTransaction,
   LogDescription,
@@ -9,70 +8,29 @@ import {
 import utils from "./utils";
 
 export const handleTransaction =
-  (
-    reflectTokenAddress: string,
-    provider: ethers.providers.Provider
-  ): HandleTransaction =>
+  (reflectTokenAddress: string): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    // In case someone submitted reflect transaction
-    const reflectFunctions = txEvent.filterFunction(
-      utils.REFLECT_TRANSACTION,
-      reflectTokenAddress
-    );
-
-    if (reflectFunctions.length > 0) {
-      reflectFunctions.forEach((reflectFunction) => {
-        findings.push(
-          utils.createFinding({
-            feeType: "reflect",
-            previousFee: reflectFunction.args[0].toString(),
-            currentFee: reflectFunction.args[0].toString(),
-          })
-        );
-      });
-    }
-
-    const updateTaxAndTransferLogs = txEvent.filterLog(
+    const updateTaxLogs = txEvent.filterLog(
       utils.EVENT_ABI,
       reflectTokenAddress
     );
 
-    if (!updateTaxAndTransferLogs.length) return findings;
+    if (!updateTaxLogs.length) return findings;
 
-    updateTaxAndTransferLogs.forEach((log: LogDescription) => {
-      const { name } = log;
-
-      // In case owner updated the gas fees by updateTaxFee transaction
-      if (utils.EVENTS_NAME.UpdateTaxFee === name) {
-        findings.push(
-          utils.createFinding({
-            feeType: "tax",
-            previousFee: log.args.previousTaxFee.toString(),
-            currentFee: log.args.newTaxFee.toString(),
-          })
-        );
-      }
-
-      // In case user transfer token the reflect token amount decrease so the reflect rate change
-      if (utils.EVENTS_NAME.Transfer.toString() === name) {
-        findings.push(
-          utils.createFinding({
-            feeType: "reflect",
-            previousFee: log.args.value.toString(),
-            currentFee: log.args.value.toString(),
-          })
-        );
-      }
+    updateTaxLogs.forEach((log: LogDescription) => {
+      findings.push(
+        utils.createFinding({
+          previousFee: log.args.previousTaxFee.toString(),
+          currentFee: log.args.newTaxFee.toString(),
+        })
+      );
     });
 
     return findings;
   };
 
 export default {
-  handleTransaction: handleTransaction(
-    utils.REFLECT_TOKEN_ADDRESS,
-    utils.provider
-  ),
+  handleTransaction: handleTransaction(utils.REFLECT_TOKEN_ADDRESS),
 };
