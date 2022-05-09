@@ -1,11 +1,12 @@
 {
   "name": "apeswap-3",
   "version": "0.0.1",
-  "description": "Detects changes in Apeswap's token fees",
+  "description": "Detects any changes related to reflect token fees",
   "chainIds": [
-    56
+    56,
+    137
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/Timelock-minDelay-changes",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40apeswap/AS3",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
