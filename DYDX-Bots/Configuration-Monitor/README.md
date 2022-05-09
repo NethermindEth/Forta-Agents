@@ -27,11 +27,12 @@ This bot detects changes in the global configuration hash on dYdX perpetual exch
     - `ConfigHash`: hash of the applied global configuration.
 
 - DYDX-3-3
-    - Fired when `LogGlobalConfigurationRemoved` event is emitted on the perpetual contract.
-    - Severity is always set to "Info".
-    - Type is always set to "Info".
-    - Metadata includes:
-      - `ConfigHash`: hash of the removed global configuration.
+
+  - Fired when `LogGlobalConfigurationRemoved` event is emitted on the perpetual contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `ConfigHash`: hash of the removed global configuration.
 
 ## Test Data
 
