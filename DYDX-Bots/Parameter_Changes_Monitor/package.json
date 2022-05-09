@@ -1,7 +1,7 @@
 {
   "name": "dydx-17",
   "version": "0.0.1",
-  "description": "Monitor parameter changes",
+  "description": "Monitor parameter changes in dYdX Safety and Liquidity Modules",
   "chainIds": [
     1
   ],

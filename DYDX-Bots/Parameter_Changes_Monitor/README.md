@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects parameter changes to both the Safety Module and Liquidity Module contracts.
+This bot detects parameter changes to both the Safety Module and Liquidity Module contracts.
 
 ## Supported Chains
 
