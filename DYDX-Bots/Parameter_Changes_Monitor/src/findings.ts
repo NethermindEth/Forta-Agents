@@ -14,7 +14,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         metadata: {
           blackoutWindow: args.blackoutWindow.toString(),
         },
-        addresses: [logAddress]
+        addresses: [logAddress],
       });
 
     case "EpochParametersChanged":
@@ -29,7 +29,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
           interval: args.epochParameters[0].toString(),
           offset: args.epochParameters[1].toString(),
         },
-        addresses: [logAddress]
+        addresses: [logAddress],
       });
 
     default:
@@ -43,7 +43,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         metadata: {
           emissionPerSecond: args.emissionPerSecond.toString(),
         },
-        addresses: [logAddress]
+        addresses: [logAddress],
       });
   }
 };

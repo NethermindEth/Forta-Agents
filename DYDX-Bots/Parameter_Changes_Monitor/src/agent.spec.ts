@@ -1,10 +1,10 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { encodeParameter, encodeParameters } from "forta-agent-tools";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { BigNumber } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { provideHandleTransaction } from "./agent";
 import NetworkManager from "./network";
-import { BLACKOUT_WINDOW_CHANGED_SIG, EPOCH_PARAMS_CHANGED_SIG, REWARDS_PER_SECOND_UPDATED_SIG } from "./utils";
+import { MODULE_IFACE } from "./utils";
 
 const testSender: string = createAddress("0xad");
 
@@ -50,14 +50,23 @@ describe("Parameter Changes Monitor Test Suite", () => {
   });
 
   it("should detect a BlackoutWindowChanged event emission from both the safety and liquidity modules", async () => {
-    const testDataOne = encodeParameter("uint256", testCases[0]);
-    const testDataTwo = encodeParameter("uint256", testCases[1]);
+    const BlackoutWindowLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("BlackoutWindowChanged"), [
+      testCases[0],
+    ]);
+
+    const BlackoutWindowLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("BlackoutWindowChanged"), [
+      testCases[1],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
+      .addAnonymousEventLog(mockNetworkManager.safetyModule, BlackoutWindowLogOne.data, ...BlackoutWindowLogOne.topics)
+      .addAnonymousEventLog(
+        mockNetworkManager.liquidityModule,
+        BlackoutWindowLogTwo.data,
+        ...BlackoutWindowLogTwo.topics
+      );
 
     const findings = await handleTransaction(txEvent);
 
@@ -72,7 +81,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[0].toString(),
         },
-        addresses: [mockNetworkManager.safetyModule]
+        addresses: [mockNetworkManager.safetyModule],
       }),
       Finding.fromObject({
         name: "Blackout window has changed",
@@ -84,20 +93,33 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[1].toString(),
         },
-        addresses: [mockNetworkManager.liquidityModule]
+        addresses: [mockNetworkManager.liquidityModule],
       }),
     ]);
   });
 
   it("should detect a EpochParametersChanged event emission from both the safety and liquidity modules", async () => {
-    const testDataOne = encodeParameters(["uint128", "uint128"], [testCases[2], testCases[3]]);
-    const testDataTwo = encodeParameters(["uint128", "uint128"], [testCases[4], testCases[5]]);
+    const EpochParamChangedLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("EpochParametersChanged"), [
+      [testCases[2], testCases[3]],
+    ]);
+
+    const EpochParamChangedLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("EpochParametersChanged"), [
+      [testCases[4], testCases[5]],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
+      .addAnonymousEventLog(
+        mockNetworkManager.safetyModule,
+        EpochParamChangedLogOne.data,
+        ...EpochParamChangedLogOne.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.liquidityModule,
+        EpochParamChangedLogTwo.data,
+        ...EpochParamChangedLogTwo.topics
+      );
 
     const findings = await handleTransaction(txEvent);
 
@@ -113,7 +135,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[2].toString(),
           offset: testCases[3].toString(),
         },
-        addresses: [mockNetworkManager.safetyModule]
+        addresses: [mockNetworkManager.safetyModule],
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
@@ -126,20 +148,33 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[4].toString(),
           offset: testCases[5].toString(),
         },
-        addresses: [mockNetworkManager.liquidityModule]
+        addresses: [mockNetworkManager.liquidityModule],
       }),
     ]);
   });
 
   it("should detect a RewardsPerSecondUpdated event emission from both the safety and liquidity modules", async () => {
-    const testDataOne = encodeParameter("uint256", testCases[6]);
-    const testDataTwo = encodeParameter("uint256", testCases[7]);
+    const RewardsPerSecondLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RewardsPerSecondUpdated"), [
+      testCases[6],
+    ]);
+
+    const RewardsPerSecondLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RewardsPerSecondUpdated"), [
+      testCases[7],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.safetyModule, testDataOne)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.liquidityModule, testDataTwo);
+      .addAnonymousEventLog(
+        mockNetworkManager.safetyModule,
+        RewardsPerSecondLogOne.data,
+        ...RewardsPerSecondLogOne.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.liquidityModule,
+        RewardsPerSecondLogTwo.data,
+        ...RewardsPerSecondLogTwo.topics
+      );
 
     const findings = await handleTransaction(txEvent);
 
@@ -154,7 +189,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[6].toString(),
         },
-        addresses: [mockNetworkManager.safetyModule]
+        addresses: [mockNetworkManager.safetyModule],
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
@@ -166,7 +201,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[7].toString(),
         },
-        addresses: [mockNetworkManager.liquidityModule]
+        addresses: [mockNetworkManager.liquidityModule],
       }),
     ]);
   });
@@ -174,16 +209,24 @@ describe("Parameter Changes Monitor Test Suite", () => {
   it("should not detect the events emitting from the incorrect contract", async () => {
     const wrongContract: string = createAddress("0xd34d");
 
-    const testDataOne = encodeParameter("uint256", testCases[8]);
-    const testDataTwo = encodeParameters(["uint128", "uint128"], [testCases[9], testCases[10]]);
-    const testDataThree = encodeParameter("uint256", testCases[11]);
+    const BlackoutWindowLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("BlackoutWindowChanged"), [
+      testCases[8],
+    ]);
+
+    const EpochParamChangedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("EpochParametersChanged"), [
+      [testCases[9], testCases[10]],
+    ]);
+
+    const RewardsPerSecondLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RewardsPerSecondUpdated"), [
+      testCases[11],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(wrongContract)
       .setFrom(testSender)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, wrongContract, testDataOne)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, wrongContract, testDataTwo)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, wrongContract, testDataThree);
+      .addAnonymousEventLog(wrongContract, BlackoutWindowLog.data, ...BlackoutWindowLog.topics)
+      .addAnonymousEventLog(wrongContract, EpochParamChangedLog.data, ...EpochParamChangedLog.topics)
+      .addAnonymousEventLog(wrongContract, RewardsPerSecondLog.data, ...RewardsPerSecondLog.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -191,15 +234,14 @@ describe("Parameter Changes Monitor Test Suite", () => {
   });
 
   it("should not detect another event emission from either the safety nor liquidity modules", async () => {
-    const wrongEventSig: string = "wrongEvent(uint256)";
-    const testDataOne = encodeParameter("uint256", testCases[12]);
-    const testDataTwo = encodeParameter("uint256", testCases[13]);
+    const wrongIFace = new utils.Interface(["event WrongEvent()"]);
+    const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addEventLog(wrongEventSig, mockNetworkManager.safetyModule, testDataOne)
-      .addEventLog(wrongEventSig, mockNetworkManager.liquidityModule, testDataTwo);
+      .addAnonymousEventLog(mockNetworkManager.safetyModule, wrongLog.data, ...wrongLog.topics)
+      .addAnonymousEventLog(mockNetworkManager.liquidityModule, wrongLog.data, ...wrongLog.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -207,16 +249,28 @@ describe("Parameter Changes Monitor Test Suite", () => {
   });
 
   it("should detect various combinations of event emissions and module contracts", async () => {
-    const testDataOne = encodeParameter("uint256", testCases[14]);
-    const testDataTwo = encodeParameters(["uint128", "uint128"], [testCases[15], testCases[16]]);
-    const testDataThree = encodeParameter("uint256", testCases[17]);
+    const BlackoutWindowLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("BlackoutWindowChanged"), [
+      testCases[14],
+    ]);
+
+    const EpochParamChangedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("EpochParametersChanged"), [
+      [testCases[15], testCases[16]],
+    ]);
+
+    const RewardsPerSecondLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RewardsPerSecondUpdated"), [
+      testCases[17],
+    ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
-      .addEventLog(BLACKOUT_WINDOW_CHANGED_SIG, mockNetworkManager.safetyModule, testDataOne)
-      .addEventLog(EPOCH_PARAMS_CHANGED_SIG, mockNetworkManager.liquidityModule, testDataTwo)
-      .addEventLog(REWARDS_PER_SECOND_UPDATED_SIG, mockNetworkManager.safetyModule, testDataThree);
+      .addAnonymousEventLog(mockNetworkManager.safetyModule, BlackoutWindowLog.data, ...BlackoutWindowLog.topics)
+      .addAnonymousEventLog(
+        mockNetworkManager.liquidityModule,
+        EpochParamChangedLog.data,
+        ...EpochParamChangedLog.topics
+      )
+      .addAnonymousEventLog(mockNetworkManager.safetyModule, RewardsPerSecondLog.data, ...RewardsPerSecondLog.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -231,7 +285,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           blackoutWindow: testCases[14].toString(),
         },
-        addresses: [mockNetworkManager.safetyModule]
+        addresses: [mockNetworkManager.safetyModule],
       }),
       Finding.fromObject({
         name: "Epoch parameters have changed",
@@ -244,7 +298,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
           interval: testCases[15].toString(),
           offset: testCases[16].toString(),
         },
-        addresses: [mockNetworkManager.liquidityModule]
+        addresses: [mockNetworkManager.liquidityModule],
       }),
       Finding.fromObject({
         name: "Rewards per second have been updated",
@@ -256,7 +310,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
         metadata: {
           emissionPerSecond: testCases[17].toString(),
         },
-        addresses: [mockNetworkManager.safetyModule]
+        addresses: [mockNetworkManager.safetyModule],
       }),
     ]);
   });
