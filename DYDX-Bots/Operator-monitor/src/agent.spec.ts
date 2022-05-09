@@ -72,7 +72,7 @@ describe("Operator monitor tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore other events on pereptual contract", async () => {
+  it("should ignore other events on perpetual contract", async () => {
     const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
     const log1 = DIFFERENT_IFACE.encodeEventLog(
