@@ -40,7 +40,9 @@ The bot behaviour can be verified with the following transactions:
 ### Ropsten Testnet
 
 > Transactions were generated through our PoC contract deployed on Ropsten testnet.
-> To test the transactions, `PERPETUAL_PROXY` should be changed to `TEST_PROXY` in `agent.ts` Line 48.
+
+> - `Proxy` PoC contract address: `0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6`.
+> - `StarkPerpetual` PoC contract address: `0x38e231F25A3bA33323B951DEA72c4430DF5e05e2`.
 
 - 0x16acf4518c6df30592d61d99f638b950da3cfd53739442e135c12fd6b2f19101 (`LogOperatorAdded` event)
 - 0xd29099f03f7797e49d2689e127df119df5d4cb6b43329ed5687865f8e2ed23b5 ( `LogOperatorRemoved` event)
