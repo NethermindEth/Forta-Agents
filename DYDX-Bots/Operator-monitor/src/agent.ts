@@ -1,10 +1,13 @@
+import { providers } from "ethers";
 import {
   Finding,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
+  getEthersProvider,
 } from "forta-agent";
+import AddressProvider from "./address.provider";
 
 export const MONITORED_EVENTS = [
   "event LogOperatorAdded(address operator)",
@@ -12,12 +15,23 @@ export const MONITORED_EVENTS = [
 ];
 const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
 const TEST_PROXY = "0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6";
+let addressProvider: AddressProvider = new AddressProvider(
+  PERPETUAL_PROXY,
+  TEST_PROXY
+);
+
+const initialize = (provider: providers.Provider) => async () => {
+  const networkId = (await provider.getNetwork()).chainId;
+  addressProvider.setNetwork(networkId.toString());
+};
 
 export const provideHandleTransaction = (
-  perpetualAddress: string
+  provider: AddressProvider
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    // get the monitored contract address based on the chainId.
+    const perpetualAddress = provider.getAddress();
 
     // Listen to `LogOperatorAdded` `LogOperatorRemoved` events and generate findings for each.
     txEvent.filterLog(MONITORED_EVENTS, perpetualAddress).forEach((log) => {
@@ -45,5 +59,6 @@ export const provideHandleTransaction = (
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(PERPETUAL_PROXY),
+  initialize: initialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(addressProvider),
 };
