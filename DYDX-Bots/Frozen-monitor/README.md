@@ -31,7 +31,7 @@ This bot detects frozen state changes in dYdX perpetual exchange contract.
 
 The bot behaviour can be verified with the following test transactions generated through our `PoC` contracts (Ropsten):
 
-> To test the transactions, `PERPETUAL_PROXY` have to be changed to `TEST_PROXY` in `agent.ts` Line 37.
+> To test the transactions, `PERPETUAL_PROXY` have to be changed to `TEST_PROXY` in `agent.ts` Line 36.
 
 - 0x20ad12967a6cac915d432720652420448d9eb4d1f766c2102c6594cbc80ca1c0 (`LogFrozen` event)
 - 0xc163a95b8701681b2b6006f6e27d56387c29f3df76fbd559c75c34bb95814956 ( `LogUnFrozen` event)

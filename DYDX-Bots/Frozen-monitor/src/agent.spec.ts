@@ -1,8 +1,7 @@
 import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { provideHandleTransaction } from "./agent";
-import { EVENTS_SIGNATURES } from "./agent";
+import { provideHandleTransaction, EVENTS_SIGNATURES } from "./agent";
 
 const createFinding = (name: string, from: string) => {
   const description = name === "LogFrozen" ? "Frozen" : "UnFrozen";
@@ -57,7 +56,7 @@ describe("Frozen state monitor tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore other events on pereptual contract", async () => {
+  it("should ignore other events on perpetual contract", async () => {
     const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
     const log1 = DIFFERENT_IFACE.encodeEventLog(DIFFERENT_IFACE.getEvent("otherEvent"), []);
@@ -94,6 +93,7 @@ describe("Frozen state monitor tests suite", () => {
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([createFinding("LogUnFrozen", createAddress("0xb2"))]);
   });
+
   it("should detect multiple events on perpetual contract", async () => {
     const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogFrozen"), []);
 
