@@ -12,38 +12,38 @@ const testCases: any[][] = [
   // Format: borrower, oldAllocation, newAllocation, epochNumber
   [
     createAddress("0xad"),
-    BigNumber.from("10000000000000000000"),  // 10 USDC
-    BigNumber.from("15000000000000000000"),  // 15 USDC
+    BigNumber.from("10000000000000000000"), // 10 USDC
+    BigNumber.from("15000000000000000000"), // 15 USDC
     BigNumber.from("100000000000000000000"), // 100 USDC
   ],
   [
     createAddress("0xae"),
-    BigNumber.from("11000000000000000000"),  // 11 USDC
-    BigNumber.from("17000000000000000000"),  // 17 USDC
+    BigNumber.from("11000000000000000000"), // 11 USDC
+    BigNumber.from("17000000000000000000"), // 17 USDC
     BigNumber.from("150000000000000000000"), // 150 USDC
   ],
   [
     createAddress("0xaf"),
-    BigNumber.from("8000000000000000000"),   // 8 USDC
-    BigNumber.from("10000000000000000000"),  // 10 USDC
+    BigNumber.from("8000000000000000000"), // 8 USDC
+    BigNumber.from("10000000000000000000"), // 10 USDC
     BigNumber.from("200000000000000000000"), // 200 USDC
   ],
   [
     createAddress("0xad2"),
-    BigNumber.from("11000000000000000000"),  // 11 USDC
-    BigNumber.from("14000000000000000000"),  // 14 USDC
+    BigNumber.from("11000000000000000000"), // 11 USDC
+    BigNumber.from("14000000000000000000"), // 14 USDC
     BigNumber.from("250000000000000000000"), // 250 USDC
   ],
   [
     createAddress("0xae2"),
-    BigNumber.from("6000000000000000000"),   // 6 USDC
-    BigNumber.from("9000000000000000000"),   // 9 USDC
+    BigNumber.from("6000000000000000000"), // 6 USDC
+    BigNumber.from("9000000000000000000"), // 9 USDC
     BigNumber.from("300000000000000000000"), // 300 USDC
   ],
   [
     createAddress("0xaf2"),
-    BigNumber.from("5000000000000000000"),   // 5 USDC
-    BigNumber.from("18000000000000000000"),  // 18 USDC
+    BigNumber.from("5000000000000000000"), // 5 USDC
+    BigNumber.from("18000000000000000000"), // 18 USDC
     BigNumber.from("350000000000000000000"), // 350 USDC
   ],
 ];
