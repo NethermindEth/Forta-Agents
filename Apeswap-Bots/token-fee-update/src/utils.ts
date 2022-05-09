@@ -17,11 +17,6 @@ const EVENT_ABI: string[] = [
   "event UpdateTaxFee(uint256 previousTaxFee, uint256 newTaxFee)",
 ];
 
-enum EVENTS_NAME {
-  UpdateTaxFee = "UpdateTaxFee",
-  Transfer = "Transfer",
-}
-
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
 const provider = getEthersProvider();
@@ -45,7 +40,6 @@ export default {
   REFLECT_TOKEN_ADDRESS,
   EVENT_ABI,
   EVENTS_IFACE,
-  EVENTS_NAME,
   createFinding,
   provider,
 };
