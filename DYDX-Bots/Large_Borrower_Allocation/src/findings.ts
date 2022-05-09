@@ -2,7 +2,7 @@ import { LogDescription, Finding, FindingSeverity, FindingType } from "forta-age
 
 export const createFinding = (log: LogDescription) => {
   return Finding.fromObject({
-    name: "Large borrower allocation change detected on dYdX perpetual exchange.",
+    name: "Large borrower allocation detected on dYdX perpetual exchange.",
     description: "ScheduledBorrowerAllocationChange event emitted with a large newAllocation",
     alertId: "DYDX-16",
     severity: FindingSeverity.Info,

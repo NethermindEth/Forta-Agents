@@ -84,7 +84,7 @@ describe("Large Borrower Allocation test suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Large borrower allocation change detected on dYdX perpetual exchange.",
+        name: "Large borrower allocation detected on dYdX perpetual exchange.",
         description: "ScheduledBorrowerAllocationChange event emitted with a large newAllocation",
         alertId: "DYDX-16",
         severity: FindingSeverity.Info,
@@ -170,7 +170,7 @@ describe("Large Borrower Allocation test suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Large borrower allocation change detected on dYdX perpetual exchange.",
+        name: "Large borrower allocation detected on dYdX perpetual exchange.",
         description: "ScheduledBorrowerAllocationChange event emitted with a large newAllocation",
         alertId: "DYDX-16",
         severity: FindingSeverity.Info,
@@ -185,7 +185,7 @@ describe("Large Borrower Allocation test suite", () => {
         addresses: [mockNetworkManager.liquidityModule]
       }),
       Finding.fromObject({
-        name: "Large borrower allocation change detected on dYdX perpetual exchange.",
+        name: "Large borrower allocation detected on dYdX perpetual exchange.",
         description: "ScheduledBorrowerAllocationChange event emitted with a large newAllocation",
         alertId: "DYDX-16",
         severity: FindingSeverity.Info,
