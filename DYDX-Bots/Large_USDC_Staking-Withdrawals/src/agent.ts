@@ -25,8 +25,9 @@ export function provideHandleTransaction(data: any, thresholdPercentage: number)
         .map(async (log) => {
           // Get the stake token balance of the module contract at the previous block
           // (before the transaction, and the subsequent event emission)
-          const moduleBalance: BigNumber = BigNumber.from(
-            await data.balanceFetcher.getBalanceOf(data.networkManager.liquidityModule, txEvent.blockNumber - 1)
+          const moduleBalance: BigNumber = await data.balanceFetcher.getBalanceOf(
+            data.networkManager.liquidityModule,
+            txEvent.blockNumber - 1
           );
 
           // Find the threshold amount from the percentage
@@ -46,8 +47,5 @@ export function provideHandleTransaction(data: any, thresholdPercentage: number)
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(
-    data,
-    THRESHOLD_PERCENTAGE
-  ),
+  handleTransaction: provideHandleTransaction(data, THRESHOLD_PERCENTAGE),
 };
