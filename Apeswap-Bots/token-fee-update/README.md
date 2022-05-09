@@ -10,6 +10,7 @@
 ## Supported Chains
 
 - BNB Smart Chain
+- Polygon
 
 ## Alerts
 
