@@ -35,6 +35,48 @@ const findingTestCases = [
   }),
 ];
 
+const updateTaxFee = async (
+  signer: string,
+  contractAddress: string,
+  mockSigner: MockEthersSigner,
+): Promise<TestTransactionEvent> => {
+  const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
+
+  mockSigner
+    .setAddress(signer)
+    .allowTransaction(
+      signer,
+      contractAddress,
+      utils.TRANSACTIONS_IFACE,
+      "updateTaxFee",
+      [currentFee],
+      {
+        confirmations: 42,
+        logs: [
+          utils.EVENTS_IFACE.encodeEventLog(event, [previousFee, currentFee]),
+        ],
+      }
+    );
+
+  const contract = new ethers.Contract(
+    contractAddress,
+    utils.TRANSACTIONS_IFACE,
+    mockSigner as any
+  );
+
+  const transaction = await (
+    await contract.updateTaxFee(currentFee, {
+      from: signer,
+    })
+  ).wait();
+
+  return new TestTransactionEvent().addAnonymousEventLog(
+    contractAddress,
+    transaction.events[0].data,
+    ...transaction.events[0].topics
+  );
+};
+
 describe("Apeswap token fees updates test suite", () => {
   let handleTx: HandleTransaction;
   const mockProvider: MockEthersProvider = new MockEthersProvider();
@@ -44,57 +86,22 @@ describe("Apeswap token fees updates test suite", () => {
     handleTx = handleTransaction(TEST_REFLECT_TOKEN);
   });
 
-  it("should not return a finding when wrong event is emitted", async () => {
-    const txEvent: TestTransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(TEST_REFLECT_TOKEN);
+  it("should ignore events emitted and functions called on another contract ", async () => {
+    const wrongContractAddress = createAddress("0x02");
+    const from = createAddress("0x01");
+
+    const txEvent = await updateTaxFee(from, wrongContractAddress, mockSigner);
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return a finding when UpdateFees event emitted", async () => {
+  it("should return a finding when updateTaxFee transaction is submitted", async () => {
     const from = createAddress("0x01");
-    const blockTag = 1111;
-    const updatedTaxFess = 300;
 
-    const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
+    const txEvent = await updateTaxFee(from, TEST_REFLECT_TOKEN, mockSigner);
 
-    mockSigner
-      .setAddress(from)
-      .allowTransaction(
-        from,
-        TEST_REFLECT_TOKEN,
-        utils.TRANSACTIONS_IFACE,
-        "updateTaxFee",
-        [updatedTaxFess],
-        {
-          confirmations: 42,
-          blockTag,
-          logs: [
-            utils.EVENTS_IFACE.encodeEventLog(event, [previousFee, currentFee]),
-          ],
-        }
-      );
-
-    const contract = new ethers.Contract(
-      TEST_REFLECT_TOKEN,
-      utils.TRANSACTIONS_IFACE,
-      mockSigner as any
-    );
-
-    const transaction = await (
-      await contract.updateTaxFee(updatedTaxFess, {
-        from,
-      })
-    ).wait();
-
-    const findings: Finding[] = await handleTx(
-      new TestTransactionEvent().addAnonymousEventLog(
-        TEST_REFLECT_TOKEN,
-        transaction.events[0].data,
-        ...transaction.events[0].topics
-      )
-    );
+    const findings: Finding[] = await handleTx(txEvent);
 
     expect(findings).toStrictEqual(findingTestCases);
   });
