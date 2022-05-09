@@ -6,22 +6,22 @@ import { provideHandleTransaction } from "./agent";
 import { STAKED_SIG, WITHDREW_STAKE_SIG, WITHDREW_DEBT_SIG, USDC_IFACE } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
-const testModuleUsdcBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10
+const testModuleUsdcBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10 USDC
 const testThresholdPercentage: number = 20;
 const testStaker: string = createAddress("0xac");
 const testBlockNumbers: number[] = [2, 42, 92, 360, 444, 3500, 90210, 972011, 3524233];
 const testAmounts: BigNumber[] = [
-  BigNumber.from("5000000000000000000"), // 5
-  BigNumber.from("6000000000000000000"), // 6
-  BigNumber.from("7000000000000000000"), // 7
-  BigNumber.from("8000000000000000000"), // 8
-  BigNumber.from("9000000000000000000"), // 9
+  BigNumber.from("5000000000000000000"), // 5 USDC
+  BigNumber.from("6000000000000000000"), // 6 USDC
+  BigNumber.from("7000000000000000000"), // 7 USDC
+  BigNumber.from("8000000000000000000"), // 8 USDC
+  BigNumber.from("9000000000000000000"), // 9 USDC
 ];
 const testLowAmounts: BigNumber[] = [
-  BigNumber.from("1000000000000000"), // .001
-  BigNumber.from("2000000000000000"), // .002
-  BigNumber.from("3000000000000000"), // .003
-  BigNumber.from("4000000000000000"), // .004
+  BigNumber.from("1000000000000000"), // .001 USDC
+  BigNumber.from("2000000000000000"), // .002 USDC
+  BigNumber.from("3000000000000000"), // .003 USDC
+  BigNumber.from("4000000000000000"), // .004 USDC
 ];
 
 describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
@@ -160,7 +160,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   it("should detect a large WithdrewDebt event", async () => {
     createBalanceOfCall(mockData.networkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[4] - 1);
     const testRecipient: string = createAddress("0x5");
-    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3
+    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3 USDC
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(
@@ -197,7 +197,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   it("should not detect a non-large WithdrewDebt event", async () => {
     createBalanceOfCall(mockData.networkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[5] - 1);
     const testRecipient: string = createAddress("0x6");
-    const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4
+    const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4 USDC
 
     const testTopics = encodeParameter("address", testStaker);
     const testData = encodeParameters(
@@ -216,11 +216,11 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect both a large Staked event and large WithdrewStake event", async () => {
+  it("should detect both a large Staked event and large WithdrewStake event, and not detect WithdrewDebt for being too low", async () => {
     createBalanceOfCall(mockData.networkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[6] - 1);
     const testSpender: string = createAddress("0x7");
     const testRecipient: string = createAddress("0x8");
-    const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5
+    const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5 USDC
 
     const testStakedTopics = encodeParameter("address", testStaker);
     const testStakedData = encodeParameters(["address", "uint256"], [testSpender, testAmounts[3]]);
