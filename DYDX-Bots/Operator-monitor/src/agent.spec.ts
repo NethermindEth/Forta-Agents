@@ -16,7 +16,7 @@ import { MONITORED_EVENTS } from "./agent";
 // function to generate test findings
 const createFinding = (name: string, operator: string) => {
   const description = name === "LogOperatorAdded" ? "added to" : "removed from";
-  const alertId = name === "LogFrozen" ? "DYDX-4-1" : "DYDX-4-2";
+  const alertId = name === "LogOperatorAdded" ? "DYDX-4-1" : "DYDX-4-2";
 
   return Finding.fromObject({
     name: `An operator has been ${description} dydx perpetual exchange.`,

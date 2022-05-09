@@ -7,7 +7,7 @@ import {
 } from "forta-agent";
 
 export const MONITORED_EVENTS = [
-  " event LogOperatorAdded(address operator)",
+  "event LogOperatorAdded(address operator)",
   "event LogOperatorRemoved(address operator)",
 ];
 const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
@@ -23,7 +23,7 @@ export const provideHandleTransaction = (
     txEvent.filterLog(MONITORED_EVENTS, perpetualAddress).forEach((log) => {
       const description =
         log.name === "LogOperatorAdded" ? "added to" : "removed from";
-      const alertId = log.name === "LogFrozen" ? "DYDX-4-1" : "DYDX-4-2";
+      const alertId = log.name === "LogOperatorAdded" ? "DYDX-4-1" : "DYDX-4-2";
 
       findings.push(
         Finding.fromObject({

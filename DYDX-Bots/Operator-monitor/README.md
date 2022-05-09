@@ -14,14 +14,14 @@ This bot detects when an operator is added or removed from dydx perpetual exchan
 
 - DYDX-4-1
 
-  - Fired when `LogOperatorAdded` event is emitted on dydx pereptual contract.
+  - Fired when `LogOperatorAdded` event is emitted on dydx perpetual contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata includes:
     - `operator`: Address of the operator that was added.
 
 - DYDX-4-2
-  - Fired when `LogOperatorRemoved` event is emitted on dydx pereptual contract.
+  - Fired when `LogOperatorRemoved` event is emitted on dydx perpetual contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata includes:
