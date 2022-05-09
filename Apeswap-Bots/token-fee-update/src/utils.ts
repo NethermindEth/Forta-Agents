@@ -34,7 +34,7 @@ const provider = getEthersProvider();
 const createFinding = (metaData: MetaDataI): Finding => {
   return Finding.fromObject({
     name: "Detect Fees Related To The Token",
-    description: `token tax fee has been changed`,
+    description: `Token tax fee has been changed`,
     alertId: "APESWAP-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
