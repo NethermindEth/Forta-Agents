@@ -38,7 +38,7 @@ const findingTestCases = [
 const updateTaxFee = async (
   signer: string,
   contractAddress: string,
-  mockSigner: MockEthersSigner,
+  mockSigner: MockEthersSigner
 ): Promise<TestTransactionEvent> => {
   const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
 
@@ -86,11 +86,31 @@ describe("Apeswap token fees updates test suite", () => {
     handleTx = handleTransaction(TEST_REFLECT_TOKEN);
   });
 
-  it("should ignore events emitted and functions called on another contract ", async () => {
+  it("should ignore events emitted and functions called on another contract", async () => {
     const wrongContractAddress = createAddress("0x02");
     const from = createAddress("0x01");
 
     const txEvent = await updateTaxFee(from, wrongContractAddress, mockSigner);
+
+    const findings: Finding[] = await handleTx(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore wrong events emitted and functions called on the reflect token", async () => {
+    const from = createAddress("0x01");
+
+    const txEvent = new TestTransactionEvent()
+      .setFrom(from)
+      .addInterfaceEventLog(
+        utils.WRONG_EVENTS_IFACE.getEvent("Transfer"),
+        TEST_REFLECT_TOKEN,
+        [from, from, 0]
+      )
+      .addTraces({
+        input: utils.TRANSACTIONS_IFACE.encodeFunctionData("updateTaxFee", [
+          currentFee,
+        ]),
+      });
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
