@@ -31,6 +31,9 @@ This bot detects frozen state changes in dYdX perpetual exchange contract.
 
 The bot behaviour can be verified with the following test transactions generated through our `PoC` contracts (Ropsten):
 
+- `Proxy` PoC contract address: `0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6`.
+- `StarkPerpetual` PoC contract address: `0x16A92ffA189C7Eff51634e743C50f02C29Fb69B2`.
+
 > To test the transactions, `PERPETUAL_PROXY` have to be changed to `TEST_PROXY` in `agent.ts` Line 36.
 
 - 0x20ad12967a6cac915d432720652420448d9eb4d1f766c2102c6594cbc80ca1c0 (`LogFrozen` event)
