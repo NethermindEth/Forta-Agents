@@ -298,10 +298,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   it("should not detect an incorrect event", async () => {
     createBalanceOfCall(mockData.networkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[7] - 1);
     const wrongIFace = new utils.Interface(["event WrongEvent()"]);
-    const wrongLog = wrongIFace.encodeEventLog(
-      wrongIFace.getEvent("WrongEvent"),
-      []
-    );
+    const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockData.networkManager.liquidityModule)
