@@ -1,68 +1,86 @@
+import { BigNumber, providers } from "ethers";
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
+  getEthersProvider,
   HandleTransaction,
+  LogDescription,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
 } from "forta-agent";
+import BalanceFetcher from "./balance.fetcher";
+import InactiveBalanceFetcher from "./inactive.balance.fetcher";
+import { createFinding, EVENT_SIGNATURE } from "./utils";
+import { BotConfig, DYNAMIC_CONFIG, STATIC_CONFIG } from "./config";
+import NetworkData from "./network";
+import NetworkManager from "./network";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager();
+const balanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
+const inactiveBalanceFetcher = new InactiveBalanceFetcher(
+  getEthersProvider(),
+  networkManager
+);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+  balanceFetcher.setTokenContract();
+  inactiveBalanceFetcher.setSafetyModule();
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction =
+  (
+    config: BotConfig,
+    networkManager: NetworkData,
+    inactiveBalanceFetcher: InactiveBalanceFetcher,
+    balanceFetcher: BalanceFetcher
+  ): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const logs: LogDescription[] = txEvent.filterLog(
+      EVENT_SIGNATURE,
+      networkManager.safetyModule
+    );
+
+    for (let log of logs) {
+      // get the staker address
+      const staker = log.args.staker;
+
+      // get the staker inactive balance.
+      const inactiveBalance = await inactiveBalanceFetcher.getInactiveBalance(
+        staker,
+        txEvent.blockNumber
+      );
+
+      // set threshold based on the mode.
+      let _threshold: BigNumber;
+
+      if (config.mode === "STATIC") _threshold = config.thresholdData;
+      else {
+        // fetch total staked tokens.
+        const totalStaked = await balanceFetcher.getBalance(
+          txEvent.blockNumber
+        );
+        console.log(totalStaked.toString(), inactiveBalance.toString());
+        // set threshold
+        _threshold = BigNumber.from(totalStaked)
+          .mul(config.thresholdData)
+          .div(100);
+      }
+
+      if (inactiveBalance.gte(_threshold))
+        findings.push(createFinding(config.mode, staker, inactiveBalance));
+    }
+
+    return findings;
+  };
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(
+    STATIC_CONFIG,
+    networkManager,
+    inactiveBalanceFetcher,
+    balanceFetcher
+  ),
 };
