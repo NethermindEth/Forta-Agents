@@ -3,7 +3,6 @@ import {
   Finding,
   getEthersProvider,
   HandleTransaction,
-  LogDescription,
   TransactionEvent,
 } from "forta-agent";
 import BalanceFetcher from "./balance.fetcher";
@@ -60,7 +59,7 @@ export const provideHandleTransaction =
             const totalStaked = await balanceFetcher.getBalance(
               txEvent.blockNumber
             );
-            console.log(totalStaked.toString(), inactiveBalance.toString());
+
             // set threshold
             _threshold = BigNumber.from(totalStaked)
               .mul(config.thresholdData)
