@@ -38,6 +38,7 @@ export function provideHandleTransaction(
     return findings;
   };
 }
+
 export function provideHandleBlock(
   fetcher: DataFetcher,
   balanceThreshold: BigNumber,
@@ -57,6 +58,7 @@ export function provideHandleBlock(
     return findings;
   };
 }
+
 export default {
   handleTransaction: provideHandleTransaction(FETCHER, accounts),
   handleBlock: provideHandleBlock(FETCHER, BALANCE_THRESHOLD, accounts),
