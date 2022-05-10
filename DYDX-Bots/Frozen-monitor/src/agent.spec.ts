@@ -24,7 +24,7 @@ describe("Frozen state monitor tests suite", () => {
   const perpetual = createAddress("0x1");
   const PERPETUAL_IFACE = new Interface(EVENTS_SIGNATURES);
   const mockProvider = {
-    getAddress: () => perpetual,
+    perpetualProxy: perpetual,
   };
 
   const handler: HandleTransaction = provideHandleTransaction(mockProvider as any);

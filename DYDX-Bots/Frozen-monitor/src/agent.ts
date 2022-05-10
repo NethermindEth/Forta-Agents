@@ -7,26 +7,23 @@ import {
   FindingType,
   getEthersProvider,
 } from "forta-agent";
-import AddressProvider from "./address.provider";
+import NetworkManager from "./network";
+import NetworkData from "./network";
 
 export const EVENTS_SIGNATURES = ["event LogFrozen()", "event LogUnFrozen()"];
-const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
-const TEST_PROXY = "0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6";
-let addressProvider: AddressProvider = new AddressProvider(PERPETUAL_PROXY, TEST_PROXY);
+const networkManager: NetworkData = new NetworkManager();
 
-const initialize = (provider: Provider) => async () => {
-  const networkId = (await provider.getNetwork()).chainId;
-  addressProvider.setNetwork(networkId.toString());
+const provideInitialize = (provider: Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
 };
 
-export const provideHandleTransaction = (provider: AddressProvider): HandleTransaction => {
+export const provideHandleTransaction = (networkManager: NetworkData): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    // get the monitored contract address based on the chainId.
-    const perpetualAddress = provider.getAddress();
 
     // Listen to `LogFrozen` `LogUnFrozen` events and generate findings for each.
-    txEvent.filterLog(EVENTS_SIGNATURES, perpetualAddress).forEach((log) => {
+    txEvent.filterLog(EVENTS_SIGNATURES, networkManager.perpetualProxy).forEach((log) => {
       const description = log.name === "LogFrozen" ? "Frozen" : "UnFrozen";
       const alertId = log.name === "LogFrozen" ? "DYDX-2-1" : "DYDX-2-2";
 
@@ -50,6 +47,6 @@ export const provideHandleTransaction = (provider: AddressProvider): HandleTrans
 };
 
 export default {
-  initialize: initialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(addressProvider),
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
