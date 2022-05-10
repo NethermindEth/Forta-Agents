@@ -10,7 +10,7 @@ interface MetaDataI {
   previousFee: string;
   currentFee: string;
 }
-const REFLECT_TOKEN_ADDRESS: string =
+const GNANA_TOKEN_ADDRESS: string =
   "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299";
 
 const EVENT_ABI: string[] = [
