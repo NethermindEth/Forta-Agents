@@ -37,40 +37,40 @@ export const provideHandleTransaction =
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs: LogDescription[] = txEvent.filterLog(
-      EVENT_SIGNATURE,
-      networkManager.safetyModule
+    await Promise.all(
+      txEvent
+        .filterLog(EVENT_SIGNATURE, networkManager.safetyModule)
+        .map(async (log) => {
+          // get the staker address
+          const staker = log.args.staker;
+
+          // get the staker inactive balance.
+          const inactiveBalance =
+            await inactiveBalanceFetcher.getInactiveBalance(
+              staker,
+              txEvent.blockNumber
+            );
+
+          // set threshold based on the mode.
+          let _threshold: BigNumber;
+
+          if (config.mode === "STATIC") _threshold = config.thresholdData;
+          else {
+            // fetch total staked tokens.
+            const totalStaked = await balanceFetcher.getBalance(
+              txEvent.blockNumber
+            );
+            console.log(totalStaked.toString(), inactiveBalance.toString());
+            // set threshold
+            _threshold = BigNumber.from(totalStaked)
+              .mul(config.thresholdData)
+              .div(100);
+          }
+
+          if (inactiveBalance.gte(_threshold))
+            findings.push(createFinding(config.mode, staker, inactiveBalance));
+        })
     );
-
-    for (let log of logs) {
-      // get the staker address
-      const staker = log.args.staker;
-
-      // get the staker inactive balance.
-      const inactiveBalance = await inactiveBalanceFetcher.getInactiveBalance(
-        staker,
-        txEvent.blockNumber
-      );
-
-      // set threshold based on the mode.
-      let _threshold: BigNumber;
-
-      if (config.mode === "STATIC") _threshold = config.thresholdData;
-      else {
-        // fetch total staked tokens.
-        const totalStaked = await balanceFetcher.getBalance(
-          txEvent.blockNumber
-        );
-        console.log(totalStaked.toString(), inactiveBalance.toString());
-        // set threshold
-        _threshold = BigNumber.from(totalStaked)
-          .mul(config.thresholdData)
-          .div(100);
-      }
-
-      if (inactiveBalance.gte(_threshold))
-        findings.push(createFinding(config.mode, staker, inactiveBalance));
-    }
 
     return findings;
   };
@@ -78,7 +78,7 @@ export const provideHandleTransaction =
 export default {
   initialize: provideInitialize(getEthersProvider()),
   handleTransaction: provideHandleTransaction(
-    STATIC_CONFIG,
+    DYNAMIC_CONFIG,
     networkManager,
     inactiveBalanceFetcher,
     balanceFetcher
