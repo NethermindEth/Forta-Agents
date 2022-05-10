@@ -7,31 +7,28 @@ import {
   FindingType,
   getEthersProvider,
 } from "forta-agent";
-import AddressProvider from "./address.provider";
+import NetworkManager from "./network";
+import NetworkData from "./network";
 
 export const MONITORED_EVENTS = [
   "event LogGlobalConfigurationRegistered(bytes32 configHash)",
   "event LogGlobalConfigurationApplied(bytes32 configHash)",
   "event LogGlobalConfigurationRemoved(bytes32 configHash)",
 ];
-const PERPETUAL_PROXY = "0xD54f502e184B6B739d7D27a6410a67dc462D69c8";
-const TEST_PROXY = "0xcd8fa8342d779f8d6acc564b73746bf9ca1261c6";
-let addressProvider: AddressProvider = new AddressProvider(PERPETUAL_PROXY, TEST_PROXY);
 
-const initialize = (provider: providers.Provider) => async () => {
-  const networkId = (await provider.getNetwork()).chainId;
-  addressProvider.setNetwork(networkId.toString());
+const networkManager: NetworkData = new NetworkManager();
+
+const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
 };
 
-export const provideHandleTransaction = (provider: AddressProvider): HandleTransaction => {
+export const provideHandleTransaction = (networkManager: NetworkData): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    // get the monitored contract address based on the chainId.
-    const perpetualAddress = provider.getAddress();
-
     // Listen to the monitored events and generate findings for each.
-    txEvent.filterLog(MONITORED_EVENTS, perpetualAddress).forEach((log) => {
+    txEvent.filterLog(MONITORED_EVENTS, networkManager.perpetualProxy).forEach((log) => {
       const description =
         log.name === "LogGlobalConfigurationRegistered"
           ? "registered"
@@ -66,6 +63,6 @@ export const provideHandleTransaction = (provider: AddressProvider): HandleTrans
 };
 
 export default {
-  initialize: initialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(addressProvider),
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
