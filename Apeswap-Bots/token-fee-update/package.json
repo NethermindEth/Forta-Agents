@@ -1,7 +1,7 @@
 {
   "name": "apeswap-3",
   "version": "0.0.1",
-  "description": "Detects any changes related to reflect token fees",
+  "description": "Detects any changes related to GNANA token fees",
   "chainIds": [
     56,
     
