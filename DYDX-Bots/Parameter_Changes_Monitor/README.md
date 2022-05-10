@@ -36,6 +36,7 @@ This bot detects parameter changes to both the Safety Module and Liquidity Modul
   - Addresses is the address from which the event was emitted.
 
 ## Test Data
+> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 

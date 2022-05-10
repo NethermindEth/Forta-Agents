@@ -35,6 +35,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
   const mockNetworkManager: NetworkManager = {
     safetyModule: createAddress("0xab"),
     liquidityModule: createAddress("0xac"),
+    networkMap: {},
     setNetwork: jest.fn(),
   };
 
