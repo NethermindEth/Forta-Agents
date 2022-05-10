@@ -7,7 +7,7 @@ import {
   FindingType,
   getEthersProvider,
 } from "forta-agent";
-import NetworkManager from "./network";
+import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 
 export const MONITORED_EVENTS = [
@@ -16,7 +16,7 @@ export const MONITORED_EVENTS = [
   "event LogGlobalConfigurationRemoved(bytes32 configHash)",
 ];
 
-const networkManager: NetworkData = new NetworkManager();
+const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
 
 const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
