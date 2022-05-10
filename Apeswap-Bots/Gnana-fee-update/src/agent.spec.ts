@@ -12,13 +12,6 @@ import {
 import { handleTransaction } from "./agent";
 import utils from "./utils";
 
-const TRANSACTIONS_ABI: string[] = [
-  "function updateTaxFee(uint256 _fee) public",
-];
-const TRANSACTIONS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(
-  TRANSACTIONS_ABI
-);
-
 const WRONG_EVENT_ABI: string[] = [
   "event Transfer(address indexed from,address indexed to,uint256 value)",
 ];
