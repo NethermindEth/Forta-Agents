@@ -6,7 +6,7 @@
     56,
     
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40apeswap/AS3",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/token-fee-update",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
