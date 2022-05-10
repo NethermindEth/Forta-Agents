@@ -14,7 +14,7 @@ const ROPSTEN_TESTNET_DATA: NetworkData = {
   dydxAddress: "0x92d6c1e31e14520e676a687f0a93788b716beff5",
 };
 
-const NETWORK_MAP: Record<number, NetworkData> = {
+export const NETWORK_MAP: Record<number, NetworkData> = {
   1: ETH_MAINNET_DATA,
   3: ROPSTEN_TESTNET_DATA,
 };
@@ -22,14 +22,16 @@ const NETWORK_MAP: Record<number, NetworkData> = {
 export default class NetworkManager implements NetworkData {
   public safetyModule: string;
   public dydxAddress: string;
+  networkMap: Record<number, NetworkData>;
 
-  constructor() {
+  constructor(networkMap: Record<number, NetworkData>) {
     this.safetyModule = "";
     this.dydxAddress = "";
+    this.networkMap = networkMap;
   }
 
   public setNetwork(networkId: number) {
-    const { safetyModule, dydxAddress } = NETWORK_MAP[networkId];
+    const { safetyModule, dydxAddress } = this.networkMap[networkId];
     this.safetyModule = safetyModule;
     this.dydxAddress = dydxAddress;
   }
