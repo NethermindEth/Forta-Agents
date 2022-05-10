@@ -22,7 +22,7 @@ const currentFee = "2";
 const findingTestCases = [
   Finding.fromObject({
     name: "Detect Fees Related To The Token",
-    description: `Token tax fee has been changed`,
+    description: "Token tax fee has been changed",
     alertId: "APESWAP-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
