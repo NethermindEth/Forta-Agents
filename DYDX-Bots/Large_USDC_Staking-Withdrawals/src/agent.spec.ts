@@ -29,6 +29,7 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   const mockNetworkManager: NetworkData = {
     liquidityModule: createAddress("0xab"),
     usdcAddress: createAddress("0xad"),
+    networkMap: {},
     setNetwork: jest.fn(),
   };
   const mockBalanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);

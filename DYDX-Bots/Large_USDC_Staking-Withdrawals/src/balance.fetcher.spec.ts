@@ -16,6 +16,7 @@ describe("Balance Fetcher test suite", () => {
   const mockNetworkManager: NetworkManager = {
     liquidityModule: createAddress("0xab"),
     usdcAddress: createAddress("0xac"),
+    networkMap: {},
     setNetwork: jest.fn(),
   };
   const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
