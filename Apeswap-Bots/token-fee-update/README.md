@@ -15,7 +15,7 @@
 ## Alerts
 
 - APESWAP-3
-  - Fired when `UpdateTaxFee` event is emitted on `RBEP20`.
+  - Fired when `UpdateTaxFee` event is emitted on `GNANA` token contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
