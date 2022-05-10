@@ -4,7 +4,7 @@
   "description": "Detects any changes related to reflect token fees",
   "chainIds": [
     56,
-    137
+    
   ],
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40apeswap/AS3",
   "scripts": {
