@@ -1,12 +1,14 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { APEFACTORY_ABI } from "./constants";
 
 import { createFinding, newPairParamsType, newPairFindingType, providerParams } from "./utils";
+const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
 
-const createPairProvider = ({ createFunctionSig, address }: newPairParamsType): HandleTransaction => {
+export const provideHandleTransaction = ({ functionSig, address }: newPairParamsType): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const txLogs = txEvent.filterFunction(createFunctionSig, address);
+    const txLogs = txEvent.filterFunction(functionSig, address);
 
     txLogs.forEach((txLog) => {
       const { args } = txLog;
@@ -16,13 +18,11 @@ const createPairProvider = ({ createFunctionSig, address }: newPairParamsType): 
         tokenBAddress: args[1].toLowerCase(),
       };
 
-      findings.push(createFinding(newPairMetadata));
+      findings.push(createFinding(newPairMetadata, CREATE_PAIR_FUNCTION));
     });
     return findings;
   };
 };
 export default {
-  handleTransaction: createPairProvider(providerParams),
+  handleTransaction: provideHandleTransaction(providerParams),
 };
-
-export { createPairProvider };

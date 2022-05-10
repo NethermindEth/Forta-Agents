@@ -1,54 +1,63 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { newPairParamsType } from "./utils";
-import { createPairProvider } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { APEFACTORY_ABI } from "./constants";
 import { ethers } from "ethers";
 
 const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
-
-const MOCK_FUNCTION_ABI: string[] = [CREATE_PAIR_FUNCTION];
+const MOCK_SET_FEE_TO_SETTER_FUNCTION: string = "function setFeeToSetter(address _feeToSetter)";
+const MOCK_FUNCTION_ABI: string[] = [CREATE_PAIR_FUNCTION, MOCK_SET_FEE_TO_SETTER_FUNCTION];
 
 type mockConstantsType = {
-  mockTokenA: string;
-  mockTokenB: string;
-  mockApeFactoryAddress: string;
-  IMockApeFactory: ethers.utils.Interface;
+  MOCK_TOKEN_A: string;
+  MOCK_TOKEN_B: string;
+  MOCK_TOKEN_C: string;
+  MOCK_OTHER_CONTRACT_ADDRESS: string;
+  MOCK_APE_FACTORY_ADDRESS: string;
+  IMOCK_APEFACTORY_CREATE_PAIR_ABI: ethers.utils.Interface;
+};
+
+type mockNewPairParamsType = {
+  functionSig: string;
+  address: string;
 };
 
 const MOCK_CONSTANTS: mockConstantsType = {
-  mockTokenA: createAddress("0xa1").toLowerCase(),
-  mockTokenB: createAddress("0xb2").toLowerCase(),
-  mockApeFactoryAddress: createAddress("0xaec1"),
-  IMockApeFactory: new ethers.utils.Interface(MOCK_FUNCTION_ABI),
+  MOCK_TOKEN_A: createAddress("0xa1"),
+  MOCK_TOKEN_B: createAddress("0xb2"),
+  MOCK_TOKEN_C: createAddress("0xc3"),
+  MOCK_APE_FACTORY_ADDRESS: createAddress("0xaec1"),
+  MOCK_OTHER_CONTRACT_ADDRESS: createAddress("0xee5"),
+  IMOCK_APEFACTORY_CREATE_PAIR_ABI: new ethers.utils.Interface(MOCK_FUNCTION_ABI),
 };
 
 const mockCreateFinding = (functionAbi: string): Finding => {
   return Finding.fromObject({
-    name: "new pair creation detection bot",
-    description: `Detect the creation of new tradable pairs on Apeswap`,
+    name: "New pair creation on ApeFactory contract",
+    description: `${functionAbi} call detected on ApeFactory contract upon creation of new tradable pairs`,
     alertId: "APESWAP-8",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",
     metadata: {
-      tokenAAddress: mockTokenA,
-      tokenBAddress: mockTokenB,
+      tokenAAddress: MOCK_TOKEN_A,
+      tokenBAddress: MOCK_TOKEN_B,
     },
   });
 };
 
-const { mockApeFactoryAddress, mockTokenA, mockTokenB, IMockApeFactory } = MOCK_CONSTANTS;
+const { MOCK_TOKEN_A, MOCK_TOKEN_B, MOCK_TOKEN_C, MOCK_APE_FACTORY_ADDRESS, IMOCK_APEFACTORY_CREATE_PAIR_ABI } =
+  MOCK_CONSTANTS;
 
-const mockProviderParams: newPairParamsType = {
-  address: mockApeFactoryAddress,
-  createFunctionSig: CREATE_PAIR_FUNCTION,
+const mockProviderParams: mockNewPairParamsType = {
+  functionSig: CREATE_PAIR_FUNCTION,
+  address: MOCK_APE_FACTORY_ADDRESS,
 };
 
-describe("New Pair Creation Test Suite", () => {
+describe("New Pair Creation Monitor Test Suite", () => {
   let txEvent: TransactionEvent;
-  const handleTransaction: HandleTransaction = createPairProvider(mockProviderParams);
+  const handleTransaction: HandleTransaction = provideHandleTransaction(mockProviderParams);
 
   let findings: Finding[];
 
@@ -58,10 +67,19 @@ describe("New Pair Creation Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("should ignore other function calls on ApeFactory contract", async () => {
+    txEvent = new TestTransactionEvent().addTraces({
+      to: MOCK_APE_FACTORY_ADDRESS,
+      input: IMOCK_APEFACTORY_CREATE_PAIR_ABI.encodeFunctionData("setFeeToSetter", [MOCK_TOKEN_C]),
+    });
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
   it("should return finding once new pair creation function is called", async () => {
     txEvent = new TestTransactionEvent().addTraces({
-      to: mockApeFactoryAddress,
-      input: IMockApeFactory.encodeFunctionData("createPair", [mockTokenA.toLowerCase(), mockTokenB.toLowerCase()]),
+      to: MOCK_APE_FACTORY_ADDRESS,
+      input: IMOCK_APEFACTORY_CREATE_PAIR_ABI.encodeFunctionData("createPair", [MOCK_TOKEN_A, MOCK_TOKEN_B]),
     });
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([mockCreateFinding(CREATE_PAIR_FUNCTION)]);

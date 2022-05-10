@@ -10,19 +10,19 @@ type newPairFindingType = {
 };
 
 type newPairParamsType = {
-  createFunctionSig: string;
+  functionSig: string;
   address: string;
 };
 
 const providerParams: newPairParamsType = {
+  functionSig: CREATE_PAIR_FUNCTION,
   address: APEFACTORY_ADDRESS,
-  createFunctionSig: CREATE_PAIR_FUNCTION,
 };
 
-const createFinding = (findingMetadata: newPairFindingType): Finding => {
+const createFinding = (findingMetadata: newPairFindingType, functionAbi: string): Finding => {
   const findingResult = {
-    name: "new pair creation detection bot",
-    description: `Detect the creation of new tradable pairs on Apeswap`,
+    name: "New pair creation on ApeFactory contract",
+    description: `${functionAbi} call detected on ApeFactory contract upon creation of new tradable pairs`,
     alertId: "APESWAP-8",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
