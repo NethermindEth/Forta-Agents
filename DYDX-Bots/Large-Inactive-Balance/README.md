@@ -4,6 +4,13 @@
 
 This bot detect users with large Inactive balance for the next Epoch in dYdX Safety Module.
 
+> The bot can operate in two different modes, used to determine the threshold of a _large_ inactive balance.
+>
+> - `STATIC` mode refers to the bot using a static predefined threshold.
+> - `PERCENTAGE` refers to setting the threshold as a percentage of the total staked tokens.
+
+> In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CONFG` in agent.ts, L60.
+
 ## Supported Chains
 
 - Ethereum

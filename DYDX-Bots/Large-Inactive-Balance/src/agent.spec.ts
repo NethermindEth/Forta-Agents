@@ -1,39 +1,24 @@
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { MockEthersProvider } from "forta-agent-tools/lib/mock.utils";
-import {
-  createAddress,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/tests.utils";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 import { provideHandleTransaction } from "./agent";
 import BalanceFetcher from "./balance.fetcher";
 import { BotConfig } from "./config";
 import InactiveBalanceFetcher from "./inactive.balance.fetcher";
 import { BALANCE_ABI, EVENT_SIGNATURE, INACTIVE_BALANCE_ABI } from "./utils";
 
-describe("Large inactive balance tests suite", () => {
+describe("Large Inactive Balance tests suite", () => {
   const EVENT_IFACE = new Interface(EVENT_SIGNATURE);
   const mockProvider = new MockEthersProvider();
+
   const mockNetworkManager = {
     dydxAddress: createAddress("0xa1"),
     safetyModule: createAddress("0xa2"),
   };
-  const mockBalanceFetcher = new BalanceFetcher(
-    mockProvider as any,
-    mockNetworkManager as any
-  );
-
-  const mockInactiveBalanceFetcher = new InactiveBalanceFetcher(
-    mockProvider as any,
-    mockNetworkManager as any
-  );
+  const mockBalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager as any);
+  const mockInactiveBalanceFetcher = new InactiveBalanceFetcher(mockProvider as any, mockNetworkManager as any);
 
   const createInactiveBalanceCall = (
     moduleAddress: string,
@@ -41,44 +26,22 @@ describe("Large inactive balance tests suite", () => {
     inactiveBalance: BigNumber,
     blockNumber: number
   ) => {
-    mockProvider.addCallTo(
-      moduleAddress,
-      blockNumber,
-      INACTIVE_BALANCE_ABI,
-      "getInactiveBalanceNextEpoch",
-      {
-        inputs: [staker],
-        outputs: [inactiveBalance],
-      }
-    );
+    mockProvider.addCallTo(moduleAddress, blockNumber, INACTIVE_BALANCE_ABI, "getInactiveBalanceNextEpoch", {
+      inputs: [staker],
+      outputs: [inactiveBalance],
+    });
   };
-  const createBalanceOfcall = (
-    tokenAddress: string,
-    safetyModule: string,
-    balance: BigNumber,
-    blockNumber: number
-  ) => {
-    mockProvider.addCallTo(
-      tokenAddress,
-      blockNumber,
-      BALANCE_ABI,
-      "balanceOf",
-      {
-        inputs: [safetyModule],
-        outputs: [balance],
-      }
-    );
+  const createBalanceOfcall = (tokenAddress: string, safetyModule: string, balance: BigNumber, blockNumber: number) => {
+    mockProvider.addCallTo(tokenAddress, blockNumber, BALANCE_ABI, "balanceOf", {
+      inputs: [safetyModule],
+      outputs: [balance],
+    });
   };
 
-  const createFinding = (
-    mode: string,
-    staker: string,
-    inactiveBalance: BigNumber
-  ) => {
+  const createFinding = (mode: string, staker: string, inactiveBalance: BigNumber) => {
     return Finding.fromObject({
       name: "Large inactive balance on Safety module",
-      description:
-        "Staker with large inactive balance on safety module is detected",
+      description: "Staker with large inactive balance on safety module is detected",
       alertId: "DYDX-13",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -135,18 +98,16 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[0] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
 
-      const txEvent: TransactionEvent = new TestTransactionEvent()
-        .setBlock(TEST_BLOCKS[0])
-        .addAnonymousEventLog(
-          createAddress("0xb3"), // different contract
-          log.data,
-          ...log.topics
-        );
+      const txEvent: TransactionEvent = new TestTransactionEvent().setBlock(TEST_BLOCKS[0]).addAnonymousEventLog(
+        createAddress("0xb3"), // different contract
+        log.data,
+        ...log.topics
+      );
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([]);
@@ -160,23 +121,17 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[1] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[1])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log.data,
-          ...log.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log.data, ...log.topics);
 
       const findings = await handler(txEvent);
-      expect(findings).toStrictEqual([
-        createFinding("STATIC", TEST_DATA[2][0], TEST_DATA[2][1]),
-      ]);
+      expect(findings).toStrictEqual([createFinding("STATIC", TEST_DATA[2][0], TEST_DATA[2][1])]);
     });
 
     it("return no finding when inactive balance is below the threshold", async () => {
@@ -187,18 +142,14 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[2] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[0][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[0][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[2])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log.data,
-          ...log.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log.data, ...log.topics);
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([]);
@@ -214,51 +165,35 @@ describe("Large inactive balance tests suite", () => {
         );
       }
 
-      const log1 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[0][0], BigNumber.from(20)]
-      );
-      const log2 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[1][0], BigNumber.from(20)]
-      );
-      const log3 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
-      const log4 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[3][0], BigNumber.from(20)]
-      );
+      const log1 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[0][0],
+        BigNumber.from(20),
+      ]);
+      const log2 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[1][0],
+        BigNumber.from(20),
+      ]);
+      const log3 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
+      const log4 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[3][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[3])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log1.data,
-          ...log1.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log2.data,
-          ...log2.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log3.data,
-          ...log3.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log4.data,
-          ...log4.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log1.data, ...log1.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log2.data, ...log2.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log3.data, ...log3.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log4.data, ...log4.topics);
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([
         createFinding("STATIC", TEST_DATA[2][0], TEST_DATA[2][1]),
         createFinding("STATIC", TEST_DATA[3][0], TEST_DATA[3][1]),
-      ]); // two findings
+      ]);
     });
   });
 
@@ -303,18 +238,16 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[0] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
 
-      const txEvent: TransactionEvent = new TestTransactionEvent()
-        .setBlock(TEST_BLOCKS[0])
-        .addAnonymousEventLog(
-          createAddress("0xb3"), // different contract
-          log.data,
-          ...log.topics
-        );
+      const txEvent: TransactionEvent = new TestTransactionEvent().setBlock(TEST_BLOCKS[0]).addAnonymousEventLog(
+        createAddress("0xb3"), // different contract
+        log.data,
+        ...log.topics
+      );
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([]);
@@ -334,23 +267,17 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[1] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[1])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log.data,
-          ...log.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log.data, ...log.topics);
 
       const findings = await handler(txEvent);
-      expect(findings).toStrictEqual([
-        createFinding("PERCENTAGE", TEST_DATA[2][0], TEST_DATA[2][1]),
-      ]);
+      expect(findings).toStrictEqual([createFinding("PERCENTAGE", TEST_DATA[2][0], TEST_DATA[2][1])]);
     });
 
     it("return no finding when inactive balance is below the threshold", async () => {
@@ -367,18 +294,14 @@ describe("Large inactive balance tests suite", () => {
         TEST_BLOCKS[2] // block number
       );
 
-      const log = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[0][0], BigNumber.from(20)]
-      );
+      const log = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[0][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[2])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log.data,
-          ...log.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log.data, ...log.topics);
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([]);
@@ -400,51 +323,35 @@ describe("Large inactive balance tests suite", () => {
         );
       }
 
-      const log1 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[0][0], BigNumber.from(20)]
-      );
-      const log2 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[1][0], BigNumber.from(20)]
-      );
-      const log3 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[2][0], BigNumber.from(20)]
-      );
-      const log4 = EVENT_IFACE.encodeEventLog(
-        EVENT_IFACE.getEvent("WithdrawalRequested"),
-        [TEST_DATA[3][0], BigNumber.from(20)]
-      );
+      const log1 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[0][0],
+        BigNumber.from(20),
+      ]);
+      const log2 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[1][0],
+        BigNumber.from(20),
+      ]);
+      const log3 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[2][0],
+        BigNumber.from(20),
+      ]);
+      const log4 = EVENT_IFACE.encodeEventLog(EVENT_IFACE.getEvent("WithdrawalRequested"), [
+        TEST_DATA[3][0],
+        BigNumber.from(20),
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(TEST_BLOCKS[3])
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log1.data,
-          ...log1.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log2.data,
-          ...log2.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log3.data,
-          ...log3.topics
-        )
-        .addAnonymousEventLog(
-          mockNetworkManager.safetyModule,
-          log4.data,
-          ...log4.topics
-        );
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log1.data, ...log1.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log2.data, ...log2.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log3.data, ...log3.topics)
+        .addAnonymousEventLog(mockNetworkManager.safetyModule, log4.data, ...log4.topics);
 
       const findings = await handler(txEvent);
       expect(findings).toStrictEqual([
         createFinding("PERCENTAGE", TEST_DATA[2][0], TEST_DATA[2][1]),
         createFinding("PERCENTAGE", TEST_DATA[3][0], TEST_DATA[3][1]),
-      ]); // two findings
+      ]);
     });
   });
 });
