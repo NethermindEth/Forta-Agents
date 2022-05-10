@@ -1,12 +1,12 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { BigNumber, providers } from "ethers";
-import NetworkManager from "./network";
+import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { STAKED_ABI, WITHDREW_STAKE_ABI, WITHDREW_DEBT_ABI, THRESHOLD_PERCENTAGE } from "./utils";
 import { createFinding } from "./findings";
 
-const networkManager: NetworkData = new NetworkManager();
+const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
 const balanceFetcher: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
