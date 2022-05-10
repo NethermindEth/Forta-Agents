@@ -77,7 +77,7 @@ const updateTaxFee = async (
   );
 };
 
-describe("Apeswap token fees updates test suite", () => {
+describe("Apeswap token fees updates monitor test suite", () => {
   let handleTx: HandleTransaction;
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const mockSigner: MockEthersSigner = new MockEthersSigner(mockProvider);
