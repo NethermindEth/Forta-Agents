@@ -16,18 +16,9 @@ const GNANA_TOKEN_ADDRESS: string =
 const EVENT_ABI: string[] = [
   "event UpdateTaxFee(uint256 previousTaxFee, uint256 newTaxFee)",
 ];
-const WRONG_EVENT_ABI: string[] = [
-  "event Transfer(address indexed from,address indexed to,uint256 value)",
-];
-
-const TRANSACTIONS_ABI: string[] = [
-  "function updateTaxFee(uint256 _fee) public",
-];
 
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
-const WRONG_EVENTS_IFACE: Interface = new Interface(WRONG_EVENT_ABI);
 
-const TRANSACTIONS_IFACE: Interface = new Interface(TRANSACTIONS_ABI);
 
 const provider = getEthersProvider();
 
@@ -48,10 +39,8 @@ const createFinding = (metaData: MetaDataI): Finding => {
 
 export default {
   GNANA_TOKEN_ADDRESS,
-  WRONG_EVENTS_IFACE,
   EVENT_ABI,
   EVENTS_IFACE,
-  TRANSACTIONS_IFACE,
   createFinding,
   provider,
 };
