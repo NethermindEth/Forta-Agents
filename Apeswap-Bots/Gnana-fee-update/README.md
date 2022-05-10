@@ -10,7 +10,6 @@
 ## Supported Chains
 
 - BNB Smart Chain
-- Polygon
 
 ## Alerts
 
@@ -21,5 +20,3 @@
   - Metadata contains:
     - `previousFee`: Previous fee amount
     - `currentFee`: New fee amount
-
-

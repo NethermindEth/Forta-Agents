@@ -8,16 +8,14 @@ import {
 import utils from "./utils";
 
 export const handleTransaction =
-  (reflectTokenAddress: string): HandleTransaction =>
+  (gnanaTokenAddress: string): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
     const updateTaxLogs = txEvent.filterLog(
       utils.EVENT_ABI,
-      reflectTokenAddress
+      gnanaTokenAddress
     );
-
-    if (!updateTaxLogs.length) return findings;
 
     updateTaxLogs.forEach((log: LogDescription) => {
       findings.push(
@@ -32,5 +30,5 @@ export const handleTransaction =
   };
 
 export default {
-  handleTransaction: handleTransaction(utils.REFLECT_TOKEN_ADDRESS),
+  handleTransaction: handleTransaction(utils.GNANA_TOKEN_ADDRESS),
 };

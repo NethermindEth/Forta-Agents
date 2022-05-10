@@ -14,7 +14,7 @@ import {
 import { handleTransaction } from "./agent";
 import utils from "./utils";
 
-const TEST_REFLECT_TOKEN: string = createAddress("0xcdcd");
+const TEST_GNANA_TOKEN: string = createAddress("0xcdcd");
 
 const previousFee = "1";
 const currentFee = "2";
@@ -83,7 +83,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
   const mockSigner: MockEthersSigner = new MockEthersSigner(mockProvider);
 
   beforeAll(() => {
-    handleTx = handleTransaction(TEST_REFLECT_TOKEN);
+    handleTx = handleTransaction(TEST_GNANA_TOKEN);
   });
 
   it("should ignore events emitted and functions called on another contract", async () => {
@@ -96,14 +96,14 @@ describe("Apeswap token fees updates monitor test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore wrong events emitted and functions called on the reflect token", async () => {
+  it("should ignore wrong events emitted and functions called on the Gnana token", async () => {
     const from = createAddress("0x01");
 
     const txEvent = new TestTransactionEvent()
       .setFrom(from)
       .addInterfaceEventLog(
         utils.WRONG_EVENTS_IFACE.getEvent("Transfer"),
-        TEST_REFLECT_TOKEN,
+        TEST_GNANA_TOKEN,
         [from, from, 0]
       )
       .addTraces({
@@ -119,7 +119,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
   it("should return a finding when updateTaxFee transaction is submitted", async () => {
     const from = createAddress("0x01");
 
-    const txEvent = await updateTaxFee(from, TEST_REFLECT_TOKEN, mockSigner);
+    const txEvent = await updateTaxFee(from, TEST_GNANA_TOKEN, mockSigner);
 
     const findings: Finding[] = await handleTx(txEvent);
 

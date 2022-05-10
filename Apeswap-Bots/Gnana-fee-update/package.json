@@ -3,10 +3,9 @@
   "version": "0.0.1",
   "description": "Detects any changes related to GNANA token fees",
   "chainIds": [
-    56,
-    
+    56
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/token-fee-update",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/Gnana-fee-update",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

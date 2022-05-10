@@ -47,7 +47,7 @@ const createFinding = (metaData: MetaDataI): Finding => {
 };
 
 export default {
-  REFLECT_TOKEN_ADDRESS,
+  GNANA_TOKEN_ADDRESS,
   WRONG_EVENTS_IFACE,
   EVENT_ABI,
   EVENTS_IFACE,
