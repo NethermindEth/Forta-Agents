@@ -43,6 +43,7 @@ Describe each of the type of alerts fired by this agent
 ## Test Data
 
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
+> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
 [0x9bc9a7D5ed679C17abECE73461Cbba9433B541c5](https://kovan.etherscan.io/address/0x9bc9a7d5ed679c17abece73461cbba9433b541c5) - `TestToken`.
 

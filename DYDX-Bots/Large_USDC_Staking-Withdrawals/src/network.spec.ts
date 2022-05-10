@@ -31,7 +31,7 @@ describe("NetworkManager test suite", () => {
       const networkMap: Record<number, NetworkData> = generateNetworkMap(testCase[0], testCase[1]);
       const networkManager = new NetworkManager(networkMap);
       networkManager.setNetwork(testCase[0]);
-      
+
       expect(networkManager.liquidityModule).toStrictEqual(testCase[1][0]);
       expect(networkManager.usdcAddress).toStrictEqual(testCase[1][1]);
     }
