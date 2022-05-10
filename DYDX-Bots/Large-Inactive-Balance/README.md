@@ -10,11 +10,14 @@ This bot detect users with large Inactive balance for the next Epoch in dYdX Saf
 
 ## Alerts
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- DYDX-13
+  - Fired when a user with large inactive balance is detected.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `mode`: Indicates the operation mode of the bot. Can be `STATIC` or `PERCENTAGE`.
+    - `staker`: Address of the staker with large inactive balance.
+    - `inactiveBalance`: Inactive Balance of the staker.
 
 ## Test Data
 
