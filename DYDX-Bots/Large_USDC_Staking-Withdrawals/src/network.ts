@@ -13,7 +13,7 @@ const KOVAN_TESTNET_DATA: NetworkData = {
   usdcAddress: "0x9bc9a7D5ed679C17abECE73461Cbba9433B541c5", // TestToken on Kovan testnet
 };
 
-const NETWORK_MAP: Record<number, NetworkData> = {
+export const NETWORK_MAP: Record<number, NetworkData> = {
   1: ETH_MAINNET_DATA,
   42: KOVAN_TESTNET_DATA,
 };
@@ -21,14 +21,16 @@ const NETWORK_MAP: Record<number, NetworkData> = {
 export default class NetworkManager implements NetworkData {
   public liquidityModule: string;
   public usdcAddress: string;
+  networkMap: Record<number, NetworkData>;
 
-  constructor() {
+  constructor(networkMap: Record<number, NetworkData>) {
     this.liquidityModule = "";
     this.usdcAddress = "";
+    this.networkMap = networkMap;
   }
 
   public setNetwork(networkId: number) {
-    const { liquidityModule, usdcAddress } = NETWORK_MAP[networkId];
+    const { liquidityModule, usdcAddress } = this.networkMap[networkId];
     this.liquidityModule = liquidityModule;
     this.usdcAddress = usdcAddress;
   }
