@@ -53,6 +53,7 @@ describe("Large Borrower Allocation test suite", () => {
 
   const mockNetworkManager: NetworkManager = {
     liquidityModule: createAddress("0xab"),
+    networkMap: {},
     setNetwork: jest.fn(),
   };
 

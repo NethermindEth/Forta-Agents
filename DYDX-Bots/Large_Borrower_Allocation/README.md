@@ -23,6 +23,7 @@ This bot detects when a borrower's allocation is high. The bot listens to `Sched
   - Addresses is the address from which the event was emitted.
 
 ## Test Data
+> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
