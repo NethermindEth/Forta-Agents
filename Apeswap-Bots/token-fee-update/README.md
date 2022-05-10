@@ -5,7 +5,7 @@
 - Supported tokens: `GNANA`
 - Returns a finding every time token parameters are updated:
   - `TaxFees` fee changes: configuration changed by the owner
-- When tax fee changes `rFee` deduct the `TaxFees` from the `rAmount` and `tFee` deduct the `TaxFees` from the `tAmount`
+- When tax fee changes, `rFee` deducts the `TaxFees` from the `rAmount` and `tFee` deducts the `TaxFees` from the `tAmount`
 
 ## Supported Chains
 
