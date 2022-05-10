@@ -1,4 +1,4 @@
-# Fee related parameter updates on tokens monitoring bot
+# GNANA token fee-related parameter updates monitoring bot
 
 ## Description
 
