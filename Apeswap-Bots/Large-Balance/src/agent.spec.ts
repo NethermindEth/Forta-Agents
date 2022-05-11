@@ -14,15 +14,12 @@ import {
 import { when } from "jest-when";
 import { createLargeBalanceFinding, EVENT_ABI } from "./utils";
 import { BigNumber } from "ethers";
-const testMsgSender: string = createAddress("0xda456f");
 
 const TEST_GNANA_TOKEN_CONTRACT = createAddress("0xa1");
 const TEST_GNANA_IFACE = new Interface(EVENT_ABI);
 const IRRELEVANT_EVENT_IFACE = new Interface([
   "event IrrelevantEvent(address indexed from, address indexed to, uint256 amount)",
 ]);
-
-const testAddr: Set<string> = new Set<string>();
 
 const mockFetcher = {
   getBalance: jest.fn(),
@@ -48,7 +45,7 @@ const testAccounts: string[] = [
   createAddress("0x3"),
 ];
 
-describe("Golden Banana(GNANA) Balance Tests", () => {
+describe("Golden Banana(GNANA) Large Balance Tests", () => {
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
 
@@ -57,7 +54,10 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     .mul(1)
     .div(100);
 
-  beforeAll(() => {
+  beforeEach(() => {
+    const testAddr: Set<string> = new Set<string>();
+
+    mockFetcher.getBalance.mockClear();
     handleTransaction = provideHandleTransaction(mockFetcher as any, testAddr);
 
     handleBlock = provideHandleBlock(
@@ -75,7 +75,7 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return an empty finding if account balance are above threshold", async () => {
+  it("should return a finding if account balance is above threshold", async () => {
     when(mockFetcher.getBalance)
       .calledWith(testAccounts[0], testBlock)
       .mockReturnValue(testBalances[0]);
@@ -87,8 +87,6 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
 
     const transactionEvent = new TestTransactionEvent()
       .setBlock(testBlock)
-      .setFrom(TEST_GNANA_TOKEN_CONTRACT)
-      .setTo(testMsgSender)
       .addAnonymousEventLog(
         TEST_GNANA_TOKEN_CONTRACT,
         log1.data,
@@ -104,10 +102,11 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     ]);
   });
 
-  it("should return an empty finding if account balance are below threshold", async () => {
+  it("should return an empty finding if account balance is below threshold", async () => {
     when(mockFetcher.getBalance)
       .calledWith(testAccounts[2], testBlock)
       .mockReturnValue(testBalances[2]);
+
     const log1 = TEST_GNANA_IFACE.encodeEventLog(
       TEST_GNANA_IFACE.getEvent("Transfer"),
       [createAddress("0xaaa"), testAccounts[2], testTransferAmounts[2]]
@@ -115,7 +114,6 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
 
     const transactionEvent = new TestTransactionEvent()
       .setBlock(testBlock)
-
       .addAnonymousEventLog(
         TEST_GNANA_TOKEN_CONTRACT,
         log1.data,
@@ -129,11 +127,12 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty finding for incorrect address", async () => {
+  it("should return an empty finding for incorrect address", async () => {
+    const differentContract = createAddress("0xd4");
+
     when(mockFetcher.getBalance)
       .calledWith(testAccounts[0], testBlock)
       .mockReturnValue(testBalances[0]);
-    const differentContract = createAddress("0xd4");
 
     const log1 = TEST_GNANA_IFACE.encodeEventLog(
       TEST_GNANA_IFACE.getEvent("Transfer"),
@@ -143,11 +142,16 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     const transactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(differentContract, log1.data, ...log1.topics)
       .setBlock(testBlock);
-    const findings = await handleTransaction(transactionEvent);
+
+    await handleTransaction(transactionEvent);
+
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty finding for incorrect event signature", async () => {
+  it("should return an empty finding for incorrect event signature", async () => {
     when(mockFetcher.getBalance)
       .calledWith(testAccounts[0], testBlock)
       .mockReturnValue(testBalances[0]);
@@ -158,18 +162,21 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     );
 
     const transactionEvent = new TestTransactionEvent()
+      .setBlock(testBlock)
       .addAnonymousEventLog(
         TEST_GNANA_TOKEN_CONTRACT,
         log1.data,
         ...log1.topics
-      )
-      .setBlock(testBlock);
-    const findings = await handleTransaction(transactionEvent);
+      );
+    await handleTransaction(transactionEvent);
 
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return multiple findings if an account's balance is above threshold", async () => {
+  it("should return multiple findings if multiple accounts' balances are above threshold", async () => {
     when(mockFetcher.getBalance)
       .calledWith(testAccounts[0], testBlock)
       .mockReturnValue(testBalances[0]);
@@ -187,7 +194,7 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
     );
 
     const transactionEvent = new TestTransactionEvent()
-
+      .setBlock(testBlock)
       .addAnonymousEventLog(
         TEST_GNANA_TOKEN_CONTRACT,
         log1.data,
@@ -197,8 +204,7 @@ describe("Golden Banana(GNANA) Balance Tests", () => {
         TEST_GNANA_TOKEN_CONTRACT,
         log2.data,
         ...log2.topics
-      )
-      .setBlock(testBlock);
+      );
 
     await handleTransaction(transactionEvent);
 
