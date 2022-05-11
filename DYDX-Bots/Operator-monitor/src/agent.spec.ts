@@ -1,15 +1,6 @@
 import { Interface } from "ethers/lib/utils";
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
-import {
-  createAddress,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/tests";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import { MONITORED_EVENTS } from "./agent";
 
@@ -36,12 +27,10 @@ describe("Operator monitor tests suite", () => {
   const PERPETUAL_IFACE = new Interface(MONITORED_EVENTS);
 
   const mockProvider = {
-   perpetualProxy: perpetual,
+    perpetualProxy: perpetual,
   };
 
-  const handler: HandleTransaction = provideHandleTransaction(
-    mockProvider as any
-  );
+  const handler: HandleTransaction = provideHandleTransaction(mockProvider as any);
 
   it("should ignore empty transactions", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
@@ -51,14 +40,10 @@ describe("Operator monitor tests suite", () => {
   });
 
   it("should ignore LogOperatorAdded, LogOperatorRemoved events from other contracts", async () => {
-    const log1 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
-      [createAddress("0xf0")]
-    );
-    const log2 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
-      [createAddress("0xf0")]
-    );
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorAdded"), [createAddress("0xf0")]);
+    const log2 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorRemoved"), [
+      createAddress("0xf0"),
+    ]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
@@ -81,79 +66,49 @@ describe("Operator monitor tests suite", () => {
   it("should ignore other events on perpetual contract", async () => {
     const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
-    const log1 = DIFFERENT_IFACE.encodeEventLog(
-      DIFFERENT_IFACE.getEvent("otherEvent"),
-      []
-    );
+    const log1 = DIFFERENT_IFACE.encodeEventLog(DIFFERENT_IFACE.getEvent("otherEvent"), []);
 
-    const tx: TransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(
-        // perpetual contract address
-        perpetual,
-        log1.data,
-        ...log1.topics
-      );
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      // perpetual contract address
+      perpetual,
+      log1.data,
+      ...log1.topics
+    );
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
   });
 
   it("should detect LogOperatorAdded events on perpetual contract", async () => {
-    const log1 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
-      [createAddress("0xf1")]
-    );
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorAdded"), [createAddress("0xf1")]);
 
-    const tx: TransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(
-        perpetual,
-        log1.data,
-        ...log1.topics
-      );
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(perpetual, log1.data, ...log1.topics);
 
     const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([
-      createFinding("LogOperatorAdded", createAddress("0xf1")),
-    ]);
+    expect(findings).toStrictEqual([createFinding("LogOperatorAdded", createAddress("0xf1"))]);
   });
 
   it("should detect LogOperatorRemoved events on perpetual contract", async () => {
-    const log1 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
-      [createAddress("0xf2")]
-    );
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorRemoved"), [
+      createAddress("0xf2"),
+    ]);
 
-    const tx: TransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(
-        perpetual,
-        log1.data,
-        ...log1.topics
-      );
+    const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(perpetual, log1.data, ...log1.topics);
 
     const findings: Finding[] = await handler(tx);
-    expect(findings).toStrictEqual([
-      createFinding("LogOperatorRemoved", createAddress("0xf2")),
-    ]);
+    expect(findings).toStrictEqual([createFinding("LogOperatorRemoved", createAddress("0xf2"))]);
   });
 
   it("should detect multiple events on perpetual contract", async () => {
-    const log1 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
-      [createAddress("0xf3")]
-    );
+    const log1 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorAdded"), [createAddress("0xf3")]);
 
-    const log2 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
-      [createAddress("0xf4")]
-    );
-    const log3 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorRemoved"),
-      [createAddress("0xf5")]
-    );
-    const log4 = PERPETUAL_IFACE.encodeEventLog(
-      PERPETUAL_IFACE.getEvent("LogOperatorAdded"),
-      [createAddress("0xf6")]
-    );
+    const log2 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorRemoved"), [
+      createAddress("0xf4"),
+    ]);
+    const log3 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorRemoved"), [
+      createAddress("0xf5"),
+    ]);
+    const log4 = PERPETUAL_IFACE.encodeEventLog(PERPETUAL_IFACE.getEvent("LogOperatorAdded"), [createAddress("0xf6")]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(perpetual, log1.data, ...log1.topics)
