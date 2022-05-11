@@ -31,8 +31,7 @@ export default class NetworkManager implements NetworkData {
     } catch {
       // The bot is run in a network not defined in the networkMap.
       // There's no contract deployed in that network.
-      // In that case, the contract address is set to "" and the bot will detect events on all contracts.
-      this.perpetualProxy = "";
+      throw new Error("You are running the bot in a non supported network");
     }
   }
 }
