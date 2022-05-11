@@ -190,7 +190,7 @@ describe("Golden Banana(GNANA) Large Balance Tests", () => {
     );
     const log2 = TEST_GNANA_IFACE.encodeEventLog(
       TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xeaa"), testAccounts[1], testTransferAmounts[1]]
+      [createAddress("0xeaa"), testAccounts[1], testTransferAmounts[0]]
     );
 
     const transactionEvent = new TestTransactionEvent()
