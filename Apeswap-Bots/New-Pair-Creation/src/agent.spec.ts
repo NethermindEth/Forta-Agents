@@ -64,7 +64,7 @@ describe("New Pair Creation Monitor Test Suite", () => {
 
   let findings: Finding[];
 
-  it("should return empty finding if there are no new pair creation", async () => {
+  it("should return empty finding if no new pair is created", async () => {
     txEvent = new TestTransactionEvent();
     findings = await handleTransaction(txEvent);
 
