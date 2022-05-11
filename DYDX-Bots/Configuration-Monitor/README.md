@@ -43,13 +43,13 @@ The bot behaviour can be verified with the following transactions:
 - 0xfae8cd14d464e8a22d829c579b52a85ebb34ad880e4988022c2785be6c4c9afd (`LogGlobalConfigurationRegistered` event)
 - 0x537eb31c5d265e25c993c75b9716042758a9fedfcd4dd47e8439936781f55fdc (`LogGlobalConfigurationApplied` event)
 
-### Ropsten Testnet
+### Kovan Testnet
 
-> Transactions were generated through our PoC contract deployed on Ropsten testnet.
+> Transactions were generated through our PoC contract deployed on Kovan testnet.
 >
-> - `Proxy` PoC contract address: `0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6`.
-> - `StarkPerpetual` PoC contract address: `0x053D3E23084b18867F4eDd46A02eb80E583aeCC7`.
+> - `Proxy` PoC contract address: `0xffBfe0EcF9ab8FF44a397ab5324A439ea1a617D8`.
+> - `StarkPerpetual` PoC contract address: `0x2EbDc46C11EE43596329218Af82FEbE42594Edfa`.
 
-- 0xced12eb03c0f5d3bc1f2c7fc341207b6b07ce7b80290bfe36118fb428d79de93 (`LogGlobalConfigurationRegistered` event)
-- 0x3e3edfdb159f1083e3f0a05e69ca53661ad8948a39eec62908c74fa3b4703e91 (`LogGlobalConfigurationApplied` event)
-- 0x0f1f9946ea28257c94bc312b71890759e553b6ff33786e60e2e07cb75c290635 (`LogGlobalConfigurationRemoved` event)
+- 0xf334b116b77d968c1ca167543b9503b74ac459a17ec37e8ef911cb74325d895f (`LogGlobalConfigurationRegistered` event)
+- 0xde27fd1d4257235d0bf552b8a60497664f3483afa7579d5c61b12ee96358d550 (`LogGlobalConfigurationApplied` event)
+- 0xde17d0400a646e7bb6d30a3b1363c655ce1be69379e8db16468e53cc50f78753 (`LogGlobalConfigurationRemoved` event)
