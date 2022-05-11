@@ -1,10 +1,5 @@
 import { Interface } from "@ethersproject/abi";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
- 
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 interface MetaDataI {
   previousFee: string;
