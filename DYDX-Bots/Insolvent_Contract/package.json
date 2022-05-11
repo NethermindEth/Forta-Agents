@@ -1,7 +1,7 @@
 {
   "name": "dydx-15",
   "version": "0.0.1",
-  "description": "Detect insolvent contract",
+  "description": "Detect insolvent contract in dYdX Liquidity Module",
   "chainIds": [
     1
   ],

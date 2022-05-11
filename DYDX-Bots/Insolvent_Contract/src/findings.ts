@@ -3,8 +3,8 @@ import { BigNumber } from "ethers";
 
 export const createFinding = (totalBorrowerDebtBalance: BigNumber, totalActiveBalanceCurrentEpoch: BigNumber) => {
   return Finding.fromObject({
-    name: "Contract Insolvent",
-    description: "Total borrower debt balance has exceeded total active balance current epoch",
+    name: "Liquidity Module Contract is insolvent",
+    description: "The total borrowed balance has exceeded total active balance in the current epoch",
     alertId: "DYDX-15",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
