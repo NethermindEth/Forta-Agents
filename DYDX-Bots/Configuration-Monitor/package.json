@@ -1,5 +1,5 @@
 {
-  "name": "dydx-global-config-monitor",
+  "name": "dydx-3",
   "version": "0.0.1",
   "description": "Bot that detects changes in dydx perpetual global configuration",
   "chainIds": [
