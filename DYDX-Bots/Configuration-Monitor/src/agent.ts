@@ -32,14 +32,14 @@ export const provideHandleTransaction = (networkManager: NetworkData): HandleTra
       const description =
         log.name === "LogGlobalConfigurationRegistered"
           ? "registered"
-          : "LogGlobalConfigurationApplied"
+          : log.name === "LogGlobalConfigurationApplied"
           ? "applied"
           : "removed";
 
       const alertId =
         log.name === "LogGlobalConfigurationRegistered"
           ? "DYDX-3-1"
-          : "LogGlobalConfigurationApplied"
+          : log.name === "LogGlobalConfigurationApplied"
           ? "DYDX-3-2"
           : "DYDX-3-3";
 

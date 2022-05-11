@@ -8,14 +8,14 @@ const createFinding = (name: string, configHash: string) => {
   const description =
     name === "LogGlobalConfigurationRegistered"
       ? "registered"
-      : "LogGlobalConfigurationApplied"
+      : name === "LogGlobalConfigurationApplied"
       ? "applied"
       : "removed";
 
   const alertId =
     name === "LogGlobalConfigurationRegistered"
       ? "DYDX-3-1"
-      : "LogGlobalConfigurationApplied"
+      : name === "LogGlobalConfigurationApplied"
       ? "DYDX-3-2"
       : "DYDX-3-3";
 
