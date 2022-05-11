@@ -26,7 +26,7 @@ const testFees = [
 ];
 
 const findingTestCases = [
-  utils.createFinding(testFees[0]),
+  utils.createFinding(testFees[1]),
   utils.createFinding(testFees[2]),
 ];
 
