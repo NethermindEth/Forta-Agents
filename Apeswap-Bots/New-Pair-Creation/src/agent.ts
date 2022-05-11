@@ -1,14 +1,26 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { providers } from "ethers";
+
 import { APEFACTORY_ABI } from "./constants";
+import NetworkManager from "./network";
 
 import { createFinding, newPairParamsType, newPairFindingType, providerParams } from "./utils";
 const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
 
-export const provideHandleTransaction = ({ functionSig, address }: newPairParamsType): HandleTransaction => {
+const networkManager = new NetworkManager();
+
+export const initialize = (provider: providers.Provider) => {
+  return async () => {
+    const { chainId } = await provider.getNetwork();
+    networkManager.setNetwork(chainId);
+  };
+};
+
+export const provideHandleTransaction = ({ functionSig }: newPairParamsType): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const txLogs = txEvent.filterFunction(functionSig, address);
+    const txLogs = txEvent.filterFunction(functionSig, networkManager.apeFactory);
 
     txLogs.forEach((txLog) => {
       const { args } = txLog;

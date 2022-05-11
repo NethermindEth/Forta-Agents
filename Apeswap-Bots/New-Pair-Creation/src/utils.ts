@@ -1,7 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { APEFACTORY_ABI } from "./constants";
 
-const { CREATE_PAIR_FUNCTION, APEFACTORY_ADDRESS } = APEFACTORY_ABI;
+const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
 
 // finding type definition
 type newPairFindingType = {
@@ -11,12 +11,10 @@ type newPairFindingType = {
 
 type newPairParamsType = {
   functionSig: string;
-  address: string;
 };
 
 const providerParams: newPairParamsType = {
   functionSig: CREATE_PAIR_FUNCTION,
-  address: APEFACTORY_ADDRESS,
 };
 
 const createFinding = (findingMetadata: newPairFindingType, functionAbi: string): Finding => {
