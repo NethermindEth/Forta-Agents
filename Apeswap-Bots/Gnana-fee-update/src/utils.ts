@@ -21,8 +21,8 @@ const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
 const createFinding = (metaData: MetaDataI): Finding => {
   return Finding.fromObject({
-    name: "Detect Fees Related To The Token",
-    description: "Token tax fee has been changed",
+    name: "Detect Fees Changes Related To The GNANA Token",
+    description: "GNANA Token tax fee has been changed",
     alertId: "APESWAP-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
