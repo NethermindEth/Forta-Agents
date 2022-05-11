@@ -44,6 +44,14 @@ describe("NetworkManager test suite", () => {
         expect(networkMan.safetyModule).toStrictEqual(TEST_MODULES[k][i]);
         expect(networkMan.dydxAddress).toStrictEqual(TEST_TOKENS[k][i]);
       }
+      // test with a non supported network
+      let errorMessage = "";
+      try {
+        networkMan.setNetwork(99);
+      } catch (error) {
+        errorMessage = String(error);
+      }
+      expect(errorMessage).toStrictEqual(`Error: You are running the bot in a non supported network`);
     }
   });
 });

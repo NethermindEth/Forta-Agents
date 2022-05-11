@@ -28,6 +28,19 @@ This bot detect users with large Inactive balance for the next Epoch in dYdX Saf
 
 ## Test Data
 
-The bot behaviour can be verified with the following transactions (Mainnet):
+The bot behaviour can be verified with the following test transactions (Kovan testnet):
+> Transactions were generated through our PoC contracts deployed on Kovan testnet.
 
-- 0x278542214ed3fe02880fb8c1df2f0eed81f72f2f00bef41233aa2aa714c057b0
+> - `TestToken` contract address: `0x136Bb1ff78FBb538B001DC4A50551A088cD0e3CD`.
+> - `TestSafetyModule`contract address: `0x267CaE324d5850D84EcA39E2F3C0A8003d3c2F02`.
+
+
+> You can ajust `thresholdData` in `config.ts` for each mode in order to generate a finding.
+
+- 0xa697dac3317c9fd5e73646066d9b76a864d3b995d0d957c2b46655848d773b64. - `inactive balance`: 200 (20% of total staked). 
+  - `PERCENTAGE` mode generates a finding with `thresholdData` greater or equals to 20. 
+  - `STATIC` mode generates a finding with `thresholdData`  greater or equals to 200.
+
+- 0xa96665240ade9736398110b35746312224ab995ea20ec6f3a191e32c67c7e563. - `inactive balance`: 500 (50% of total staked).
+  - `PERCENTAGE` mode generates a finding with `thresholdData` greater or equals to 50. 
+  - `STATIC` mode generates a finding with `thresholdData`  greater or equals to 500.

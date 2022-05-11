@@ -16,34 +16,22 @@ export default class InactiveBalanceFetcher {
       max: 10000,
     });
     this.networkManager = networkManager;
-    this.safetyContract = new Contract(
-      this.networkManager.safetyModule,
-      INACTIVE_BALANCE_ABI,
-      this.provider
-    );
+    this.safetyContract = new Contract(this.networkManager.safetyModule, INACTIVE_BALANCE_ABI, this.provider);
   }
 
   public setSafetyModule() {
     if (this.safetyContract.address != this.networkManager.safetyModule) {
-      this.safetyContract = new Contract(
-        this.networkManager.safetyModule,
-        INACTIVE_BALANCE_ABI,
-        this.provider
-      );
+      this.safetyContract = new Contract(this.networkManager.safetyModule, INACTIVE_BALANCE_ABI, this.provider);
     }
   }
 
-  public async getInactiveBalance(
-    staker: string,
-    block: number | string
-  ): Promise<BigNumber> {
+  public async getInactiveBalance(staker: string, block: number | string): Promise<BigNumber> {
     const key: string = `${staker} - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const inactiveBalance: BigNumber =
-      this.safetyContract.getInactiveBalanceNextEpoch(staker, {
-        blockTag: block,
-      });
+    const inactiveBalance: BigNumber = this.safetyContract.getInactiveBalanceNextEpoch(staker, {
+      blockTag: block,
+    });
     this.cache.set(key, inactiveBalance);
     return inactiveBalance;
   }

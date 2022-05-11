@@ -17,19 +17,11 @@ export default class BalanceFetcher {
     });
     this.networkManager = networkManager;
 
-    this.tokenContract = new Contract(
-      this.networkManager.dydxAddress,
-      BALANCE_ABI,
-      this.provider
-    );
+    this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_ABI, this.provider);
   }
   public setTokenContract() {
     if (this.tokenContract.address != this.networkManager.dydxAddress) {
-      this.tokenContract = new Contract(
-        this.networkManager.dydxAddress,
-        BALANCE_ABI,
-        this.provider
-      );
+      this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_ABI, this.provider);
     }
   }
 
@@ -37,12 +29,9 @@ export default class BalanceFetcher {
     const key: string = `${this.networkManager.safetyModule} - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const balance: BigNumber = this.tokenContract.balanceOf(
-      this.networkManager.safetyModule,
-      {
-        blockTag: block,
-      }
-    );
+    const balance: BigNumber = this.tokenContract.balanceOf(this.networkManager.safetyModule, {
+      blockTag: block,
+    });
     this.cache.set(key, balance);
     return balance;
   }

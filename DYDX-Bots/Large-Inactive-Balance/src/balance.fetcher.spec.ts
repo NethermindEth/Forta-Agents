@@ -21,10 +21,7 @@ describe("BalanceFetcher test suite", () => {
     dydxAddress: stakedToken,
     safetyModule: safetyContract,
   };
-  const fetcher: BalanceFetcher = new BalanceFetcher(
-    mockProvider as any,
-    mockNetworkManager as any
-  );
+  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager as any);
 
   beforeAll(() => {
     for (let [block, balance] of TEST_DATA) {

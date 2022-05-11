@@ -20,23 +20,14 @@ describe("InactiveBalanceFetcher test suite", () => {
     safetyModule: safetyContract,
   };
 
-  const fetcher: InactiveBalanceFetcher = new InactiveBalanceFetcher(
-    mockProvider as any,
-    mockNetworkManager as any
-  );
+  const fetcher: InactiveBalanceFetcher = new InactiveBalanceFetcher(mockProvider as any, mockNetworkManager as any);
 
   beforeAll(() => {
     for (let [block, staker, inactiveBalance] of TEST_DATA) {
-      mockProvider.addCallTo(
-        safetyContract,
-        block,
-        INACTIVE_BALANCE_ABI,
-        "getInactiveBalanceNextEpoch",
-        {
-          inputs: [staker],
-          outputs: [inactiveBalance],
-        }
-      );
+      mockProvider.addCallTo(safetyContract, block, INACTIVE_BALANCE_ABI, "getInactiveBalanceNextEpoch", {
+        inputs: [staker],
+        outputs: [inactiveBalance],
+      });
     }
   });
 
