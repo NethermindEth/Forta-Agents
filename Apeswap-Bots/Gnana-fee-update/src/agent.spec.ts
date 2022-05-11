@@ -98,7 +98,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
       currentFee,
     ]);
     const log2 = utils.EVENTS_IFACE.encodeEventLog(event, [
-      currentFee,
+      testFees[2].previousFee,
       testFees[2].currentFee,
     ]);
 
