@@ -41,8 +41,8 @@ The bot behaviour can be verified with the following transactions:
 
 > Transactions were generated through our PoC contract deployed on Ropsten testnet.
 
-> - `Proxy` PoC contract address: `0xCD8Fa8342D779F8D6acc564B73746bF9ca1261C6`.
-> - `StarkPerpetual` PoC contract address: `0x38e231F25A3bA33323B951DEA72c4430DF5e05e2`.
+> - `Proxy` PoC contract address: `0xffBfe0EcF9ab8FF44a397ab5324A439ea1a617D8`.
+> - `StarkPerpetual` PoC contract address: `0x56205FcEC6732F8FCe42FB0Fb4567a97EdCbAabD`.
 
-- 0x16acf4518c6df30592d61d99f638b950da3cfd53739442e135c12fd6b2f19101 (`LogOperatorAdded` event)
-- 0xd29099f03f7797e49d2689e127df119df5d4cb6b43329ed5687865f8e2ed23b5 ( `LogOperatorRemoved` event)
+- 0xc160c46c5efb83c369c375698fd1a08d0889799ff7ee0ddcce77aaaec92b7b26 (`LogOperatorAdded` event)
+- 0xe2af2d20c4369dd4b5473b2d1ceb421c1fb228103a1c42611a0d4ca114aa3256 ( `LogOperatorRemoved` event)
