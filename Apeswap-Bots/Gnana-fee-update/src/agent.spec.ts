@@ -16,7 +16,6 @@ const WRONG_EVENTS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(
 
 const TEST_GNANA_TOKEN: string = createAddress("0xcdcd");
 
-const previousFee = "1";
 
 const testFees = [
   { previousFee: "1", currentFee: "2" },
