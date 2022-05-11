@@ -25,33 +25,17 @@ const TEST_GNANA_TOKEN: string = createAddress("0xcdcd");
 const previousFee = "1";
 const currentFee = "2";
 
+const testFees1 = {
+  previousFee,
+  currentFee,
+};
+const testFees2 = {
+  previousFee: currentFee,
+  currentFee: previousFee,
+};
 const findingTestCases = [
-  Finding.fromObject({
-    name: "Detect Fees Related To The Token",
-    description: "Token tax fee has been changed",
-    alertId: "APESWAP-3",
-    severity: FindingSeverity.Info,
-    type: FindingType.Info,
-    protocol: "Apeswap",
-    metadata: {
-      previousFee: previousFee,
-      currentFee: currentFee,
-    },
-    addresses: [],
-  }),
-  Finding.fromObject({
-    name: "Detect Fees Related To The Token",
-    description: "Token tax fee has been changed",
-    alertId: "APESWAP-3",
-    severity: FindingSeverity.Info,
-    type: FindingType.Info,
-    protocol: "Apeswap",
-    metadata: {
-      previousFee: currentFee,
-      currentFee: previousFee,
-    },
-    addresses: [],
-  }),
+  utils.createFinding(testFees1),
+  utils.createFinding(testFees2),
 ];
 
 describe("Apeswap token fees updates monitor test suite", () => {
@@ -61,7 +45,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
     handleTx = handleTransaction(TEST_GNANA_TOKEN);
   });
 
-  it("should ignore events emitted and functions called on another contract", async () => {
+  it("should ignore events emitted on another contract", async () => {
     const wrongContractAddress = createAddress("0x02");
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log = utils.EVENTS_IFACE.encodeEventLog(event, [
@@ -79,7 +63,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore wrong events emitted and functions called on the Gnana token", async () => {
+  it("should ignore wrong events emitted on the Gnana token", async () => {
     const event = WRONG_EVENTS_IFACE.getEvent("Transfer");
     const log = utils.EVENTS_IFACE.encodeEventLog(event, [
       createAddress("0x1"),
@@ -97,7 +81,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return a finding when updateTaxFee transaction is submitted", async () => {
+  it("should return a finding when UpdateTaxFee event is emitted", async () => {
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log = utils.EVENTS_IFACE.encodeEventLog(event, [
       previousFee,

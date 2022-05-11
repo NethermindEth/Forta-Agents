@@ -19,9 +19,6 @@ const EVENT_ABI: string[] = [
 
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
-
-const provider = getEthersProvider();
-
 const createFinding = (metaData: MetaDataI): Finding => {
   return Finding.fromObject({
     name: "Detect Fees Related To The Token",
@@ -42,5 +39,4 @@ export default {
   EVENT_ABI,
   EVENTS_IFACE,
   createFinding,
-  provider,
 };
