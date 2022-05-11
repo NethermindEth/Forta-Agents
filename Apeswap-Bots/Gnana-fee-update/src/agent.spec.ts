@@ -21,7 +21,7 @@ const currentFee = "2";
 
 const testFees = [
   { previousFee: "1", currentFee: "2" },
-  { previousFee: "2", currentFee: "3" },
+  { previousFee: "2", currentFee: "1" },
 ];
 
 const findingTestCases = [
@@ -106,7 +106,6 @@ describe("Apeswap token fees updates monitor test suite", () => {
       .addAnonymousEventLog(TEST_GNANA_TOKEN, log2.data, ...log2.topics);
 
     const findings: Finding[] = await handleTx(txEvent);
-
     expect(findings).toStrictEqual(findingTestCases);
   });
 });
