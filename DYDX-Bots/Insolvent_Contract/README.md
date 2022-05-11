@@ -2,7 +2,9 @@
 
 ## Description
 
-This bot detects when the contract is insolvent. Insolvency is refers to when `totalBorrowerDebtBalance` is greater than `totalActiveBalanceCurrentEpoch`. The checks for both variables in every block.
+This bot detects when the contract is insolvent. Insolvency refers to when the difference between `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch` is greater than a set static threshold. The bot checks for both variables in every block.
+
+> Note: To set the static threshold to a desired amount, update the value of `THRESHOLD_AMOUNT` in `utils.ts`. Currently, it is set to `0`, and thus will detect **any** difference between the two varibles.
 
 ## Supported Chains
 
@@ -19,10 +21,9 @@ This bot detects when the contract is insolvent. Insolvency is refers to when `t
     - `totalActiveBalanceCurrentEpoch`: The current epoch's total active balance.
 
 ## Test Data
+> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
-> Note: To test the following, follow the comments in `utils.ts`.
-
-The bot behaviour can be verified with the following contracts on the Kovan ETH testnet:
+The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F](https://kovan.etherscan.io/address/0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F) - `TestImplemenation`.
 
