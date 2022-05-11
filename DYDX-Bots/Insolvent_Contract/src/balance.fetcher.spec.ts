@@ -1,10 +1,10 @@
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
+import NetworkManager from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
 
 describe("Balance Fetcher test suite", () => {
-  const testProxyAddress: string = createAddress("0xab");
   // Format: [totalBorrowerDebtBalance, totalActiveBalanceCurrentEpoch, blockNumber]
   const TEST_CASES: [BigNumber, BigNumber, number][] = [
     [BigNumber.from("10"), BigNumber.from("80"), 1],
@@ -14,18 +14,29 @@ describe("Balance Fetcher test suite", () => {
   ];
 
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddress);
+  const mockNetworkManager: NetworkManager = {
+    liquidityModule: createAddress("0xab"),
+    networkMap: {},
+    setNetwork: jest.fn(),
+  };
+  const fetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
 
   function createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance: BigNumber, blockNumber: number) {
-    return mockProvider.addCallTo(testProxyAddress, blockNumber, IMPLEMENTATION_IFACE, "getTotalBorrowerDebtBalance", {
-      inputs: [],
-      outputs: [totalBorrowerDebtBalance],
-    });
+    return mockProvider.addCallTo(
+      mockNetworkManager.liquidityModule,
+      blockNumber,
+      IMPLEMENTATION_IFACE,
+      "getTotalBorrowerDebtBalance",
+      {
+        inputs: [],
+        outputs: [totalBorrowerDebtBalance],
+      }
+    );
   }
 
   function createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch: BigNumber, blockNumber: number) {
     return mockProvider.addCallTo(
-      testProxyAddress,
+      mockNetworkManager.liquidityModule,
       blockNumber,
       IMPLEMENTATION_IFACE,
       "getTotalActiveBalanceCurrentEpoch",
@@ -49,8 +60,6 @@ describe("Balance Fetcher test suite", () => {
     // clear mock to use cache
     mockProvider.clear();
     for (let [totalBorrowerDebtBalance, , blockNumber] of TEST_CASES) {
-      createGetTotalBorrowerDebtBalance(totalBorrowerDebtBalance, blockNumber);
-
       const fetchedDebtBalance: BigNumber = await fetcher.getTotalBorrowerDebtBalance(blockNumber);
       expect(fetchedDebtBalance).toStrictEqual(totalBorrowerDebtBalance);
     }
@@ -67,8 +76,6 @@ describe("Balance Fetcher test suite", () => {
     // clear mock to use cache
     mockProvider.clear();
     for (let [, totalActiveBalanceCurrentEpoch, blockNumber] of TEST_CASES) {
-      createGetTotalActiveBalanceCurrentEpoch(totalActiveBalanceCurrentEpoch, blockNumber);
-
       const fetchedActiveBalance: BigNumber = await fetcher.getTotalActiveBalanceCurrentEpoch(blockNumber);
       expect(fetchedActiveBalance).toStrictEqual(totalActiveBalanceCurrentEpoch);
     }
