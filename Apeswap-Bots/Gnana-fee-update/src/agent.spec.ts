@@ -16,7 +16,6 @@ const WRONG_EVENTS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(
 
 const TEST_GNANA_TOKEN: string = createAddress("0xcdcd");
 
-
 const testFees = [
   { previousFee: "1", currentFee: "2" },
   { previousFee: "4", currentFee: "3" },
@@ -39,8 +38,8 @@ describe("Apeswap token fees updates monitor test suite", () => {
     const wrongContractAddress = createAddress("0x02");
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log = utils.EVENTS_IFACE.encodeEventLog(event, [
-      previousFee,
-      currentFee,
+      testFees[0].previousFee,
+      testFees[0].currentFee,
     ]);
 
     const txEvent = new TestTransactionEvent().addAnonymousEventLog(
@@ -74,8 +73,8 @@ describe("Apeswap token fees updates monitor test suite", () => {
   it("should return a finding when UpdateTaxFee event is emitted", async () => {
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log = utils.EVENTS_IFACE.encodeEventLog(event, [
-      previousFee,
-      currentFee,
+      testFees[1].previousFee,
+      testFees[1].currentFee,
     ]);
 
     const txEvent = new TestTransactionEvent().addAnonymousEventLog(
@@ -92,7 +91,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
   it("should return two findings when the owner updates the tax fees twice in the same transaction", async () => {
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log1 = utils.EVENTS_IFACE.encodeEventLog(event, [
-      previousFee,
+      testFees[1].previousFee,
       testFees[1].currentFee,
     ]);
     const log2 = utils.EVENTS_IFACE.encodeEventLog(event, [
