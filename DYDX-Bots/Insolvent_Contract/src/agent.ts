@@ -1,10 +1,18 @@
 import { BlockEvent, Finding, HandleBlock, getEthersProvider } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, providers } from "ethers";
+import NetworkManager, { NETWORK_MAP } from "./network";
 import BalanceFetcher from "./balance.fetcher";
-import { PROXY_ADDRESS, THRESHOLD_AMOUNT } from "./utils";
+import { THRESHOLD_AMOUNT } from "./utils";
 import { createFinding } from "./findings";
 
-const BAL_FETCHER: BalanceFetcher = new BalanceFetcher(getEthersProvider(), PROXY_ADDRESS);
+const networkManager = new NetworkManager(NETWORK_MAP);
+const balanceFetcher: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
+
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+  balanceFetcher.setModuleContract();
+};
 
 export function provideHandleBlock(fetcher: BalanceFetcher, threshold: BigNumber): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
@@ -26,5 +34,6 @@ export function provideHandleBlock(fetcher: BalanceFetcher, threshold: BigNumber
 }
 
 export default {
-  handleBlock: provideHandleBlock(BAL_FETCHER, THRESHOLD_AMOUNT),
+  initialize: provideInitialize(getEthersProvider()),
+  handleBlock: provideHandleBlock(balanceFetcher, THRESHOLD_AMOUNT),
 };

@@ -2,10 +2,10 @@ import { FindingType, FindingSeverity, Finding, HandleBlock, BlockEvent } from "
 import { createAddress, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { provideHandleBlock } from "./agent";
+import NetworkData from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
 
-const testProxyAddr: string = createAddress("0xab");
 const testBlockNumbers: number[] = [2, 42, 92, 360];
 const testThreshold: BigNumber = BigNumber.from("3000000000000000000"); // 3
 const testBorrowerDebtBalance: BigNumber[] = [
@@ -21,22 +21,39 @@ const testActiveBalanceCurrentEpoch: BigNumber[] = [
   BigNumber.from("22000000000000000000"), // 22
 ];
 
-describe("high tether transfer agent", () => {
+describe("Insolvent Contract test suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const balanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, testProxyAddr);
+  const mockNetworkManager: NetworkData = {
+    liquidityModule: createAddress("0xab"),
+    networkMap: {},
+    setNetwork: jest.fn(),
+  };
+  const balanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
 
   const createGetTotalBorrowerDebtBalance = (totalBorrowerDebtBalance: BigNumber, blockNumber: number) => {
-    mockProvider.addCallTo(testProxyAddr, blockNumber, IMPLEMENTATION_IFACE, "getTotalBorrowerDebtBalance", {
-      inputs: [],
-      outputs: [totalBorrowerDebtBalance],
-    });
+    mockProvider.addCallTo(
+      mockNetworkManager.liquidityModule,
+      blockNumber,
+      IMPLEMENTATION_IFACE,
+      "getTotalBorrowerDebtBalance",
+      {
+        inputs: [],
+        outputs: [totalBorrowerDebtBalance],
+      }
+    );
   };
 
   const createGetTotalActiveBalanceCurrentEpoch = (totalActiveBalanceCurrentEpoch: BigNumber, blockNumber: number) => {
-    mockProvider.addCallTo(testProxyAddr, blockNumber, IMPLEMENTATION_IFACE, "getTotalActiveBalanceCurrentEpoch", {
-      inputs: [],
-      outputs: [totalActiveBalanceCurrentEpoch],
-    });
+    mockProvider.addCallTo(
+      mockNetworkManager.liquidityModule,
+      blockNumber,
+      IMPLEMENTATION_IFACE,
+      "getTotalActiveBalanceCurrentEpoch",
+      {
+        inputs: [],
+        outputs: [totalActiveBalanceCurrentEpoch],
+      }
+    );
   };
 
   const handleBlock: HandleBlock = provideHandleBlock(balanceFetcher, testThreshold);
@@ -54,8 +71,8 @@ describe("high tether transfer agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Contract Insolvent",
-        description: "Total borrower debt balance has exceeded total active balance current epoch",
+        name: "Liquidity Module Contract is insolvent",
+        description: "The total borrowed balance has exceeded total active balance in the current epoch",
         alertId: "DYDX-15",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
