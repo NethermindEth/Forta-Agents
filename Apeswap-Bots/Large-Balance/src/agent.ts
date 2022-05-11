@@ -15,6 +15,7 @@ import {
   createLargeBalanceFinding,
   BALANCE_THRESHOLD,
 } from "./utils";
+
 const FETCHER: DataFetcher = new DataFetcher(
   GNANA_TOKEN_CONTRACT,
   getEthersProvider()
