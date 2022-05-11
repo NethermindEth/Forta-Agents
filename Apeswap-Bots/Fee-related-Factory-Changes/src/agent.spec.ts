@@ -1,4 +1,3 @@
-import { create } from "@mui/material/styles/createTransitions";
 import { Interface } from "ethers/lib/utils";
 import {
   Finding,
@@ -19,11 +18,7 @@ const OTHER_FUNCTION_IFACE: Interface = new Interface([
   "function otherFunction(address otherAddress)",
 ]);
 
-const testCreateFinding = (
-  call: string,
-  address: string,
-  contract: NetworkManager
-): Finding => {
+const testCreateFinding = (call: string, address: string): Finding => {
   if (call == "setFeeTo") {
     return Finding.fromObject({
       name: "ApeFactory FeeTo address changed",
@@ -101,9 +96,7 @@ describe("Apeswap role changes bot test suite", () => {
     });
 
     const findings: Finding[] = await handleTx(txEvent);
-    expect(findings).toStrictEqual([
-      testCreateFinding("setFeeTo", CASES[2], mockNetworkManager),
-    ]);
+    expect(findings).toStrictEqual([testCreateFinding("setFeeTo", CASES[2])]);
   });
 
   it("should create finding for setFeeToSetter function call", async () => {
@@ -117,7 +110,7 @@ describe("Apeswap role changes bot test suite", () => {
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([
-      testCreateFinding("setFeeToSetter", CASES[3], mockNetworkManager),
+      testCreateFinding("setFeeToSetter", CASES[3]),
     ]);
   });
 
@@ -152,8 +145,8 @@ describe("Apeswap role changes bot test suite", () => {
 
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([
-      testCreateFinding("setFeeTo", CASES[4], mockNetworkManager),
-      testCreateFinding("setFeeToSetter", CASES[7], mockNetworkManager),
+      testCreateFinding("setFeeTo", CASES[4]),
+      testCreateFinding("setFeeToSetter", CASES[7]),
     ]);
   });
 });
