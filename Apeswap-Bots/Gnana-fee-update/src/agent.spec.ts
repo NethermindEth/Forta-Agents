@@ -21,6 +21,7 @@ const currentFee = "2";
 
 const testFees = [
   { previousFee: "1", currentFee: "2" },
+  { previousFee: "4", currentFee: "3" },
   { previousFee: "2", currentFee: "1" },
 ];
 
