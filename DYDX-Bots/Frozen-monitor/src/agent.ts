@@ -7,11 +7,11 @@ import {
   FindingType,
   getEthersProvider,
 } from "forta-agent";
-import NetworkManager from "./network";
+import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 
 export const EVENTS_SIGNATURES = ["event LogFrozen()", "event LogUnFrozen()"];
-const networkManager: NetworkData = new NetworkManager();
+const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
 
 const provideInitialize = (provider: Provider) => async () => {
   const { chainId } = await provider.getNetwork();
