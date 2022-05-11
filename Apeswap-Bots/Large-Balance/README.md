@@ -1,9 +1,9 @@
 
-# GNANA Token Large Balance Agent
+# GNANA Token Large Balance Monitoring Bot
 
 ## Description
 
-This agent detects accounts with large amount of `GNANA` balance.
+This bot detects accounts with a large amount of `GNANA` balance.
 
 ## Supported Chains
 
@@ -24,4 +24,4 @@ This agent detects accounts with large amount of `GNANA` balance.
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
-- 0x834343c567f3e22fb2a746130cc94430380035ba36c2ff52f866c8707f726620
+- 
