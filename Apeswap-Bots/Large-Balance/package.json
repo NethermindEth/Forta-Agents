@@ -1,7 +1,8 @@
 {
   "name": "apeswap-4",
   "version": "0.0.1",
-  "description": "This agent detects  accounts with high amounts of GNANA balance.",
+  "description": "This agent detects accounts with high amounts of GNANA balance.",
+  "chainId": 56,
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
