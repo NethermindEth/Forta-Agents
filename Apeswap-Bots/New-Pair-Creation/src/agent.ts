@@ -3,6 +3,7 @@ import { providers } from "ethers";
 
 import { APEFACTORY_ABI } from "./constants";
 import NetworkManager from "./network";
+import NetworkData from "./network";
 
 import { createFinding, newPairParamsType, newPairFindingType, providerParams } from "./utils";
 const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
@@ -16,11 +17,14 @@ export const initialize = (provider: providers.Provider) => {
   };
 };
 
-export const provideHandleTransaction = ({ functionSig }: newPairParamsType): HandleTransaction => {
+export const provideHandleTransaction = (
+  { functionSig }: newPairParamsType,
+  { apeFactoryAddress }: NetworkData
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const txLogs = txEvent.filterFunction(functionSig, networkManager.apeFactory);
+    const txLogs = txEvent.filterFunction(functionSig, apeFactoryAddress);
 
     txLogs.forEach((txLog) => {
       const { args } = txLog;
@@ -36,5 +40,6 @@ export const provideHandleTransaction = ({ functionSig }: newPairParamsType): Ha
   };
 };
 export default {
-  handleTransaction: provideHandleTransaction(providerParams),
+  handleTransaction: provideHandleTransaction(providerParams, networkManager),
+  initialize: initialize(getEthersProvider()),
 };
