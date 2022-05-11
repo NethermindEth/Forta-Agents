@@ -1,10 +1,4 @@
-import {
-  Finding,
-  FindingType,
-  FindingSeverity,
-  HandleTransaction,
-  ethers,
-} from "forta-agent";
+import { Finding, HandleTransaction, ethers } from "forta-agent";
 import {
   createAddress,
   TestTransactionEvent,
