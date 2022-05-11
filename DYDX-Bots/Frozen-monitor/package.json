@@ -1,5 +1,5 @@
 {
-  "name": "dydx-frozen-monitor",
+  "name": "dydx-2",
   "version": "0.0.1",
   "description": "Bot that detects frozen state changes in dydx perpetual contract.",
   "chainIds": [
