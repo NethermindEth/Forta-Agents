@@ -3,7 +3,7 @@ import {
   Finding,
   FindingSeverity,
   FindingType,
-  getEthersProvider,
+ 
 } from "forta-agent";
 
 interface MetaDataI {
