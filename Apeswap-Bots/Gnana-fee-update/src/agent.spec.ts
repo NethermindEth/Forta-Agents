@@ -19,17 +19,14 @@ const TEST_GNANA_TOKEN: string = createAddress("0xcdcd");
 const previousFee = "1";
 const currentFee = "2";
 
-const testFees1 = {
-  previousFee,
-  currentFee,
-};
-const testFees2 = {
-  previousFee: currentFee,
-  currentFee: previousFee,
-};
+const testFees = [
+  { previousFee: "1", currentFee: "2" },
+  { previousFee: "2", currentFee: "3" },
+];
+
 const findingTestCases = [
-  utils.createFinding(testFees1),
-  utils.createFinding(testFees2),
+  utils.createFinding(testFees[0]),
+  utils.createFinding(testFees[1]),
 ];
 
 describe("Apeswap token fees updates monitor test suite", () => {
