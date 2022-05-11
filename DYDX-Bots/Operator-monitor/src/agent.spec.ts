@@ -36,7 +36,7 @@ describe("Operator monitor tests suite", () => {
   const PERPETUAL_IFACE = new Interface(MONITORED_EVENTS);
 
   const mockProvider = {
-    getAddress: () => perpetual,
+   perpetualProxy: perpetual,
   };
 
   const handler: HandleTransaction = provideHandleTransaction(
