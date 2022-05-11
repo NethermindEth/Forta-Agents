@@ -90,7 +90,7 @@ describe("Apeswap token fees updates monitor test suite", () => {
     expect(findings).toStrictEqual([findingTestCases[0]]);
   });
 
-  it("should return two finding when the owner updates the tax fees and then decide to submit the transaction again to reuse the old tax value", async () => {
+  it("should return two findings when the owner updates the tax fees twice in the same transaction", async () => {
     const event = utils.EVENTS_IFACE.getEvent("UpdateTaxFee");
     const log1 = utils.EVENTS_IFACE.encodeEventLog(event, [
       previousFee,
