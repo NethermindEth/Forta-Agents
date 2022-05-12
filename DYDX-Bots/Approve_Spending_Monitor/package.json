@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "dydx-19",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Bot that detects large approvals on safety and liquidity modules",
   "chainIds": [
     1
   ],
@@ -24,9 +24,11 @@
   },
   "dependencies": {
     "forta-agent": "^0.1.6",
-    "forta-agent-tools": "^2.0.5"
+    "lru-cache": "^7.8.1"
   },
   "devDependencies": {
+    "forta-agent-tools": "^2.0.5",
+    "@types/lru-cache": "^7.6.1",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",

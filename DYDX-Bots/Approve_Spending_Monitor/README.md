@@ -1,26 +1,38 @@
-# Large Tether Transfer Agent
+# Spending Approval monitor
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects large spending approvals on dYdX Liquidity and Safety modules.
+
+> Large is set as a percentage of the total staked tokens for each module.
+> The percentage can be ajusted by updating `THRESHOLD_PERCENTAGE` in `utils.ts`.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- DYDX-19-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when `Approval` event is emitted on Liquidity Module with a large `value`.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `value`: amount of tokens that is approved to be spent.
+    - `owner`: address of the approved tokens owner.
+    - `spender`: address approved to spend the tokens.
+
+- DYDX-19-2
+
+  - Fired when `Approval` event is emitted on Safety Module with a large `value`.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `value`: amount of tokens that is approved to be spent.
+    - `owner`: address of the approved tokens owner.
+    - `spender`: address approved to spend the tokens.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+The bot behaviour can be verified with the following transactions:
