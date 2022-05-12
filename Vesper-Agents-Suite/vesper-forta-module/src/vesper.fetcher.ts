@@ -80,7 +80,7 @@ export default class VesperFetcher {
     block: BlockId,
     fetchV3: boolean = true
   ): Promise<StrategiesData> {
-    const  provider = await getEthersProvider()
+    const provider = await getEthersProvider()
     const network = await provideGetNetworkId(provider)
     const pools = await this.getPools(network);
     const V2: Set<string> = new Set<string>();
@@ -97,27 +97,30 @@ export default class VesperFetcher {
           V2.add(strategy.toLowerCase());
         }
       } else if (fetchV3) {
-        const poolAccountant = (await createFetcher(
-          this.web3Call,
-          pool,
-          Pool_ABI
-        )(block))[0];
+        try {
+          const poolAccountant = (await createFetcher(
+            this.web3Call,
+            pool,
+            Pool_ABI
+          )(block))[0];
 
-        const { strategiesList } = await createFetcher(
-          this.web3Call,
-          poolAccountant,
-          GET_STRATEGIES
-        )(block);
-        strategiesList.forEach(async (addr: string) => {
-          const { active, debtRatio } = (await createFetcher(
+          const { strategiesList } = await createFetcher(
             this.web3Call,
             poolAccountant,
-            Accountant_ABI
-          )(block, poolAccountant));
-          if (active && BigInt(debtRatio) > 0) {
-            V3.add(addr.toLowerCase());
-          }
-        });
+            GET_STRATEGIES
+          )(block);
+          strategiesList.forEach(async (addr: string) => {
+            const { active, debtRatio } = (await createFetcher(
+              this.web3Call,
+              poolAccountant,
+              Accountant_ABI
+            )(block, poolAccountant));
+            if (active && BigInt(debtRatio) > 0) {
+              V3.add(addr.toLowerCase());
+            }
+          });
+        }
+        catch { }
       }
     }
     return { V2, V3 };
@@ -163,7 +166,7 @@ export default class VesperFetcher {
     }
 
     const poolAccountants: string[] = [];
-    const  provider = await getEthersProvider()
+    const provider = await getEthersProvider()
     const network = await provideGetNetworkId(provider)
     const pools: string[] = await this.getPools(network);
     for (let pool of pools) {
@@ -180,5 +183,5 @@ export default class VesperFetcher {
     poolAccountantsCache.set(blockNumber, poolAccountants);
     return poolAccountants;
   };
-  
+
 }

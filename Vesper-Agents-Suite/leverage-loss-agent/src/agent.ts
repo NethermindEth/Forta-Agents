@@ -113,6 +113,5 @@ export const provideLeverageStrategyHandler = (
 };
 
 export default {
-  handleBlock: provideLeverageStrategyHandler(web3, cacheTime, tracker),
-  provideLeverageStrategyHandler,
+  handleBlock: provideLeverageStrategyHandler(web3, cacheTime, tracker)
 };
