@@ -19,10 +19,12 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.6",
+    "forta-agent-tools": "^2.0.5"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
