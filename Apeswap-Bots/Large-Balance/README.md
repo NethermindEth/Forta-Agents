@@ -23,5 +23,12 @@ This bot detects accounts with a large amount of `GNANA` balance.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-- 
+In order to use the `PoC GnanaTokens Contracts`: 
+1. Set the `isTestnet` variable to `true` in `src/utils.ts`. 
+2. Change the `jsonRpcUrl` in `forta.config.json` to `https://data-seed-prebsc-1-s1.binance.org:8545/`.
+
+### Binance Testnet
+
+The bot behaviour can be verified in the following blocks:
+
+- 19240841 
