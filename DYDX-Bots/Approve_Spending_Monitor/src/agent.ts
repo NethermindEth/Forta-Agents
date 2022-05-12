@@ -24,8 +24,8 @@ export function provideHandleTransaction(
     let findings: Finding[] = [];
     let liquidityModuleBalance: BigNumber;
     let safetyModuleBalance: BigNumber;
-    const isLiquidityBalanceFetched = false;
-    const isSafetyBalanceFetched = false;
+    let isLiquidityBalanceFetched = false;
+    let isSafetyBalanceFetched = false;
 
     await Promise.all(
       // Listen to approval events on both Safety and Liquidity module.
@@ -34,22 +34,26 @@ export function provideHandleTransaction(
         .map(async (log) => {
           if (log.address.toLowerCase() === networkManager.liquidityModule.toLowerCase()) {
             // Check if the liquidity module balance is already fetched for this block.
-            if (!isLiquidityBalanceFetched)
+            if (!isLiquidityBalanceFetched) {
               liquidityModuleBalance = await balanceFetcher.getUsdcBalanceOf(
                 networkManager.liquidityModule,
                 txEvent.blockNumber - 1
               );
+              isLiquidityBalanceFetched = true;
+            }
 
             // Generate a finding if the approved value exceeds the threshold
             if (log.args.value.mul(100).gte(liquidityModuleBalance.mul(thresholdPercentage)))
               findings.push(createFinding(log.args, "Liquidity Module"));
           } else {
             // Check if the safety module balance is already fetched for this block.
-            if (!isSafetyBalanceFetched)
+            if (!isSafetyBalanceFetched) {
               safetyModuleBalance = await balanceFetcher.getdydxBalanceOf(
                 networkManager.safetyModule,
                 txEvent.blockNumber - 1
               );
+              isSafetyBalanceFetched = true;
+            }
 
             // Generate a finding if the approved value exceeds the threshold
             if (log.args.value.mul(100).gte(safetyModuleBalance.mul(thresholdPercentage)))
