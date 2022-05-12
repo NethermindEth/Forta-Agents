@@ -20,6 +20,7 @@ This bot detects `OwnershipTransferred` event emissions from BANANA/GNANA token 
       - `previousOwner`: Address of the previous owner.
       - `newOwner`: Null address.  
   
+  
 - APESWAP-6-2
   - Fired when ownership is transferred on BANANA/GNANA token contract.
   - Severity is always set to "Info".
