@@ -18,6 +18,15 @@ This bot detects `OwnershipTransferred` event emissions from BANANA/GNANA token 
   - Metadata contains:
     - BSC:
       - `previousOwner`: Address of the previous owner.
+      - `newOwner`: Null address.  
+  
+- APESWAP-6-2
+  - Fired when ownership is transferred on BANANA/GNANA token contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info" .
+  - Metadata contains:
+    - BSC:
+      - `previousOwner`: Address of the previous owner.
       - `newOwner`: Address of the new owner.
     - Polygon:
       - `oldOwner`: Address of the old MPC owner.
