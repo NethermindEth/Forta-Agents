@@ -2,7 +2,9 @@
   "name": "apeswap-4",
   "version": "0.0.1",
   "description": "This bot detects accounts with high amounts of GNANA balance.",
-  "chainIds": [56],
+  "chainIds": [
+    56
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -21,8 +23,9 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-     "forta-agent": "^0.1.3",
-    "lru-cache": "^7.7.1"
+    "forta-agent": "^0.1.3",
+    "lru-cache": "^6.0.0",
+    "web3-utils": "^1.7.3"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -34,5 +37,6 @@
     "prettier": "^2.6.0",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
-  }
+  },
+  "repository": "https://github.com/NethermindEth/Forta-Agents/edit/@apeswap/Large-Balance/Apeswap-Bots/Large-Balance"
 }
