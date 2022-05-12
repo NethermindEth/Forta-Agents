@@ -11,7 +11,7 @@ export const createFinding = (args: any, module: string) => {
     metadata: {
       value: args.value.toString(),
       owner: args.owner.toLowerCase(),
-      spender: args.spender.toString(),
+      spender: args.spender.toLowerCase(),
     },
   });
 };

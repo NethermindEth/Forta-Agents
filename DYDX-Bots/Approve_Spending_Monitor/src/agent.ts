@@ -29,33 +29,34 @@ export function provideHandleTransaction(
 
     // Listen to approval events on both Safety and Liquidity module.
     const logs = txEvent.filterLog(APPROVAL_EVENT, [networkManager.liquidityModule, networkManager.safetyModule]);
+    await Promise.all(
+      txEvent
+        .filterLog(APPROVAL_EVENT, [networkManager.liquidityModule, networkManager.safetyModule])
+        .map(async (log) => {
+          if (log.address === networkManager.liquidityModule) {
+            // Check if the liquidity module balance is already fetched for this block.
+            if (!isLiquidityBalanceFetched)
+              liquidityModuleBalance = await balanceFetcher.getUsdcBalanceOf(
+                networkManager.liquidityModule,
+                txEvent.blockNumber - 1
+              );
 
-    logs.forEach(async (log) => {
-      if (log.address === networkManager.liquidityModule) {
-        // Check if the liquidity module balance is already fetched for this block.
-        if (!isLiquidityBalanceFetched)
-          liquidityModuleBalance = await balanceFetcher.getUsdcBalanceOf(
-            networkManager.liquidityModule,
-            txEvent.blockNumber - 1
-          );
-
-        // Generate a finding if the approved value exceeds the threshold
-        if (log.args.value.mul(100).gte(liquidityModuleBalance.mul(thresholdPercentage)))
-          findings.push(createFinding(log.args, "Liquidity Module"));
-      } else {
-        // Check if the safety module balance is already fetched for this block.
-        if (!isSafetyBalanceFetched)
-          safetyModuleBalance = await balanceFetcher.getdydxBalanceOf(
-            networkManager.safetyModule,
-            txEvent.blockNumber - 1
-          );
-
-        // Generate a finding if the approved value exceeds the threshold
-        if (log.args.value.mul(100).gte(safetyModuleBalance.mul(thresholdPercentage)))
-          findings.push(createFinding(log.args, "Safety Module"));
-      }
-    });
-
+            // Generate a finding if the approved value exceeds the threshold
+            if (log.args.value.mul(100).gte(liquidityModuleBalance.mul(thresholdPercentage)))
+              findings.push(createFinding(log.args, "Liquidity Module"));
+          } else {
+            // Check if the safety module balance is already fetched for this block.
+            if (!isSafetyBalanceFetched)
+              safetyModuleBalance = await balanceFetcher.getdydxBalanceOf(
+                networkManager.safetyModule,
+                txEvent.blockNumber - 1
+              );
+            // Generate a finding if the approved value exceeds the threshold
+            if (log.args.value.mul(100).gte(safetyModuleBalance.mul(thresholdPercentage)))
+              findings.push(createFinding(log.args, "Safety Module"));
+          }
+        })
+    );
     return findings;
   };
 }
