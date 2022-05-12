@@ -31,4 +31,4 @@ In order to use the `PoC GnanaTokens Contracts`:
 
 The bot behaviour can be verified in the following blocks:
 
-- 19240841 
+- 19243883 
