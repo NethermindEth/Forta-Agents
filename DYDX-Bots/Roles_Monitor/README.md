@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects changes in roles in both the Safety Module and Liquidity Module contracts.
 
 ## Supported Chains
 
