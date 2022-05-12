@@ -1,5 +1,12 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { ethers, BigNumber } from "ethers";
+
+const isTestnet: boolean = false;
+
+export const GNANA_TOKEN_CONTRACT = isTestnet
+  ? "0x2449e7940b0df3426981945431aa9dc95b982702" // BINANCE Testnet GNANA Token Contract address
+  : "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299"; // BINANCE Mainnet GNANA Token Contract address
+
 export const EVENT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 value)",
 ];
@@ -7,8 +14,7 @@ export const BALANCE_OF_ABI = [
   "function balanceOf(address account) public view  returns (uint256)",
 ];
 export const APESWAP_INTERFACE = new ethers.utils.Interface(BALANCE_OF_ABI);
-export const GNANA_TOKEN_CONTRACT =
-  "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299";
+
 export const GNANA_DECIMALS: number = 18;
 export const THRESHOLD_BALANCE_PERCENTAGE: number = 1;
 const TOTAL_SUPPLY: BigNumber = BigNumber.from("3000000000").mul(
