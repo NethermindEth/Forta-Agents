@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects `OwnershipTransferred` event emissions from BANANA/GNANA token contracts on BSC and `LogChangeMPCOwner` event emissions from BANANA token contract on Polygon.
+This bot detects `OwnershipTransferred` event emissions from BANANA/GNANA token contracts on BSC and `LogChangeMPCOwner` event emissions from BANANA token contract on Polygon.
 
 ## Supported Chains
 
@@ -12,7 +12,7 @@ This agent detects `OwnershipTransferred` event emissions from BANANA/GNANA toke
 ## Alerts
 
 - APESWAP-6-1
-  - Fired when ownership is renounced on BANANA/GNANA token contract
+  - Fired when ownership is renounced on BANANA/GNANA token contract.
   - Severity is always set to "Info".
   - Type is always set to "Info" .
   - Metadata contains:
