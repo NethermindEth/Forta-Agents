@@ -1,4 +1,4 @@
-# Large Tether Transfer Agent
+# Role Changes Monitor Bot
 
 ## Description
 
@@ -7,20 +7,32 @@ This agent detects transactions with large Tether transfers
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- DYDX-18-1
+  - Fired when a `RoleAdminChanged` event has been fired from either the Safety or Liquidity Module.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `role`: role that has changed.
+    - `previousAdminRole`: admin role for `role` before being replaced.
+    - `newAdminRole`: new admin role for `role` that replaced `previousadminRole`.
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- DYDX-18-2
+  - Fired when a `RoleGranted` event has been fired from either the Safety or Liquidity Module.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `role`: role that has been granted.
+    - `account`: the account that has been granted the role.
+    - `sender`: the account that originated the contract call.
 
-## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- DYDX-18-3
+  - Fired when a `RoleRevoked` event has been fired from either the Safety or Liquidity Module.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `role`: role that has been revoked..
+    - `account`: the account that has been granted the role.
+    - `sender`: the account that originated the contract call.
