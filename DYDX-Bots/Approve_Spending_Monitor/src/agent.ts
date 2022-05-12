@@ -27,13 +27,12 @@ export function provideHandleTransaction(
     const isLiquidityBalanceFetched = false;
     const isSafetyBalanceFetched = false;
 
-    // Listen to approval events on both Safety and Liquidity module.
-    const logs = txEvent.filterLog(APPROVAL_EVENT, [networkManager.liquidityModule, networkManager.safetyModule]);
     await Promise.all(
+      // Listen to approval events on both Safety and Liquidity module.
       txEvent
         .filterLog(APPROVAL_EVENT, [networkManager.liquidityModule, networkManager.safetyModule])
         .map(async (log) => {
-          if (log.address === networkManager.liquidityModule) {
+          if (log.address.toLowerCase() === networkManager.liquidityModule.toLowerCase()) {
             // Check if the liquidity module balance is already fetched for this block.
             if (!isLiquidityBalanceFetched)
               liquidityModuleBalance = await balanceFetcher.getUsdcBalanceOf(
@@ -51,12 +50,14 @@ export function provideHandleTransaction(
                 networkManager.safetyModule,
                 txEvent.blockNumber - 1
               );
+
             // Generate a finding if the approved value exceeds the threshold
             if (log.args.value.mul(100).gte(safetyModuleBalance.mul(thresholdPercentage)))
               findings.push(createFinding(log.args, "Safety Module"));
           }
         })
     );
+
     return findings;
   };
 }

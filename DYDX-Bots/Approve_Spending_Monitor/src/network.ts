@@ -13,10 +13,11 @@ const ETH_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  safetyModule: "",
-  liquidityModule: "",
-  dydxAddress: "",
-  usdcAddress: "",
+  // Same address is used for both modules, and both tokens because the detected pattern is the same.
+  safetyModule: "0xE719C2aB1256e5b68C4F1Da1fbf6c0771dBbB501",
+  liquidityModule: "0xE719C2aB1256e5b68C4F1Da1fbf6c0771dBbB501",
+  dydxAddress: "0x127D02DF38Ea031a4EBb6f4b225176a66e004F2e",
+  usdcAddress: "0x127D02DF38Ea031a4EBb6f4b225176a66e004F2e",
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
