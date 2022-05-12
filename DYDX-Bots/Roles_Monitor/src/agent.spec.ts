@@ -11,7 +11,7 @@ const testSender: string = createAddress("0xad");
 const roleChangedTestCases: [string, string, string][] = [
   [utils.keccak256("0xab11"), utils.keccak256("0xab12"), utils.keccak256("0xab13")],
   [utils.keccak256("0xac21"), utils.keccak256("0xac22"), utils.keccak256("0xac23")],
-  [utils.keccak256("0xad31"), utils.keccak256("0xad32"), utils.keccak256("0xad33")]
+  [utils.keccak256("0xad31"), utils.keccak256("0xad32"), utils.keccak256("0xad33")],
 ];
 // Format: [role, account, sender][]
 const grantedAndRevokedTestCases: [string, string, string][] = [
@@ -20,7 +20,7 @@ const grantedAndRevokedTestCases: [string, string, string][] = [
   [utils.keccak256("0xfe13"), createAddress("0xad2"), createAddress("0xad3")],
   [utils.keccak256("0xfe14"), createAddress("0xae2"), createAddress("0xae3")],
   [utils.keccak256("0xfe15"), createAddress("0xaf2"), createAddress("0xaf3")],
-  [utils.keccak256("0xfe15"), createAddress("0xba2"), createAddress("0xba3")]
+  [utils.keccak256("0xfe15"), createAddress("0xba2"), createAddress("0xba3")],
 ];
 
 describe("Roles Changes Monitor Test Suite", () => {
@@ -48,13 +48,13 @@ describe("Roles Changes Monitor Test Suite", () => {
     const RoleAdminChangedLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleAdminChanged"), [
       roleChangedTestCases[0][0],
       roleChangedTestCases[0][1],
-      roleChangedTestCases[0][2]
+      roleChangedTestCases[0][2],
     ]);
 
     const RoleAdminChangedLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleAdminChanged"), [
       roleChangedTestCases[1][0],
       roleChangedTestCases[1][1],
-      roleChangedTestCases[1][2]
+      roleChangedTestCases[1][2],
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -109,13 +109,13 @@ describe("Roles Changes Monitor Test Suite", () => {
     const RoleGrantedLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleGranted"), [
       grantedAndRevokedTestCases[0][0],
       grantedAndRevokedTestCases[0][1],
-      grantedAndRevokedTestCases[0][2]
+      grantedAndRevokedTestCases[0][2],
     ]);
 
     const RoleGrantedLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleGranted"), [
       grantedAndRevokedTestCases[1][0],
       grantedAndRevokedTestCases[1][1],
-      grantedAndRevokedTestCases[1][2]
+      grantedAndRevokedTestCases[1][2],
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -162,28 +162,20 @@ describe("Roles Changes Monitor Test Suite", () => {
     const RoleRevokedLogOne = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleRevoked"), [
       grantedAndRevokedTestCases[2][0],
       grantedAndRevokedTestCases[2][1],
-      grantedAndRevokedTestCases[2][2]
+      grantedAndRevokedTestCases[2][2],
     ]);
 
     const RoleRevokedLogTwo = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleRevoked"), [
       grantedAndRevokedTestCases[3][0],
       grantedAndRevokedTestCases[3][1],
-      grantedAndRevokedTestCases[3][2]
+      grantedAndRevokedTestCases[3][2],
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.safetyModule)
       .setFrom(testSender)
-      .addAnonymousEventLog(
-        mockNetworkManager.safetyModule,
-        RoleRevokedLogOne.data,
-        ...RoleRevokedLogOne.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.liquidityModule,
-        RoleRevokedLogTwo.data,
-        ...RoleRevokedLogTwo.topics
-      );
+      .addAnonymousEventLog(mockNetworkManager.safetyModule, RoleRevokedLogOne.data, ...RoleRevokedLogOne.topics)
+      .addAnonymousEventLog(mockNetworkManager.liquidityModule, RoleRevokedLogTwo.data, ...RoleRevokedLogTwo.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -225,19 +217,19 @@ describe("Roles Changes Monitor Test Suite", () => {
     const RoleAdminChangedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleAdminChanged"), [
       roleChangedTestCases[0][0],
       roleChangedTestCases[0][1],
-      roleChangedTestCases[0][2]
+      roleChangedTestCases[0][2],
     ]);
 
     const EpochParamChangedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleGranted"), [
       grantedAndRevokedTestCases[0][0],
       grantedAndRevokedTestCases[0][1],
-      grantedAndRevokedTestCases[0][2]
+      grantedAndRevokedTestCases[0][2],
     ]);
 
     const RewardsPerSecondLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleRevoked"), [
       grantedAndRevokedTestCases[2][0],
       grantedAndRevokedTestCases[2][1],
-      grantedAndRevokedTestCases[2][2]
+      grantedAndRevokedTestCases[2][2],
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -271,30 +263,26 @@ describe("Roles Changes Monitor Test Suite", () => {
     const RoleAdminChangedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleAdminChanged"), [
       roleChangedTestCases[2][0],
       roleChangedTestCases[2][1],
-      roleChangedTestCases[2][2]
+      roleChangedTestCases[2][2],
     ]);
 
     const RoleGrantedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleGranted"), [
       grantedAndRevokedTestCases[4][0],
       grantedAndRevokedTestCases[4][1],
-      grantedAndRevokedTestCases[4][2]
+      grantedAndRevokedTestCases[4][2],
     ]);
 
     const RoleRevokedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("RoleRevoked"), [
       grantedAndRevokedTestCases[5][0],
       grantedAndRevokedTestCases[5][1],
-      grantedAndRevokedTestCases[5][2]
+      grantedAndRevokedTestCases[5][2],
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(mockNetworkManager.liquidityModule)
       .setFrom(testSender)
       .addAnonymousEventLog(mockNetworkManager.safetyModule, RoleAdminChangedLog.data, ...RoleAdminChangedLog.topics)
-      .addAnonymousEventLog(
-        mockNetworkManager.liquidityModule,
-        RoleGrantedLog.data,
-        ...RoleGrantedLog.topics
-      )
+      .addAnonymousEventLog(mockNetworkManager.liquidityModule, RoleGrantedLog.data, ...RoleGrantedLog.topics)
       .addAnonymousEventLog(mockNetworkManager.safetyModule, RoleRevokedLog.data, ...RoleRevokedLog.topics);
 
     const findings = await handleTransaction(txEvent);
@@ -310,7 +298,7 @@ describe("Roles Changes Monitor Test Suite", () => {
         metadata: {
           role: roleChangedTestCases[2][0],
           previousAdminRole: roleChangedTestCases[2][1],
-          newAdminRole: roleChangedTestCases[2][2]
+          newAdminRole: roleChangedTestCases[2][2],
         },
         addresses: [mockNetworkManager.safetyModule],
       }),
