@@ -11,9 +11,9 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(), // TYPE bytes32, NEED TO CONVERT TO STRING
-          previousAdminRole: args.previousAdminRole.toString(), // TYPE bytes32, NEED TO CONVERT TO STRING
-          newAdminRole: args.newAdminRole.toString(), // TYPE bytes32, NEED TO CONVERT TO STRING
+          role: args.role.toString(),
+          previousAdminRole: args.previousAdminRole.toString(),
+          newAdminRole: args.newAdminRole.toString(),
         },
         addresses: [logAddress],
       });
@@ -27,7 +27,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(), // TYPE bytes32, NEED TO CONVERT TO STRING
+          role: args.role.toString(),
           account: args.account.toLowerCase(),
           sender: args.sender.toLowerCase(),
         },
@@ -43,7 +43,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(), // TYPE bytes32, NEED TO CONVERT TO STRING
+          role: args.role.toString(),
           account: args.account.toLowerCase(),
           sender: args.sender.toLowerCase(),
         },
