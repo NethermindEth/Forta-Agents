@@ -32,10 +32,13 @@ export function provideHandleTransaction(
       EVENT_ABI,
       fetcher.gnanaTokenAddress
     );
-    for (const log of logs) {
-      const toAddress = log.args.to;
-      accounts.add(toAddress);
-    }
+
+    await Promise.all(
+      logs.map((log) => {
+        const toAddress = log.args.to;
+        accounts.add(toAddress);
+      })
+    );
     return findings;
   };
 }
@@ -54,6 +57,7 @@ export function provideHandleBlock(
       );
       if (balance.gt(balanceThreshold)) {
         findings.push(createLargeBalanceFinding(addr, balance));
+        accounts.clear();
       }
     }
     return findings;
