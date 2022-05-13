@@ -9,7 +9,6 @@ const ETH_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  // TODO: Change once PoC deployed
   safetyModule: "0x267CaE324d5850D84EcA39E2F3C0A8003d3c2F02",
   dydxAddress: "0x136Bb1ff78FBb538B001DC4A50551A088cD0e3CD",
 };
