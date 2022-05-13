@@ -1,10 +1,11 @@
 {
-  "name": "forta-agent-starter",
+  "name": "dydx-12",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Monitor slashing events in dYdX Safety Module",
   "chainIds": [
     1
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Slashed_dYdXr",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
