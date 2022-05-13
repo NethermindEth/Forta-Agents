@@ -38,5 +38,5 @@
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   },
-  "repository": "https://github.com/NethermindEth/Forta-Agents/edit/@apeswap/Large-Balance/Apeswap-Bots/Large-Balance"
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/Large-Balance"
 }
