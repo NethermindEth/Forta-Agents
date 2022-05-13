@@ -1,16 +1,7 @@
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
-import {
-  createAddress,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/tests";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import { EVENTS } from "./utils";
 
@@ -24,7 +15,7 @@ const createFinding = (name: string, args: any[]) => {
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       metadata: {
-        quantizedAmount: args[5].toNumber(),
+        quantizedAmount: args[5].toString(),
         starkKey: args[1].toHexString(),
         token: args[3].toHexString(),
       },
@@ -32,14 +23,13 @@ const createFinding = (name: string, args: any[]) => {
   else if (name === "LogWithdrawalPerformed")
     return Finding.fromObject({
       name: "Large withdrawal into perpetual contract",
-      description:
-        "LogWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogWithdrawalPerformed event detected with large quantized Amount",
       alertId: "DYDX-1-2",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       metadata: {
-        quantizedAmount: args[3].toNumber(),
+        quantizedAmount: args[3].toString(),
         token: args[1].toHexString(),
         recipient: args[4].toLowerCase(),
         ownerKey: args[0].toHexString(),
@@ -48,16 +38,15 @@ const createFinding = (name: string, args: any[]) => {
   else
     return Finding.fromObject({
       name: "Large mint withdrawal into perpetual contract",
-      description:
-        "LogMintWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogMintWithdrawalPerformed event detected with large quantized Amount",
       alertId: "DYDX-1-3",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       metadata: {
-        quantizedAmount: args[3].toNumber(),
+        quantizedAmount: args[3].toString(),
         token: args[1].toHexString(),
-        assetId: args[4].toNumber(),
+        assetId: args[4].toString(),
         ownerKey: args[0].toHexString(),
       },
     });
@@ -84,34 +73,10 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
       BigNumber.from(90),
       BigNumber.from(90),
     ], // LogDeposit with regular amount
-    [
-      BigNumber.from(2),
-      BigNumber.from(55),
-      BigNumber.from(200),
-      BigNumber.from(200),
-      createAddress("0x2"),
-    ], // LogWithdrawalPerformed with large amount
-    [
-      BigNumber.from(3),
-      BigNumber.from(55),
-      BigNumber.from(70),
-      BigNumber.from(70),
-      createAddress("0x2"),
-    ], // LogWithdrawalPerformed with regular amount
-    [
-      BigNumber.from(3),
-      BigNumber.from(55),
-      BigNumber.from(210),
-      BigNumber.from(210),
-      BigNumber.from(33),
-    ], // LogMintWithdrawalPerformed with regular amount
-    [
-      BigNumber.from(3),
-      BigNumber.from(55),
-      BigNumber.from(70),
-      BigNumber.from(70),
-      BigNumber.from(43),
-    ], // LogMintWithdrawalPerformed with regular amount
+    [BigNumber.from(2), BigNumber.from(55), BigNumber.from(200), BigNumber.from(200), createAddress("0x2")], // LogWithdrawalPerformed with large amount
+    [BigNumber.from(3), BigNumber.from(55), BigNumber.from(70), BigNumber.from(70), createAddress("0x2")], // LogWithdrawalPerformed with regular amount
+    [BigNumber.from(3), BigNumber.from(55), BigNumber.from(210), BigNumber.from(210), BigNumber.from(33)], // LogMintWithdrawalPerformed with regular amount
+    [BigNumber.from(3), BigNumber.from(55), BigNumber.from(70), BigNumber.from(70), BigNumber.from(43)], // LogMintWithdrawalPerformed with regular amount
   ];
   const TEST_PERPETUAL = createAddress("0x1");
 
@@ -131,18 +96,9 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
   });
 
   it("returns findings if the monitored events are emitted with a large amount", async () => {
-    const log1 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogDeposit"),
-      TEST_DATA[0]
-    );
-    const log2 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"),
-      TEST_DATA[2]
-    );
-    const log3 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"),
-      TEST_DATA[4]
-    );
+    const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), TEST_DATA[0]);
+    const log2 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"), TEST_DATA[2]);
+    const log3 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"), TEST_DATA[4]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(TEST_PERPETUAL, log1.data, ...log1.topics)
@@ -158,18 +114,9 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
   });
 
   it("ignores events with a regular amount", async () => {
-    const log1 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogDeposit"),
-      TEST_DATA[1]
-    );
-    const log2 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"),
-      TEST_DATA[3]
-    );
-    const log3 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"),
-      TEST_DATA[5]
-    );
+    const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), TEST_DATA[1]);
+    const log2 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"), TEST_DATA[3]);
+    const log3 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"), TEST_DATA[5]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(TEST_PERPETUAL, log1.data, ...log1.topics)
@@ -183,18 +130,9 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
   it("ignores events on a different contract", async () => {
     const WRONG_CONTRACT = createAddress("0xdead");
 
-    const log1 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogDeposit"),
-      TEST_DATA[0]
-    );
-    const log2 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"),
-      TEST_DATA[2]
-    );
-    const log3 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"),
-      TEST_DATA[4]
-    );
+    const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), TEST_DATA[0]);
+    const log2 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"), TEST_DATA[2]);
+    const log3 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"), TEST_DATA[4]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(WRONG_CONTRACT, log1.data, ...log1.topics)
@@ -206,41 +144,25 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
   });
   it("ignores other events on perpetual contract", async () => {
     const differentIface = new Interface(["event WrongEvent()"]);
-    const log = differentIface.encodeEventLog(
-      differentIface.getEvent("WrongEvent"),
-      []
+    const log = differentIface.encodeEventLog(differentIface.getEvent("WrongEvent"), []);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
+      TEST_PERPETUAL,
+      log.data,
+      ...log.topics
     );
-    const txEvent: TransactionEvent =
-      new TestTransactionEvent().addAnonymousEventLog(
-        TEST_PERPETUAL,
-        log.data,
-        ...log.topics
-      );
     const findings: Finding[] = await handler(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
   it("returns multiple findings", async () => {
     // LogDeposit with regular amount
-    const log1 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogDeposit"),
-      TEST_DATA[1]
-    );
+    const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), TEST_DATA[1]);
     // LogWithdrawalPerformed with large amount
-    const log2 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"),
-      TEST_DATA[2]
-    );
+    const log2 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogWithdrawalPerformed"), TEST_DATA[2]);
     // LogMintWithdrawalPerformed with large amount
-    const log3 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"),
-      TEST_DATA[4]
-    );
+    const log3 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"), TEST_DATA[4]);
     // LogMintWithdrawalPerformed with regular amount
-    const log4 = EVENTS_INTERFACE.encodeEventLog(
-      EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"),
-      TEST_DATA[5]
-    );
+    const log4 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogMintWithdrawalPerformed"), TEST_DATA[5]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(TEST_PERPETUAL, log1.data, ...log1.topics)

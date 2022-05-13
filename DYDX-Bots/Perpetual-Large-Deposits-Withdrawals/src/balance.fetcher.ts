@@ -16,18 +16,11 @@ export default class BalanceFetcher {
     this.perpetualAddress = contractAddr;
   }
 
-  public async getBalance(
-    token: string,
-    block: number | string
-  ): Promise<BigNumber> {
+  public async getBalance(token: string, block: number | string): Promise<BigNumber> {
     const key: string = `${token} - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const tokenContract = new Contract(
-      token,
-      new Interface(ERC20_TOKEN_ABI),
-      this.provider
-    );
+    const tokenContract = new Contract(token, new Interface(ERC20_TOKEN_ABI), this.provider);
 
     const balance: BigNumber = tokenContract.balanceOf(this.perpetualAddress, {
       blockTag: block,
