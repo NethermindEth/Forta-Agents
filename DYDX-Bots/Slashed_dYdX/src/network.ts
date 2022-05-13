@@ -9,7 +9,7 @@ const ETH_MAINNET_DATA: NetworkData = {
 // Using the same Kovan testnet address since we are
 // listening to the same event emissions in both module contracts
 const KOVAN_TESTNET_DATA: NetworkData = {
-  safetyModule: "", // FILL IN WHEN PoC CONTRACTS ARE DEPLOYED
+  safetyModule: "0xa1e799D7308949a6514761194E35d0bbb7a458Cf",
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
