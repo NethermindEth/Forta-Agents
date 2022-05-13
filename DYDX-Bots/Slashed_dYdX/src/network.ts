@@ -6,8 +6,6 @@ const ETH_MAINNET_DATA: NetworkData = {
   safetyModule: "0x65f7BA4Ec257AF7c55fd5854E5f6356bBd0fb8EC",
 };
 
-// Using the same Kovan testnet address since we are
-// listening to the same event emissions in both module contracts
 const KOVAN_TESTNET_DATA: NetworkData = {
   safetyModule: "0xa1e799D7308949a6514761194E35d0bbb7a458Cf",
 };
