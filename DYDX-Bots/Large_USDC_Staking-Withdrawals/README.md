@@ -12,8 +12,6 @@ This bot detects deposits and withdrawals in the Liquidity Module contract when 
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
 - DYDX-14-1
   - Fired when `Staked` event is emitted with an `amount` that exceeds the threshold.
   - Severity is always set to "Info".
@@ -22,6 +20,7 @@ Describe each of the type of alerts fired by this agent
     - `staker`: The address who will receive the stake.
     - `spender`: The address who can spend the stake.
     - `amount`: The amount to stake.
+  
 - DYDX-14-2
   - Fired when `WithdrewStake` event is emitted with an `amount` that exceeds the threshold.
   - Severity is always set to "Info".
@@ -30,6 +29,7 @@ Describe each of the type of alerts fired by this agent
     - `staker`: The `msg.sender ` that initiated the `withdrawStake` call.
     - `recipient`: The address that should receive the funds.
     - `amount`: The amount withdrawn from the sender's inactive balance.
+    
 - DYDX-14-3
   - Fired when `WithdrewDebt` event is emitted with an `amount` that exceeds the threshold.
   - Severity is always set to "Info".
