@@ -26,7 +26,7 @@ export default class BalanceFetcher {
   }
 
   public async getTotalBorrowerDebtBalance(block: string | number): Promise<BigNumber> {
-    const key: string = `${this.moduleContract} - totalBorrowerDebtBalance - ${block}`;
+    const key: string = `totalBorrowerDebtBalance - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
     const balance = await this.moduleContract.getTotalBorrowerDebtBalance({ blockTag: block });
@@ -35,7 +35,7 @@ export default class BalanceFetcher {
   }
 
   public async getTotalActiveBalanceCurrentEpoch(block: string | number): Promise<BigNumber> {
-    const key: string = `${this.moduleContract} - totalActiveBalanceCurrentEpoch - ${block}`;
+    const key: string = `totalActiveBalanceCurrentEpoch - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
     const balance = await this.moduleContract.getTotalActiveBalanceCurrentEpoch({ blockTag: block });
