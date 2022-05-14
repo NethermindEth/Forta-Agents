@@ -29,4 +29,4 @@ The bot behavior can be verified with the following contracts on the Kovan ETH t
 
 [0xe9511Faa2B2ccE548A5999b4bC3772e6a0f1C14A](https://kovan.etherscan.io/address/0xe9511Faa2B2ccE548A5999b4bC3772e6a0f1C14A) - `TestProxy`.
 
-You can test the bot on the Kovan ETH testnet by running `npm start`. Also, you can use the setter functions in the `testProxy` contract to toggle both `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch` to test them in real time. This is because the bot checks these values in every block.
+To test the bot, use the following block on the Kovan ETH testnet: [31303087](https://kovan.etherscan.io/block/31303087).
