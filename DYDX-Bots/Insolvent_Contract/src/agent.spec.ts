@@ -6,19 +6,23 @@ import NetworkData from "./network";
 import BalanceFetcher from "./balance.fetcher";
 import { IMPLEMENTATION_IFACE } from "./utils";
 
-const testBlockNumbers: number[] = [2, 42, 92, 360];
+const testBlockNumbers: number[] = [2, 42, 92, 360, 444, 445];
 const testThreshold: BigNumber = BigNumber.from("3000000000000000000"); // 3
 const testBorrowerDebtBalance: BigNumber[] = [
   BigNumber.from("5000000000000000000"), // 5
   BigNumber.from("10000000000000000000"), // 10
   BigNumber.from("15000000000000000000"), // 15
   BigNumber.from("20000000000000000000"), // 20
+  BigNumber.from("25000000000000000000"), // 25
+  BigNumber.from("30000000000000000000"), // 30
 ];
 const testActiveBalanceCurrentEpoch: BigNumber[] = [
   BigNumber.from("1000000000000000000"), // 1
   BigNumber.from("9000000000000000000"), // 9
   BigNumber.from("15000000000000000000"), // 15
   BigNumber.from("22000000000000000000"), // 22
+  BigNumber.from("21000000000000000000"), // 21
+  BigNumber.from("26000000000000000000"), // 26
 ];
 
 describe("Insolvent Contract test suite", () => {
@@ -119,5 +123,53 @@ describe("Insolvent Contract test suite", () => {
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect a contract in an insolvent state in multiple blocks", async () => {
+    // (testBorrowerDebtBalance[4] - testActiveBalanceCurrentEpoch[4]) > testThreshold
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[4], testBlockNumbers[4]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[4], testBlockNumbers[4]);
+
+    const blockEventOne: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[4]);
+
+    const findingsOne = await handleBlock(blockEventOne);
+
+    expect(findingsOne).toStrictEqual([
+      Finding.fromObject({
+        name: "Liquidity Module Contract is insolvent",
+        description: "The total borrowed balance has exceeded total active balance in the current epoch",
+        alertId: "DYDX-15",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "DYDX",
+        metadata: {
+          totalBorrowerDebtBalance: testBorrowerDebtBalance[4].toString(),
+          totalActiveBalanceCurrentEpoch: testActiveBalanceCurrentEpoch[4].toString(),
+        },
+      }),
+    ]);
+
+    // (testBorrowerDebtBalance[5] - testActiveBalanceCurrentEpoch[5]) > testThreshold
+    createGetTotalBorrowerDebtBalance(testBorrowerDebtBalance[5], testBlockNumbers[5]);
+    createGetTotalActiveBalanceCurrentEpoch(testActiveBalanceCurrentEpoch[5], testBlockNumbers[5]);
+
+    const blockEventTwo: BlockEvent = new TestBlockEvent().setNumber(testBlockNumbers[5]);
+
+    const findingsTwo = await handleBlock(blockEventTwo);
+
+    expect(findingsTwo).toStrictEqual([
+      Finding.fromObject({
+        name: "Liquidity Module Contract is insolvent",
+        description: "The total borrowed balance has exceeded total active balance in the current epoch",
+        alertId: "DYDX-15",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        protocol: "DYDX",
+        metadata: {
+          totalBorrowerDebtBalance: testBorrowerDebtBalance[5].toString(),
+          totalActiveBalanceCurrentEpoch: testActiveBalanceCurrentEpoch[5].toString(),
+        },
+      }),
+    ]);
   });
 });
