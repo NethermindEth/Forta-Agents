@@ -36,4 +36,16 @@ describe("NetworkManager test suite", () => {
       expect(networkManager.usdcAddress).toStrictEqual(testCase[1][1]);
     }
   });
+
+  it("should throw error from using unsupported network", async () => {
+    for (let testCase of TEST_CASES) {
+      const networkMap: Record<number, NetworkData> = generateNetworkMap(testCase[0], testCase[1]);
+      const networkManager = new NetworkManager(networkMap);
+
+      expect(() => {
+        // 99 is an unsupported networkId
+        networkManager.setNetwork(99);
+      }).toThrow(new Error("You are running the bot in a non supported network"));
+    }
+  });
 });
