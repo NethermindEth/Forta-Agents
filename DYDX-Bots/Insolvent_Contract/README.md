@@ -4,7 +4,7 @@
 
 This bot detects when the contract is insolvent. Insolvency refers to when the difference between `totalBorrowerDebtBalance` and `totalActiveBalanceCurrentEpoch` is greater than a set static threshold. The bot checks for both variables in every block.
 
-> Note: To set the static threshold to a desired amount, update the value of `THRESHOLD_AMOUNT` in `utils.ts`. Currently, it is set to `0`, and thus will detect **any** difference between the two varibles.
+> Note: To set the static threshold to a desired amount, update the value of `THRESHOLD_AMOUNT` in `utils.ts`. Currently, it is set to `0`, and thus will detect **all** insolvency cases.
 
 ## Supported Chains
 
