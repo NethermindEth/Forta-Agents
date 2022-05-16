@@ -1,12 +1,8 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
-
-import { APEFACTORY_ABI } from "./constants";
 import NetworkManager from "./network";
 import NetworkData from "./network";
-
-import { createFinding, newPairParamsType, newPairFindingType, providerParams } from "./utils";
-const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
+import { createFinding, newPairParamsType, newPairFindingType, providerParams, apePairCreate2 } from "./utils";
 
 const networkManager = new NetworkManager();
 
@@ -18,28 +14,32 @@ export const initialize = (provider: providers.Provider) => {
 };
 
 export const provideHandleTransaction = (
-  { functionSig }: newPairParamsType,
-  { apeFactoryAddress }: NetworkData
+  providerParams: newPairParamsType,
+  networkData: NetworkData,
+  createPair: any
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
-    const txLogs = txEvent.filterFunction(functionSig, apeFactoryAddress);
+    const txLogs = txEvent.filterFunction(providerParams.functionAbi, networkData.apeFactoryAddress);
 
     txLogs.forEach((txLog) => {
       const { args } = txLog;
+      const tokenA: string = args[0].toLowerCase();
+      const tokenB: string = args[1].toLowerCase();
+      const newPairContractAddress: string = createPair(tokenA, tokenB, networkData).toLowerCase();
 
       const newPairMetadata: newPairFindingType = {
-        tokenAAddress: args[0].toLowerCase(),
-        tokenBAddress: args[1].toLowerCase(),
+        tokenAAddress: tokenA,
+        tokenBAddress: tokenB,
+        pairAddress: newPairContractAddress,
       };
 
-      findings.push(createFinding(newPairMetadata, CREATE_PAIR_FUNCTION));
+      findings.push(createFinding(newPairMetadata));
     });
     return findings;
   };
 };
 export default {
-  handleTransaction: provideHandleTransaction(providerParams, networkManager),
+  handleTransaction: provideHandleTransaction(providerParams, networkManager, apePairCreate2),
   initialize: initialize(getEthersProvider()),
 };

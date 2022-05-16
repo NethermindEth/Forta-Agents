@@ -1,4 +1,8 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { keccak256 } from "@ethersproject/keccak256";
+import NetworkData from "./network";
+import { getCreate2Address } from "@ethersproject/address";
+
 import { APEFACTORY_ABI } from "./constants";
 
 const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
@@ -7,20 +11,26 @@ const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
 type newPairFindingType = {
   tokenAAddress: string;
   tokenBAddress: string;
+  pairAddress: string;
 };
 
 type newPairParamsType = {
-  functionSig: string;
+  functionAbi: string;
 };
 
 const providerParams: newPairParamsType = {
-  functionSig: CREATE_PAIR_FUNCTION,
+  functionAbi: CREATE_PAIR_FUNCTION,
 };
 
-const createFinding = (findingMetadata: newPairFindingType, functionAbi: string): Finding => {
+const apePairCreate2 = (token0: string, token1: string, networkData: NetworkData) => {
+  const salt: string = keccak256(token0.concat(token1.slice(2)));
+  return getCreate2Address(networkData.apeFactoryAddress, salt, networkData.apeFactoryInitCodeHash).toLowerCase();
+};
+
+const createFinding = (findingMetadata: newPairFindingType): Finding => {
   const findingResult = {
     name: "New pair creation on ApeFactory contract",
-    description: `${functionAbi} call detected on ApeFactory contract upon creation of new tradable pairs`,
+    description: "New pair creation call detected on ApeFactory contract",
     alertId: "APESWAP-8",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -31,4 +41,4 @@ const createFinding = (findingMetadata: newPairFindingType, functionAbi: string)
   return Finding.fromObject(findingResult);
 };
 
-export { createFinding, newPairFindingType, newPairParamsType, providerParams };
+export { createFinding, newPairFindingType, newPairParamsType, providerParams, apePairCreate2 };
