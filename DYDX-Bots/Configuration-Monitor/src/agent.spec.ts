@@ -36,11 +36,11 @@ describe("Global configuration monitor tests suite", () => {
   const perpetual = createAddress("0x1");
   const PERPETUAL_IFACE = new Interface(MONITORED_EVENTS);
 
-  const mockProvider = {
+  const mockNetworkManager = {
     perpetualProxy: perpetual,
   };
 
-  const handler: HandleTransaction = provideHandleTransaction(mockProvider as any);
+  const handler: HandleTransaction = provideHandleTransaction(mockNetworkManager as any);
 
   it("should ignore empty transactions", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
@@ -84,7 +84,7 @@ describe("Global configuration monitor tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore other events on pereptual contract", async () => {
+  it("should ignore other events on perpetual contract", async () => {
     const DIFFERENT_IFACE = new Interface(["event otherEvent()"]);
 
     const log1 = DIFFERENT_IFACE.encodeEventLog(DIFFERENT_IFACE.getEvent("otherEvent"), []);
