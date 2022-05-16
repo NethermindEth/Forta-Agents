@@ -29,6 +29,6 @@ In order to use the `PoC GnanaTokens Contracts`:
 
 ### Binance Testnet
 
-The bot behaviour can be verified in the following blocks:
+The bot behaviour can be verified with the following command:
 
-- 19243883 
+- npm run range 19243883..19243884 
