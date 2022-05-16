@@ -21,8 +21,6 @@ This bot detects when the contract is insolvent. Insolvency refers to when the d
     - `totalActiveBalanceCurrentEpoch`: The current epoch's total active balance.
 
 ## Test Data
-> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
-
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F](https://kovan.etherscan.io/address/0x4aaAF7a1a829b2130AF2Ec7A4A4F5FEd27D8eD1F) - `TestImplemenation`.
