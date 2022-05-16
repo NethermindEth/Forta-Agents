@@ -23,9 +23,6 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@ethersproject/abi": "^5.6.2",
-    "@ethersproject/address": "^5.6.0",
-    "@ethersproject/keccak256": "^5.6.0",
     "forta-agent": "^0.1.4"
   },
   "devDependencies": {

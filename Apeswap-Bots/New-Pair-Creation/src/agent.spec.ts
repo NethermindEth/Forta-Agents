@@ -1,6 +1,5 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-
-import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { getCreate2Address } from "@ethersproject/address";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
 import { provideHandleTransaction } from "./agent";
@@ -90,11 +89,11 @@ const mockApePairCreate2 = (token0: string, token1: string) => {
 
 describe("New Pair Creation Monitor Test Suite", () => {
   let txEvent: TransactionEvent;
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    mockProviderParams,
-    mockNetworkManager as any,
-    mockApePairCreate2
-  );
+  let handleTransaction: HandleTransaction;
+
+  beforeAll(() => {
+    handleTransaction = provideHandleTransaction(mockProviderParams, mockNetworkManager as any, mockApePairCreate2);
+  });
 
   let findings: Finding[];
 
