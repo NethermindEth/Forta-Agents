@@ -2,12 +2,10 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { keccak256 } from "@ethersproject/keccak256";
 import NetworkData from "./network";
 import { getCreate2Address } from "@ethersproject/address";
-
 import { APEFACTORY_ABI } from "./constants";
 
 const { CREATE_PAIR_FUNCTION } = APEFACTORY_ABI;
 
-// finding type definition
 type newPairFindingType = {
   tokenAAddress: string;
   tokenBAddress: string;

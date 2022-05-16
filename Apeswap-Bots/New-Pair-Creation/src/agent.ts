@@ -26,7 +26,10 @@ export const provideHandleTransaction = (
       const { args } = txLog;
       const tokenA: string = args[0].toLowerCase();
       const tokenB: string = args[1].toLowerCase();
-      const newPairContractAddress: string = createPair(tokenA, tokenB, networkData).toLowerCase();
+
+      const token0: string = tokenA < tokenB ? tokenA : tokenB;
+      const token1: string = tokenA < tokenB ? tokenB : tokenA;
+      const newPairContractAddress: string = createPair(token0, token1, networkData).toLowerCase();
 
       const newPairMetadata: newPairFindingType = {
         tokenAAddress: tokenA,

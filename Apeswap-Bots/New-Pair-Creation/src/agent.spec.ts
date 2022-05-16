@@ -78,6 +78,7 @@ const mockNetworkManager: NetworkData = {
   apeFactoryInitCodeHash: MOCK_APE_FACTORY_ADDRESS,
   setNetwork: jest.fn(),
 };
+
 const mockProviderParams: mockNewPairParamsType = {
   functionAbi: CREATE_PAIR_FUNCTION,
 };
