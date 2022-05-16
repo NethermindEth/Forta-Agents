@@ -1,5 +1,5 @@
 {
-  "name": "dydx-operator-monitor",
+  "name": "dydx-4",
   "version": "0.0.1",
   "description": "This bot detects when an operator is added or removed from dydx perpetual exchange",
   "chainIds": [

@@ -26,11 +26,11 @@ describe("Operator monitor tests suite", () => {
   const perpetual = createAddress("0x1");
   const PERPETUAL_IFACE = new Interface(MONITORED_EVENTS);
 
-  const mockProvider = {
+  const mockNetworkManager = {
     perpetualProxy: perpetual,
   };
 
-  const handler: HandleTransaction = provideHandleTransaction(mockProvider as any);
+  const handler: HandleTransaction = provideHandleTransaction(mockNetworkManager as any);
 
   it("should ignore empty transactions", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
