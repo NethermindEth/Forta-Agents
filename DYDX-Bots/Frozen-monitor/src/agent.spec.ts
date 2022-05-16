@@ -23,11 +23,11 @@ const createFinding = (name: string, from: string) => {
 describe("Frozen state monitor tests suite", () => {
   const perpetual = createAddress("0x1");
   const PERPETUAL_IFACE = new Interface(EVENTS_SIGNATURES);
-  const mockProvider = {
+  const mockNetworkManager = {
     perpetualProxy: perpetual,
   };
 
-  const handler: HandleTransaction = provideHandleTransaction(mockProvider as any);
+  const handler: HandleTransaction = provideHandleTransaction(mockNetworkManager as any);
 
   it("should ignore empty transactions", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();

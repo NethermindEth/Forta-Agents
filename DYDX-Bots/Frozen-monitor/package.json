@@ -5,6 +5,7 @@
   "chainIds": [
     1
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Frozen-monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
