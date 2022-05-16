@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects the creation of new tradable pair on Apeswap
+This bot detects the creation of new tradable pair on Apeswap.
 
 ## Supported Chains
 
@@ -10,16 +10,15 @@ This bot detects the creation of new tradable pair on Apeswap
 - Polygon
 
 ## Alerts
-- APESWAP-8
-  - Fired when a transaction creates a new tradable pair on Apeswap's ApeFactory contract
-  - Severity is always set to "Info" 
-  - Type is always set to "Info" 
-  - Metadata contains the following fields: 
-    - `token-A address`: contract address of the first token of the created pair
-    - `token-B address`: contract address of the second token of the created pair
-    - `pair address`: contract address of the created pair
 
-    
+- APESWAP-8
+  - Fired when a transaction creates a new tradable pair on Apeswap's ApeFactory contract.
+  - Severity is always set to "Info".
+  - Type is always set to "Info". 
+  - Metadata contains the following fields: 
+    - `tokenAAddress`: contract address of the first token of the created pair.
+    - `tokenBAddress`: contract address of the second token of the created pair.
+    - `pairAddress`: contract address of the created pair.
 
 ## Test Data
 

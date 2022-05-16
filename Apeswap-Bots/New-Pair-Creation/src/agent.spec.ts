@@ -134,7 +134,7 @@ describe("New Pair Creation Monitor Test Suite", () => {
     ]);
   });
 
-  it("should multiple findings once new pair creation function is called more than once", async () => {
+  it("should return multiple findings once new pair creation function is called more than once", async () => {
     txEvent = new TestTransactionEvent().addTraces(
       {
         to: MOCK_APE_FACTORY_ADDRESS,
