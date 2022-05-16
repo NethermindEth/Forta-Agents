@@ -3,28 +3,24 @@ import { provideBotHandler } from "./agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
 import { encodeFunctionCall } from "forta-agent-tools/lib/utils";
 import { AbiItem } from "web3-utils";
+import NetworkManager from "./network";
 
 type parameterDefinition = {
   name: string;
   type: string;
 };
 
-type testContractType = {
-  address: string;
-  name: string;
-};
-
-const testCreateFinding = (multiplier: string, contractDetails: testContractType): Finding => {
+const testCreateFinding = (testMultiplier: string, testContractAddress: string): Finding => {
   return Finding.fromObject({
     name: "Bonus Multiplier changed",
-    description: `updateMultiplier function call detected from ${contractDetails.name} contract`,
+    description: "updateMultiplier function call detected from Apeswap's MasterApe contract",
     alertId: "APESWAP-11",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",
     metadata: {
-      "contract Address": contractDetails.address,
-      "New Bonus Multiplier": multiplier,
+      MasterApe: testContractAddress,
+      "New Bonus Multiplier": testMultiplier,
     },
   });
 };
@@ -38,18 +34,20 @@ const createFunctionInterface = (functionName: string, ...functionParameters: pa
   })),
 });
 
-const createupdateMultiplierTransactionData = (new_multiplier: string): string =>
+const createUpdateMultiplierTransactionData = (new_multiplier: string): string =>
   encodeFunctionCall(createFunctionInterface("updateMultiplier", { name: "multiplierNumber", type: "uint256" }), [
     new_multiplier,
   ]);
 
-const testContract: testContractType = {
-  address: createAddress("0x487GC"),
-  name: "Test contract",
-};
+const TEST_MASTER_APE: string = createAddress("0x487GC");
 
 describe("changes in the farm parameter BONUS_MULTIPLIER test suite", () => {
-  const handleTransaction: HandleTransaction = provideBotHandler(testContract);
+  const mockNetworkManager: NetworkManager = {
+    masterApe: TEST_MASTER_APE,
+    setNetwork: jest.fn(),
+  };
+
+  const handleTransaction: HandleTransaction = provideBotHandler(mockNetworkManager);
   const transferTransactionData = encodeFunctionCall(
     createFunctionInterface("transfer", { name: "value", type: "uint256" }, { name: "to", type: "address" }),
     ["100000000000000", createAddress("0x123")]
@@ -64,7 +62,7 @@ describe("changes in the farm parameter BONUS_MULTIPLIER test suite", () => {
 
   it("should return empty findings if there is an updateMultiplier function call not invoked from Test Contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setData(createupdateMultiplierTransactionData("3"))
+      .setData(createUpdateMultiplierTransactionData("3"))
       .setTo(createAddress("0x568A"));
     const findings: Finding[] = await handleTransaction(txEvent);
 
@@ -72,31 +70,38 @@ describe("changes in the farm parameter BONUS_MULTIPLIER test suite", () => {
   });
 
   it("should return a finding if there is an updateMultiplier function invocation from  Test contract", async () => {
-    let txEvent: TransactionEvent = new TestTransactionEvent()
-      .setData(createupdateMultiplierTransactionData("2"))
-      .setTo(testContract.address);
-    let findings: Finding[] = await handleTransaction(txEvent);
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setData(createUpdateMultiplierTransactionData("2"))
+      .setTo(mockNetworkManager.masterApe);
+    const findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([testCreateFinding("2", testContract)]);
+    expect(findings).toStrictEqual([testCreateFinding("2", mockNetworkManager.masterApe)]);
   });
 
-  it("should return multiple findings when there are multiple incl/excl internal txns", async () => {
+  it("should return multiple findings when there are multiple updateMultiplier internal txns", async () => {
     let txEvent: TransactionEvent = new TestTransactionEvent().addTraces(
       {
-        input: transferTransactionData,
-        to: testContract.address,
-      },
-      {
-        input: createupdateMultiplierTransactionData("1"),
+        input: createUpdateMultiplierTransactionData("1"),
         to: createAddress("0x765"),
       },
       {
-        input: createupdateMultiplierTransactionData("5"),
-        to: testContract.address,
+        input: createUpdateMultiplierTransactionData("5"),
+        to: mockNetworkManager.masterApe,
+      },
+      {
+        input: transferTransactionData,
+        to: mockNetworkManager.masterApe,
+      },
+      {
+        input: createUpdateMultiplierTransactionData("9"),
+        to: mockNetworkManager.masterApe,
       }
     );
     let findings: Finding[] = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([testCreateFinding("5", testContract)]);
+    expect(findings).toStrictEqual([
+      testCreateFinding("5", mockNetworkManager.masterApe),
+      testCreateFinding("9", mockNetworkManager.masterApe),
+    ]);
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "apeswap-11",
   "version": "0.0.1",
-  "description": "Detect changes in the farm parameter BONUS_MULTIPLIER",
+  "description": "Detect changes in Apeswap's MasterApe farm parameter BONUS_MULTIPLIER",
   "chainIds": [
     56
   ],
@@ -19,7 +19,7 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {

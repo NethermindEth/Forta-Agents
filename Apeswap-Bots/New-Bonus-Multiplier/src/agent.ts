@@ -1,14 +1,22 @@
-import { Finding, HandleTransaction, TransactionEvent, ethers } from "forta-agent";
-import { contractType, APESWAP_MASTER_APE, UPDATE_MULTIPLIER_FUNCTION, createFinding } from "./utils";
+import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import { UPDATE_MULTIPLIER_FUNCTION, createFinding } from "./utils";
+import NetworkManager, { NetworkData } from "./network";
 
-export function provideBotHandler(contractInfo: contractType): HandleTransaction {
+const networkManager = new NetworkManager();
+
+export const initialize = (provider: ethers.providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+};
+
+export function provideBotHandler(address: NetworkData): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+    const functionInvocations = txEvent.filterFunction(UPDATE_MULTIPLIER_FUNCTION, address.masterApe);
 
-    const functionInvocations = txEvent.filterFunction(UPDATE_MULTIPLIER_FUNCTION, contractInfo.address);
     functionInvocations.forEach((invocation) => {
       const { args }: { args: ethers.utils.Result } = invocation;
-      findings.push(createFinding(`${args.multiplierNumber}`, contractInfo));
+      findings.push(createFinding(args.multiplierNumber.toString(), address.masterApe));
     });
 
     return findings;
@@ -16,5 +24,6 @@ export function provideBotHandler(contractInfo: contractType): HandleTransaction
 }
 
 export default {
-  handleTransaction: provideBotHandler(APESWAP_MASTER_APE),
+  initialize: initialize(getEthersProvider()),
+  handleTransaction: provideBotHandler(networkManager),
 };
