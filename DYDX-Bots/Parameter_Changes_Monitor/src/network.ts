@@ -32,8 +32,14 @@ export default class NetworkManager implements NetworkData {
   }
 
   public setNetwork(networkId: number) {
-    const { safetyModule, liquidityModule } = this.networkMap[networkId];
-    this.safetyModule = safetyModule;
-    this.liquidityModule = liquidityModule;
+    try {
+      const { safetyModule, liquidityModule } = this.networkMap[networkId];
+      this.safetyModule = safetyModule;
+      this.liquidityModule = liquidityModule;
+    } catch {
+      // The bot is run in a network not defined in the networkMap.
+      // There's no contract deployed in that network.
+      throw new Error("You are running the bot in a non supported network");
+    }
   }
 }
