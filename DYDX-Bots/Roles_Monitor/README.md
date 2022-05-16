@@ -38,8 +38,6 @@ This bot detects changes in roles in both the Safety Module and Liquidity Module
     - `sender`: the account that originated the contract call.
 
 ## Test Data
-> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
-
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0x45f35efd4555Ea1443BF19439761066EF7e18dC1](https://kovan.etherscan.io/address/0x45f35efd4555Ea1443BF19439761066EF7e18dC1) - `TestProxy`.
