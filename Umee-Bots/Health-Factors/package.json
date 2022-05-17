@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "umee-health-factors-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors health factors of borrowing positions in the UMEE protocol",
   "chainIds": [
     1
   ],
