@@ -94,7 +94,7 @@ describe("Detects many position openings from an account within a time-frame tes
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore if the account did not submit a many opening", async () => {
+  it("should ignore if the account did not submit many opening", async () => {
     const filter = {
       fromBlock: 29500,
       toBlock: 30000,
