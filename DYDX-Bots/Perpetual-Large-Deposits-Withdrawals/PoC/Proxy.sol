@@ -5,7 +5,9 @@ pragma solidity ^0.8.7;
 contract Proxy {
     bytes32 internal constant IMPLEMENTATION_SLOT = 0x177667240aeeea7e35eabe3a35e18306f336219e1386f7710a6bf8783f761b24;
 
-    // Implementation setter
+    uint256 public systemAssetType;
+    mapping(uint256 => bytes) public assetTypeToAssetInfo;
+
     function setImplementation(address newImplementation) public {
         bytes32 slot = IMPLEMENTATION_SLOT;
         assembly {
@@ -13,7 +15,6 @@ contract Proxy {
         }
     }
 
-    // Implementation getter
     function implementation() public view returns (address _implementation) {
         bytes32 slot = IMPLEMENTATION_SLOT;
         assembly {
@@ -21,7 +22,14 @@ contract Proxy {
         }
     }
 
-    // Main function to delegate calls to StarkPerpetual contract.
+    function setSystemAssetType(uint256 assetType) external {
+        systemAssetType = assetType;
+    }
+
+    function setMapping(uint256 assetType, bytes memory assetInfo) external {
+        assetTypeToAssetInfo[assetType] = assetInfo;
+    }
+
     fallback() external payable {
         address _implementation = implementation();
         require(_implementation != address(0x0), "MISSING_IMPLEMENTATION");

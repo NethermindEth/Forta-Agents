@@ -1,13 +1,22 @@
 interface NetworkData {
   perpetualProxy: string;
+  slots: { systemSlot: string | number; mappingSlot: string | number };
 }
 
 const ETH_MAINNET_DATA: NetworkData = {
   perpetualProxy: "0xD54f502e184B6B739d7D27a6410a67dc462D69c8",
+  slots: {
+    systemSlot: "18446744073709551616", // memory slot where system assetType is stored.
+    mappingSlot: 20,
+  },
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  perpetualProxy: "0xffBfe0EcF9ab8FF44a397ab5324A439ea1a617D8",
+  perpetualProxy: "0x6Fc6DCD68e995b90234b332ef66218565377c898",
+  slots: {
+    systemSlot: 0,
+    mappingSlot: 1,
+  },
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
@@ -18,16 +27,22 @@ export const NETWORK_MAP: Record<number, NetworkData> = {
 export default class NetworkManager implements NetworkData {
   public perpetualProxy: string;
   networkMap: Record<number, NetworkData>;
+  slots: { systemSlot: string | number; mappingSlot: string | number };
 
   constructor(networkMap: Record<number, NetworkData>) {
     this.perpetualProxy = "";
     this.networkMap = networkMap;
+    this.slots = {
+      systemSlot: "",
+      mappingSlot: "",
+    };
   }
 
   public setNetwork(networkId: number) {
     try {
-      const { perpetualProxy } = this.networkMap[networkId];
+      const { perpetualProxy, slots } = this.networkMap[networkId];
       this.perpetualProxy = perpetualProxy;
+      this.slots = slots;
     } catch {
       // The bot is run in a network not defined in the networkMap.
       // There's no contract deployed in that network.

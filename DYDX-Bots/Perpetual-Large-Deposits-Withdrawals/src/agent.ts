@@ -1,73 +1,65 @@
 import { BigNumber } from "ethers";
-import {
-  Finding,
-  getEthersProvider,
-  HandleTransaction,
-  LogDescription,
-  TransactionEvent,
-} from "forta-agent";
+import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
 import BalanceFetcher from "./balance.fetcher";
-import { createFinding } from "./findings";
-import { EVENTS, extractTokenAddress, PERPETUAL_CONTRACT } from "./utils";
+import { BotConfig, DYNAMIC_CONFIG, STATIC_CONFIG } from "./config";
+import { createFinding, createSuspiciousFinding } from "./findings";
+import NetworkManager, { NETWORK_MAP } from "./network";
+import TokenAddressFetcher from "./token.address.fetcher";
+import { EVENTS } from "./utils";
 
-const PERCENTAGE: BigNumber = BigNumber.from(10);
-const THRESHOLD: BigNumber = BigNumber.from(1000000).mul(10 ** 6); // 1M tokens threshold
-// Use the threshold below for test transactions
-//const THRESHOLD: BigNumber = BigNumber.from(100000).mul(10 ** 6);
+const networkManager = new NetworkManager(NETWORK_MAP);
+let balanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
+
+const provideInitialize = (tokenFetcher: TokenAddressFetcher) => async () => {
+  // set sata based on networkId.
+  const { chainId } = await tokenFetcher.provider.getNetwork();
+  networkManager.setNetwork(chainId);
+
+  // get system assetType.
+  const systemAssetType = await tokenFetcher.getSystemAssetType("latest");
+  // get system token address using the fetcher.
+  console.log(systemAssetType);
+  const systemToken = await tokenFetcher.extractTokenAddress(systemAssetType, "latest");
+  console.log(systemToken);
+  // set balance fetcher data.
+  balanceFetcher.setData(systemAssetType, systemToken);
+};
 
 export const provideHandleTransaction =
-  (
-    mode: string,
-    threshold: BigNumber,
-    fetcher: BalanceFetcher
-  ): HandleTransaction =>
+  (config: BotConfig, balanceFetcher: BalanceFetcher): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs: LogDescription[] = txEvent.filterLog(
-      EVENTS,
-      fetcher.perpetualAddress
-    );
+    const logs: LogDescription[] = txEvent.filterLog(EVENTS, balanceFetcher.networkManager.perpetualProxy);
 
     for (let log of logs) {
       // get the quantizedAmount
-      const quantizedAmount: BigNumber = BigNumber.from(
-        log.args.quantizedAmount
-      );
-      console.log(quantizedAmount.toNumber());
+      const quantizedAmount: BigNumber = BigNumber.from(log.args.quantizedAmount);
+
       // get assetType
       const assetType = BigNumber.from(log.args.assetType);
-      // extract the token address from asset Type. Can Be ETH too.
-      // TODO: Complete extractTokenAddress function logic.
-      // const token = await extractTokenAddress(assetType, fetcher.provider);
-
-      // set the threshold.
-      let _threshold: BigNumber;
-      if (mode === "STATIC") _threshold = threshold;
+      // if the transaction includes an assetType different from the system one, generate an alert.
+      if (!assetType.eq(balanceFetcher.assetType))
+        findings.push(createSuspiciousFinding(log.name, assetType.toHexString(), log.args));
       else {
-        const token = await extractTokenAddress(assetType, fetcher.provider);
+        // set the threshold.
+        let _threshold: BigNumber;
+        if (config.mode === "STATIC") _threshold = config.thresholdData;
+        else {
+          // fetch token balance of the contract then set threshold
+          const totalBalance: BigNumber = await balanceFetcher.getBalance(txEvent.blockNumber - 1);
+          _threshold = BigNumber.from(totalBalance).mul(config.thresholdData).div(100);
+        }
 
-        // fetch token balance of the contract and set threshold
-        const totalBalance: BigNumber = await fetcher.getBalance(
-          token,
-          txEvent.blockNumber - 1
-        );
-        _threshold = BigNumber.from(totalBalance).mul(threshold).div(100);
+        if (quantizedAmount.gte(_threshold))
+          findings.push(createFinding(log.name, balanceFetcher.tokenAddress, log.args));
       }
-
-      if (quantizedAmount.gte(_threshold))
-        findings.push(
-          createFinding(log.name, assetType.toHexString(), log.args)
-        );
     }
 
     return findings;
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    "STATIC",
-    THRESHOLD,
-    new BalanceFetcher(getEthersProvider(), PERPETUAL_CONTRACT)
-  ),
+  initialize: provideInitialize(new TokenAddressFetcher(getEthersProvider(), networkManager)),
+  handleTransaction: provideHandleTransaction(STATIC_CONFIG, balanceFetcher),
 };

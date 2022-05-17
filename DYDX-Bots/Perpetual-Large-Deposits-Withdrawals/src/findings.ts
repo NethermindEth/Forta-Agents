@@ -47,3 +47,18 @@ export const createFinding = (name: string, token: string, args: Result): Findin
       },
     });
 };
+export const createSuspiciousFinding = (name: string, token: string, args: Result): Finding => {
+  return Finding.fromObject({
+    name: "Suspicious assetType detected on perpetual contract",
+    description: `${name} event detected with an asset different from  the system asset`,
+    alertId: "DYDX-1-4",
+    protocol: "dYdX",
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    metadata: {
+      quantizedAmount: args.quantizedAmount.toString(),
+      starkKey: args.starkKey ? args.starkKey.toHexString() : args.ownerKey.toHexString(),
+      token: token,
+    },
+  });
+};
