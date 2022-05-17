@@ -28,7 +28,7 @@ const generateLogs = (
   numberOfLogs: number,
   fromBlock: number
 ) => {
-  const event = utils.EVENTS_IFACE.getEvent("IncreasePosition");
+  const event = utils.EVENTS_IFACE.getEvent(utils.INCREASE_POSITION_EVENT);
   const logs = [];
   for (let index = 0; index < numberOfLogs; index++) {
     logs.push({
@@ -59,7 +59,7 @@ describe("Detects many position openings from an account within a time-frame tes
       fromBlock: 2500,
       toBlock: 3000,
       address: wrongContractAddress,
-      topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
+      topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
@@ -119,7 +119,7 @@ describe("Detects many position openings from an account within a time-frame tes
       fromBlock: 1000,
       toBlock: 1500,
       address: TEST_GMX_VAULT,
-      topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
+      topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
@@ -140,7 +140,7 @@ describe("Detects many position openings from an account within a time-frame tes
       fromBlock: 1000,
       toBlock: 1500,
       address: TEST_GMX_VAULT,
-      topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
+      topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);

@@ -23,7 +23,7 @@ export const handleTransaction =
       fromBlock: currentBlockNumber - blockNumbers,
       toBlock: currentBlockNumber,
       address: vaultAddress,
-      topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
+      topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
     };
 
     const increasePositionLogs = await provider.getLogs(filter);
@@ -34,7 +34,7 @@ export const handleTransaction =
 
     increasePositionLogs.forEach((log: Log) => {
       const currentEvent = utils.EVENTS_IFACE.decodeEventLog(
-        "IncreasePosition",
+        utils.INCREASE_POSITION_EVENT,
         log.data,
         log.topics
       );

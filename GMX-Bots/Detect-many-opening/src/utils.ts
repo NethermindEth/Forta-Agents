@@ -10,10 +10,11 @@ const provider = getEthersProvider();
 const positionsNumber = 50;
 const blockNumbers = 500; // arbitrum generate 15 block per second thus to get number of blocks in one minute 60s/15 = 4 block
 const GMX_VAULT_ADDRESS: string = "0x489ee077994B6658eAfA855C308275EAd8097C4A"; // Arbitrum address
-const INCREASE_POSITION_EVENT =
-  "event IncreasePosition(bytes32 key,address account,address collateralToken,address indexToken,uint256 collateralDelta,uint256 sizeDelta,bool isLong,uint256 price,uint256 fee)";
+const INCREASE_POSITION_EVENT = "IncreasePosition";
 
-const EVENT_ABI: string[] = [INCREASE_POSITION_EVENT];
+const EVENT_ABI: string[] = [
+  "event IncreasePosition(bytes32 key,address account,address collateralToken,address indexToken,uint256 collateralDelta,uint256 sizeDelta,bool isLong,uint256 price,uint256 fee)",
+];
 
 const EVENTS_IFACE: Interface = new Interface(EVENT_ABI);
 
