@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from 
 import { providers } from "ethers";
 import NetworkData from "./network";
 import NetworkManager, { NETWORK_MAP } from "./network";
-import { EVENTS } from "./utils";
+import { EVENTS, ROLES_MAP } from "./utils";
 import { createFinding } from "./findings";
 
 const networkManager = new NetworkManager(NETWORK_MAP);
@@ -12,15 +12,18 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
   networkManager.setNetwork(chainId);
 };
 
-export function provideHandleTransaction(networkManager: NetworkData): HandleTransaction {
+export function provideHandleTransaction(
+  networkManager: NetworkData,
+  rolesMap: Record<string, string>
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // If any of the desired events are emitted by either
     // the Safety Module or Liquidity Module contracts,
     // create a finding
-    txEvent.filterLog(EVENTS, [networkManager.safetyModule, networkManager.liquidityModule]).map((log) => {
-      findings.push(createFinding(log.name, log.args, log.address));
+    txEvent.filterLog(EVENTS, [networkManager.safetyModule, networkManager.liquidityModule]).forEach((log) => {
+      findings.push(createFinding(log.name, log.args, log.address, rolesMap));
     });
 
     return findings;
@@ -29,5 +32,5 @@ export function provideHandleTransaction(networkManager: NetworkData): HandleTra
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(networkManager),
+  handleTransaction: provideHandleTransaction(networkManager, ROLES_MAP),
 };
