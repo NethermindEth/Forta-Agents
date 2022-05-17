@@ -56,7 +56,7 @@ describe("Detects many position openings from an account within a time-frame tes
   it("should ignore events emitted on another contract", async () => {
     const wrongContractAddress = createAddress("0x02");
     const filter = {
-      fromBlock: 2500,
+      fromBlock: 2900,
       toBlock: 3000,
       address: wrongContractAddress,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
@@ -76,7 +76,7 @@ describe("Detects many position openings from an account within a time-frame tes
 
   it("should ignore wrong events emitted on the GMX vault contract", async () => {
     const filter = {
-      fromBlock: 29500,
+      fromBlock: 29900,
       toBlock: 30000,
       address: TEST_GMX_VAULT,
       topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
@@ -96,7 +96,7 @@ describe("Detects many position openings from an account within a time-frame tes
 
   it("should ignore if the account did not submit many opening", async () => {
     const filter = {
-      fromBlock: 29500,
+      fromBlock: 29900,
       toBlock: 30000,
       address: TEST_GMX_VAULT,
       topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
@@ -116,7 +116,7 @@ describe("Detects many position openings from an account within a time-frame tes
 
   it("should return a finding when account open many positions", async () => {
     const filter = {
-      fromBlock: 1000,
+      fromBlock: 1400,
       toBlock: 1500,
       address: TEST_GMX_VAULT,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
@@ -137,7 +137,7 @@ describe("Detects many position openings from an account within a time-frame tes
 
   it("should return three findings when three accounts open many positions", async () => {
     const filter = {
-      fromBlock: 1000,
+      fromBlock: 1400,
       toBlock: 1500,
       address: TEST_GMX_VAULT,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
