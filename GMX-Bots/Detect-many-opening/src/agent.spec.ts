@@ -99,7 +99,7 @@ describe("Detects many position openings from an account within a time-frame tes
       fromBlock: 29900,
       toBlock: 30000,
       address: TEST_GMX_VAULT,
-      topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
+      topics: [utils.EVENTS_IFACE.getEventTopic(utils.INCREASE_POSITION_EVENT)],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 2, filter.fromBlock);
