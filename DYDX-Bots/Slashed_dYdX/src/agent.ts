@@ -18,7 +18,7 @@ export function provideHandleTransaction(networkManager: NetworkData): HandleTra
 
     // If the Slashed event is emitted by
     // the Safety Module contract, create a finding
-    txEvent.filterLog(SLASHED_EVENT, networkManager.safetyModule).map((log) => {
+    txEvent.filterLog(SLASHED_EVENT, networkManager.safetyModule).forEach((log) => {
       findings.push(createFinding(log));
     });
 
