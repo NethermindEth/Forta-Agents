@@ -2,8 +2,8 @@ import { BigNumber, providers } from "ethers";
 import { Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import BalanceFetcher from "./balance.fetcher";
 import InactiveBalanceFetcher from "./inactive.balance.fetcher";
-import { createFinding, EVENT_SIGNATURE } from "./utils";
-import { BotConfig, DYNAMIC_CONFIG } from "./config";
+import { createFinding, EVENT_ABI } from "./utils";
+import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
 import NetworkData, { NETWORK_MAP } from "./network";
 import NetworkManager from "./network";
 
@@ -29,7 +29,7 @@ export const provideHandleTransaction =
     const findings: Finding[] = [];
 
     await Promise.all(
-      txEvent.filterLog(EVENT_SIGNATURE, networkManager.safetyModule).map(async (log) => {
+      txEvent.filterLog(EVENT_ABI, networkManager.safetyModule).map(async (log) => {
         // get the staker address
         const staker = log.args.staker;
 

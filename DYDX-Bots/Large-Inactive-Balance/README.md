@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detect users with large Inactive balance for the next Epoch in dYdX Safety Module.
+This bot detects users with a large Inactive balance for the next Epoch in dYdX Safety Module.
 
 > The bot can operate in two different modes, used to determine the threshold of a _large_ inactive balance.
 >
@@ -28,7 +28,7 @@ This bot detect users with large Inactive balance for the next Epoch in dYdX Saf
 
 ## Test Data (Kovan)
 
-The bot behaviour can be verified with the following test transactions,generated through our PoC contracts deployed on Kovan testnet:
+The bot behaviour can be verified with the following test transactions, generated through our PoC contracts deployed on Kovan testnet:
 
 > - `TestToken` contract address: `0x136Bb1ff78FBb538B001DC4A50551A088cD0e3CD`.
 > - `TestSafetyModule`contract address: `0x267CaE324d5850D84EcA39E2F3C0A8003d3c2F02`.

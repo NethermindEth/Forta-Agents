@@ -1,6 +1,6 @@
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
-import { INACTIVE_BALANCE_ABI } from "./utils";
+import { INACTIVE_BALANCE_IFACE } from "./utils";
 import InactiveBalanceFetcher from "./inactive.balance.fetcher";
 
 //Data used for tests [blockNumber, staker,  balance]
@@ -24,7 +24,7 @@ describe("InactiveBalanceFetcher test suite", () => {
 
   beforeAll(() => {
     for (let [block, staker, inactiveBalance] of TEST_DATA) {
-      mockProvider.addCallTo(safetyContract, block, INACTIVE_BALANCE_ABI, "getInactiveBalanceNextEpoch", {
+      mockProvider.addCallTo(safetyContract, block, INACTIVE_BALANCE_IFACE, "getInactiveBalanceNextEpoch", {
         inputs: [staker],
         outputs: [inactiveBalance],
       });

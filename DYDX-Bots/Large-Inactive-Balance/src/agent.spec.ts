@@ -7,10 +7,10 @@ import { provideHandleTransaction } from "./agent";
 import BalanceFetcher from "./balance.fetcher";
 import { BotConfig } from "./config";
 import InactiveBalanceFetcher from "./inactive.balance.fetcher";
-import { BALANCE_ABI, EVENT_SIGNATURE, INACTIVE_BALANCE_ABI } from "./utils";
+import { BALANCE_IFACE, EVENT_ABI, INACTIVE_BALANCE_IFACE } from "./utils";
 
 describe("Large Inactive Balance tests suite", () => {
-  const EVENT_IFACE = new Interface(EVENT_SIGNATURE);
+  const EVENT_IFACE = new Interface(EVENT_ABI);
   const mockProvider = new MockEthersProvider();
 
   const mockNetworkManager = {
@@ -26,13 +26,13 @@ describe("Large Inactive Balance tests suite", () => {
     inactiveBalance: BigNumber,
     blockNumber: number
   ) => {
-    mockProvider.addCallTo(moduleAddress, blockNumber, INACTIVE_BALANCE_ABI, "getInactiveBalanceNextEpoch", {
+    mockProvider.addCallTo(moduleAddress, blockNumber, INACTIVE_BALANCE_IFACE, "getInactiveBalanceNextEpoch", {
       inputs: [staker],
       outputs: [inactiveBalance],
     });
   };
   const createBalanceOfcall = (tokenAddress: string, safetyModule: string, balance: BigNumber, blockNumber: number) => {
-    mockProvider.addCallTo(tokenAddress, blockNumber, BALANCE_ABI, "balanceOf", {
+    mockProvider.addCallTo(tokenAddress, blockNumber, BALANCE_IFACE, "balanceOf", {
       inputs: [safetyModule],
       outputs: [balance],
     });

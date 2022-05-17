@@ -17,14 +17,18 @@ const TEST_TOKENS: [string, string, string, string][] = [
 ];
 const TEST_NETWORKS = [1, 22, 33, 45];
 
-const generateNetworkMap = (networks: number[], data1: string[], data2: string[]): Record<number, NetworkData> => {
+const generateNetworkMap = (
+  networks: number[],
+  modulesData: string[],
+  tokensData: string[]
+): Record<number, NetworkData> => {
   // generates a NetworkMap for one test case.
   // networks and data should be same length.
   let networkMap: Record<number, NetworkData> = {};
   for (let i = 0; i < networks.length; i++) {
     networkMap[networks[i]] = {
-      safetyModule: data1[i],
-      dydxAddress: data2[i],
+      safetyModule: modulesData[i],
+      dydxAddress: tokensData[i],
     } as NetworkData;
   }
   return networkMap;

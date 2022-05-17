@@ -1,7 +1,7 @@
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
-import { BALANCE_ABI } from "./utils";
+import { BALANCE_IFACE } from "./utils";
 
 //Data used for tests [blockNumber, balance]
 const TEST_DATA: [number, BigNumber][] = [
@@ -25,7 +25,7 @@ describe("BalanceFetcher test suite", () => {
 
   beforeAll(() => {
     for (let [block, balance] of TEST_DATA) {
-      mockProvider.addCallTo(stakedToken, block, BALANCE_ABI, "balanceOf", {
+      mockProvider.addCallTo(stakedToken, block, BALANCE_IFACE, "balanceOf", {
         inputs: [safetyContract],
         outputs: [balance],
       });

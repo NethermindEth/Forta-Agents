@@ -2,13 +2,13 @@ import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const EVENT_SIGNATURE = ["event WithdrawalRequested(address indexed staker, uint256 stakeAmount)"];
+export const EVENT_ABI = ["event WithdrawalRequested(address indexed staker, uint256 stakeAmount)"];
 
 // functions needed by the fetchers.
-export const INACTIVE_BALANCE_ABI = new Interface([
+export const INACTIVE_BALANCE_IFACE = new Interface([
   "function getInactiveBalanceNextEpoch(address staker) public view returns (uint256)",
 ]);
-export const BALANCE_ABI = new Interface(["function balanceOf(address user) public view returns (uint256)"]);
+export const BALANCE_IFACE = new Interface(["function balanceOf(address user) public view returns (uint256)"]);
 
 // function to generate findings
 export const createFinding = (mode: string, staker: string, inactiveBalance: BigNumber): Finding => {

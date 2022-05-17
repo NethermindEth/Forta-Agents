@@ -1,6 +1,6 @@
 import { providers, Contract, BigNumber } from "ethers";
 import LRU from "lru-cache";
-import { BALANCE_ABI } from "./utils";
+import { BALANCE_IFACE } from "./utils";
 import NetworkData from "./network";
 
 // This fetcher stores the dydx Balance of the Safety module.
@@ -17,11 +17,11 @@ export default class BalanceFetcher {
     });
     this.networkManager = networkManager;
 
-    this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_ABI, this.provider);
+    this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_IFACE, this.provider);
   }
   public setTokenContract() {
     if (this.tokenContract.address != this.networkManager.dydxAddress) {
-      this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_ABI, this.provider);
+      this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_IFACE, this.provider);
     }
   }
 
