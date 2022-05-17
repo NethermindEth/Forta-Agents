@@ -2,7 +2,7 @@ import { createAddress } from "forta-agent-tools/lib/tests";
 import NetworkManager from "./network";
 import NetworkData from "./network";
 
-// Format:[networkId, [safetyMoudle, liquidityModule]][];
+// Format:[networkId, [safetyModule, liquidityModule]][];
 const TEST_CASES: [number, [string, string]][] = [
   [11, [createAddress("0xb1a"), createAddress("0xb1b")]],
   [22, [createAddress("0xb2a"), createAddress("0xb2b")]],
