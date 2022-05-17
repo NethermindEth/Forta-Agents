@@ -23,6 +23,7 @@ export default class BalanceFetcher {
     this.tokenContract = new Contract(this.tokenAddress, new Interface(ERC20_TOKEN_ABI), this.provider);
   }
 
+  // Function to initialize fetcher data, called once during the bot initialization.
   public setData(_assetType: BigNumber, _tokenAddress: string) {
     this.assetType = _assetType;
     this.tokenAddress = _tokenAddress;
@@ -30,6 +31,7 @@ export default class BalanceFetcher {
       this.tokenContract = new Contract(this.tokenAddress, new Interface(ERC20_TOKEN_ABI), this.provider);
   }
 
+  // Main function to fetch the contract balance.
   public async getBalance(block: number | string): Promise<BigNumber> {
     const key: string = `${this.tokenAddress} - ${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;

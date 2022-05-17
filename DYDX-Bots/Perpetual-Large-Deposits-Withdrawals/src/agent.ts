@@ -17,10 +17,9 @@ const provideInitialize = (tokenFetcher: TokenAddressFetcher) => async () => {
 
   // get system assetType.
   const systemAssetType = await tokenFetcher.getSystemAssetType("latest");
-  // get system token address using the fetcher.
-  console.log(systemAssetType);
+  // extract system token address.
   const systemToken = await tokenFetcher.extractTokenAddress(systemAssetType, "latest");
-  console.log(systemToken);
+
   // set balance fetcher data.
   balanceFetcher.setData(systemAssetType, systemToken);
 };
@@ -38,19 +37,18 @@ export const provideHandleTransaction =
 
       // get assetType
       const assetType = BigNumber.from(log.args.assetType);
-      // if the transaction includes an assetType different from the system one, generate an alert.
+      // if the transaction includes an assetType different from the system's one, generate an alert.
       if (!assetType.eq(balanceFetcher.assetType))
         findings.push(createSuspiciousFinding(log.name, assetType.toHexString(), log.args));
       else {
-        // set the threshold.
         let _threshold: BigNumber;
         if (config.mode === "STATIC") _threshold = config.thresholdData;
         else {
-          // fetch token balance of the contract then set threshold
+          // fetch token balance of the contract then set threshold.
           const totalBalance: BigNumber = await balanceFetcher.getBalance(txEvent.blockNumber - 1);
           _threshold = BigNumber.from(totalBalance).mul(config.thresholdData).div(100);
         }
-
+        // is quantizedAmount exceeds the threshold, generates a finding.
         if (quantizedAmount.gte(_threshold))
           findings.push(createFinding(log.name, balanceFetcher.tokenAddress, log.args));
       }

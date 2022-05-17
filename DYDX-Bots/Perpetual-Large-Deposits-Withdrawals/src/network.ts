@@ -6,7 +6,7 @@ interface NetworkData {
 const ETH_MAINNET_DATA: NetworkData = {
   perpetualProxy: "0xD54f502e184B6B739d7D27a6410a67dc462D69c8",
   slots: {
-    systemSlot: "18446744073709551616", // memory slot where system assetType is stored.
+    systemSlot: "18446744073709551616", // storage slot where system assetType is stored.
     mappingSlot: 20,
   },
 };
