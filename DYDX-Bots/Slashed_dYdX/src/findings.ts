@@ -2,7 +2,7 @@ import { LogDescription, Finding, FindingSeverity, FindingType } from "forta-age
 
 export const createFinding = (log: LogDescription) => {
   return Finding.fromObject({
-    name: "Slash event has occured on dYdX Security Module.",
+    name: "Slash event has occured on dYdX Safety Module.",
     description: "Slashed event was emitted",
     alertId: "DYDX-12",
     severity: FindingSeverity.Info,
