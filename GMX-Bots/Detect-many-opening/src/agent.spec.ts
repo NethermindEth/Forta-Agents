@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, ethers, Log } from "forta-agent";
+import { Finding, HandleTransaction, ethers } from "forta-agent";
 import {
   createAddress,
   MockEthersProvider,
@@ -18,15 +18,15 @@ const WRONG_EVENTS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(
 const TEST_GMX_VAULT: string = createAddress("0xcdcd");
 
 const CASES = [
-  utils.createFinding(createAddress("0x01")),
-  utils.createFinding(createAddress("0x02")),
-  utils.createFinding(createAddress("0x03")),
+  utils.createFinding(createAddress("0x01"), "50"),
+  utils.createFinding(createAddress("0x02"), "150"),
+  utils.createFinding(createAddress("0x03"), "200"),
 ];
+
 const generateLogs = (
   account: string,
   numberOfLogs: number,
-  fromBlock: number,
-  toBlock: number
+  fromBlock: number
 ) => {
   const event = utils.EVENTS_IFACE.getEvent("IncreasePosition");
   const logs = [];
@@ -62,16 +62,12 @@ describe("Detects many position openings from an account within a time-frame tes
       topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
-    const logs = generateLogs(
-      createAddress("0x01"),
-      50,
-      filter.fromBlock,
-      filter.toBlock
-    );
+    const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
     handleTx = handleTransaction(
       mockProvider as any,
       utils.positionsNumber,
+      utils.blockNumbers,
       TEST_GMX_VAULT
     );
     const findings: Finding[] = await handleTx(txEvent);
@@ -86,23 +82,39 @@ describe("Detects many position openings from an account within a time-frame tes
       topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
-    const logs = generateLogs(
-      createAddress("0x01"),
-      50,
-      filter.fromBlock,
-      filter.toBlock
-    );
+    const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
     handleTx = handleTransaction(
       mockProvider as any,
       utils.positionsNumber,
+      utils.blockNumbers,
       TEST_GMX_VAULT
     );
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return a finding when fifty open order is applied from the same account", async () => {
+  it("should ignore if the account did not submit a many opening", async () => {
+    const filter = {
+      fromBlock: 29500,
+      toBlock: 30000,
+      address: TEST_GMX_VAULT,
+      topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
+    };
+    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const logs = generateLogs(createAddress("0x01"), 2, filter.fromBlock);
+    mockProvider.addFilteredLogs(filter, logs as any);
+    handleTx = handleTransaction(
+      mockProvider as any,
+      utils.positionsNumber,
+      utils.blockNumbers,
+      TEST_GMX_VAULT
+    );
+    const findings: Finding[] = await handleTx(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding when account open many positions", async () => {
     const filter = {
       fromBlock: 1000,
       toBlock: 1500,
@@ -110,20 +122,39 @@ describe("Detects many position openings from an account within a time-frame tes
       topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
     };
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
-    const logs = generateLogs(
-      createAddress("0x01"),
-      50,
-      filter.fromBlock,
-      filter.toBlock
-    );
+    const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
     handleTx = handleTransaction(
       mockProvider as any,
       utils.positionsNumber,
+      utils.blockNumbers,
       TEST_GMX_VAULT
     );
     const findings: Finding[] = await handleTx(txEvent);
 
     expect(findings).toStrictEqual([CASES[0]]);
+  });
+
+  it("should return three findings when three accounts open many positions", async () => {
+    const filter = {
+      fromBlock: 1000,
+      toBlock: 1500,
+      address: TEST_GMX_VAULT,
+      topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
+    };
+    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
+    logs.push(...generateLogs(createAddress("0x02"), 150, filter.fromBlock));
+    logs.push(...generateLogs(createAddress("0x03"), 200, filter.fromBlock));
+    mockProvider.addFilteredLogs(filter, logs as any);
+    handleTx = handleTransaction(
+      mockProvider as any,
+      utils.positionsNumber,
+      utils.blockNumbers,
+      TEST_GMX_VAULT
+    );
+    const findings: Finding[] = await handleTx(txEvent);
+
+    expect(findings).toStrictEqual(CASES);
   });
 });
