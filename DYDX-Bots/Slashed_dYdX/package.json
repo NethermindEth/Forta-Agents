@@ -5,7 +5,7 @@
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Slashed_dYdXr",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Slashed_dYdX",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
