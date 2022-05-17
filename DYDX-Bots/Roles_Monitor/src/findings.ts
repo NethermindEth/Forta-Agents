@@ -1,6 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (name: string, args: any, logAddress: string) => {
+export const createFinding = (name: string, args: any, logAddress: string, rolesMap: Record<string, string>) => {
   switch (name) {
     case "RoleAdminChanged":
       return Finding.fromObject({
@@ -11,9 +11,9 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(),
-          previousAdminRole: args.previousAdminRole.toString(),
-          newAdminRole: args.newAdminRole.toString(),
+          role: rolesMap[args.role],
+          previousAdminRole: rolesMap[args.previousAdminRole],
+          newAdminRole: rolesMap[args.newAdminRole],
         },
         addresses: [logAddress],
       });
@@ -27,7 +27,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(),
+          role: rolesMap[args.role],
           account: args.account.toLowerCase(),
           sender: args.sender.toLowerCase(),
         },
@@ -43,7 +43,7 @@ export const createFinding = (name: string, args: any, logAddress: string) => {
         type: FindingType.Info,
         protocol: "dYdX",
         metadata: {
-          role: args.role.toString(),
+          role: rolesMap[args.role],
           account: args.account.toLowerCase(),
           sender: args.sender.toLowerCase(),
         },
