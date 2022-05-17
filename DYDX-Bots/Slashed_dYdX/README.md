@@ -10,10 +10,8 @@ This bot detects slashing events in the Safety Module contract.
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
 - DYDX-12
-  - Fired when `Slashed` event is emitted.
+  - Fired when `Slashed` event is emitted in dYdX Safety Module.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata includes:
