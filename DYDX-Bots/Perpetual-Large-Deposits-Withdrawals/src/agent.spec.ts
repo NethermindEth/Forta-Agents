@@ -59,9 +59,9 @@ const createSuspiciousFinding = (name: string, token: string, args: any[]): Find
       ? {
           quantizedAmount: args[5].toString(),
           starkKey: args[1].toHexString(),
-          token: token,
+          assetType: token,
         }
-      : { quantizedAmount: args[3].toString(), starkKey: args[0].toHexString(), token: token };
+      : { quantizedAmount: args[3].toString(), starkKey: args[0].toHexString(), assetType: token };
 
   return Finding.fromObject({
     name: "Suspicious assetType detected on perpetual contract",

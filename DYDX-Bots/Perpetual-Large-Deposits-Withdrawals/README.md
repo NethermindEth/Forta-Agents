@@ -50,9 +50,19 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
     - `assetId`: Id of the minted asset.
     - `ownerKey`: stark key of the recipient.
 
+- DYDX-1-5
+
+  - Fired when one of the events is emitted with an asset different from the system asset.
+  - Severity is always set to "High".
+  - Type is always set to "Suspicious".
+  - Metadata contains:
+    - `quantizedAmount`: tokens amount that was deposited or withdrawn.
+    - `starkKey`: stark key of the user involved in the tranfer.
+    - `assetType`: assetType that is different from the system one.
+
 ## Test Data
 
-The bot behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions, using the default configurations:
 
 ### Mainnet
 

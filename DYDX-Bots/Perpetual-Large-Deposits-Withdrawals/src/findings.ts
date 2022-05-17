@@ -58,7 +58,7 @@ export const createSuspiciousFinding = (name: string, token: string, args: Resul
     metadata: {
       quantizedAmount: args.quantizedAmount.toString(),
       starkKey: args.starkKey ? args.starkKey.toHexString() : args.ownerKey.toHexString(),
-      token: token,
+      assetType: token,
     },
   });
 };
