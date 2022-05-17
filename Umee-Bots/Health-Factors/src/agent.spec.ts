@@ -1,16 +1,5 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import agent, { ERC20_TRANSFER_EVENT, TETHER_ADDRESS, TETHER_DECIMALS } from "./agent";
 
 describe("high tether transfer agent", () => {
   let handleTransaction: HandleTransaction;
@@ -28,10 +17,7 @@ describe("high tether transfer agent", () => {
 
       expect(findings).toStrictEqual([]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
+      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
     });
 
     it("returns a finding if there is a Tether transfer over 10,000", async () => {
@@ -42,15 +28,11 @@ describe("high tether transfer agent", () => {
           value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
         },
       };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+      mockTxEvent.filterLog = jest.fn().mockReturnValue([mockTetherTransferEvent]);
 
       const findings = await handleTransaction(mockTxEvent);
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
+      const normalizedValue = mockTetherTransferEvent.args.value.div(10 ** TETHER_DECIMALS);
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "High Tether Transfer",
@@ -65,10 +47,7 @@ describe("high tether transfer agent", () => {
         }),
       ]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
+      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
     });
   });
 });
