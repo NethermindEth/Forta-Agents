@@ -12,6 +12,7 @@ export const handleTransaction =
   (
     provider: ethers.providers.JsonRpcProvider,
     positionsNumber: number,
+    blockNumbers: number,
     vaultAddress: string
   ): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
@@ -19,7 +20,7 @@ export const handleTransaction =
 
     const currentBlockNumber = txEvent.block.number;
     const filter = {
-      fromBlock: currentBlockNumber - positionsNumber,
+      fromBlock: currentBlockNumber - blockNumbers,
       toBlock: currentBlockNumber,
       address: vaultAddress,
       topics: [utils.EVENTS_IFACE.getEventTopic("IncreasePosition")],
@@ -27,33 +28,29 @@ export const handleTransaction =
 
     const increasePositionLogs = await provider.getLogs(filter);
 
-    if (!increasePositionLogs) return findings;
+    if (!increasePositionLogs) return findings; // getLogs return undefined if result is empty
 
-    let suspiciousAccount = "";
-    increasePositionLogs.every((log: Log, index: number) => {
-      if (increasePositionLogs.length - 1 === index) return;
+    const accountByNoOfOpening: Map<string, number> = new Map();
+
+    increasePositionLogs.forEach((log: Log) => {
       const currentEvent = utils.EVENTS_IFACE.decodeEventLog(
         "IncreasePosition",
         log.data,
         log.topics
       );
-      const nextEvent = utils.EVENTS_IFACE.decodeEventLog(
-        "IncreasePosition",
-        increasePositionLogs[index + 1].data,
-        increasePositionLogs[index + 1].topics
-      );
-      // event index number 1 is the account
-      if (currentEvent[1] === nextEvent[1]) {
-        suspiciousAccount = currentEvent[1];
-        return true;
+      const accountNoOfOpening = accountByNoOfOpening.get(currentEvent[1]);
+      if (accountNoOfOpening) {
+        accountByNoOfOpening.set(currentEvent[1], accountNoOfOpening + 1);
+      } else {
+        accountByNoOfOpening.set(currentEvent[1], 1);
       }
-      suspiciousAccount = "";
-      return true;
     });
 
-    if (suspiciousAccount.length > 0) {
-      findings.push(utils.createFinding(suspiciousAccount));
-    }
+    accountByNoOfOpening.forEach((noOfOpening, account) => {
+      if (noOfOpening >= positionsNumber) {
+        findings.push(utils.createFinding(account,noOfOpening.toString()));
+      }
+    });
 
     return findings;
   };
@@ -62,6 +59,7 @@ export default {
   handleTransaction: handleTransaction(
     utils.provider,
     utils.positionsNumber,
+    utils.blockNumbers,
     utils.GMX_VAULT_ADDRESS
   ),
 };
