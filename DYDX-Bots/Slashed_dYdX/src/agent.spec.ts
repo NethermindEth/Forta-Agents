@@ -34,7 +34,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect a Slashed event emission from both the safety module", async () => {
+  it("should detect a Slashed event emission from the safety module", async () => {
     const SlashedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Slashed"), [
       testCases[0][0],
       testCases[0][1],
@@ -50,7 +50,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Slash event has occured on dYdX Security Module.",
+        name: "Slash event has occured on dYdX Safety Module.",
         description: "Slashed event was emitted",
         alertId: "DYDX-12",
         severity: FindingSeverity.Info,
@@ -85,7 +85,7 @@ describe("Parameter Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should not detect another event emission from either the safety nor liquidity modules", async () => {
+  it("should not detect another event emission from the safety module", async () => {
     const wrongIFace = new utils.Interface(["event WrongEvent()"]);
     const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
 
