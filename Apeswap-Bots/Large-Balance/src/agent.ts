@@ -17,22 +17,22 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
 
 export const provideHandleBlock =
   (
-    nManager: NetworkData,
+    networkManager: NetworkData,
     fetcher: DataFetcher,
     balanceThreshold: BigNumber,
     accounts: Set<string>,
-    provider2: providers.Provider
+    provider: providers.Provider
   ): HandleBlock =>
   async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     let Interface = new utils.Interface(EVENT_ABI);
 
     const filter = {
-      address: nManager.gnana,
+      address: networkManager.gnana,
       topics: [Interface.getEventTopic("Transfer")],
       blockHash: blockEvent.blockHash,
     };
-    const logArray = await provider2.getLogs(filter);
+    const logArray = await provider.getLogs(filter);
     let events = logArray.map((log) => Interface.parseLog(log));
     for (let event of events) {
       accounts.add(event.args.to);
