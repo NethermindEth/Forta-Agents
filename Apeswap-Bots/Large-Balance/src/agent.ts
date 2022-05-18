@@ -7,7 +7,7 @@ import NetworkManager, { NETWORK_MAP } from "./network";
 
 let accounts: Set<string> = new Set<string>();
 const networkManager = new NetworkManager(NETWORK_MAP);
-let dataFetcher: DataFetcher = new DataFetcher(getEthersProvider(), networkManager);
+const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider(), networkManager);
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
@@ -16,23 +16,23 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
 };
 
 export const provideHandleBlock =
-(
-  nManager: NetworkData,
-  fetcher: DataFetcher,
-  balanceThreshold: BigNumber,
-  accounts: Set<string>,
-  provider: providers.Provider
-): HandleBlock =>
-   async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];    
+  (
+    nManager: NetworkData,
+    fetcher: DataFetcher,
+    balanceThreshold: BigNumber,
+    accounts: Set<string>,
+    provider2: providers.Provider
+  ): HandleBlock =>
+  async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
     let Interface = new utils.Interface(EVENT_ABI);
-    
+
     const filter = {
       address: nManager.gnana,
       topics: [Interface.getEventTopic("Transfer")],
       blockHash: blockEvent.blockHash,
     };
-    const logArray = await provider.getLogs(filter);
+    const logArray = await provider2.getLogs(filter);
     let events = logArray.map((log) => Interface.parseLog(log));
     for (let event of events) {
       accounts.add(event.args.to);
@@ -50,7 +50,6 @@ export const provideHandleBlock =
 
     return findings;
   };
-
 
 export default {
   initialize: provideInitialize(getEthersProvider()),

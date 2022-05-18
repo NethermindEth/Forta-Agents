@@ -20,7 +20,7 @@ export default class NetworkManager implements NetworkData {
   networkMap: Record<number, NetworkData>;
 
   constructor(networkMap: Record<number, NetworkData>) {
-    this.gnana = "";
+    this.gnana = "0x0000000000000000000000000000000000000000";
     this.networkMap = networkMap;
   }
 

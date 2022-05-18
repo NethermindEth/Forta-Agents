@@ -2,7 +2,6 @@ import { createAddress } from "forta-agent-tools/lib/tests";
 import NetworkManager from "./network";
 import NetworkData from "./network";
 
-
 const TEST_TOKENS: [string, string, string, string][] = [
   [createAddress("0xbe"), createAddress("0xbf"), createAddress("0xba"), createAddress("0xbb")],
   [createAddress("0xce"), createAddress("0xcf"), createAddress("0xca"), createAddress("0xcb")],
@@ -11,15 +10,12 @@ const TEST_TOKENS: [string, string, string, string][] = [
 ];
 const TEST_NETWORKS = [1, 22, 33, 45];
 
-const generateNetworkMap = (
-  networks: number[],  
-  tokensData: string[]
-): Record<number, NetworkData> => {
+const generateNetworkMap = (networks: number[], tokensData: string[]): Record<number, NetworkData> => {
   // generates a NetworkMap for one test case.
   // networks and data should be same length.
   let networkMap: Record<number, NetworkData> = {};
   for (let i = 0; i < networks.length; i++) {
-    networkMap[networks[i]] = {      
+    networkMap[networks[i]] = {
       gnana: tokensData[i],
     } as NetworkData;
   }
@@ -29,13 +25,10 @@ const generateNetworkMap = (
 describe("NetworkManager test suite", () => {
   it("should return the correct addresses for each network", async () => {
     for (let k = 0; k < TEST_TOKENS.length; k++) {
-      const networkMap: Record<number, NetworkData> = generateNetworkMap(
-        TEST_NETWORKS,        
-        TEST_TOKENS[k]
-      );
+      const networkMap: Record<number, NetworkData> = generateNetworkMap(TEST_NETWORKS, TEST_TOKENS[k]);
       const networkMan = new NetworkManager(networkMap);
       for (let i = 0; i < TEST_NETWORKS.length; i++) {
-        networkMan.setNetwork(TEST_NETWORKS[i]);       
+        networkMan.setNetwork(TEST_NETWORKS[i]);
         expect(networkMan.gnana).toStrictEqual(TEST_TOKENS[k][i]);
       }
       // test with a non supported network
