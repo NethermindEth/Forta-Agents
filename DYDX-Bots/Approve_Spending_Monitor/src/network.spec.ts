@@ -31,6 +31,9 @@ describe("NetworkManager test suite", () => {
       networkManager.setNetwork(testCase[0]);
 
       expect(networkManager.liquidityModule).toStrictEqual(testCase[1]);
+      expect(networkManager.safetyModule).toStrictEqual(testCase[2]);
+      expect(networkManager.dydxAddress).toStrictEqual(testCase[3]);
+      expect(networkManager.usdcAddress).toStrictEqual(testCase[4]);
     }
   });
 
