@@ -3,50 +3,24 @@ import NetworkManager from "./network";
 import NetworkData from "./network";
 
 /*
-NOTE: USE THIS IF YOU NEED DYDX TOKEN ADDRESS
 Format:[
     [network, [safetyModule, dydxAddress]],
     [network, [safetyModule, dydxAddress]],
     [network, [safetyModule, dydxAddress]]
 ];
-
+*/
 const TEST_CASES: [[number, [string, string]], [number, [string, string]], [number, [string, string]]] = [
   [11, [createAddress("0xb1a"), createAddress("0xb1b")]],
   [22, [createAddress("0xb2a"), createAddress("0xb2b")]],
   [33, [createAddress("0xb3a"), createAddress("0xb3b")]],
 ];
-*/
 
-/*
-Format:[
-    [network, safetyModule],
-    [network, safetyModule],
-    [network, safetyModule]
-];
-*/
-const TEST_CASES: [number, string][] = [
-  [11, createAddress("0xb1a")],
-  [22, createAddress("0xb2a")],
-  [33, createAddress("0xb3a")],
-];
-
-/*
 const generateNetworkMap = (network: number, addresses: string[]): Record<number, NetworkData> => {
   // generates a NetworkMap for one test case.
   let networkMap: Record<number, NetworkData> = {};
   networkMap[network] = {
     safetyModule: addresses[0],
     dydxAddress: addresses[1],
-  } as NetworkData;
-  return networkMap;
-};
-*/
-
-const generateNetworkMap = (network: number, moduleAddress: string): Record<number, NetworkData> => {
-  // generates a NetworkMap for one test case.
-  let networkMap: Record<number, NetworkData> = {};
-  networkMap[network] = {
-    safetyModule: moduleAddress,
   } as NetworkData;
   return networkMap;
 };
@@ -58,9 +32,8 @@ describe("NetworkManager test suite", () => {
       const networkManager = new NetworkManager(networkMap);
       networkManager.setNetwork(testCase[0]);
 
-      expect(networkManager.safetyModule).toStrictEqual(testCase[1]);
-      // expect(networkManager.liquidityModule).toStrictEqual(testCase[1][0]);
-      // expect(networkManager.usdcAddress).toStrictEqual(testCase[1][1]);
+      expect(networkManager.safetyModule).toStrictEqual(testCase[1][0]);
+      expect(networkManager.dydxAddress).toStrictEqual(testCase[1][1]);
     }
   });
 
