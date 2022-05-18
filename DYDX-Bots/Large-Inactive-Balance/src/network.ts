@@ -9,7 +9,7 @@ const ETH_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  safetyModule: "0x267CaE324d5850D84EcA39E2F3C0A8003d3c2F02",
+  safetyModule: "0x1e1E83Da50b9c43314773F69B9746929cAC2177a",
   dydxAddress: "0x136Bb1ff78FBb538B001DC4A50551A088cD0e3CD",
 };
 
