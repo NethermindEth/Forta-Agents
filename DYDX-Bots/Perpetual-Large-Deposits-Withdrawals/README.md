@@ -50,7 +50,7 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
     - `assetId`: Id of the minted asset.
     - `ownerKey`: stark key of the recipient.
 
-- DYDX-1-5
+- DYDX-1-4
 
   - Fired when one of the events is emitted with an asset different from the system asset.
   - Severity is always set to "High".

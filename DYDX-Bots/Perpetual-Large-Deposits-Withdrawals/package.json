@@ -5,6 +5,7 @@
   "chainIds": [
     1
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/DYDX-Bots/Perpetual-Large-Deposits-Withdrawals",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
