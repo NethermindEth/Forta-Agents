@@ -1,68 +1,53 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { BigNumber, providers } from "ethers";
+import NetworkManager, { NETWORK_MAP } from "./network";
+import NetworkData from "./network";
+import { STAKED_ABI, WITHDREW_STAKE_ABI, THRESHOLD_STATIC_AMOUNT } from "./utils";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
+// const balanceFetcher: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+  // balanceFetcher.setUsdcContract();
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export function provideHandleTransaction(
+  networkManager: NetworkData//,
+  // balanceFetcher: BalanceFetcher,
+  // thresholdPercentage: number
+): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    let findings: Finding[] = [];
+
+    await Promise.all(
+      txEvent
+        .filterLog([STAKED_ABI, WITHDREW_STAKE_ABI], networkManager.safetyModule)
+        .map(async (log) => {
+          // Get the stake token balance of the module contract at the previous block
+          // (before the transaction, and the subsequent event emission)
+          const moduleBalance: BigNumber = await balanceFetcher.getBalanceOf(
+            networkManager.safetyModule,
+            txEvent.blockNumber - 1
+          );
+
+          // Find the threshold amount from the percentage
+          const thresholdAmount: BigNumber = moduleBalance.mul(thresholdPercentage);
+
+          // If `amount` is greater than the threshold,
+          // create a Finding
+          if (thresholdAmount.lte(log.args.amount.mul(100))) {
+            findings.push(createFinding(log.name, log.args));
+          }
+        })
+    );
+
+    return findings;
+  };
+}
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager/*, balanceFetcher, THRESHOLD_PERCENTAGE*/)
 };
