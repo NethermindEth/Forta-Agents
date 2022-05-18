@@ -1,32 +1,21 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { ethers, BigNumber } from "ethers";
 
-const isTestnet: boolean = false;
+ const isTestnet: boolean = true;
 
-export const GNANA_TOKEN_CONTRACT = isTestnet
-  ? "0x2449e7940b0df3426981945431aa9dc95b982702" // BINANCE Testnet GNANA Token Contract address
-  : "0xddb3bd8645775f59496c821e4f55a7ea6a6dc299"; // BINANCE Mainnet GNANA Token Contract address
+ export const GNANA_TOKEN_CONTRACT = isTestnet
+  ? "0x2449E7940B0Df3426981945431AA9dc95b982702" // BINANCE Testnet GNANA Token Contract address
+  : "0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299"; // BINANCE Mainnet GNANA Token Contract address
 
-export const EVENT_ABI = [
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-];
-export const BALANCE_OF_ABI = [
-  "function balanceOf(address account) public view  returns (uint256)",
-];
+export const EVENT_ABI = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
+export const BALANCE_OF_ABI = ["function balanceOf(address account) public view  returns (uint256)"];
 export const APESWAP_INTERFACE = new ethers.utils.Interface(BALANCE_OF_ABI);
 
 export const GNANA_DECIMALS: number = 18;
 export const THRESHOLD_BALANCE_PERCENTAGE: number = 1;
-const TOTAL_SUPPLY: BigNumber = BigNumber.from("3000000000").mul(
-  `${10 ** GNANA_DECIMALS}`
-);
-export const BALANCE_THRESHOLD: BigNumber = TOTAL_SUPPLY.mul(
-  THRESHOLD_BALANCE_PERCENTAGE
-).div(100);
-export const createLargeBalanceFinding = (
-  account: string,
-  balance: BigNumber
-) => {
+const TOTAL_SUPPLY: BigNumber = BigNumber.from("3000000000").mul(`${10 ** GNANA_DECIMALS}`);
+export const BALANCE_THRESHOLD: BigNumber = TOTAL_SUPPLY.mul(THRESHOLD_BALANCE_PERCENTAGE).div(100);
+export const createLargeBalanceFinding = (account: string, balance: BigNumber) => {
   return Finding.fromObject({
     name: "Large Amount of GNANA Balance",
     description: "An account with large amount of balance is detected",

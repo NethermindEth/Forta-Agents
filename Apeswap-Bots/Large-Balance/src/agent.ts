@@ -1,70 +1,58 @@
-import {
-  BlockEvent,
-  Finding,
-  TransactionEvent,
-  getEthersProvider,
-  HandleTransaction,
-  HandleBlock,
-  LogDescription,
-} from "forta-agent";
-import { BigNumber } from "ethers";
+import { BlockEvent, Finding, getEthersProvider, HandleBlock } from "forta-agent";
+import { BigNumber, utils, providers } from "ethers";
 import DataFetcher from "./data.fetcher";
-import {
-  GNANA_TOKEN_CONTRACT,
-  EVENT_ABI,
-  createLargeBalanceFinding,
-  BALANCE_THRESHOLD,
-} from "./utils";
+import { EVENT_ABI, createLargeBalanceFinding, BALANCE_THRESHOLD } from "./utils";
+import NetworkData from "./network";
+import NetworkManager, { NETWORK_MAP } from "./network";
 
-const FETCHER: DataFetcher = new DataFetcher(
-  GNANA_TOKEN_CONTRACT,
-  getEthersProvider()
-);
 let accounts: Set<string> = new Set<string>();
+const networkManager = new NetworkManager(NETWORK_MAP);
+let dataFetcher: DataFetcher = new DataFetcher(getEthersProvider(), networkManager);
 
-export function provideHandleTransaction(
-  fetcher: DataFetcher,
-  accounts: Set<string>
-): HandleTransaction {
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-    const logs: LogDescription[] = txEvent.filterLog(
-      EVENT_ABI,
-      fetcher.gnanaTokenAddress
-    );
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+  dataFetcher.setGnanaContract();
+};
 
-    await Promise.all(
-      logs.map((log) => {
-        const toAddress = log.args.to;
-        accounts.add(toAddress);
-      })
-    );
-    return findings;
-  };
-}
-
-export function provideHandleBlock(
+export const provideHandleBlock =
+(
+  nManager: NetworkData,
   fetcher: DataFetcher,
   balanceThreshold: BigNumber,
-  accounts: Set<string>
-): HandleBlock {
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+  accounts: Set<string>,
+  provider: providers.Provider
+): HandleBlock =>
+   async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];    
+    let Interface = new utils.Interface(EVENT_ABI);
+    
+    const filter = {
+      address: nManager.gnana,
+      topics: [Interface.getEventTopic("Transfer")],
+      blockHash: blockEvent.blockHash,
+    };
+    const logArray = await provider.getLogs(filter);
+    let events = logArray.map((log) => Interface.parseLog(log));
+    for (let event of events) {
+      accounts.add(event.args.to);
+    }
+
     for (let addr of Array.from(accounts.values())) {
-      const balance: BigNumber = await fetcher.getBalance(
-        addr,
-        blockEvent.blockNumber
-      );
+      const balance: BigNumber = await fetcher.getBalance(addr, blockEvent.blockNumber);
+
       if (balance.gt(balanceThreshold)) {
         findings.push(createLargeBalanceFinding(addr, balance));
-        accounts.clear();
       }
     }
+
+    accounts.clear();
+
     return findings;
   };
-}
+
 
 export default {
-  handleTransaction: provideHandleTransaction(FETCHER, accounts),
-  handleBlock: provideHandleBlock(FETCHER, BALANCE_THRESHOLD, accounts),
+  initialize: provideInitialize(getEthersProvider()),
+  handleBlock: provideHandleBlock(networkManager, dataFetcher, BALANCE_THRESHOLD, accounts, getEthersProvider()),
 };

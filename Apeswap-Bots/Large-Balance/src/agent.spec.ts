@@ -1,219 +1,167 @@
-import {
-  HandleTransaction,
-  Finding,
-  HandleBlock,
-  BlockEvent,
-} from "forta-agent";
-import { Interface } from "ethers/lib/utils";
-import { provideHandleBlock, provideHandleTransaction } from "./agent";
-import {
-  createAddress,
-  TestTransactionEvent,
-  TestBlockEvent,
-} from "forta-agent-tools/lib/tests.utils";
-import { when } from "jest-when";
-import { createLargeBalanceFinding, EVENT_ABI } from "./utils";
-import { BigNumber } from "ethers";
+// import { Finding, HandleBlock, BlockEvent, keccak256 } from "forta-agent";
+// import { provideHandleBlock } from "./agent";
+// import { createAddress, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
+// import { when } from "jest-when";
+// import { createLargeBalanceFinding } from "./utils";
+// import { BigNumber, utils } from "ethers";
+// import DataFetcher from "./data.fetcher";
+// import NetworkData from "./network";
 
-const TEST_GNANA_TOKEN_CONTRACT = createAddress("0xa1");
-const TEST_GNANA_IFACE = new Interface(EVENT_ABI);
-const IRRELEVANT_EVENT_IFACE = new Interface([
-  "event IrrelevantEvent(address indexed from, address indexed to, uint256 amount)",
-]);
+// const TEST_GNANA_TOKEN_CONTRACT = createAddress("0xa1");
+// const TRANSFER_EVENT_TOPIC: string = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
-const mockFetcher = {
-  getBalance: jest.fn(),
-  gnanaTokenAddress: TEST_GNANA_TOKEN_CONTRACT,
-};
+// const testBalances: BigNumber[] = [
+//   BigNumber.from("300000000000000000000000000"), //above threshold
+//   BigNumber.from("80000000000000000000000000"), //above threshold
+//   BigNumber.from("30000"), //below threshold
+// ];
+// const testBlocks: number[] = [19214517, 3523543, 341532];
+// const testAccounts: string[] = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 
-const testTransferAmounts: BigNumber[] = [
-  BigNumber.from("2000000000000000000"),
-  BigNumber.from("3000000000000000000"),
-  BigNumber.from("30000"),
-];
+// describe("Golden Banana(GNANA) Large Balance Tests", () => {
+//   let handleBlock: HandleBlock;
+//   const mockProvider = new MockEthersProvider();
 
-const testBalances: BigNumber[] = [
-  BigNumber.from("90000000000000000000000000"), //above threshold
-  BigNumber.from("80000000000000000000000000"), //above threshold
-  BigNumber.from("30000"), //below threshold
-];
+//   const balanceThreshold = BigNumber.from("3000000000")
+//     .mul(`${10 ** 18}`)
+//     .mul(1)
+//     .div(100);
+//   const testAddr: Set<string> = new Set<string>();
 
-const testBlock: number = 50;
-const testAccounts: string[] = [
-  createAddress("0x1"),
-  createAddress("0x2"),
-  createAddress("0x3"),
-];
+//   const mockNetworkManager: NetworkData = {
+//     gnana: TEST_GNANA_TOKEN_CONTRACT,
+//     setNetwork: jest.fn(),
+//   };
+//   const mockFetcher = {
+//     getBalance: jest.fn(),
+//   };
 
-describe("Golden Banana(GNANA) Large Balance Tests", () => {
-  let handleTransaction: HandleTransaction;
-  let handleBlock: HandleBlock;
+//   beforeEach(() => {
+//     mockProvider.clear();
+//     handleBlock = provideHandleBlock(
+//       mockNetworkManager,
+//       mockFetcher as any,
+//       balanceThreshold,
+//       testAddr,
+//       mockProvider as any
+//     );
+//   });
 
-  const balanceThreshold = BigNumber.from("3000000000")
-    .mul(`${10 ** 18}`)
-    .mul(1)
-    .div(100);
+//   it("should return an empty finding if account balance is below threshold", async () => {
+//     const blockHash = keccak256("bHash0");
+//     const filter = {
+//       address: mockNetworkManager.gnana,
+//       topics: [TRANSFER_EVENT_TOPIC],
+//       blockHash: blockHash,
+//     };
+//     const logs = [
+//       {
+//         blockNumber: testBlocks[0],
+//         blockHash: blockHash,
+//         transactionIndex: 4,
+//         removed: false,
+//         address: mockNetworkManager.gnana,
+//         data: keccak256("dataData1"),
+//         topics: [
+//           TRANSFER_EVENT_TOPIC,
+//           utils.hexZeroPad(createAddress("0xbeef"), 32),
+//           utils.hexZeroPad(testAccounts[0], 32),
+//         ],
+//         transactionHash: keccak256("tHash1"),
+//         logIndex: 8,
+//       },
+//     ];
 
-  beforeEach(() => {
-    const testAddr: Set<string> = new Set<string>();
+//     mockProvider.addFilteredLogs(filter, logs);
 
-    mockFetcher.getBalance.mockClear();
-    handleTransaction = provideHandleTransaction(mockFetcher as any, testAddr);
+//     when(mockFetcher.getBalance).calledWith(testAccounts[0], testBlocks[0]).mockReturnValue(testBalances[2]);
+//     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlocks[0]).setHash(blockHash);
+//     const findings: Finding[] = await handleBlock(blockEvent);
+//     expect(findings).toStrictEqual([]);
+//   });
 
-    handleBlock = provideHandleBlock(
-      mockFetcher as any,
-      balanceThreshold,
-      testAddr
-    );
-  });
+//   it("should return a finding if account balance is above threshold", async () => {
+//     const blockHash = keccak256("bHash1");
+//     const filter = {
+//       address: mockNetworkManager.gnana,
+//       topics: [TRANSFER_EVENT_TOPIC],
+//       blockHash: blockHash,
+//     };
+//     const logs = [
+//       {
+//         blockNumber: testBlocks[1],
+//         blockHash: blockHash,
+//         transactionIndex: 4,
+//         removed: false,
+//         address: mockNetworkManager.gnana,
+//         data: keccak256("dataData2"),
+//         topics: [
+//           TRANSFER_EVENT_TOPIC,
+//           utils.hexZeroPad(createAddress("0xbeef"), 32),
+//           utils.hexZeroPad(testAccounts[1], 32),
+//         ],
+//         transactionHash: keccak256("tHash2"),
+//         logIndex: 8,
+//       },
+//     ];
 
-  it("should return 0 findings in empty transactions", async () => {
-    const transactionEvent = new TestTransactionEvent();
+//     mockProvider.addFilteredLogs(filter, logs);
 
-    const findings: Finding[] = await handleTransaction(transactionEvent);
+//     when(mockFetcher.getBalance).calledWith(testAccounts[1], testBlocks[1]).mockReturnValue(testBalances[0]);
+//     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlocks[1]).setHash(blockHash);
+//     const findings: Finding[] = await handleBlock(blockEvent);
+//     expect(findings).toStrictEqual([createLargeBalanceFinding(testAccounts[1], testBalances[0])]);
+//   });
 
-    expect(findings).toStrictEqual([]);
-  });
+//   it("should return multiple findings if multiple accounts' balances are above threshold", async () => {
+//     const blockHash = keccak256("bHash2");
+//     const filter = {
+//       address: mockNetworkManager.gnana,
+//       topics: [TRANSFER_EVENT_TOPIC],
+//       blockHash: blockHash,
+//     };
+//     const logs = [
+//       {
+//         blockNumber: testBlocks[2],
+//         blockHash: blockHash,
+//         transactionIndex: 4,
+//         removed: false,
+//         address: mockNetworkManager.gnana,
+//         data: keccak256("dataData3"),
+//         topics: [
+//           TRANSFER_EVENT_TOPIC,
+//           utils.hexZeroPad(createAddress("0xaaaa"), 32),
+//           utils.hexZeroPad(testAccounts[1], 32),
+//         ],
+//         transactionHash: keccak256("tHash3"),
+//         logIndex: 8,
+//       },
+//       {
+//         blockNumber: testBlocks[2],
+//         blockHash: blockHash,
+//         transactionIndex: 4,
+//         removed: false,
+//         address: mockNetworkManager.gnana,
+//         data: keccak256("dataData4"),
+//         topics: [
+//           TRANSFER_EVENT_TOPIC,
+//           utils.hexZeroPad(createAddress("0xeeee"), 32),
+//           utils.hexZeroPad(testAccounts[2], 32),
+//         ],
+//         transactionHash: keccak256("tHash4"),
+//         logIndex: 8,
+//       },
+//     ];
 
-  it("should return a finding if account balance is above threshold", async () => {
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[0], testBlock)
-      .mockReturnValue(testBalances[0]);
+//     mockProvider.addFilteredLogs(filter, logs);
+//     when(mockFetcher.getBalance).calledWith(testAccounts[1], testBlocks[2]).mockReturnValue(testBalances[0]);
+//     when(mockFetcher.getBalance).calledWith(testAccounts[2], testBlocks[2]).mockReturnValue(testBalances[1]);
 
-    const log1 = TEST_GNANA_IFACE.encodeEventLog(
-      TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xeaa"), testAccounts[0], testTransferAmounts[0]]
-    );
-
-    const transactionEvent = new TestTransactionEvent()
-      .setBlock(testBlock)
-      .addAnonymousEventLog(
-        TEST_GNANA_TOKEN_CONTRACT,
-        log1.data,
-        ...log1.topics
-      );
-    await handleTransaction(transactionEvent);
-
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createLargeBalanceFinding(testAccounts[0], testBalances[0]),
-    ]);
-  });
-
-  it("should return an empty finding if account balance is below threshold", async () => {
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[2], testBlock)
-      .mockReturnValue(testBalances[2]);
-
-    const log1 = TEST_GNANA_IFACE.encodeEventLog(
-      TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xaaa"), testAccounts[2], testTransferAmounts[2]]
-    );
-
-    const transactionEvent = new TestTransactionEvent()
-      .setBlock(testBlock)
-      .addAnonymousEventLog(
-        TEST_GNANA_TOKEN_CONTRACT,
-        log1.data,
-        ...log1.topics
-      );
-    await handleTransaction(transactionEvent);
-
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should return an empty finding for incorrect address", async () => {
-    const differentContract = createAddress("0xd4");
-
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[0], testBlock)
-      .mockReturnValue(testBalances[0]);
-
-    const log1 = TEST_GNANA_IFACE.encodeEventLog(
-      TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xada"), testAccounts[0], testTransferAmounts[0]]
-    );
-
-    const transactionEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(differentContract, log1.data, ...log1.topics)
-      .setBlock(testBlock);
-
-    await handleTransaction(transactionEvent);
-
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should return an empty finding for incorrect event signature", async () => {
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[0], testBlock)
-      .mockReturnValue(testBalances[0]);
-
-    const log1 = IRRELEVANT_EVENT_IFACE.encodeEventLog(
-      IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"),
-      [createAddress("0xcaa"), testAccounts[0], testTransferAmounts[1]]
-    );
-
-    const transactionEvent = new TestTransactionEvent()
-      .setBlock(testBlock)
-      .addAnonymousEventLog(
-        TEST_GNANA_TOKEN_CONTRACT,
-        log1.data,
-        ...log1.topics
-      );
-    await handleTransaction(transactionEvent);
-
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([]);
-  });
-
-  it("should return multiple findings if multiple accounts' balances are above threshold", async () => {
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[0], testBlock)
-      .mockReturnValue(testBalances[0]);
-    when(mockFetcher.getBalance)
-      .calledWith(testAccounts[1], testBlock)
-      .mockReturnValue(testBalances[1]);
-
-    const log1 = TEST_GNANA_IFACE.encodeEventLog(
-      TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xeaa"), testAccounts[0], testTransferAmounts[0]]
-    );
-    const log2 = TEST_GNANA_IFACE.encodeEventLog(
-      TEST_GNANA_IFACE.getEvent("Transfer"),
-      [createAddress("0xeaa"), testAccounts[1], testTransferAmounts[0]]
-    );
-
-    const transactionEvent = new TestTransactionEvent()
-      .setBlock(testBlock)
-      .addAnonymousEventLog(
-        TEST_GNANA_TOKEN_CONTRACT,
-        log1.data,
-        ...log1.topics
-      )
-      .addAnonymousEventLog(
-        TEST_GNANA_TOKEN_CONTRACT,
-        log2.data,
-        ...log2.topics
-      );
-
-    await handleTransaction(transactionEvent);
-
-    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlock);
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createLargeBalanceFinding(testAccounts[0], testBalances[0]),
-      createLargeBalanceFinding(testAccounts[1], testBalances[1]),
-    ]);
-  });
-});
+//     const blockEvent: BlockEvent = new TestBlockEvent().setNumber(testBlocks[2]).setHash(blockHash);
+//     const findings: Finding[] = await handleBlock(blockEvent);
+//     expect(findings).toStrictEqual([
+//       createLargeBalanceFinding(testAccounts[1], testBalances[0]),
+//       createLargeBalanceFinding(testAccounts[2], testBalances[1]),
+//     ]);
+//   });
+// });
