@@ -26,6 +26,7 @@ const usdcAddress = createAddress("0xa1");
 const dydxAddress = createAddress("0xa2");
 
 describe("BalanceFetcher test suite", () => {
+  const BALANCEOF_IFACE = new Interface(BALANCEOF_ABI);
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const mockNetworkManager = {
     usdcAddress: usdcAddress,
@@ -36,7 +37,7 @@ describe("BalanceFetcher test suite", () => {
   beforeEach(() => mockProvider.clear());
 
   const createBalanceOfCall = (token: string, block: number, module: string, balance: BigNumber) => {
-    mockProvider.addCallTo(token, block, new Interface(BALANCEOF_ABI), "balanceOf", {
+    mockProvider.addCallTo(token, block, BALANCEOF_IFACE, "balanceOf", {
       inputs: [module],
       outputs: [balance],
     });
@@ -62,14 +63,14 @@ describe("BalanceFetcher test suite", () => {
     for (let [block, module, balance] of TEST_DATA_2) {
       createBalanceOfCall(mockNetworkManager.dydxAddress, block, module, balance);
 
-      const fetchedBalance = await fetcher.getdydxBalanceOf(module, block);
+      const fetchedBalance = await fetcher.getDydxBalanceOf(module, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
 
     // clear mock to use cache
     mockProvider.clear();
     for (let [block, module, balance] of TEST_DATA_2) {
-      const fetchedBalance = await fetcher.getdydxBalanceOf(module, block);
+      const fetchedBalance = await fetcher.getDydxBalanceOf(module, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
   });
@@ -85,7 +86,7 @@ describe("BalanceFetcher test suite", () => {
     for (let [block, module, balance] of TEST_DATA_2) {
       createBalanceOfCall(mockNetworkManager.dydxAddress, block, module, balance);
 
-      const fetchedBalance = await fetcher.getdydxBalanceOf(module, block);
+      const fetchedBalance = await fetcher.getDydxBalanceOf(module, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
 
@@ -96,7 +97,7 @@ describe("BalanceFetcher test suite", () => {
       expect(fetchedBalance).toStrictEqual(balance);
     }
     for (let [block, module, balance] of TEST_DATA_2) {
-      const fetchedBalance = await fetcher.getdydxBalanceOf(module, block);
+      const fetchedBalance = await fetcher.getDydxBalanceOf(module, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
   });

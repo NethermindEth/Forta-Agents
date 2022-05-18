@@ -48,7 +48,7 @@ export function provideHandleTransaction(
           } else {
             // Check if the safety module balance is already fetched for this block.
             if (!isSafetyBalanceFetched) {
-              safetyModuleBalance = await balanceFetcher.getdydxBalanceOf(
+              safetyModuleBalance = await balanceFetcher.getDydxBalanceOf(
                 networkManager.safetyModule,
                 txEvent.blockNumber - 1
               );

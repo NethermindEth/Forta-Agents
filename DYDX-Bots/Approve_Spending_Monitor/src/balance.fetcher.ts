@@ -29,8 +29,8 @@ export default class BalanceFetcher {
     }
   }
 
-  public async getdydxBalanceOf(moduleAddress: string, block: string | number): Promise<BigNumber> {
-    const key: string = `${this.networkManager.dydxAddress}- ${moduleAddress}-${block}`;
+  public async getDydxBalanceOf(moduleAddress: string, block: string | number): Promise<BigNumber> {
+    const key: string = `${this.networkManager.dydxAddress}-${moduleAddress}-${block}`;
 
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
@@ -41,7 +41,7 @@ export default class BalanceFetcher {
   }
 
   public async getUsdcBalanceOf(moduleAddress: string, block: string | number): Promise<BigNumber> {
-    const key: string = `${this.networkManager.usdcAddress}- ${moduleAddress}-${block}`;
+    const key: string = `${this.networkManager.usdcAddress}-${moduleAddress}-${block}`;
 
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 

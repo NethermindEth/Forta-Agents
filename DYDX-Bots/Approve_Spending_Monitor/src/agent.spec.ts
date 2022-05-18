@@ -11,6 +11,8 @@ describe("Large spending approval tests suite", () => {
   let handler: HandleTransaction;
   let mockProvider = new MockEthersProvider();
   const EVENT_IFACE = new Interface(APPROVAL_EVENT);
+  const BALANCEOF_IFACE = new Interface(BALANCEOF_ABI);
+
   const mockNetworkManager = {
     dydxAddress: createAddress("0xa1"),
     usdcAddress: createAddress("0xa2"),
@@ -29,7 +31,7 @@ describe("Large spending approval tests suite", () => {
   ];
   const TEST_BLOCKS = [10, 20, 30, 40];
   const createBalanceOfcall = (tokenAddress: string, module: string, balance: BigNumber, blockNumber: number) => {
-    mockProvider.addCallTo(tokenAddress, blockNumber, new Interface(BALANCEOF_ABI), "balanceOf", {
+    mockProvider.addCallTo(tokenAddress, blockNumber, BALANCEOF_IFACE, "balanceOf", {
       inputs: [module],
       outputs: [balance],
     });
