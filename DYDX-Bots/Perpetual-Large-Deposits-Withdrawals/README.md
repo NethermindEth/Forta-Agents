@@ -66,6 +66,8 @@ The bot behaviour can be verified with the following transactions, using the def
 
 ### Mainnet
 
+The following transactions return a finding with the `STATIC` mode only.
+
 - 0x30c630fe50e492eeff514cab7590921ab21c4fc224cfff7bad0f82ee2a47db0f (`LogWithdrawalPerformed`)
 - 0x77387abbc97753343fda4008b543ef01d8ccd987b887d20c047b748e3894e8cb ( `LogDeposit`)
 

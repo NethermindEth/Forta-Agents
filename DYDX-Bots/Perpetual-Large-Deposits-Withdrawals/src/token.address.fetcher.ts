@@ -15,7 +15,11 @@ export default class TokenAddressFetcher {
   // Does not use cache because it's called once only when the bot is initialized.
   public getSystemAssetType = async (block: number | string): Promise<BigNumber> => {
     const systemAssetType = BigNumber.from(
-      await this.provider.getStorageAt(this.networkManager.perpetualProxy, this.networkManager.slots.systemSlot, block)
+      await this.provider.getStorageAt(
+        this.networkManager.perpetualProxy,
+        BigNumber.from(this.networkManager.slots.systemSlot).toHexString(),
+        block
+      )
     );
     return systemAssetType;
   };
