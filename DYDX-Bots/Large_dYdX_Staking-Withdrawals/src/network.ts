@@ -9,8 +9,8 @@ const ETH_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  safetyModule: "",
-  dydxAddress: "", // TestToken on Kovan testnet
+  safetyModule: "0x3A10842939B3B9B7C5038D7d985AD7B01A4a9454",
+  dydxAddress: "0x74134f0a4639f8124a0D3203AEA4C72843f02162", // TestToken on Kovan testnet
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
