@@ -32,7 +32,6 @@ export function provideHandleTransaction(
         if (config.mode === "STATIC") thresholdAmount = config.thresholdData;
         else {
           // fetch total staked tokens.
-          // NOTE: DO WE NEED TO DO IT AT THIS BLOCK?
           const totalStaked = await balanceFetcher.getBalanceOf(networkManager.safetyModule, txEvent.blockNumber);
 
           // set threshold

@@ -39,3 +39,25 @@ This bot detects DYDX deposits and withdrawals in the Safety Module contract whe
 
 ## Test Data
 
+The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
+
+[0x3A10842939B3B9B7C5038D7d985AD7B01A4a9454](https://kovan.etherscan.io/address/0x3A10842939B3B9B7C5038D7d985AD7B01A4a9454) - `TestProxy`.
+
+[0xBC86cD962461B669136992a6a344bedDcff347F3](https://kovan.etherscan.io/address/0xBC86cD962461B669136992a6a344bedDcff347F3) - `TestImplementation`.
+
+[0x74134f0a4639f8124a0D3203AEA4C72843f02162](https://kovan.etherscan.io/address/0x74134f0a4639f8124a0D3203AEA4C72843f02162) - `TestToken`.
+
+
+You can ajust `thresholdData` in `config.ts` for each mode in order to generate a finding.
+
+- [0x4964c3b9b161ba667cd001f05a21c2e21b65046c6e493117df31b736846b01ff](https://kovan.etherscan.io/tx/0x4964c3b9b161ba667cd001f05a21c2e21b65046c6e493117df31b736846b01ff) - `Staked`.
+
+  - `underlyingAmount`: 700,000 (20% of total staked).
+  - `PERCENTAGE` mode generates a finding with `thresholdData` set to 20 or less.
+  - `STATIC` mode generates a finding with `thresholdData` set to 700,000 or less.
+
+- [0x2134215fefff10aed3bca8377ef153069f563001a40717c8b625a5370fcb7d55](https://kovan.etherscan.io/tx/0x2134215fefff10aed3bca8377ef153069f563001a40717c8b625a5370fcb7d55) - `WithdrewStake`.
+
+  - `underlyingAmount`: 700,000 (20% of total staked).
+  - `PERCENTAGE` mode generates a finding with `thresholdData` set to 20 or less.
+  - `STATIC` mode generates a finding with `thresholdData` set to 700,000 or less.
