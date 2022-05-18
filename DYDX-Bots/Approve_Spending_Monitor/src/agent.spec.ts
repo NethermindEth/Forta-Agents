@@ -30,7 +30,7 @@ describe("Large spending approval tests suite", () => {
     [createAddress("0xb13"), createAddress("0xb23"), BigNumber.from(100)], // below threshold
   ];
   const TEST_BLOCKS = [10, 20, 30, 40];
-  const createBalanceOfcall = (tokenAddress: string, module: string, balance: BigNumber, blockNumber: number) => {
+  const createBalanceOfCall = (tokenAddress: string, module: string, balance: BigNumber, blockNumber: number) => {
     mockProvider.addCallTo(tokenAddress, blockNumber, BALANCEOF_IFACE, "balanceOf", {
       inputs: [module],
       outputs: [balance],
@@ -72,7 +72,7 @@ describe("Large spending approval tests suite", () => {
       TEST_DATA[0][2],
     ]);
     // createCall for balance Of for safety module.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.dydxAddress,
       mockNetworkManager.safetyModule,
       BigNumber.from(TOTAL_STAKED),
@@ -94,7 +94,7 @@ describe("Large spending approval tests suite", () => {
       TEST_DATA[0][2],
     ]);
     // createCall for balance Of for Liquidity modules.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.usdcAddress,
       mockNetworkManager.liquidityModule,
       BigNumber.from(TOTAL_STAKED),
@@ -132,7 +132,7 @@ describe("Large spending approval tests suite", () => {
       TEST_DATA[2][2],
     ]);
     // createCall for balance Of for safety module.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.dydxAddress,
       mockNetworkManager.safetyModule,
       BigNumber.from(TOTAL_STAKED),
@@ -154,7 +154,7 @@ describe("Large spending approval tests suite", () => {
       TEST_DATA[3][2],
     ]);
     // createCall for balance Of for Liquidity modules.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.usdcAddress,
       mockNetworkManager.liquidityModule,
       BigNumber.from(TOTAL_STAKED),
@@ -195,14 +195,14 @@ describe("Large spending approval tests suite", () => {
     ]);
 
     // createCall for balance Of for Liquidity modules.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.usdcAddress,
       mockNetworkManager.liquidityModule,
       BigNumber.from(TOTAL_STAKED),
       TEST_BLOCKS[0] - 1
     );
     // createCall for balance Of for Safety modules.
-    createBalanceOfcall(
+    createBalanceOfCall(
       mockNetworkManager.dydxAddress,
       mockNetworkManager.safetyModule,
       BigNumber.from(TOTAL_STAKED),
