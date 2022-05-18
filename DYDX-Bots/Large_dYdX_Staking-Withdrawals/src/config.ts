@@ -16,5 +16,5 @@ export const STATIC_CONFIG: BotConfig = {
 // Update `thresholdData` to ajust the percentage used by the bot to set the threshold.
 export const DYNAMIC_CONFIG: BotConfig = {
   mode: "PERCENTAGE",
-  thresholdData: BigNumber.from(20), // 20% threshold
+  thresholdData: BigNumber.from(15), // 15% threshold
 };
