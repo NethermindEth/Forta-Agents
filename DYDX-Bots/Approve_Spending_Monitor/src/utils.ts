@@ -2,4 +2,4 @@ export const APPROVAL_EVENT = ["event Approval(address indexed owner, address in
 
 export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
 
-export const THRESHOLD_PERCENTAGE = 20;
+export const THRESHOLD_PERCENTAGE = 10;

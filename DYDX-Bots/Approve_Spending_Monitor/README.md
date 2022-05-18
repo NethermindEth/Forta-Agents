@@ -38,10 +38,10 @@ This bot detects large spending approvals on dYdX Liquidity and Safety modules.
 The bot behaviour can be verified with the following test transactions,generated through our PoC contracts deployed on Kovan testnet:
 
 > - `TestToken` contract address: `0x127D02DF38Ea031a4EBb6f4b225176a66e004F2e`.
-> - `TestModule`contract address: `0xE719C2aB1256e5b68C4F1Da1fbf6c0771dBbB501`.
+> - `TestModule`contract address: `0xBB2DAb75CdEc1BAF0564c492EF9171171973Be35`.
 
 > To get the expected findings, please update `THRESHOLD_PERCENTAGE` in `utils.ts` accordingly.
 
-- 0x55abfe86bc0ad1b58db4c2bedeac428c23d6cbf7f0623130d885edd7496580a3 ( generates a finding with a percentage of 25 or less)
-- 0xdc4f8a068dea35bdf4d18882cc74c516678224e99c3fbf4048fd889d1afb3cfb ( generates a finding with a percentage of 20 or less)
-- 0x1f58d6c189b946c26e87471dd9fd692ce80069c1be6bd2b5d782fce80badd707 ( generates a finding with a percentage of 10 or less)
+- 0xe93a333506365f310cbe61145335b079f32bd19cd549ae888c704016268c749d ( generates a finding with a percentage of 25 or less)
+- 0x3e54fd7a0ddb7c9c01837c39a081bb65a1110e005cf42884cdeac6737f0a8031 ( generates a finding with a percentage of 20 or less)
+- 0xfa50b051789295fd0a26fc5a105bc346fb6fa8da912ffdb7804c1c4f04bfadfa ( generates a finding with a percentage of 10 or less)

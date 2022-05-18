@@ -2,8 +2,6 @@
 pragma solidity ^0.7.5;
 
 contract TestModule {
-    uint256 public amount;
-
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     function emitApproval(
