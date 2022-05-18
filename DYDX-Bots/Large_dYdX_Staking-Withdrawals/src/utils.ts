@@ -1,4 +1,5 @@
-import { utils, BigNumber } from "ethers";
+import { Interface } from "@ethersproject/abi";
+import { utils } from "ethers";
 
 export const STAKED_ABI: string = `event Staked(
     address indexed staker,
@@ -14,6 +15,7 @@ export const WITHDREW_STAKE_ABI: string = `event WithdrewStake(
     uint256 stakeAmount
   )`;
 
-export const THRESHOLD_PERCENTAGE: number = 20;
+export const MODULE_IFACE: utils.Interface = new Interface([STAKED_ABI, WITHDREW_STAKE_ABI]);
 
-export const THRESHOLD_STATIC_AMOUNT: BigNumber = BigNumber.from("500000000000000000000000"); // 500,000
+const DYDX_ABI: string = "function balanceOf(address account) external view returns (uint256)";
+export const DYDX_IFACE: utils.Interface = new utils.Interface([DYDX_ABI]);

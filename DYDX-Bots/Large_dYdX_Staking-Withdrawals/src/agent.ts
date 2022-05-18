@@ -2,40 +2,45 @@ import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from 
 import { BigNumber, providers } from "ethers";
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
-import { STAKED_ABI, WITHDREW_STAKE_ABI, THRESHOLD_STATIC_AMOUNT } from "./utils";
+import BalanceFetcher from "./balance.fetcher";
+import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
+import { STAKED_ABI, WITHDREW_STAKE_ABI } from "./utils";
+import { createFinding } from "./findings";
 
 const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
-// const balanceFetcher: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
+const balanceFetcher: BalanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
   networkManager.setNetwork(chainId);
-  // balanceFetcher.setUsdcContract();
+  balanceFetcher.setDydxContract();
 };
 
 export function provideHandleTransaction(
-  networkManager: NetworkData //,
-  // balanceFetcher: BalanceFetcher,
-  // thresholdPercentage: number
+  config: BotConfig,
+  networkManager: NetworkData,
+  balanceFetcher: BalanceFetcher
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
     await Promise.all(
       txEvent.filterLog([STAKED_ABI, WITHDREW_STAKE_ABI], networkManager.safetyModule).map(async (log) => {
-        // Get the stake token balance of the module contract at the previous block
-        // (before the transaction, and the subsequent event emission)
-        const moduleBalance: BigNumber = await balanceFetcher.getBalanceOf(
-          networkManager.safetyModule,
-          txEvent.blockNumber - 1
-        );
+        // set threshold based on mode.
+        let thresholdAmount: BigNumber;
 
-        // Find the threshold amount from the percentage
-        const thresholdAmount: BigNumber = moduleBalance.mul(thresholdPercentage);
+        if (config.mode === "STATIC") thresholdAmount = config.thresholdData;
+        else {
+          // fetch total staked tokens.
+          // NOTE: DO WE NEED TO DO IT AT THIS BLOCK?
+          const totalStaked = await balanceFetcher.getBalanceOf(networkManager.safetyModule, txEvent.blockNumber);
 
-        // If `amount` is greater than the threshold,
+          // set threshold
+          thresholdAmount = BigNumber.from(totalStaked).mul(config.thresholdData).div(100);
+        }
+        // If `underlyingAmount` is greater than the threshold,
         // create a Finding
-        if (thresholdAmount.lte(log.args.amount.mul(100))) {
+        if (log.args.underlyingAmount.gte(thresholdAmount)) {
           findings.push(createFinding(log.name, log.args));
         }
       })
@@ -47,5 +52,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(networkManager /*, balanceFetcher, THRESHOLD_PERCENTAGE*/),
+  handleTransaction: provideHandleTransaction(STATIC_CONFIG, networkManager, balanceFetcher),
 };
