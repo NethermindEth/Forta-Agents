@@ -24,17 +24,15 @@ export const handleTransaction =
           }
           if (traces[j].action.to === contractAddress) {
             reenterancyFunctionsSignatures.map((functionSignature) => {
-              const result = utils.FUNCTIONS_INTERFACE.decodeFunctionData(
-                functionSignature,
-                txEvent.transaction.data
-              );
-              if (result.length > 0) {
-                findings.push(
-                  utils.createFinding(
-                    functionSignature.split(" ")[0]
-                  )
+              try {
+                utils.FUNCTIONS_INTERFACE.decodeFunctionData(
+                  functionSignature.split("(")[0],
+                  txEvent.transaction.data
                 );
-              }
+                findings.push(
+                  utils.createFinding(functionSignature.split("(")[0])
+                );
+              } catch (e) {}
             });
           }
         }
