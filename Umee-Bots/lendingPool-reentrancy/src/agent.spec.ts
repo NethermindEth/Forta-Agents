@@ -36,10 +36,7 @@ const createTxEvent = (traces: Trace[], data = "") =>
   });
 
 describe("Lending pool reentrancy agent tests suit", () => {
-  const handleTx: HandleTransaction = handleTransaction(
-    TEST_CONTRACT_ADDRESS,
-    utils.REENTERANCY_FUNCTIONS_SIGNATURES
-  );
+  const handleTx: HandleTransaction = handleTransaction(TEST_CONTRACT_ADDRESS, utils.REENTERANCY_FUNCTIONS_SIGNATURES);
 
   describe("handleTransaction", () => {
     it("Should return empty findings if no traces provided", async () => {
@@ -66,12 +63,11 @@ describe("Lending pool reentrancy agent tests suit", () => {
     });
 
     it("Should detect different thresholds of reentrancy", async () => {
-      const testEncodedWithdrawFuncCall: string =
-        utils.FUNCTIONS_INTERFACE.encodeFunctionData("withdraw", [
-          createAddress("0x0a"),
-          234,
-          createAddress("0x0b"),
-        ]);
+      const testEncodedWithdrawFuncCall: string = utils.FUNCTIONS_INTERFACE.encodeFunctionData("withdraw", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
+      ]);
 
       // 0x0, 0x1, 0x3, 0x5, 0x6 called less than 3 times
       // 0x2 called 3 times

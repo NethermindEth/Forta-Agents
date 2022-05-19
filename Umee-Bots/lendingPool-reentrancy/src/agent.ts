@@ -3,10 +3,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import utils from "./utils";
 
 export const handleTransaction =
-  (
-    contractAddress: string,
-    reenterancyFunctionsSignatures: string[]
-  ): HandleTransaction =>
+  (contractAddress: string, reenterancyFunctionsSignatures: string[]): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const { traces } = txEvent;
@@ -25,13 +22,8 @@ export const handleTransaction =
           if (traces[j].action.to === contractAddress) {
             reenterancyFunctionsSignatures.map((functionSignature) => {
               try {
-                utils.FUNCTIONS_INTERFACE.decodeFunctionData(
-                  functionSignature.split("(")[0],
-                  txEvent.transaction.data
-                );
-                findings.push(
-                  utils.createFinding(functionSignature.split("(")[0])
-                );
+                utils.FUNCTIONS_INTERFACE.decodeFunctionData(functionSignature.split("(")[0], txEvent.transaction.data);
+                findings.push(utils.createFinding(functionSignature.split("(")[0]));
               } catch (e) {}
             });
           }
@@ -42,8 +34,5 @@ export const handleTransaction =
   };
 
 export default {
-  handleTransaction: handleTransaction(
-    utils.LENDING_POOL_ADDRESS,
-    utils.REENTERANCY_FUNCTIONS_SIGNATURES
-  ),
+  handleTransaction: handleTransaction(utils.LENDING_POOL_ADDRESS, utils.REENTERANCY_FUNCTIONS_SIGNATURES),
 };
