@@ -20,7 +20,7 @@ const createFinding = (transactionName: string): Finding => {
     name: "Lending Pool Reentrancy",
     description: `${transactionName} transaction is reentrant`,
     alertId: "Um-09",
-    type: FindingType.Suspicious,
+    type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
       transactionName: transactionName,
