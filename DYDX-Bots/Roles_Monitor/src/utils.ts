@@ -1,4 +1,4 @@
-import { utils } from "ethers";
+import { Interface, keccak256 } from "ethers/lib/utils";
 
 const ROLE_ADMIN_CHANGED_EVENT: string = `event RoleAdminChanged(
     bytes32 indexed role,
@@ -12,7 +12,7 @@ const ROLE_REVOKED_EVENT: string =
 
 export const EVENTS: string[] = [ROLE_ADMIN_CHANGED_EVENT, ROLE_GRANTED_EVENT, ROLE_REVOKED_EVENT];
 
-export const MODULE_IFACE: utils.Interface = new utils.Interface(EVENTS);
+export const MODULE_IFACE: Interface = new Interface(EVENTS);
 
 // The keys in the Record are the keccak256 hash of
 // the role string. e.g. keccak256("OWNER_ROLE")
