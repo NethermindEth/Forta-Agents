@@ -16,6 +16,7 @@ import { handleTransaction } from "./agent";
 import utils from "./utils";
 
 const TEST_CONTRACT_ADDRESS = createAddress("0x01");
+
 const createTrace = (stack: number[]): Trace => {
   return {
     traceAddress: stack,
@@ -33,7 +34,7 @@ const createTxEvent = (traces: Trace[], data = "") =>
     receipt: {} as Receipt,
     block: {} as Block,
     traces: traces,
-  });
+  } as any);
 
 describe("Lending pool reentrancy agent tests suit", () => {
   const handleTx: HandleTransaction = handleTransaction(TEST_CONTRACT_ADDRESS, utils.REENTERANCY_FUNCTIONS_SIGNATURES);
