@@ -1,4 +1,4 @@
-# Detect reentrancy in LendingPool
+# Detect Reentrancy In Lending Pool
 
 ## Description
 
