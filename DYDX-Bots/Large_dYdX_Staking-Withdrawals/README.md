@@ -1,4 +1,4 @@
-# Large DYDX Staking Deposit/Withdrawal Bot
+# Large DYDX Deposit/Withdrawal Bot
 
 ## Description
 
