@@ -15,6 +15,4 @@ Detects reentrancy in any call to LendingProtocol. If that’s the case, emits a
   - Severity is always set to "High".
   - Type is always set to "Exploit".
   - Metadata contains:
-     - transactionName: The transaction name  
-
-
+    - transactionName: The transaction name
