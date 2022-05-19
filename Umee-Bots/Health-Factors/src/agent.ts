@@ -4,59 +4,95 @@ import {
   HandleBlock,
   HandleTransaction,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
+  ethers,
+  getEthersProvider,
+  Initialize,
 } from "forta-agent";
+import { Contract as MulticallContract, Provider as MulticallProvider } from "ethers-multicall";
+import BigNumber from "bignumber.js";
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+import { BORROW_ABI, GET_USER_ACCOUNT_DATA_ABI, LATEST_ANSWER_ABI } from "./constants";
+import { AgentConfig, createFinding, ethersBnToBn } from "./utils";
+import CONFIG from "./agent.config";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+let accounts: Array<{ address: string; alerted: boolean }> = [];
+let multicallProvider: MulticallProvider;
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (provider: ethers.providers.Provider): Initialize => {
+  return async () => {
+    multicallProvider = new MulticallProvider(provider);
+    await multicallProvider.init();
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const users = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress).map((el) => el.args.onBehalfOf);
+    console.debug(users);
+    accounts.push(...users.map((el) => ({ address: el, alerted: false })));
+    console.debug(accounts);
+
+    return [];
+  };
+};
+
+export const provideHandleBlock = (provider: ethers.providers.Provider, config: AgentConfig): HandleBlock => {
+  const LendingPool = new MulticallContract(config.lendingPoolAddress, [GET_USER_ACCOUNT_DATA_ABI]);
+  const EthUsdFeed = new ethers.Contract(config.ethUsdFeedAddress, [LATEST_ANSWER_ABI], provider);
+
+  return async (_: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    if (!accounts.length) {
+      return [];
+    }
+
+    const ethToUsd = ethersBnToBn(await EthUsdFeed.latestAnswer(), 8);
+
+    const accountsData = (await multicallProvider.all(
+      accounts.map((el) => LendingPool.getUserAccountData(el.address))
+    )) as { totalDebtETH: ethers.BigNumber; totalCollateralETH: ethers.BigNumber; healthFactor: ethers.BigNumber }[];
+
+    accounts = accounts.filter((account, idx) => {
+      const accountData = accountsData[idx];
+      const totalDebtUsd = ethersBnToBn(accountData.totalDebtETH, 18).times(ethToUsd);
+      const totalCollateralUsd = ethersBnToBn(accountData.totalCollateralETH, 18).times(ethToUsd);
+
+      if (totalDebtUsd.isLessThan(config.ignoreThreshold)) {
+        return false;
+      }
+
+      const healthFactor = ethersBnToBn(accountData.healthFactor, 18);
+      const lowHealthFactor = healthFactor.isLessThan(config.healthFactorThreshold);
+      const largeCollateralAmount = totalCollateralUsd.isGreaterThan(config.upperThreshold);
+
+      if (lowHealthFactor && largeCollateralAmount) {
+        if (!account.alerted) {
+          findings.push(createFinding(account.address, healthFactor, totalCollateralUsd));
+          account.alerted = true;
+        }
+      } else if (account.alerted) {
+        account.alerted = false;
+      }
+
+      return true;
+    });
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  provideInitialize,
+  initialize: provideInitialize(getEthersProvider()),
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(CONFIG),
+  provideHandleBlock,
+  handleBlock: provideHandleBlock(getEthersProvider(), CONFIG),
+
+  // testing
+  getAccounts: () => accounts,
+  resetAccounts: () => (accounts = []),
 };
