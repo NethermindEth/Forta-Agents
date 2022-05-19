@@ -299,7 +299,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should detect a large DYDX Staked event", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[0], testBlockNumbers[0]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[0], testBlockNumbers[0] - 1);
       const testSpender: string = createAddress("0x1");
 
       const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
@@ -336,7 +336,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should not detect a non-large Staked event", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[1], testBlockNumbers[1]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[1], testBlockNumbers[1] - 1);
       const testSpender: string = createAddress("0x2");
 
       const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
@@ -358,7 +358,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should detect a large WithdrewStake event", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[2], testBlockNumbers[2]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[2], testBlockNumbers[2] - 1);
       const testRecipient: string = createAddress("0x3");
 
       const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
@@ -395,7 +395,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should not detect a non-large WithdrewStake event", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[3], testBlockNumbers[3]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[3], testBlockNumbers[3] - 1);
       const testRecipient: string = createAddress("0x4");
 
       const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
@@ -417,7 +417,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should detect both a large Staked event and large WithdrewStake event", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[4], testBlockNumbers[4]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[4], testBlockNumbers[4] - 1);
       const testSpender: string = createAddress("0x7");
       const testRecipient: string = createAddress("0x8");
 
@@ -492,7 +492,7 @@ describe("Large DYDX Deposti/Withdrawal test suite", () => {
     });
 
     it("should not detect an event emission from the wrong contract", async () => {
-      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[5], testBlockNumbers[5]);
+      createBalanceOfCall(mockNetworkManager.safetyModule, testStakedTokenAmounts[5], testBlockNumbers[5] - 1);
       const wrongModuleAddress: string = createAddress("0xd34d");
       const testSpender: string = createAddress("0x11");
 
