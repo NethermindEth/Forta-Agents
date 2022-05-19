@@ -75,9 +75,9 @@ describe("Lending pool reentrancy agent tests suit", () => {
       // 0x4 called 5 times
       const tx: TransactionEvent = createTxEvent(
         [
-          createTrace([]), // 0x0 -- Initial call
-          createTrace([0]), //    Calls 0x1
-          createTrace([0, 0]), //      Calls 0x2
+          createTrace([]), // Initial call
+          createTrace([0]), // Call withdraw for the first time
+          createTrace([0, 0]), // Call withdraw inside the transaction another two times
         ],
         testEncodedWithdrawFuncCall
       );
