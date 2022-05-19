@@ -88,8 +88,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expected.push(utils.createFinding("withdraw"));
 
       const findings: Finding[] = await handleTx(tx);
-      console.log({ expected });
-      expect(findings.length).toStrictEqual(expected.length);
+      expect(findings).toStrictEqual(expected);
     });
   });
 });
