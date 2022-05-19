@@ -9,7 +9,7 @@ This bot detects DYDX deposits and withdrawals in the Safety Module contract whe
 > - `STATIC` mode refers to the bot using a static predefined threshold.
 > - `PERCENTAGE` refers to setting the threshold as a percentage of the total staked tokens.
 
-> In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CONFG` in agent.ts, L55.
+> In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CONFG` in agent.ts, L54.
 
 ## Supported Chains
 
