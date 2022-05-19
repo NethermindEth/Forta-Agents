@@ -1,19 +1,11 @@
 import { Finding, HandleTransaction, ethers } from "forta-agent";
-import {
-  createAddress,
-  MockEthersProvider,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { handleTransaction } from "./agent";
 import utils from "./utils";
 
-const WRONG_EVENT_ABI: string[] = [
-  "event Transfer(address indexed from,address indexed to,uint256 value)",
-];
+const WRONG_EVENT_ABI: string[] = ["event Transfer(address indexed from,address indexed to,uint256 value)"];
 
-const WRONG_EVENTS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(
-  WRONG_EVENT_ABI
-);
+const WRONG_EVENTS_IFACE: ethers.utils.Interface = new ethers.utils.Interface(WRONG_EVENT_ABI);
 
 const TEST_GMX_VAULT: string = createAddress("0xcdcd");
 
@@ -23,11 +15,7 @@ const CASES = [
   utils.createFinding(createAddress("0x03"), "200"),
 ];
 
-const generateLogs = (
-  account: string,
-  numberOfLogs: number,
-  fromBlock: number
-) => {
+const generateLogs = (account: string, numberOfLogs: number, fromBlock: number) => {
   const event = utils.EVENTS_IFACE.getEvent(utils.INCREASE_POSITION_EVENT);
   const logs = [];
   for (let index = 0; index < numberOfLogs; index++) {
@@ -64,12 +52,7 @@ describe("Detects many position openings from an account within a time-frame tes
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = handleTransaction(
-      mockProvider as any,
-      utils.positionsNumber,
-      utils.blockNumbers,
-      TEST_GMX_VAULT
-    );
+    handleTx = handleTransaction(mockProvider as any, utils.positionsNumber, utils.blockNumbers, TEST_GMX_VAULT);
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -84,12 +67,7 @@ describe("Detects many position openings from an account within a time-frame tes
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = handleTransaction(
-      mockProvider as any,
-      utils.positionsNumber,
-      utils.blockNumbers,
-      TEST_GMX_VAULT
-    );
+    handleTx = handleTransaction(mockProvider as any, utils.positionsNumber, utils.blockNumbers, TEST_GMX_VAULT);
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -104,12 +82,7 @@ describe("Detects many position openings from an account within a time-frame tes
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 2, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = handleTransaction(
-      mockProvider as any,
-      utils.positionsNumber,
-      utils.blockNumbers,
-      TEST_GMX_VAULT
-    );
+    handleTx = handleTransaction(mockProvider as any, utils.positionsNumber, utils.blockNumbers, TEST_GMX_VAULT);
     const findings: Finding[] = await handleTx(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -124,12 +97,7 @@ describe("Detects many position openings from an account within a time-frame tes
     const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = handleTransaction(
-      mockProvider as any,
-      utils.positionsNumber,
-      utils.blockNumbers,
-      TEST_GMX_VAULT
-    );
+    handleTx = handleTransaction(mockProvider as any, utils.positionsNumber, utils.blockNumbers, TEST_GMX_VAULT);
     const findings: Finding[] = await handleTx(txEvent);
 
     expect(findings).toStrictEqual([CASES[0]]);
@@ -147,12 +115,7 @@ describe("Detects many position openings from an account within a time-frame tes
     logs.push(...generateLogs(createAddress("0x02"), 150, filter.fromBlock));
     logs.push(...generateLogs(createAddress("0x03"), 200, filter.fromBlock));
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = handleTransaction(
-      mockProvider as any,
-      utils.positionsNumber,
-      utils.blockNumbers,
-      TEST_GMX_VAULT
-    );
+    handleTx = handleTransaction(mockProvider as any, utils.positionsNumber, utils.blockNumbers, TEST_GMX_VAULT);
     const findings: Finding[] = await handleTx(txEvent);
 
     expect(findings).toStrictEqual(CASES);

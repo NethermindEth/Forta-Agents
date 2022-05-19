@@ -1,10 +1,5 @@
 import { Interface } from "@ethersproject/abi";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, getEthersProvider } from "forta-agent";
 
 const provider = getEthersProvider();
 const positionsNumber = 50;

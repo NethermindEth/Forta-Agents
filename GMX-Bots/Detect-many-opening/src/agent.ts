@@ -1,10 +1,4 @@
-import {
-  ethers,
-  Finding,
-  HandleTransaction,
-  Log,
-  TransactionEvent,
-} from "forta-agent";
+import { ethers, Finding, HandleTransaction, Log, TransactionEvent } from "forta-agent";
 
 import utils from "./utils";
 
@@ -33,11 +27,7 @@ export const handleTransaction =
     const accountByNoOfOpening: Map<string, number> = new Map();
 
     increasePositionLogs.forEach((log: Log) => {
-      const currentEvent = utils.EVENTS_IFACE.decodeEventLog(
-        utils.INCREASE_POSITION_EVENT,
-        log.data,
-        log.topics
-      );
+      const currentEvent = utils.EVENTS_IFACE.decodeEventLog(utils.INCREASE_POSITION_EVENT, log.data, log.topics);
       const accountNoOfOpening = accountByNoOfOpening.get(currentEvent[1]);
       if (accountNoOfOpening) {
         accountByNoOfOpening.set(currentEvent[1], accountNoOfOpening + 1);
@@ -48,7 +38,7 @@ export const handleTransaction =
 
     accountByNoOfOpening.forEach((noOfOpening, account) => {
       if (noOfOpening >= positionsNumber) {
-        findings.push(utils.createFinding(account,noOfOpening.toString()));
+        findings.push(utils.createFinding(account, noOfOpening.toString()));
       }
     });
 
