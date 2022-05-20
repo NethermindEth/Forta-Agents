@@ -17,4 +17,10 @@ const CONFIG: AgentConfig = {
   lendingPoolAddress: "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa",
 };
 
+// Uncomment these lines for the mainnet test:
+
+// CONFIG.ignoreThreshold = "0";
+// CONFIG.healthFactorThreshold = "10000000";
+// CONFIG.upperThreshold = "0";
+
 export default CONFIG;

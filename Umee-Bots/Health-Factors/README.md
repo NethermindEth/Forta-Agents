@@ -22,3 +22,12 @@ The agent's behavior can be customized by editing the configuration fields in `s
 
 ## Test Data
 
+### Mainnet
+
+Uncomment the lines indicated in `agent.config.ts` and run:
+
+```
+npm run range 14797593..14797595
+```
+
+A finding will be emitted when processing block 14797594.
