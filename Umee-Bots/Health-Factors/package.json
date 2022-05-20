@@ -2,6 +2,7 @@
   "name": "umee-health-factors-bot",
   "version": "0.0.1",
   "description": "Forta bot that monitors health factors of borrowing positions in the UMEE protocol",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Health-Factors",
   "chainIds": [
     1
   ],
