@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: agpl-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -23,9 +23,12 @@ contract MockLendingPool {
     );
 
     mapping(address => AccountData) accountData;
+    mapping(address => bool) borrowed;
     
-    function mockBorrow(address account, uint256 collateral, uint256 debt, uint256 healthFactor) external {
-        emit Borrow(address(0), account, account, 0, 0, 0, 0);
+    function mockBorrow(address account, uint256 collateral, uint256 debt, uint256 healthFactor) public {
+        if (!borrowed[account]) {
+            emit Borrow(address(0), account, account, 0, 0, 0, 0);
+        }
 
         accountData[account] = AccountData({
             totalCollateralETH: collateral,
@@ -55,5 +58,20 @@ contract MockLendingPool {
             ad.ltv,
             ad.healthFactor
         );
+    }
+
+    function usdToEth(uint256 usd) internal pure returns (uint256) {
+        return (usd * 1e18) / 2000;
+    }
+
+    function generateTestingData1() external {
+        mockBorrow(address(1), usdToEth(1000), usdToEth(1), 10e18);
+        mockBorrow(address(2), usdToEth(2000001), usdToEth(1), 10e18);
+        mockBorrow(address(3), usdToEth(2000001), usdToEth(21), 10e18);
+        mockBorrow(address(4), usdToEth(2000001), usdToEth(21), 1e18);
+    }
+
+    function generateTestingData2() external {
+        mockBorrow(address(3), usdToEth(2000001), usdToEth(21), 1e18);
     }
 }
