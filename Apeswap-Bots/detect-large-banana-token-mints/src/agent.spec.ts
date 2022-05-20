@@ -5,6 +5,7 @@ import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests
 import { threshold } from "./utils";
 import { provideTransactionHandler } from "./agent";
 import { BANANA_CONSTANTS } from "./constants";
+import { formatEther } from "@ethersproject/units";
 const { BANANA_MINT_FUNCTION } = BANANA_CONSTANTS;
 
 const MOCK_TRANSFER_FUNCTION: string =
@@ -124,11 +125,13 @@ describe("Large Banana Token Mints Test Suite", () => {
       .setFrom(MOCK_ACCOUNT_ONE)
       .setBlock(testBlocks[1]);
 
+      const formattedValue = formatEther("100000000000000000000000")
+
     when(mockTotalSupplyFetcher.getTotalSupply).calledWith(testBlocks[1]).mockReturnValue(testBalances[0]);
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, mintAMount.toString()),
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue),
     ]);
   });
 });

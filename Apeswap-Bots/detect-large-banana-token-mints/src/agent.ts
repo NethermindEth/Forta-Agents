@@ -1,5 +1,6 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers, BigNumber } from "ethers";
+import { formatEther } from '@ethersproject/units'
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 import TotalSupplyFetcher from "./total.supply.fetcher";
@@ -44,7 +45,7 @@ export const provideTransactionHandler = (
       const botMetaData = {
         from: from.toString(),
         to: to?.toString(),
-        value: mintAmount.toString(),
+        value: formatEther(amount),
       };
 
       if (mintAmount.mul(threshold).gte(bananaTotalSupply)) {
