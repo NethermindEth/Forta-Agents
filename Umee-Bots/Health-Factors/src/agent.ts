@@ -12,7 +12,7 @@ import { Contract as MulticallContract, Provider as MulticallProvider } from "et
 import BigNumber from "bignumber.js";
 
 import { BORROW_ABI, GET_USER_ACCOUNT_DATA_ABI, LATEST_ANSWER_ABI } from "./constants";
-import { AgentConfig, createFinding, ethersBnToBn } from "./utils";
+import { AccountData, AgentConfig, arrayChunks, createFinding, ethersBnToBn } from "./utils";
 import CONFIG from "./agent.config";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
@@ -50,9 +50,15 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
 
     const ethToUsd = ethersBnToBn(await EthUsdFeed.latestAnswer(), 8);
 
-    const accountsData = (await multicallProvider.all(
+    const accountsData = (await Promise.all(
+      arrayChunks(accounts, 10).map(chunk => {
+        return multicallProvider.all(chunk.map(el => LendingPool.getUserAccountData(el.address)));
+      })
+    )).flat() as AccountData[];
+    
+    (await multicallProvider.all(
       accounts.map((el) => LendingPool.getUserAccountData(el.address))
-    )) as { totalDebtETH: ethers.BigNumber; totalCollateralETH: ethers.BigNumber; healthFactor: ethers.BigNumber }[];
+    )) as AccountData[];
 
     accounts = accounts.filter((account, idx) => {
       const accountData = accountsData[idx];

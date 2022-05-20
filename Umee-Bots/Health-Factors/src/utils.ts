@@ -27,3 +27,19 @@ export function createFinding(address: string, healthFactor: BigNumber, totalCol
 export function ethersBnToBn(value: ethers.BigNumber, decimals: number): BigNumber {
   return new BigNumber(value.toString()).shiftedBy(-decimals);
 }
+
+export function arrayChunks(arr: Array<any>, chunkMaxLength: number) {
+  const chunks = [];
+
+  for (let i = 0; i < arr.length; i += chunkMaxLength) {
+    chunks.push(arr.slice(i, i + chunkMaxLength));
+  }
+
+  return chunks;
+}
+
+export interface AccountData {
+  totalDebtETH: ethers.BigNumber;
+  totalCollateralETH: ethers.BigNumber;
+  healthFactor: ethers.BigNumber;
+}
