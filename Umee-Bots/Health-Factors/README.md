@@ -12,7 +12,7 @@ The agent's behavior can be customized by editing the configuration fields in `s
 ## Alerts
 
 - UMEE-1
-  - Fired when a borrowing position health factor is below a defined threshold and its collateral value is above a defined threshold
+  - Fired when a large borrowing position is close to liquidation
   - Severity is always set to "medium"
   - Type is always set to "info"
   - Metadata:
