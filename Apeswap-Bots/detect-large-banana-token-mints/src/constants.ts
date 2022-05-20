@@ -6,8 +6,6 @@ type contractType = {
   BANANA_CONTRACT_ADDRESS_BSC_TESTNET: string;
   BANANA_MINT_FUNCTION: string;
   BANANA_MINT_FUNCTION_ABI: string[];
-  BANANA_EVENT_ABI: string[];
-  BANANA_MINT_EVENT: string;
   BANANA_TOTAL_SUPPLY_ABI: string[];
 };
 
@@ -17,11 +15,8 @@ export const BANANA_CONSTANTS: contractType = {
   BANANA_CONTRACT_ADDRESS_BSC_TESTNET: "0x4619d472a70868710fa9df96cf29e4b9772e62d9",
   BANANA_MINT_FUNCTION: "function mint(uint256 amount)",
   BANANA_MINT_FUNCTION_ABI: ["function mint(uint256 amount)"],
-  BANANA_EVENT_ABI: ["event Transfer(address from, address to, uint256 value)"],
-  BANANA_MINT_EVENT: "event Transfer (address from, address to, uint256 value)",
   BANANA_TOTAL_SUPPLY_ABI: ["function totalSupply() public view returns (uint256)"],
 };
 
 export const IBANANA: utils.Interface = new utils.Interface(BANANA_CONSTANTS.BANANA_TOTAL_SUPPLY_ABI);
 
-export const IBANANA_EVENT: utils.Interface = new utils.Interface(BANANA_CONSTANTS.BANANA_EVENT_ABI);

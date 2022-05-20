@@ -1,8 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-
 import { BigNumber } from "ethers";
-
 import { BANANA_CONSTANTS } from "./constants";
+
 const { BANANA_MINT_FUNCTION } = BANANA_CONSTANTS;
 
 export type bananaFindingType = {

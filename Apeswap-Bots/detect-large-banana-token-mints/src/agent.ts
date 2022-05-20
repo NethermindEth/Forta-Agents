@@ -1,12 +1,10 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
-import { providers, Contract, BigNumber } from "ethers";
+import { providers, BigNumber } from "ethers";
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 import TotalSupplyFetcher from "./total.supply.fetcher";
 import { createFinding, providerParams, providerParamsType, threshold } from "./utils";
-import { BANANA_CONSTANTS } from "./constants";
 
-const { BANANA_TOTAL_SUPPLY_ABI } = BANANA_CONSTANTS;
 
 const networkManager = new NetworkManager(NETWORK_MAP);
 const ethersProvider: providers.Provider = getEthersProvider();

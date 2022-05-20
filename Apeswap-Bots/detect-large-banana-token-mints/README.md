@@ -6,7 +6,7 @@ This bot detects transactions with large BANANA token mints
 
 ## Supported Chains
 
-- BNBChain
+- Binance Smart Chain
 
 
 ## Alerts
