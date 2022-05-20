@@ -30,9 +30,8 @@ export const provideInitialize = (provider: ethers.providers.Provider): Initiali
 export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const users = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress).map((el) => el.args.onBehalfOf);
-    console.debug(users);
+    
     accounts.push(...users.map((el) => ({ address: el, alerted: false })));
-    console.debug(accounts);
 
     return [];
   };
