@@ -35,7 +35,5 @@
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   },
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40apeswap/large-banana-mint/Apeswap-Bots/detect-large-banana-token-mints"
-
-
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Apeswap-Bots/detect-large-banana-token-mints"
 }
