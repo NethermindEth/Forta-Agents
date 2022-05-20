@@ -1,4 +1,5 @@
 import { BigNumber, Contract, providers } from "ethers";
+import LRU from "lru-cache";
 import NetworkData from "./network";
 import { BANANA_CONSTANTS } from "./constants";
 
@@ -8,11 +9,13 @@ export default class TotalSupplyFetcher {
   provider: providers.Provider;
   private networkManager: NetworkData;
   bananaContract: Contract;
+  private cache: LRU<string, BigNumber>;
 
   constructor(provider: providers.Provider, networkManager: NetworkData) {
     this.provider = provider;
     this.networkManager = networkManager;
     this.bananaContract = new Contract(networkManager.bananaAddress, BANANA_TOTAL_SUPPLY_ABI, provider);
+    this.cache = new LRU<string, BigNumber>({ max: 10000 });
   }
 
   public setBananaContract() {
@@ -22,7 +25,13 @@ export default class TotalSupplyFetcher {
   }
 
   public async getTotalSupply(block: number): Promise<BigNumber> {
-    const totalSupply: Promise<BigNumber> = await this.bananaContract.totalSupply({ blockTag: block });
+    const key: string = `-${block}`;
+    if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
+
+    const totalSupply: BigNumber = await this.bananaContract.totalSupply({
+      blockTag: block,
+    });
+    this.cache.set(key, totalSupply);
     return totalSupply;
   }
 }

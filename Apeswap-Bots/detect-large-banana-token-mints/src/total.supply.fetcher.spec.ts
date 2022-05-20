@@ -4,7 +4,6 @@ import { IBANANA } from "./constants";
 import { BigNumber } from "ethers";
 
 describe("DataFetcher tests suite", () => {
-
   const TEST_CASE: [number, BigNumber][] = [
     [2, BigNumber.from("6000000000000000000000")],
     [3, BigNumber.from("20000000000000000000")],

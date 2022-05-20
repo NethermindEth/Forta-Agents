@@ -6,10 +6,9 @@ import { threshold } from "./utils";
 import { provideTransactionHandler } from "./agent";
 import { BANANA_CONSTANTS } from "./constants";
 import { formatEther } from "@ethersproject/units";
-const { BANANA_MINT_FUNCTION } = BANANA_CONSTANTS;
 
-const MOCK_TRANSFER_FUNCTION: string =
-  "function transfer(address recipient, uint256 amount) public returns (bool)";
+const { BANANA_MINT_FUNCTION } = BANANA_CONSTANTS;
+const MOCK_TRANSFER_FUNCTION: string = "function transfer(address recipient, uint256 amount) public returns (bool)";
 const MOCK_FUNCTION_ABI: string[] = [BANANA_MINT_FUNCTION, MOCK_TRANSFER_FUNCTION];
 const mockProviderParams: string = BANANA_MINT_FUNCTION;
 
@@ -28,7 +27,6 @@ const MOCK_CONSTANTS: mockConstantsType = {
 };
 
 const { IBANANA_MINT_FUNCTION_ABI } = MOCK_CONSTANTS;
-
 const { MOCK_ACCOUNT_ONE, MOCK_ACCOUNT_TWO, MOCK_BANANA_ADDRESS } = MOCK_CONSTANTS;
 
 const mockNetworkManager = {
@@ -56,19 +54,26 @@ export const mockCreateFinding = (from: string, to: string, value: string): Find
   });
 };
 
+const stringAmount1: string = "50000000000000000000000"; // threshold
+const stringAmount2: string = "60000000000000000000000"; // above threshold
+const stringAmount3: string = "70000000000000000000000"; // above threshold
+const stringAmount4: string = "100000000000000000000000"; // mock total supply
+
 describe("Large Banana Token Mints Test Suite", () => {
   let findings: Finding[];
   let txEvent: TransactionEvent;
   let handleTransaction: HandleTransaction;
 
   const testBalances: BigNumber[] = [
-    BigNumber.from("100000000000000000000000"), // total supply
-    BigNumber.from("49999999999999999999999"), // below threshold
+    BigNumber.from(stringAmount1), // threshold
+    BigNumber.from(stringAmount2), // above threshold
+    BigNumber.from(stringAmount3), // above threshold
+    BigNumber.from(stringAmount4), // mock total supply
   ];
 
-  const testBlocks: number[] = [3523543, 341532];
+  const testBlocks: number[] = [341530, 341531, 341532];
 
-  beforeAll(() => {
+  beforeEach(() => {
     handleTransaction = provideTransactionHandler(
       mockProviderParams,
       mockNetworkManager as any,
@@ -91,47 +96,100 @@ describe("Large Banana Token Mints Test Suite", () => {
     });
 
     findings = await handleTransaction(txEvent);
-
     expect(findings).toStrictEqual([]);
   });
 
-  it(`should ignore banana token mints that is less than half of the total supply`, async () => {
-    const mintAMount = BigNumber.from("49999999999999999999999");
+  it("should ignore banana token mint call that is less than the specified mint amount", async () => {
+    const mintAMount = BigNumber.from("10000000000000000000000"); // 10,000 - banana mint amount
+    let specifiedAmount: any = mintAMount.div(threshold);
     txEvent = new TestTransactionEvent()
       .addTraces({
         to: mockNetworkManager.bananaAddress,
-        input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [mintAMount]),
-      })
-      .setTo(mockNetworkManager.bananaAddress)
-      .setFrom(MOCK_ACCOUNT_ONE)
-      .setBlock(testBlocks[0]);
-
-    when(mockTotalSupplyFetcher.getTotalSupply).calledWith(testBlocks[0]).mockReturnValue(testBalances[0]);
-
-    findings = await handleTransaction(txEvent);
-
-    expect(findings).toStrictEqual([]);
-  });
-
-  it(`should return findings only if banana mint amount is above half of total supply`, async () => {
-    const mintAMount: BigNumber = BigNumber.from("100000000000000000000000");
-
-    txEvent = new TestTransactionEvent()
-      .addTraces({
-        to: mockNetworkManager.bananaAddress,
-        input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [mintAMount]),
+        input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [specifiedAmount]),
       })
       .setTo(mockNetworkManager.bananaAddress)
       .setFrom(MOCK_ACCOUNT_ONE)
       .setBlock(testBlocks[1]);
 
-      const formattedValue = formatEther("100000000000000000000000")
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[1] - 1)
+      .mockReturnValue(testBalances[0]);
 
-    when(mockTotalSupplyFetcher.getTotalSupply).calledWith(testBlocks[1]).mockReturnValue(testBalances[0]);
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect BANANA token mints that correspond that to the configurable threshold", async () => {
+    const mintAMount = BigNumber.from("100000000000000000000000"); // 100,000 - mock total supply
+    txEvent = new TestTransactionEvent()
+      .addTraces({
+        to: mockNetworkManager.bananaAddress,
+        input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [mintAMount.div(threshold)]),
+      })
+      .setTo(mockNetworkManager.bananaAddress)
+      .setFrom(MOCK_ACCOUNT_ONE)
+      .setBlock(testBlocks[2]);
+
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[2] - 1)
+      .mockReturnValue(testBalances[0].div(threshold));
+
+    findings = await handleTransaction(txEvent);
+    const formattedValue = formatEther("50000000000000000000000");
+
+    expect(findings).toStrictEqual([
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue),
+    ]);
+  });
+
+  it("should return multiple findings for transactions with BANANA mints exceeding specified threshold", async () => {
+    const formattedValue1 = formatEther(stringAmount1); // 50,000
+    const formattedValue2 = formatEther(stringAmount2); // 60,000
+    const formattedValue3 = formatEther(stringAmount3); // 70,000
+    const formattedValue4 = formatEther(stringAmount4); // 100,000
+
+    txEvent = new TestTransactionEvent()
+      .addTraces(
+        {
+          to: mockNetworkManager.bananaAddress,
+          input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [testBalances[0]]),
+        },
+        {
+          to: mockNetworkManager.bananaAddress,
+          input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [testBalances[1]]),
+        },
+        {
+          to: mockNetworkManager.bananaAddress,
+          input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [testBalances[2]]),
+        },
+        {
+          to: mockNetworkManager.bananaAddress,
+          input: IBANANA_MINT_FUNCTION_ABI.encodeFunctionData("mint", [testBalances[3]]),
+        }
+      )
+      .setTo(mockNetworkManager.bananaAddress)
+      .setFrom(MOCK_ACCOUNT_ONE)
+      .setBlock(testBlocks[2]);
+
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[2] - 1)
+      .mockReturnValue(testBalances[0]);
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[2] - 1)
+      .mockReturnValue(testBalances[1]);
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[2] - 1)
+      .mockReturnValue(testBalances[2]);
+    when(mockTotalSupplyFetcher.getTotalSupply)
+      .calledWith(testBlocks[2] - 1)
+      .mockReturnValue(testBalances[3]);
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue),
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue1),
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue2),
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue3),
+      mockCreateFinding(MOCK_ACCOUNT_ONE, mockNetworkManager.bananaAddress, formattedValue4),
     ]);
   });
 });

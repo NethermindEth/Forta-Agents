@@ -19,4 +19,3 @@ export const BANANA_CONSTANTS: contractType = {
 };
 
 export const IBANANA: utils.Interface = new utils.Interface(BANANA_CONSTANTS.BANANA_TOTAL_SUPPLY_ABI);
-

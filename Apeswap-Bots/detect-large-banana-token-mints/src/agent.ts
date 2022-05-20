@@ -1,15 +1,13 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers, BigNumber } from "ethers";
-import { formatEther } from '@ethersproject/units'
+import { formatEther } from "@ethersproject/units";
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
 import TotalSupplyFetcher from "./total.supply.fetcher";
 import { createFinding, providerParams, providerParamsType, threshold } from "./utils";
 
-
 const networkManager = new NetworkManager(NETWORK_MAP);
-const ethersProvider: providers.Provider = getEthersProvider();
-const totalSupplyFetcher: TotalSupplyFetcher = new TotalSupplyFetcher(ethersProvider, networkManager);
+const totalSupplyFetcher: TotalSupplyFetcher = new TotalSupplyFetcher(getEthersProvider(), networkManager);
 
 export const initialize = (provider: providers.Provider) => {
   return async () => {
@@ -19,8 +17,6 @@ export const initialize = (provider: providers.Provider) => {
   };
 };
 
-export let exportedNetwork: string;
-
 export const provideTransactionHandler = (
   functionAbi: providerParamsType,
   networkData: NetworkData,
@@ -29,10 +25,8 @@ export const provideTransactionHandler = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
     const txLogs = txEvent.filterFunction(functionAbi, networkData.bananaAddress);
-
-    const bananaTotalSupply: BigNumber = await supplyFetcher.getTotalSupply(txEvent.blockNumber);
+    const bananaTotalSupply: BigNumber = await supplyFetcher.getTotalSupply(txEvent.blockNumber - 1);
 
     txLogs.forEach((txLog: any) => {
       const { transaction } = txEvent;
@@ -41,7 +35,6 @@ export const provideTransactionHandler = (
       const [amount] = args;
 
       const mintAmount: BigNumber = BigNumber.from(amount);
-
       const botMetaData = {
         from: from.toString(),
         to: to?.toString(),
@@ -58,5 +51,5 @@ export const provideTransactionHandler = (
 
 export default {
   handleTransaction: provideTransactionHandler(providerParams, networkManager, totalSupplyFetcher, threshold),
-  initialize: initialize(ethersProvider),
+  initialize: initialize(getEthersProvider()),
 };

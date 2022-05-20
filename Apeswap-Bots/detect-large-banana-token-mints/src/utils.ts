@@ -10,7 +10,7 @@ export type bananaFindingType = {
   value: string;
 };
 
-export const threshold: BigNumber = BigNumber.from(2);  //2 means TotalSupply/2
+export const threshold: BigNumber = BigNumber.from(2); // 2 means totalSupply divided by 2
 
 export type providerParamsType = string;
 export const providerParams: providerParamsType = BANANA_MINT_FUNCTION;
