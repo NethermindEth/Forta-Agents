@@ -16,9 +16,9 @@ export default class BalanceFetcher {
       max: 10000,
     });
     this.networkManager = networkManager;
-
     this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_IFACE, this.provider);
   }
+
   public setTokenContract() {
     if (this.tokenContract.address != this.networkManager.dydxAddress) {
       this.tokenContract = new Contract(this.networkManager.dydxAddress, BALANCE_IFACE, this.provider);
