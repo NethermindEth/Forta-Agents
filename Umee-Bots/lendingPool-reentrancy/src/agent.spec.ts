@@ -47,12 +47,12 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("Should return empty findings if no repetition detected", async () => {
+    it("Should return empty findings if no reentrant call from signatures array detected", async () => {
       const tx: TransactionEvent = createTxEvent([
-        createTrace([]), // 0x0 -- Initial call
-        createTrace([0]), //    Calls 0x1
-        createTrace([0, 0]), //    Calls 0x2
-        createTrace([0, 0, 0]), //    Calls 0x3
+        createTrace([]),
+        createTrace([0]),
+        createTrace([0, 0]),
+        createTrace([0, 0, 0]),
       ]);
       const findings: Finding[] = await handleTx(tx);
       expect(findings).toStrictEqual([]);
