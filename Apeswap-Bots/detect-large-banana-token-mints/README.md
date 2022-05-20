@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with large Banana mints
+This bot detects transactions with large BANANA token mints
 
 ## Supported Chains
 
@@ -14,17 +14,17 @@ This bot detects transactions with large Banana mints
 Describe each of the type of alerts fired by this agent
 
 - APESWAP-1
-  - Fired when a transaction contains a BANANA token mint exceeding  20,000 
+  - Fired when a transaction contains a BANANA token mint equals to or greater than half of BANANA token's total supply
   - Severity is always set to "Info" 
   - Type is always set to "Info" 
   - Metadata contains the following field: 
-    - `value`: the minted amount of BANANA tokens
     - `from`: the address of the initiator of the transaction
     - `to`: BANANA token contract address
+    - `value`: the minted amount of BANANA tokens
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The agent behaviour can be verified with the following transaction:
 
-- 0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9 (25,000 BANANA )
+- [0x16a4c5bfaae3669b1d45e61726d5fdfdfbec91ac7822b78d6a70db48d4a7ff40](https://testnet.bscscan.com/tx/0x16a4c5bfaae3669b1d45e61726d5fdfdfbec91ac7822b78d6a70db48d4a7ff40) - `PoC Binance Smart Chain Testnet` 
 

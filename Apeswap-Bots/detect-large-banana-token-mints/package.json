@@ -1,7 +1,7 @@
 {
   "name": "apeswap-1",
   "version": "0.0.1",
-  "description": "Detects large BANANA mints",
+  "description": "Detects large BANANA token mints that is equals to or greater than half of BANANA token supply",
   "chainIds": [
     56
   ],

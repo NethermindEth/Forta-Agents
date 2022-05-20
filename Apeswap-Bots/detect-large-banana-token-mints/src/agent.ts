@@ -1,48 +1,55 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { providers, Contract, BigNumber } from "ethers";
+import NetworkManager, { NETWORK_MAP } from "./network";
+import NetworkData from "./network";
+import TotalSupplyFetcher from "./total.supply.fetcher";
+import { createFinding, providerParams, providerParamsType, threshold } from "./utils";
+import { BANANA_CONSTANTS } from "./constants";
 
-import { formatEther } from "@ethersproject/units";
+const { BANANA_TOTAL_SUPPLY_ABI } = BANANA_CONSTANTS;
 
-import { createFinding, contractMetaData, contractType } from "./utils";
+const networkManager = new NetworkManager(NETWORK_MAP);
+const ethersProvider: providers.Provider = getEthersProvider();
+const totalSupplyFetcher: TotalSupplyFetcher = new TotalSupplyFetcher(ethersProvider, networkManager);
 
-import { GLOBALS } from "./constants";
+export const initialize = (provider: providers.Provider) => {
+  return async () => {
+    const { chainId } = await provider.getNetwork();
+    networkManager.setNetwork(chainId);
+    totalSupplyFetcher.setBananaContract();
+  };
+};
 
-const { BANANA_MINT_FUNCTION, BANANA_MINT_AMOUNT } = GLOBALS;
 export let exportedNetwork: string;
 
-const mintTxHandler = (functionAbi: string | string[], contractInfo: contractType): HandleTransaction => {
+export const provideTransactionHandler = (
+  functionAbi: providerParamsType,
+  networkData: NetworkData,
+  supplyFetcher: TotalSupplyFetcher,
+  threshold: BigNumber
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const bananaMints = txEvent.filterFunction(functionAbi);
+    const txLogs = txEvent.filterFunction(functionAbi, networkData.bananaAddress);
 
-    bananaMints.forEach((bananaMint) => {
-      const { transaction, network } = txEvent;
+    const bananaTotalSupply: BigNumber = await supplyFetcher.getTotalSupply(txEvent.blockNumber);
 
-      const txTo: string | undefined = transaction.to?.toString();
-
-      const { args } = bananaMint;
+    txLogs.forEach((txLog: any) => {
+      const { transaction } = txEvent;
+      const { to, from } = transaction;
+      const { args } = txLog;
       const [amount] = args;
 
-      const txValue: string = formatEther(amount);
+      const mintAmount: BigNumber = BigNumber.from(amount);
 
       const botMetaData = {
-        from: transaction.from,
-        to: txTo,
-        value: txValue,
-        network: network.toString(),
+        from: from.toString(),
+        to: to?.toString(),
+        value: mintAmount.toString(),
       };
 
-      const txValueToNum: number = parseFloat(txValue);
-
-      if (txValueToNum >= BANANA_MINT_AMOUNT) {
+      if (mintAmount.mul(threshold).gte(bananaTotalSupply)) {
         findings.push(createFinding(botMetaData));
       }
     });
@@ -51,7 +58,6 @@ const mintTxHandler = (functionAbi: string | string[], contractInfo: contractTyp
 };
 
 export default {
-  handleTransaction: mintTxHandler(BANANA_MINT_FUNCTION, contractMetaData),
+  handleTransaction: provideTransactionHandler(providerParams, networkManager, totalSupplyFetcher, threshold),
+  initialize: initialize(ethersProvider),
 };
-
-export { mintTxHandler };

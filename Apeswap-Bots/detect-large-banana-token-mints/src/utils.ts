@@ -1,49 +1,33 @@
-import { Finding, FindingSeverity, FindingType, LogDescription, ethers } from "forta-agent";
-import { GLOBALS } from "./constants";
-const { BANANA_CONTRACT_ADDRESS_BNBCHAIN } = GLOBALS;
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-type mintFunctionDetails = {
-  args: ethers.utils.Result;
-  name: string;
-};
+import { BigNumber } from "ethers";
 
-type bananaFindingMetaData = {
+import { BANANA_CONSTANTS } from "./constants";
+const { BANANA_MINT_FUNCTION } = BANANA_CONSTANTS;
+
+export type bananaFindingType = {
   from: string;
-  to?: string;
+  to: string | undefined;
   value: string;
-  network?: string;
 };
 
-type contractType = {
-  address: string;
-};
+export const threshold: BigNumber = BigNumber.from(2);  //2 means TotalSupply/2
 
-const contractMetaData: contractType = {
-  address: BANANA_CONTRACT_ADDRESS_BNBCHAIN,
-};
+export type providerParamsType = string;
+export const providerParams: providerParamsType = BANANA_MINT_FUNCTION;
 
-const createFinding = (mintInfo: bananaFindingMetaData): Finding => {
-  let txNetwork: string = "";
-  if (mintInfo.network === "56") {
-    txNetwork = "BNB Chain";
-  } else {
-    txNetwork = "Polygon";
-  }
+export const createFinding = (findingMetadata: bananaFindingType): Finding => {
   return Finding.fromObject({
     name: "detect banana mint",
-    description: `${mintInfo.value} banana minted`,
+    description: `${findingMetadata.value} amount of banana mint detected`,
     alertId: "APESWAP-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",
-
     metadata: {
-      from: mintInfo.from,
-      to: mintInfo.to || "",
-      value: mintInfo.value || "",
-      network: txNetwork,
+      from: findingMetadata.from,
+      to: findingMetadata.to || "",
+      value: findingMetadata.value,
     },
   });
 };
-
-export { createFinding, mintFunctionDetails, bananaFindingMetaData, contractType, contractMetaData };
