@@ -30,7 +30,7 @@ export const provideInitialize = (provider: ethers.providers.Provider): Initiali
 export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const users = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress).map((el) => el.args.onBehalfOf);
-    
+
     accounts.push(...users.map((el) => ({ address: el, alerted: false })));
 
     return [];
@@ -50,15 +50,16 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
 
     const ethToUsd = ethersBnToBn(await EthUsdFeed.latestAnswer(), 8);
 
-    const accountsData = (await Promise.all(
-      arrayChunks(accounts, 10).map(chunk => {
-        return multicallProvider.all(chunk.map(el => LendingPool.getUserAccountData(el.address)));
-      })
-    )).flat() as AccountData[];
-    
-    (await multicallProvider.all(
-      accounts.map((el) => LendingPool.getUserAccountData(el.address))
-    )) as AccountData[];
+    // divide accounts into chunks and make multiple multicalls if necessary so a large multicall is avoided
+    const accountsData = (
+      await Promise.all(
+        arrayChunks(accounts, 10).map((chunk) => {
+          return multicallProvider.all(chunk.map((el) => LendingPool.getUserAccountData(el.address)));
+        })
+      )
+    ).flat() as AccountData[];
+
+    (await multicallProvider.all(accounts.map((el) => LendingPool.getUserAccountData(el.address)))) as AccountData[];
 
     accounts = accounts.filter((account, idx) => {
       const accountData = accountsData[idx];
@@ -73,12 +74,14 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
       const lowHealthFactor = healthFactor.isLessThan(config.healthFactorThreshold);
       const largeCollateralAmount = totalCollateralUsd.isGreaterThan(config.upperThreshold);
 
-      if (lowHealthFactor && largeCollateralAmount) {
-        if (!account.alerted) {
+      if (lowHealthFactor) {
+        if (!account.alerted && largeCollateralAmount) {
           findings.push(createFinding(account.address, healthFactor, totalCollateralUsd));
           account.alerted = true;
         }
       } else if (account.alerted) {
+        // if a previously underwater borrow is now properly repaid, make it eligible again for a possible
+        // future finding
         account.alerted = false;
       }
 
