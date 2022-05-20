@@ -23,4 +23,12 @@ const CONFIG: AgentConfig = {
 // CONFIG.healthFactorThreshold = "10000000";
 // CONFIG.upperThreshold = "0";
 
+// Uncomment these lines for the testnet test:
+
+// CONFIG.ignoreThreshold = "20";
+// CONFIG.healthFactorThreshold = "1.05";
+// CONFIG.upperThreshold = "2000000";
+// CONFIG.ethUsdFeedAddress = "0xb353f73709F0DC15Fb9AD9Fb96658a4EBe8aE3BA";
+// CONFIG.lendingPoolAddress = "0xc1c7352b164498c000Fac3990e0687cC5369646c";
+
 export default CONFIG;
