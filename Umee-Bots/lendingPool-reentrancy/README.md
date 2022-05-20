@@ -2,7 +2,7 @@
 
 ## Description
 
-Detects reentrancy in any call to LendingProtocol. If that’s the case, emits an alert.
+Detects reentrancy inside LendingProtocol smart contract. If the call is a reentrant call function inside the `FUNCTIONS_SELECTORS` array.
 
 ## Supported Chains
 
@@ -10,9 +10,10 @@ Detects reentrancy in any call to LendingProtocol. If that’s the case, emits a
 
 ## Alerts
 
-- Um-09
-  - Fired when in a transaction occur multiples nested calls to the same contract (reentrancy)
-  - Severity is always set to "High".
-  - Type is always set to "Exploit".
+- UMEE-9
+  - Fired when in a transaction occur multiple nested calls to the same contract (reentrancy)
+  - Severity is always set to "High."
+  - Type is always set to "Exploit."
   - Metadata contains:
-    - transactionName: The transaction name
+    - initialCallSelector: The selector of the function that calls the `LendingPool` smart contract
+    - lendingPoolCallSelector: The selector of the first reentrancy case on the `LendingPool` smart contract
