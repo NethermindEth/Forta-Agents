@@ -1,7 +1,7 @@
 {
   "name": "um-9", 
   "version": "0.0.1",
-  "description": "Detects reentrancy in any call to LendingProtocol. If that’s the case, emits an alert.",
+  "description": "Detects reentrancy in reentrant calls inside LendingProtocol smart contract. If that’s the case, emits an alert.",
   "chainIds": [1],
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/umee/UM09-lendingpool-Reentrancy",
   "scripts": {
