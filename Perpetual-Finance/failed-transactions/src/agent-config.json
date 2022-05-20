@@ -1,0 +1,6 @@
+{
+  "failedTransactions": {
+    "blockWindow": 4,
+    "failedTxLimit": 10
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "adminEvents" : {
+    "AccountBalance": {
+      "ClearingHouseChanged" : {"type": "Suspicious", "severity": "High"}
+    },
+    "ClearingHouse": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "ClearingHouseConfig": {
+      "LiquidationPenaltyRatioChanged" : {"type": "Suspicious", "severity": "Low"},
+      "MaxMarketsPerAccountChanged" : {"type": "Suspicious", "severity": "Low"},
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"},
+      "PartialCloseRatioChanged" : {"type": "Suspicious", "severity": "Low"},
+      "TwapIntervalChanged" : {"type": "Suspicious", "severity": "Low"}
+    },
+    "Exchange": {
+      "ClearingHouseChanged" : {"type": "Suspicious", "severity": "High"},
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "InsuranceFund": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "MarketRegistry": {
+      "ClearingHouseChanged" : {"type": "Suspicious", "severity": "High"},
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "OrderBook": {
+      "ClearingHouseChanged" : {"type": "Suspicious", "severity": "High"},
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "UniswapV3Factory": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "Vault": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "vBTC": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "vETH": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    },
+    "vUSD": {
+      "OwnershipTransferred" : {"type": "Suspicious", "severity": "High"}
+    }
+  }
+}
