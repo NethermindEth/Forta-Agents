@@ -19,7 +19,6 @@ const LENDING_POOL_IFACE = new ethers.utils.Interface([BORROW_ABI, GET_USER_ACCO
 const FEED_IFACE = new ethers.utils.Interface([LATEST_ANSWER_ABI]);
 const MULTICALL_IFACE = new ethers.utils.Interface([AGGREGATE_ABI]);
 const ETH_TO_USD = ethers.BigNumber.from("200000000000");
-const _1E8 = ethers.BigNumber.from(10).pow(8);
 
 function strToWadBn(value: string): ethers.BigNumber {
   return ethers.BigNumber.from(new BigNumber(value).shiftedBy(18).integerValue().toString(10));
@@ -73,8 +72,8 @@ function generateMockProviderCall(
         ethers.BigNumber.from("0"),
         accountsData.map((el) => {
           return LENDING_POOL_IFACE.encodeFunctionResult(LENDING_POOL_IFACE.getFunction("getUserAccountData"), [
-            strToWadBn(el.totalCollateralUsd).mul(_1E8).div(ETH_TO_USD),
-            strToWadBn(el.totalDebtUsd).mul(_1E8).div(ETH_TO_USD),
+            strToWadBn(el.totalCollateralUsd).mul(ethers.BigNumber.from(10).pow(8)).div(ETH_TO_USD),
+            strToWadBn(el.totalDebtUsd).mul(ethers.BigNumber.from(10).pow(8)).div(ETH_TO_USD),
             ethers.BigNumber.from("0"),
             ethers.BigNumber.from("0"),
             ethers.BigNumber.from("0"),
