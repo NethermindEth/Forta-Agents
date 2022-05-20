@@ -16,6 +16,7 @@ export function createFinding(address: string, healthFactor: BigNumber, totalCol
     description: "An account with large collateral is close to being liquidated",
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
+    protocol: "Umee",
     metadata: {
       address,
       healthFactor: healthFactor.decimalPlaces(5).toString(),
