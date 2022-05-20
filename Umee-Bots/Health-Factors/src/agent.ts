@@ -80,8 +80,8 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
           account.alerted = true;
         }
       } else if (account.alerted) {
-        // if a previously underwater borrow is now properly repaid, make it eligible again for a possible
-        // future finding
+        // if a previously almost underwater borrow is now above the health factor threshold, make it
+        // eligible again for a possible future finding
         account.alerted = false;
       }
 
