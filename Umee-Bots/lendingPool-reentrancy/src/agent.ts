@@ -3,7 +3,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import utils from "./utils";
 
 export const handleTransaction =
-  (contractAddress: string, reenterancyFunctionsSignatures: string[]): HandleTransaction =>
+  (contractAddress: string, reentrancyFunctionsSelectors: string[]): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const { traces } = txEvent;
@@ -15,17 +15,17 @@ export const handleTransaction =
         let j;
 
         for (j = i + 1; j < traces.length; j++) {
-          if (traces[j].traceAddress.length === depth) {
-            i = j;
+          if (traces[j].traceAddress.length <= depth) {
+            i = j - 1;
             break; // subtree ended
           }
           if (traces[j].action.to === contractAddress) {
-            reenterancyFunctionsSignatures.map((functionSignature) => {
-              try {
-                utils.FUNCTIONS_INTERFACE.decodeFunctionData(functionSignature.split("(")[0], txEvent.transaction.data);
-                findings.push(utils.createFinding(functionSignature.split("(")[0]));
-              } catch (e) {}
-            });
+            const selector = (traces[j].action.input || "").slice(0, 10); // "0x" and first 4 bytes
+            if (reentrancyFunctionsSelectors.includes(selector)) {
+              const initialCallSelector = (txEvent.transaction.data || "").slice(0, 10);
+              findings.push(utils.createFinding(initialCallSelector, selector));
+              break;
+            }
           }
         }
       }
@@ -34,5 +34,5 @@ export const handleTransaction =
   };
 
 export default {
-  handleTransaction: handleTransaction(utils.LENDING_POOL_ADDRESS, utils.REENTERANCY_FUNCTIONS_SIGNATURES),
+  handleTransaction: handleTransaction(utils.LENDING_POOL_ADDRESS, utils.REENTRANCY_FUNCTIONS_SELECTORS),
 };
