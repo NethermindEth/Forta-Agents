@@ -1,6 +1,8 @@
 pragma solidity 0.6.12;
 
 // Deployed at https://kovan.etherscan.io/address/0x090827268693f002e0F9b6976dDBCf34b3e40C51
+// Attack Transaction at https://kovan.etherscan.io/tx/0x96c41625872b757a98a4b0d6e646ac6bbb0abc92c694996ece82e1df529a03b0
+
 interface IERC20 {
     function approve(address spender, uint256 amount) external;
 }
