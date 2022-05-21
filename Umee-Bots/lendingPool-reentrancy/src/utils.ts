@@ -2,7 +2,7 @@ import { Interface } from "@ethersproject/abi";
 
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-const LENDING_POOL_ADDRESS = "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa";
+const LENDING_POOL_ADDRESS = "0x3526a2fe5dA32d0f0814086848628bF12A1E4417";
 
 const REENTRANCY_FUNCTIONS_SIGNATURES: string[] = [
   "borrow(address,uint256,uint256,uint16,address)",
@@ -18,7 +18,6 @@ const REENTRANCY_FUNCTIONS_SIGNATURES: string[] = [
 ];
 const REENTRANCY_FUNCTIONS_ABI: string[] = [
   "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
-  "function withdraw(address asset,uint256 amount,address to)",
   "function borrow(address asset,uint256 amount,uint256 interestRateMode,uint16 referralCode,address onBehalfOf)",
   "function repay(address asset,uint256 amount,uint256 rateMode,address onBehalfOf)",
   "function swapBorrowRateMode(address asset, uint256 rateMode)",
