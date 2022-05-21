@@ -26,8 +26,8 @@ This bot detects transactions with large BANANA token mints
 
 The bot behaviour can be verified with the following transactions:
 
-- [0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9](https://www.bscscan.com/tx/0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9) `Binance Smart Chain Mainnet` - 
-bot can be configured to detect the `25000` BANANA tokens minted by this [transaction](https://www.bscscan.com/tx/0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9) by modifying threshold detection logic in `agent.ts L44` thus:
+- [0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9](https://www.bscscan.com/tx/0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9) `Binance Smart Chain Mainnet` 
+> bot can be configured to detect the `25000` BANANA tokens minted by this [transaction](https://www.bscscan.com/tx/0x63b996196eaff9bc14983fd9c4fcf9b6d64762b499bd1a78346045291f4535e9) by modifying threshold detection logic in `agent.ts L44` thus:
 ```
  if (mintAmount.gte(threshold)) {
     findings.push(createFinding(botMetaData));

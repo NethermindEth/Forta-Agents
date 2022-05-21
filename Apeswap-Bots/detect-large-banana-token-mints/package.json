@@ -1,9 +1,11 @@
 {
   "name": "apeswap-1",
   "version": "0.0.1",
-  "description": "Detects large BANANA token mints that is equals to or greater than half of BANANA token supply",
+  "description": " This bot detects transactions that mints large BANANA tokens mints",
   "chainIds": [
-    56
+    56, 
+    137, 
+    97
   ],
   "scripts": {
     "build": "tsc",
