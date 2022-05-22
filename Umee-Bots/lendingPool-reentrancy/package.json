@@ -1,5 +1,5 @@
 {
-  "name": "um-9", 
+  "name": "umee-9",
   "version": "0.0.1",
   "description": "Detects reentrancy in reentrant calls inside LendingProtocol smart contract. If that’s the case, emits an alert.",
   "chainIds": [1],
