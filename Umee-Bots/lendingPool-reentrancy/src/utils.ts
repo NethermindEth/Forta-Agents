@@ -38,7 +38,7 @@ const REENTRANCY_FUNCTIONS_SELECTORS = Object.values(FUNCTIONS_INTERFACE.functio
 const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
   return Finding.fromObject({
     name: "Detect Lending Pool Reentrancy",
-    description: `Detect when a reentrancy happened in the LendingPool contract`,
+    description: "Detect when a reentrancy happened in the LendingPool contract",
     alertId: "UMEE-9",
     type: FindingType.Exploit,
     severity: FindingSeverity.High,
