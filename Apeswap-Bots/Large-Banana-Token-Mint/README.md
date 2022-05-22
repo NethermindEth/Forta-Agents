@@ -10,7 +10,6 @@ This bot detects transactions with large BANANA token mints
 - Polygon
 
 
-
 ## Alerts
 
 - APESWAP-1
@@ -21,6 +20,7 @@ This bot detects transactions with large BANANA token mints
     - `from`: the address of the initiator of the transaction
     - `to`: BANANA token contract address
     - `value`: the minted amount of BANANA tokens
+
 
 ## Test Data
 

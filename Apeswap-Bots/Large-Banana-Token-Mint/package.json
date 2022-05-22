@@ -1,7 +1,7 @@
 {
   "name": "apeswap-1",
   "version": "0.0.1",
-  "description": " This bot detects transactions that mints large BANANA tokens mints",
+  "description": "This bot detects transactions that mint large BANANA tokens",
   "chainIds": [
     56, 
     137, 
