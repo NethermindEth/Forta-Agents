@@ -4,24 +4,16 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 const LENDING_POOL_ADDRESS = "0x3526a2fe5dA32d0f0814086848628bF12A1E4417";
 
-const REENTRANCY_FUNCTIONS_ABI: string[] = [
-  "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
-  "function borrow(address asset,uint256 amount,uint256 interestRateMode,uint16 referralCode,address onBehalfOf)",
-  "function repay(address asset,uint256 amount,uint256 rateMode,address onBehalfOf)",
-  "function swapBorrowRateMode(address asset, uint256 rateMode)",
-  "function rebalanceStableBorrowRate(address asset, address user)",
-  "function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)",
-  "function withdraw(address asset,uint256 amount,address to)",
-  "function liquidationCall(address collateralAsset,address debtAsset,address user,uint256 debtToCover,bool receiveUToken)",
-  "function flashLoan(address receiverAddress,address[] calldata assets,uint256[] calldata amounts,uint256[] calldata modes,address onBehalfOf,bytes calldata params,uint16 referralCode)",
-  "function finalizeTransfer(address asset,address from,address to,uint256 amount,uint256 balanceFromBefore,uint256 balanceToBefore)",
+const UMEE_FUNCTIONS_ABI: string[] = [
+  "function getReservesList() external view override returns (address[] memory)",
+  "function getSourceOfAsset(address asset) external view returns (address",
 ];
 
-const FUNCTIONS_INTERFACE = new Interface(REENTRANCY_FUNCTIONS_ABI);
+const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
 
-const REENTRANCY_FUNCTIONS_SELECTORS = Object.values(FUNCTIONS_INTERFACE.functions).map((el) =>
-  FUNCTIONS_INTERFACE.getSighash(el)
-);
+const getAssetSourceLatestTimeStamp = async()=>{
+
+}
 
 const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
   return Finding.fromObject({
@@ -40,6 +32,6 @@ const createFinding = (initialCallSelector: string, lendingPoolCallSelector: str
 export default {
   LENDING_POOL_ADDRESS,
   FUNCTIONS_INTERFACE,
-  REENTRANCY_FUNCTIONS_SELECTORS,
+  UMEE_FUNCTIONS_ABI,
   createFinding,
 };
