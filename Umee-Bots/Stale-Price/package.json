@@ -1,5 +1,5 @@
 {
-  "name": "um-3", 
+  "name": "umee-3", 
   "version": "0.0.1",
   "description": "Detect stale price data from Chainlink aggregator",
   "chainIds": [1],
