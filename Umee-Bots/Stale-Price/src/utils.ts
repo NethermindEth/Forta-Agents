@@ -4,18 +4,6 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 const LENDING_POOL_ADDRESS = "0x3526a2fe5dA32d0f0814086848628bF12A1E4417";
 
-const REENTRANCY_FUNCTIONS_SIGNATURES: string[] = [
-  "borrow(address,uint256,uint256,uint16,address)",
-  "withdraw(address,uint256,address)",
-  "flashLoan(address,address[],uint256[],uint256[],address,bytes,uint16)",
-  "deposit(address,uint256,address,uint16)",
-  "repay(address,uint256,uint256,address)",
-  "swapBorrowRateMode(address,uint256)",
-  "rebalanceStableBorrowRate(address,address)",
-  "setUserUseReserveAsCollateral(address, bool)",
-  "liquidationCall(address,address,address,uint256,bool)",
-  "finalizeTransfer(address,address,address,uint256,uint256,uint256)",
-];
 const REENTRANCY_FUNCTIONS_ABI: string[] = [
   "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
   "function borrow(address asset,uint256 amount,uint256 interestRateMode,uint16 referralCode,address onBehalfOf)",
@@ -37,11 +25,11 @@ const REENTRANCY_FUNCTIONS_SELECTORS = Object.values(FUNCTIONS_INTERFACE.functio
 
 const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
   return Finding.fromObject({
-    name: "Detect Lending Pool Reentrancy",
-    description: `Detect when a reentrancy happened in the LendingPool contract`,
-    alertId: "UMEE-9",
-    type: FindingType.Exploit,
-    severity: FindingSeverity.High,
+    name: "Detect stale price data from Chainlink aggregator",
+    description: "Stale price data is detected from Chainlink aggregator",
+    alertId: "UMEE-3",
+    type: FindingType.Info,
+    severity: FindingSeverity.Low,
     metadata: {
       initialCallSelector,
       lendingPoolCallSelector,
@@ -52,7 +40,6 @@ const createFinding = (initialCallSelector: string, lendingPoolCallSelector: str
 export default {
   LENDING_POOL_ADDRESS,
   FUNCTIONS_INTERFACE,
-  REENTRANCY_FUNCTIONS_SIGNATURES,
   REENTRANCY_FUNCTIONS_SELECTORS,
   createFinding,
 };
