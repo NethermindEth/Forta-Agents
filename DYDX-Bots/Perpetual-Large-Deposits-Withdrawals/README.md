@@ -84,8 +84,8 @@ The following test transactions generated through our `PoC` contracts:
 - 0xde143e68cfd5ad370f9a69a421b78ef491701d15920e57aa7d3012c7d5115fc3 (`LogDeposit` event)
 
   - `quantizedAmount`: 1200000 (12% of total balance).
-  - `STATIC` mode returns a finding when `thresholdData` in config.ts, L12 is set to or less.
-  - `PERCENTAGE` mode returns a finding when `thresholdData` in config.ts, L19 is set to or less.
+  - `STATIC` mode returns a finding when `thresholdData` in config.ts, L12 is set to `1200000` or less.
+  - `PERCENTAGE` mode returns a finding when `thresholdData` in config.ts, L19 is set to `12%` or less.
 
 - 0xd59936486ca06ebc4fb19d6fa79b9f176fdf89b781c9b3969368eea1b1c8f9f7 (`LogWithdrawalPerformed` event)
 

@@ -13,7 +13,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
       metadata: {
         quantizedAmount: args.quantizedAmount.toString(),
         starkKey: args.starkKey.toHexString(),
-        token: token,
+        token: token.toLowerCase(),
       },
     });
   else if (name === "LogWithdrawalPerformed")
