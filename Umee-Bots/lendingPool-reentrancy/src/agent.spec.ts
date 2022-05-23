@@ -16,7 +16,6 @@ import CONFIG from "./agent.config";
 import { handleTransaction } from "./agent";
 import utils from "./utils";
 
-
 const createTrace = (stack: number[], input = ""): Trace => {
   return {
     traceAddress: stack,
