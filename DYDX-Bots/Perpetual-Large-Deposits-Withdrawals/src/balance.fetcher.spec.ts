@@ -23,6 +23,7 @@ const TEST_DATA: [BigNumber, string][] = [
 const perpetualProxy = createAddress("0xa1");
 const assetType: BigNumber = BigNumber.from(0xfede);
 const tokenAddress = createAddress("0xa2");
+const BALANCE_IFACE = new Interface(ERC20_TOKEN_ABI);
 
 describe("BalanceFetcher tests suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
@@ -49,7 +50,7 @@ describe("BalanceFetcher tests suite", () => {
     fetcher.setData(assetType, tokenAddress);
 
     for (let [block, balance] of TEST_BALANCES) {
-      mockProvider.addCallTo(tokenAddress, block, new Interface(ERC20_TOKEN_ABI), "balanceOf", {
+      mockProvider.addCallTo(tokenAddress, block, BALANCE_IFACE, "balanceOf", {
         inputs: [perpetualProxy],
         outputs: [balance],
       });

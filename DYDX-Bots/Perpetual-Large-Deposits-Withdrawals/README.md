@@ -19,7 +19,7 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
 
 - DYDX-1-1
 
-- Fired when `LogDeposit` event is emitted on dYdX perpetual contract with a large quantizied amount.
+- Fired when `LogDeposit` event is emitted on dYdX perpetual contract with a large quantized amount.
 - Severity is always set to "Info".
 - Type is always set to "Info".
 - Metadata contains:
@@ -30,7 +30,7 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
 
 - DYDX-1-2
 
-  - Fired when `LogWithdrawalPerformed` event is emitted on dYdX perpetual contract with a large quantizied amount.
+  - Fired when `LogWithdrawalPerformed` event is emitted on dYdX perpetual contract with a large quantized amount.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
@@ -41,7 +41,7 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
 
 - DYDX-1-3
 
-  - Fired when `LogMintWithdrawalPerformed` event is emitted on dYdX perpetual contract with a large quantizied amount.
+  - Fired when `LogMintWithdrawalPerformed` event is emitted on dYdX perpetual contract with a large quantized amount.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
