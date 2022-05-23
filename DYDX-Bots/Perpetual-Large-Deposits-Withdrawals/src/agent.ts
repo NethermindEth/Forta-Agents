@@ -11,7 +11,7 @@ const networkManager = new NetworkManager(NETWORK_MAP);
 let balanceFetcher = new BalanceFetcher(getEthersProvider(), networkManager);
 
 const provideInitialize = (tokenFetcher: TokenAddressFetcher) => async () => {
-  // set sata based on networkId.
+  // set data based on networkId.
   const { chainId } = await tokenFetcher.provider.getNetwork();
   networkManager.setNetwork(chainId);
 

@@ -9,7 +9,7 @@ export interface BotConfig {
 // Update `thresholdData` to ajust the threshold amount used by the bot.
 export const STATIC_CONFIG: BotConfig = {
   mode: "STATIC",
-  thresholdData: BigNumber.from(1000000), // 1M threshold
+  thresholdData: BigNumber.from("1000000000000000000000000"), // 1M threshold
 };
 
 // Use DYNAMIC_CONFIG to run the agent with a dynamic threshold.

@@ -19,7 +19,7 @@ const createFinding = (name: string, args: any[], token: string) => {
       metadata: {
         quantizedAmount: args[5].toString(),
         starkKey: args[1].toHexString(),
-        token: token,
+        token: token.toLowerCase(),
       },
     });
   else if (name === "LogWithdrawalPerformed")
@@ -32,7 +32,7 @@ const createFinding = (name: string, args: any[], token: string) => {
       type: FindingType.Info,
       metadata: {
         quantizedAmount: args[3].toString(),
-        token: token,
+        token: token.toLowerCase(),
         recipient: args[4].toLowerCase(),
         ownerKey: args[0].toHexString(),
       },
@@ -47,7 +47,7 @@ const createFinding = (name: string, args: any[], token: string) => {
       type: FindingType.Info,
       metadata: {
         quantizedAmount: args[3].toString(),
-        token: token,
+        token: token.toLowerCase(),
         assetId: args[4].toString(),
         ownerKey: args[0].toHexString(),
       },
@@ -59,7 +59,7 @@ const createSuspiciousFinding = (name: string, token: string, args: any[]): Find
       ? {
           quantizedAmount: args[5].toString(),
           starkKey: args[1].toHexString(),
-          assetType: token,
+          assetType: token.toLowerCase(),
         }
       : { quantizedAmount: args[3].toString(), starkKey: args[0].toHexString(), assetType: token };
 
@@ -177,6 +177,7 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
       const findings: Finding[] = await handler(txEvent);
       expect(findings).toStrictEqual([]);
     });
+
     it("ignores other events on perpetual contract", async () => {
       const differentIface = new Interface(["event WrongEvent()"]);
       const log = differentIface.encodeEventLog(differentIface.getEvent("WrongEvent"), []);
@@ -217,6 +218,7 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
         createFinding("LogMintWithdrawalPerformed", TEST_DATA[4], TEST_TOKEN),
       ]);
     });
+
     it("should return high severity findings for events with different assetType", async () => {
       // LogDeposit
       const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), ALERT_DATA[0]);
@@ -326,6 +328,7 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
       const findings: Finding[] = await handler(txEvent);
       expect(findings).toStrictEqual([]);
     });
+
     it("ignores other events on perpetual contract", async () => {
       const differentIface = new Interface(["event WrongEvent()"]);
       const log = differentIface.encodeEventLog(differentIface.getEvent("WrongEvent"), []);
@@ -367,6 +370,7 @@ describe("Large deposits/withdrawals in Perpetual contract", () => {
         createFinding("LogMintWithdrawalPerformed", TEST_DATA[4], TEST_TOKEN),
       ]);
     });
+
     it("should return high severity findings for events with different assetType", async () => {
       // LogDeposit
       const log1 = EVENTS_INTERFACE.encodeEventLog(EVENTS_INTERFACE.getEvent("LogDeposit"), ALERT_DATA[0]);

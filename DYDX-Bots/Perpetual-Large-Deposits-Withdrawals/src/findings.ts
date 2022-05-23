@@ -26,7 +26,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
       type: FindingType.Info,
       metadata: {
         quantizedAmount: args.quantizedAmount.toString(),
-        token: token,
+        token: token.toLowerCase(),
         recipient: args.recipient.toLowerCase(),
         ownerKey: args.ownerKey.toHexString(),
       },
@@ -41,7 +41,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
       type: FindingType.Info,
       metadata: {
         quantizedAmount: args.quantizedAmount.toString(),
-        token: token,
+        token: token.toLowerCase(),
         assetId: args.assetId.toString(),
         ownerKey: args.ownerKey.toHexString(),
       },
@@ -58,7 +58,7 @@ export const createSuspiciousFinding = (name: string, token: string, args: Resul
     metadata: {
       quantizedAmount: args.quantizedAmount.toString(),
       starkKey: args.starkKey ? args.starkKey.toHexString() : args.ownerKey.toHexString(),
-      assetType: token,
+      assetType: token.toLowerCase(),
     },
   });
 };
