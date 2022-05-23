@@ -16,7 +16,7 @@ interface LendingPool {
     ) external;
 }
 
-contract ReeterancyCallForLendingPool {
+contract ReentrancyCallForLendingPool {
     fallback() external payable {
         LendingPool(0x3526a2fe5dA32d0f0814086848628bF12A1E4417).deposit(
             0xe22da380ee6B445bb8273C81944ADEB6E8450422,

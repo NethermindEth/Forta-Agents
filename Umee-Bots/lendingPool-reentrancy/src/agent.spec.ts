@@ -12,16 +12,16 @@ import {
 
 import { createAddress } from "forta-agent-tools/lib/tests";
 
+import CONFIG from "./agent.config";
 import { handleTransaction } from "./agent";
 import utils from "./utils";
 
-const TEST_CONTRACT_ADDRESS = createAddress("0x01");
 
 const createTrace = (stack: number[], input = ""): Trace => {
   return {
     traceAddress: stack,
     action: {
-      to: TEST_CONTRACT_ADDRESS,
+      to: CONFIG.lendingPoolAddress,
       input,
     } as TraceAction,
   } as Trace;
@@ -38,7 +38,7 @@ const createTxEvent = (traces: Trace[], data = "") =>
   } as any);
 
 describe("Lending pool reentrancy agent tests suit", () => {
-  const handleTx: HandleTransaction = handleTransaction(TEST_CONTRACT_ADDRESS, utils.REENTRANCY_FUNCTIONS_SELECTORS);
+  const handleTx: HandleTransaction = handleTransaction(CONFIG);
 
   describe("handleTransaction", () => {
     it("Should return empty findings if no traces provided", async () => {
@@ -71,7 +71,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
         createAddress("0x0b"),
       ]);
 
-      console.log(utils.REENTRANCY_FUNCTIONS_SELECTORS);
       const tx: TransactionEvent = createTxEvent(
         [
           createTrace([], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Initial call

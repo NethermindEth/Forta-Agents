@@ -2,6 +2,11 @@ import { Interface } from "@ethersproject/abi";
 
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
+export interface AgentConfig {
+  lendingPoolAddress: string;
+  reentrancyFunctionsSelectors: string[];
+}
+
 const LENDING_POOL_ADDRESS = "0x3526a2fe5da32d0f0814086848628bf12a1e4417";
 
 const REENTRANCY_FUNCTIONS_SIGNATURES: string[] = [
@@ -48,7 +53,6 @@ const createFinding = (initialCallSelector: string, lendingPoolCallSelector: str
     },
   });
 };
-
 export default {
   LENDING_POOL_ADDRESS,
   FUNCTIONS_INTERFACE,
