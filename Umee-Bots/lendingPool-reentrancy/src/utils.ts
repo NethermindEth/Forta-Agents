@@ -2,7 +2,7 @@ import { Interface } from "@ethersproject/abi";
 
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-const LENDING_POOL_ADDRESS = "0x3526a2fe5dA32d0f0814086848628bF12A1E4417";
+const LENDING_POOL_ADDRESS = "0x3526a2fe5da32d0f0814086848628bf12a1e4417";
 
 const REENTRANCY_FUNCTIONS_SIGNATURES: string[] = [
   "borrow(address,uint256,uint256,uint16,address)",
