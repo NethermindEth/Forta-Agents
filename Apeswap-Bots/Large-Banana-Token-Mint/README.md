@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with large (> totalSupply/threshold\*) BANANA token mints.
+This bot detects transactions with large (> `totalSupply`/`threshold`\*) BANANA token mints.
 
 > \*The `threshold` can be configured in `src/utils.ts, L13`.
 
