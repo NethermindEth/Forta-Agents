@@ -5,7 +5,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
   if (name === "LogDeposit")
     return Finding.fromObject({
       name: "Large deposit into perpetual contract",
-      description: "LogDeposit event detected with large quantized Amount",
+      description: "LogDeposit event detected with large quantizedAmount",
       alertId: "DYDX-1-1",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -19,7 +19,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
   else if (name === "LogWithdrawalPerformed")
     return Finding.fromObject({
       name: "Large withdrawal into perpetual contract",
-      description: "LogWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogWithdrawalPerformed event detected with large quantizedAmount",
       alertId: "DYDX-1-2",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -34,7 +34,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
   else
     return Finding.fromObject({
       name: "Large mint withdrawal into perpetual contract",
-      description: "LogMintWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogMintWithdrawalPerformed event detected with large quantizedAmount",
       alertId: "DYDX-1-3",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -47,7 +47,7 @@ export const createFinding = (name: string, token: string, args: Result): Findin
       },
     });
 };
-export const createSuspiciousFinding = (name: string, token: string, args: Result): Finding => {
+export const createSuspiciousFinding = (name: string, assetType: string, args: Result): Finding => {
   return Finding.fromObject({
     name: "Suspicious assetType detected on perpetual contract",
     description: `${name} event detected with an asset different from  the system asset`,
@@ -58,7 +58,7 @@ export const createSuspiciousFinding = (name: string, token: string, args: Resul
     metadata: {
       quantizedAmount: args.quantizedAmount.toString(),
       starkKey: args.starkKey ? args.starkKey.toHexString() : args.ownerKey.toHexString(),
-      assetType: token.toLowerCase(),
+      assetType: assetType.toLowerCase(),
     },
   });
 };

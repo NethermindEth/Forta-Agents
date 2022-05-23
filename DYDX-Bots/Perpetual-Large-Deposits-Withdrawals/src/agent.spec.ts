@@ -11,7 +11,7 @@ const createFinding = (name: string, args: any[], token: string) => {
   if (name === "LogDeposit")
     return Finding.fromObject({
       name: "Large deposit into perpetual contract",
-      description: "LogDeposit event detected with large quantized Amount",
+      description: "LogDeposit event detected with large quantizedAmount",
       alertId: "DYDX-1-1",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -25,7 +25,7 @@ const createFinding = (name: string, args: any[], token: string) => {
   else if (name === "LogWithdrawalPerformed")
     return Finding.fromObject({
       name: "Large withdrawal into perpetual contract",
-      description: "LogWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogWithdrawalPerformed event detected with large quantizedAmount",
       alertId: "DYDX-1-2",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -40,7 +40,7 @@ const createFinding = (name: string, args: any[], token: string) => {
   else
     return Finding.fromObject({
       name: "Large mint withdrawal into perpetual contract",
-      description: "LogMintWithdrawalPerformed event detected with large quantized Amount",
+      description: "LogMintWithdrawalPerformed event detected with large quantizedAmount",
       alertId: "DYDX-1-3",
       protocol: "dYdX",
       severity: FindingSeverity.Info,
@@ -53,15 +53,15 @@ const createFinding = (name: string, args: any[], token: string) => {
       },
     });
 };
-const createSuspiciousFinding = (name: string, token: string, args: any[]): Finding => {
+const createSuspiciousFinding = (name: string, assetType: string, args: any[]): Finding => {
   let metadata =
     name === "LogDeposit"
       ? {
           quantizedAmount: args[5].toString(),
           starkKey: args[1].toHexString(),
-          assetType: token.toLowerCase(),
+          assetType: assetType.toLowerCase(),
         }
-      : { quantizedAmount: args[3].toString(), starkKey: args[0].toHexString(), assetType: token };
+      : { quantizedAmount: args[3].toString(), starkKey: args[0].toHexString(), assetType: assetType };
 
   return Finding.fromObject({
     name: "Suspicious assetType detected on perpetual contract",

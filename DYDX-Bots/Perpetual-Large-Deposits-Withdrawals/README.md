@@ -57,7 +57,7 @@ This bot detects deposits and withdrawals on dYdX perpetual exchange contract wi
   - Type is always set to "Suspicious".
   - Metadata contains:
     - `quantizedAmount`: tokens amount that was deposited or withdrawn.
-    - `starkKey`: stark key of the user involved in the tranfer.
+    - `starkKey`: stark key of the user involved in the transfer.
     - `assetType`: assetType that is different from the system one.
 
 ## Test Data
