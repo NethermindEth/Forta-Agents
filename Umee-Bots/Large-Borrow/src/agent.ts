@@ -1,62 +1,51 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { ethers, Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
+import BigNumber from "bignumber.js";
+import LRU from "lru-cache";
+import { BALANCE_OF_ABI, BORROW_ABI, GET_RESERVE_DATA_ABI } from "./constants";
+import { AgentConfig, createFinding } from "./utils";
+import CONFIG from "./agent.config";
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+export const provideHandleTransaction = (
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): HandleTransaction => {
+  const LendingPool = new ethers.Contract(config.lendingPoolAddress, [GET_RESERVE_DATA_ABI], provider);
+  const threshold = new BigNumber(config.tvlPercentageThreshold);
+  const uTokenCache = new LRU<string, string>({ max: 500 });
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    const logs = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress);
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
+    await Promise.all(
+      logs.map(async (log) => {
+        const { reserve, amount } = log.args;
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+        if (!uTokenCache.has(reserve)) {
+          uTokenCache.set(reserve, await LendingPool.getReserveData(reserve));
+        }
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
+        // since if has() returns false cache[reserve] is set, this is not undefined
+        const uTokenAddress = uTokenCache.get(reserve)!;
 
-  return findings;
+        const erc20Asset = new ethers.Contract(uTokenAddress, [BALANCE_OF_ABI], provider);
+        const tvl = await erc20Asset.balanceOf(uTokenAddress, { blockTag: txEvent.blockNumber - 1 });
+
+        const percentage = new BigNumber(amount.toString()).div(new BigNumber(tvl.toString())).shiftedBy(2);
+
+        if (percentage.gte(threshold)) {
+          findings.push(createFinding(amount, percentage));
+        }
+      })
+    );
+
+    return findings;
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
-  handleTransaction,
-  // handleBlock
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(getEthersProvider(), CONFIG),
 };
