@@ -18,7 +18,7 @@ This bot detects slashing events in the Safety Module contract.
     - `amount`: Slash amount.
     - `recipient`: The address to receive the slashed tokens.
     - `newExchangeRate`: Exchange rate after slashing event.
-  - Addresses is the address from which the event was emitted.
+  - Addresses contains the address from which the event was emitted.
 
 
 ## Test Data
