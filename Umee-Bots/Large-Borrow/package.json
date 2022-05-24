@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "umee-large-borrow-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that detects large borrows in the UMEE protocol",
   "chainIds": [
     1
   ],
@@ -23,6 +23,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bignumber.js": "^9.0.2",
     "forta-agent": "^0.1.6"
   },
   "devDependencies": {
