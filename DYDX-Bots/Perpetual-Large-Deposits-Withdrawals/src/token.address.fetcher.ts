@@ -42,10 +42,10 @@ export default class TokenAddressFetcher {
 
     // assetInfo is 36bytes long, therefore stored on two slots.
     const [data1, data2] = await Promise.all([
-      this.provider.getStorageAt(this.networkManager.perpetualProxy.toLocaleLowerCase(), dataSlot, block),
+      this.provider.getStorageAt(this.networkManager.perpetualProxy, dataSlot, block),
       this.provider.getStorageAt(
-        this.networkManager.perpetualProxy.toLocaleLowerCase(),
-        BigNumber.from(dataSlot).add(1),
+        this.networkManager.perpetualProxy,
+        BigNumber.from(dataSlot).add(1).toHexString(),
         block
       ),
     ]);
