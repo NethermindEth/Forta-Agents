@@ -1,62 +1,97 @@
+import BigNumber from "bignumber.js";
+import { BlockEvent, HandleBlock, Initialize, ethers, getEthersProvider, Finding } from "forta-agent";
+import CONFIG from "./agent.config";
+import { DECIMALS_ABI, DESCRIPTION_ABI, LATEST_ANSWER_ABI, LATEST_ROUND_DATA_ABI } from "./constants";
 import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+  AgentConfig,
+  createNegativeAnswerFinding,
+  createPriceChangeFinding,
+  ethersBnToBn,
+  MonitoringInfo,
+} from "./utils";
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
+let tokens: MonitoringInfo[];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
+  return async () => {
+    tokens = await Promise.all(
+      config.tokens.map(async (token) => {
+        const ChainlinkFeed = new ethers.Contract(
+          token.chainlinkFeedAddress,
+          [DECIMALS_ABI, DESCRIPTION_ABI, LATEST_ANSWER_ABI, LATEST_ROUND_DATA_ABI],
+          provider
+        );
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
+        const roundData = await ChainlinkFeed.latestRoundData();
+        const decimals = await ChainlinkFeed.decimals();
+        const description = await ChainlinkFeed.description();
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+        if (roundData.answer.isNegative()) {
+          throw new Error("Negative feed answer");
+        }
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+        return {
+          description,
+          decimals,
+          lastAnswer: ethersBnToBn(roundData.answer, decimals),
+          lastTimestamp: roundData.updatedAt,
+          absoluteThreshold: token.absoluteThreshold ? new BigNumber(token.absoluteThreshold) : undefined,
+          ratioThreshold: token.percentageThreshold
+            ? new BigNumber(token.percentageThreshold).shiftedBy(-2)
+            : undefined,
+          intervalSeconds: ethers.BigNumber.from(token.intervalSeconds),
+          contract: ChainlinkFeed,
+        };
+      })
+    );
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleBlock = (): HandleBlock => {
+  return async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
+    const timestamp = ethers.BigNumber.from(blockEvent.block.timestamp);
+
+    await Promise.all(
+      tokens.map(async (token) => {
+        if (token.lastTimestamp.add(token.intervalSeconds).gt(timestamp)) {
+          return;
+        }
+
+        token.lastTimestamp = timestamp;
+        const latestAnswer = ethersBnToBn(await token.contract.latestAnswer(), token.decimals);
+
+        if (latestAnswer.isNegative()) {
+          findings.push(createNegativeAnswerFinding(token.description));
+          return;
+        }
+
+        const diff = token.lastAnswer.minus(latestAnswer).abs();
+        const ratioDiff = latestAnswer.div(token.lastAnswer).minus(1).abs();
+
+        const isAboveAbsoluteThreshold = token.absoluteThreshold && diff.gte(token.absoluteThreshold);
+        const isAbovePercentageThreshold = token.ratioThreshold && ratioDiff.gte(token.ratioThreshold);
+
+        if (isAboveAbsoluteThreshold || isAbovePercentageThreshold) {
+          findings.push(createPriceChangeFinding(token.description, latestAnswer, diff, ratioDiff.shiftedBy(2)));
+        }
+
+        token.lastAnswer = latestAnswer;
+      })
+    );
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  provideInitialize,
+  initialize: provideInitialize(getEthersProvider(), CONFIG),
+  provideHandleBlock,
+  handleBlock: provideHandleBlock(),
+
+  // testing
+  getTokens: () => tokens,
 };
