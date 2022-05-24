@@ -30,3 +30,20 @@ Chainlink feeds. The bot behavior can be customized through the fields in
     - `feed`: feed description (e.g. "ETH/USD")
 
 ## Test Data
+
+### Ethereum Mainnet
+
+Uncomment the lines indicated in `src/agent.config.ts`, set an Ethereum mainnet RPC
+(e.g. `https://eth-rpc.gateway.pokt.network`) as `jsonRpcUrl` in your
+`forta.config.json` file and run:
+
+```
+npm run start
+```
+
+This will emit a finding in every block because both the interval and the absolute
+threshold are set to 0.
+
+**Note**: Since this bot monitors prices starting from the bot startup and Chainlink
+feeds usually take some minutes to update price data, a similar test with a non-zero
+threshold can be done, but would take some minutes to show a finding.
