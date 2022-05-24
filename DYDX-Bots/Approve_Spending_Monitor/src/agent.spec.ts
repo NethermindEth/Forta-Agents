@@ -1,8 +1,7 @@
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { MockEthersProvider } from "forta-agent-tools/lib/mock.utils";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import BalanceFetcher from "./balance.fetcher";
 import { APPROVAL_EVENT, BALANCEOF_ABI } from "./utils";
