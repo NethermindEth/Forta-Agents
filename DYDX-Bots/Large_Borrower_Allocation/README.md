@@ -3,7 +3,8 @@
 ## Description
 
 This bot detects when a borrower's allocation is high. The bot listens to `ScheduledBorrowerAllocationChange` event emissions, and if the `newAllocation` exceeds the `threshold`, it creates a finding.
-> The static threshold can be adjusted by changing `THRESHOLD` in `utils.ts`. 
+
+> The static threshold can be adjusted by changing `THRESHOLD` in `utils.ts`.
 
 ## Supported Chains
 
@@ -23,7 +24,6 @@ This bot detects when a borrower's allocation is high. The bot listens to `Sched
   - Addresses is the address from which the event was emitted.
 
 ## Test Data
-> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
