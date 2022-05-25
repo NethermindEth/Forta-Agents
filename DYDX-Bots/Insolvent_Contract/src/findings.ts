@@ -8,7 +8,7 @@ export const createFinding = (totalBorrowerDebtBalance: BigNumber, totalActiveBa
     alertId: "DYDX-15",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "DYDX",
+    protocol: "dYdX",
     metadata: {
       totalBorrowerDebtBalance: totalBorrowerDebtBalance.toString(),
       totalActiveBalanceCurrentEpoch: totalActiveBalanceCurrentEpoch.toString(),

@@ -25,7 +25,7 @@ const createFinding = (name: string, configHash: string) => {
     alertId: alertId,
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "DYDX",
+    protocol: "dYdX",
     metadata: {
       configHash: configHash,
     },

@@ -38,7 +38,7 @@ export const provideHandleTransaction = (networkManager: NetworkData): HandleTra
           alertId: alertId,
           severity: FindingSeverity.Info,
           type: FindingType.Info,
-          protocol: "DYDX",
+          protocol: "dYdX",
           metadata: {
             operator: log.args.operator.toLowerCase(),
           },
