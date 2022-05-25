@@ -1,3 +1,4 @@
+import { Interface } from "@ethersproject/abi";
 import {
   Finding,
   HandleTransaction,
@@ -13,7 +14,7 @@ import {
 import { createAddress } from "forta-agent-tools/lib/tests";
 
 import CONFIG from "./agent.config";
-import { handleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import utils from "./utils";
 
 const createTrace = (stack: number[], input = ""): Trace => {
@@ -37,7 +38,7 @@ const createTxEvent = (traces: Trace[], data = "") =>
   } as any);
 
 describe("Lending pool reentrancy agent tests suit", () => {
-  const handleTx: HandleTransaction = handleTransaction(CONFIG);
+  const handleTx: HandleTransaction = provideHandleTransaction(CONFIG);
 
   describe("handleTransaction", () => {
     it("Should return empty findings if no traces provided", async () => {
@@ -64,24 +65,27 @@ describe("Lending pool reentrancy agent tests suit", () => {
     });
 
     it("Should detect different thresholds of reentrancy", async () => {
-      const testEncodedWithdrawFuncCall: string = utils.FUNCTIONS_INTERFACE.encodeFunctionData("withdraw", [
+      const iFace = new Interface(["function withdraw(address asset,uint256 amount,address to)"]);
+
+      const testEncodedWithdrawFuncCall: string = iFace.encodeFunctionData("withdraw", [
         createAddress("0x0a"),
         234,
         createAddress("0x0b"),
       ]);
+      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
 
       const tx: TransactionEvent = createTxEvent(
         [
-          createTrace([], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Initial call
-          createTrace([0], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Call withdraw for the first time
-          createTrace([0, 0], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Call withdraw inside the transaction another time
+          createTrace([], sighashes[0]), // Initial call
+          createTrace([0], sighashes[0]), // Call withdraw for the first time
+          createTrace([0, 0], sighashes[0]), // Call withdraw inside the transaction another time
         ],
         testEncodedWithdrawFuncCall
       );
 
       const expected: Finding[] = [];
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, utils.REENTRANCY_FUNCTIONS_SELECTORS[0]));
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, utils.REENTRANCY_FUNCTIONS_SELECTORS[0]));
+      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, sighashes[0]));
+      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, sighashes[0]));
 
       const findings: Finding[] = await handleTx(tx);
       expect(findings.length).toStrictEqual(expected.length);

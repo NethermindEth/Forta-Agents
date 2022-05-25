@@ -4,9 +4,10 @@ import CONFIG from "./agent.config";
 
 import utils, { AgentConfig } from "./utils";
 
-export const handleTransaction =
-  (config: AgentConfig): HandleTransaction =>
-  async (txEvent: TransactionEvent) => {
+export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+  const sigHashes = utils.getSigHashes(config.reentrancyBlacklist);
+
+  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const { traces } = txEvent;
     for (let i = 0; i < traces.length; i++) {
@@ -14,16 +15,15 @@ export const handleTransaction =
       const depth = trace.traceAddress.length;
       if (trace.action.to === config.lendingPoolAddress) {
         let j;
-
         for (j = i + 1; j < traces.length; j++) {
           if (traces[j].traceAddress.length <= depth) {
             i = j - 1;
-            continue; // subtree ended, non reentrant call
+            break; // subtree ended, non reentrant call
           }
 
           if (traces[j].action.to === config.lendingPoolAddress) {
             const selector = (traces[j].action.input || "").slice(0, 10); // "0x" and first 4 bytes
-            if (config.reentrancyFunctionsSelectors.includes(selector)) {
+            if (sigHashes.includes(selector)) {
               const initialCallSelector = (txEvent.transaction.data || "").slice(0, 10);
               findings.push(utils.createFinding(initialCallSelector, selector));
               break;
@@ -34,7 +34,9 @@ export const handleTransaction =
     }
     return findings;
   };
+  return handleTransaction;
+};
 
 export default {
-  handleTransaction: handleTransaction(CONFIG),
+  handleTransaction: provideHandleTransaction(CONFIG),
 };
