@@ -1,19 +1,52 @@
 import { Interface } from "@ethersproject/abi";
 
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, getEthersProvider } from "forta-agent";
 
-const LENDING_POOL_ADDRESS = "0x3526a2fe5dA32d0f0814086848628bF12A1E4417";
+export interface AgentConfig {
+  lendingPoolAddress: string;
+  umeeOracleAddress: string;
+}
 
 const UMEE_FUNCTIONS_ABI: string[] = [
   "function getReservesList() external view override returns (address[] memory)",
-  "function getSourceOfAsset(address asset) external view returns (address",
+  "function getSourceOfAsset(address asset) external view returns (address)",
+  "function latestTimestamp() external view returns (uint256)",
 ];
 
 const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
 
-const getAssetSourceLatestTimeStamp = async()=>{
-
+interface AssetSourceTimeStamp {
+  asset: string;
+  source: string;
+  timestamp: number;
 }
+const getAssetsSourceTimeStamp = async (
+  config: AgentConfig,
+  provider: ethers.providers.Provider
+): Promise<AssetSourceTimeStamp[]> => {
+  const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
+  const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
+
+  const reservedList = lendingPoolContract.getReservesList();
+
+  const sources = await Promise.all(
+    reservedList.map(async (asset: string): Promise<string> => {
+      return await umeeOracleContract.getSourceOfAsset(asset);
+    })
+  );
+
+  return await Promise.all(
+    sources.map(async (source, index) => {
+      const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
+      const timestamp = await chainLinkAggregator.latestTimestamp();
+      return {
+        asset: reservedList[index],
+        source: sources[index],
+        timestamp,
+      };
+    })
+  );
+};
 
 const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
   return Finding.fromObject({
@@ -30,8 +63,8 @@ const createFinding = (initialCallSelector: string, lendingPoolCallSelector: str
 };
 
 export default {
-  LENDING_POOL_ADDRESS,
   FUNCTIONS_INTERFACE,
   UMEE_FUNCTIONS_ABI,
+  getAssetsSourceTimeStamp,
   createFinding,
 };
