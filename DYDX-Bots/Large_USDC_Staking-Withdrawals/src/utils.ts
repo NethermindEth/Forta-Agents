@@ -12,5 +12,3 @@ export const MODULE_IFACE: utils.Interface = new utils.Interface([STAKED_ABI, WI
 
 const USDC_ABI: string = "function balanceOf(address account) external view returns (uint256)";
 export const USDC_IFACE: utils.Interface = new utils.Interface([USDC_ABI]);
-
-export const THRESHOLD_PERCENTAGE: number = 20;

@@ -3,11 +3,11 @@ import { createAddress, TestTransactionEvent, MockEthersProvider } from "forta-a
 import { BigNumber, utils } from "ethers";
 import { provideHandleTransaction } from "./agent";
 import NetworkData from "./network";
+import { BotConfig } from "./config";
 import { MODULE_IFACE, USDC_IFACE } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 const testModuleUsdcBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10 USDC
-const testThresholdPercentage: number = 20;
 const testStaker: string = createAddress("0xac");
 const testBlockNumbers: number[] = [2, 42, 92, 360, 444, 3500, 90210, 972011, 3524233];
 const testAmounts: BigNumber[] = [
@@ -34,12 +34,6 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
   };
   const mockBalanceFetcher: BalanceFetcher = new BalanceFetcher(mockProvider as any, mockNetworkManager);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    mockNetworkManager,
-    mockBalanceFetcher,
-    testThresholdPercentage
-  );
-
   const createBalanceOfCall = (moduleAddress: string, tokenAmount: BigNumber, blockNumber: number) => {
     mockProvider.addCallTo(mockNetworkManager.usdcAddress, blockNumber, USDC_IFACE, "balanceOf", {
       inputs: [moduleAddress],
@@ -47,291 +41,605 @@ describe("Large Stake Token Deposit/Withdrawal Test Suite", () => {
     });
   };
 
-  beforeEach(() => {
-    mockProvider.clear();
+  describe("STATIC mode", () => {
+    const testStaticConfig: BotConfig = {
+      mode: "STATIC",
+      thresholdData: BigNumber.from("4000000000000000000"), // 4 USDC
+    };
+
+    const handleTransaction: HandleTransaction = provideHandleTransaction(
+      testStaticConfig,
+      mockNetworkManager,
+      mockBalanceFetcher
+    );
+
+    beforeEach(() => {
+      mockProvider.clear();
+    });
+
+    it("should return 0 findings in empty transactions", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent();
+
+      const findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should detect a large Staked event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[0] - 1);
+      const testSpender: string = createAddress("0x1");
+
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[0],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[0])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large stake on Liquidity Module contract",
+          description: "Staked event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-1",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker,
+            spender: testSpender,
+            amount: testAmounts[0].toString(),
+          },
+        }),
+      ]);
+    });
+
+    it("should not detect a non-large Staked event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[1] - 1);
+      const testSpender: string = createAddress("0x2");
+
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testLowAmounts[0],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[1])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should detect a large WithdrewStake event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[2] - 1);
+      const testRecipient: string = createAddress("0x3");
+
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testAmounts[1],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[2])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large stake withdrawal on Liquidity Module contract",
+          description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-2",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[1].toString(),
+          },
+        }),
+      ]);
+    });
+
+    it("should not detect a non-large WithdrewStake event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[3] - 1);
+      const testRecipient: string = createAddress("0x4");
+
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[1],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[3])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should detect a large WithdrewDebt event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[4] - 1);
+      const testRecipient: string = createAddress("0x5");
+      const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3 USDC
+
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testAmounts[2],
+        testNewDebtBal,
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[4])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large debt withdrawal on Liquidity Module contract",
+          description: "WithdrewDebt event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[2].toString(),
+            newDebtBalance: testNewDebtBal.toString(),
+          },
+        }),
+      ]);
+    });
+
+    it("should not detect a non-large WithdrewDebt event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[5] - 1);
+      const testRecipient: string = createAddress("0x6");
+      const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4 USDC
+
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[2],
+        testNewDebtBal,
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[5])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should detect both a large Staked event and large WithdrewStake event, and not detect WithdrewDebt for being too low", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[6] - 1);
+      const testSpender: string = createAddress("0x7");
+      const testRecipient: string = createAddress("0x8");
+      const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5 USDC
+
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[3],
+      ]);
+
+      // Should not detect this due to amount being too low
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[3],
+        testNewDebtBal,
+      ]);
+
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testAmounts[4],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[6])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics)
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics)
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: `Large stake on Liquidity Module contract`,
+          description: "Staked event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-1",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker,
+            spender: testSpender,
+            amount: testAmounts[3].toString(),
+          },
+        }),
+        Finding.fromObject({
+          name: "Large stake withdrawal on Liquidity Module contract",
+          description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-2",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[4].toString(),
+          },
+        }),
+      ]);
+    });
+
+    it("should not detect an incorrect event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[7] - 1);
+      const wrongIFace = new utils.Interface(["event WrongEvent()"]);
+      const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[7])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, wrongLog.data, ...wrongLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("should not detect an event emission from the wrong contract", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[8] - 1);
+      const wrongModuleAddress: string = createAddress("0xd34d");
+      const testSpender: string = createAddress("0x11");
+
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[0],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[8])
+        .addAnonymousEventLog(wrongModuleAddress, StakedLog.data, ...StakedLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
   });
 
-  it("should return 0 findings in empty transactions", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent();
+  describe("PERCENTAGE mode", () => {
+    const testDynamicConfig: BotConfig = {
+      mode: "PERCENTAGE",
+      thresholdData: BigNumber.from(10), // 10% threshold
+    };
 
-    const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([]);
-  });
+    const handleTransaction: HandleTransaction = provideHandleTransaction(
+      testDynamicConfig,
+      mockNetworkManager,
+      mockBalanceFetcher
+    );
 
-  it("should detect a large Staked event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[0] - 1);
-    const testSpender: string = createAddress("0x1");
+    beforeEach(() => {
+      mockProvider.clear();
+    });
 
-    const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
-      testStaker,
-      testSpender,
-      testAmounts[0],
-    ]);
+    it("should return 0 findings in empty transactions", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent();
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[0])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
+      const findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should detect a large Staked event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[0] - 1);
+      const testSpender: string = createAddress("0x1");
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Large stake on Liquidity Module contract",
-        description: "Staked event was emitted in Liquidity Module contract with a large amount",
-        alertId: "DYDX-14-1",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        protocol: "dYdX",
-        metadata: {
-          staker: testStaker,
-          spender: testSpender,
-          amount: testAmounts[0].toString(),
-        },
-      }),
-    ]);
-  });
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[0],
+      ]);
 
-  it("should not detect a non-large Staked event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[1] - 1);
-    const testSpender: string = createAddress("0x2");
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[0])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
 
-    const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
-      testStaker,
-      testSpender,
-      testLowAmounts[0],
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[1])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large stake on Liquidity Module contract",
+          description: "Staked event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-1",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker,
+            spender: testSpender,
+            amount: testAmounts[0].toString(),
+          },
+        }),
+      ]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should not detect a non-large Staked event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[1] - 1);
+      const testSpender: string = createAddress("0x2");
 
-    expect(findings).toStrictEqual([]);
-  });
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testLowAmounts[0],
+      ]);
 
-  it("should detect a large WithdrewStake event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[2] - 1);
-    const testRecipient: string = createAddress("0x3");
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[1])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics);
 
-    const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
-      testStaker,
-      testRecipient,
-      testAmounts[1],
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[2])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+      expect(findings).toStrictEqual([]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should detect a large WithdrewStake event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[2] - 1);
+      const testRecipient: string = createAddress("0x3");
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Large stake withdrawal on Liquidity Module contract",
-        description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
-        alertId: "DYDX-14-2",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        protocol: "dYdX",
-        metadata: {
-          staker: testStaker.toLowerCase(),
-          recipient: testRecipient.toLowerCase(),
-          amount: testAmounts[1].toString(),
-        },
-      }),
-    ]);
-  });
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testAmounts[1],
+      ]);
 
-  it("should not detect a non-large WithdrewStake event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[3] - 1);
-    const testRecipient: string = createAddress("0x4");
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[2])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
 
-    const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
-      testStaker,
-      testRecipient,
-      testLowAmounts[1],
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[3])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large stake withdrawal on Liquidity Module contract",
+          description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-2",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[1].toString(),
+          },
+        }),
+      ]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should not detect a non-large WithdrewStake event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[3] - 1);
+      const testRecipient: string = createAddress("0x4");
 
-    expect(findings).toStrictEqual([]);
-  });
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[1],
+      ]);
 
-  it("should detect a large WithdrewDebt event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[4] - 1);
-    const testRecipient: string = createAddress("0x5");
-    const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3 USDC
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[3])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
 
-    const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
-      testStaker,
-      testRecipient,
-      testAmounts[2],
-      testNewDebtBal,
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[4])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
+      expect(findings).toStrictEqual([]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should detect a large WithdrewDebt event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[4] - 1);
+      const testRecipient: string = createAddress("0x5");
+      const testNewDebtBal: BigNumber = BigNumber.from("3000000000000000000"); // 3 USDC
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Large debt withdrawal on Liquidity Module contract",
-        description: "WithdrewDebt event was emitted in Liquidity Module contract with a large amount",
-        alertId: "DYDX-14-3",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        protocol: "dYdX",
-        metadata: {
-          staker: testStaker.toLowerCase(),
-          recipient: testRecipient.toLowerCase(),
-          amount: testAmounts[2].toString(),
-          newDebtBalance: testNewDebtBal.toString(),
-        },
-      }),
-    ]);
-  });
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testAmounts[2],
+        testNewDebtBal,
+      ]);
 
-  it("should not detect a non-large WithdrewDebt event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[5] - 1);
-    const testRecipient: string = createAddress("0x6");
-    const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4 USDC
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[4])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
 
-    const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
-      testStaker,
-      testRecipient,
-      testLowAmounts[2],
-      testNewDebtBal,
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[5])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Large debt withdrawal on Liquidity Module contract",
+          description: "WithdrewDebt event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[2].toString(),
+            newDebtBalance: testNewDebtBal.toString(),
+          },
+        }),
+      ]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should not detect a non-large WithdrewDebt event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[5] - 1);
+      const testRecipient: string = createAddress("0x6");
+      const testNewDebtBal: BigNumber = BigNumber.from("4000000000000000000"); // 4 USDC
 
-    expect(findings).toStrictEqual([]);
-  });
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[2],
+        testNewDebtBal,
+      ]);
 
-  it("should detect both a large Staked event and large WithdrewStake event, and not detect WithdrewDebt for being too low", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[6] - 1);
-    const testSpender: string = createAddress("0x7");
-    const testRecipient: string = createAddress("0x8");
-    const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5 USDC
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[5])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics);
 
-    const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
-      testStaker,
-      testSpender,
-      testAmounts[3],
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    // Should not detect this due to amount being too low
-    const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
-      testStaker,
-      testRecipient,
-      testLowAmounts[3],
-      testNewDebtBal,
-    ]);
+      expect(findings).toStrictEqual([]);
+    });
 
-    const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
-      testStaker,
-      testRecipient,
-      testAmounts[4],
-    ]);
+    it("should detect both a large Staked event and large WithdrewStake event, and not detect WithdrewDebt for being too low", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[6] - 1);
+      const testSpender: string = createAddress("0x7");
+      const testRecipient: string = createAddress("0x8");
+      const testNewDebtBal: BigNumber = BigNumber.from("5000000000000000000"); // 5 USDC
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[6])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics)
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics)
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[3],
+      ]);
 
-    const findings = await handleTransaction(txEvent);
+      // Should not detect this due to amount being too low
+      const WithdrewDebtLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewDebt"), [
+        testStaker,
+        testRecipient,
+        testLowAmounts[3],
+        testNewDebtBal,
+      ]);
 
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: `Large stake on Liquidity Module contract`,
-        description: "Staked event was emitted in Liquidity Module contract with a large amount",
-        alertId: "DYDX-14-1",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        protocol: "dYdX",
-        metadata: {
-          staker: testStaker,
-          spender: testSpender,
-          amount: testAmounts[3].toString(),
-        },
-      }),
-      Finding.fromObject({
-        name: "Large stake withdrawal on Liquidity Module contract",
-        description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
-        alertId: "DYDX-14-2",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        protocol: "dYdX",
-        metadata: {
-          staker: testStaker.toLowerCase(),
-          recipient: testRecipient.toLowerCase(),
-          amount: testAmounts[4].toString(),
-        },
-      }),
-    ]);
-  });
+      const WithdrewStakeLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("WithdrewStake"), [
+        testStaker,
+        testRecipient,
+        testAmounts[4],
+      ]);
 
-  it("should not detect an incorrect event", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[7] - 1);
-    const wrongIFace = new utils.Interface(["event WrongEvent()"]);
-    const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[6])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, StakedLog.data, ...StakedLog.topics)
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewDebtLog.data, ...WithdrewDebtLog.topics)
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, WithdrewStakeLog.data, ...WithdrewStakeLog.topics);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[7])
-      .addAnonymousEventLog(mockNetworkManager.liquidityModule, wrongLog.data, ...wrongLog.topics);
+      const findings = await handleTransaction(txEvent);
 
-    const findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: `Large stake on Liquidity Module contract`,
+          description: "Staked event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-1",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker,
+            spender: testSpender,
+            amount: testAmounts[3].toString(),
+          },
+        }),
+        Finding.fromObject({
+          name: "Large stake withdrawal on Liquidity Module contract",
+          description: "WithdrewStake event was emitted in Liquidity Module contract with a large amount",
+          alertId: "DYDX-14-2",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          protocol: "dYdX",
+          metadata: {
+            staker: testStaker.toLowerCase(),
+            recipient: testRecipient.toLowerCase(),
+            amount: testAmounts[4].toString(),
+          },
+        }),
+      ]);
+    });
 
-    expect(findings).toStrictEqual([]);
-  });
+    it("should not detect an incorrect event", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[7] - 1);
+      const wrongIFace = new utils.Interface(["event WrongEvent()"]);
+      const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
 
-  it("should not detect an event emission from the wrong contract", async () => {
-    createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[8] - 1);
-    const wrongModuleAddress: string = createAddress("0xd34d");
-    const testSpender: string = createAddress("0x11");
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[7])
+        .addAnonymousEventLog(mockNetworkManager.liquidityModule, wrongLog.data, ...wrongLog.topics);
 
-    const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
-      testStaker,
-      testSpender,
-      testAmounts[0],
-    ]);
+      const findings = await handleTransaction(txEvent);
 
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(mockNetworkManager.liquidityModule)
-      .setFrom(testStaker)
-      .setBlock(testBlockNumbers[8])
-      .addAnonymousEventLog(wrongModuleAddress, StakedLog.data, ...StakedLog.topics);
+      expect(findings).toStrictEqual([]);
+    });
 
-    const findings = await handleTransaction(txEvent);
+    it("should not detect an event emission from the wrong contract", async () => {
+      createBalanceOfCall(mockNetworkManager.liquidityModule, testModuleUsdcBalance, testBlockNumbers[8] - 1);
+      const wrongModuleAddress: string = createAddress("0xd34d");
+      const testSpender: string = createAddress("0x11");
 
-    expect(findings).toStrictEqual([]);
+      const StakedLog = MODULE_IFACE.encodeEventLog(MODULE_IFACE.getEvent("Staked"), [
+        testStaker,
+        testSpender,
+        testAmounts[0],
+      ]);
+
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setTo(mockNetworkManager.liquidityModule)
+        .setFrom(testStaker)
+        .setBlock(testBlockNumbers[8])
+        .addAnonymousEventLog(wrongModuleAddress, StakedLog.data, ...StakedLog.topics);
+
+      const findings = await handleTransaction(txEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
   });
 });
