@@ -13,7 +13,7 @@ const createFinding = (name: string, from: string) => {
     alertId: alertId,
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "DYDX",
+    protocol: "dYdX",
     metadata: {
       from: from,
     },

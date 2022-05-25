@@ -80,7 +80,7 @@ describe("Insolvent Contract test suite", () => {
         alertId: "DYDX-15",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "DYDX",
+        protocol: "dYdX",
         metadata: {
           totalBorrowerDebtBalance: testBorrowerDebtBalance[0].toString(),
           totalActiveBalanceCurrentEpoch: testActiveBalanceCurrentEpoch[0].toString(),
@@ -141,7 +141,7 @@ describe("Insolvent Contract test suite", () => {
         alertId: "DYDX-15",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "DYDX",
+        protocol: "dYdX",
         metadata: {
           totalBorrowerDebtBalance: testBorrowerDebtBalance[4].toString(),
           totalActiveBalanceCurrentEpoch: testActiveBalanceCurrentEpoch[4].toString(),
@@ -164,7 +164,7 @@ describe("Insolvent Contract test suite", () => {
         alertId: "DYDX-15",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        protocol: "DYDX",
+        protocol: "dYdX",
         metadata: {
           totalBorrowerDebtBalance: testBorrowerDebtBalance[5].toString(),
           totalActiveBalanceCurrentEpoch: testActiveBalanceCurrentEpoch[5].toString(),
