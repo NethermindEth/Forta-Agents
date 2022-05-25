@@ -2,7 +2,7 @@
 
 ## Description
 
-Detects reentrancy inside LendingProtocol smart contract. If the call is a reentrant call function inside the `FUNCTIONS_SELECTORS` array.
+Detects reentrancy inside LendingProtocol smart contract. If the call is a reentrant call function inside the `reentrancyBlacklist` array.
 
 ## Supported Chains
 
