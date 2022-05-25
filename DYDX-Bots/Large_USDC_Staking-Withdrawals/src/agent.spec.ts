@@ -8,7 +8,6 @@ import { MODULE_IFACE, USDC_IFACE } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 const testModuleUsdcBalance: BigNumber = BigNumber.from("10000000000000000000"); // 10 USDC
-const testThresholdPercentage: number = 20;
 const testStaker: string = createAddress("0xac");
 const testBlockNumbers: number[] = [2, 42, 92, 360, 444, 3500, 90210, 972011, 3524233];
 const testAmounts: BigNumber[] = [
