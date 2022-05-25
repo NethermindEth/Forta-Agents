@@ -1,38 +1,35 @@
-import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { ethers, Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 
-import utils from "./utils";
+import CONFIG from "./agent.config";
 
-export const handleTransaction =
-  (contractAddress: string, reentrancyFunctionsSelectors: string[]): HandleTransaction =>
-  async (txEvent: TransactionEvent) => {
+import utils, { AgentConfig, AssetSourceTimeStampI } from "./utils";
+
+const assetsSourcesList: AssetSourceTimeStampI[] = [];
+export const initialize = (provider: ethers.providers.Provider) => {
+  return async () => {
+    assetsSourcesList.push(...(await utils.getAssetsSourceTimeStamp(CONFIG, provider)));
+  };
+};
+
+export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const { traces } = txEvent;
-    for (let i = 0; i < traces.length; i++) {
-      const trace = traces[i];
-      const depth = trace.traceAddress.length;
-
-      if (trace.action.to === contractAddress) {
-        let j;
-
-        for (j = i + 1; j < traces.length; j++) {
-          if (traces[j].traceAddress.length <= depth) {
-            i = j - 1;
-            break; // subtree ended
-          }
-          if (traces[j].action.to === contractAddress) {
-            const selector = (traces[j].action.input || "").slice(0, 10); // "0x" and first 4 bytes
-            if (reentrancyFunctionsSelectors.includes(selector)) {
-              const initialCallSelector = (txEvent.transaction.data || "").slice(0, 10);
-              findings.push(utils.createFinding(initialCallSelector, selector));
-              break;
-            }
-          }
-        }
+    const updateSourceLogs = txEvent.filterLog(utils.EVENT_ABI, config.umeeOracleAddress);
+    updateSourceLogs.map((logs) => {
+      const [asset, source] = logs.args;
+      const assetSourceTimeStamp = assetsSourcesList.find((assetSource) => {
+        return assetSource.asset === asset && assetSource.source === source;
+      });
+      if (assetSourceTimeStamp) {
+        assetsSourcesList.push({ source, asset, timestamp: txEvent.block.timestamp });
       }
-    }
+    });
     return findings;
   };
+  return handleTransaction;
+};
 
 export default {
-  handleTransaction: handleTransaction(utils.LENDING_POOL_ADDRESS, utils.REENTRANCY_FUNCTIONS_SELECTORS),
+  handleTransaction: provideHandleTransaction(CONFIG),
+  initialize: initialize(getEthersProvider()),
 };

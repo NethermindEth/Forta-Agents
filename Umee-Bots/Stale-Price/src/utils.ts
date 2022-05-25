@@ -3,6 +3,7 @@ import { Interface } from "@ethersproject/abi";
 import { ethers, Finding, FindingSeverity, FindingType, getEthersProvider } from "forta-agent";
 
 export interface AgentConfig {
+  threshold: number;
   lendingPoolAddress: string;
   umeeOracleAddress: string;
 }
@@ -13,9 +14,11 @@ const UMEE_FUNCTIONS_ABI: string[] = [
   "function latestTimestamp() external view returns (uint256)",
 ];
 
+const EVENT_ABI = ["  event AssetSourceUpdated(address indexed asset, address indexed source)"];
+
 const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
 
-interface AssetSourceTimeStamp {
+export interface AssetSourceTimeStampI {
   asset: string;
   source: string;
   timestamp: number;
@@ -23,7 +26,7 @@ interface AssetSourceTimeStamp {
 const getAssetsSourceTimeStamp = async (
   config: AgentConfig,
   provider: ethers.providers.Provider
-): Promise<AssetSourceTimeStamp[]> => {
+): Promise<AssetSourceTimeStampI[]> => {
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
 
@@ -64,6 +67,7 @@ const createFinding = (initialCallSelector: string, lendingPoolCallSelector: str
 
 export default {
   FUNCTIONS_INTERFACE,
+  EVENT_ABI,
   UMEE_FUNCTIONS_ABI,
   getAssetsSourceTimeStamp,
   createFinding,
