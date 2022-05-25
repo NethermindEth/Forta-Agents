@@ -3,8 +3,9 @@
 ## Description
 
 This bot detects deposits and withdrawals in the Liquidity Module contract when the `amount` is high.
+
 > High is set as a percentage of the total USDC staked.
-> You can adjust the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**. 
+> You can adjust the percentage by changing the const `THRESHOLD_PERCENTAGE` in **utils.ts**.
 
 ## Supported Chains
 
@@ -20,7 +21,6 @@ This bot detects deposits and withdrawals in the Liquidity Module contract when 
     - `staker`: The address who will receive the stake.
     - `spender`: The address who can spend the stake.
     - `amount`: The amount to stake.
-  
 - DYDX-14-2
   - Fired when `WithdrewStake` event is emitted with an `amount` that exceeds the threshold.
   - Severity is always set to "Info".
@@ -29,7 +29,6 @@ This bot detects deposits and withdrawals in the Liquidity Module contract when 
     - `staker`: The `msg.sender ` that initiated the `withdrawStake` call.
     - `recipient`: The address that should receive the funds.
     - `amount`: The amount withdrawn from the sender's inactive balance.
-    
 - DYDX-14-3
   - Fired when `WithdrewDebt` event is emitted with an `amount` that exceeds the threshold.
   - Severity is always set to "Info".
@@ -43,7 +42,6 @@ This bot detects deposits and withdrawals in the Liquidity Module contract when 
 ## Test Data
 
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
-> Note: Bot has to be tested with the Kovan testnet, otherwise it will fail with this test data.
 
 [0x9bc9a7D5ed679C17abECE73461Cbba9433B541c5](https://kovan.etherscan.io/address/0x9bc9a7d5ed679c17abece73461cbba9433b541c5) - `TestToken`.
 
