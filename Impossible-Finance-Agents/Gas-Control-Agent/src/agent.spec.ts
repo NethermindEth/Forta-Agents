@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish } from 'ethers';
 import { Finding, FindingSeverity, FindingType, HandleTransaction } from 'forta-agent';
-import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
+import { createAddress, TestTransactionEvent } from 'forta-agent-tools/lib/tests';
 import { provideHandleTransaction } from './agent';
 import utils from './utils';
 
