@@ -1,7 +1,7 @@
 {
-  "name": "gas-control-agent",
+  "name": "impossible-2",
   "version": "0.0.1",
-  "description": "The agent detects transactions that used gas price above 10",
+  "description": "The bot detects transactions that used high gas price and involved Impossible Finance addresses",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -16,7 +16,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.0.34"
@@ -28,6 +29,7 @@
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
+    "prettier":"^2.6.2",
     "typescript": "^4.3.4"
   }
 }
