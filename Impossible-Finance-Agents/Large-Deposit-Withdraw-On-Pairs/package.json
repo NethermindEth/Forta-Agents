@@ -2,6 +2,7 @@
   "name": "impossible-9",
   "version": "0.0.1",
   "description": "Detects large add/remove Liquidity on Impossible Finance Pairs",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Impossible-Finance-Agents/Large-Deposit-Withdraw-On-Pairs",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
