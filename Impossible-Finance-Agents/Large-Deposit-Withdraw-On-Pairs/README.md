@@ -10,7 +10,7 @@ This bot detects large add/remove Liquidity in Impossible Finance Pairs
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
