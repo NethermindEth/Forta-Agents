@@ -12,6 +12,8 @@ const CONTRACTS = [
   "0x4233ad9b8b7c1ccf0818907908a7f0796a3df85f", // Swap v3 Factory
   "0x56f6ca0a3364fa3ac9f0e8e9858b2966cdf39d03", // Swap v3 Router
 ];
+export const THRESHOLD: BigNumber = BigNumber.from(10); // gas price
+
 
 const isOnList = (list: string[]): AddressValidator => {
   const set: Set<string> = new Set<string>(list);

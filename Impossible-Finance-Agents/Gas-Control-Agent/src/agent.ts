@@ -1,8 +1,6 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import utils, { AddressValidator } from "./utils";
+import utils, { AddressValidator, THRESHOLD } from "./utils";
 import { BigNumber, ethers } from "ethers";
-
-const THRESHOLD: BigNumber = BigNumber.from(10); // gas price
 
 export const provideHandleTransaction = (
   isValid: AddressValidator,
