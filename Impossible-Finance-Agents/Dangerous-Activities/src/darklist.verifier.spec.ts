@@ -1,4 +1,4 @@
-import { createAddress } from "forta-agent-tools";
+import { createAddress } from "forta-agent-tools/lib/tests";
 import DarklistVerifier, { dataUrl } from "./darklist.verifier";
 
 describe("DarklistVerifier tests suite", () => {

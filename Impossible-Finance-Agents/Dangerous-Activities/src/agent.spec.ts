@@ -6,7 +6,7 @@ import {
   TransactionEvent,
 } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import utils from "./utils";
 
 const toAddresses = (list: string[]) => list.map(x => createAddress(x));
