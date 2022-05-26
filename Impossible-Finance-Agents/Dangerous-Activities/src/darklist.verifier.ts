@@ -1,16 +1,13 @@
 import axios from "axios";
 
-export const dataUrl: string = 
+export const dataUrl: string =
   "https://raw.githubusercontent.com/MyEtherWallet/ethereum-lists/master/src/addresses/addresses-darklist.json";
 
 const fetchMyEtherWalletDarklist = async (fetcher: any): Promise<[boolean, Set<string>]> => {
   try {
     const { data } = await fetcher(dataUrl);
-    return [true, new Set<string>(data.map(
-      (addressInfo: Record<string, string>) => addressInfo['address']
-    ))];
-  }
-  catch {
+    return [true, new Set<string>(data.map((addressInfo: Record<string, string>) => addressInfo["address"]))];
+  } catch {
     return [false, new Set<string>()];
   }
 };
@@ -29,12 +26,9 @@ export default class DarklistVerifier {
   }
 
   private async tryUpdate(timestamp: number) {
-    if(
-      (this.timestamp === -1) ||
-      (timestamp - this.timestamp > this.threshold)
-    ) {
+    if (this.timestamp === -1 || timestamp - this.timestamp > this.threshold) {
       const [ok, newDarkSet] = await fetchMyEtherWalletDarklist(this.fetcher);
-      if(ok) {
+      if (ok) {
         this.darkset = newDarkSet;
         this.timestamp = timestamp;
       }
@@ -45,4 +39,4 @@ export default class DarklistVerifier {
     await this.tryUpdate(timestamp);
     return this.darkset.has(addr);
   }
-};
+}
