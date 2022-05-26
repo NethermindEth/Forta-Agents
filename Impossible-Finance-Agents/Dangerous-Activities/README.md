@@ -6,7 +6,7 @@ This agent detects transactions involving Impossible Finance addresses and known
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
