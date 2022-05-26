@@ -16,15 +16,16 @@ export const provideHandleTransaction = (
 
     const gasPrice: BigNumber = BigNumber.from(txEvent.gasPrice);
 
-    const addrs: string[] = Object.keys(txEvent.addresses);
-    const valid: boolean[] = await Promise.all(
-      addrs.map((addr) => isValid(addr))
-    );
-    const involved: string[] = addrs.filter((_, idx) => valid[idx]);
+    if (threshold.lt(gasPrice)) {
+      const addrs: string[] = Object.keys(txEvent.addresses);
+      const valid: boolean[] = await Promise.all(
+        addrs.map((addr) => isValid(addr))
+      );
+      const involved: string[] = addrs.filter((_, idx) => valid[idx]);
 
-    if (involved.length && threshold.lt(gasPrice))
-      findings.push(utils.createFinding(involved, gasPrice, _threshold));
-
+      if (involved.length)
+        findings.push(utils.createFinding(involved, gasPrice, _threshold));
+    }
     return findings;
   };
 };
