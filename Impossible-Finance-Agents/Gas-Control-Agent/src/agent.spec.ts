@@ -58,7 +58,6 @@ describe("Gas monitor bot test suite", () => {
     for (let price of CASES) {
       const tx = new TestTransactionEvent().addInvolvedAddresses(...TEST_ADDRESSES);
       tx.setGasPrice(toGas(price).toHexString());
-      // tx.transaction.gasPrice = toGas(price).toHexString();
 
       const findings = await handleTransaction(tx);
 
