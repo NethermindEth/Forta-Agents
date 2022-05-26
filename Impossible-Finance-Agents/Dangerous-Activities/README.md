@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions involving Impossible Finance addresses and known dangerous addresses
+This bot detects transactions involving Impossible Finance addresses and known dangerous addresses
 
 ## Supported Chains
 
