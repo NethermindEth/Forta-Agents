@@ -34,12 +34,12 @@ export const provideHandleTransaction =
 
     await Promise.all(
       Object.keys(txEvent.addresses).map(async (involvedAddress: string) => {
-        const [i, d] = await Promise.all([
+        const [isImpossible, isDangerous] = await Promise.all([
           impossibleVerifier(involvedAddress, timestamp, blockNumber),
           dangerousVerifier(involvedAddress, timestamp, blockNumber),
         ]);
-        if (i) impossibleInteraction.push(involvedAddress);
-        if (d) dangerousInteraction.push(involvedAddress);
+        if (isImpossible) impossibleInteraction.push(involvedAddress);
+        if (isDangerous) dangerousInteraction.push(involvedAddress);
       })
     );
 

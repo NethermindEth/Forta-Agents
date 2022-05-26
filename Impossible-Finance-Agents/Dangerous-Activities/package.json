@@ -2,6 +2,7 @@
   "name": "impossible-8",
   "version": "0.0.1",
   "description": "This agent detects dangerous addresses interacting with Impossible Finance contracts",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Impossible-Finance-Agents/Dangerous-Activities",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
