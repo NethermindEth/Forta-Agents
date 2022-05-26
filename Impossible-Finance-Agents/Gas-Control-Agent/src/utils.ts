@@ -14,17 +14,12 @@ const CONTRACTS = [
 ];
 export const THRESHOLD: BigNumber = BigNumber.from(10); // gas price
 
-
 const isOnList = (list: string[]): AddressValidator => {
   const set: Set<string> = new Set<string>(list);
   return set.has.bind(set);
 };
 
-const createFinding = (
-  contracts: string[],
-  gas: BigNumber,
-  threshold: BigNumber
-) => {
+const createFinding = (contracts: string[], gas: BigNumber, threshold: BigNumber) => {
   const gasStr: string = gas.toString();
 
   return Finding.fromObject({
