@@ -2,6 +2,7 @@
   "name": "impossible-2",
   "version": "0.0.1",
   "description": "The bot detects transactions that used high gas price and involved Impossible Finance addresses",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Impossible-Finance-Agents/Gas-Control-Agent",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
