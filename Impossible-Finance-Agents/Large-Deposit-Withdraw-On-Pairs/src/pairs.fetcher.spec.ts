@@ -1,6 +1,6 @@
 import MockProvider from "./mock.provider";
 import PairFetcher from "./pairs.fetcher";
-import { createAddress } from "forta-agent-tools";
+import { createAddress } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import abi from "./abi";
 

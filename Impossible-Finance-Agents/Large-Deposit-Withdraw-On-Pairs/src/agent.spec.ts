@@ -5,7 +5,7 @@ import {
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { when } from "jest-when";
 import abi from "./abi";
 import { Interface } from "@ethersproject/abi";
