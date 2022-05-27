@@ -1,7 +1,8 @@
 {
-  "name": "large-deposits-withdraws-agent",
+  "name": "impossible-4",
   "version": "0.0.1",
-  "description": "This agent monitors large deposits/withdrawals.",
+  "description": "This bot monitors large deposits/withdrawals in IFAllocationMaster.",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Impossible-Finance-Agents/Large-Deposits-Withdraws",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -16,7 +17,9 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "format": "prettier --write \"src/**/*.ts\""
+
   },
   "dependencies": {
     "@types/lru-cache": "^5.1.1",
@@ -31,6 +34,7 @@
     "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
+    "prettier":"^2.6.2",
     "typescript": "^4.3.4"
   }
 }
