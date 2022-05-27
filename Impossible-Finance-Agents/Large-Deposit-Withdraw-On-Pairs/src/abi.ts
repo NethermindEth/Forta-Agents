@@ -1,4 +1,4 @@
-import { Interface } from "@ethersproject/abi";
+import { Interface } from "ethers/lib/utils";
 
 const FACTORY: Interface = new Interface([
   "function getPair(address token0, address token1) view returns (address pair)",
