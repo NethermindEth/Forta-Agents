@@ -1,5 +1,5 @@
 import SaleFetcher from "./sales.fetcher";
-import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools";
+import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { SALE_IFACE } from "./utils";
 
