@@ -30,6 +30,7 @@ const SALE_IFACE: utils.Interface = new utils.Interface([
 ]);
 
 // Address declarations
+const IDIA_ADDRESS: string = createAddress("0xaabb");
 const STAKING_ADDRESS: string = createAddress("0xa0");
 const SALE_ADDRESSES: string[] = [
   createAddress("0xb0"),
@@ -120,12 +121,13 @@ describe("Large Deposits-withdraws test suite", () => {
   const mockProvider = new MockEthersProvider();
 
   const handler: HandleTransaction = provideHandleTransaction(
-   new StakeFetcher(mockProvider as any, STAKING_ADDRESS),
+   STAKING_ADDRESS,
+   new StakeFetcher(mockProvider as any, IDIA_ADDRESS),
    new SalesFetcher(mockProvider as any, SALE_ADDRESSES)
   );
 
   beforeAll(() => {
-    mockProvider.addCallTo(STAKING_ADDRESS,TEST_BLOCK -1, new Interface(SUPPLY_ABI),"totalSupply",{
+    mockProvider.addCallTo(IDIA_ADDRESS,TEST_BLOCK -1, new Interface(SUPPLY_ABI),"totalSupply",{
       inputs:[],
       outputs:[BigNumber.from(1000)]
     })

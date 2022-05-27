@@ -11,20 +11,22 @@ import StakeFetcher from "./stake.fetcher";
 
 export const stakeHandler = async (
   txEvent: TransactionEvent,
-  fetcher: StakeFetcher
+  fetcher: StakeFetcher,
+  stakingContract: string, 
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
   // Get stake/unstake events
   const stakingEvents = txEvent.filterLog(
     [STAKE_ABI, UNSTAKE_ABI],
-    fetcher.stakingAddress
+   stakingContract
   );
   if (stakingEvents.length === 0) return findings;
+
   // compute totalSupply of the token
   const totalSupply = await fetcher.getTotalSupply(
-    IDIA_TOKEN,
     txEvent.blockNumber - 1
   );
+
   const threshold: BigNumber = BigNumber.from(PERCENT)
     .mul(totalSupply)
     .div(100);
