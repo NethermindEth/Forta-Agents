@@ -3,7 +3,7 @@ import { provideHandleTransaction } from "./agent";
 import { encodeParameter } from "forta-agent-tools";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
-const test_contracts = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
+const testContracts = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
 
 const createFinding = (contract: string, prev: string, newOwner: string) =>
   Finding.fromObject({
@@ -24,7 +24,7 @@ describe("Ownership Transfer Test Suite", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(test_contracts);
+    handleTransaction = provideHandleTransaction(testContracts);
   });
 
   it("should return no finding due to empty transaction", async () => {
@@ -52,7 +52,7 @@ describe("Ownership Transfer Test Suite", () => {
   it("should return finding due to event emission", async () => {
     const tx = new TestTransactionEvent().addEventLog(
       "OwnershipTransferred(address,address)",
-      test_contracts[0],
+      testContracts[0],
       "0x",
       encodeParameter("address", createAddress("0x4")),
       encodeParameter("address", createAddress("0x5"))
@@ -60,21 +60,21 @@ describe("Ownership Transfer Test Suite", () => {
 
     const findings = await handleTransaction(tx);
 
-    expect(findings).toStrictEqual([createFinding(test_contracts[0], createAddress("0x4"), createAddress("0x5"))]);
+    expect(findings).toStrictEqual([createFinding(testContracts[0], createAddress("0x4"), createAddress("0x5"))]);
   });
 
   it("should return finding for two ownership transfers event emissions", async () => {
     const tx = new TestTransactionEvent()
       .addEventLog(
         "OwnershipTransferred(address,address)",
-        test_contracts[1],
+        testContracts[1],
         "0x",
         encodeParameter("address", createAddress("0x4")),
         encodeParameter("address", createAddress("0x5"))
       )
       .addEventLog(
         "OwnershipTransferred(address,address)",
-        test_contracts[2],
+        testContracts[2],
         "0x",
         encodeParameter("address", createAddress("0x5")),
         encodeParameter("address", createAddress("0x6"))
@@ -83,8 +83,8 @@ describe("Ownership Transfer Test Suite", () => {
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(test_contracts[1], createAddress("0x4"), createAddress("0x5")),
-      createFinding(test_contracts[2], createAddress("0x5"), createAddress("0x6")),
+      createFinding(testContracts[1], createAddress("0x4"), createAddress("0x5")),
+      createFinding(testContracts[2], createAddress("0x5"), createAddress("0x6")),
     ]);
   });
 });
