@@ -13,16 +13,8 @@ export const saleHandler = async (
   fetcher: SalesFetcher
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
-  const logs: LogDescription[] = [];
 
-  fetcher.saleContracts.forEach((sale_contract) =>
-    logs.push(
-      ...txEvent.filterLog(
-        [PURCHASE_ABI, WITHDRAW_ABI],
-        sale_contract
-      )
-    )
-  );
+  const logs: LogDescription[] = txEvent.filterLog([PURCHASE_ABI, WITHDRAW_ABI], fetcher.saleContracts);
 
   const contractsInUse: Set<string> = new Set<string>(
     logs.map((log: LogDescription) => log.address.toLowerCase())
