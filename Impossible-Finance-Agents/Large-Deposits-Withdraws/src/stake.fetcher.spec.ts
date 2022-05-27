@@ -1,5 +1,5 @@
 import StakeFetcher from "./stake.fetcher";
-import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools";
+import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { SUPPLY_IFACE } from "./utils";
 

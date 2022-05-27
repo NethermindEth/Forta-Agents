@@ -6,7 +6,7 @@ import {
   HandleTransaction,
   TransactionEvent,
 } from "forta-agent";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import {
   PURCHASE_SIGNATURE,
