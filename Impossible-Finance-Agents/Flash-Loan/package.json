@@ -1,7 +1,11 @@
 {
-  "name": "flash-loan-agent",
+  "name": "impossible-5",
   "version": "0.0.1",
-  "description": "Impossible Finance flash loan agent",
+  "description": "Impossible Finance flash loan bot",
+  "chainIds": [
+    56
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Impossible-Finance-Agents/Flash-Loan",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -16,18 +20,20 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "@types/lru-cache": "^5.1.1",
-    "forta-agent": "^0.0.35"
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
-    "forta-agent-tools": "^1.0.32",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.0.7",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.6.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }

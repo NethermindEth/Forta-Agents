@@ -9,16 +9,16 @@ import {
 import {
   createAddress,
   TestTransactionEvent,
-} from 'forta-agent-tools';
+} from 'forta-agent-tools/lib/tests';
 
 import {
   provideHandleTransaction,
-  PAIR_SWAP_ABI,
 } from './agent';
 
 import {
   ethers,
 } from 'ethers';
+import { PAIR_SWAP_ABI } from './utils';
 
 const createFinding = (amount0Out: string, amount1Out: string, to: string, data: string) => Finding.fromObject({
   name: 'Flash Loan Detected',

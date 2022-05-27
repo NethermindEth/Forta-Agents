@@ -10,21 +10,11 @@ import {
 import { ethers } from 'ethers';
 
 import LRU from 'lru-cache';
+import { PAIR_SWAP_ABI, SWAP_FACTORY_ABI, SWAP_FACTORY_ADDRESS } from './utils';
 
 const cache: LRU<string, boolean> = new LRU<string, boolean>({ max: 10000 });
 
-const SWAP_FACTORY_ADDRESS = '0x918d7e714243f7d9d463c37e106235dcde294ffc';
 
-export const SWAP_FACTORY_ABI = [
-  'function getPair(address tokenA, address tokenB) external view returns (address pair)'
-];
-
-export const PAIR_SWAP_ABI = [
-  'event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)',
-  'function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data)',
-  'function token0() external view returns (address)',
-  'function token1() external view returns (address)',
-];
 
 // Receives the address of a pair and returns true if the factory is `swapFactoryAddress`
 export const checkFromFactory = async (swapContract: string, swapFactoryAddress: string) => {
@@ -34,7 +24,7 @@ export const checkFromFactory = async (swapContract: string, swapFactoryAddress:
     // Get data from cache
     isFromFactory = cache.get(swapContract);
   } else {
-  // Otherwise if the cache does contain data for `swapContract`
+  // Otherwise if the cache does not contain data for `swapContract`
     try {
       // Query the smart contract for its tokens
       const provider = getEthersProvider();
@@ -42,7 +32,7 @@ export const checkFromFactory = async (swapContract: string, swapFactoryAddress:
       const token0 = await contractInterface.token0();
       const token1 = await contractInterface.token1();
       // Query the factory to see if the token pairs point to the contract address
-      const factoryInterface = new ethers.Contract(SWAP_FACTORY_ADDRESS, swapFactoryAddress, provider);
+      const factoryInterface = new ethers.Contract(swapFactoryAddress, SWAP_FACTORY_ABI, provider);
       const pairAddress = await factoryInterface.getPair(token0, token1);
       // If the returned pair matches `swapContract` then add to the cache
       if(pairAddress.toLowerCase() == swapContract.toLowerCase()) {
@@ -83,6 +73,7 @@ export const provideHandleTransaction = (
     await Promise.all(swapContracts.map(async (swapContract) => {
       // Get all times the `swap` function was called on the contract `swapContract`
       const swapCalls = tx.filterFunction(PAIR_SWAP_ABI[1], swapContract);
+
       // For each swapCall
       await Promise.all(swapCalls.map(async (swapCall) => {
         // Get the calldata for the swap
@@ -94,6 +85,7 @@ export const provideHandleTransaction = (
         if(ethers.BigNumber.from(data).gt(ethers.BigNumber.from('0'))) {
           // If the contract is from the factory `SWAP_FACTORY_ADDRESS`
           const isFromFactory = await checkFromFactory(swapContract, swapFactoryAddress);
+
           if(isFromFactory) {
             // Create a finding
             findings.push(
