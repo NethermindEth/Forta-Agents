@@ -1,14 +1,13 @@
+import { Interface } from 'ethers/lib/utils';
 import {
   Finding,
   FindingSeverity,
   FindingType,
   HandleTransaction,
   TransactionEvent,
-  createTransactionEvent,
 } from 'forta-agent';
 
-import { createAddress, TestTransactionEvent } from 'forta-agent-tools';
-
+import { createAddress, TestTransactionEvent } from 'forta-agent-tools/lib/tests';
 import { provideHandleTransaction, SWAP_FACTORY_IFACE } from './agent';
 
 // Set the alertId to indicate it's a test
@@ -26,7 +25,7 @@ const pair1: string = createAddress('0xc1');
 // Returns a finding with given inputs
 const createFinding = ( token0: string, token1: string, pair: string ) => Finding.fromObject({
   name: 'New pair created',
-  description: 'A new pair has been created in Swap Factory V1',
+  description: 'A new pair has been created in Swap Factory V3',
   alertId: ALERT_ID,
   severity: FindingSeverity.Info,
   type: FindingType.Info,
@@ -68,8 +67,10 @@ describe('Swap-Factory-Pair-Created Agent test suite', () => {
   });
 
   it('should ignore different event from same contract', async () => {
+    const IRRELEVANT_IFACE = new Interface([ 'event IrrelevantEvent(address user)'])
+
     const log = SWAP_FACTORY_IFACE.encodeEventLog(
-      SWAP_FACTORY_IFACE.getEvent('IrrelevantEvent'), [createAddress('0xd1')]
+      IRRELEVANT_IFACE.getEvent('IrrelevantEvent'), [createAddress('0xd1')]
     );
 
     const tx: TransactionEvent = new TestTransactionEvent().addAnonymousEventLog(
