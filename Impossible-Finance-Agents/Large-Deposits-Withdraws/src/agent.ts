@@ -12,14 +12,13 @@ import SalesFetcher from "./sales.fetcher";
 
 export const provideHandleTransaction =
   (
-    staking_address: string,
     sale_addresses: string[],
     stake_fetcher: StakeFetcher,
     sale_fetcher: SalesFetcher
   ): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const handlerCalls = [
-      stakeHandler(staking_address, txEvent, stake_fetcher), // monitors staking contract.
+      stakeHandler(txEvent, stake_fetcher), // monitors staking contract.
       saleHandler(sale_addresses, txEvent, sale_fetcher), // monitors sale contracts.
     ];
 
@@ -29,9 +28,8 @@ export const provideHandleTransaction =
 
 export default {
   handleTransaction: provideHandleTransaction(
-    STAKING_CONTRACT,
     SALE_CONTRACTS,
-    new StakeFetcher(getEthersProvider()),
+    new StakeFetcher(getEthersProvider(),STAKING_CONTRACT),
     new SalesFetcher(getEthersProvider())
   ),
 };

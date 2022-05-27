@@ -3,34 +3,53 @@ import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-t
 import { BigNumber } from "ethers";
 import { SUPPLY_IFACE } from "./utils";
 
-const TEST_DATA: [string, number, number][] = [
-  [createAddress("0xfee5"), 20, 42],
-  [createAddress("0xfee5"), 30, 1],
-  [createAddress("0xfee5"), 12, 420],
-  [createAddress("0xfee5"), 90, 20000],
-  [createAddress("0xfee5"), 11, 15],
+// block, supply 
+const TEST_DATA: [ number, number][] = [
+  [ 20, 42],
+  [ 30, 1],
+  [ 12, 420],
+  [90, 20000],
+  [11, 15],
 ];
+
+const TEST_STAKING_ADDRESSES = [createAddress("0xdea1"),createAddress("0xdea2"), createAddress("0xdea3")];
 
 describe("StakeFetcher test suite", () => {
   const mockProvider: MockProvider = new MockProvider();
-  const fetcher: StakeFetcher = new StakeFetcher(mockProvider as any);
+  const fetcher = new StakeFetcher(mockProvider as any, TEST_STAKING_ADDRESSES[0] );
 
-  const initialize = () => {
-    for (let [contract, block, total] of TEST_DATA) {
-      mockProvider.addCallTo(contract, block, SUPPLY_IFACE, "totalSupply", {
+
+  beforeEach(() => {
+    mockProvider.clear();
+    for (let [ block, total] of TEST_DATA) {
+      mockProvider.addCallTo(TEST_STAKING_ADDRESSES[0], block, SUPPLY_IFACE, "totalSupply", {
         inputs: [],
         outputs: [total],
       });
     }
-  };
+  });
 
-  beforeEach(() => mockProvider.clear());
+  it("should store staking contract address", async () => {
+
+    for (let contract of TEST_STAKING_ADDRESSES) {
+      const fetcher = new StakeFetcher(mockProvider as any, contract );
+
+      expect(fetcher.stakingAddress).toStrictEqual(contract);
+    }
+  });
 
   it("should fetch the correct values", async () => {
-    initialize();
 
-    for (let [contract, block, supply] of TEST_DATA) {
-      const total: BigNumber = await fetcher.getTotalSupply(contract, block);
+    for (let [block, supply] of TEST_DATA) {
+      const total: BigNumber = await fetcher.getTotalSupply(TEST_STAKING_ADDRESSES[0], block);
+      expect(total).toStrictEqual(BigNumber.from(supply));
+    }
+
+    // clear to use cache values
+    mockProvider.clear();
+
+    for (let [block, supply] of TEST_DATA) {
+      const total: BigNumber = await fetcher.getTotalSupply(TEST_STAKING_ADDRESSES[0], block);
       expect(total).toStrictEqual(BigNumber.from(supply));
     }
   });

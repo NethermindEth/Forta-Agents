@@ -10,7 +10,6 @@ import {
 import StakeFetcher from "./stake.fetcher";
 
 export const stakeHandler = async (
-  staking_contract: string,
   txEvent: TransactionEvent,
   fetcher: StakeFetcher
 ): Promise<Finding[]> => {
@@ -18,7 +17,7 @@ export const stakeHandler = async (
   // Get stake/unstake events
   const stakingEvents = txEvent.filterLog(
     [STAKE_ABI, UNSTAKE_ABI],
-    staking_contract
+    fetcher.stakingAddress
   );
   if (stakingEvents.length === 0) return findings;
   // compute totalSupply of the token
