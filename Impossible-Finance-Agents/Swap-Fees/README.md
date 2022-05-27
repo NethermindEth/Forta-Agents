@@ -2,13 +2,13 @@
 
 ## Description
 
-This agent detects transactions where modifications in fee values of Impossible Finance V2 Pairs occurred.
+This bot detects transactions where modifications in fee values of Impossible Finance V2 Pairs occurred.
 > Check Impossible Finance V2 Pairs and Factory here https://github.com/ImpossibleFinance/impossible-swap-core
 > You can update the Factory address to V2 Factory by changing `FACTORY` value in the agent file. 
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
