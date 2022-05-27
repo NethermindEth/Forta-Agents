@@ -25,8 +25,8 @@ const SALE_IFACE: utils.Interface = new utils.Interface([
 ]);
 
 // Address declarations
-const staking_address: string = createAddress("0xa0");
-const sale_addresses: string[] = [
+const STAKING_ADDRESS: string = createAddress("0xa0");
+const SALE_ADDRESSES: string[] = [
   createAddress("0xb0"),
   createAddress("0xb1"),
   createAddress("0xc1"),
@@ -36,7 +36,7 @@ const sale_addresses: string[] = [
 const promise = (value: number) =>
   new Promise((resolve) => resolve(BigNumber.from(value)));
 
-const StakeFinding = (name: string, amount: string, from: string): Finding =>
+const stakeFinding = (name: string, amount: string, from: string): Finding =>
   Finding.fromObject({
     name: `Large ${name} detected on staking contract.`,
     description: `${name}() event emitted with a large amount`,
@@ -50,8 +50,8 @@ const StakeFinding = (name: string, amount: string, from: string): Finding =>
     },
   });
 
-const SaleFinding = (
-  sale_contract: string,
+const saleFinding = (
+  saleContract: string,
   name: string,
   amount: string,
   from: string
@@ -64,7 +64,7 @@ const SaleFinding = (
     type: FindingType.Info,
     protocol: "Impossible Finance",
     metadata: {
-      sale_contract,
+      saleContract,
       from,
       amount,
     },
@@ -81,8 +81,8 @@ describe("Large Deposits-withdraws Agent test suite", () => {
   };
 
   const handler: HandleTransaction = provideHandleTransaction(
-    staking_address,
-    sale_addresses,
+    STAKING_ADDRESS,
+    SALE_ADDRESSES,
     mockStakeFetcher as any,
     mockSaleFetcher as any
   );
@@ -176,17 +176,17 @@ describe("Large Deposits-withdraws Agent test suite", () => {
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(532188)
-      .addAnonymousEventLog(staking_address, log1.data, ...log1.topics)
-      .addAnonymousEventLog(staking_address, log2.data, ...log2.topics)
-      .addAnonymousEventLog(sale_addresses[0], log3.data, ...log3.topics)
-      .addAnonymousEventLog(sale_addresses[1], log4.data, ...log4.topics);
+      .addAnonymousEventLog(STAKING_ADDRESS, log1.data, ...log1.topics)
+      .addAnonymousEventLog(STAKING_ADDRESS, log2.data, ...log2.topics)
+      .addAnonymousEventLog(SALE_ADDRESSES[0], log3.data, ...log3.topics)
+      .addAnonymousEventLog(SALE_ADDRESSES[1], log4.data, ...log4.topics);
 
     const findings = await handler(tx);
     expect(findings).toStrictEqual([
-      StakeFinding("Stake", "40", createAddress("0xa2")),
-      StakeFinding("Unstake", "60", createAddress("0xa3")),
-      SaleFinding(sale_addresses[0], "Purchase", "80", createAddress("0xa4")),
-      SaleFinding(sale_addresses[1], "Withdraw", "90", createAddress("0xa6")),
+      stakeFinding("Stake", "40", createAddress("0xa2")),
+      stakeFinding("Unstake", "60", createAddress("0xa3")),
+      saleFinding(SALE_ADDRESSES[0], "Purchase", "80", createAddress("0xa4")),
+      saleFinding(SALE_ADDRESSES[1], "Withdraw", "90", createAddress("0xa6")),
     ]);
   });
 });

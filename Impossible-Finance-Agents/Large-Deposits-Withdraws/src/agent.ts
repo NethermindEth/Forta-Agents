@@ -12,15 +12,15 @@ import SalesFetcher from "./sales.fetcher";
 
 export const provideHandleTransaction =
   (
-    staking_address: string,
-    sale_addresses: string[],
-    stake_fetcher: StakeFetcher,
-    sale_fetcher: SalesFetcher
+    stakingAddress: string,
+    saleAddresses: string[],
+    stakeFetcher: StakeFetcher,
+    saleFetcher: SalesFetcher
   ): HandleTransaction =>
   async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const handlerCalls = [
-      stakeHandler(staking_address, txEvent, stake_fetcher), // monitors staking contract.
-      saleHandler(sale_addresses, txEvent, sale_fetcher), // monitors sale contracts.
+      stakeHandler(stakingAddress, txEvent, stakeFetcher), // monitors staking contract.
+      saleHandler(saleAddresses, txEvent, saleFetcher), // monitors sale contracts.
     ];
 
     const findings = (await Promise.all(handlerCalls)).flat();

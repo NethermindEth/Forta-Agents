@@ -9,18 +9,18 @@ import {
 } from "./utils";
 
 export const saleHandler = async (
-  sale_contracts: string[],
+  saleContracts: string[],
   txEvent: TransactionEvent,
   fetcher: SalesFetcher
 ): Promise<Finding[]> => {
   const findings: Finding[] = [];
   const logs: LogDescription[] = [];
 
-  sale_contracts.forEach((sale_contract) =>
+  saleContracts.forEach((saleContract) =>
     logs.push(
       ...txEvent.filterLog(
         [PURCHASE_ABI, WITHDRAW_ABI],
-        sale_contract
+        saleContract
       )
     )
   );
