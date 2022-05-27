@@ -1,21 +1,12 @@
 import { Interface } from "ethers/lib/utils";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  LogDescription,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 
 export const PERCENT = 10;
 //events signatures
-export const STAKE_ABI =
-  "event Stake(uint24 indexed trackId, address indexed user, uint104 amount)";
-export const UNSTAKE_ABI =
-  "event Unstake(uint24 indexed trackId, address indexed user, uint104 amount)";
-export const PURCHASE_ABI =
-  "event Purchase(address indexed sender, uint256 indexed paymentAmount)";
-export const WITHDRAW_ABI =
-  "event Withdraw(address indexed sender, uint256 indexed amount)";
+export const STAKE_ABI = "event Stake(uint24 indexed trackId, address indexed user, uint104 amount)";
+export const UNSTAKE_ABI = "event Unstake(uint24 indexed trackId, address indexed user, uint104 amount)";
+export const PURCHASE_ABI = "event Purchase(address indexed sender, uint256 indexed paymentAmount)";
+export const WITHDRAW_ABI = "event Withdraw(address indexed sender, uint256 indexed amount)";
 
 //contracts addresses
 export const STAKING_CONTRACT = "0x1d37f1e6f0cce814f367d2765ebad5448e59b91b"; // IF Allocation Master V1.5
@@ -41,12 +32,8 @@ export const SALE_CONTRACTS = [
   "0xe3444Bc6ef903310dbfF670897Af9FDc06E8CbA4", // ARDN Gleam $100 Sale Contract
 ];
 
-export const SUPPLY_ABI = [
-  "function totalSupply() external view returns (uint256)",
-];
-export const SALE_ABI = [
-  "function totalPaymentReceived() view returns (uint256)",
-];
+export const SUPPLY_ABI = ["function totalSupply() external view returns (uint256)"];
+export const SALE_ABI = ["function totalPaymentReceived() view returns (uint256)"];
 export const SALE_IFACE: Interface = new Interface(SALE_ABI);
 export const SUPPLY_IFACE: Interface = new Interface(SUPPLY_ABI);
 

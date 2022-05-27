@@ -1,24 +1,14 @@
 import { BigNumber } from "ethers";
 import { Finding, LogDescription, TransactionEvent } from "forta-agent";
 import SalesFetcher from "./sales.fetcher";
-import {
-  createSaleFinding,
-  PERCENT,
-  PURCHASE_ABI,
-  WITHDRAW_ABI,
-} from "./utils";
+import { createSaleFinding, PERCENT, PURCHASE_ABI, WITHDRAW_ABI } from "./utils";
 
-export const saleHandler = async (
-  txEvent: TransactionEvent,
-  fetcher: SalesFetcher
-): Promise<Finding[]> => {
+export const saleHandler = async (txEvent: TransactionEvent, fetcher: SalesFetcher): Promise<Finding[]> => {
   const findings: Finding[] = [];
 
   const logs: LogDescription[] = txEvent.filterLog([PURCHASE_ABI, WITHDRAW_ABI], fetcher.saleContracts);
 
-  const contractsInUse: Set<string> = new Set<string>(
-    logs.map((log: LogDescription) => log.address.toLowerCase())
-  );
+  const contractsInUse: Set<string> = new Set<string>(logs.map((log: LogDescription) => log.address.toLowerCase()));
 
   const thresholds: Record<string, BigNumber> = {};
   const thresholdsPromises: Promise<BigNumber>[] = [];
@@ -27,10 +17,7 @@ export const saleHandler = async (
     thresholdsPromises.push(
       fetcher
         .getTotalPaymentReceived(txEvent.blockNumber - 1, contract)
-        .then(
-          (total: BigNumber) =>
-            (thresholds[contract] = total.mul(PERCENT).div(100))
-        )
+        .then((total: BigNumber) => (thresholds[contract] = total.mul(PERCENT).div(100)))
     );
   });
   await Promise.all(thresholdsPromises);

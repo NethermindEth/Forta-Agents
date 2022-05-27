@@ -1,33 +1,14 @@
 import { BigNumber, utils } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import SalesFetcher from "./sales.fetcher";
 import StakeFetcher from "./stake.fetcher";
-import {
-  PURCHASE_ABI,
-  SALE_ABI,
-  STAKE_ABI,
-  SUPPLY_ABI,
-  UNSTAKE_ABI,
-  WITHDRAW_ABI,
-} from "./utils";
+import { PURCHASE_ABI, SALE_ABI, STAKE_ABI, SUPPLY_ABI, UNSTAKE_ABI, WITHDRAW_ABI } from "./utils";
 
-const STAKE_IFACE: utils.Interface = new utils.Interface([
-  STAKE_ABI,
-  UNSTAKE_ABI,
-]);
-const SALE_IFACE: utils.Interface = new utils.Interface([
-  PURCHASE_ABI,
-  WITHDRAW_ABI,
-]);
+const STAKE_IFACE: utils.Interface = new utils.Interface([STAKE_ABI, UNSTAKE_ABI]);
+const SALE_IFACE: utils.Interface = new utils.Interface([PURCHASE_ABI, WITHDRAW_ABI]);
 
 // Address declarations
 const IDIA_ADDRESS: string = createAddress("0xaabb");
@@ -41,46 +22,16 @@ const SALE_ADDRESSES: string[] = [
 const TEST_BLOCK = 50;
 
 const TEST_DATA = [
-  [
-    "11",
-    createAddress("0xa2"),
-    "40",
-  ], // Stack below threshold
-  [
-    "11",
-    createAddress("0xa3"),
-    "60",
-  ], //Unstake below threshold
-  [
-    createAddress("0xa4"),
-    "120",
-  ], // Purchase below threshold
-  [
-    createAddress("0xa6"),
-    "140",
-  ],// Withdraw below threshold
-  [
-    "11",
-    createAddress("0xa2"),
-    "120",
-  ], // Stack above threshold
-  [
-    "11",
-    createAddress("0xa3"),
-    "140",
-  ], //Unstake above threshold
-  [
-    createAddress("0xa4"),
-    "250",
-  ], // Purchase above threshold
-  [
-    createAddress("0xa6"),
-    "300",
-  ] // Withdraw above threshold
-
-]
-const promise = (value: number) =>
-  new Promise((resolve) => resolve(BigNumber.from(value)));
+  ["11", createAddress("0xa2"), "40"], // Stack below threshold
+  ["11", createAddress("0xa3"), "60"], //Unstake below threshold
+  [createAddress("0xa4"), "120"], // Purchase below threshold
+  [createAddress("0xa6"), "140"], // Withdraw below threshold
+  ["11", createAddress("0xa2"), "120"], // Stack above threshold
+  ["11", createAddress("0xa3"), "140"], //Unstake above threshold
+  [createAddress("0xa4"), "250"], // Purchase above threshold
+  [createAddress("0xa6"), "300"], // Withdraw above threshold
+];
+const promise = (value: number) => new Promise((resolve) => resolve(BigNumber.from(value)));
 
 const stakeFinding = (name: string, amount: string, from: string): Finding =>
   Finding.fromObject({
@@ -96,12 +47,7 @@ const stakeFinding = (name: string, amount: string, from: string): Finding =>
     },
   });
 
-const saleFinding = (
-  sale_contract: string,
-  name: string,
-  amount: string,
-  from: string
-): Finding =>
+const saleFinding = (sale_contract: string, name: string, amount: string, from: string): Finding =>
   Finding.fromObject({
     name: `Large ${name} detected.`,
     description: `${name}() event emitted with a large amount`,
@@ -117,26 +63,25 @@ const saleFinding = (
   });
 
 describe("Large Deposits-withdraws test suite", () => {
-
   const mockProvider = new MockEthersProvider();
 
   const handler: HandleTransaction = provideHandleTransaction(
-   STAKING_ADDRESS,
-   new StakeFetcher(mockProvider as any, IDIA_ADDRESS),
-   new SalesFetcher(mockProvider as any, SALE_ADDRESSES)
+    STAKING_ADDRESS,
+    new StakeFetcher(mockProvider as any, IDIA_ADDRESS),
+    new SalesFetcher(mockProvider as any, SALE_ADDRESSES)
   );
 
   beforeAll(() => {
-    mockProvider.addCallTo(IDIA_ADDRESS,TEST_BLOCK -1, new Interface(SUPPLY_ABI),"totalSupply",{
-      inputs:[],
-      outputs:[BigNumber.from(1000)]
-    })
+    mockProvider.addCallTo(IDIA_ADDRESS, TEST_BLOCK - 1, new Interface(SUPPLY_ABI), "totalSupply", {
+      inputs: [],
+      outputs: [BigNumber.from(1000)],
+    });
 
-    for (let saleContract of SALE_ADDRESSES){
-      mockProvider.addCallTo(saleContract,TEST_BLOCK -1, new Interface(SALE_ABI),"totalPaymentReceived",{
-        inputs:[],
-        outputs:[BigNumber.from(2000)]
-      })
+    for (let saleContract of SALE_ADDRESSES) {
+      mockProvider.addCallTo(saleContract, TEST_BLOCK - 1, new Interface(SALE_ABI), "totalPaymentReceived", {
+        inputs: [],
+        outputs: [BigNumber.from(2000)],
+      });
     }
   });
 
@@ -206,10 +151,10 @@ describe("Large Deposits-withdraws test suite", () => {
     const findings = await handler(tx);
 
     expect(findings).toStrictEqual([
-      stakeFinding("Stake",TEST_DATA[4][2], TEST_DATA[4][1]),
+      stakeFinding("Stake", TEST_DATA[4][2], TEST_DATA[4][1]),
       stakeFinding("Unstake", TEST_DATA[5][2], TEST_DATA[5][1]),
       saleFinding(SALE_ADDRESSES[2], "Purchase", TEST_DATA[6][1], TEST_DATA[6][0]),
-      saleFinding(SALE_ADDRESSES[1], "Withdraw",TEST_DATA[7][1], TEST_DATA[7][0]),
+      saleFinding(SALE_ADDRESSES[1], "Withdraw", TEST_DATA[7][1], TEST_DATA[7][0]),
     ]);
   });
 });
