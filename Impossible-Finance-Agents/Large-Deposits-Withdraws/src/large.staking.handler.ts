@@ -4,8 +4,8 @@ import {
   createStakeFinding,
   IDIA_TOKEN,
   PERCENT,
-  STAKE_SIGNATURE,
-  UNSTAKE_SIGNATURE,
+  STAKE_ABI,
+  UNSTAKE_ABI,
 } from "./utils";
 import StakeFetcher from "./stake.fetcher";
 
@@ -17,7 +17,7 @@ export const stakeHandler = async (
   const findings: Finding[] = [];
   // Get stake/unstake events
   const stakingEvents = txEvent.filterLog(
-    [STAKE_SIGNATURE, UNSTAKE_SIGNATURE],
+    [STAKE_ABI, UNSTAKE_ABI],
     staking_contract
   );
   if (stakingEvents.length === 0) return findings;

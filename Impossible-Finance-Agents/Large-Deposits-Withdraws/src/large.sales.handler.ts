@@ -4,8 +4,8 @@ import SalesFetcher from "./sales.fetcher";
 import {
   createSaleFinding,
   PERCENT,
-  PURCHASE_SIGNATURE,
-  WITHDRAW_SIGNATURE,
+  PURCHASE_ABI,
+  WITHDRAW_ABI,
 } from "./utils";
 
 export const saleHandler = async (
@@ -19,7 +19,7 @@ export const saleHandler = async (
   sale_contracts.forEach((sale_contract) =>
     logs.push(
       ...txEvent.filterLog(
-        [PURCHASE_SIGNATURE, WITHDRAW_SIGNATURE],
+        [PURCHASE_ABI, WITHDRAW_ABI],
         sale_contract
       )
     )

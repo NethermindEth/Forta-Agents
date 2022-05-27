@@ -1,20 +1,20 @@
+import { Interface } from "ethers/lib/utils";
 import {
   Finding,
   FindingSeverity,
   FindingType,
   LogDescription,
 } from "forta-agent";
-import { Interface } from "@ethersproject/abi";
 
 export const PERCENT = 10;
 //events signatures
-export const STAKE_SIGNATURE =
+export const STAKE_ABI =
   "event Stake(uint24 indexed trackId, address indexed user, uint104 amount)";
-export const UNSTAKE_SIGNATURE =
+export const UNSTAKE_ABI =
   "event Unstake(uint24 indexed trackId, address indexed user, uint104 amount)";
-export const PURCHASE_SIGNATURE =
+export const PURCHASE_ABI =
   "event Purchase(address indexed sender, uint256 indexed paymentAmount)";
-export const WITHDRAW_SIGNATURE =
+export const WITHDRAW_ABI =
   "event Withdraw(address indexed sender, uint256 indexed amount)";
 
 //contracts addresses

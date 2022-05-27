@@ -9,19 +9,19 @@ import {
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import {
-  PURCHASE_SIGNATURE,
-  STAKE_SIGNATURE,
-  UNSTAKE_SIGNATURE,
-  WITHDRAW_SIGNATURE,
+  PURCHASE_ABI,
+  STAKE_ABI,
+  UNSTAKE_ABI,
+  WITHDRAW_ABI,
 } from "./utils";
 
 const STAKE_IFACE: utils.Interface = new utils.Interface([
-  STAKE_SIGNATURE,
-  UNSTAKE_SIGNATURE,
+  STAKE_ABI,
+  UNSTAKE_ABI,
 ]);
 const SALE_IFACE: utils.Interface = new utils.Interface([
-  PURCHASE_SIGNATURE,
-  WITHDRAW_SIGNATURE,
+  PURCHASE_ABI,
+  WITHDRAW_ABI,
 ]);
 
 // Address declarations
