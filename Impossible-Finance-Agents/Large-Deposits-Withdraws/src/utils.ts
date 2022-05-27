@@ -73,7 +73,7 @@ export const createSaleFinding = (log: LogDescription, alertId: string) =>
     type: FindingType.Info,
     protocol: "Impossible Finance",
     metadata: {
-      sale_contract: log.address.toLowerCase(),
+      saleContract: log.address.toLowerCase(),
       from: log.args[0],
       amount: log.args[1].toString(),
     },

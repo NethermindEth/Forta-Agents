@@ -110,12 +110,12 @@ describe("Large Deposits-withdraws Agent test suite", () => {
       createAddress("0xa3"),
       "60",
     ]);
-    const log3 = STAKE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
+    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
       createAddress("0xa4"),
       "80",
     ]);
 
-    const log4 = STAKE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
+    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
       createAddress("0xa6"),
       "90",
     ]);
@@ -157,12 +157,12 @@ describe("Large Deposits-withdraws Agent test suite", () => {
       createAddress("0xa3"),
       "60",
     ]);
-    const log3 = STAKE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
+    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
       createAddress("0xa4"),
       "80",
     ]);
 
-    const log4 = STAKE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
+    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
       createAddress("0xa6"),
       "90",
     ]);

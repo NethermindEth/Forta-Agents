@@ -28,6 +28,6 @@ This bot detects large changes in TVL/ Monitor large deposits/withdrawals.
   - Severity is always set to "info".
   - Type is always set to "info".
   - ## Metadata contains:
-    - `sale_contract`: Address of the sale contract where the event was emitted.
+    - `saleContract`: Address of the sale contract where the event was emitted.
     - `from`: Address of the user who executed the transaction.
     - `amount`: The amount that was purchased or withdrawn.
