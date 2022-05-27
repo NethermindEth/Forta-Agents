@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects flashloans through the function `swap` on pairs generated through `Swap Factory V1`
+This bot detects flashloans through the function `swap` on pairs generated through `Swap Factory V3`
 
 ## Supported Chains
 
