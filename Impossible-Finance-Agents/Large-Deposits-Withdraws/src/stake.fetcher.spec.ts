@@ -1,5 +1,5 @@
 import StakeFetcher from "./stake.fetcher";
-import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { SUPPLY_IFACE } from "./utils";
 
@@ -15,7 +15,7 @@ const TEST_DATA: [ number, number][] = [
 const TEST_STAKING_ADDRESSES = [createAddress("0xdea1"),createAddress("0xdea2"), createAddress("0xdea3")];
 
 describe("StakeFetcher test suite", () => {
-  const mockProvider: MockProvider = new MockProvider();
+  const mockProvider = new MockEthersProvider();
   const fetcher = new StakeFetcher(mockProvider as any, TEST_STAKING_ADDRESSES[0] );
 
 

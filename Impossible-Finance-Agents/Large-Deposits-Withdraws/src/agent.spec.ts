@@ -81,7 +81,6 @@ describe("Large Deposits-withdraws Agent test suite", () => {
   };
 
   const handler: HandleTransaction = provideHandleTransaction(
-    sale_addresses,
     mockStakeFetcher as any,
     mockSaleFetcher as any
   );

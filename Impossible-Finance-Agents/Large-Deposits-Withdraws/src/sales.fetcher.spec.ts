@@ -1,5 +1,5 @@
 import SaleFetcher from "./sales.fetcher";
-import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { SALE_IFACE } from "./utils";
 
@@ -10,12 +10,15 @@ const TEST_DATA: [string, number, number][] = [
   [createAddress("0xf1a7"), 90, 20000],
   [createAddress("0xca11"), 11, 15],
 ];
+const SALE_ADDRESSES = [createAddress("0xfee5"), createAddress("0xdef1"), createAddress("0xc0de"),createAddress("0xf1a7"),createAddress("0xca11")];
 
 describe("SaleFetcher test suite", () => {
-  const mockProvider: MockProvider = new MockProvider();
-  const fetcher: SaleFetcher = new SaleFetcher(mockProvider as any);
+  const mockProvider = new MockEthersProvider();
+  const fetcher: SaleFetcher = new SaleFetcher(mockProvider as any, SALE_ADDRESSES);
 
-  const initialize = () => {
+  beforeEach(() => {
+    mockProvider.clear();
+
     for (let [contract, block, total] of TEST_DATA) {
       mockProvider.addCallTo(
         contract,
@@ -25,12 +28,10 @@ describe("SaleFetcher test suite", () => {
         { inputs: [], outputs: [BigNumber.from(total)] }
       );
     }
-  };
-
-  beforeEach(() => mockProvider.clear());
+  
+  });
 
   it("should fetch the correct values", async () => {
-    initialize();
 
     for (let [contract, block, supply] of TEST_DATA) {
       const total: BigNumber = await fetcher.getTotalPaymentReceived(
@@ -38,6 +39,18 @@ describe("SaleFetcher test suite", () => {
         contract
       );
       expect(total).toStrictEqual(BigNumber.from(supply));
-    }
+      }
+
+      //clear mock to use cache
+      mockProvider.clear();
+
+      for (let [contract, block, supply] of TEST_DATA) {
+        const total: BigNumber = await fetcher.getTotalPaymentReceived(
+          block,
+          contract
+        );
+        expect(total).toStrictEqual(BigNumber.from(supply));
+        }
+
   });
 });
