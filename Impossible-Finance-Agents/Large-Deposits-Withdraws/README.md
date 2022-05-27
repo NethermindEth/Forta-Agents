@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects large changes in TVL/ Monitor large deposits/withdrawals.
+This bot detects large deposits/withdrawals on staking and sale contracts.
 
 > - `Stake` and `Unstake` events are used to monitor staking/unstaking in IFAllocationMaster contract.
 > - `Purchase`and `Withdraw` events are used to detect purchase and withdraws with their whitelist and giveaway versions.
