@@ -21,7 +21,7 @@ const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
 export interface AssetSourceTimeStampI {
   asset: string;
   source: string;
-  timestamp: number;
+  lastTimestamp: number;
 }
 const getAssetsSourceTimeStamp = async (
   config: AgentConfig,
@@ -41,27 +41,24 @@ const getAssetsSourceTimeStamp = async (
   return await Promise.all(
     sources.map(async (source, index) => {
       const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
-      const timestamp = await chainLinkAggregator.latestTimestamp();
+      const lastTimestamp = await chainLinkAggregator.latestTimestamp();
       return {
         asset: reservedList[index],
         source: sources[index],
-        timestamp,
+        lastTimestamp,
       };
     })
   );
 };
 
-const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
+const createFinding = ({ asset, source, lastTimestamp }: AssetSourceTimeStampI): Finding => {
   return Finding.fromObject({
     name: "Detect stale price data from Chainlink aggregator",
     description: "Stale price data is detected from Chainlink aggregator",
     alertId: "UMEE-3",
     type: FindingType.Info,
     severity: FindingSeverity.Low,
-    metadata: {
-      initialCallSelector,
-      lendingPoolCallSelector,
-    },
+    metadata: { asset, source, lastTimestamp: lastTimestamp.toString() },
   });
 };
 

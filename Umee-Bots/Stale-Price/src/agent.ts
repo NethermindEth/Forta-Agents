@@ -21,7 +21,15 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
         return assetSource.asset === asset && assetSource.source === source;
       });
       if (assetSourceTimeStamp) {
-        assetsSourcesList.push({ source, asset, timestamp: txEvent.block.timestamp });
+        assetsSourcesList.push({ source, asset, lastTimestamp: txEvent.block.timestamp });
+      }
+    });
+
+    const currentTimestamp = txEvent.block.timestamp;
+
+    assetsSourcesList.map((assetAndSource) => {
+      if (currentTimestamp - assetAndSource.lastTimestamp >= config.threshold) {
+        findings.push(utils.createFinding(assetAndSource));
       }
     });
     return findings;
