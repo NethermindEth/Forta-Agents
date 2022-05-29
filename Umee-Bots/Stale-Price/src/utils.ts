@@ -9,7 +9,7 @@ export interface AgentConfig {
 }
 
 const UMEE_FUNCTIONS_ABI: string[] = [
-  "function getReservesList() external view override returns (address[] memory)",
+  "function getReservesList() external view returns (address[] memory)",
   "function getSourceOfAsset(address asset) external view returns (address)",
   "function latestTimestamp() external view returns (uint256)",
 ];
@@ -27,25 +27,33 @@ const getAssetsSourceTimeStamp = async (
   config: AgentConfig,
   provider: ethers.providers.Provider
 ): Promise<AssetSourceTimeStampI[]> => {
+  console.log("yarab");
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
 
-  const reservedList = lendingPoolContract.getReservesList();
-
+  const reservedList = await lendingPoolContract.getReservesList();
   const sources = await Promise.all(
-    reservedList.map(async (asset: string): Promise<string> => {
-      return await umeeOracleContract.getSourceOfAsset(asset);
+    reservedList.filter(async (asset: string) => {
+      try {
+        return await umeeOracleContract.getSourceOfAsset(asset);
+      } catch (error) {
+        return false;
+      }
     })
   );
   return await Promise.all(
-    sources.map(async (source, index) => {
-      const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
-      const lastTimestamp = await chainLinkAggregator.latestTimestamp();
-      return {
-        asset: reservedList[index],
-        source: sources[index],
-        lastTimestamp,
-      };
+    sources.filter(async (source, index) => {
+      try {
+        const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
+        const lastTimestamp = await chainLinkAggregator.latestTimestamp();
+        return {
+          asset: reservedList[index],
+          source: sources[index],
+          lastTimestamp,
+        };
+      } catch (error) {
+        return false;
+      }
     })
   );
 };

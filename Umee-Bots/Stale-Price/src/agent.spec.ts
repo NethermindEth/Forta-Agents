@@ -12,7 +12,7 @@ import {
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
-import agent, { initialize, provideHandleTransaction } from "./agent";
+import agent, { provideHandleTransaction } from "./agent";
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
@@ -25,50 +25,67 @@ const generateSourceAsset = (
 
 describe("Lending pool reentrancy agent tests suit", () => {
   let handleTx: HandleTransaction;
-  const mockProvider: MockEthersProvider = new MockEthersProvider();
 
   beforeAll(() => {
     handleTx = agent.handleTransaction;
   });
-  beforeEach(() => mockProvider.clear());
-  it("returns empty finding if latesttimestamp is less than the threshold", async () => {
+  it("returns empty finding if time between latest timestamp and current timestamp is less than the threshold", async () => {
     const block = 14717599;
-    const outputs = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
+    const sourceAssetAddresses = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
     const currentTimestamp = 1000000;
-    const latestTimestamp = currentTimestamp - 10;
-    mockProvider.addCallTo(CONFIG.lendingPoolAddress, block, utils.FUNCTIONS_INTERFACE, "getReservesList", {
-      inputs: [],
-      outputs: [outputs],
-    });
+    const lastTimestamp = currentTimestamp - 10;
+    const sourceAssets = [
+      {
+        source: sourceAssetAddresses[0],
+        asset: sourceAssetAddresses[1],
+        lastTimestamp,
+      },
+      {
+        source: sourceAssetAddresses[1],
+        asset: sourceAssetAddresses[2],
+        lastTimestamp,
+      },
+      {
+        source: sourceAssetAddresses[2],
+        asset: sourceAssetAddresses[0],
+        lastTimestamp,
+      },
+    ];
+    const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
 
-    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
-      inputs: [outputs[0]],
-      outputs: [outputs[0]],
-    });
-    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
-      inputs: [outputs[1]],
-      outputs: [outputs[1]],
-    });
-    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
-      inputs: [outputs[2]],
-      outputs: [outputs[2]],
-    });
-
-    mockProvider.addCallTo(outputs[0], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
-      inputs: [],
-      outputs: [latestTimestamp],
-    });
-    mockProvider.addCallTo(outputs[1], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
-      inputs: [],
-      outputs: [latestTimestamp],
-    });
-    mockProvider.addCallTo(outputs[2], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
-      inputs: [],
-      outputs: [latestTimestamp],
-    });
-    await initialize(mockProvider as any);
-    const mockTxEvent = new TestTransactionEvent().setBlock(block);
+    handleTx = provideHandleTransaction(CONFIG, sourceAssets);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([]);
+  });
+  it("returns three finding if time between latest timestamp and current timestamp more than the threshold", async () => {
+    const block = 14717599;
+    const sourceAssetAddresses = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
+    const currentTimestamp = 1000000;
+    const lastTimestamp = currentTimestamp - CONFIG.threshold;
+
+    const sourceAssets = [
+      {
+        source: sourceAssetAddresses[0],
+        asset: sourceAssetAddresses[1],
+        lastTimestamp,
+      },
+      {
+        source: sourceAssetAddresses[1],
+        asset: sourceAssetAddresses[2],
+        lastTimestamp,
+      },
+      {
+        source: sourceAssetAddresses[2],
+        asset: sourceAssetAddresses[0],
+        lastTimestamp,
+      },
+    ];
+    const expectedFinding = sourceAssets.map((sourceAsset) => {
+      return utils.createFinding(sourceAsset);
+    });
+    const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
+    handleTx = provideHandleTransaction(CONFIG, sourceAssets);
+    const findings = await handleTx(mockTxEvent);
+    expect(findings).toStrictEqual(expectedFinding);
   });
 });
