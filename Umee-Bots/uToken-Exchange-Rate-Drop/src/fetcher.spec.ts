@@ -1,7 +1,8 @@
 import Fetcher from "./fetcher";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE, UMEE_ORACLE, LENDING_POOL } from "./utils";
+import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE } from "./utils";
 import { BigNumber } from "ethers";
+import CONFIG from "./agent.config";
 
 // format: [uTokenAddress, blockNumber, underlyingAssetAddress]
 const UNDERLYING_ASSET_TEST_CASE: [string, number, string][] = [
@@ -35,14 +36,14 @@ describe("Fetcher test suite", () => {
   }
 
   function createMockPriceCall(assetAddress: string, blockNumber: number, price: BigNumber) {
-    return mockProvider.addCallTo(UMEE_ORACLE, blockNumber, UMEE_ORACLE_PRICE_IFACE, "getAssetPrice", {
+    return mockProvider.addCallTo(CONFIG.umeeOracle, blockNumber, UMEE_ORACLE_PRICE_IFACE, "getAssetPrice", {
       inputs: [assetAddress],
       outputs: [price],
     });
   }
 
   function createMockNormalizedIncomeCall(assetAddress: string, blockNumber: number, price: BigNumber) {
-    return mockProvider.addCallTo(LENDING_POOL, blockNumber, LENDING_POOL_IFACE, "getReserveNormalizedIncome", {
+    return mockProvider.addCallTo(CONFIG.lendingPool, blockNumber, LENDING_POOL_IFACE, "getReserveNormalizedIncome", {
       inputs: [assetAddress],
       outputs: [price],
     });
