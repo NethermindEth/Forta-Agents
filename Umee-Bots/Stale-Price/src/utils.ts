@@ -23,6 +23,7 @@ export interface AssetSourceTimeStampI {
   source: string;
   lastTimestamp: number;
 }
+
 const getAssetsSourceTimeStamp = async (
   config: AgentConfig,
   provider: ethers.providers.Provider
@@ -33,6 +34,7 @@ const getAssetsSourceTimeStamp = async (
   const reservedList = await lendingPoolContract.getReservesList();
   const sources = await Promise.all(
     reservedList.filter(async (asset: string) => {
+      // use try/catch because some asset may be without source
       try {
         return await umeeOracleContract.getSourceOfAsset(asset);
       } catch (error) {
@@ -42,6 +44,7 @@ const getAssetsSourceTimeStamp = async (
   );
   return await Promise.all(
     sources.filter(async (source, index) => {
+      // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
       try {
         const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
         const lastTimestamp = await chainLinkAggregator.latestTimestamp();
