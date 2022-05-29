@@ -1,11 +1,6 @@
-import { Contract, providers, BigNumber, utils } from "ethers";
-import {
-  UTOKENS_IFACE,
-  UMEE_ORACLE,
-  UMEE_ORACLE_PRICE_IFACE,
-  LENDING_POOL,
-  LENDING_POOL_IFACE,
-} from "./utils";
+import { Contract, providers, BigNumber } from "ethers";
+import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE } from "./utils";
+import CONFIG from "./agent.config";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
@@ -15,10 +10,7 @@ export default class DataFetcher {
   }
 
   // return the underlying asset address of a uToken
-  public async getUnderlyingAssetAddress(
-    uTokenAddress: string,
-    block: string | number
-  ): Promise<string> {
+  public async getUnderlyingAssetAddress(uTokenAddress: string, block: string | number): Promise<string> {
     const uTokenContract = new Contract(uTokenAddress, UTOKENS_IFACE, this.provider);
 
     const underlyingAssetAddress: string = await uTokenContract.UNDERLYING_ASSET_ADDRESS({
@@ -28,15 +20,9 @@ export default class DataFetcher {
     return underlyingAssetAddress;
   }
 
-  public async getPrice(
-    assetAddress: string,
-    block: string | number
-  ): Promise<BigNumber> {
-    const oracleContract = new Contract(
-      UMEE_ORACLE,
-      UMEE_ORACLE_PRICE_IFACE,
-      this.provider
-    );
+  // return the price of an asset
+  public async getPrice(assetAddress: string, block: string | number): Promise<BigNumber> {
+    const oracleContract = new Contract(CONFIG.umeeOracle, UMEE_ORACLE_PRICE_IFACE, this.provider);
 
     const assetPrice = await oracleContract.getAssetPrice(assetAddress, {
       blockTag: block,
@@ -45,22 +31,13 @@ export default class DataFetcher {
     return assetPrice;
   }
 
-  public async getReserveNormalizedIncome(
-    assetAddress: string,
-    block: string | number
-  ): Promise<BigNumber> {
-    const lendingPoolContract = new Contract(
-      LENDING_POOL,
-      LENDING_POOL_IFACE,
-      this.provider
-    );
+  // return the normalized income of an asset
+  public async getReserveNormalizedIncome(assetAddress: string, block: string | number): Promise<BigNumber> {
+    const lendingPoolContract = new Contract(CONFIG.lendingPool, LENDING_POOL_IFACE, this.provider);
 
-    const reserveNormalizedIncome = await lendingPoolContract.getReserveNormalizedIncome(
-      assetAddress,
-      {
-        blockTag: block,
-      }
-    );
+    const reserveNormalizedIncome = await lendingPoolContract.getReserveNormalizedIncome(assetAddress, {
+      blockTag: block,
+    });
 
     return reserveNormalizedIncome;
   }
