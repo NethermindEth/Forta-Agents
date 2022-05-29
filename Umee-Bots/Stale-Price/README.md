@@ -2,7 +2,7 @@
 
 ## Description
 
-Detects reentrancy inside LendingProtocol smart contract. If the call is a reentrant call function inside the `FUNCTIONS_SELECTORS` array.
+This agent monitors price oracle data to see if it has not been updated in over specific threshold.
 
 ## Supported Chains
 
@@ -11,9 +11,10 @@ Detects reentrancy inside LendingProtocol smart contract. If the call is a reent
 ## Alerts
 
 - UMEE-3
-  - Fired when in a transaction occur multiple nested calls to the same contract (reentrancy)
-  - Severity is always set to "High."
-  - Type is always set to "Exploit."
+  - Fired price stop been updated for certain asset.
+  - Severity is always set to "Medium".
+  - Type is always set to "Suspicious".
   - Metadata contains:
-    - initialCallSelector: The selector of the function that calls the `LendingPool` smart contract
-    - lendingPoolCallSelector: The selector of the first reentrancy case on the `LendingPool` smart contract
+    - asset: The address of the asset.
+    - source: The address of the source.
+    - lastTime: The last time the price had been changed

@@ -10,83 +10,65 @@ import {
   Transaction,
 } from "forta-agent";
 
-import { createAddress } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
-import { handleTransaction } from "./agent";
+import agent, { initialize, provideHandleTransaction } from "./agent";
+import CONFIG from "./agent.config";
 import utils from "./utils";
 
-const TEST_CONTRACT_ADDRESS = createAddress("0x01");
-
-const createTrace = (stack: number[], input = ""): Trace => {
-  return {
-    traceAddress: stack,
-    action: {
-      to: TEST_CONTRACT_ADDRESS,
-      input,
-    } as TraceAction,
-  } as Trace;
-};
-
-// We need to use createTransactionEvent because TestTransactionEvent.addTraces
-// Use TraceProps[] as parameters, TraceProps don't have traces address or action properties
-const createTxEvent = (traces: Trace[], data = "") =>
-  createTransactionEvent({
-    transaction: { data } as Transaction,
-    receipt: {} as Receipt,
-    block: {} as Block,
-    traces: traces,
-  } as any);
+const generateSourceAsset = (
+  provider: MockEthersProvider,
+  assets: string[],
+  sources: string[],
+  blockNumber: number
+) => {};
 
 describe("Lending pool reentrancy agent tests suit", () => {
-  const handleTx: HandleTransaction = handleTransaction(TEST_CONTRACT_ADDRESS, utils.REENTRANCY_FUNCTIONS_SELECTORS);
+  let handleTx: HandleTransaction;
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
 
-  describe("handleTransaction", () => {
-    it("Should return empty findings if no traces provided", async () => {
-      const tx: TransactionEvent = createTxEvent([]);
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual([]);
+  beforeAll(() => {
+    handleTx = agent.handleTransaction;
+  });
+  beforeEach(() => mockProvider.clear());
+  it("returns empty finding if latesttimestamp is less than the threshold", async () => {
+    const block = 14717599;
+    const outputs = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
+    const currentTimestamp = 1000000;
+    const latestTimestamp = currentTimestamp - 10;
+    mockProvider.addCallTo(CONFIG.lendingPoolAddress, block, utils.FUNCTIONS_INTERFACE, "getReservesList", {
+      inputs: [],
+      outputs: [outputs],
     });
 
-    it("Should return empty findings if no reentrant call from signatures array detected", async () => {
-      const tx: TransactionEvent = createTxEvent([
-        createTrace([]),
-        createTrace([0]),
-        createTrace([0, 0]),
-        createTrace([0, 0, 0]),
-      ]);
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual([]);
+    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
+      inputs: [outputs[0]],
+      outputs: [outputs[0]],
+    });
+    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
+      inputs: [outputs[1]],
+      outputs: [outputs[1]],
+    });
+    mockProvider.addCallTo(CONFIG.umeeOracleAddress, block, utils.FUNCTIONS_INTERFACE, "getSourceOfAsset", {
+      inputs: [outputs[2]],
+      outputs: [outputs[2]],
     });
 
-    it("Should ignore non reentrant calls", async () => {
-      const tx: TransactionEvent = createTxEvent([]);
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual([]);
+    mockProvider.addCallTo(outputs[0], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
+      inputs: [],
+      outputs: [latestTimestamp],
     });
-
-    it("Should detect different thresholds of reentrancy", async () => {
-      const testEncodedWithdrawFuncCall: string = utils.FUNCTIONS_INTERFACE.encodeFunctionData("withdraw", [
-        createAddress("0x0a"),
-        234,
-        createAddress("0x0b"),
-      ]);
-
-      console.log(utils.REENTRANCY_FUNCTIONS_SELECTORS);
-      const tx: TransactionEvent = createTxEvent(
-        [
-          createTrace([], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Initial call
-          createTrace([0], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Call withdraw for the first time
-          createTrace([0, 0], utils.REENTRANCY_FUNCTIONS_SELECTORS[0]), // Call withdraw inside the transaction another time
-        ],
-        testEncodedWithdrawFuncCall
-      );
-
-      const expected: Finding[] = [];
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, utils.REENTRANCY_FUNCTIONS_SELECTORS[0]));
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, utils.REENTRANCY_FUNCTIONS_SELECTORS[0]));
-
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings.length).toStrictEqual(expected.length);
+    mockProvider.addCallTo(outputs[1], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
+      inputs: [],
+      outputs: [latestTimestamp],
     });
+    mockProvider.addCallTo(outputs[2], block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
+      inputs: [],
+      outputs: [latestTimestamp],
+    });
+    await initialize(mockProvider as any);
+    const mockTxEvent = new TestTransactionEvent().setBlock(block);
+    const findings = await handleTx(mockTxEvent);
+    expect(findings).toStrictEqual([]);
   });
 });

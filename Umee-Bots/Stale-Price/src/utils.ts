@@ -14,7 +14,7 @@ const UMEE_FUNCTIONS_ABI: string[] = [
   "function latestTimestamp() external view returns (uint256)",
 ];
 
-const EVENT_ABI = ["  event AssetSourceUpdated(address indexed asset, address indexed source)"];
+const EVENT_ABI = ["event AssetSourceUpdated(address indexed asset, address indexed source)"];
 
 const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
 
@@ -37,7 +37,6 @@ const getAssetsSourceTimeStamp = async (
       return await umeeOracleContract.getSourceOfAsset(asset);
     })
   );
-
   return await Promise.all(
     sources.map(async (source, index) => {
       const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
