@@ -1,68 +1,61 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { BlockEvent, Finding, HandleBlock, getEthersProvider, Initialize } from "forta-agent";
+import Fetcher from "./fetcher";
+import CONFIG from "./agent.config";
+import { createFinding, calculatePriceRatio, calculateSeverity } from "./utils";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+let currentPrices = new Map();
+let previousPrices = new Map();
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export const provideInitialize =
+  (fetcher: Fetcher, uTokens: any): Initialize =>
+  async () => {
+    currentPrices = await getUTokenPrices(fetcher, uTokens, "latest");
+  };
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+export const provideHandleBlock =
+  (fetcher: Fetcher, uTokens: any, uTokenPairs: any): HandleBlock =>
+  async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
+    previousPrices = currentPrices;
+
+    currentPrices = await getUTokenPrices(fetcher, uTokens, blockEvent.blockNumber);
+
+    uTokenPairs.forEach((pair: any) => {
+      const previousRatio = calculatePriceRatio(previousPrices.get(pair.uToken1), previousPrices.get(pair.uToken2));
+      const currentRatio = calculatePriceRatio(currentPrices.get(pair.uToken1), currentPrices.get(pair.uToken2));
+
+      const difference = previousRatio - currentRatio;
+
+      // check  if the current pair ratio subtracted from the previous pair ratio is greater than or equal to the pair difference threshold
+      if (difference > pair.threshold) {
+        const severity = calculateSeverity(difference - pair.threshold, pair.difference);
+        findings.push(createFinding(`${pair.uToken1}/${pair.uToken2}`, previousRatio, currentRatio, severity));
+      }
+    });
+
+    return findings;
+  };
+
+const getUTokenPrices = async (fetcher: Fetcher, uTokens: any, block: string | number) => {
+  const priceMap = new Map();
+
+  await Promise.all(
+    uTokens.map(async (uToken: { uToken: string; address: string }) => {
+      const uTokenUnderlyingAddress = await fetcher.getUnderlyingAssetAddress(uToken.address, block);
+      const assetPrice = await fetcher.getPrice(uTokenUnderlyingAddress, block);
+      const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(uTokenUnderlyingAddress, block);
+
+      const uTokenPrice = assetPrice.mul(reserveNormalizedIncome);
+
+      priceMap.set(uToken.uToken, uTokenPrice);
+    })
   );
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+  return priceMap;
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(new Fetcher(getEthersProvider()), CONFIG.uTokens),
+  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), CONFIG.uTokens, CONFIG.uTokenPairs),
 };
