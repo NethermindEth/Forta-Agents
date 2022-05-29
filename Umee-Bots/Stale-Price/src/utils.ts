@@ -27,7 +27,6 @@ const getAssetsSourceTimeStamp = async (
   config: AgentConfig,
   provider: ethers.providers.Provider
 ): Promise<AssetSourceTimeStampI[]> => {
-  console.log("yarab");
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
 
