@@ -1,6 +1,5 @@
-import MockProvider from "./mock.provider";
 import PairFetcher from "./pairs.fetcher";
-import { createAddress } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import abi from "./abi";
 
 // pair, block, factory, token0, token1
@@ -51,7 +50,7 @@ const CASES: [string, number, string, string, string][] = [
 
 describe("PairFetcher test suite", () => {
   const factory: string = createAddress("0xdead");
-  const mockProvider: MockProvider = new MockProvider();
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
   const fetcher: PairFetcher = new PairFetcher(factory, mockProvider as any);
 
   it("should store the factory address correctly", async () => {
