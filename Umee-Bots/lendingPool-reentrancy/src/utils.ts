@@ -14,8 +14,8 @@ const getSigHashes = (signaturesArray: string[]): string[] => {
 
 const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
   return Finding.fromObject({
-    name: "Detect Lending Pool Reentrancy",
-    description: "Detect when a reentrancy happened in the LendingPool contract",
+    name: "LendingPool call reentrancy",
+    description: "Reentrancy detected in call to LendingPool contract",
     alertId: "UMEE-9",
     type: FindingType.Exploit,
     severity: FindingSeverity.High,

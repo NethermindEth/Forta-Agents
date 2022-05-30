@@ -30,4 +30,4 @@ To check the results, uncomment the lines indicated in `src/agent.config.ts`, us
 npm run block 31800952
 ```
 
-In the block `31800952`, `ReentrantCaller.attack(contractAddress)` is executed. It will create a reentrant call on the `withdraw` transaction and a finding will be emitted.
+In the block `31913146`, `MockLendingPool.test()` is executed. It will create a reentrant call on the `deposit` transaction and a finding will be emitted.
