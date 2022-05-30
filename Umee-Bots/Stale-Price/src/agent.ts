@@ -11,27 +11,31 @@ const initialize = (provider: ethers.providers.Provider) => async () => {
 
 export const provideHandleTransaction = (
   config: AgentConfig,
+  provider: ethers.providers.Provider,
   assetsSourcesList: AssetSourceTimeStampI[]
 ): HandleTransaction => {
   const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const updateSourceLogs = txEvent.filterLog(utils.EVENT_ABI, config.umeeOracleAddress);
-    updateSourceLogs.map((logs) => {
+    updateSourceLogs.map(async (logs) => {
       const [asset, source] = logs.args;
-      const isNewPrice = assetsSourcesList.find((assetSource) => {
-        return assetSource.asset === asset && assetSource.source === source;
+      const assetSource = assetsSourcesList.find((assetSource) => {
+        return assetSource.asset;
       });
-      if (isNewPrice) {
-        assetsSourcesList.push({ source, asset, lastTimestamp: txEvent.block.timestamp });
+      if (!assetSource) {
+        const latestTimestamp = await utils.fetchLatestTimestamp(source, provider);
+        assetsSourcesList.push({ source, asset, latestTimestamp: latestTimestamp.toNumber() });
+        return;
       }
     });
 
-    const currentTimestamp = txEvent.block.timestamp;
-    assetsSourcesList.map((assetAndSource) => {
-      if (currentTimestamp - assetAndSource.lastTimestamp >= config.threshold) {
-        findings.push(utils.createFinding(assetAndSource));
+    assetsSourcesList.map((assetSource) => {
+      const currentTimestamp = txEvent.block.timestamp;
+      if (currentTimestamp - assetSource.latestTimestamp >= config.threshold) {
+        findings.push(utils.createFinding(assetSource));
       }
     });
+
     return findings;
   };
   return handleTransaction;
@@ -39,5 +43,5 @@ export const provideHandleTransaction = (
 
 export default {
   initialize: initialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(CONFIG, assetsSourcesList),
+  handleTransaction: provideHandleTransaction(CONFIG, getEthersProvider(), assetsSourcesList),
 };
