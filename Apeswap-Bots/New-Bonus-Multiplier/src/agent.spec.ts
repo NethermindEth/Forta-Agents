@@ -14,7 +14,7 @@ const testCreateFinding = (testMultiplier: string, testContractAddress: string):
   return Finding.fromObject({
     name: "Bonus Multiplier changed",
     description: "updateMultiplier function call detected from Apeswap's MasterApe contract",
-    alertId: "APESWAP-11",
+    alertId: "APESWAP-10",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",

@@ -1,5 +1,5 @@
 {
-  "name": "apeswap-11",
+  "name": "apeswap-10",
   "version": "0.0.1",
   "description": "Detect changes in Apeswap's MasterApe farm parameter BONUS_MULTIPLIER",
   "chainIds": [

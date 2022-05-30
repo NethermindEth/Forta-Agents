@@ -10,7 +10,7 @@ The bot returns a finding when the farm parameter `BONUS_MULTIPLIER` is changed 
 
 ## Alerts
 
-- APESWAP-11
+- APESWAP-10
   - Fired when an `updateMultiplier` function call is detected.
   - Severity is always set to "Info".
   - Type is always set to "Info".
