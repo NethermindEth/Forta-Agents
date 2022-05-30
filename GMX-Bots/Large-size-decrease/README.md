@@ -1,4 +1,4 @@
-# Closing/Decreasing large size position bot
+# Closing/Decreasing large size position detection bot
 
 ## Description
 
