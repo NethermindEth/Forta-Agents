@@ -23,3 +23,9 @@ This bot detects ownership transfers in following contracts
     - `contract`: The contract event occured
     - `previousOwner`: The previous owner
     - `newOwner`: The new owner
+
+## Test Data 
+
+The bot behavior can be verified with the following transaction (BSC network):
+
+- 0xd6f35b3666992860b8bf2da18ff5ce7ab1deb52f5097e56f21920fc8264847cd (`OwnershipTransferred` on `STAX` contract)
