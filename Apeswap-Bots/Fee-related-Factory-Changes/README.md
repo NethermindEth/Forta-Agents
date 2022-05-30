@@ -11,7 +11,7 @@ This agent detects changes to the `FeeTo` and `FeeToSetter` addresses on `ApeFac
 
 ## Alerts
 
-- APESWAP-7-1
+- APESWAP-6-1
   - Fired when the `setFeeTo` function is called on `ApeFactory`.
   - Severity is always set to "Info". 
   - Type is always set to "Info".
@@ -19,7 +19,7 @@ This agent detects changes to the `FeeTo` and `FeeToSetter` addresses on `ApeFac
     - `feeTo`: New feeTo address.
   - Addresses contain the `ApeFactory` contract address.
 
-- APESWAP-7-2
+- APESWAP-6-2
   - Fired when the `setFeeToSetter` function is called on `ApeFactory`.
   - Severity is always set to "Info". 
   - Type is always set to "Info".

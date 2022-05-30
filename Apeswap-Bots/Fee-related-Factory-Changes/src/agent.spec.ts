@@ -23,7 +23,7 @@ const testCreateFinding = (call: string, address: string): Finding => {
     return Finding.fromObject({
       name: "ApeFactory FeeTo address changed",
       description: `${call} function called in ApeFactory contract.`,
-      alertId: "APESWAP-7-1",
+      alertId: "APESWAP-6-1",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "Apeswap",
@@ -35,7 +35,7 @@ const testCreateFinding = (call: string, address: string): Finding => {
     return Finding.fromObject({
       name: "ApeFactory FeeTo setter address changed",
       description: `${call} function called in ApeFactory contract.`,
-      alertId: "APESWAP-7-2",
+      alertId: "APESWAP-6-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "Apeswap",
