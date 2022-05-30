@@ -11,7 +11,7 @@ This bot detects `OwnershipTransferred` event emissions from BANANA/GNANA token 
 
 ## Alerts
 
-- APESWAP-6-1
+- APESWAP-5-1
   - Fired when ownership is renounced on BANANA/GNANA token contract.
   - Severity is always set to "Info".
   - Type is always set to "Info" .
@@ -21,7 +21,7 @@ This bot detects `OwnershipTransferred` event emissions from BANANA/GNANA token 
       - `newOwner`: Null address.  
   
   
-- APESWAP-6-2
+- APESWAP-5-2
   - Fired when ownership is transferred on BANANA/GNANA token contract.
   - Severity is always set to "Info".
   - Type is always set to "Info" .

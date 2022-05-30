@@ -31,7 +31,7 @@ export const createFinding = (
         description: `${log.name} event emitted from ${
           log.address == networkManager.banana ? "BANANA" : "GNANA"
         } contract setting newOwner to Null address`,
-        alertId: "APESWAP-6-1",
+        alertId: "APESWAP-5-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -45,7 +45,7 @@ export const createFinding = (
         description: `${log.name} event emitted from ${
           log.address == networkManager.banana ? "BANANA" : "GNANA"
         } contract`,
-        alertId: "APESWAP-6-2",
+        alertId: "APESWAP-5-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",

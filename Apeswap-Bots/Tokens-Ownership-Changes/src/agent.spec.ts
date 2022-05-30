@@ -57,7 +57,7 @@ const testCreateFinding = (
       return Finding.fromObject({
         name: `${token}: Ownership renounced`,
         description: `${event} event emitted from ${token} contract setting newOwner to Null address`,
-        alertId: "APESWAP-6-1",
+        alertId: "APESWAP-5-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -67,7 +67,7 @@ const testCreateFinding = (
       return Finding.fromObject({
         name: `${token}: Ownership transferred`,
         description: `${event} event emitted from ${token} contract`,
-        alertId: "APESWAP-6-2",
+        alertId: "APESWAP-5-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",

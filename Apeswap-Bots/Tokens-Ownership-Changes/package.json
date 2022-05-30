@@ -1,5 +1,5 @@
 {
-  "name": "apeswap-6",
+  "name": "apeswap-5",
   "version": "0.0.1",
   "description": "Detects ownership changes in Apeswap's BANANA & GNANA tokens",
   "chainIds": [
