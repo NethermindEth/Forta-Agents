@@ -1,13 +1,13 @@
-# High Gas Usage Agent
+# High Gas Usage bot
 
 ## Description
 
-This agent detects transactions with high gas price where Impossible Finance addresses are involved
+This bot detects transactions with high gas price where Impossible Finance addresses are involved
 > High is defined as above 10 Gwei
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
