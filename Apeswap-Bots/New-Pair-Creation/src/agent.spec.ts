@@ -47,7 +47,7 @@ const mockCreateFinding = (mockTokenA: string, mockTokenB: string, mockPair: str
   return Finding.fromObject({
     name: "New pair creation on ApeFactory contract",
     description: "New pair creation call detected on ApeFactory contract",
-    alertId: "APESWAP-8",
+    alertId: "APESWAP-7",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",

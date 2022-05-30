@@ -1,5 +1,5 @@
 {
-  "name": "apeswap-8",
+  "name": "apeswap-7",
   "version": "0.0.1",
   "description": "Detects new pair creation on Apeswap DEX",
   "chainIds": [

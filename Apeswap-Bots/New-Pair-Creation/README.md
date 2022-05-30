@@ -11,7 +11,7 @@ This bot detects the creation of new tradable pair on Apeswap.
 
 ## Alerts
 
-- APESWAP-8
+- APESWAP-7
   - Fired when a transaction creates a new tradable pair on Apeswap's ApeFactory contract.
   - Severity is always set to "Info".
   - Type is always set to "Info". 
