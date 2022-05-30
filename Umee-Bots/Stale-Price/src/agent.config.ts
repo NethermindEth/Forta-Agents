@@ -10,7 +10,7 @@ const CONFIG: AgentConfig = {
 };
 
 // Uncomment these lines for the testnet test:
-// CONFIG.umeeOracleAddress = "0x96A2F421D0E1626C0728CaEd5F05cD629D9867dA";
-// CONFIG.lendingPoolAddress = "0xce744a9baf573167b2cf138114ba32ed7de274fa";
+CONFIG.umeeOracleAddress = "0xC637f5905C2A2d780cD7B9d8982f4c5b5b128200";
+CONFIG.lendingPoolAddress = "0xC637f5905C2A2d780cD7B9d8982f4c5b5b128200";
 
 export default CONFIG;
