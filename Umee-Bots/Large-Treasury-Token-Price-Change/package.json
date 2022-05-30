@@ -2,6 +2,7 @@
   "name": "umee-large-treasury-token-price-change-bot",
   "version": "0.0.1",
   "description": "Forta bot that detects large price changes in specified Umee protocol treasury tokens",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Large-Treasury-Token-Price-Change",
   "chainIds": [
     1
   ],
