@@ -176,7 +176,7 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       // add call to getReserves.
       mockProvider.addCallTo(address, block - 1, abi.PAIR, "getReserves", {
         inputs: [],
-        outputs: [BigNumber.from(reserve0), BigNumber.from(reserve1), BigNumber.from(0)],
+        outputs: [BigNumber.from(reserve0), BigNumber.from(reserve1)],
       });
 
       const { data, topics } = ABI.encodeEventLog(ABI.getEvent(event), params);
@@ -211,7 +211,7 @@ describe("Large add/remove Liquidity agent tests suite", () => {
       // add call to getReserves.
       mockProvider.addCallTo(address, block - 1, abi.PAIR, "getReserves", {
         inputs: [],
-        outputs: [BigNumber.from(reserve0), BigNumber.from(reserve1), 0],
+        outputs: [BigNumber.from(reserve0), BigNumber.from(reserve1)],
       });
 
       const { data, topics } = ABI.encodeEventLog(ABI.getEvent(event), params);

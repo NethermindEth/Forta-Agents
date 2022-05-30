@@ -44,8 +44,8 @@ export default class PairFetcher {
     const key: string = `reserve-${block}-${pair}`;
     if (this.cache.has(key)) return this.cache.get(key) as Reserves;
     const pContract = new Contract(pair, abi.PAIR, this.provider);
-    const { reserve0, reserve1 } = await pContract.getReserves({ blockTag: block });
-
+    const [ reserve0, reserve1 ] = await pContract.getReserves({ blockTag: block });
+    
     this.cache.set(key, { reserve0, reserve1 });
     return { reserve0, reserve1 };
   }

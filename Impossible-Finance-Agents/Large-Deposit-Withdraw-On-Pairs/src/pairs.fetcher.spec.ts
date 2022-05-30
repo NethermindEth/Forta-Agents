@@ -77,11 +77,11 @@ describe("PairFetcher test suite", () => {
   it("should fetch the reserves", async () => {
     mockProvider.addCallTo(CASES[0][0], 30, abi.PAIR, "getReserves", {
       inputs: [],
-      outputs: [5, 10, 0],
+      outputs: [5, 10],
     });
     mockProvider.addCallTo(CASES[2][0], 53, abi.PAIR, "getReserves", {
       inputs: [],
-      outputs: [1, 3, 0],
+      outputs: [1, 3],
     });
 
     expect(await fetcher.getReserves(53, CASES[2][0])).toStrictEqual({
