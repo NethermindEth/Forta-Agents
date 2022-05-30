@@ -15,38 +15,27 @@ describe("SaleFetcher test suite", () => {
   const mockProvider: MockProvider = new MockProvider();
   const fetcher: SaleFetcher = new SaleFetcher(mockProvider as any);
 
-
   beforeEach(() => {
-    mockProvider.clear()
+    mockProvider.clear();
     for (let [contract, block, total] of TEST_DATA) {
-      mockProvider.addCallTo(
-        contract,
-        block,
-        SALE_IFACE,
-        "totalPaymentReceived",
-        { inputs: [], outputs: [BigNumber.from(total)] }
-      );
+      mockProvider.addCallTo(contract, block, SALE_IFACE, "totalPaymentReceived", {
+        inputs: [],
+        outputs: [BigNumber.from(total)],
+      });
     }
   });
 
   it("should fetch the correct values", async () => {
     for (let [contract, block, supply] of TEST_DATA) {
-      const total: BigNumber = await fetcher.getTotalPaymentReceived(
-        block,
-        contract
-      );
+      const total: BigNumber = await fetcher.getTotalPaymentReceived(block, contract);
       expect(total).toStrictEqual(BigNumber.from(supply));
     }
 
     // clear mockProvider to use cache
     mockProvider.clear();
     for (let [contract, block, supply] of TEST_DATA) {
-      const total: BigNumber = await fetcher.getTotalPaymentReceived(
-        block,
-        contract
-      );
+      const total: BigNumber = await fetcher.getTotalPaymentReceived(block, contract);
       expect(total).toStrictEqual(BigNumber.from(supply));
     }
-
   });
 });

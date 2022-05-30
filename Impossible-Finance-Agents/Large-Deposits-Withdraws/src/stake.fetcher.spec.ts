@@ -16,7 +16,7 @@ describe("StakeFetcher test suite", () => {
   const fetcher: StakeFetcher = new StakeFetcher(mockProvider as any);
 
   beforeEach(() => {
-    mockProvider.clear()
+    mockProvider.clear();
     for (let [contract, block, total] of TEST_DATA) {
       mockProvider.addCallTo(contract, block, SUPPLY_IFACE, "totalSupply", {
         inputs: [],
@@ -36,6 +36,5 @@ describe("StakeFetcher test suite", () => {
       const total: BigNumber = await fetcher.getTotalSupply(contract, block);
       expect(total).toStrictEqual(BigNumber.from(supply));
     }
-
   });
 });

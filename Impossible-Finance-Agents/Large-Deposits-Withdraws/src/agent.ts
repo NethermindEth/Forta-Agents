@@ -1,9 +1,4 @@
-import {
-  Finding,
-  getEthersProvider,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
+import { Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import { STAKING_CONTRACT, SALE_CONTRACTS } from "./utils";
 import { saleHandler } from "./large.sales.handler";
 import { stakeHandler } from "./large.staking.handler";

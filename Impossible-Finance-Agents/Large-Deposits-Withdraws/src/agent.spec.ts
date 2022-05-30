@@ -1,28 +1,11 @@
 import { BigNumber, utils } from "ethers";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
-import {
-  PURCHASE_ABI,
-  STAKE_ABI,
-  UNSTAKE_ABI,
-  WITHDRAW_ABI,
-} from "./utils";
+import { PURCHASE_ABI, STAKE_ABI, UNSTAKE_ABI, WITHDRAW_ABI } from "./utils";
 
-const STAKE_IFACE: utils.Interface = new utils.Interface([
-  STAKE_ABI,
-  UNSTAKE_ABI,
-]);
-const SALE_IFACE: utils.Interface = new utils.Interface([
-  PURCHASE_ABI,
-  WITHDRAW_ABI,
-]);
+const STAKE_IFACE: utils.Interface = new utils.Interface([STAKE_ABI, UNSTAKE_ABI]);
+const SALE_IFACE: utils.Interface = new utils.Interface([PURCHASE_ABI, WITHDRAW_ABI]);
 
 // Address declarations
 const STAKING_ADDRESS: string = createAddress("0xa0");
@@ -33,8 +16,7 @@ const SALE_ADDRESSES: string[] = [
   createAddress("0xd1"),
 ];
 
-const promise = (value: number) =>
-  new Promise((resolve) => resolve(BigNumber.from(value)));
+const promise = (value: number) => new Promise((resolve) => resolve(BigNumber.from(value)));
 
 const stakeFinding = (name: string, amount: string, from: string): Finding =>
   Finding.fromObject({
@@ -50,12 +32,7 @@ const stakeFinding = (name: string, amount: string, from: string): Finding =>
     },
   });
 
-const saleFinding = (
-  saleContract: string,
-  name: string,
-  amount: string,
-  from: string
-): Finding =>
+const saleFinding = (saleContract: string, name: string, amount: string, from: string): Finding =>
   Finding.fromObject({
     name: `Large ${name} detected.`,
     description: `${name}() event emitted with a large amount`,
@@ -100,25 +77,11 @@ describe("Large Deposits-withdraws Agent test suite", () => {
   });
 
   it("should ignore events from other contracts", async () => {
-    const log1 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Stake"), [
-      11,
-      createAddress("0xa2"),
-      40,
-    ]);
-    const log2 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Unstake"), [
-      "11",
-      createAddress("0xa3"),
-      "60",
-    ]);
-    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
-      createAddress("0xa4"),
-      "80",
-    ]);
+    const log1 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Stake"), [11, createAddress("0xa2"), 40]);
+    const log2 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Unstake"), ["11", createAddress("0xa3"), "60"]);
+    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [createAddress("0xa4"), "80"]);
 
-    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
-      createAddress("0xa6"),
-      "90",
-    ]);
+    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [createAddress("0xa6"), "90"]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
@@ -147,32 +110,14 @@ describe("Large Deposits-withdraws Agent test suite", () => {
   });
 
   it("should detect multiple events from the contract", async () => {
-    const log1 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Stake"), [
-      "11",
-      createAddress("0xa2"),
-      "40",
-    ]);
-    const log2 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Unstake"), [
-      "11",
-      createAddress("0xa3"),
-      "60",
-    ]);
-    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [
-      createAddress("0xa4"),
-      "80",
-    ]);
+    const log1 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Stake"), ["11", createAddress("0xa2"), "40"]);
+    const log2 = STAKE_IFACE.encodeEventLog(STAKE_IFACE.getEvent("Unstake"), ["11", createAddress("0xa3"), "60"]);
+    const log3 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Purchase"), [createAddress("0xa4"), "80"]);
 
-    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [
-      createAddress("0xa6"),
-      "90",
-    ]);
+    const log4 = SALE_IFACE.encodeEventLog(SALE_IFACE.getEvent("Withdraw"), [createAddress("0xa6"), "90"]);
 
-    mockGetTotalSupply
-      .mockReturnValueOnce(promise(100))
-      .mockReturnValueOnce(promise(120));
-    mockGetTotalPaymentReceived
-      .mockReturnValueOnce(promise(100))
-      .mockReturnValueOnce(promise(80));
+    mockGetTotalSupply.mockReturnValueOnce(promise(100)).mockReturnValueOnce(promise(120));
+    mockGetTotalPaymentReceived.mockReturnValueOnce(promise(100)).mockReturnValueOnce(promise(80));
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .setBlock(532188)
