@@ -1,12 +1,12 @@
-# Impossible Finance staxMigrate mint agent
+# Impossible Finance staxMigrate mint bot
 
 ## Description
 
-This agent detects when Impossible Finance tokens are minted through the function `staxMigrate` where the amount of `STAX` tokens input are not the same as the amount of `IF` tokens output
+This bot detects when Impossible Finance tokens are minted through the function `staxMigrate` where the amount of `STAX` tokens input are not the same as the amount of `IF` tokens output
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
@@ -18,10 +18,3 @@ This agent detects when Impossible Finance tokens are minted through the functio
     - `receiver`:  The address that is receiving the minted tokens
     - `staxAmountIn`: The amount of `STAX` tokens used as input
     - `ifAmountOut`: The amount of `IF` tokens transferred as output
-
-## Test Data
-
-There are no existing transactions where `amount` is different to `value`
-The following transaction is a call to `staxMigrate` where `amount` and `value` are the same, this transaction should result in no findings
-
-- 0xe8fe91bd387521aab3b865af6e35f77ae46a70994835fbd5ad4a49cb8442860a (BSC Network)
