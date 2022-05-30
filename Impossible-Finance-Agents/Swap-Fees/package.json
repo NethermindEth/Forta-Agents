@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
-    "@types/jest-when": "^2.7.4",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.0.7",
     "jest": "^27.0.6",
