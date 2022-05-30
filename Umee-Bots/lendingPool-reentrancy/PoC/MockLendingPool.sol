@@ -1,22 +1,14 @@
 pragma solidity 0.6.12;
-// Deployed on https://kovan.etherscan.io/address/0x094e1340a1d0f8Db9BbBA9C0cE541A22ACDa15ef
+// Deployed https://kovan.etherscan.io/address/0x9109c02d40ba02ccc6ed3436404ab2bc7bb707f7
 contract MockLendingPool {
-    struct Deposits {
-        address asset;
-        uint256 amount;
-        address onBehalfOf;
-        uint16 referralCode;
-    }
-    address[] deposits;
-
     function deposit(
         address asset,
         uint256 amount,
         address onBehalfOf,
         uint16 referralCode
     ) public payable {
-        require(msg.value > 0, 'deposite more than zero');
-        deposits.push(msg.sender);
+        // making a reentrant call to withdraw()
+        MockLendingPool(address(this)).withdraw(address(0x0), 0, address(0x0));
     }
 
     function withdraw(
@@ -24,6 +16,10 @@ contract MockLendingPool {
         uint256 amount,
         address to
     ) public payable {
-        payable(address(to)).call{value: 0.000001 ether}('');
+        // no-op
+    }
+
+    function test() public {
+        deposit(address(0x0), 0, address(0x0), 0);
     }
 }

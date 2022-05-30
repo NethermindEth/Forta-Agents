@@ -18,6 +18,6 @@ const CONFIG: AgentConfig = {
 };
 
 // Uncomment these lines for the testnet test:
-// CONFIG.lendingPoolAddress = "0x094e1340a1d0f8db9bbba9c0ce541a22acda15ef";
+// CONFIG.lendingPoolAddress = "0x9109c02d40ba02ccc6ed3436404ab2bc7bb707f7";
 
 export default CONFIG;
