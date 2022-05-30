@@ -1,5 +1,5 @@
 {
-    "name": "apeswap-10",
+    "name": "apeswap-9",
     "version": "0.0.1",
     "description": "Detects role (admin/owner) changes in Apeswap's MasterApe & MasterApeAdmin",
     "chainIds": [

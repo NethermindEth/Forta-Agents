@@ -17,7 +17,7 @@ const createEventFinding = (log: LogDescription, contract: string): Finding => {
       return Finding.fromObject({
         name: `${contract}: Ownership renounced`,
         description: `${log.name} event emitted from ${contract} contract setting newOwner to Null address`,
-        alertId: "APESWAP-10-1",
+        alertId: "APESWAP-9-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -31,7 +31,7 @@ const createEventFinding = (log: LogDescription, contract: string): Finding => {
         return Finding.fromObject({
           name: `${contract}: Ownership transferred`,
           description: `${log.name} event emitted from ${contract} contract`,
-          alertId: "APESWAP-10-2",
+          alertId: "APESWAP-9-2",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "Apeswap",
@@ -44,7 +44,7 @@ const createEventFinding = (log: LogDescription, contract: string): Finding => {
         return Finding.fromObject({
           name: `${contract}: Farm admin changed`,
           description: `${log.name} event emitted from ${contract} contract`,
-          alertId: "APESWAP-10-3",
+          alertId: "APESWAP-9-3",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "Apeswap",
@@ -60,7 +60,7 @@ const createFunctionFinding = (call: ethers.TransactionDescription): Finding => 
   return Finding.fromObject({
     name: "MasterApe: dev address changed",
     description: `${call.name} function was called on MasterApe contract`,
-    alertId: "APESWAP-10-4",
+    alertId: "APESWAP-9-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",

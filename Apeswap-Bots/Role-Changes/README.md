@@ -11,7 +11,7 @@ This bot detects role (Owner/Admin/Dev) changes in Apeswap's `MasterApe` and `Ma
 
 ## Alerts
 
-- APESWAP-10-1
+- APESWAP-9-1
 
   - Fired when the ownership is **renounced** in either `MasterApe`, `MasterApeAdmin`, `MiniApeV2` or `MiniComplexRewarderTime` contract.
   - Severity is always set to "Info".
@@ -20,7 +20,7 @@ This bot detects role (Owner/Admin/Dev) changes in Apeswap's `MasterApe` and `Ma
     - `previousOwner`: Previous owner address.
     - `newOwner`: Null address.
 
-- APESWAP-10-2
+- APESWAP-9-2
   
   - Fired when the ownership is **transferred** in either `MasterApe` or `MasterApeAdmin`, `MiniApeV2` or `MiniComplexRewarderTime` contract.
   - Severity is always set to "Info".
@@ -29,7 +29,7 @@ This bot detects role (Owner/Admin/Dev) changes in Apeswap's `MasterApe` and `Ma
     - `previousOwner`: Previous owner address.
     - `newOwner`: New owner address.
 
-- APESWAP-10-3
+- APESWAP-9-3
   
   - Fired when `TransferredFarmAdmin` event is emitted from `MasterApeAdmin` contract.
   - Severity is always set to "Info".
@@ -38,7 +38,7 @@ This bot detects role (Owner/Admin/Dev) changes in Apeswap's `MasterApe` and `Ma
     - `previousFarmAdmin`: Previous farm admin address.
     - `newFarmAdmin`: New farm admin address.    
 
-- APESWAP-10-4
+- APESWAP-9-4
   
   - Fired when `dev` function is called on `MasterApe` contract.
   - Severity is always set to "Info".
