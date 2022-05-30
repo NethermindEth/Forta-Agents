@@ -4,7 +4,7 @@
 
 This bot detects large add/remove Liquidity in Impossible Finance Pairs
 
-> - Pairs are taken form the factory `0x918d7e714243F7d9d463C37e106235dCde294ffC`
+> - Pairs are taken form the factory `0x4233ad9b8b7c1ccf0818907908a7f0796a3df85f`
 > - Large is defined based on a percent of the reserves of each token
 > - Used Mint/Burn events to detect add/remove Liquidity
 

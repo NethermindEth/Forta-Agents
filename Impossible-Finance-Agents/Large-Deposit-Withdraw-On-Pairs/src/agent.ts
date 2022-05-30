@@ -5,7 +5,7 @@ import PairFetcher from "./pairs.fetcher";
 import { BigNumber } from "ethers";
 
 const PERCENT: number = 10; // Large percent
-const FACTORY: string = "0x918d7e714243F7d9d463C37e106235dCde294ffC";
+const FACTORY: string = "0x4233ad9b8b7c1ccf0818907908a7f0796a3df85f";
 const FETCHER: PairFetcher = new PairFetcher(FACTORY, getEthersProvider());
 
 export const provideHandleTransaction =
