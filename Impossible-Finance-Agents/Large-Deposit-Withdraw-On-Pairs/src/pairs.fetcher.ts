@@ -1,4 +1,4 @@
-import { providers, Contract, BigNumber, BigNumberish } from "ethers";
+import { providers, Contract, BigNumberish } from "ethers";
 import LRU from "lru-cache";
 import abi from "./abi";
 
@@ -21,10 +21,9 @@ export default class PairFetcher {
   }
 
   public async isImpossiblePair(block: number | string, pair: string): Promise<boolean> {
-    const key: string = `is-${block}-${pair}`
-    if(this.cache.has(key))
-      return this.cache.get(key) as boolean;
-    
+    const key: string = `is-${block}-${pair}`;
+    if (this.cache.has(key)) return this.cache.get(key) as boolean;
+
     try {
       const pairContract: Contract = new Contract(pair, abi.PAIR, this.provider);
       const [token0, token1] = await Promise.all([
@@ -32,7 +31,7 @@ export default class PairFetcher {
         pairContract.token1({ blockTag: block }),
       ]);
       const realPair: string = await this.factoryContract.getPair(token0, token1, { blockTag: block });
-      const isCorrectPair: boolean = (realPair.toLowerCase() === pair.toLowerCase());
+      const isCorrectPair: boolean = realPair.toLowerCase() === pair.toLowerCase();
       this.cache.set(key, isCorrectPair);
       return isCorrectPair;
     } catch {
@@ -43,12 +42,11 @@ export default class PairFetcher {
 
   public async getReserves(block: number | string, pair: string): Promise<Reserves> {
     const key: string = `reserve-${block}-${pair}`;
-    if(this.cache.has(key))
-      return this.cache.get(key) as Reserves;
+    if (this.cache.has(key)) return this.cache.get(key) as Reserves;
     const pContract = new Contract(pair, abi.PAIR, this.provider);
-    const { reserve0, reserve1 } = await pContract.getReserves({ blockTag: block });
-
+    const [ reserve0, reserve1 ] = await pContract.getReserves({ blockTag: block });
+    
     this.cache.set(key, { reserve0, reserve1 });
     return { reserve0, reserve1 };
   }
-};
+}

@@ -2,19 +2,21 @@
 
 ## Description
 
-This agent detects large add/remove Liquity in Impossible Finance Pairs
-> - Pairs are taken form the factory `0x918d7e714243F7d9d463C37e106235dCde294ffC`
+This bot detects large add/remove Liquidity in Impossible Finance Pairs
+
+> - Pairs are taken form the factory `0x4233ad9b8b7c1ccf0818907908a7f0796a3df85f`
 > - Large is defined based on a percent of the reserves of each token
-> - Used Mint/Burn events to detect add/remove Liquity
+> - Used Mint/Burn events to detect add/remove Liquidity
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
 - IMPOSSIBLE-9-1
-  - Fired when a transaction add large Liquidity to an Impossible Finance Pool 
+
+  - Fired when a transaction adds large Liquidity to an Impossible Finance Pool
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
@@ -26,7 +28,7 @@ This agent detects large add/remove Liquity in Impossible Finance Pairs
     - `reserves1`: Amount of reserves of `token1` at the beginning of the block
 
 - IMPOSSIBLE-9-2
-  - Fired when a transaction remove large Liquidity to an Impossible Finance Pool 
+  - Fired when a transaction removes large Liquidity from an Impossible Finance Pool
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
