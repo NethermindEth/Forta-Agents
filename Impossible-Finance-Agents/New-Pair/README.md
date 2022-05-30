@@ -1,8 +1,8 @@
-# Pair created event monitor agent
+# Pair created event monitor bot
 
 ## Description
 
-This agent detects a `PairCreated` event emission from `Swap Factory V1`
+This bot detects a `PairCreated` event emission from `Swap Factory V3`
 
 ## Supported Chains
 
@@ -10,18 +10,18 @@ This agent detects a `PairCreated` event emission from `Swap Factory V1`
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+Describe each of the type of alerts fired by this bot
 
 - IMPOSSIBLE-7
-  - Fired when the contract `Swap Factory V1` emits a `PairCreated` event
+  - Fired when the contract `Swap Factory V3` emits a `PairCreated` event
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata fields
-    - token\_0: A token in the pair 
-    - token\_1: A token in the pair
+    - `token\_0`: First token of the pair 
+    - `token\_1`: Second token of the pair
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 
-- 0x748f9107aea4c2c73558a792badf8fd4406c796583bef7d8061b4ae54805a929 (BSC network)
+- 0xf95dfa5e98c81a5be84f15d95714c99016085d07baf543e284c895092e068056 (BSC network)
