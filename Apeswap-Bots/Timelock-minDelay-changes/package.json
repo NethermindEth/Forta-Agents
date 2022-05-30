@@ -1,5 +1,5 @@
 {
-  "name": "apeswap-12",
+  "name": "apeswap-11",
   "version": "0.0.1",
   "description": "Detects changes in Apeswap's Timelock min delay",
   "chainIds": [

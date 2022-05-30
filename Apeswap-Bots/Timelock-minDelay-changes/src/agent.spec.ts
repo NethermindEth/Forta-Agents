@@ -80,7 +80,7 @@ describe("Apeswap timelocks' min delay change test suite", () => {
       Finding.fromObject({
         name: "Timelock - Min delay changed",
         description: `Min delay changed on Apeswap's TimelockV2Secure contract`,
-        alertId: "APESWAP-12",
+        alertId: "APESWAP-11",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -109,7 +109,7 @@ describe("Apeswap timelocks' min delay change test suite", () => {
       Finding.fromObject({
         name: "Timelock - Min delay changed",
         description: `Min delay changed on Apeswap's TimelockV2General contract`,
-        alertId: "APESWAP-12",
+        alertId: "APESWAP-11",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -136,7 +136,7 @@ describe("Apeswap timelocks' min delay change test suite", () => {
       Finding.fromObject({
         name: "Timelock - Min delay changed",
         description: `Min delay changed on Apeswap's TimelockV2Secure contract`,
-        alertId: "APESWAP-12",
+        alertId: "APESWAP-11",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -149,7 +149,7 @@ describe("Apeswap timelocks' min delay change test suite", () => {
       Finding.fromObject({
         name: "Timelock - Min delay changed",
         description: `Min delay changed on Apeswap's TimelockV2General contract`,
-        alertId: "APESWAP-12",
+        alertId: "APESWAP-11",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",

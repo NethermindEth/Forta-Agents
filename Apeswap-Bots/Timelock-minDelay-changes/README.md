@@ -10,7 +10,7 @@ This bot detects changes to `_minDelay` on Apeswap's `TimelockV2Secure` and `Tim
 
 ## Alerts
 
-- APESWAP-12
+- APESWAP-11
   - Fired when `MinDelayChange` event is emitted on either `TimelockV2Secure` or `TimelockV2General` contract.
   - Severity is always set to "Info".
   - Type is always set to "Info".

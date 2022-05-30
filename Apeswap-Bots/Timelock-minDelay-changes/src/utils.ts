@@ -17,7 +17,7 @@ const createFinding = (log: LogDescription, name: string): Finding => {
   return Finding.fromObject({
     name: "Timelock - Min delay changed",
     description: `Min delay changed on Apeswap's ${name} contract`,
-    alertId: "APESWAP-12",
+    alertId: "APESWAP-11",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "Apeswap",
