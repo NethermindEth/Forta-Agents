@@ -17,18 +17,21 @@ export const provideHandleTransaction = (
   const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const updateSourceLogs = txEvent.filterLog(utils.EVENT_ABI, config.umeeOracleAddress);
-    updateSourceLogs.map(async (logs) => {
+    await Promise.all(updateSourceLogs.map(async (logs) => {
       const [asset, source] = logs.args;
       const assetSource = assetsSourcesList.find((assetSource) => {
         return assetSource.asset;
       });
       if (!assetSource) {
         const latestTimestamp = await utils.fetchLatestTimestamp(source, provider);
-        assetsSourcesList.push({ source, asset, latestTimestamp: latestTimestamp.toNumber() || txEvent.block.timestamp });
+        assetsSourcesList.push({
+          source,
+          asset,
+          latestTimestamp: latestTimestamp.toNumber(),
+        });
         return;
       }
-    });
-
+    }));
     assetsSourcesList.map((assetSource) => {
       const currentTimestamp = txEvent.block.timestamp;
       if (currentTimestamp - assetSource.latestTimestamp >= config.threshold) {

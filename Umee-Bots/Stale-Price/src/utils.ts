@@ -16,7 +16,7 @@ const UMEE_FUNCTIONS_ABI: string[] = [
 
 const EVENT_ABI = ["event AssetSourceUpdated(address indexed asset, address indexed source)"];
 
-const FUNCTIONS_INTERFACE = new Interface(UMEE_FUNCTIONS_ABI);
+const FUNCTIONS_INTERFACE = new Interface([...UMEE_FUNCTIONS_ABI, ...EVENT_ABI]);
 
 export interface AssetSourceTimeStampI {
   asset: string;
@@ -27,8 +27,11 @@ export interface AssetSourceTimeStampI {
 const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<ethers.BigNumber> => {
   // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
   try {
-    const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
-    return await chainLinkAggregator.latestTimestamp();
+    const [chainLinkAggregator, blockNumber] = await Promise.all([
+      new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider),
+      provider.getBlockNumber(),
+    ]);
+    return await chainLinkAggregator.latestTimestamp({ blockTag: blockNumber });
   } catch (error) {
     return ethers.BigNumber.from(0);
   }

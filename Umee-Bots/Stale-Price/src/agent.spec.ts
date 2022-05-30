@@ -1,6 +1,7 @@
 import { HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { encodeParameters } from "forta-agent-tools/lib/utils";
 
 import agent, { provideHandleTransaction } from "./agent";
 import CONFIG from "./agent.config";
@@ -47,6 +48,39 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([]);
   });
+
+  it("returns a finding if a new asset have been added with staled price", async () => {
+    const block = 14717599;
+    const currentTimestamp = 1000000;
+    const latestTimestamp = currentTimestamp - CONFIG.threshold;
+    const sourceAsset = {
+      source: createAddress("0x09"),
+      asset: createAddress("0x08"),
+      latestTimestamp,
+    };
+    const event = utils.FUNCTIONS_INTERFACE.getEvent("AssetSourceUpdated");
+
+    const log = utils.FUNCTIONS_INTERFACE.encodeEventLog(event, [sourceAsset.asset, sourceAsset.source]);
+
+    const mockTxEvent = new TestTransactionEvent()
+      .setBlock(block)
+      .setTimestamp(currentTimestamp)
+      .addAnonymousEventLog(CONFIG.umeeOracleAddress, log.data, ...log.topics);
+
+    mockProvider.addCallTo(sourceAsset.source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
+      inputs: [],
+      outputs: [latestTimestamp],
+    });
+
+    mockProvider.setLatestBlock(block);
+
+    const expectedFinding = [utils.createFinding(sourceAsset)];
+
+    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, []);
+    const findings = await handleTx(mockTxEvent);
+    expect(findings).toStrictEqual(expectedFinding);
+  });
+
   it("returns three finding if time between latest timestamp and current timestamp more than the threshold", async () => {
     const block = 14717599;
     const currentTimestamp = 1000000;
