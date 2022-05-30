@@ -1,9 +1,9 @@
-import { HandleTransaction } from "forta-agent";
+import { TestBlockEvent } from 'forta-agent-tools/lib/tests.utils';
+import { HandleBlock, HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { encodeParameters } from "forta-agent-tools/lib/utils";
 
-import agent, { provideHandleTransaction } from "./agent";
+import agent, { provideHandleTransaction, provideHandleBlock } from "./agent";
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
@@ -30,6 +30,7 @@ const generateSourceAssets = (latestTimestamp: number) => {
 
 describe("Lending pool reentrancy agent tests suit", () => {
   let handleTx: HandleTransaction;
+  let handleBlock: HandleBlock;
   const mockProvider = new MockEthersProvider();
 
   beforeAll(() => {
@@ -91,9 +92,9 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const expectedFinding = sourceAssets.map((sourceAsset) => {
       return utils.createFinding(sourceAsset);
     });
-    const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
-    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, sourceAssets);
-    const findings = await handleTx(mockTxEvent);
+    const mockTxBlock = new TestBlockEvent().setNumber(block).setTimestamp(currentTimestamp);
+    handleBlock = provideHandleBlock(CONFIG, mockProvider as any, sourceAssets);
+    const findings = await handleBlock(mockTxBlock);
     expect(findings).toStrictEqual(expectedFinding);
   });
 });

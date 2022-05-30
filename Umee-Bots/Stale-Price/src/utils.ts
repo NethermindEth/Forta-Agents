@@ -1,6 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 
-import { ethers, Finding, FindingSeverity, FindingType, getEthersProvider } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export interface AgentConfig {
   threshold: number;
@@ -24,16 +24,16 @@ export interface AssetSourceTimeStampI {
   latestTimestamp: number;
 }
 
-const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<ethers.BigNumber> => {
+const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<number> => {
   // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
   try {
     const [chainLinkAggregator, blockNumber] = await Promise.all([
       new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider),
       provider.getBlockNumber(),
     ]);
-    return await chainLinkAggregator.latestTimestamp({ blockTag: blockNumber });
+    return (await chainLinkAggregator.latestTimestamp({ blockTag: blockNumber })).toNumber();
   } catch (error) {
-    return ethers.BigNumber.from(0);
+    return 0;
   }
 };
 
