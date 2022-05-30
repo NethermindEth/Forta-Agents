@@ -1,5 +1,5 @@
 {
-  "name": "apeswap-9",
+  "name": "apeswap-8",
   "version": "0.0.1",
   "description": "Detects large LP deposits/withdrawals to/from an Apeswap pool",
   "chainIds": [

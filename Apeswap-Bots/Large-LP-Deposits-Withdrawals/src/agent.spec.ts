@@ -96,7 +96,7 @@ const testCreateFinding = (
       return Finding.fromObject({
         name: "Large LP Deposit in Apeswap pool",
         description: `${event} event with large amounts emitted from Apeswap pool`,
-        alertId: "APESWAP-9-1",
+        alertId: "APESWAP-8-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
@@ -112,7 +112,7 @@ const testCreateFinding = (
       return Finding.fromObject({
         name: "Large LP Withdrawal from Apeswap pool",
         description: `${event} event with large amount emitted from an Apeswap pool`,
-        alertId: "APESWAP-9-2",
+        alertId: "APESWAP-8-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         protocol: "Apeswap",
