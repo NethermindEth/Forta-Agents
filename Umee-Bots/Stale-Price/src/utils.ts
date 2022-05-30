@@ -25,8 +25,13 @@ export interface AssetSourceTimeStampI {
 }
 
 const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<ethers.BigNumber> => {
-  const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
-  return await chainLinkAggregator.latestTimestamp();
+  // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
+  try {
+    const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
+    return await chainLinkAggregator.latestTimestamp();
+  } catch (error) {
+    return ethers.BigNumber.from(0);
+  }
 };
 
 const getAssetsSourceTimeStamp = async (
@@ -49,17 +54,12 @@ const getAssetsSourceTimeStamp = async (
   );
   return await Promise.all(
     sources.filter(async (source, index) => {
-      // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
       const latestTimestamp = await fetchLatestTimestamp(source, provider);
-      try {
-        return {
-          asset: reservedList[index],
-          source: sources[index],
-          latestTimestamp,
-        };
-      } catch (error) {
-        return false;
-      }
+      return {
+        asset: reservedList[index],
+        source: sources[index],
+        latestTimestamp,
+      };
     })
   );
 };

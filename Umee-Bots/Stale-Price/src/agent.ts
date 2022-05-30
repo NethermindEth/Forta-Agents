@@ -24,7 +24,7 @@ export const provideHandleTransaction = (
       });
       if (!assetSource) {
         const latestTimestamp = await utils.fetchLatestTimestamp(source, provider);
-        assetsSourcesList.push({ source, asset, latestTimestamp: latestTimestamp.toNumber() });
+        assetsSourcesList.push({ source, asset, latestTimestamp: latestTimestamp.toNumber() || txEvent.block.timestamp });
         return;
       }
     });
