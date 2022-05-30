@@ -13,17 +13,13 @@ export default class SalesFetcher {
     });
   }
 
-  public async getTotalPaymentReceived(
-    block: number | string,
-    contract: string
-  ): Promise<BigNumber> {
-    const key: string = `${contract}`;
+  public async getTotalPaymentReceived(block: number | string, contract: string): Promise<BigNumber> {
+    const key: string = `${block}-${contract}`;
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
     const saleContract = new Contract(contract, SALE_ABI, this.provider);
-    const totalPaymentReceived: Promise<BigNumber> =
-      saleContract.totalPaymentReceived({
-        blockTag: block,
-      });
+    const totalPaymentReceived: Promise<BigNumber> = saleContract.totalPaymentReceived({
+      blockTag: block,
+    });
     this.cache.set(key, totalPaymentReceived);
     return totalPaymentReceived;
   }
