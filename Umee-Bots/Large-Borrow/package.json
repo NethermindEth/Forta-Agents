@@ -2,6 +2,7 @@
   "name": "umee-large-borrow-bot",
   "version": "0.0.1",
   "description": "Forta bot that detects large borrows in the UMEE protocol",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Large-Borrow",
   "chainIds": [
     1
   ],
