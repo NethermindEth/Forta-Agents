@@ -45,6 +45,7 @@ const getAssetsSourceTimeStamp = async (
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
 
   const reservedList = await lendingPoolContract.getReservesList();
+
   const sources = await Promise.all(
     reservedList.filter(async (asset: string) => {
       // use try/catch because some asset may be without source
@@ -55,8 +56,9 @@ const getAssetsSourceTimeStamp = async (
       }
     })
   );
-  return await Promise.all(
-    sources.filter(async (source, index) => {
+
+  const assetsSourceTimeStamp = await Promise.all(
+    sources.map(async (source, index) => {
       const latestTimestamp = await fetchLatestTimestamp(source, provider);
       return {
         asset: reservedList[index],
@@ -65,6 +67,7 @@ const getAssetsSourceTimeStamp = async (
       };
     })
   );
+  return assetsSourceTimeStamp;
 };
 
 const createFinding = ({ asset, source, latestTimestamp }: AssetSourceTimeStampI): Finding => {
