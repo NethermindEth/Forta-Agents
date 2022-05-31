@@ -11,9 +11,9 @@ This agent monitors price oracle data to see if it has not been updated over a s
 ## Alerts
 
 - UMEE-3
-  - Fired when the price of any asset stop been updated in a particular period of time.
+  - Fired when any asset price stops being updated in a particular period.
        - Triggered when `AssetSourceUpdated` event emitted
-       - Check time interval after each block.
+       - Check the latest time price updated after each block.
   - Severity is always set to "Medium."
   - Type is always set to "Suspicious."
   - Metadata contains:
