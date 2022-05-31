@@ -21,7 +21,7 @@ export const provideHandleTransaction = (
 
     await Promise.all(
       logs.map(async (log) => {
-        const { reserve, amount } = log.args;
+        const { reserve, amount, user, onBehalfOf } = log.args;
 
         if (!uTokenCache.has(reserve)) {
           uTokenCache.set(reserve, await LendingPool.getReserveData(reserve));
@@ -36,7 +36,7 @@ export const provideHandleTransaction = (
         const percentage = new BigNumber(amount.toString()).div(new BigNumber(tvl.toString())).shiftedBy(2);
 
         if (percentage.gte(threshold)) {
-          findings.push(createFinding(amount, percentage));
+          findings.push(createFinding(amount, percentage, user, onBehalfOf));
         }
       })
     );
