@@ -77,7 +77,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
 
     const expectedFinding = [utils.createFinding(sourceAsset)];
 
-    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, []);
+    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, [sourceAsset]);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual(expectedFinding);
   });
