@@ -1,6 +1,6 @@
 pragma solidity 0.6.12;
 
-contract MockUmeeOracl {
+contract MockUmeeOracle {
     address[] addresses = [address(this)];
 
     function getReservesList() external view returns (address[] memory) {
