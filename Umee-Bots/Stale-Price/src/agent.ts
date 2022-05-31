@@ -28,18 +28,22 @@ export const provideHandleTransaction = (
     await Promise.all(
       updateSourceLogs.map(async (logs) => {
         const [asset, source] = logs.args;
-        const assetSource = assetsSourcesList.find((assetSource) => {
+        const assetSourceIndex = assetsSourcesList.findIndex((assetSource) => {
           return assetSource.asset;
         });
         const latestTimestamp = await utils.fetchLatestTimestamp(source, provider);
 
-        if (!assetSource) {
+        if (assetSourceIndex < 0) {
           assetsSourcesList.push({
-            source,
             asset,
+            source,
             latestTimestamp,
           });
+        } else {
+          assetsSourcesList[assetSourceIndex].source = source;
+          assetsSourcesList[assetSourceIndex].latestTimestamp = latestTimestamp;
         }
+
         if (txEvent.block.timestamp - latestTimestamp) {
           findings.push(utils.createFinding({ asset, source, latestTimestamp }));
         }
