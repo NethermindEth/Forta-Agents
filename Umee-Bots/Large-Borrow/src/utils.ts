@@ -17,7 +17,7 @@ export function createFinding(
     name: "Large borrow",
     description: "There was a large borrow based on the pool's TVL",
     type: FindingType.Info,
-    severity: FindingSeverity.Info,
+    severity: FindingSeverity.Unknown,
     protocol: "Umee",
     metadata: {
       amount: amount.toString(),
