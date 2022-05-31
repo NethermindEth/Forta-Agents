@@ -1,4 +1,4 @@
-import { TestBlockEvent } from 'forta-agent-tools/lib/tests.utils';
+import { TestBlockEvent } from "forta-agent-tools/lib/tests.utils";
 import { HandleBlock, HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
