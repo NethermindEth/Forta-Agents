@@ -24,13 +24,14 @@ export const provideHandleTransaction = (
         const { reserve, amount, user, onBehalfOf } = log.args;
 
         if (!uTokenCache.has(reserve)) {
-          uTokenCache.set(reserve, await LendingPool.getReserveData(reserve));
+          const reserveData = await LendingPool.getReserveData(reserve, { blockTag: txEvent.blockNumber });
+          uTokenCache.set(reserve, reserveData.uTokenAddress.toLowerCase());
         }
 
         // since if has() returns false cache[reserve] is set, this is not undefined
         const uTokenAddress = uTokenCache.get(reserve)!;
 
-        const erc20Asset = new ethers.Contract(uTokenAddress, [BALANCE_OF_ABI], provider);
+        const erc20Asset = new ethers.Contract(reserve, [BALANCE_OF_ABI], provider);
         const tvl = await erc20Asset.balanceOf(uTokenAddress, { blockTag: txEvent.blockNumber - 1 });
 
         const percentage = new BigNumber(amount.toString()).div(new BigNumber(tvl.toString())).shiftedBy(2);
