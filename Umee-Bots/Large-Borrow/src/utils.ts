@@ -6,7 +6,12 @@ export interface AgentConfig {
   tvlPercentageThreshold: string;
 }
 
-export function createFinding(amount: ethers.BigNumber, tvlPercentage: BigNumber, user: string, onBehalfOf: string): Finding {
+export function createFinding(
+  amount: ethers.BigNumber,
+  tvlPercentage: BigNumber,
+  user: string,
+  onBehalfOf: string
+): Finding {
   return Finding.from({
     alertId: "UMEE-6",
     name: "Large borrow",
@@ -17,8 +22,8 @@ export function createFinding(amount: ethers.BigNumber, tvlPercentage: BigNumber
     metadata: {
       amount: amount.toString(),
       tvlPercentage: tvlPercentage.toString(10),
-      user,
-      onBehalfOf,
+      user: user.toLowerCase(),
+      onBehalfOf: onBehalfOf.toLowerCase(),
     },
   });
 }
