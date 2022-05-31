@@ -149,7 +149,7 @@ describe("large borrow bot", () => {
       expect(mockProvider.call).toHaveBeenCalledTimes(3);
     });
 
-    it("should return empty findings if the borrowed amount is greater than or equal to the TVL threshold", async () => {
+    it("should return non-empty findings if the borrowed amount is greater than or equal to the TVL threshold", async () => {
       const txEvent = new TestTransactionEvent().setBlock(1000);
       const config = {
         lendingPoolAddress: LENDING_POOL_ADDRESS,
