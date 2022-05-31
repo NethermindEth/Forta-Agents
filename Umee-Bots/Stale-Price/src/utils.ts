@@ -73,7 +73,7 @@ const getAssetsSourceTimeStamp = async (
 const createFinding = ({ asset, source, latestTimestamp }: AssetSourceTimeStampI): Finding => {
   return Finding.fromObject({
     name: "Detect stale price data from Chainlink aggregator",
-    description: "Stale price data is detected from Chainlink aggregator",
+    description: "price of a certain asset stops being updated from Chainlink aggregator",
     alertId: "UMEE-3",
     type: FindingType.Info,
     severity: FindingSeverity.Low,
