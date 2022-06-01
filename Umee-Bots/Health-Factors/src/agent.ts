@@ -31,7 +31,16 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const users = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress).map((el) => el.args.onBehalfOf);
 
-    accounts.push(...users.map((el) => ({ address: el, alerted: false })));
+    if (users.length) {
+      const accountMap: Record<string, boolean> = {};
+      accounts.forEach(el => accountMap[el.address] = true);
+
+      users.forEach(user => {
+        if (!accountMap[user]) {
+          accounts.push({ address: user, alerted: false });
+        }
+      });
+    }
 
     return [];
   };
