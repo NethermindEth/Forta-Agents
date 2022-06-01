@@ -21,4 +21,7 @@ This bot detects re-entrancy in `StableJoeStaking`, `MasterChefJoeV2` , `MoneyMa
     - `reEntrantCall`: selector of the function that was called in the re-entrancy case.
   - addresses contains the address of the contract where the re-entrancy happened.
 
-## Test Data
+## Test Data (Kovan)
+
+- 0x105810131a62dd88f73f59add0f15f9410dc531b375d2730daa1ef645318efd5.(reentrancy on `TestTarget`).
+- 0x34103cfe0617268c77489a901beca99e2e9beb338f97544567ff8d3993df9ee7 (reentrancy on `TestMarket`).

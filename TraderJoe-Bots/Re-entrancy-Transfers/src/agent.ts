@@ -14,6 +14,7 @@ const provideInitialize = (marketsFetcher: MarketsFetcher) => async () => {
 
   // set joeTroller contract address
   marketsFetcher.setJoeTrollerContract(networkManager.joeTroller);
+
   // fetch Markets from joeTroller
   await marketsFetcher.getMarkets("latest");
 };
@@ -28,7 +29,7 @@ export const provideHandleTransaction =
     });
 
     const monitoredContracts = [
-      Array.from(marketsFetcher.markets),
+      Array.from(marketsFetcher.markets).map((market) => market.toLowerCase()),
       networkManager.sJoeStaking,
       networkManager.masterChefV2,
       networkManager.moneyMaker,
@@ -43,7 +44,7 @@ export const provideHandleTransaction =
         const selector = txEvent.traces[i].action.input.slice(0, 10);
 
         // If the trace is a call on a monitored contract, look into sub-traces.
-        if (monitoredContracts.includes(txEvent.traces[i].action.to) && sighashes.includes(selector)) {
+        if (monitoredContracts.includes(txEvent.traces[i].action.to.toLowerCase()) && sighashes.includes(selector)) {
           const depth = txEvent.traces[i].traceAddress.length;
           // Loop over sub-traces.
           let j; // j is used to explore the sub-tree of traces[i].
@@ -52,7 +53,7 @@ export const provideHandleTransaction =
               break;
             }
             // check if a call to the same contract happened in sub-traces.
-            if (txEvent.traces[j].action.to === txEvent.traces[i].action.to) {
+            if (txEvent.traces[j].action.to.toLowerCase() === txEvent.traces[i].action.to.toLowerCase()) {
               const reEntrantSelector = txEvent.traces[j].action.input.slice(0, 10);
               // create a finding
               findings.push(

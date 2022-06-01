@@ -6,17 +6,17 @@ interface NetworkData {
 }
 
 const AVALANCHE_DATA: NetworkData = {
-  joeTroller: "0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC",
-  sJoeStaking: "0x1a731B2299E22FbAC282E7094EdA41046343Cb51",
-  masterChefV2: "0xd6a4F121CA35509aF06A0Be99093d08462f53052",
-  moneyMaker: "0x63C0CF90aE12190B388F9914531369aC1e4e4e47",
+  joeTroller: "0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC".toLowerCase(),
+  sJoeStaking: "0x1a731B2299E22FbAC282E7094EdA41046343Cb51".toLowerCase(),
+  masterChefV2: "0xd6a4F121CA35509aF06A0Be99093d08462f53052".toLowerCase(),
+  moneyMaker: "0x63C0CF90aE12190B388F9914531369aC1e4e4e47".toLowerCase(),
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  joeTroller: "0xdc13687554205E5b89Ac783db14bb5bba4A1eDaC",
-  sJoeStaking: "0x1a731B2299E22FbAC282E7094EdA41046343Cb51",
-  masterChefV2: "0xd6a4F121CA35509aF06A0Be99093d08462f53052",
-  moneyMaker: "0x63C0CF90aE12190B388F9914531369aC1e4e4e47",
+  joeTroller: "0x58ff5687eA8de62C40a8bbcbA0a062Ba9482F048".toLowerCase(),
+  sJoeStaking: "0x7157355D1b185cEBc7394fc9d6B3A69e432Dc1ad".toLowerCase(),
+  masterChefV2: "0x7157355D1b185cEBc7394fc9d6B3A69e432Dc1ad".toLowerCase(),
+  moneyMaker: "0x7157355D1b185cEBc7394fc9d6B3A69e432Dc1ad".toLowerCase(),
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
