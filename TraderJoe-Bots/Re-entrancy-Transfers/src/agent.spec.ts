@@ -9,8 +9,6 @@ import {
   TransactionEvent,
   Trace,
   TraceAction,
-  Block,
-  Receipt,
 } from "forta-agent";
 import { MockEthersProvider } from "forta-agent-tools/lib/mock.utils";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
@@ -47,18 +45,26 @@ describe("Re-entrancy transfers bot test suite", () => {
       traceAddress,
     } as Trace;
   };
-  const createFinding = (address: string, from: string, initialCall: string, reEtrantCall: string) => {
+
+  const createFinding = (
+    from: string,
+    address: string,
+    rentrancyFrom: string,
+    initialCall: string,
+    reEtrantCall: string
+  ) => {
     return Finding.fromObject({
       name: "Re-entrancy detected on a Trader Joe contract",
-      description: "Re-entrancy detected on a Trader Joe contract",
+      description: "A function call to a trader Joe contract resulted in another call to the same contract",
       alertId: "TraderJoe-25",
       protocol: "TraderJoe",
       severity: FindingSeverity.High,
-      type: FindingType.Suspicious,
+      type: FindingType.Exploit,
       metadata: {
-        from: from, // the contract re-entring our contract.
+        from: from, // address initializing the call.
         initialCall: initialCall, // functions that was called in our contract and resulted in a re-entrancy.
-        reEtrantCall: reEtrantCall,
+        entrancyFrom: rentrancyFrom, // the contract re-entring our contract.
+        reEtrantCall: reEtrantCall, // second call to the same traderJoe contract.
       },
       addresses: [address],
     });
@@ -69,6 +75,7 @@ describe("Re-entrancy transfers bot test suite", () => {
     mockFetcher.markets = new Set(TEST_MARKETS);
     mockFetcher.updateMarkets = mockUpdateMarkets;
   });
+
   beforeEach(() => mockUpdateMarkets.mockClear());
 
   it("should ignore empty transactions", async () => {
@@ -79,7 +86,6 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should ignore calls when no re-entrancy happens", async () => {
-    const data = "";
     const traces = [
       createTrace(
         USER_ADDR,
@@ -88,13 +94,8 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("1000")])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      to: mockNetworkManager.sJoeStaking,
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
       traces: traces,
     } as any);
 
@@ -103,7 +104,6 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should ignore when sub-calls are on other contracts", async () => {
-    const data = "";
     const traces = [
       createTrace(
         USER_ADDR,
@@ -118,12 +118,8 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("1000")])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
       traces: traces,
     } as any);
 
@@ -132,7 +128,10 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should return a finding when a re-entrancy is detected in first sub-trace", async () => {
-    const data = "";
+    const data = {
+      from: USER_ADDR,
+      to: mockNetworkManager.sJoeStaking,
+    };
     const traces = [
       createTrace(
         USER_ADDR,
@@ -147,20 +146,16 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("2000")])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      from: USER_ADDR,
-      to: mockNetworkManager.sJoeStaking,
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
+      transaction: data as Transaction,
       traces: traces,
     } as any);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       createFinding(
+        USER_ADDR,
         mockNetworkManager.sJoeStaking,
         USER_ADDR,
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("1000")]).slice(0, 10),
@@ -170,7 +165,10 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should return a finding when a re-entrancy is detected in first sub-trace on a market", async () => {
-    const data = "";
+    const data = {
+      from: USER_ADDR,
+      to: mockNetworkManager.sJoeStaking,
+    };
     const traces = [
       createTrace(
         USER_ADDR,
@@ -185,20 +183,16 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("transfer", [USER_ADDR, BigNumber.from("2000")])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      from: USER_ADDR,
-      to: mockNetworkManager.sJoeStaking,
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
+      transaction: data as Transaction,
       traces: traces,
     } as any);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       createFinding(
+        USER_ADDR,
         TEST_MARKETS[0],
         USER_ADDR,
         FUNCTIONS_IFACE.encodeFunctionData("transfer", [USER_ADDR, BigNumber.from("1000")]).slice(0, 10),
@@ -208,7 +202,7 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should return a finding when a re-entrancy is detected in a deep sub-trace", async () => {
-    const data = "";
+    const data = { from: USER_ADDR, to: mockNetworkManager.sJoeStaking };
     const traces = [
       createTrace(
         USER_ADDR,
@@ -217,7 +211,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("200")])
       ),
       createTrace(
-        // first call
+        // first call to sJoeStaking contract.
         USER_ADDR,
         [0],
         mockNetworkManager.sJoeStaking,
@@ -236,26 +230,23 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("3000")])
       ),
       createTrace(
-        // second call
+        // re-entrancy call to sJoeStaking contract.
         USER_ADDR,
         [0, 1, 0],
         mockNetworkManager.sJoeStaking,
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("4000")])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      to: mockNetworkManager.sJoeStaking,
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
+      transaction: data as Transaction,
       traces: traces,
     } as any);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       createFinding(
+        USER_ADDR,
         mockNetworkManager.sJoeStaking,
         USER_ADDR,
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("1000")]).slice(0, 10),
@@ -265,7 +256,7 @@ describe("Re-entrancy transfers bot test suite", () => {
   });
 
   it("should return two findings when two re-entrant calls are detected", async () => {
-    const data = "";
+    const data = { from: USER_ADDR };
     const traces = [
       createTrace(
         USER_ADDR,
@@ -274,7 +265,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("200")])
       ),
       createTrace(
-        // first call
+        // call to MasterChefV2 contract.
         USER_ADDR,
         [0],
         mockNetworkManager.masterChefV2,
@@ -287,7 +278,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("2000")])
       ),
       createTrace(
-        // first sub-call
+        // re-entrancy call to MasterChefV2 contract.
         USER_ADDR,
         [0, 0, 1],
         mockNetworkManager.masterChefV2,
@@ -306,7 +297,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256)", [BigNumber.from("200")])
       ),
       createTrace(
-        // second call
+        // call to MoneyMaker contract.
         USER_ADDR,
         [2, 0],
         mockNetworkManager.moneyMaker,
@@ -317,7 +308,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         ])
       ),
       createTrace(
-        // second sub-call
+        // re-entrancy call to MoneyMaker contract.
         USER_ADDR,
         [2, 0, 0],
         mockNetworkManager.moneyMaker,
@@ -328,18 +319,17 @@ describe("Re-entrancy transfers bot test suite", () => {
         ])
       ),
     ];
-    // create call
-    // add traces to the transaction
+
     const txEvent: TransactionEvent = createTransactionEvent({
-      transaction: { data } as Transaction,
-      receipt: {} as Receipt,
-      block: {} as Block,
+      transaction: data as Transaction,
       traces: traces,
     } as any);
 
     const findings = await handleTransaction(txEvent);
+
     expect(findings).toStrictEqual([
       createFinding(
+        USER_ADDR,
         mockNetworkManager.masterChefV2,
         USER_ADDR,
         FUNCTIONS_IFACE.encodeFunctionData("withdraw(uint256,uint256)", [
@@ -349,6 +339,7 @@ describe("Re-entrancy transfers bot test suite", () => {
         FUNCTIONS_IFACE.encodeFunctionData("emergencyWithdraw(uint256)", [BigNumber.from("1")]).slice(0, 10)
       ),
       createFinding(
+        USER_ADDR,
         mockNetworkManager.moneyMaker,
         USER_ADDR,
         FUNCTIONS_IFACE.encodeFunctionData("convert", [

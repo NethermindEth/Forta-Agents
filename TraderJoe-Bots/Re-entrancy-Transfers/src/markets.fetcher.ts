@@ -31,7 +31,7 @@ export default class MarketsFetcher {
 
     return this.markets;
   }
-  // Updates the set of markets when `MarketListed` `MarketDelisted` events are detected
+  // Updates the set of markets when `MarketListed` `MarketDelisted` events are detected.
   public updateMarkets(eventName: string, marketAddress: string) {
     if (eventName === "MarketListed") {
       this.markets.add(marketAddress);

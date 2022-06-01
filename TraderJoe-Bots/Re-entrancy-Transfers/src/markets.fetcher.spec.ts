@@ -10,7 +10,7 @@ const TEST_DATA: [number, string[]][] = [
 ];
 const TEST_ADDRESSES = [createAddress("0xa1"), createAddress("0xa2"), createAddress("0xa3"), createAddress("0xa4")];
 
-describe("BalanceFetcher test suite", () => {
+describe("MarketsFetcher test suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const fetcher: MarketsFetcher = new MarketsFetcher(mockProvider as any);
 
