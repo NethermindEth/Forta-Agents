@@ -24,7 +24,9 @@ const GET_RESERVES_ABI: string = `    function getReserves()
 const TOKEN0_ABI: string = "function token0() view returns (address token)";
 const TOKEN1_ABI: string = "function token1() view returns (address token)";
 
-export const PAIR_IFACE: Interface = new Interface([TOKEN0_ABI, TOKEN1_ABI, SWAP_ABI, GET_RESERVES_ABI]);
+export const PAIR_ABI: string[] = [TOKEN0_ABI, TOKEN1_ABI, SWAP_ABI, GET_RESERVES_ABI];
+
+export const PAIR_IFACE: Interface = new Interface(PAIR_ABI);
 
 // NOTE: UPDATE BACK TO USE NetworkData
 export const create2Pair = (tokenA: string, tokenB: string, factory: string) => {

@@ -6,6 +6,8 @@ import { SWAP_ABI, create2Pair } from "./utils";
 import PairFetcher from "./pair.fetcher";
 import { createFinding } from "./findings";
 
+const THRESHOLD_PERCENTAGE: number = 20;
+
 const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
@@ -13,7 +15,11 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
   networkManager.setNetwork(chainId);
 };
 
-export function provideHandleTransaction(provider: providers.Provider, networkManager: NetworkData): HandleTransaction {
+export function provideHandleTransaction(
+  provider: providers.Provider,
+  networkManager: NetworkData,
+  thresholdPercentage: number
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -36,9 +42,8 @@ export function provideHandleTransaction(provider: providers.Provider, networkMa
           const [reserve0, reserve1] = await pairFetcher.getReserves(txEvent.blockNumber - 1);
 
           // Create threshold amounts
-          // (20% of each reserve)
-          const reserve0Threshold: BigNumber = reserve0.mul(20).div(100);
-          const reserve1Threshold: BigNumber = reserve1.mul(20).div(100);
+          const reserve0Threshold: BigNumber = reserve0.mul(thresholdPercentage).div(100);
+          const reserve1Threshold: BigNumber = reserve1.mul(thresholdPercentage).div(100);
 
           // If the `amount` arguments from `Swap` are large relative
           // to their respective `reserve`, create a finding
@@ -60,5 +65,5 @@ export function provideHandleTransaction(provider: providers.Provider, networkMa
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(getEthersProvider(), networkManager),
+  handleTransaction: provideHandleTransaction(getEthersProvider(), networkManager, THRESHOLD_PERCENTAGE),
 };
