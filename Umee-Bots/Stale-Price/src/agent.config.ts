@@ -1,7 +1,7 @@
 import { AgentConfig } from "./utils";
 
 const CONFIG: AgentConfig = {
-  // threshold after 24 hour
+  // Interval after which oracle data will be considered stale (in seconds)
   threshold: 86400,
   // Address of the UmeeOracle contract
   umeeOracleAddress: "0x67386481E5A3076563F39831Bb79d05D393d57bf",

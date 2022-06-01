@@ -2,7 +2,8 @@
 
 ## Description
 
-This agent monitors price oracle data to see if it has not been updated over a specific threshold.
+This bot monitors price oracle data to see if it has not been updated for longer than a configured interval.
+This behavior can be customized in `src/agent.config.ts`.
 
 ## Supported Chains
 
