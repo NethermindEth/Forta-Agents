@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Detect stale price data from Chainlink aggregator",
   "chainIds": [1],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/umee/Stale-Price",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Stale-Price",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
