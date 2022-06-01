@@ -1,10 +1,11 @@
 {
-  "name": "forta-agent-starter",
+  "name": "traderjoe-3",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detect large swaps from valid pair contracts",
   "chainIds": [
     43114
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/TraderJoe-Bots/Large-Swap",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
