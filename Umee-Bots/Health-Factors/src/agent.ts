@@ -38,6 +38,7 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
       users.forEach(user => {
         if (!accountMap[user]) {
           accounts.push({ address: user, alerted: false });
+          accountMap[user] = true;
         }
       });
     }
