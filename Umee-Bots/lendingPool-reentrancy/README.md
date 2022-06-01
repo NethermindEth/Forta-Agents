@@ -16,7 +16,7 @@ Detects reentrancy inside LendingProtocol smart contract. If the call is a reent
   - Type is always set to "Exploit."
   - Metadata contains:
     - initialCallSelector: The selector of the function that calls the `LendingPool` smart contract
-    - lendingPoolCallSelector: The selector of the first reentrancy case on the `LendingPool` smart contract
+    - reentrantCallSelector: The selector of the first blacklisted reentrant call that results from the initial call to `initialCallSelector`
 
 ## Test Data
 
