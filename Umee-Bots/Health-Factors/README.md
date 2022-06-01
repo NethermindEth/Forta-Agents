@@ -1,9 +1,9 @@
-# Health Factors Monitoring Agent
+# Health Factors Monitoring Bot
 
 ## Description
 
-This agent monitors the health factors of borrowing positions in the UMEE protocol.
-The agent's behavior can be customized by editing the configuration fields in `src/agent.config.ts`.
+This bot monitors the health factors of borrowing positions in the UMEE protocol.
+The bot's behavior can be customized by editing the configuration fields in `src/agent.config.ts`.
 
 ## Supported Chains
 
@@ -46,6 +46,4 @@ In the block `31712345`, `MockLendingPool.generateTestingData1()` is executed. F
 
 In the next block, since `address(4)` position has >$2M in collateral and health factor 1, a finding will be emitted.
 
-In the block `31712405`, `MockLendingPool.generateTestingData2()` is then executed. This changes the health factor of `address(3)` position to 1.
-
-In the next block, a finding will be emitted.
+In the block `31712405`, `MockLendingPool.generateTestingData2()` is then executed. This changes the health factor of `address(3)` position to 1, which will make the bot emit a finding.
