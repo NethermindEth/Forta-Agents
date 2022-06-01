@@ -12,7 +12,7 @@ const getSigHashes = (signaturesArray: string[]): string[] => {
   });
 };
 
-const createFinding = (initialCallSelector: string, lendingPoolCallSelector: string): Finding => {
+const createFinding = (initialCallSelector: string, reentrantCallSelector: string): Finding => {
   return Finding.fromObject({
     name: "LendingPool call reentrancy",
     description: "Reentrancy detected in call to LendingPool contract",
