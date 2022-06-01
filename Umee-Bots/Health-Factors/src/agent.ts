@@ -8,7 +8,7 @@ import {
   getEthersProvider,
   Initialize,
 } from "forta-agent";
-import { Contract as MulticallContract, Provider as MulticallProvider } from "ethers-multicall";
+import { MulticallContract, MulticallProvider } from "./multicall";
 import BigNumber from "bignumber.js";
 
 import { BORROW_ABI, GET_USER_ACCOUNT_DATA_ABI, LATEST_ANSWER_ABI } from "./constants";
@@ -41,7 +41,7 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
   const LendingPool = new MulticallContract(config.lendingPoolAddress, [GET_USER_ACCOUNT_DATA_ABI]);
   const EthUsdFeed = new ethers.Contract(config.ethUsdFeedAddress, [LATEST_ANSWER_ABI], provider);
 
-  return async (_: BlockEvent): Promise<Finding[]> => {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     if (!accounts.length) {
@@ -54,7 +54,10 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
     const accountsData = (
       await Promise.all(
         arrayChunks(accounts, 10).map((chunk) => {
-          return multicallProvider.all(chunk.map((el) => LendingPool.getUserAccountData(el.address)));
+          return multicallProvider.all(
+            chunk.map((el) => LendingPool.getUserAccountData(el.address)),
+            blockEvent.blockNumber
+          );
         })
       )
     ).flat() as AccountData[];
