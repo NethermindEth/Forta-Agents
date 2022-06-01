@@ -17,6 +17,7 @@ const createFinding = (initialCallSelector: string, reentrantCallSelector: strin
     name: "LendingPool call reentrancy",
     description: "Reentrancy detected in call to LendingPool contract",
     alertId: "UMEE-9",
+    protocol: "Umee",
     type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
