@@ -4,6 +4,7 @@ import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests
 import { encodeParameter } from "forta-agent-tools/lib/utils";
 
 import NetworkManager from "./network";
+import BigNumber from "bignumber.js";
 
 const testCreateFinding = (
   sizeDelta: string,
@@ -23,7 +24,7 @@ const testCreateFinding = (
         metadata: {
           GMX: contractAddress,
           Account: account,
-          "Position size": parseFloat(sizeDelta).toFixed(1),
+          "Position size": new BigNumber(sizeDelta).toFixed(2),
           "Position key": key,
         },
       })
@@ -37,7 +38,7 @@ const testCreateFinding = (
         metadata: {
           GMX: contractAddress,
           Account: account,
-          "Position decrease": parseFloat(sizeDelta).toFixed(1),
+          "Position decrease": new BigNumber(sizeDelta).toFixed(2),
           "Position key": key,
         },
       });

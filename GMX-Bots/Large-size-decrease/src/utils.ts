@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import { Finding, FindingSeverity, FindingType, LogDescription, ethers } from "forta-agent";
 
 const DECREASE_POSITION_EVENT =
@@ -20,7 +21,7 @@ function isPositionClosed(allCloseEvents: LogDescription[], decreasePositionArgs
 }
 
 const createFinding = (
-  sizeDelta: string,
+  sizeDelta: BigNumber,
   key: string,
   account: string,
   isClosed: boolean,
@@ -37,7 +38,7 @@ const createFinding = (
         metadata: {
           GMX: contractAddress,
           Account: account,
-          "Position size": parseFloat(sizeDelta).toFixed(1),
+          "Position size": sizeDelta.toFixed(2),
           "Position key": key,
         },
       })
@@ -51,7 +52,7 @@ const createFinding = (
         metadata: {
           GMX: contractAddress,
           Account: account,
-          "Position decrease": parseFloat(sizeDelta).toFixed(1),
+          "Position decrease": sizeDelta.toFixed(2),
           "Position key": key,
         },
       });

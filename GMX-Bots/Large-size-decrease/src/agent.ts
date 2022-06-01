@@ -1,4 +1,5 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import BigNumber from "bignumber.js";
 
 import {
   DECREASE_POSITION_EVENT,
@@ -29,10 +30,11 @@ export const provideBotHandler = (large_limit: number, vaultAddress: NetworkData
     const closePositionEvents = txEvent.filterLog(CLOSE_POSITION_EVENT, vaultAddress.vault);
 
     decreasePositionEvents.forEach(({ args }) => {
-      let sizeDelta = args.sizeDelta / PRICE_PRECISION;
-      if (sizeDelta > large_limit) {
-        let isClosed: boolean = isPositionClosed(closePositionEvents, args);
-        findings.push(createFinding(sizeDelta.toString(), args.key, args.account, isClosed, vaultAddress.vault));
+      const sizeDelta = new BigNumber(args.sizeDelta.toString()).dividedBy(new BigNumber(PRICE_PRECISION));
+
+      if (sizeDelta.gt(new BigNumber(large_limit))) {
+        const isClosed: boolean = isPositionClosed(closePositionEvents, args);
+        findings.push(createFinding(sizeDelta, args.key, args.account, isClosed, vaultAddress.vault));
       }
     });
 
