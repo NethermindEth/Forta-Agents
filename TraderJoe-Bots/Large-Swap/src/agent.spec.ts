@@ -1,4 +1,4 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, ethers } from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent, createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";

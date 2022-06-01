@@ -35,7 +35,7 @@ export function provideHandleTransaction(
         const token0 = await pairFetcher.getToken0(txEvent.blockNumber);
         const token1 = await pairFetcher.getToken1(txEvent.blockNumber);
 
-        // Check if the emitting address is the same as a CREATE2 calculated one.
+        // Check if the emitting address is a valid pair contract.
         const create2PairAddress: string = create2Pair(token0, token1, networkManager.factory);
         if (create2PairAddress === log.address) {
           // Query the emitting address for the reserves
