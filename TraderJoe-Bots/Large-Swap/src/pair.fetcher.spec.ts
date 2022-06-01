@@ -5,7 +5,7 @@ import PairFetcher from "./pair.fetcher";
 import NetworkManager from "./network";
 
 // format: [blockNumber, pair, token0, token1]
-const TEST_DATA: [number, string, string, string][] = [
+const testData: [number, string, string, string][] = [
   [10, createAddress("0xae1"), createAddress("0xab123"), createAddress("0xbb147")],
   [20, createAddress("0xbe2"), createAddress("0xab321"), createAddress("0xbb741")],
   [30, createAddress("0xae2"), createAddress("0xab456"), createAddress("0xbb258")],
@@ -13,7 +13,7 @@ const TEST_DATA: [number, string, string, string][] = [
   [50, createAddress("0xde4"), createAddress("0xab444"), createAddress("0xbb777")],
 ];
 // Format: [reserve0, reserve1, blockTimestampLast]
-const TEST_RESERVES: [BigNumber, BigNumber, number][] = [
+const testReserves: [BigNumber, BigNumber, number][] = [
   [BigNumber.from("123"), BigNumber.from("234"), 456],
   [BigNumber.from("678"), BigNumber.from("789"), 891],
   [BigNumber.from("321"), BigNumber.from("543"), 765],
@@ -61,7 +61,7 @@ describe("PairFetcher test suite", () => {
   };
 
   it("should fetch token0 and use cache correctly", async () => {
-    for (let [block, pair, token0] of TEST_DATA) {
+    for (let [block, pair, token0] of testData) {
       createToken0Call(pair, token0, block);
       const fetcher: PairFetcher = new PairFetcher(pair, mockProvider as any);
 
@@ -78,7 +78,7 @@ describe("PairFetcher test suite", () => {
   });
 
   it("should fetch token1 and use cache correctly", async () => {
-    for (let [block, pair, , token1] of TEST_DATA) {
+    for (let [block, pair, , token1] of testData) {
       createToken1Call(pair, token1, block);
       const fetcher: PairFetcher = new PairFetcher(pair, mockProvider as any);
 
@@ -95,9 +95,9 @@ describe("PairFetcher test suite", () => {
   });
 
   it("should fetch reserves and use cache correctly", async () => {
-    for (let i = 0; i < TEST_DATA.length; i++) {
-      const [block, pair] = TEST_DATA[i];
-      const [reserve0, reserve1, blockTimestampLast] = TEST_RESERVES[i];
+    for (let i = 0; i < testData.length; i++) {
+      const [block, pair] = testData[i];
+      const [reserve0, reserve1, blockTimestampLast] = testReserves[i];
 
       createGetReservesCall(pair, reserve0, reserve1, blockTimestampLast, block);
       const fetcher: PairFetcher = new PairFetcher(pair, mockProvider as any);
