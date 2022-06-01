@@ -62,8 +62,6 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
       )
     ).flat() as AccountData[];
 
-    (await multicallProvider.all(accounts.map((el) => LendingPool.getUserAccountData(el.address)))) as AccountData[];
-
     accounts = accounts.filter((account, idx) => {
       const accountData = accountsData[idx];
       const totalDebtUsd = ethersBnToBn(accountData.totalDebtETH, 18).times(ethToUsd);
