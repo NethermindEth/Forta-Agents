@@ -1,11 +1,11 @@
 {
-  "name": "dydx-11",
+  "name": "dydx-17",
   "version": "0.0.1",
-  "description": "Detect large DYDX deposit/withdrawals into/from safety module",
+  "description": "Monitor parameter changes in dYdX Safety and Liquidity Modules",
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Large_dYdX_Staking-Withdrawals",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Parameter-Changes-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,13 +24,12 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
-    "lru-cache": "^7.10.1"
+    "forta-agent": "^0.1.4"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.6",
+    "forta-agent-tools": "^2.0.5",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",

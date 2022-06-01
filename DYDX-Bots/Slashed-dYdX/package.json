@@ -1,11 +1,11 @@
 {
-  "name": "dydx-19",
+  "name": "dydx-12",
   "version": "0.0.1",
-  "description": "Bot that detects large approvals on safety and liquidity modules",
+  "description": "Monitor slashing events in dYdX Safety Module",
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Approve_Spending_Monitor",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Slashed-dYdX",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,14 +24,12 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
-    "lru-cache": "^7.8.1"
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
-    "forta-agent-tools": "^2.0.5",
-    "@types/lru-cache": "^7.6.1",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.0.6",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",

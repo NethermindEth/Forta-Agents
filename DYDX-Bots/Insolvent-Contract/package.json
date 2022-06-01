@@ -1,11 +1,11 @@
 {
-  "name": "dydx-12",
+  "name": "dydx-15",
   "version": "0.0.1",
-  "description": "Monitor slashing events in dYdX Safety Module",
+  "description": "Detect insolvent contract in dYdX Liquidity Module",
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Slashed_dYdX",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Insolvent-Contract",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,12 +24,14 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.3",
+    "lru-cache": "^7.8.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/lru-cache": "^7.6.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.6",
+    "forta-agent-tools": "^2.0.5",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",

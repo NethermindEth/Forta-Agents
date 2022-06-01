@@ -1,11 +1,11 @@
 {
-  "name": "dydx-16",
+  "name": "dydx-18",
   "version": "0.0.1",
-  "description": "Detect large borrower allocation",
+  "description": "Monitor role changes in dYdX Safety and Liquidity Modules",
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Large_Borrower_Allocation",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Roles-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,7 +24,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.4"
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

@@ -1,11 +1,11 @@
 {
-  "name": "dydx-14",
+  "name": "dydx-16",
   "version": "0.0.1",
-  "description": "Detect large deposit/withdrawals in staking pool",
+  "description": "Detect large borrower allocation",
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Large_USDC_Staking-Withdrawals",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/DYDX-Bots/Large-Borrower-Allocation",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,16 +20,14 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.3",
-    "lru-cache": "^7.8.1"
+    "forta-agent": "^0.1.4"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
-    "@types/lru-cache": "^7.6.1",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.0.5",
     "jest": "^27.0.6",
