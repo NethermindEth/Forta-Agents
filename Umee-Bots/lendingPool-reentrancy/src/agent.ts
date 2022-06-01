@@ -14,8 +14,8 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
       const trace = traces[i];
       const depth = trace.traceAddress.length;
       if (trace.action.to === config.lendingPoolAddress) {
-        let j;
-        for (j = i + 1; j < traces.length; j++) {
+        let alerted = false;
+        for (let j = i + 1; j < traces.length; j++) {
           if (traces[j].traceAddress.length <= depth) {
             i = j - 1;
             break; // subtree ended, non reentrant call
