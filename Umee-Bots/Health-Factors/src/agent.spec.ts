@@ -209,6 +209,52 @@ describe("health factors agent", () => {
     expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
   });
 
+  it("shouldn't add duplicate account entries to the monitoring list", async () => {
+    const mockProvider = createMockProvider();
+    generateMockProviderCall(mockProvider, () => ({
+      totalCollateralUsd: "0",
+      totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
+      healthFactor: "0",
+    }));
+
+    const provider = mockProvider as any as ethers.providers.Provider;
+
+    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    initialize = provideInitialize(provider);
+
+    await initialize();
+
+    const txEvent1 = new TestTransactionEvent();
+    addBorrow(txEvent1, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
+
+    expect(await handleTransaction(txEvent1)).toStrictEqual([]);
+    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+
+    const txEvent2 = new TestTransactionEvent();
+    addBorrow(txEvent2, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
+    addBorrow(txEvent2, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x2"));
+
+    expect(await handleTransaction(txEvent2)).toStrictEqual([]);
+    expect(agent.getAccounts()).toStrictEqual([
+      { address: USER_ADDRESS, alerted: false },
+      { address: createAddress("0x2"), alerted: false },
+    ]);
+
+    const txEvent3 = new TestTransactionEvent();
+    addBorrow(txEvent3, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
+    addBorrow(txEvent2, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x2"));
+    addBorrow(txEvent3, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x3"));
+    addBorrow(txEvent3, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x3"));
+
+    expect(await handleTransaction(txEvent3)).toStrictEqual([]);
+    expect(agent.getAccounts()).toStrictEqual([
+      { address: USER_ADDRESS, alerted: false },
+      { address: createAddress("0x2"), alerted: false },
+      { address: createAddress("0x3"), alerted: false },
+    ]);
+  });
+
   it("returns empty findings if the accounts health factor is equal to or greater than `healthFactorThreshold`", async () => {
     const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
