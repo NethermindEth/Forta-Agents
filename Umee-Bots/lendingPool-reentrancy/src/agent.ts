@@ -21,12 +21,12 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
             break; // subtree ended, non reentrant call
           }
 
-          if (traces[j].action.to === config.lendingPoolAddress) {
+          if (traces[j].action.to === config.lendingPoolAddress && !alerted) {
             const selector = (traces[j].action.input || "").slice(0, 10); // "0x" and first 4 bytes
             if (sigHashes.includes(selector)) {
               const initialCallSelector = (txEvent.transaction.data || "").slice(0, 10);
               findings.push(utils.createFinding(initialCallSelector, selector));
-              break;
+              alerted = true;
             }
           }
         }
