@@ -1,6 +1,7 @@
 import { AgentConfig } from "./utils";
 
 const CONFIG: AgentConfig = {
+  // Signatures that will result in a finding emission if called in a reentrant manner
   reentrancyBlacklist: [
     "borrow(address,uint256,uint256,uint16,address)",
     "withdraw(address,uint256,address)",
