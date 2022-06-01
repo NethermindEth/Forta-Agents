@@ -64,31 +64,78 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("Should detect different thresholds of reentrancy", async () => {
-      const iFace = new Interface(["function withdraw(address asset,uint256 amount,address to)"]);
+    it("Should detect a finding if deposit then withdraw in a reentrant way", async () => {
+      const iFace = new Interface([
+        "function withdraw(address asset,uint256 amount,address to)",
+        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
+      ]);
+
+      const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
+        0,
+      ]);
+      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
+      const depositSig = sighashes[3];
+      const withdrawSig = sighashes[1];
+      const tx: TransactionEvent = createTxEvent(
+        [
+          createTrace([], depositSig), // Deposit call
+          createTrace([0], withdrawSig), // Reentrant withdraw call
+        ],
+        testEncodedDepositFuncCall
+      );
+
+      const expected: Finding[] = [];
+      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[1]));
+
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual(expected);
+    });
+
+    it("Should detect three finding if deposit,withdraw,deposit,any call, deposit.... any calls then withdraw in a reentrant way", async () => {
+      const iFace = new Interface([
+        "function withdraw(address asset,uint256 amount,address to)",
+        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
+      ]);
 
       const testEncodedWithdrawFuncCall: string = iFace.encodeFunctionData("withdraw", [
         createAddress("0x0a"),
         234,
         createAddress("0x0b"),
       ]);
+
+      const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
+        0,
+      ]);
       const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
+      const depositSig = sighashes[3];
+      const withdrawSig = sighashes[1];
 
       const tx: TransactionEvent = createTxEvent(
         [
-          createTrace([], sighashes[0]), // Initial call
-          createTrace([0], sighashes[0]), // Call withdraw for the first time
-          createTrace([0, 0], sighashes[0]), // Call withdraw inside the transaction another time
+          createTrace([], depositSig), // Deposit call
+          createTrace([0], withdrawSig), // Reentrant withdraw call
+          createTrace([0, 0], depositSig), // Reentrant deposit call
+          createTrace([0, 0, 0], "0x01234567"), // Any call
+          createTrace([0, 0, 0, 0], depositSig), // Reentrant deposit call
         ],
-        testEncodedWithdrawFuncCall
+        testEncodedDepositFuncCall
       );
 
       const expected: Finding[] = [];
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, sighashes[0]));
-      expected.push(utils.createFinding(testEncodedWithdrawFuncCall, sighashes[0]));
+      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[1]));
+      expected.push(utils.createFinding(sighashes[3], testEncodedDepositFuncCall.slice(0, 10)));
+      expected.push(utils.createFinding(sighashes[3], testEncodedDepositFuncCall.slice(0, 10)));
+      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[3]));
 
       const findings: Finding[] = await handleTx(tx);
-      expect(findings.length).toStrictEqual(expected.length);
+      console.log({ expected, findings });
+      expect(findings).toStrictEqual(expected);
     });
   });
 });
