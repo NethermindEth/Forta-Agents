@@ -30,4 +30,4 @@ To check the results, uncomment the lines indicated in `src/agent.config.ts`, us
 npm run block 31913146
 ```
 
-In the block `31913146`, `MockLendingPool.test()` is executed. It will create a reentrant call on the `deposit` transaction and a finding will be emitted.
+In the block `31913146`, `MockLendingPool.test()` is executed. It will perform a reentrant call to `withdraw()` on `deposit()` and, because of that, a finding will be emitted.
