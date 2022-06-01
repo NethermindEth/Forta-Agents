@@ -4,7 +4,7 @@ export const createFinding = (args: any) => {
   return Finding.fromObject({
     name: "Large Swap has occurred",
     description: "Swap event was emitted with a large amount",
-    alertId: "TJ-03",
+    alertId: "TRADERJOE-03",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "TraderJoe",
