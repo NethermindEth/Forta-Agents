@@ -21,7 +21,7 @@ const createFinding = (initialCallSelector: string, reentrantCallSelector: strin
     severity: FindingSeverity.High,
     metadata: {
       initialCallSelector,
-      lendingPoolCallSelector,
+      reentrantCallSelector,
     },
   });
 };
