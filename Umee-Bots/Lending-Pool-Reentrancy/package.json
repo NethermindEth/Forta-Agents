@@ -5,7 +5,7 @@
   "chainIds": [
     1
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Lending-Pool-Reentrancy",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/umee/UM09-lendingpool-Reentrancy",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
