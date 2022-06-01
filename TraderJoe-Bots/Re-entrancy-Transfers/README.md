@@ -27,10 +27,14 @@ This bot behavior can be verified through our PoC contracts deployed on Kovan te
 
 ### PoC Contracts
 
-- `TestJoeTroller`: 0x58ff5687eA8de62C40a8bbcbA0a062Ba9482F048. Used to allow bot to fetch markets.
-- `TestMarket`: 0x9d2a0AA41814CA021C8B3C4ccF49FaE70e6bE3E8. Test Jtoken market to generate a reentrancy on a market.
-- `TestToken`: 0x185858e30F434C07Ff19CDe798CCc00a974D6276. TestToken is the contract source of reentrancies.
-- `TestTarget`: 0x7157355D1b185cEBc7394fc9d6B3A69e432Dc1ad. Used as a general monitored contract, other than markets.
+- `TestJoeTroller`: 0x58ff5687eA8de62C40a8bbcbA0a062Ba9482F048.
+  - Used to allow bot to fetch markets during initialization.
+- `TestMarket`: 0x9d2a0AA41814CA021C8B3C4ccF49FaE70e6bE3E8
+  - Test Jtoken market used to generate a reentrancy on a market.
+- `TestToken`: 0x185858e30F434C07Ff19CDe798CCc00a974D6276.
+  - TestToken is the contract source of reentrancies.
+- `TestTarget`: 0x7157355D1b185cEBc7394fc9d6B3A69e432Dc1ad.
+  - Used as a general monitored contract, other than markets.
 
 ### Test transaction
 
