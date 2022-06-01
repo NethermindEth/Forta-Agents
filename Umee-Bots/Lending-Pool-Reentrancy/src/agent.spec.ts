@@ -134,7 +134,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[3]));
 
       const findings: Finding[] = await handleTx(tx);
-      console.log({ expected, findings });
       expect(findings).toStrictEqual(expected);
     });
   });
