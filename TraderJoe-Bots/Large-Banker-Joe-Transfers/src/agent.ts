@@ -1,68 +1,71 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { BigNumber } from "ethers";
+import { getEthersProvider } from "forta-agent";
+import { HandleTransaction, TransactionEvent, Finding } from "forta-agent";
+import { createFinding } from "./finding";
+import MarketsFetcher from "./markets.fetcher";
+import NetworkData from "./network";
+import SupplyFetcher from "./supply.fetcher";
+import { EVENTS_ABIS, MARKET_UPDATE_ABIS, PERCENTAGE } from "./utils";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+let networkManager = new NetworkData();
+let marketsFetcher = new MarketsFetcher(getEthersProvider());
+const supplyFetcher = new SupplyFetcher(getEthersProvider());
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+const provideInitialize = (marketsFetcher: MarketsFetcher) => async () => {
+  const { chainId } = await marketsFetcher.provider.getNetwork();
+  networkManager.setNetwork(chainId);
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+  // set joeTroller contract address
+  marketsFetcher.setJoeTrollerContract(networkManager.joeTroller);
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+  // fetch Markets from joeTroller
+  await marketsFetcher.getMarkets("latest");
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction =
+  (
+    networkManager: NetworkData,
+    marketsFetcher: MarketsFetcher,
+    supplyFetcher: SupplyFetcher
+  ): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    // Update the markets list.
+    txEvent
+      .filterLog(MARKET_UPDATE_ABIS, networkManager.joeTroller)
+      .forEach((log) => {
+        marketsFetcher.updateMarkets(log.name, log.args.jToken.toString());
+      });
+
+    // Listen to `Mint`, `Redeem` and `Borrow` events on jToken contracts.
+    const logs = txEvent.filterLog(
+      EVENTS_ABIS,
+      Array.from(marketsFetcher.markets)
+    );
+    // fetch totalSupply for included markets.
+    const supplies = await Promise.all(
+      logs.map((log) =>
+        supplyFetcher.getTotalSupply(log.address, txEvent.blockNumber - 1)
+      )
+    );
+
+    for (let i = 0; i < logs.length; i++) {
+      const threshold = supplies[i].mul(PERCENTAGE).div(100);
+
+      if (BigNumber.from(logs[i].args[1]).gte(threshold))
+        findings.push(
+          createFinding(logs[i].name, logs[i].address, Array.from(logs[i].args))
+        );
+    }
+    return findings;
+  };
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(marketsFetcher),
+  handleTransaction: provideHandleTransaction(
+    networkManager,
+    marketsFetcher,
+    supplyFetcher
+  ),
 };
