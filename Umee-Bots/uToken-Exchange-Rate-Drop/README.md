@@ -19,8 +19,6 @@ uToken pairs (e.g. `uDAI/uUSDT`) can be customized in `uTokenPairs` array. Each 
     - `High`: 0.25-0.30
     - `Critical`: 0.30+
 
-Numbers of the decimals can be set with `decimals` variable in `src/agent.config.ts`.
-
 ## Supported Chains
 
 - Ethereum
@@ -37,14 +35,6 @@ Numbers of the decimals can be set with `decimals` variable in `src/agent.config
     - `currentRatio`: current ratio of the uToken pair after drop
 
 ## Test Data
-
-### Mainnet
-
-Uncomment the lines indicated in `src/agent.config.ts` and run:
-
-```
-npm run range 14867840..14867841
-```
 
 ### Kovan Testnet (PoC)
 
