@@ -214,9 +214,9 @@ describe("Large Swap test suite", () => {
     const [senderOne, amount0InOne, amount1InOne, amount0OutOne, amount1OutOne, toOne] = testCases[2];
     const [senderTwo, amount0InTwo, amount1InTwo, amount0OutTwo, amount1OutTwo, toTwo] = testCases[3];
 
-    createToken0Call(testPairs[1], testTokens[1][0], testBlocks[2]);
-    createToken1Call(testPairs[1], testTokens[1][1], testBlocks[2]);
-    creategetReservesCall(testPairs[1], reserve0, reserve1, blockTimestampLast, testBlocks[2] - 1);
+    createToken0Call(testPairs[2], testTokens[2][0], testBlocks[2]);
+    createToken1Call(testPairs[2], testTokens[2][1], testBlocks[2]);
+    creategetReservesCall(testPairs[2], reserve0, reserve1, blockTimestampLast, testBlocks[2] - 1);
 
     const swapLogOne = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       senderOne,
@@ -237,11 +237,11 @@ describe("Large Swap test suite", () => {
     ]);
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testPairs[1])
+      .setTo(testPairs[2])
       .setFrom(senderOne)
       .setBlock(testBlocks[2])
-      .addAnonymousEventLog(testPairs[1], swapLogOne.data, ...swapLogOne.topics)
-      .addAnonymousEventLog(testPairs[1], swapLogTwo.data, ...swapLogTwo.topics);
+      .addAnonymousEventLog(testPairs[2], swapLogOne.data, ...swapLogOne.topics)
+      .addAnonymousEventLog(testPairs[2], swapLogTwo.data, ...swapLogTwo.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -256,8 +256,8 @@ describe("Large Swap test suite", () => {
 
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
 
-    createToken0Call(testPairs[1], testTokens[1][0], testBlocks[3]);
-    createToken1Call(testPairs[1], testTokens[1][1], testBlocks[3]);
+    createToken0Call(testPairs[3], testTokens[3][0], testBlocks[3]);
+    createToken1Call(testPairs[3], testTokens[3][1], testBlocks[3]);
     creategetReservesCall(testPairs[1], reserve0, reserve1, blockTimestampLast, testBlocks[3] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
@@ -269,10 +269,10 @@ describe("Large Swap test suite", () => {
       to,
     ]);
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(testPairs[1])
+      .setTo(testPairs[3])
       .setFrom(sender)
       .setBlock(testBlocks[3])
-      .addAnonymousEventLog(testPairs[1], swapLog.data, ...swapLog.topics);
+      .addAnonymousEventLog(testPairs[3], swapLog.data, ...swapLog.topics);
 
     const findings = await handleTransaction(txEvent);
 
@@ -285,8 +285,8 @@ describe("Large Swap test suite", () => {
     const diffEventAbi: string = "event Diff()";
     const diffIFace: Interface = new Interface([diffEventAbi]);
 
-    createToken0Call(testPairs[1], testTokens[1][0], testBlocks[4]);
-    createToken1Call(testPairs[1], testTokens[1][1], testBlocks[4]);
+    createToken0Call(testPairs[1], testTokens[1][0], testBlocks[1]);
+    createToken1Call(testPairs[1], testTokens[1][1], testBlocks[1]);
 
     const diffLog = diffIFace.encodeEventLog(diffIFace.getEvent("Diff"), []);
 
@@ -306,8 +306,8 @@ describe("Large Swap test suite", () => {
 
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[1];
 
-    createToken0Call(nonValidPair, testTokens[1][0], testBlocks[1]);
-    createToken1Call(nonValidPair, testTokens[1][1], testBlocks[1]);
+    createToken0Call(nonValidPair, testTokens[4][0], testBlocks[4]);
+    createToken1Call(nonValidPair, testTokens[4][1], testBlocks[4]);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -321,7 +321,7 @@ describe("Large Swap test suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setTo(nonValidPair)
       .setFrom(sender)
-      .setBlock(testBlocks[1])
+      .setBlock(testBlocks[4])
       .addAnonymousEventLog(nonValidPair, swapLog.data, ...swapLog.topics);
 
     const findings = await handleTransaction(txEvent);

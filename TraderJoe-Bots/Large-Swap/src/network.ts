@@ -7,8 +7,8 @@ const AVAX_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-    factory: "", // NOTE: ADD WHEN DEPLOYED
-  };
+  factory: "", // NOTE: ADD WHEN DEPLOYED
+};
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
   43114: AVAX_MAINNET_DATA,
