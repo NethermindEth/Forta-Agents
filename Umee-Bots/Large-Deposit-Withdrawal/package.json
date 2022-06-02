@@ -1,7 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "umee-large-deposit-withdrawal-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors large deposits and withdrawals",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Large-Deposit-Withdrawal",
   "chainIds": [
     1
   ],
@@ -19,14 +20,18 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.6",
+    "lru-cache": "^7.10.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/lru-cache": "^7.10.10",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.0.7",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
