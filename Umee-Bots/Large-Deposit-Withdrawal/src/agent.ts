@@ -1,68 +1,35 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { WITHDRAW_ABI, DEPOSIT_ABI } from "./constants";
+import { AgentConfig, createFinding, ethersBnToBn } from "./utils";
+import CONFIG from "./agent.config";
+import Fetcher from "./price.fetcher";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+export const provideHandleTransaction = (fetcher: Fetcher, config: AgentConfig): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+    const ethPrice = await fetcher.getEthPrice(txEvent.blockNumber, config.ethUsdFeedAddress);
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const logs = txEvent.filterLog([DEPOSIT_ABI, WITHDRAW_ABI], config.lendingPoolAddress);
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
+    await Promise.all(
+      logs.map(async (log) => {
+        const amount = ethersBnToBn(log.args.amount, 6);
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+        const assetPrice = await fetcher.getAssetPrice(config.umeeOracleAddress, log.args.reserve, txEvent.blockNumber);
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
+        const totalValue = assetPrice.times(ethPrice).times(amount);
 
-  return findings;
+        if (totalValue.gte(config.threshold)) {
+          findings.push(createFinding(log, totalValue.toString()));
+        }
+      })
+    );
+
+    return findings;
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(new Fetcher(getEthersProvider()), CONFIG),
 };
