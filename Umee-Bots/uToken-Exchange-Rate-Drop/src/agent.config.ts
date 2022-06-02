@@ -30,15 +30,7 @@ const CONFIG: AgentConfig = {
   umeeOracle: "0x67386481E5A3076563F39831Bb79d05D393d57bf",
 
   lendingPool: "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa",
-
-  decimals: 4, // precision of decimals for ratio
 };
-
-// Uncomment these lines for the mainnet test:
-
-// CONFIG.uTokenPairs[1].threshold = 0.000000000000000001;
-// CONFIG.uTokenPairs[2].threshold = 0.000000000000000001;
-// CONFIG.decimals = 18;
 
 // Uncomment these lines for the testnet test:
 

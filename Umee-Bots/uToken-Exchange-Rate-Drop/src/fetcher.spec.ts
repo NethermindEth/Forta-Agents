@@ -1,6 +1,6 @@
 import Fetcher from "./fetcher";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE, AgentConfig } from "./utils";
+import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE, AgentConfig, ethersBnToBn } from "./utils";
 import { BigNumber } from "ethers";
 
 // format: [uTokenAddress, blockNumber, underlyingAssetAddress]
@@ -29,7 +29,6 @@ const TEST_CONFIG: AgentConfig = {
   uTokenPairs: [],
   umeeOracle: createAddress("0x1"),
   lendingPool: createAddress("0x2"),
-  decimals: 4,
 };
 
 describe("Fetcher test suite", () => {
@@ -45,7 +44,7 @@ describe("Fetcher test suite", () => {
   function createMockPriceCall(assetAddress: string, blockNumber: number, price: BigNumber) {
     return mockProvider.addCallTo(TEST_CONFIG.umeeOracle, blockNumber, UMEE_ORACLE_PRICE_IFACE, "getAssetPrice", {
       inputs: [assetAddress],
-      outputs: [price],
+      outputs: [price.toString()],
     });
   }
 
@@ -57,7 +56,7 @@ describe("Fetcher test suite", () => {
       "getReserveNormalizedIncome",
       {
         inputs: [assetAddress],
-        outputs: [price],
+        outputs: [price.toString()],
       }
     );
   }
@@ -84,7 +83,7 @@ describe("Fetcher test suite", () => {
 
       const fetchedPrice = await fetcher.getPrice(assetAddress, blockNumber);
 
-      expect(fetchedPrice).toStrictEqual(price);
+      expect(fetchedPrice).toStrictEqual(ethersBnToBn(price, 18));
     }
   });
 
@@ -96,7 +95,7 @@ describe("Fetcher test suite", () => {
 
       const fetchedNormalizedIncome = await fetcher.getReserveNormalizedIncome(assetAddress, blockNumber);
 
-      expect(fetchedNormalizedIncome).toStrictEqual(normalizedIncome);
+      expect(fetchedNormalizedIncome).toStrictEqual(ethersBnToBn(normalizedIncome, 18));
     }
   });
 });

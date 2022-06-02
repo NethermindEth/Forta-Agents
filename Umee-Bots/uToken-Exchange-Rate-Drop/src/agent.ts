@@ -2,6 +2,9 @@ import { BlockEvent, Finding, HandleBlock, getEthersProvider, Initialize } from 
 import Fetcher from "./fetcher";
 import CONFIG from "./agent.config";
 import { createFinding, calculatePriceRatio, calculateSeverity } from "./utils";
+import BigNumber from "bignumber.js";
+
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
 let currentPrices = new Map();
 let previousPrices = new Map();
@@ -36,10 +39,10 @@ export const provideHandleBlock =
       const previousRatio = calculatePriceRatio(previousPrices.get(pair.uToken1), previousPrices.get(pair.uToken2));
       const currentRatio = calculatePriceRatio(currentPrices.get(pair.uToken1), currentPrices.get(pair.uToken2));
 
-      const difference = previousRatio - currentRatio;
+      const difference = previousRatio.minus(currentRatio);
 
       // check  if the current pair ratio subtracted from the previous pair ratio is greater than or equal to the pair difference threshold
-      if (difference > pair.threshold) {
+      if (difference.gte(pair.threshold)) {
         const severity = calculateSeverity(difference, pair.threshold, pair.difference);
         findings.push(createFinding(`${pair.uToken1}/${pair.uToken2}`, previousRatio, currentRatio, severity));
       }
@@ -55,7 +58,8 @@ const getUTokenPrices = async (fetcher: Fetcher, underlyingAssets: any, block: s
     underlyingAssets.map(async (underlyingAsset: { uTokenName: string; address: string }) => {
       const assetPrice = await fetcher.getPrice(underlyingAsset.address, block);
       const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(underlyingAsset.address, block);
-      const uTokenPrice = assetPrice.mul(reserveNormalizedIncome);
+      const uTokenPrice = assetPrice.times(reserveNormalizedIncome);
+
       priceMap.set(underlyingAsset.uTokenName, uTokenPrice);
     })
   );

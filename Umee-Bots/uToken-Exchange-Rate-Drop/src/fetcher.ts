@@ -1,5 +1,7 @@
-import { Contract, providers, BigNumber } from "ethers";
+import { Contract, providers } from "ethers";
 import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE, AgentConfig } from "./utils";
+import { ethersBnToBn } from "./utils";
+import BigNumber from "bignumber.js";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
@@ -25,9 +27,12 @@ export default class DataFetcher {
   public async getPrice(assetAddress: string, block: string | number): Promise<BigNumber> {
     const oracleContract = new Contract(this.config.umeeOracle, UMEE_ORACLE_PRICE_IFACE, this.provider);
 
-    const assetPrice = await oracleContract.getAssetPrice(assetAddress, {
-      blockTag: block,
-    });
+    const assetPrice = ethersBnToBn(
+      await oracleContract.getAssetPrice(assetAddress, {
+        blockTag: block,
+      }),
+      18
+    );
 
     return assetPrice;
   }
@@ -36,9 +41,12 @@ export default class DataFetcher {
   public async getReserveNormalizedIncome(assetAddress: string, block: string | number): Promise<BigNumber> {
     const lendingPoolContract = new Contract(this.config.lendingPool, LENDING_POOL_IFACE, this.provider);
 
-    const reserveNormalizedIncome = await lendingPoolContract.getReserveNormalizedIncome(assetAddress, {
-      blockTag: block,
-    });
+    const reserveNormalizedIncome = ethersBnToBn(
+      await lendingPoolContract.getReserveNormalizedIncome(assetAddress, {
+        blockTag: block,
+      }),
+      18
+    );
 
     return reserveNormalizedIncome;
   }

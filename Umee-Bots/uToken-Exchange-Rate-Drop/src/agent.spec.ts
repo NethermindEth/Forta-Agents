@@ -3,7 +3,7 @@ import { provideHandleBlock, provideInitialize } from "./agent";
 import { createAddress, TestBlockEvent } from "forta-agent-tools/lib/tests.utils";
 import { when, resetAllWhenMocks } from "jest-when";
 import { createFinding, calculateSeverity, AgentConfig } from "./utils";
-import { BigNumber } from "ethers";
+import BigNumber from "bignumber.js";
 
 const mockFetcher = {
   getUnderlyingAssetAddress: jest.fn(),
@@ -14,16 +14,16 @@ const mockFetcher = {
 const testUnderlyingAssetAddresses = [createAddress("0xua1"), createAddress("0xua2"), createAddress("0xua3")];
 
 const testPrices: BigNumber[] = [
-  BigNumber.from("1000000000000000000"),
-  BigNumber.from("500000000000000"),
-  BigNumber.from("625000000000000"),
-  BigNumber.from("540000000000000"),
+  new BigNumber(1000000000000000000),
+  new BigNumber(500000000000000),
+  new BigNumber(625000000000000),
+  new BigNumber(540000000000000),
 ];
 
 const testNormalizedIncomes: BigNumber[] = [
-  BigNumber.from("1000000000000000000000000000"),
-  BigNumber.from("1200000000000000000000000000"),
-  BigNumber.from("1000100000000000000000000000"),
+  new BigNumber(1000000000000000000000000000),
+  new BigNumber(1200000000000000000000000000),
+  new BigNumber(1000100000000000000000000000),
 ];
 
 const TEST_CONFIG: AgentConfig = {
@@ -39,25 +39,15 @@ const TEST_CONFIG: AgentConfig = {
   ],
   umeeOracle: createAddress("0xorc"),
   lendingPool: createAddress("0xlp"),
-  decimals: 4,
 };
 
-const calculatePriceRatio = (
+export const calculatePriceRatio = (
   numeratorPrice: BigNumber,
   numeratorNormalizedIncome: BigNumber,
   denominatorPrice: BigNumber,
   denominatorNormalizedIncome: BigNumber
-) => {
-  return (
-    Number(
-      numeratorPrice
-        .mul(numeratorNormalizedIncome)
-        .mul(`${10 ** TEST_CONFIG.decimals}`)
-        .div(denominatorPrice.mul(denominatorNormalizedIncome))
-        .toString()
-    ) /
-    10 ** TEST_CONFIG.decimals
-  );
+): BigNumber => {
+  return numeratorPrice.times(numeratorNormalizedIncome).div(denominatorPrice.times(denominatorNormalizedIncome));
 };
 
 describe("uToken Exchange Ratio Drop Test", () => {
@@ -197,7 +187,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
       testNormalizedIncomes[0]
     );
 
-    const ratioDifference = previousRatio - currentRatio;
+    const ratioDifference = previousRatio.minus(currentRatio);
 
     const severity = calculateSeverity(
       ratioDifference,
@@ -296,8 +286,8 @@ describe("uToken Exchange Ratio Drop Test", () => {
       testNormalizedIncomes[1]
     );
 
-    const ratioDifference1 = previousRatio1 - currentRatio1;
-    const ratioDifference2 = previousRatio2 - currentRatio2;
+    const ratioDifference1 = previousRatio1.minus(currentRatio1);
+    const ratioDifference2 = previousRatio2.minus(currentRatio2);
 
     const severity1 = calculateSeverity(
       ratioDifference1,

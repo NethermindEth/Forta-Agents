@@ -1,14 +1,12 @@
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, ethers } from "forta-agent";
 import { Interface } from "ethers/lib/utils";
-import { BigNumber } from "ethers";
-import CONFIG from "./agent.config";
+import BigNumber from "bignumber.js";
 
 export interface AgentConfig {
   uTokens: Array<{ uToken: string; address: string }>;
   uTokenPairs: Array<{ uToken1: string; uToken2: string; threshold: number; difference: number }>;
   umeeOracle: string;
   lendingPool: string;
-  decimals: number;
 }
 
 export const UTOKENS_IFACE = new Interface(["function UNDERLYING_ASSET_ADDRESS() public view returns (address)"]);
@@ -23,8 +21,8 @@ export const LENDING_POOL_IFACE = new Interface([
 
 export function createFinding(
   pair: string,
-  previousRatio: number,
-  currentRatio: number,
+  previousRatio: BigNumber,
+  currentRatio: BigNumber,
   severity: FindingSeverity
 ): Finding {
   return Finding.from({
@@ -36,28 +34,35 @@ export function createFinding(
     protocol: "Umee",
     metadata: {
       pair,
-      previousRatio: previousRatio.toString(),
-      currentRatio: currentRatio.toString(),
+      previousRatio: previousRatio.toString(10),
+      currentRatio: currentRatio.toString(10),
     },
   });
 }
 
-export const calculatePriceRatio = (numeratorPrice: BigNumber, denominatorPrice: BigNumber) => {
-  return (
-    Number(
-      numeratorPrice
-        .mul(`${10 ** CONFIG.decimals}`)
-        .div(denominatorPrice)
-        .toString()
-    ) /
-    10 ** CONFIG.decimals
-  );
+// export const calculatePriceRatio = (numeratorPrice: BigNumber, denominatorPrice: BigNumber) => {
+//   return (
+//     Number(
+//       numeratorPrice
+//         .mul(`${10 ** CONFIG.decimals}`)
+//         .div(denominatorPrice)
+//         .toString()
+//     ) /
+//     10 ** CONFIG.decimals
+//   );
+// };
+
+export const calculatePriceRatio = (
+  numeratorPrice: ethers.BigNumber,
+  denominatorPrice: ethers.BigNumber
+): BigNumber => {
+  return new BigNumber(numeratorPrice.toString()).div(denominatorPrice.toString());
 };
 
-export const calculateSeverity = (ratioDifference: number, pairThreshold: number, thresholdDifference: number) => {
+export const calculateSeverity = (ratioDifference: BigNumber, pairThreshold: number, thresholdDifference: number) => {
   let severity;
 
-  switch (Math.ceil((ratioDifference - pairThreshold) / thresholdDifference)) {
+  switch (ratioDifference.minus(pairThreshold).div(thresholdDifference).integerValue(BigNumber.ROUND_CEIL).toNumber()) {
     case 1:
       severity = FindingSeverity.Info;
       break;
@@ -77,3 +82,7 @@ export const calculateSeverity = (ratioDifference: number, pairThreshold: number
 
   return severity;
 };
+
+export function ethersBnToBn(value: ethers.BigNumber, decimals: number): BigNumber {
+  return new BigNumber(value.toString()).shiftedBy(-decimals);
+}
