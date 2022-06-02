@@ -14,12 +14,8 @@ import utils, { AgentConfig, AssetDataI } from "./utils";
 
 const assetsDataList: AssetDataI[] = [];
 
-export const provideInitialize = (provider: ethers.providers.Provider) => {
-  const initialize = () => async () => {
-    assetsDataList.push(...(await utils.getAssetData(CONFIG, provider)));
-    return assetsDataList;
-  };
-  return initialize;
+export const provideInitialize = (provider: ethers.providers.Provider) => async () => {
+  assetsDataList.push(...(await utils.getAssetData(CONFIG, provider)));
 };
 
 export const provideHandleTransaction = (
@@ -68,6 +64,7 @@ export const provideHandleBlock = (
 ): HandleBlock => {
   const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
+    console.log(assetsDataList);
     await Promise.all(
       assetsDataList.map(async (assetsData) => {
         if (blockEvent.block.timestamp - assetsData.referenceTimestamp >= config.threshold) {
