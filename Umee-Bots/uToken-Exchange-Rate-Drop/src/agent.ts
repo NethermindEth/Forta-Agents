@@ -64,6 +64,6 @@ const getUTokenPrices = async (fetcher: Fetcher, underlyingAssets: any, block: s
 };
 
 export default {
-  initialize: provideInitialize(new Fetcher(getEthersProvider()), CONFIG.uTokens),
-  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), CONFIG.uTokenPairs),
+  initialize: provideInitialize(new Fetcher(getEthersProvider(), CONFIG), CONFIG.uTokens),
+  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider(), CONFIG), CONFIG.uTokenPairs),
 };

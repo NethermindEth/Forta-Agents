@@ -2,27 +2,14 @@ import { HandleBlock, Initialize } from "forta-agent";
 import { provideHandleBlock, provideInitialize } from "./agent";
 import { createAddress, TestBlockEvent } from "forta-agent-tools/lib/tests.utils";
 import { when, resetAllWhenMocks } from "jest-when";
-import { createFinding, calculateSeverity } from "./utils";
+import { createFinding, calculateSeverity, AgentConfig } from "./utils";
 import { BigNumber } from "ethers";
-import CONFIG from "./agent.config";
 
 const mockFetcher = {
   getUnderlyingAssetAddress: jest.fn(),
   getPrice: jest.fn(),
   getReserveNormalizedIncome: jest.fn(),
 };
-
-const uTokens = [
-  { uToken: "uTOKEN1", address: createAddress("0xa1") },
-  { uToken: "uTOKEN2", address: createAddress("0xa2") },
-  { uToken: "uTOKEN3", address: createAddress("0xa3") },
-];
-
-const uTokenPairs = [
-  { uToken1: "uTOKEN1", uToken2: "uTOKEN2", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN2
-  { uToken1: "uTOKEN2", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN2 / uTOKEN3
-  { uToken1: "uTOKEN1", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN3
-];
 
 const testUnderlyingAssetAddresses = [createAddress("0xua1"), createAddress("0xua2"), createAddress("0xua3")];
 
@@ -39,6 +26,22 @@ const testNormalizedIncomes: BigNumber[] = [
   BigNumber.from("1000100000000000000000000000"),
 ];
 
+const TEST_CONFIG: AgentConfig = {
+  uTokens: [
+    { uToken: "uTOKEN1", address: createAddress("0xa1") },
+    { uToken: "uTOKEN2", address: createAddress("0xa2") },
+    { uToken: "uTOKEN3", address: createAddress("0xa3") },
+  ],
+  uTokenPairs: [
+    { uToken1: "uTOKEN1", uToken2: "uTOKEN2", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN2
+    { uToken1: "uTOKEN2", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN2 / uTOKEN3
+    { uToken1: "uTOKEN1", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN3
+  ],
+  umeeOracle: createAddress("0xorc"),
+  lendingPool: createAddress("0xlp"),
+  decimals: 4,
+};
+
 const calculatePriceRatio = (
   numeratorPrice: BigNumber,
   numeratorNormalizedIncome: BigNumber,
@@ -49,11 +52,11 @@ const calculatePriceRatio = (
     Number(
       numeratorPrice
         .mul(numeratorNormalizedIncome)
-        .mul(`${10 ** CONFIG.decimals}`)
+        .mul(`${10 ** TEST_CONFIG.decimals}`)
         .div(denominatorPrice.mul(denominatorNormalizedIncome))
         .toString()
     ) /
-    10 ** CONFIG.decimals
+    10 ** TEST_CONFIG.decimals
   );
 };
 
@@ -68,7 +71,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
 
     resetAllWhenMocks();
 
-    handleBlock = provideHandleBlock(mockFetcher as any, uTokenPairs);
+    handleBlock = provideHandleBlock(mockFetcher as any, TEST_CONFIG.uTokenPairs);
   });
 
   it("should not return a finding if exchange ratio of a uToken pair is not dropped largely", async () => {
@@ -78,17 +81,17 @@ describe("uToken Exchange Ratio Drop Test", () => {
       since it's below threshold, it shouldn't return a finding
     */
     when(mockFetcher.getUnderlyingAssetAddress)
-      .calledWith(uTokens[0].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[0].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[1].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[2].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[2])
-      .calledWith(uTokens[0].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[0].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[1].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[2].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[2]);
     when(mockFetcher.getPrice)
       .calledWith(testUnderlyingAssetAddresses[0], 1)
@@ -117,7 +120,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
       .calledWith(testUnderlyingAssetAddresses[2], "latest")
       .mockReturnValue(testNormalizedIncomes[2]);
 
-    initialize = provideInitialize(mockFetcher as any, uTokens);
+    initialize = provideInitialize(mockFetcher as any, TEST_CONFIG.uTokens);
 
     await initialize();
 
@@ -134,17 +137,17 @@ describe("uToken Exchange Ratio Drop Test", () => {
       since it's above threshold, it should return a finding
     */
     when(mockFetcher.getUnderlyingAssetAddress)
-      .calledWith(uTokens[0].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[0].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[1].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[2].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[2])
-      .calledWith(uTokens[0].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[0].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[1].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[2].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[2]);
     when(mockFetcher.getPrice)
       .calledWith(testUnderlyingAssetAddresses[0], 1)
@@ -173,7 +176,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
       .calledWith(testUnderlyingAssetAddresses[2], "latest")
       .mockReturnValue(testNormalizedIncomes[2]);
 
-    initialize = provideInitialize(mockFetcher as any, uTokens);
+    initialize = provideInitialize(mockFetcher as any, TEST_CONFIG.uTokens);
 
     await initialize();
 
@@ -195,12 +198,17 @@ describe("uToken Exchange Ratio Drop Test", () => {
     );
 
     const severity = calculateSeverity(
-      previousRatio - currentRatio - uTokenPairs[0].threshold,
-      uTokenPairs[0].difference
+      previousRatio - currentRatio - TEST_CONFIG.uTokenPairs[0].threshold,
+      TEST_CONFIG.uTokenPairs[0].difference
     );
 
     expect(findings).toStrictEqual([
-      createFinding(`${uTokens[0].uToken}/${uTokens[1].uToken}`, previousRatio, currentRatio, severity),
+      createFinding(
+        `${TEST_CONFIG.uTokens[0].uToken}/${TEST_CONFIG.uTokens[1].uToken}`,
+        previousRatio,
+        currentRatio,
+        severity
+      ),
     ]);
   });
 
@@ -211,17 +219,17 @@ describe("uToken Exchange Ratio Drop Test", () => {
         since both are above threshold, it should return two findings
       */
     when(mockFetcher.getUnderlyingAssetAddress)
-      .calledWith(uTokens[0].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[0].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[1].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, 1)
+      .calledWith(TEST_CONFIG.uTokens[2].address, 1)
       .mockReturnValue(testUnderlyingAssetAddresses[2])
-      .calledWith(uTokens[0].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[0].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[0])
-      .calledWith(uTokens[1].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[1].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[1])
-      .calledWith(uTokens[2].address, "latest")
+      .calledWith(TEST_CONFIG.uTokens[2].address, "latest")
       .mockReturnValue(testUnderlyingAssetAddresses[2]);
     when(mockFetcher.getPrice)
       .calledWith(testUnderlyingAssetAddresses[0], 1)
@@ -250,7 +258,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
       .calledWith(testUnderlyingAssetAddresses[2], "latest")
       .mockReturnValue(testNormalizedIncomes[2]);
 
-    initialize = provideInitialize(mockFetcher as any, uTokens);
+    initialize = provideInitialize(mockFetcher as any, TEST_CONFIG.uTokens);
 
     await initialize();
 
@@ -286,18 +294,28 @@ describe("uToken Exchange Ratio Drop Test", () => {
     );
 
     const severity1 = calculateSeverity(
-      previousRatio1 - currentRatio1 - uTokenPairs[0].threshold,
-      uTokenPairs[0].difference
+      previousRatio1 - currentRatio1 - TEST_CONFIG.uTokenPairs[0].threshold,
+      TEST_CONFIG.uTokenPairs[0].difference
     );
 
     const severity2 = calculateSeverity(
-      previousRatio2 - currentRatio2 - uTokenPairs[2].threshold,
-      uTokenPairs[2].difference
+      previousRatio2 - currentRatio2 - TEST_CONFIG.uTokenPairs[2].threshold,
+      TEST_CONFIG.uTokenPairs[2].difference
     );
 
     expect(findings).toStrictEqual([
-      createFinding(`${uTokens[0].uToken}/${uTokens[1].uToken}`, previousRatio1, currentRatio1, severity1),
-      createFinding(`${uTokens[0].uToken}/${uTokens[2].uToken}`, previousRatio2, currentRatio2, severity2),
+      createFinding(
+        `${TEST_CONFIG.uTokens[0].uToken}/${TEST_CONFIG.uTokens[1].uToken}`,
+        previousRatio1,
+        currentRatio1,
+        severity1
+      ),
+      createFinding(
+        `${TEST_CONFIG.uTokens[0].uToken}/${TEST_CONFIG.uTokens[2].uToken}`,
+        previousRatio2,
+        currentRatio2,
+        severity2
+      ),
     ]);
   });
 });

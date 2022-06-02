@@ -1,8 +1,7 @@
 import Fetcher from "./fetcher";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE } from "./utils";
+import { UTOKENS_IFACE, UMEE_ORACLE_PRICE_IFACE, LENDING_POOL_IFACE, AgentConfig } from "./utils";
 import { BigNumber } from "ethers";
-import CONFIG from "./agent.config";
 
 // format: [uTokenAddress, blockNumber, underlyingAssetAddress]
 const UNDERLYING_ASSET_TEST_CASE: [string, number, string][] = [
@@ -25,6 +24,14 @@ const NORMALIZED_INCOME_TEST_CASE: [string, number, BigNumber][] = [
   [createAddress("0x4c"), 10, BigNumber.from("6000000000000000006")],
 ];
 
+const TEST_CONFIG: AgentConfig = {
+  uTokens: [],
+  uTokenPairs: [],
+  umeeOracle: createAddress("0x1"),
+  lendingPool: createAddress("0x2"),
+  decimals: 4,
+};
+
 describe("Fetcher test suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
 
@@ -36,24 +43,30 @@ describe("Fetcher test suite", () => {
   }
 
   function createMockPriceCall(assetAddress: string, blockNumber: number, price: BigNumber) {
-    return mockProvider.addCallTo(CONFIG.umeeOracle, blockNumber, UMEE_ORACLE_PRICE_IFACE, "getAssetPrice", {
+    return mockProvider.addCallTo(TEST_CONFIG.umeeOracle, blockNumber, UMEE_ORACLE_PRICE_IFACE, "getAssetPrice", {
       inputs: [assetAddress],
       outputs: [price],
     });
   }
 
   function createMockNormalizedIncomeCall(assetAddress: string, blockNumber: number, price: BigNumber) {
-    return mockProvider.addCallTo(CONFIG.lendingPool, blockNumber, LENDING_POOL_IFACE, "getReserveNormalizedIncome", {
-      inputs: [assetAddress],
-      outputs: [price],
-    });
+    return mockProvider.addCallTo(
+      TEST_CONFIG.lendingPool,
+      blockNumber,
+      LENDING_POOL_IFACE,
+      "getReserveNormalizedIncome",
+      {
+        inputs: [assetAddress],
+        outputs: [price],
+      }
+    );
   }
 
   beforeEach(() => mockProvider.clear());
 
   it("should fetch the underlying asset correctly", async () => {
     for (let [uTokenAddress, blockNumber, underlyingAsset] of UNDERLYING_ASSET_TEST_CASE) {
-      const fetcher: Fetcher = new Fetcher(mockProvider as any);
+      const fetcher: Fetcher = new Fetcher(mockProvider as any, TEST_CONFIG);
 
       createMockUnderlyingAssetCall(uTokenAddress, blockNumber, underlyingAsset);
 
@@ -65,7 +78,7 @@ describe("Fetcher test suite", () => {
 
   it("should fetch the price correctly", async () => {
     for (let [assetAddress, blockNumber, price] of PRICE_TEST_CASE) {
-      const fetcher: Fetcher = new Fetcher(mockProvider as any);
+      const fetcher: Fetcher = new Fetcher(mockProvider as any, TEST_CONFIG);
 
       createMockPriceCall(assetAddress, blockNumber, price);
 
@@ -77,7 +90,7 @@ describe("Fetcher test suite", () => {
 
   it("should fetch reserve normalized income correctly", async () => {
     for (let [assetAddress, blockNumber, normalizedIncome] of NORMALIZED_INCOME_TEST_CASE) {
-      const fetcher: Fetcher = new Fetcher(mockProvider as any);
+      const fetcher: Fetcher = new Fetcher(mockProvider as any, TEST_CONFIG);
 
       createMockNormalizedIncomeCall(assetAddress, blockNumber, normalizedIncome);
 
