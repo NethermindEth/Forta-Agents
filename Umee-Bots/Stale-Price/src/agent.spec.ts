@@ -3,7 +3,7 @@ import { HandleBlock, HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
-import agent, { provideHandleTransaction, provideHandleBlock, provideInitialize } from "./agent";
+import agent, { provideHandleTransaction, provideHandleBlock } from "./agent";
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
