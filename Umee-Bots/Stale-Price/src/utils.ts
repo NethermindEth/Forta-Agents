@@ -72,8 +72,8 @@ const createFinding = ({ asset, source, referenceTimestamp }: AssetDataI): Findi
     description: "price of a certain asset stops being updated from Chainlink aggregator",
     alertId: "UMEE-3",
     protocol: "Umee",
-    type: FindingType.Info,
-    severity: FindingSeverity.Low,
+    type: FindingType.Suspicious,
+    severity: FindingSeverity.Medium,
     metadata: { asset, source, referenceTimestamp: referenceTimestamp.toString() },
   });
 };
