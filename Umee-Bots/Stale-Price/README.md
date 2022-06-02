@@ -13,14 +13,12 @@ This behavior can be customized in `src/agent.config.ts`.
 
 - UMEE-3
   - Fired when any asset price stops being updated in a particular period.
-       - Triggered when `AssetSourceUpdated` event emitted
-       - Check the latest time price updated after each block.
   - Severity is always set to "Medium."
   - Type is always set to "Suspicious."
   - Metadata contains:
     - asset: The address of the asset.
     - source: The address of the source.
-    - lastTime: The last time asset price changed
+    - lastUpdatedAt: The last time asset price changed
 
 ## Test Data
 
