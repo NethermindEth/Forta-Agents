@@ -35,7 +35,7 @@ export const FUNCTIONS_ABIS = [
   "function repayBorrowNative() external payable returns (uint256)",
   "function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256)",
   "function repayBorrowBehalfNative(address borrower) external payable returns (uint256)",
-  "function liquidateBorrow(address borrower, uint256 repayAmount, JTokenInterface jTokenCollateral) external returns (uint256)",
-  "function liquidateBorrowNative(address borrower, JTokenInterface jTokenCollateral) external payable returns (uint256)",
-  "function flashLoan(ERC3156FlashBorrowerInterface receiver, address initiator, uint256 amount, bytes calldata data) external returns (bool)",
+  "function liquidateBorrow(address borrower, uint256 repayAmount, address jTokenCollateral) external returns (uint256)",
+  "function liquidateBorrowNative(address borrower, address jTokenCollateral) external payable returns (uint256)",
+  "function flashLoan(address receiver, address initiator, uint256 amount, bytes calldata data) external returns (bool)",
 ];
