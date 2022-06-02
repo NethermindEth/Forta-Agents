@@ -269,7 +269,6 @@ describe("Large BankerJoe transfers test suites", () => {
       .addAnonymousEventLog(TEST_MARKETS[2], log3.data, ...log3.topics);
 
     const findings = await handleTransaction(txEvent);
-    console.log(findings);
     expect(findings).toStrictEqual([
       createFinding("Mint", TEST_MARKETS[0], TEST_DATA[3]),
       createFinding("Redeem", TEST_MARKETS[1], TEST_DATA[4]),
