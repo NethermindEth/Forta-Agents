@@ -5,21 +5,32 @@ import { createFinding, calculatePriceRatio, calculateSeverity } from "./utils";
 
 let currentPrices = new Map();
 let previousPrices = new Map();
+let uTokenUnderlyingAddresses: { uTokenName: string; address: string }[];
 
 export const provideInitialize =
   (fetcher: Fetcher, uTokens: any): Initialize =>
   async () => {
-    currentPrices = await getUTokenPrices(fetcher, uTokens, "latest");
+    //fetch underlying asset addresses of uTokens first
+    uTokenUnderlyingAddresses = await Promise.all(
+      uTokens.map(async (uToken: { uToken: string; address: string }) => {
+        return {
+          uTokenName: uToken.uToken,
+          address: await fetcher.getUnderlyingAssetAddress(uToken.address, "latest"),
+        };
+      })
+    );
+
+    currentPrices = await getUTokenPrices(fetcher, uTokenUnderlyingAddresses, "latest");
   };
 
 export const provideHandleBlock =
-  (fetcher: Fetcher, uTokens: any, uTokenPairs: any): HandleBlock =>
+  (fetcher: Fetcher, uTokenPairs: any): HandleBlock =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
     previousPrices = currentPrices;
 
-    currentPrices = await getUTokenPrices(fetcher, uTokens, blockEvent.blockNumber);
+    currentPrices = await getUTokenPrices(fetcher, uTokenUnderlyingAddresses, blockEvent.blockNumber);
 
     uTokenPairs.forEach((pair: any) => {
       const previousRatio = calculatePriceRatio(previousPrices.get(pair.uToken1), previousPrices.get(pair.uToken2));
@@ -37,18 +48,15 @@ export const provideHandleBlock =
     return findings;
   };
 
-const getUTokenPrices = async (fetcher: Fetcher, uTokens: any, block: string | number) => {
+const getUTokenPrices = async (fetcher: Fetcher, underlyingAssets: any, block: string | number) => {
   const priceMap = new Map();
 
   await Promise.all(
-    uTokens.map(async (uToken: { uToken: string; address: string }) => {
-      const uTokenUnderlyingAddress = await fetcher.getUnderlyingAssetAddress(uToken.address, block);
-      const assetPrice = await fetcher.getPrice(uTokenUnderlyingAddress, block);
-      const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(uTokenUnderlyingAddress, block);
-
+    underlyingAssets.map(async (underlyingAsset: { uTokenName: string; address: string }) => {
+      const assetPrice = await fetcher.getPrice(underlyingAsset.address, block);
+      const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(underlyingAsset.address, block);
       const uTokenPrice = assetPrice.mul(reserveNormalizedIncome);
-
-      priceMap.set(uToken.uToken, uTokenPrice);
+      priceMap.set(underlyingAsset.uTokenName, uTokenPrice);
     })
   );
 
@@ -57,5 +65,5 @@ const getUTokenPrices = async (fetcher: Fetcher, uTokens: any, block: string | n
 
 export default {
   initialize: provideInitialize(new Fetcher(getEthersProvider()), CONFIG.uTokens),
-  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), CONFIG.uTokens, CONFIG.uTokenPairs),
+  handleBlock: provideHandleBlock(new Fetcher(getEthersProvider()), CONFIG.uTokenPairs),
 };

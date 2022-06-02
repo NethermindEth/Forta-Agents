@@ -68,7 +68,7 @@ describe("uToken Exchange Ratio Drop Test", () => {
 
     resetAllWhenMocks();
 
-    handleBlock = provideHandleBlock(mockFetcher as any, uTokens, uTokenPairs);
+    handleBlock = provideHandleBlock(mockFetcher as any, uTokenPairs);
   });
 
   it("should not return a finding if exchange ratio of a uToken pair is not dropped largely", async () => {
