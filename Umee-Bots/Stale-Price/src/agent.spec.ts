@@ -7,7 +7,7 @@ import agent, { provideHandleTransaction, provideHandleBlock, provideInitialize 
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
-const generateSourceAssets = (referenceTimestamp: number) => {
+const generateAssetData = (referenceTimestamp: number) => {
   const assetDataAddresses = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
   return [
     {
@@ -41,7 +41,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - 10;
 
-    const assetData = generateSourceAssets(lastUpdatedAt);
+    const assetData = generateAssetData(lastUpdatedAt);
 
     const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
 
@@ -117,7 +117,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - CONFIG.threshold;
 
-    const assetData = generateSourceAssets(lastUpdatedAt);
+    const assetData = generateAssetData(lastUpdatedAt);
 
     const expectedFinding = assetData.map((assetData) => {
       return utils.createFinding(assetData);
