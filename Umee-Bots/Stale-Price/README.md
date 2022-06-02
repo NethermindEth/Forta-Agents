@@ -1,4 +1,4 @@
-# Detect Stale Price Data From Chainlink Aggregator
+# Umee Oracle Stale Price Data Detection Bot
 
 ## Description
 
