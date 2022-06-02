@@ -93,11 +93,10 @@ describe("Lending pool reentrancy agent tests suit", () => {
       referenceTimestamp: lastUpdatedAt,
     };
     const event = utils.FUNCTIONS_INTERFACE.getEvent("AssetSourceUpdated");
-    const log = utils.FUNCTIONS_INTERFACE.encodeEventLog(event, [assetData.asset, assetData.source]);
     const mockTxEvent = new TestTransactionEvent()
       .setBlock(block)
       .setTimestamp(currentTimestamp)
-      .addAnonymousEventLog(CONFIG.umeeOracleAddress, log.data, ...log.topics);
+      .addInterfaceEventLog(event, CONFIG.umeeOracleAddress, [assetData.asset, assetData.source]);
 
     mockProvider.addCallTo(assetData.source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
       inputs: [],
