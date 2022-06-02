@@ -10,17 +10,22 @@ import {
 
 import CONFIG from "./agent.config";
 
-import utils, { AgentConfig, AssetSourceTimeStampI } from "./utils";
+import utils, { AgentConfig, AssetDataI } from "./utils";
 
-const assetsSourcesList: AssetSourceTimeStampI[] = [];
-const initialize = (provider: ethers.providers.Provider) => async () => {
-  assetsSourcesList.push(...(await utils.getAssetsSourceTimeStamp(CONFIG, provider)));
+const assetsDataList: AssetDataI[] = [];
+
+export const provideInitialize = (provider: ethers.providers.Provider) => {
+  const initialize = () => async () => {
+    assetsDataList.push(...(await utils.getAssetData(CONFIG, provider)));
+    return assetsDataList;
+  };
+  return initialize;
 };
 
 export const provideHandleTransaction = (
   config: AgentConfig,
   provider: ethers.providers.Provider,
-  assetsSourcesList: AssetSourceTimeStampI[]
+  assetsDataList: AssetDataI[]
 ): HandleTransaction => {
   const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -28,24 +33,24 @@ export const provideHandleTransaction = (
     await Promise.all(
       updateSourceLogs.map(async (logs) => {
         const [asset, source] = logs.args;
-        const assetSourceIndex = assetsSourcesList.findIndex((assetSource) => {
-          return assetSource.asset;
+        const assetsDataIndex = assetsDataList.findIndex((assetsData) => {
+          return assetsData.asset;
         });
-        const latestTimestamp = await utils.fetchLatestTimestamp(source, provider);
+        const lastUpdatedAt = await utils.fetchLatestTimestamp(source, provider);
 
-        if (assetSourceIndex < 0) {
-          assetsSourcesList.push({
+        if (assetsDataIndex === -1) {
+          assetsDataList.push({
             asset,
             source,
-            latestTimestamp,
+            lastUpdatedAt,
           });
         } else {
-          assetsSourcesList[assetSourceIndex].source = source;
-          assetsSourcesList[assetSourceIndex].latestTimestamp = latestTimestamp;
+          assetsDataList[assetsDataIndex].source = source;
+          assetsDataList[assetsDataIndex].lastUpdatedAt = lastUpdatedAt;
         }
 
-        if (txEvent.block.timestamp - latestTimestamp) {
-          findings.push(utils.createFinding({ asset, source, latestTimestamp }));
+        if (txEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
+          findings.push(utils.createFinding({ asset, source, lastUpdatedAt }));
         }
       })
     );
@@ -57,16 +62,21 @@ export const provideHandleTransaction = (
 export const provideHandleBlock = (
   config: AgentConfig,
   provider: ethers.providers.Provider,
-  assetsSourcesList: AssetSourceTimeStampI[]
+  assetsDataList: AssetDataI[]
 ): HandleBlock => {
   const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     await Promise.all(
-      assetsSourcesList.map(async (assetSource) => {
-        if (blockEvent.block.timestamp - assetSource.latestTimestamp >= config.threshold) {
-          const latestTimestamp = await utils.fetchLatestTimestamp(assetSource.source, provider);
-          blockEvent.block.timestamp - latestTimestamp >= config.threshold &&
-            findings.push(utils.createFinding(assetSource));
+      assetsDataList.map(async (assetsData) => {
+        if (blockEvent.block.timestamp - assetsData.lastUpdatedAt >= config.threshold) {
+          const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, provider);
+          if (blockEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
+            findings.push(utils.createFinding({ ...assetsData, lastUpdatedAt }));
+            assetsData.lastUpdatedAt = blockEvent.block.timestamp;
+          } else {
+            assetsData.lastUpdatedAt = lastUpdatedAt;
+            ``;
+          }
         }
       })
     );
@@ -77,7 +87,7 @@ export const provideHandleBlock = (
 };
 
 export default {
-  initialize: initialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(CONFIG, getEthersProvider(), assetsSourcesList),
-  handleBlock: provideHandleBlock(CONFIG, getEthersProvider(), assetsSourcesList),
+  initialize: provideInitialize(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(CONFIG, getEthersProvider(), assetsDataList),
+  handleBlock: provideHandleBlock(CONFIG, getEthersProvider(), assetsDataList),
 };

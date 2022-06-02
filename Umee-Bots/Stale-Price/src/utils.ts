@@ -18,10 +18,10 @@ const EVENT_ABI = ["event AssetSourceUpdated(address indexed asset, address inde
 
 const FUNCTIONS_INTERFACE = new Interface([...UMEE_FUNCTIONS_ABI, ...EVENT_ABI]);
 
-export interface AssetSourceTimeStampI {
+export interface AssetDataI {
   asset: string;
   source: string;
-  latestTimestamp: number;
+  lastUpdatedAt: number;
 }
 
 const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<number> => {
@@ -37,47 +37,43 @@ const fetchLatestTimestamp = async (source: string, provider: ethers.providers.P
   }
 };
 
-const getAssetsSourceTimeStamp = async (
-  config: AgentConfig,
-  provider: ethers.providers.Provider
-): Promise<AssetSourceTimeStampI[]> => {
+const getAssetData = async (config: AgentConfig, provider: ethers.providers.Provider): Promise<AssetDataI[]> => {
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
-
-  const reservedList = await lendingPoolContract.getReservesList();
-
+  const blockNumber = await provider.getBlockNumber();
+  const reservedList = await lendingPoolContract.getReservesList({ blockTag: blockNumber });
   const sources = await Promise.all(
     reservedList.filter(async (asset: string) => {
       // use try/catch because some asset may be without source
       try {
-        return await umeeOracleContract.getSourceOfAsset(asset);
+        return await umeeOracleContract.getSourceOfAsset(asset, { blockTag: blockNumber });
       } catch (error) {
         return false;
       }
     })
   );
 
-  const assetsSourceTimeStamp = await Promise.all(
+  const assetData = await Promise.all(
     sources.map(async (source, index) => {
-      const latestTimestamp = await fetchLatestTimestamp(source, provider);
+      const lastUpdatedAt = await fetchLatestTimestamp(source, provider);
       return {
         asset: reservedList[index],
         source: sources[index],
-        latestTimestamp,
+        lastUpdatedAt,
       };
     })
   );
-  return assetsSourceTimeStamp;
+  return assetData;
 };
 
-const createFinding = ({ asset, source, latestTimestamp }: AssetSourceTimeStampI): Finding => {
+const createFinding = ({ asset, source, lastUpdatedAt }: AssetDataI): Finding => {
   return Finding.fromObject({
     name: "Detect stale price data from Chainlink aggregator",
     description: "price of a certain asset stops being updated from Chainlink aggregator",
     alertId: "UMEE-3",
     type: FindingType.Info,
     severity: FindingSeverity.Low,
-    metadata: { asset, source, lastTimestamp: latestTimestamp.toString() },
+    metadata: { asset, source, lastUpdatedAt: lastUpdatedAt.toString() },
   });
 };
 
@@ -85,7 +81,7 @@ export default {
   FUNCTIONS_INTERFACE,
   EVENT_ABI,
   UMEE_FUNCTIONS_ABI,
-  getAssetsSourceTimeStamp,
+  getAssetData,
   fetchLatestTimestamp,
   createFinding,
 };
