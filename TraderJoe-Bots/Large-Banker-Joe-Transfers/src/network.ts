@@ -7,7 +7,7 @@ const AVALANCHE_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  joeTroller: "".toLowerCase(),
+  joeTroller: "0x63EAb8eB0af289452d493c1d0a2Cc83809cfc056".toLowerCase(),
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
@@ -22,7 +22,6 @@ export default class NetworkManager implements NetworkData {
 
   constructor(networkMap: Record<number, NetworkData> = NETWORK_MAP) {
     this.joeTroller = "";
-
     this.networkMap = networkMap;
   }
 
