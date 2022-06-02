@@ -27,8 +27,8 @@ describe("Large BankerJoe transfers test suites", () => {
     createAddress("0x33"),
   ];
   const TEST_DATA = [
-    [createAddress("0x9fd"), BigNumber.from(90), BigNumber.from(1)], // `Mint` below threshold
-    [createAddress("0x9fd"), BigNumber.from(90), BigNumber.from(1)], // `Redeem` below threshold
+    [createAddress("0x9fd"), BigNumber.from(20), BigNumber.from(90)], // `Mint` below threshold
+    [createAddress("0x9fd"), BigNumber.from(20), BigNumber.from(90)], // `Redeem` below threshold
     [
       createAddress("0x9fd"),
       BigNumber.from(90),
@@ -36,8 +36,8 @@ describe("Large BankerJoe transfers test suites", () => {
       BigNumber.from(20),
     ], // `Borrow` below threshold
 
-    [createAddress("0x9fd"), BigNumber.from(120), BigNumber.from(1)], // `Mint` above threshold
-    [createAddress("0x9fd"), BigNumber.from(240), BigNumber.from(1)], // `Redeem` above threshold
+    [createAddress("0x9fd"), BigNumber.from(10), BigNumber.from(120)], // `Mint` above threshold
+    [createAddress("0x9fd"), BigNumber.from(20), BigNumber.from(240)], // `Redeem` above threshold
     [
       createAddress("0x9fd"),
       BigNumber.from(500),
