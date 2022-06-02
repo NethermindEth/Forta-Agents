@@ -1,26 +1,52 @@
-# Large Tether Transfer Agent
+# BankerJoe large transfers
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects `Borrow`, `Mint` and `Redeem` events on BankerJoe markets with a large amount.
+Large is set as a percentage of the total supply of the market (jToken).
+
+> - Percentage can be ajusted by changing `PERCENTAGE` on utils.ts.
 
 ## Supported Chains
 
-- Ethereum
-- List any other chains this agent can support e.g. BSC
+- Avalanche
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- TraderJoe-21-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when `Mint` event is detected on a BankerJoe market with a large amount.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `minter`: address suppling assets.
+    - `mintAmount`: The amount of the underlying asset supplied by minter.
+    - `mintTokens`: The amount of jTokens received by the minter.
+  - addresses contains the market address where the event was emitted.
+
+- TraderJoe-21-2
+
+  - Fired when `Redeem` event is detected on a BankerJoe market with a large amount.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `redeemer`: address redeeming jTokens in exchange for the underlying asset.
+    - `redeemAmount`: The amount of underlying received.
+    - `redeemTokens`: The number of jTokens redeemed.
+  - addresses contains the market address where the event was emitted.
+
+- TraderJoe-21-1
+
+  - Fired when `Borrow` event is detected on a BankerJoe market with a large amount.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `borrower`: address borrowing assets.
+    - `borrowAmount`: The amount of the underlying asset that was borrowed.
+    - `accountBorrows`: The account total borrows.
+    - `totalBorrows`: Total amount of outstanding borrows of the underlying in the market.
+  - addresses contains the market address where the event was emitted.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+The bot behaviour can be verified with the following transactions:

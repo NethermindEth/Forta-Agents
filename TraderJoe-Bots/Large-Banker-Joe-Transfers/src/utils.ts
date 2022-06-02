@@ -1,6 +1,7 @@
 import { Interface } from "ethers/lib/utils";
 
-export const PERCENTAGE = 10;
+export const PERCENTAGE = 10; // 10%
+
 export const EVENTS_ABIS = [
   "event Mint(address minter, uint256 mintAmount, uint256 mintTokens)",
   "event Redeem(address redeemer, uint256 redeemAmount, uint256 redeemTokens)",
