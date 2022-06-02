@@ -40,7 +40,7 @@ export const provideHandleBlock =
 
       // check  if the current pair ratio subtracted from the previous pair ratio is greater than or equal to the pair difference threshold
       if (difference > pair.threshold) {
-        const severity = calculateSeverity(difference - pair.threshold, pair.difference);
+        const severity = calculateSeverity(difference, pair.threshold, pair.difference);
         findings.push(createFinding(`${pair.uToken1}/${pair.uToken2}`, previousRatio, currentRatio, severity));
       }
     });

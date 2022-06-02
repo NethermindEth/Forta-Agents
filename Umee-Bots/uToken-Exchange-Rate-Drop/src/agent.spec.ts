@@ -197,8 +197,11 @@ describe("uToken Exchange Ratio Drop Test", () => {
       testNormalizedIncomes[0]
     );
 
+    const ratioDifference = previousRatio - currentRatio;
+
     const severity = calculateSeverity(
-      previousRatio - currentRatio - TEST_CONFIG.uTokenPairs[0].threshold,
+      ratioDifference,
+      TEST_CONFIG.uTokenPairs[0].threshold,
       TEST_CONFIG.uTokenPairs[0].difference
     );
 
@@ -293,13 +296,18 @@ describe("uToken Exchange Ratio Drop Test", () => {
       testNormalizedIncomes[1]
     );
 
+    const ratioDifference1 = previousRatio1 - currentRatio1;
+    const ratioDifference2 = previousRatio2 - currentRatio2;
+
     const severity1 = calculateSeverity(
-      previousRatio1 - currentRatio1 - TEST_CONFIG.uTokenPairs[0].threshold,
+      ratioDifference1,
+      TEST_CONFIG.uTokenPairs[0].threshold,
       TEST_CONFIG.uTokenPairs[0].difference
     );
 
     const severity2 = calculateSeverity(
-      previousRatio2 - currentRatio2 - TEST_CONFIG.uTokenPairs[2].threshold,
+      ratioDifference2,
+      TEST_CONFIG.uTokenPairs[2].threshold,
       TEST_CONFIG.uTokenPairs[2].difference
     );
 

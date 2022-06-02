@@ -54,10 +54,10 @@ export const calculatePriceRatio = (numeratorPrice: BigNumber, denominatorPrice:
   );
 };
 
-export const calculateSeverity = (ratioDifference: number, thresholdDifference: number) => {
+export const calculateSeverity = (ratioDifference: number, pairThreshold: number, thresholdDifference: number) => {
   let severity;
 
-  switch (Math.ceil(ratioDifference / thresholdDifference)) {
+  switch (Math.ceil((ratioDifference - pairThreshold) / thresholdDifference)) {
     case 1:
       severity = FindingSeverity.Info;
       break;
