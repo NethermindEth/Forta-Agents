@@ -16,8 +16,8 @@ This behavior can be customized in `src/agent.config.ts`.
   - Severity is always set to "Medium."
   - Type is always set to "Suspicious."
   - Metadata contains:
-    - asset: The address of the asset.
-    - source: The address of the source.
+    - asset: The address of the asset
+    - source: The address of the source
     - lastUpdatedAt: The last time asset price changed
 
 ## Test Data
