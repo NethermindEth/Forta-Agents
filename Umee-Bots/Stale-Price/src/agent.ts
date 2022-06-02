@@ -42,15 +42,17 @@ export const provideHandleTransaction = (
           assetsDataList.push({
             asset,
             source,
-            lastUpdatedAt,
+            referenceTimestamp: lastUpdatedAt,
           });
         } else {
           assetsDataList[assetsDataIndex].source = source;
-          assetsDataList[assetsDataIndex].lastUpdatedAt = lastUpdatedAt;
+          assetsDataList[assetsDataIndex].referenceTimestamp = lastUpdatedAt;
         }
 
         if (txEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
-          findings.push(utils.createFinding({ asset, source, lastUpdatedAt }));
+          findings.push(utils.createFinding({ asset, source, referenceTimestamp: lastUpdatedAt }));
+          const index = assetsDataIndex === -1 ? assetsDataList.length - 1 : assetsDataIndex;
+          assetsDataList[index].referenceTimestamp = lastUpdatedAt;
         }
       })
     );
@@ -68,14 +70,13 @@ export const provideHandleBlock = (
     const findings: Finding[] = [];
     await Promise.all(
       assetsDataList.map(async (assetsData) => {
-        if (blockEvent.block.timestamp - assetsData.lastUpdatedAt >= config.threshold) {
+        if (blockEvent.block.timestamp - assetsData.referenceTimestamp >= config.threshold) {
           const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, provider);
           if (blockEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
-            findings.push(utils.createFinding({ ...assetsData, lastUpdatedAt }));
-            assetsData.lastUpdatedAt = blockEvent.block.timestamp;
+            findings.push(utils.createFinding({ ...assetsData, referenceTimestamp: lastUpdatedAt }));
+            assetsData.referenceTimestamp = blockEvent.block.timestamp;
           } else {
-            assetsData.lastUpdatedAt = lastUpdatedAt;
-            ``;
+            assetsData.referenceTimestamp = lastUpdatedAt;
           }
         }
       })

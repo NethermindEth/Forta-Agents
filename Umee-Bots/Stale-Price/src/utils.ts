@@ -21,7 +21,7 @@ const FUNCTIONS_INTERFACE = new Interface([...UMEE_FUNCTIONS_ABI, ...EVENT_ABI])
 export interface AssetDataI {
   asset: string;
   source: string;
-  lastUpdatedAt: number;
+  referenceTimestamp: number;
 }
 
 const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<number> => {
@@ -59,21 +59,22 @@ const getAssetData = async (config: AgentConfig, provider: ethers.providers.Prov
       return {
         asset: reservedList[index],
         source: sources[index],
-        lastUpdatedAt,
+        referenceTimestamp: lastUpdatedAt,
       };
     })
   );
   return assetData;
 };
 
-const createFinding = ({ asset, source, lastUpdatedAt }: AssetDataI): Finding => {
+const createFinding = ({ asset, source, referenceTimestamp }: AssetDataI): Finding => {
   return Finding.fromObject({
     name: "Detect stale price data from Chainlink aggregator",
     description: "price of a certain asset stops being updated from Chainlink aggregator",
     alertId: "UMEE-3",
+    protocol: "Umee",
     type: FindingType.Info,
     severity: FindingSeverity.Low,
-    metadata: { asset, source, lastUpdatedAt: lastUpdatedAt.toString() },
+    metadata: { asset, source, referenceTimestamp: referenceTimestamp.toString() },
   });
 };
 

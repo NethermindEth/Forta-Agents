@@ -7,23 +7,23 @@ import agent, { provideHandleTransaction, provideHandleBlock, provideInitialize 
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
-const generateSourceAssets = (lastUpdatedAt: number) => {
+const generateSourceAssets = (referenceTimestamp: number) => {
   const assetDataAddresses = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
   return [
     {
       source: assetDataAddresses[0],
       asset: assetDataAddresses[1],
-      lastUpdatedAt,
+      referenceTimestamp,
     },
     {
       source: assetDataAddresses[1],
       asset: assetDataAddresses[2],
-      lastUpdatedAt,
+      referenceTimestamp,
     },
     {
       source: assetDataAddresses[2],
       asset: assetDataAddresses[0],
-      lastUpdatedAt,
+      referenceTimestamp,
     },
   ];
 };
@@ -41,11 +41,11 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - 10;
 
-    const assetDatas = generateSourceAssets(lastUpdatedAt);
+    const assetData = generateSourceAssets(lastUpdatedAt);
 
     const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
 
-    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, assetDatas);
+    handleTx = provideHandleTransaction(CONFIG, mockProvider as any, assetData);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -56,7 +56,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const expectedAssetData = {
       asset: createAddress("0x08"),
       source: createAddress("0x08"),
-      lastUpdatedAt,
+      referenceTimestamp: lastUpdatedAt,
     };
     mockProvider.addCallTo(CONFIG.lendingPoolAddress, block, utils.FUNCTIONS_INTERFACE, "getReservesList", {
       inputs: [],
@@ -90,7 +90,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const assetData = {
       source: createAddress("0x09"),
       asset: createAddress("0x08"),
-      lastUpdatedAt,
+      referenceTimestamp: lastUpdatedAt,
     };
     const event = utils.FUNCTIONS_INTERFACE.getEvent("AssetSourceUpdated");
     const log = utils.FUNCTIONS_INTERFACE.encodeEventLog(event, [assetData.asset, assetData.source]);
@@ -118,21 +118,21 @@ describe("Lending pool reentrancy agent tests suit", () => {
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - CONFIG.threshold;
 
-    const assetDatas = generateSourceAssets(lastUpdatedAt);
+    const assetData = generateSourceAssets(lastUpdatedAt);
 
-    const expectedFinding = assetDatas.map((assetData) => {
+    const expectedFinding = assetData.map((assetData) => {
       return utils.createFinding(assetData);
     });
 
-    for (let index = 0; index < assetDatas.length; index++) {
-      mockProvider.addCallTo(assetDatas[index].source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
+    for (let index = 0; index < assetData.length; index++) {
+      mockProvider.addCallTo(assetData[index].source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
         inputs: [],
         outputs: [lastUpdatedAt],
       });
     }
 
     const mockTxBlock = new TestBlockEvent().setNumber(block).setTimestamp(currentTimestamp);
-    handleBlock = provideHandleBlock(CONFIG, mockProvider as any, assetDatas);
+    handleBlock = provideHandleBlock(CONFIG, mockProvider as any, assetData);
     const findings = await handleBlock(mockTxBlock);
     expect(findings).toStrictEqual(expectedFinding);
   });
