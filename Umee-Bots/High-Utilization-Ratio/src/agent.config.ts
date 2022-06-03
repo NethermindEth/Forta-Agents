@@ -8,7 +8,13 @@ const CONFIG: AgentConfig = {
   percentageThreshold: "100",
 
   // Cooldown between alerts for each reserve (in seconds)
-  alertCooldown: 600,
+  alertCooldown: {
+    // Related to absolute threshold alerts
+    absolute: 600,
+
+    // Related to percentage threshold alerts
+    percentage: 0,
+  },
 
   // Address of the LendingPool contract
   lendingPoolAddress: "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa",

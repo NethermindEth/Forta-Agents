@@ -6,7 +6,10 @@ import { MulticallContract } from "./multicall";
 export interface AgentConfig {
   absoluteThreshold?: string;
   percentageThreshold?: string;
-  alertCooldown: number;
+  alertCooldown: {
+    absolute: number;
+    percentage: number;
+  };
   lendingPoolAddress: string;
   lendingPoolConfiguratorAddress: string;
 }
@@ -17,7 +20,10 @@ export interface ReserveData {
   stableDebtToken: MulticallContract;
   variableDebtToken: MulticallContract;
   usageRatio: BigNumber;
-  lastAlertTimestamp: number;
+  lastAlertTimestamp: {
+    absolute: number;
+    percentage: number;
+  };
 }
 
 export function createAbsoluteThresholdFinding(asset: string, usageRatio: BigNumber): Finding {
@@ -77,7 +83,10 @@ export function createReserveData(
     stableDebtToken: new MulticallContract(stableDebtTokenAddress, [TOTAL_SUPPLY_ABI]),
     variableDebtToken: new MulticallContract(variableDebtTokenAddress, [TOTAL_SUPPLY_ABI]),
     usageRatio: new BigNumber(-1),
-    lastAlertTimestamp: 0,
+    lastAlertTimestamp: {
+      absolute: 0,
+      percentage: 0,
+    },
   };
 }
 

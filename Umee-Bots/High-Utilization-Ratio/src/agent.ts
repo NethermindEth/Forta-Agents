@@ -25,6 +25,15 @@ import {
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const reserveData: ReserveData[] = [];
+
+// testing
+export const resetReserveData = () => (reserveData.length = 0);
+export const getReserveData = () => reserveData;
+export const setReserveData = (newReserveData: ReserveData[]) => {
+  resetReserveData();
+  newReserveData.forEach((el) => reserveData.push(el));
+};
+
 let multicallProvider: MulticallProvider;
 
 export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
@@ -98,6 +107,7 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
     ) as Array<[ethers.BigNumber, ethers.BigNumber, ethers.BigNumber]>;
 
     const usageRatios = data.map((el) => usageRatio(...el));
+    const timestamp = blockEvent.block.timestamp;
 
     reserveData.forEach((reserve, idx) => {
       const currentUsageRatio = usageRatios[idx];
@@ -105,22 +115,24 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
 
       reserve.usageRatio = currentUsageRatio;
 
-      if (blockEvent.block.timestamp - reserve.lastAlertTimestamp < config.alertCooldown) {
-        return;
-      }
-
       if (config.absoluteThreshold && currentUsageRatio.gte(config.absoluteThreshold)) {
-        findings.push(createAbsoluteThresholdFinding(reserve.asset.address, currentUsageRatio));
-        reserve.lastAlertTimestamp = blockEvent.block.timestamp;
+        const notOnCooldown = timestamp - reserve.lastAlertTimestamp.absolute >= config.alertCooldown.absolute;
+
+        if (notOnCooldown) {
+          findings.push(createAbsoluteThresholdFinding(reserve.asset.address, currentUsageRatio));
+          reserve.lastAlertTimestamp.absolute = timestamp;
+        }
       }
 
       const percentageIncrease = currentUsageRatio.div(lastUsageRatio).minus("1").shiftedBy(2);
 
       if (config.percentageThreshold && percentageIncrease.gte(config.percentageThreshold)) {
+        const notOnCooldown = timestamp - reserve.lastAlertTimestamp.percentage >= config.alertCooldown.percentage;
+
         // the usage ratio is initialized as -1, so ignore percentage increases from that
-        if (lastUsageRatio.isPositive()) {
+        if (lastUsageRatio.isPositive() && notOnCooldown) {
           findings.push(createPercentageThresholdFinding(reserve.asset.address, currentUsageRatio, percentageIncrease));
-          reserve.lastAlertTimestamp = blockEvent.block.timestamp;
+          reserve.lastAlertTimestamp.percentage = timestamp;
         }
       }
     });
@@ -136,7 +148,4 @@ export default {
   handleTransaction: provideHandleTransaction(CONFIG),
   provideHandleBlock,
   handleBlock: provideHandleBlock(CONFIG),
-
-  // testing
-  resetReserveData: () => (reserveData.length = 0),
 };
