@@ -1,9 +1,12 @@
-export const GET_RESERVES_LIST_ABI = "function getReservesList() external view override returns (address[] memory)";
+export const GET_RESERVES_LIST_ABI = "function getReservesList() external view returns (address[] memory)";
 
 export const RESERVE_INITIALIZED_ABI =
   "event ReserveInitialized(address indexed asset, address indexed uToken, address stableDebtToken, address variableDebtToken, address interestRateStrategyAddress)";
 
 export const TOTAL_SUPPLY_ABI = "function totalSupply() public view returns (uint256)";
+
+export const AGGREGATE_ABI =
+  "function aggregate(tuple(address target, bytes callData)[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData)";
 
 export const GET_RESERVE_DATA_ABI = {
   inputs: [
