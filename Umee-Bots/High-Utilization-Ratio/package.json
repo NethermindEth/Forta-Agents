@@ -24,6 +24,8 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bignumber.js": "^9.0.2",
+    "ethers-multicall": "^0.2.3",
     "forta-agent": "^0.1.6"
   },
   "devDependencies": {
