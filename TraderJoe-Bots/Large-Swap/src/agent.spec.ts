@@ -4,7 +4,7 @@ import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { provideHandleTransaction } from "./agent";
 import NetworkData from "./network";
-import { MULTICALL_IFACE, PAIR_IFACE, create2Pair } from "./utils";
+import { MULTICALL_IFACE, PAIR_IFACE, create2Pair, JOE_PAIR_INIT_CODE_HASH } from "./utils";
 
 const createFinding = (
   sender: string,
@@ -51,11 +51,11 @@ const testTokens: [string, string][] = [
   [createAddress("0xab852"), createAddress("0xac147")],
 ];
 const testPairs: string[] = [
-  create2Pair(testTokens[0][0], testTokens[0][1], mockNetworkManager.factory),
-  create2Pair(testTokens[1][0], testTokens[1][1], mockNetworkManager.factory),
-  create2Pair(testTokens[2][0], testTokens[2][1], mockNetworkManager.factory),
-  create2Pair(testTokens[3][0], testTokens[3][1], mockNetworkManager.factory),
-  create2Pair(testTokens[4][0], testTokens[4][1], mockNetworkManager.factory),
+  create2Pair(testTokens[0][0], testTokens[0][1], mockNetworkManager.factory, JOE_PAIR_INIT_CODE_HASH),
+  create2Pair(testTokens[1][0], testTokens[1][1], mockNetworkManager.factory, JOE_PAIR_INIT_CODE_HASH),
+  create2Pair(testTokens[2][0], testTokens[2][1], mockNetworkManager.factory, JOE_PAIR_INIT_CODE_HASH),
+  create2Pair(testTokens[3][0], testTokens[3][1], mockNetworkManager.factory, JOE_PAIR_INIT_CODE_HASH),
+  create2Pair(testTokens[4][0], testTokens[4][1], mockNetworkManager.factory, JOE_PAIR_INIT_CODE_HASH),
 ];
 // Format: [sender, amount0In, amount1In, amount0Out, amount1Out, to]
 const testCases: [string, BigNumber, BigNumber, BigNumber, BigNumber, string][] = [
@@ -115,6 +115,7 @@ describe("Large Swap test suite", () => {
     mockProvider as any,
     /*mockSigner as any,*/
     mockNetworkManager,
+    JOE_PAIR_INIT_CODE_HASH,
     testThresholdPercentage
   );
 

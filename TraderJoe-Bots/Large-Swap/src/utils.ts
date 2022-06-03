@@ -38,10 +38,9 @@ const AGGREGATE_ABI =
 
 export const MULTICALL_IFACE: Interface = new Interface([AGGREGATE_ABI]);
 
-// NOTE: UPDATE BACK TO USE NetworkData
-export const create2Pair = (tokenA: string, tokenB: string, factory: string) => {
+export const create2Pair = (tokenA: string, tokenB: string, factory: string, initCodeHash: string) => {
   let token0, token1;
   tokenA < tokenB ? ((token0 = tokenA), (token1 = tokenB)) : ((token0 = tokenB), (token1 = tokenA));
   const salt: string = keccak256(token0.concat(token1.slice(2)));
-  return getCreate2Address(factory, salt, JOE_PAIR_INIT_CODE_HASH).toLowerCase();
+  return getCreate2Address(factory, salt, initCodeHash).toLowerCase();
 };
