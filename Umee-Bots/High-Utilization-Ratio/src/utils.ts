@@ -26,6 +26,8 @@ export interface ReserveData {
   };
 }
 
+export type ReserveBalances = [ethers.BigNumber, ethers.BigNumber, ethers.BigNumber];
+
 export function createAbsoluteThresholdFinding(asset: string, usageRatio: BigNumber): Finding {
   return Finding.from({
     alertId: "UMEE-7-1",

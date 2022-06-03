@@ -18,6 +18,7 @@ import {
   createAbsoluteThresholdFinding,
   createPercentageThresholdFinding,
   createReserveData,
+  ReserveBalances,
   ReserveData,
   usageRatio,
 } from "./utils";
@@ -87,24 +88,19 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
     const findings: Finding[] = [];
 
     // make one multicall for each chunk of 10 reserves
+    const multicalls = arrayChunks(reserveData, 10).map((chunk) => {
+      return multicallProvider.all(
+        chunk.flatMap((reserve) => [
+          reserve.asset.balanceOf(reserve.uTokenAddress),
+          reserve.stableDebtToken.totalSupply(),
+          reserve.variableDebtToken.totalSupply(),
+        ]),
+        blockEvent.blockNumber
+      );
+    });
+
     // divide into chunks of 3 later since each reserve needs 3 calls
-    const data = arrayChunks(
-      (
-        await Promise.all(
-          arrayChunks(reserveData, 10).map((chunk) => {
-            return multicallProvider.all(
-              chunk.flatMap((reserve) => [
-                reserve.asset.balanceOf(reserve.uTokenAddress),
-                reserve.stableDebtToken.totalSupply(),
-                reserve.variableDebtToken.totalSupply(),
-              ]),
-              blockEvent.blockNumber
-            );
-          })
-        )
-      ).flat(),
-      3
-    ) as Array<[ethers.BigNumber, ethers.BigNumber, ethers.BigNumber]>;
+    const data = arrayChunks((await Promise.all(multicalls)).flat(), 3) as ReserveBalances[];
 
     const usageRatios = data.map((el) => usageRatio(...el));
     const timestamp = blockEvent.block.timestamp;
