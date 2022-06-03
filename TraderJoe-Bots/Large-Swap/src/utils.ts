@@ -1,6 +1,5 @@
 import { Interface, keccak256, getCreate2Address } from "ethers/lib/utils";
 
-// NOTE: CALCULATE HASH USING keccack256(/*init code*/) INSTEAD OF HARDCODING?
 const JOE_PAIR_INIT_CODE_HASH: string = "0x0bbca9af0511ad1a1da383135cf3a8d2ac620e549ef9f6ae3a4c33c2fed0af91";
 
 export const SWAP_ABI: string = `event Swap(
@@ -27,6 +26,17 @@ const TOKEN1_ABI: string = "function token1() view returns (address token)";
 export const PAIR_ABI: string[] = [TOKEN0_ABI, TOKEN1_ABI, SWAP_ABI, GET_RESERVES_ABI];
 
 export const PAIR_IFACE: Interface = new Interface(PAIR_ABI);
+
+/* NOTE: UNEDITED
+const AGGREGATE_ABI =
+  "function aggregate((address, bytes)[] calls) public returns (uint256 blockNumber, bytes[] returnData)";
+*/
+
+// NOTE: REMOVE `view`
+const AGGREGATE_ABI =
+  "function aggregate((address, bytes)[] calls) public view returns (uint256 blockNumber, bytes[] returnData)";
+
+export const MULTICALL_IFACE: Interface = new Interface([AGGREGATE_ABI]);
 
 // NOTE: UPDATE BACK TO USE NetworkData
 export const create2Pair = (tokenA: string, tokenB: string, factory: string) => {
