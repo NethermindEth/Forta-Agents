@@ -9,9 +9,8 @@ const AVAX_MAINNET_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  // NOTE: ADD WHEN DEPLOYED
-  multicall: "",
-  factory: "",
+  multicall: "0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A",
+  factory: "0x3CAfAF7cA21ccfeB3B09CCC8a7e03109d207CDc4",
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {

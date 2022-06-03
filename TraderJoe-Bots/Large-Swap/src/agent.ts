@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from 
 import { providers, BigNumber } from "ethers";
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
-import { SWAP_ABI, PAIR_IFACE, create2Pair, JOE_PAIR_INIT_CODE_HASH } from "./utils";
+import { SWAP_ABI, PAIR_IFACE, create2Pair, JOE_PAIR_INIT_CODE_HASH, KOVAN_PAIR_INIT_CODE_HASH } from "./utils";
 import MulticallFetcher from "./multicall.fetcher";
 import { createFinding } from "./findings";
 
@@ -31,8 +31,6 @@ export function provideHandleTransaction(
         // Assign the `Swap` arguments to variables
         const [, amount0In, amount1In, amount0Out, amount1Out] = log.args;
 
-        // NOTE: CREATE FETCHER IN HANDLE TRANSACTION
-        // OR OUTSIDE?
         const multiFetcher: MulticallFetcher = new MulticallFetcher(networkManager.multicall, provider /*, signer*/);
 
         // Generate calls to both `token0` and
@@ -53,7 +51,6 @@ export function provideHandleTransaction(
 
         // Check if the emitting address is a valid pair contract
         // by comapring to `create2` output
-        // NOTE: CHECK WHEN IT IS NECESSARY TO .toLowerCase() TOKEN ADDRESSES
         const create2PairAddress: string = create2Pair(
           token0.toLowerCase(),
           token1.toLowerCase(),
