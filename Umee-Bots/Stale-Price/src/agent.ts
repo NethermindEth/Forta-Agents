@@ -5,6 +5,7 @@ import {
   getEthersProvider,
   HandleBlock,
   HandleTransaction,
+  Initialize,
   TransactionEvent,
 } from "forta-agent";
 
@@ -14,9 +15,11 @@ import utils, { AgentConfig, AssetDataI } from "./utils";
 
 const assetsDataList: AssetDataI[] = [];
 
-export const provideInitialize = (provider: ethers.providers.Provider) => async () => {
-  assetsDataList.push(...(await utils.getAssetData(CONFIG, provider)));
-};
+export const provideInitialize =
+  (provider: ethers.providers.Provider): Initialize =>
+  async () => {
+    assetsDataList.push(...(await utils.getAssetData(CONFIG, provider)));
+  };
 
 export const provideHandleTransaction = (
   config: AgentConfig,
