@@ -1,8 +1,5 @@
 import { Interface, keccak256, getCreate2Address } from "ethers/lib/utils";
 
-export const JOE_PAIR_INIT_CODE_HASH: string = "0x0bbca9af0511ad1a1da383135cf3a8d2ac620e549ef9f6ae3a4c33c2fed0af91";
-export const KOVAN_PAIR_INIT_CODE_HASH: string = "0xea2e4d8ff7b84771dace7688751971197f2a4578c0298c78d11d93165de73773";
-
 export const SWAP_ABI: string = `event Swap(
     address indexed sender,
     uint256 amount0In,

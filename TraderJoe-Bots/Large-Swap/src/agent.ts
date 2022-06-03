@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from 
 import { providers, BigNumber } from "ethers";
 import NetworkManager, { NETWORK_MAP } from "./network";
 import NetworkData from "./network";
-import { SWAP_ABI, PAIR_IFACE, create2Pair, JOE_PAIR_INIT_CODE_HASH, KOVAN_PAIR_INIT_CODE_HASH } from "./utils";
+import { SWAP_ABI, PAIR_IFACE, create2Pair } from "./utils";
 import MulticallFetcher from "./multicall.fetcher";
 import { createFinding } from "./findings";
 
@@ -19,7 +19,6 @@ export function provideHandleTransaction(
   provider: providers.Provider,
   /*signer: providers.JsonRpcSigner,*/
   networkManager: NetworkData,
-  pairInitCodeHash: string, // *** NOTE: NEED TO GENERATE A KOVAN INIT CODE HASH
   thresholdPercentage: number
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
@@ -55,7 +54,7 @@ export function provideHandleTransaction(
           token0.toLowerCase(),
           token1.toLowerCase(),
           networkManager.factory,
-          pairInitCodeHash
+          networkManager.pairInitCodeHash
         );
         if (create2PairAddress === log.address) {
           // Generate calls to both `getReserves`
@@ -92,10 +91,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(
-    getEthersProvider(),
-    networkManager,
-    JOE_PAIR_INIT_CODE_HASH,
-    THRESHOLD_PERCENTAGE
-  ),
+  handleTransaction: provideHandleTransaction(getEthersProvider(), networkManager, THRESHOLD_PERCENTAGE),
 };

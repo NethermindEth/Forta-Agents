@@ -26,6 +26,7 @@ describe("MulticallFetcher test suite", () => {
   const mockNetworkManager: NetworkManager = {
     factory: createAddress("0xa1"),
     multicall: createAddress("0xb2"),
+    pairInitCodeHash: "0x0bbca9af0511ad1a1da383135cf3a8d2ac620e549ef9f6ae3a4c33c2fed0af91",
     networkMap: {},
     setNetwork: jest.fn(),
   };
