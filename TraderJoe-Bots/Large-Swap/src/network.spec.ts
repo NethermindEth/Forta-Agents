@@ -2,19 +2,20 @@ import { createAddress } from "forta-agent-tools/lib/tests";
 import NetworkManager from "./network";
 import NetworkData from "./network";
 
-// Format:[network, factory][];
-const TEST_CASES: [number, string][] = [
-  [11, createAddress("0xb1a")],
-  [22, createAddress("0xb2a")],
-  [33, createAddress("0xb3a")],
+// Format:[network, multicall, factory][];
+const TEST_CASES: [number, string, string][] = [
+  [11, createAddress("0xa2a"), createAddress("0xb1a")],
+  [22, createAddress("0xa3b"), createAddress("0xb2a")],
+  [33, createAddress("0xa4c"), createAddress("0xb3a")],
 ];
 
-const generateNetworkMap = (data: [number, string]): Record<number, NetworkData> => {
+const generateNetworkMap = (data: [number, string, string]): Record<number, NetworkData> => {
   // generates a NetworkMap for one test case.
   let networkMap: Record<number, NetworkData> = {};
 
   networkMap[data[0]] = {
-    factory: data[1],
+    multicall: data[1],
+    factory: data[2],
   } as NetworkData;
 
   return networkMap;
@@ -27,7 +28,8 @@ describe("NetworkManager test suite", () => {
       const networkManager = new NetworkManager(networkMap);
       networkManager.setNetwork(testCase[0]);
 
-      expect(networkManager.factory).toStrictEqual(testCase[1]);
+      expect(networkManager.multicall).toStrictEqual(testCase[1]);
+      expect(networkManager.factory).toStrictEqual(testCase[2]);
     }
   });
 
