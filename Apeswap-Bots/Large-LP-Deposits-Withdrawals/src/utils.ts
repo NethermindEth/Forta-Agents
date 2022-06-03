@@ -7,9 +7,6 @@ import NetworkData from "./network";
 const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("100000000000000000000000");
 const AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 
-// [APESWAP_FACTORY, INIT_CODE] from the initializer function
-export const initialized: string[] = [];
-
 const apePairCreate2 = (token0: string, token1: string, networkData: NetworkData): string => {
   let salt: string = utils.solidityKeccak256(["address", "address"], [token0, token1]);
   return getCreate2Address(networkData.factory, salt, networkData.init).toLowerCase();
@@ -64,7 +61,6 @@ const createFinding = (log: LogDescription, token0: string, token1: string): Fin
 export default {
   POOL_SUPPLY_THRESHOLD,
   AMOUNT_THRESHOLD_PERCENTAGE,
-  initialized,
   apePairCreate2,
   FUNCTIONS_ABI,
   FUNCTIONS_IFACE,
