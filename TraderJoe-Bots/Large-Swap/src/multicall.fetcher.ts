@@ -14,7 +14,7 @@ export default class MulticallFetcher {
   }
 
   public async aggregate(calls: any, block: string | number): Promise<string[]> {
-    // `calls[0][1]` is the function signature of
+    // `calls[0][1]` is ONLY the function signature of
     // the functions we're calling, since neither
     // require arguments
     const key: string = `${calls[0][1]} - ${block}`;
