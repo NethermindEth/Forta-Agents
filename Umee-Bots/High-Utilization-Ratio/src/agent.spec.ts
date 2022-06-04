@@ -89,7 +89,7 @@ describe("High utilization ratio bot", () => {
     });
   }
 
-  function setReserveLiquidity(
+  function setReserveBalances(
     reserve: string,
     assetBalance: ethers.BigNumberish,
     stableDebtTokenSupply: ethers.BigNumberish,
@@ -236,7 +236,7 @@ describe("High utilization ratio bot", () => {
       // 10 reserves should require 1 multicall
 
       setReserves(new Array(10).fill(createAddress("0x1")));
-      setReserveLiquidity(createAddress("0x1"), "1", "1", "1", 0);
+      setReserveBalances(createAddress("0x1"), "1", "1", "1", 0);
 
       await initialize();
 
@@ -284,9 +284,9 @@ describe("High utilization ratio bot", () => {
       await initialize();
 
       const blockEvent = new TestBlockEvent().setNumber(0).setTimestamp(1000);
-      setReserveLiquidity(reserves[0], "1", "1", "1", 0);
-      setReserveLiquidity(reserves[1], "1", "10", "1", 0);
-      setReserveLiquidity(reserves[2], "1", "10", "10", 0);
+      setReserveBalances(reserves[0], "1", "1", "1", 0);
+      setReserveBalances(reserves[1], "1", "10", "1", 0);
+      setReserveBalances(reserves[2], "1", "10", "10", 0);
 
       const findings = await handleBlock(blockEvent);
       const reserveData = getReserveData();
@@ -320,13 +320,13 @@ describe("High utilization ratio bot", () => {
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       setReserves(reserves);
 
-      setReserveLiquidity(reserves[0], "5", "10", "10", 0); // 0.8
-      setReserveLiquidity(reserves[1], "10", "100", "10", 0); // ~0.917
-      setReserveLiquidity(reserves[2], "10", "100", "100", 0); // ~0.952
+      setReserveBalances(reserves[0], "5", "10", "10", 0); // 0.8
+      setReserveBalances(reserves[1], "10", "100", "10", 0); // ~0.917
+      setReserveBalances(reserves[2], "10", "100", "100", 0); // ~0.952
 
-      setReserveLiquidity(reserves[0], "5", "10", "35", 1); // 0.9
-      setReserveLiquidity(reserves[1], "10", "100", "10", 1); // ~0.917
-      setReserveLiquidity(reserves[2], "1000", "100", "100", 1); // ~0.167
+      setReserveBalances(reserves[0], "5", "10", "35", 1); // 0.9
+      setReserveBalances(reserves[1], "10", "100", "10", 1); // ~0.917
+      setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
 
       await initialize();
       const reserveData = getReserveData();
@@ -380,13 +380,13 @@ describe("High utilization ratio bot", () => {
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       setReserves(reserves);
 
-      setReserveLiquidity(reserves[0], "5", "10", "10", 0); // 0.8
-      setReserveLiquidity(reserves[1], "10", "100", "10", 0); // ~0.917
-      setReserveLiquidity(reserves[2], "10", "100", "100", 0); // ~0.952
+      setReserveBalances(reserves[0], "5", "10", "10", 0); // 0.8
+      setReserveBalances(reserves[1], "10", "100", "10", 0); // ~0.917
+      setReserveBalances(reserves[2], "10", "100", "100", 0); // ~0.952
 
-      setReserveLiquidity(reserves[0], "5", "10", "35", 1); // 0.9
-      setReserveLiquidity(reserves[1], "10", "100", "100", 1); // ~0.952
-      setReserveLiquidity(reserves[2], "1000", "100", "100", 1); // ~0.167
+      setReserveBalances(reserves[0], "5", "10", "35", 1); // 0.9
+      setReserveBalances(reserves[1], "10", "100", "100", 1); // ~0.952
+      setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
 
       await initialize();
       const reserveData = getReserveData();
@@ -446,17 +446,17 @@ describe("High utilization ratio bot", () => {
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       setReserves(reserves);
 
-      setReserveLiquidity(reserves[0], "5", "10", "5", 0); // 0.75
-      setReserveLiquidity(reserves[1], "5", "20", "20", 0); // ~0.889
-      setReserveLiquidity(reserves[2], "5", "1", "4", 0); // 0.5
+      setReserveBalances(reserves[0], "5", "10", "5", 0); // 0.75
+      setReserveBalances(reserves[1], "5", "20", "20", 0); // ~0.889
+      setReserveBalances(reserves[2], "5", "1", "4", 0); // 0.5
 
-      setReserveLiquidity(reserves[0], "5", "1", "4", 1); // 0.5
-      setReserveLiquidity(reserves[1], "5", "20", "25", 1); // 0.9 -> >= absolute threshold
-      setReserveLiquidity(reserves[2], "5", "10", "5", 1); // 0.75 -> >= relative threshold
+      setReserveBalances(reserves[0], "5", "1", "4", 1); // 0.5
+      setReserveBalances(reserves[1], "5", "20", "25", 1); // 0.9 -> >= absolute threshold
+      setReserveBalances(reserves[2], "5", "10", "5", 1); // 0.75 -> >= relative threshold
 
-      setReserveLiquidity(reserves[0], "5", "1", "4", 2); // 0.5
-      setReserveLiquidity(reserves[1], "5", "20", "25", 2); // 0.9 -> >= absolute threshold
-      setReserveLiquidity(reserves[2], "5", "20", "5", 2); // ~0.833 -> >= relative threshold
+      setReserveBalances(reserves[0], "5", "1", "4", 2); // 0.5
+      setReserveBalances(reserves[1], "5", "20", "25", 2); // 0.9 -> >= absolute threshold
+      setReserveBalances(reserves[2], "5", "20", "5", 2); // ~0.833 -> >= relative threshold
 
       await initialize();
 
