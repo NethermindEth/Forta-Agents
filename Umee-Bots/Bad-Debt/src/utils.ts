@@ -48,7 +48,7 @@ const createFinding = ({ collateralAmount, borrowAmount }: IMetaData): Finding =
     description: `User has collaterals ${collateralAmount} and borrowed more ${borrowAmount}`,
     alertId: "UMEE-11",
     protocol: "Umee",
-    type: FindingType.Suspicious,
+    type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
       collateralAmount,
