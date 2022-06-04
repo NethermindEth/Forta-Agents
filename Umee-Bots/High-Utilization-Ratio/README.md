@@ -1,26 +1,46 @@
-# Large Tether Transfer Agent
+# High Utilization Rate Monitoring Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot monitors the utilization rate of pools in the Umee protocol, emitting a finding if it's large or had a large
+increase.
+The bot's behavior can be customized by editing the configuration fields in `src/agent.config.ts`.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- UMEE-7-1
+  - Fired when a pool's utilization ratio absolute value is large
+  - Severity is always set to "low"
+  - Type is always set to "info"
+  - Metadata:
+    - `asset`: The address of the reserve asset
+    - `usageRatio`: The current usage ratio for this reserve
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- UMEE-7-2
+  - Fired when a pool's utilization ratio increase (relative to the previous block) is large
+  - Severity is always set to "low"
+  - Type is always set to "info"
+  - Metadata:
+    - `asset`: The address of the reserve asset
+    - `usageRatio`: The current usage ratio for this reserve
+    - `percentageIncrease`: The increase relative to the previous block in %
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+### Mainnet
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+Uncomment the lines indicated in `src/agent.config.ts` and run:
+
+```
+npm run start
+```
+
+This configuration emits UMEE-7-1 findings for reserves with usage ratios above `0` and UMEE-7-2 findings for reserves
+with usage ratios that are increased by at least `0%` from the previous block (see `CONFIG.absoluteThreshold`
+and `CONFIG.percentageThreshold`).
+In the first block to be processed, all reserves should emit a UMEE-7-1 finding, and will do so each ~30s (see `CONFIG.alertCooldown.absolute`).
+From the second block onwards, every block should trigger UMEE-7-2 findings for every reserve (see `CONFIG.alertCooldown.percentage`).
