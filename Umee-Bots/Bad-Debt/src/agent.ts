@@ -1,11 +1,4 @@
-import {
-  ethers,
-  Finding,
-  getEthersProvider,
-  HandleTransaction,
-  LogDescription,
-  TransactionEvent,
-} from "forta-agent";
+import { ethers, Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
 
 import CONFIG from "./agent.config";
 import { EVENTS_ABI } from "./constants";
@@ -18,19 +11,19 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const eventsLog: LogDescription[] = txEvent.filterLog(EVENTS_ABI, config.lendingPoolAddress);   
+    const eventsLog: LogDescription[] = txEvent.filterLog(EVENTS_ABI, config.lendingPoolAddress);
     await Promise.all(
       eventsLog.map(async (logs) => {
-        const [collateral, , availableBorrowsETH] = await utils.getUserData({
+        const { totalCollateralETH, availableBorrowsETH } = await utils.getUserData({
           logs,
           lendingPoolAddress: config.lendingPoolAddress,
           provider,
           blockNumber: txEvent.blockNumber,
         });
-        if (availableBorrowsETH.gt(collateral)) {
+        if (availableBorrowsETH.gt(totalCollateralETH)) {
           findings.push(
             utils.createFinding({
-              collateralAmount: ethers.utils.formatEther(collateral).toString(),
+              collateralAmount: ethers.utils.formatEther(totalCollateralETH).toString(),
               borrowAmount: ethers.utils.formatEther(availableBorrowsETH).toString(),
             })
           );
