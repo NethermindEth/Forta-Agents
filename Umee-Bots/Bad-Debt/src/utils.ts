@@ -6,15 +6,23 @@ import { EVENTS_ABI, GET_USER_ACCOUNT_DATA_ABI } from "./constants";
 export interface AgentConfig {
   lendingPoolAddress: string;
 }
-const LENDING_POOL_IFACE = new Interface([...EVENTS_ABI, ...GET_USER_ACCOUNT_DATA_ABI]);
-ethers.utils.parseEther("11").gt;
+const EVENTS_IFACE = new Interface(EVENTS_ABI);
+
+const FUNCTIONS_IFACE = new Interface(GET_USER_ACCOUNT_DATA_ABI);
+
 const getUserAddressFromEvent = (logs: LogDescription) => {
   if (logs.name === "Deposit") {
     return logs.args.onBehalfOf;
   }
-  if (logs.name === "Withdraw" || logs.name === "Swap" || logs.name === "Borrow") {
+
+  if (logs.name === "Withdraw") {
+    return logs.args.to;
+  }
+
+  if (logs.name === "Swap" || logs.name === "Borrow") {
     return logs.args.user;
   }
+
   if (logs.name === "FlashLoan") {
     return logs.args.target;
   }
@@ -37,11 +45,11 @@ interface IMetaData {
 const createFinding = ({ collateralAmount, borrowAmount }: IMetaData): Finding => {
   return Finding.fromObject({
     name: "Detect bad debt immediately after market interaction",
-    description: "",
+    description: `User has collaterals ${collateralAmount} and borrowed more ${borrowAmount}`,
     alertId: "UMEE-11",
     protocol: "Umee",
-    type: FindingType.Info,
-    severity: FindingSeverity.Low,
+    type: FindingType.Suspicious,
+    severity: FindingSeverity.High,
     metadata: {
       collateralAmount,
       borrowAmount,
@@ -50,7 +58,8 @@ const createFinding = ({ collateralAmount, borrowAmount }: IMetaData): Finding =
 };
 
 export default {
-  LENDING_POOL_IFACE,
+  EVENTS_IFACE,
+  FUNCTIONS_IFACE,
   getUserData,
   createFinding,
 };
