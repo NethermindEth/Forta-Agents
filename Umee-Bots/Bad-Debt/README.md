@@ -1,4 +1,4 @@
-# Umee Detect Bad Debt Bot
+# Detect Bad Debt Bot
 
 ## Description
 
