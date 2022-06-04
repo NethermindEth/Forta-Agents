@@ -11,7 +11,7 @@ const EVENTS_IFACE = new Interface(EVENTS_ABI);
 const FUNCTIONS_IFACE = new Interface(GET_USER_ACCOUNT_DATA_ABI);
 
 const getUserAddressFromEvent = (logs: LogDescription) => {
-  if (logs.name === "Deposit") {
+  if (logs.name === "Deposit" || logs.name === "Borrow") {
     return logs.args.onBehalfOf;
   }
 
@@ -19,7 +19,7 @@ const getUserAddressFromEvent = (logs: LogDescription) => {
     return logs.args.to;
   }
 
-  if (logs.name === "Swap" || logs.name === "Borrow") {
+  if (logs.name === "Swap") {
     return logs.args.user;
   }
 

@@ -1,4 +1,4 @@
-import { ethers, HandleTransaction } from "forta-agent";
+import { ethers, Finding, HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
@@ -66,5 +66,44 @@ describe("Bad debt tests suit", () => {
         borrowAmount: ethers.utils.formatEther(userTestData[2].toString()).toString(),
       }),
     ]);
+  });
+
+  it("Should return three finding if the collateral are smaller than the borrowed amount", async () => {
+    const blockNumber = 14435;
+    const testUser = createAddress("0x02");
+    const mockAddress = createAddress("0x03");
+    const userTestData = [50, 10, 57, 1, 1, 1];
+
+    const swapEventArgs = [mockAddress, testUser, 1];
+    const flashLoanEventArgs = [testUser, mockAddress, mockAddress, 1, 1, 1];
+    const borrowEventArgs = [mockAddress, mockAddress, testUser, 1, 1, 1, 1];
+
+    const finding: Finding = utils.createFinding({
+      collateralAmount: ethers.utils.formatEther(userTestData[0].toString()).toString(),
+      borrowAmount: ethers.utils.formatEther(userTestData[2].toString()).toString(),
+    });
+    const expectedFindings: Finding[] = [finding, finding, finding];
+
+    mockProvider.addCallTo(
+      DEFAULT_CONFIG.lendingPoolAddress,
+      blockNumber,
+      utils.FUNCTIONS_IFACE,
+      "getUserAccountData",
+      { inputs: [testUser], outputs: [...userTestData] }
+    );
+
+    const swapEvent = utils.EVENTS_IFACE.getEvent("Swap");
+    const flashLoadEvent = utils.EVENTS_IFACE.getEvent("FlashLoan");
+    const borrowEvent = utils.EVENTS_IFACE.getEvent("Borrow");
+
+    const mockTxEvent = new TestTransactionEvent()
+      .setBlock(blockNumber)
+      .addInterfaceEventLog(swapEvent, DEFAULT_CONFIG.lendingPoolAddress, swapEventArgs)
+      .addInterfaceEventLog(flashLoadEvent, DEFAULT_CONFIG.lendingPoolAddress, flashLoanEventArgs)
+      .addInterfaceEventLog(borrowEvent, DEFAULT_CONFIG.lendingPoolAddress, borrowEventArgs);
+
+    handleTx = provideHandleTransaction(DEFAULT_CONFIG, mockProvider as any);
+    const findings = await handleTx(mockTxEvent);
+    expect(findings).toStrictEqual(expectedFindings);
   });
 });
