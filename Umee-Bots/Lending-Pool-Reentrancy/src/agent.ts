@@ -7,7 +7,7 @@ import utils, { AgentConfig } from "./utils";
 export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
   const sigHashes = utils.getSigHashes(config.reentrancyBlacklist);
 
-  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const { traces } = txEvent;
     for (let i = 0; i < traces.length; i++) {
