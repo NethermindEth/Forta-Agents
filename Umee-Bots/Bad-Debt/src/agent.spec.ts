@@ -29,11 +29,10 @@ describe("Bad debt tests suit", () => {
       "getUserAccountData",
       { inputs: [testUser], outputs: [...userTestData] }
     );
-    const event = utils.EVENTS_IFACE.getEvent("Deposit");
 
     const mockTxEvent = new TestTransactionEvent()
       .setBlock(blockNumber)
-      .addInterfaceEventLog(event, DEFAULT_CONFIG.lendingPoolAddress, eventArgs);
+      .addInterfaceEventLog(utils.EVENTS_IFACE.getEvent("Deposit"), DEFAULT_CONFIG.lendingPoolAddress, eventArgs);
     handleTx = provideHandleTransaction(DEFAULT_CONFIG, mockProvider as any);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([]);
@@ -53,11 +52,9 @@ describe("Bad debt tests suit", () => {
       { inputs: [testUser], outputs: [...userTestData] }
     );
 
-    const event = utils.EVENTS_IFACE.getEvent("Withdraw");
-
     const mockTxEvent = new TestTransactionEvent()
       .setBlock(blockNumber)
-      .addInterfaceEventLog(event, DEFAULT_CONFIG.lendingPoolAddress, eventArgs);
+      .addInterfaceEventLog(utils.EVENTS_IFACE.getEvent("Withdraw"), DEFAULT_CONFIG.lendingPoolAddress, eventArgs);
     handleTx = provideHandleTransaction(DEFAULT_CONFIG, mockProvider as any);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([
@@ -92,15 +89,15 @@ describe("Bad debt tests suit", () => {
       { inputs: [testUser], outputs: [...userTestData] }
     );
 
-    const swapEvent = utils.EVENTS_IFACE.getEvent("Swap");
-    const flashLoadEvent = utils.EVENTS_IFACE.getEvent("FlashLoan");
-    const borrowEvent = utils.EVENTS_IFACE.getEvent("Borrow");
-
     const mockTxEvent = new TestTransactionEvent()
       .setBlock(blockNumber)
-      .addInterfaceEventLog(swapEvent, DEFAULT_CONFIG.lendingPoolAddress, swapEventArgs)
-      .addInterfaceEventLog(flashLoadEvent, DEFAULT_CONFIG.lendingPoolAddress, flashLoanEventArgs)
-      .addInterfaceEventLog(borrowEvent, DEFAULT_CONFIG.lendingPoolAddress, borrowEventArgs);
+      .addInterfaceEventLog(utils.EVENTS_IFACE.getEvent("Swap"), DEFAULT_CONFIG.lendingPoolAddress, swapEventArgs)
+      .addInterfaceEventLog(
+        utils.EVENTS_IFACE.getEvent("FlashLoan"),
+        DEFAULT_CONFIG.lendingPoolAddress,
+        flashLoanEventArgs
+      )
+      .addInterfaceEventLog(utils.EVENTS_IFACE.getEvent("Borrow"), DEFAULT_CONFIG.lendingPoolAddress, borrowEventArgs);
 
     handleTx = provideHandleTransaction(DEFAULT_CONFIG, mockProvider as any);
     const findings = await handleTx(mockTxEvent);
