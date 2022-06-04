@@ -26,7 +26,7 @@ export const provideHandleTransaction = (
   provider: ethers.providers.Provider,
   assetsDataList: AssetDataI[]
 ): HandleTransaction => {
-  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const updateSourceLogs = txEvent.filterLog(utils.EVENT_ABI, config.umeeOracleAddress);
     await Promise.all(
