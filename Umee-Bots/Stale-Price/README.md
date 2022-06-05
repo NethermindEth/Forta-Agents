@@ -13,8 +13,8 @@ This behavior can be customized in `src/agent.config.ts`.
 
 - UMEE-3
   - Fired when any asset price stops being updated in a particular period.
-  - Severity is always set to "Medium."
-  - Type is always set to "Suspicious."
+  - Severity is always set to "Medium"
+  - Type is always set to "Suspicious"
   - Metadata contains:
     - asset: The address of the asset
     - source: The address of the source
