@@ -3,7 +3,7 @@ import { HandleBlock, HandleTransaction } from "forta-agent";
 
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 
-import agent, { provideHandleTransaction, provideHandleBlock } from "./agent";
+import { provideHandleTransaction, provideHandleBlock } from "./agent";
 import CONFIG from "./agent.config";
 import utils from "./utils";
 
@@ -31,10 +31,10 @@ const generateAssetData = (referenceTimestamp: number) => {
 describe("Lending pool reentrancy agent tests suit", () => {
   let handleTx: HandleTransaction;
   let handleBlock: HandleBlock;
-  const mockProvider = new MockEthersProvider();
+  let mockProvider = new MockEthersProvider();
 
   beforeEach(() => {
-    handleTx = agent.handleTransaction;
+    mockProvider = new MockEthersProvider();
   });
   it("returns empty finding if time between latest timestamp and current timestamp is less than the threshold", async () => {
     const block = 14717599;
@@ -127,10 +127,12 @@ describe("Lending pool reentrancy agent tests suit", () => {
       mockProvider.addCallTo(assetData[index].source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
         inputs: [],
         outputs: [lastUpdatedAt],
-      });
+        }
+      );
     }
 
     const mockTxBlock = new TestBlockEvent().setNumber(block).setTimestamp(currentTimestamp);
+    mockProvider.setLatestBlock(block);
     handleBlock = provideHandleBlock(CONFIG, mockProvider as any, assetData);
     const findings = await handleBlock(mockTxBlock);
     expect(findings).toStrictEqual(expectedFinding);
