@@ -16,9 +16,9 @@ This behavior can be customized in `src/agent.config.ts`.
   - Severity is always set to "Medium"
   - Type is always set to "Suspicious"
   - Metadata contains:
-    - asset: The address of the asset
-    - source: The address of the source
-    - lastUpdatedAt: The last time asset price changed
+    - `asset`: The address of the asset
+    - `source`: The address of the source
+    - `referenceTimestamp`: The last time the bot checked the changed time
 
 ## Test Data
 
