@@ -67,7 +67,6 @@ export const provideHandleBlock = (
 ): HandleBlock => {
   const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-    console.log(assetsDataList);
     await Promise.all(
       assetsDataList.map(async (assetsData) => {
         if (blockEvent.block.timestamp - assetsData.referenceTimestamp >= config.threshold) {
