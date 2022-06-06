@@ -1,6 +1,7 @@
 import { FindingType } from "forta-agent";
 import { FindingSeverity } from "forta-agent";
 import { Finding } from "forta-agent";
+import { FUNCTIONS_MAP } from "./utils";
 
 export const createFinding = (
   from: string,
@@ -18,9 +19,11 @@ export const createFinding = (
     type: FindingType.Exploit,
     metadata: {
       from: from,
-      initialCall: initialCall,
+      initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string,
       entrancyFrom: entrancyFrom,
-      reEtrantCall: reEtrantCall,
+      reEtrantCall: FUNCTIONS_MAP.get(reEtrantCall)
+        ? (FUNCTIONS_MAP.get(reEtrantCall)?.slice(9) as string)
+        : reEtrantCall,
     },
     addresses: [address],
   });

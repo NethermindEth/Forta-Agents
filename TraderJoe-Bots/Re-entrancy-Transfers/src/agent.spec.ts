@@ -15,14 +15,14 @@ import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests
 import { provideHandleTransaction } from "./agent";
 import MarketsFetcher from "./markets.fetcher";
 import NetworkData from "./network";
-import { FUNCTIONS_ABIS, MARKET_UPDATE_ABIS } from "./utils";
+import { FUNCTIONS_IFACE, FUNCTIONS_MAP, MARKET_UPDATE_ABIS } from "./utils";
 
 describe("Re-entrancy transfers bot test suite", () => {
   let handleTransaction: HandleTransaction;
 
   const USER_ADDR = createAddress("0xc1");
   const TEST_MARKETS = [createAddress("0x11"), createAddress("0x22"), createAddress("0x33")];
-  const FUNCTIONS_IFACE = new Interface(FUNCTIONS_ABIS);
+
   const mockNetworkManager: NetworkData = {
     joeTroller: createAddress("0x0ae"),
     sJoeStaking: createAddress("0x1ae"),
@@ -53,6 +53,14 @@ describe("Re-entrancy transfers bot test suite", () => {
     initialCall: string,
     reEtrantCall: string
   ) => {
+    let reEtrantSig;
+    try {
+      reEtrantSig = FUNCTIONS_MAP.get(reEtrantCall);
+    } catch {
+      // if the reentrant call is different from the monitored transfer calls, return the selector.
+      reEtrantSig = reEtrantCall;
+    }
+
     return Finding.fromObject({
       name: "Re-entrancy detected on a Trader Joe contract",
       description: "A function call to a Trader Joe contract resulted in another call to the same contract",
@@ -62,9 +70,9 @@ describe("Re-entrancy transfers bot test suite", () => {
       type: FindingType.Exploit,
       metadata: {
         from: from, // address initializing the call.
-        initialCall: initialCall, // functions that was called in our contract and resulted in a re-entrancy.
+        initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string, // function that was called in our contract and resulted in a re-entrancy.
         entrancyFrom: rentrancyFrom, // the contract re-entring our contract.
-        reEtrantCall: reEtrantCall, // second call to the same traderJoe contract.
+        reEtrantCall: reEtrantSig?.slice(9) as string, // second call to the same traderJoe contract.
       },
       addresses: [address],
     });
