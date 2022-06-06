@@ -1,5 +1,5 @@
 import { createAddress } from "forta-agent-tools/lib/tests";
-import NetworkManager, { NETWORK_MAP } from "./network";
+import NetworkManager from "./network";
 import NetworkData from "./network";
 
 /*

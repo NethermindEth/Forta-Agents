@@ -17,7 +17,6 @@ export const NETWORK_MAP: Record<number, NetworkData> = {
 
 export default class NetworkManager implements NetworkData {
   public joeTroller: string;
-
   networkMap: Record<number, NetworkData>;
 
   constructor(networkMap: Record<number, NetworkData> = NETWORK_MAP) {

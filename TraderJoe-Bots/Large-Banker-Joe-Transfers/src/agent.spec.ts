@@ -75,7 +75,7 @@ describe("Large BankerJoe transfers test suites", () => {
   ): Finding => {
     if (name === "Mint")
       return Finding.fromObject({
-        name: `Large minted amount detected on BankerJoe`,
+        name: "Large minted amount detected on BankerJoe",
         description: `${name} event detected on a jToken contract with a large amount`,
         protocol: "TraderJoe",
         alertId: "TraderJoe-21-1",
@@ -91,7 +91,7 @@ describe("Large BankerJoe transfers test suites", () => {
     else {
       if (name === "Redeem")
         return Finding.fromObject({
-          name: `Large redeemed amount detected on BankerJoe`,
+          name: "Large redeemed amount detected on BankerJoe",
           description: `${name} event detected on a jToken contract with a large amount`,
           protocol: "TraderJoe",
           alertId: "TraderJoe-21-2",
@@ -106,7 +106,7 @@ describe("Large BankerJoe transfers test suites", () => {
         });
       else
         return Finding.fromObject({
-          name: `Large borrowed amount detected on BankerJoe`,
+          name: "Large borrowed amount detected on BankerJoe",
           description: `${name} event detected on a jToken contract with a large amount`,
           protocol: "TraderJoe",
           alertId: "TraderJoe-21-3",

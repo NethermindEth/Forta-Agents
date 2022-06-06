@@ -7,7 +7,7 @@ export const createFinding = (
 ): Finding => {
   if (name === "Mint")
     return Finding.fromObject({
-      name: `Large minted amount detected on BankerJoe`,
+      name: "Large minted amount detected on BankerJoe",
       description: `${name} event detected on a jToken contract with a large amount`,
       protocol: "TraderJoe",
       alertId: "TraderJoe-21-1",
@@ -23,7 +23,7 @@ export const createFinding = (
   else {
     if (name === "Redeem")
       return Finding.fromObject({
-        name: `Large redeemed amount detected on BankerJoe`,
+        name: "Large redeemed amount detected on BankerJoe",
         description: `${name} event detected on a jToken contract with a large amount`,
         protocol: "TraderJoe",
         alertId: "TraderJoe-21-2",
@@ -38,7 +38,7 @@ export const createFinding = (
       });
     else
       return Finding.fromObject({
-        name: `Large borrowed amount detected on BankerJoe`,
+        name: "Large borrowed amount detected on BankerJoe",
         description: `${name} event detected on a jToken contract with a large amount`,
         protocol: "TraderJoe",
         alertId: "TraderJoe-21-3",
