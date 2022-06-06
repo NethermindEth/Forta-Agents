@@ -11,14 +11,14 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Re-entrancy detected on a Trader Joe contract",
-    description: "A function call to a trader Joe contract resulted in another call to the same contract",
-    alertId: "TraderJoe-25",
+    description: "A function call to a Trader Joe contract resulted in another call to the same contract",
+    alertId: "TRADERJOE-25",
     protocol: "TraderJoe",
     severity: FindingSeverity.High,
     type: FindingType.Exploit,
     metadata: {
       from: from,
-      initialCall: initialCall, // functions that was called in our contract and resulted in a re-entrancy.
+      initialCall: initialCall, // function that was called in our contract and resulted in a re-entrancy.
       entrancyFrom: entrancyFrom, // the contract re-entring our contract.
       reEtrantCall: reEtrantCall,
     },

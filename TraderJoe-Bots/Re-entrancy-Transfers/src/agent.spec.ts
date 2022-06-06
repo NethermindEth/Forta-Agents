@@ -55,8 +55,8 @@ describe("Re-entrancy transfers bot test suite", () => {
   ) => {
     return Finding.fromObject({
       name: "Re-entrancy detected on a Trader Joe contract",
-      description: "A function call to a trader Joe contract resulted in another call to the same contract",
-      alertId: "TraderJoe-25",
+      description: "A function call to a Trader Joe contract resulted in another call to the same contract",
+      alertId: "TRADERJOE-25",
       protocol: "TraderJoe",
       severity: FindingSeverity.High,
       type: FindingType.Exploit,

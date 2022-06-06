@@ -1,7 +1,7 @@
 {
-  "name": "trader-joe-25",
+  "name": "traderjoe-25",
   "version": "0.0.1",
-  "description": "This bot detects re-entrancy in `StableJoeStaking`, `MasterChefJoeV2` , `MoneyMaker` and all of `Joetroller` markets, considering the risk of token transfer callbacks.",
+  "description": "This bot detects re-entrancy in `StableJoeStaking`, `MasterChefJoeV2`, `MoneyMaker` and all of `Joetroller` markets, considering the risk of token transfer callbacks.",
   "chainIds": [
     43114
   ],
