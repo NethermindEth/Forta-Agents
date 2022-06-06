@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transfers in ownership in both the following monitored contracts:
+This bot detects transfers in ownership in the following TraderJoe contracts:
 - sJOE Staking
 - veJOE Staking
 - veJOE Token
@@ -21,7 +21,7 @@ This bot detects transfers in ownership in both the following monitored contract
 ## Alerts
 
 - TRADERJOE-24
-  - Fired when a `OwnershipTransferred` event has been fired from any of the monitored contracts.
+  - Fired when a `OwnershipTransferred` event has been fired from any of the previously listed TraderJoe contracts.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata includes:
