@@ -120,9 +120,10 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
         }
       }
 
-      const percentageIncrease = (currentUsageRatio.isZero() && lastUsageRatio.isZero())
-        ? new BigNumber(0)
-        : currentUsageRatio.div(lastUsageRatio).minus("1").shiftedBy(2);
+      const percentageIncrease =
+        currentUsageRatio.isZero() && lastUsageRatio.isZero()
+          ? new BigNumber(0)
+          : currentUsageRatio.div(lastUsageRatio).minus("1").shiftedBy(2);
 
       if (config.percentageThreshold && percentageIncrease.gte(config.percentageThreshold)) {
         const notOnCooldown = timestamp - reserve.lastAlertTimestamp.percentage >= config.alertCooldown.percentage;
