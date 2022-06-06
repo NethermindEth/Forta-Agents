@@ -7,7 +7,6 @@ Format:[
     [joeTroller network1 , joeTroller network2, joeTroller network3],  
 ];
 */
-
 const TEST_CASES: [string, string, string][] = [
   [createAddress("0xb1a"), createAddress("0xb2a"), createAddress("0xb3a")],
   [createAddress("0xc1a"), createAddress("0xc2a"), createAddress("0xc3a")],
