@@ -7,8 +7,8 @@ import NetworkData from "./network";
 import SupplyFetcher from "./supply.fetcher";
 import { EVENTS_ABIS, MARKET_UPDATE_ABIS, PERCENTAGE } from "./utils";
 
-let networkManager = new NetworkData();
-let marketsFetcher = new MarketsFetcher(getEthersProvider());
+const networkManager = new NetworkData();
+const marketsFetcher = new MarketsFetcher(getEthersProvider());
 const supplyFetcher = new SupplyFetcher(getEthersProvider());
 
 const provideInitialize = (marketsFetcher: MarketsFetcher) => async () => {
