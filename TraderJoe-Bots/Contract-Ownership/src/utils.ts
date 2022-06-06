@@ -1,0 +1,1 @@
+const OWNERSHIP_TRANSFER_ABI: string = "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)";
