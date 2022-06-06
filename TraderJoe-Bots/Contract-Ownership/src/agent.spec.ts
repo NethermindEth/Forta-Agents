@@ -16,7 +16,7 @@ const testOwners: string[][] = [
 
 const createFinding = (previousOnwer: string, newOwner: string, emittingAddress: string) => {
   return Finding.fromObject({
-    name: "Ownership of a monitored contract has changed",
+    name: "Ownership of a TraderJoe contract has changed",
     description: "OwnershipTransferred event was emitted",
     alertId: "TRADERJOE-24",
     severity: FindingSeverity.Info,
@@ -50,7 +50,7 @@ describe("Ownership Changes Monitor Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect a RoleAdminChanged event emission from multiple monitored contracts", async () => {
+  it("should detect a OwnershipTransferred event emission from multiple monitored contracts", async () => {
     const [previousOwnerOne, newOwnerOne] = testOwners[0];
     const [previousOwnerTwo, newOwnerTwo] = testOwners[1];
 
