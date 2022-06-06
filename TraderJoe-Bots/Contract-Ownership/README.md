@@ -1,26 +1,45 @@
-# Large Tether Transfer Agent
+# Ownership Transfer Monitor Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects transfers in ownership in both the following monitored contracts:
+- sJOE Staking
+- veJOE Staking
+- veJOE Token
+- MasterChefJoeV2
+- MasterChefJoeV3
+- BoostedMasterChefJoe
+- 2nd Team Vesting
+- RocketJoeToken
+- RocketJoeStaking
+- RocketJoeFactory
 
 ## Supported Chains
 
-- Ethereum
-- List any other chains this agent can support e.g. BSC
+- Avalanche
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- TRADERJOE-24
+  - Fired when a `OwnershipTransferred` event has been fired from any of the monitored contracts.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata includes:
+    - `previousOwner`: Previous address that served as the contract owner.
+    - `newOwner`: New address that serves as the contract owner.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+### Mainnet
+The bot behavior can be verified with the following transactions on mainnet Ethereum:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- [0xd0609f2a45bc00da0de1e5f47c2e7a625ad25ca50011ecf143706cfc16e0b5ee](https://etherscan.io/tx/0xd0609f2a45bc00da0de1e5f47c2e7a625ad25ca50011ecf143706cfc16e0b5ee) - `RoleGranted` event.
+
+### Kovan Testnet
+The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
+
+[0xEE4A7FB21A5A66544cd82275A7D8D92Bb9F7Db9C](https://kovan.etherscan.io/address/0xee4a7fb21a5a66544cd82275a7d8d92bb9f7db9c) - `TestMonitoredContract`.
+
+To test for the event emission, use the following transaction on the Kovan ETH testnet:
+
+[0x1aa161094361ecd822bd510f78b85ef1c3045322b8ee7a450389951b61f10ab4](https://kovan.etherscan.io/tx/0x1aa161094361ecd822bd510f78b85ef1c3045322b8ee7a450389951b61f10ab4) - `OwnershiptTransferred` event.
