@@ -45,7 +45,7 @@ interface IMetaData {
 const createFinding = ({ collateralAmount, borrowAmount }: IMetaData): Finding => {
   return Finding.fromObject({
     name: "Detect bad debt immediately after market interaction",
-    description: `User has collaterals ${collateralAmount} and borrowed more ${borrowAmount}`,
+    description: `User has collaterals ${collateralAmount} and borrowed ${borrowAmount}`,
     alertId: "UMEE-11",
     protocol: "Umee",
     type: FindingType.Exploit,
