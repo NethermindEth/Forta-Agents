@@ -18,8 +18,8 @@ export const createFinding = (
     type: FindingType.Exploit,
     metadata: {
       from: from,
-      initialCall: initialCall, // function that was called in our contract and resulted in a re-entrancy.
-      entrancyFrom: entrancyFrom, // the contract re-entring our contract.
+      initialCall: initialCall,
+      entrancyFrom: entrancyFrom,
       reEtrantCall: reEtrantCall,
     },
     addresses: [address],

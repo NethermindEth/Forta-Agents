@@ -16,8 +16,9 @@ This bot detects re-entrancy in `StableJoeStaking`, `MasterChefJoeV2` , `MoneyMa
   - Severity is always set to "High"
   - Type is always set to "Exploit"
   - Metadata contains:
-    - `from`: the address source making the second call to the contract.
+    - `from`: source address of the first contract call.
     - `initialCall`: selector of the function that was initially called.
+    - `entrancyFrom`: the address source making the second call to the contract.
     - `reEntrantCall`: selector of the function that was called in the re-entrancy case.
   - addresses contains the address of the contract where the re-entrancy happened.
 
