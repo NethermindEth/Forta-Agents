@@ -78,7 +78,7 @@ describe("Large BankerJoe transfers test suites", () => {
         name: "Large minted amount detected on BankerJoe",
         description: `${name} event detected on a jToken contract with a large amount`,
         protocol: "TraderJoe",
-        alertId: "TraderJoe-21-1",
+        alertId: "TRADERJOE-21-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
@@ -94,7 +94,7 @@ describe("Large BankerJoe transfers test suites", () => {
           name: "Large redeemed amount detected on BankerJoe",
           description: `${name} event detected on a jToken contract with a large amount`,
           protocol: "TraderJoe",
-          alertId: "TraderJoe-21-2",
+          alertId: "TRADERJOE-21-2",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
@@ -109,7 +109,7 @@ describe("Large BankerJoe transfers test suites", () => {
           name: "Large borrowed amount detected on BankerJoe",
           description: `${name} event detected on a jToken contract with a large amount`,
           protocol: "TraderJoe",
-          alertId: "TraderJoe-21-3",
+          alertId: "TRADERJOE-21-3",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {

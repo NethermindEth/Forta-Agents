@@ -1,5 +1,5 @@
 {
-  "name": "trader-joe-21",
+  "name": "traderjoe-21",
   "version": "0.0.1",
   "description": "Detects large token supply/borrow/redeem on BankerJoe",
   "chainIds": [
