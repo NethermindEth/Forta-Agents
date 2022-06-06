@@ -30,12 +30,6 @@ This bot detects transfers in ownership in both the following monitored contract
 
 ## Test Data
 
-### Mainnet
-The bot behavior can be verified with the following transactions on mainnet Ethereum:
-
-- [0xd0609f2a45bc00da0de1e5f47c2e7a625ad25ca50011ecf143706cfc16e0b5ee](https://etherscan.io/tx/0xd0609f2a45bc00da0de1e5f47c2e7a625ad25ca50011ecf143706cfc16e0b5ee) - `RoleGranted` event.
-
-### Kovan Testnet
 The bot behavior can be verified with the following contracts on the Kovan ETH testnet:
 
 [0xEE4A7FB21A5A66544cd82275A7D8D92Bb9F7Db9C](https://kovan.etherscan.io/address/0xee4a7fb21a5a66544cd82275a7d8d92bb9f7db9c) - `TestMonitoredContract`.
