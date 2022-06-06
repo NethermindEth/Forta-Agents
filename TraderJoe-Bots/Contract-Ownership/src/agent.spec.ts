@@ -1,74 +1,121 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { Interface } from "ethers/lib/utils";
+import { provideHandleTransaction } from "./agent";
+import NetworkManager from "./network";
+import { MONITORED_CONTRACT_IFACE } from "./utils";
 
-describe("high tether transfer agent", () => {
+const testSender: string = createAddress("0xad");
+
+// Format: [previousOnwer, newOwner]
+const testOwners: string[][] = [
+  [createAddress("0xab12"), createAddress("0xab34")],
+  [createAddress("0xac56"), createAddress("0xac78")],
+  [createAddress("0xad91"), createAddress("0xad23")],
+];
+
+const createFinding = (previousOnwer: string, newOwner: string, emittingAddress: string) => {
+  return Finding.fromObject({
+    name: "Ownership of a monitored contract has changed",
+    description: "OwnershipTransferred event was emitted",
+    alertId: "TRADERJOE-24",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "TraderJoe",
+    metadata: {
+      previousOwner: previousOnwer.toLowerCase(),
+      newOwner: newOwner.toLowerCase(),
+    },
+    addresses: [emittingAddress],
+  });
+};
+
+describe("Ownership Changes Monitor Test Suite", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+
+  const mockNetworkManager: NetworkManager = {
+    monitoredContracts: [createAddress("0xaa123"), createAddress("0xaa456")],
+    networkMap: {},
+    setNetwork: jest.fn(),
+  };
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction(mockNetworkManager);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("should return 0 findings in empty transactions", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent();
 
-      const findings = await handleTransaction(mockTxEvent);
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+  it("should detect a RoleAdminChanged event emission from multiple monitored contracts", async () => {
+    const [previousOwnerOne, newOwnerOne] = testOwners[0];
+    const [previousOwnerTwo, newOwnerTwo] = testOwners[1];
+
+    const OwnershipTransferredLogOne = MONITORED_CONTRACT_IFACE.encodeEventLog(
+      MONITORED_CONTRACT_IFACE.getEvent("OwnershipTransferred"),
+      [previousOwnerOne, newOwnerOne]
+    );
+    const OwnershipTransferredLogTwo = MONITORED_CONTRACT_IFACE.encodeEventLog(
+      MONITORED_CONTRACT_IFACE.getEvent("OwnershipTransferred"),
+      [previousOwnerTwo, newOwnerTwo]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(mockNetworkManager.monitoredContracts[0])
+      .setFrom(testSender)
+      .addAnonymousEventLog(
+        mockNetworkManager.monitoredContracts[0],
+        OwnershipTransferredLogOne.data,
+        ...OwnershipTransferredLogOne.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.monitoredContracts[1],
+        OwnershipTransferredLogTwo.data,
+        ...OwnershipTransferredLogTwo.topics
       );
-    });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+    const findings = await handleTransaction(txEvent);
 
-      const findings = await handleTransaction(mockTxEvent);
+    expect(findings).toStrictEqual([
+      createFinding(previousOwnerOne, newOwnerOne, mockNetworkManager.monitoredContracts[0]),
+      createFinding(previousOwnerTwo, newOwnerTwo, mockNetworkManager.monitoredContracts[1]),
+    ]);
+  });
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  it("should not detect the event emitting from the incorrect contract", async () => {
+    const wrongContract: string = createAddress("0xd34d");
+    const [previousOwner, newOwner] = testOwners[1];
+
+    const OwnershipTransferredLog = MONITORED_CONTRACT_IFACE.encodeEventLog(
+      MONITORED_CONTRACT_IFACE.getEvent("OwnershipTransferred"),
+      [previousOwner, newOwner]
+    );
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(wrongContract)
+      .setFrom(testSender)
+      .addAnonymousEventLog(wrongContract, OwnershipTransferredLog.data, ...OwnershipTransferredLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect another event emission from a monitored contract", async () => {
+    const wrongIFace: Interface = new Interface(["event WrongEvent()"]);
+    const wrongLog = wrongIFace.encodeEventLog(wrongIFace.getEvent("WrongEvent"), []);
+
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(mockNetworkManager.monitoredContracts[0])
+      .setFrom(testSender)
+      .addAnonymousEventLog(mockNetworkManager.monitoredContracts[0], wrongLog.data, ...wrongLog.topics)
+      .addAnonymousEventLog(mockNetworkManager.monitoredContracts[1], wrongLog.data, ...wrongLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
   });
 });

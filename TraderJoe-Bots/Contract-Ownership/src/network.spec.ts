@@ -21,27 +21,27 @@ const generateNetworkMap = (network: number, addresses: string[]): Record<number
 describe("NetworkManager test suite", () => {
   it("should return the correct contract address for each network", async () => {
     for (let testCase of TEST_CASES) {
-        const [networkId, monitoredContracts] = testCase;
+      const [networkId, monitoredContracts] = testCase;
 
-        const networkMap: Record<number, NetworkData> = generateNetworkMap(networkId, monitoredContracts);
-        const networkManager = new NetworkManager(networkMap);
-        networkManager.setNetwork(networkId);
-        
-        expect(networkManager.monitoredContracts).toStrictEqual(monitoredContracts);
+      const networkMap: Record<number, NetworkData> = generateNetworkMap(networkId, monitoredContracts);
+      const networkManager = new NetworkManager(networkMap);
+      networkManager.setNetwork(networkId);
+
+      expect(networkManager.monitoredContracts).toStrictEqual(monitoredContracts);
     }
   });
 
   it("should throw error from using unsupported network", async () => {
     for (let testCase of TEST_CASES) {
-        const [networkId, monitoredContracts] = testCase;
+      const [networkId, monitoredContracts] = testCase;
 
-        const networkMap: Record<number, NetworkData> = generateNetworkMap(networkId, monitoredContracts);
-        const networkManager = new NetworkManager(networkMap);
+      const networkMap: Record<number, NetworkData> = generateNetworkMap(networkId, monitoredContracts);
+      const networkManager = new NetworkManager(networkMap);
 
-        expect(() => {
-            // 99 is an unsupported networkId
-            networkManager.setNetwork(99);
-        }).toThrow(new Error("You are running the bot in a non supported network"));
+      expect(() => {
+        // 99 is an unsupported networkId
+        networkManager.setNetwork(99);
+      }).toThrow(new Error("You are running the bot in a non supported network"));
     }
   });
 });
