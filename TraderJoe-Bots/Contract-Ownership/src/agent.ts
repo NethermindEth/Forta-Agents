@@ -1,11 +1,11 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
 import NetworkData from "./network";
-import NetworkManager, { NETWORK_MAP } from "./network";
+import NetworkManager from "./network";
 import { OWNERSHIP_TRANSFERRED_ABI } from "./utils";
 import { createFinding } from "./findings";
 
-const networkManager = new NetworkManager(NETWORK_MAP);
+const networkManager = new NetworkManager();
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();

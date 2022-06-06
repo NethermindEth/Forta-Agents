@@ -21,7 +21,7 @@ const KOVAN_TESTNET_DATA: NetworkData = {
   monitoredContracts: ["0xEE4A7FB21A5A66544cd82275A7D8D92Bb9F7Db9C".toLowerCase()],
 };
 
-export const NETWORK_MAP: Record<number, NetworkData> = {
+const NETWORK_MAP: Record<number, NetworkData> = {
   43114: AVALANCHE_DATA,
   42: KOVAN_TESTNET_DATA,
 };
@@ -30,7 +30,7 @@ export default class NetworkManager implements NetworkData {
   public monitoredContracts: string[];
   networkMap: Record<number, NetworkData>;
 
-  constructor(networkMap: Record<number, NetworkData>) {
+  constructor(networkMap: Record<number, NetworkData> = NETWORK_MAP) {
     this.monitoredContracts = [""];
     this.networkMap = networkMap;
   }
