@@ -29,4 +29,11 @@ const CONFIG: AgentConfig = {
 // CONFIG.percentageThreshold = "0";
 // CONFIG.alertCooldown = { absolute: 30, percentage: 0 };
 
+// Uncomment these lines for the testnet test:
+
+// CONFIG.absoluteThreshold = "0.9";
+// CONFIG.percentageThreshold = "10";
+// CONFIG.alertCooldown = { absolute: 45, percentage: 0 };
+// CONFIG.lendingPoolAddress = "0xa60d64265E6545B1803FE36c7D014f6d06A6f6Ac";
+
 export default CONFIG;
