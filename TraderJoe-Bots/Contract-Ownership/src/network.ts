@@ -18,7 +18,7 @@ const AVALANCHE_DATA: NetworkData = {
 };
 
 const KOVAN_TESTNET_DATA: NetworkData = {
-  monitoredContracts: ["".toLowerCase()], // NOTE: FILL IN WHEN DEPLOYED
+  monitoredContracts: ["0xEE4A7FB21A5A66544cd82275A7D8D92Bb9F7Db9C".toLowerCase()],
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
