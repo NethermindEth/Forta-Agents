@@ -18,36 +18,31 @@ const EVENT_ABI = ["event AssetSourceUpdated(address indexed asset, address inde
 
 const FUNCTIONS_INTERFACE = new Interface([...UMEE_FUNCTIONS_ABI, ...EVENT_ABI]);
 
-export interface AssetDataI {
+export interface AssetData {
   asset: string;
   source: string;
   referenceTimestamp: number;
 }
 
-const fetchLatestTimestamp = async (
-  source: string,
-  blockNumber: number,
-  provider: ethers.providers.Provider
-): Promise<number> => {
+const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<number> => {
   // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
   try {
     const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
-    return (await chainLinkAggregator.latestTimestamp({ blockTag: blockNumber })).toNumber();
+    return (await chainLinkAggregator.latestTimestamp({ blockTag: "latest" })).toNumber();
   } catch (error) {
     return 0;
   }
 };
 
-const getAssetData = async (config: AgentConfig, provider: ethers.providers.Provider): Promise<AssetDataI[]> => {
+const getAssetData = async (config: AgentConfig, provider: ethers.providers.Provider): Promise<AssetData[]> => {
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
-  const blockNumber = await provider.getBlockNumber();
-  const reservesList = await lendingPoolContract.getReservesList({ blockTag: blockNumber });
+  const reservesList = await lendingPoolContract.getReservesList({ blockTag: "latest" });
   const sources = await Promise.all(
     reservesList.filter(async (asset: string) => {
       // use try/catch because some asset may be without source
       try {
-        return await umeeOracleContract.getSourceOfAsset(asset, { blockTag: blockNumber });
+        return await umeeOracleContract.getSourceOfAsset(asset, { blockTag: "latest" });
       } catch (error) {
         return false;
       }
@@ -56,7 +51,7 @@ const getAssetData = async (config: AgentConfig, provider: ethers.providers.Prov
 
   const assetData = await Promise.all(
     sources.map(async (source, index) => {
-      const lastUpdatedAt = await fetchLatestTimestamp(source, blockNumber, provider);
+      const lastUpdatedAt = await fetchLatestTimestamp(source, provider);
       return {
         asset: reservesList[index].toLowerCase(),
         source: sources[index],
@@ -67,7 +62,7 @@ const getAssetData = async (config: AgentConfig, provider: ethers.providers.Prov
   return assetData;
 };
 
-const createFinding = ({ asset, source, referenceTimestamp }: AssetDataI): Finding => {
+const createFinding = ({ asset, source, referenceTimestamp }: AssetData): Finding => {
   return Finding.fromObject({
     name: "Detect stale price data from Chainlink aggregator",
     description: "price of a certain asset stops being updated from Chainlink aggregator",
