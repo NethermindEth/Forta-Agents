@@ -2,6 +2,7 @@
   "name": "umee-deposit-borrow-as-flashloan",
   "version": "0.0.1",
   "description": "Forta bot that monitors deposit or borrow events together with flash loan event.",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Deposit-Borrow-Flashloan",
   "chainIds": [
     1
   ],
