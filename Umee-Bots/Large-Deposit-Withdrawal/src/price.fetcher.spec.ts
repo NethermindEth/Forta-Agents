@@ -9,10 +9,12 @@ const ASSET_PRICE_TEST_CASE: [string, string, number, BigNumber][] = [
   [createAddress("0x1a"), createAddress("0x2a"), 5, BigNumber.from("1000000000000000000")],
   [createAddress("0x1b"), createAddress("0x2b"), 6, BigNumber.from("500000000000000000")],
   [createAddress("0x1c"), createAddress("0x2c"), 7, BigNumber.from("5000000000000000005")],
+  [createAddress("0x1c"), createAddress("0x2c"), 7, BigNumber.from("5000000000000000005")],
 ];
 
 // format: [ethUsdFeedAddress, blockNumber, price]
 const ETH_PRICE_TEST_CASE: [string, number, BigNumber][] = [
+  [createAddress("0x3a"), 4, BigNumber.from("2000000000000000000")],
   [createAddress("0x3a"), 4, BigNumber.from("2000000000000000000")],
   [createAddress("0x3b"), 5, BigNumber.from("600000000000000000")],
   [createAddress("0x3c"), 6, BigNumber.from("6000000000000000006")],
@@ -40,29 +42,35 @@ describe("Fetcher test suite", () => {
     });
   }
 
-  beforeEach(() => mockProvider.clear());
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it("should fetch ETH price in USD correctly", async () => {
-    for (let [ethUsdFeedAddress, blockNumber, price] of ETH_PRICE_TEST_CASE) {
-      const fetcher: Fetcher = new Fetcher(mockProvider as any);
+    const fetcher: Fetcher = new Fetcher(mockProvider as any);
 
+    for (let [ethUsdFeedAddress, blockNumber, price] of ETH_PRICE_TEST_CASE) {
       createMockEthPriceCall(ethUsdFeedAddress, blockNumber, price);
 
       const fetchedPrice = await fetcher.getEthPrice(blockNumber, ethUsdFeedAddress);
 
       expect(fetchedPrice).toStrictEqual(ethersBnToBn(price, 8));
     }
+
+    expect(mockProvider.call).toBeCalledTimes(3);
   });
 
   it("should fetch asset price correctly", async () => {
-    for (let [umeeOracleAddress, assetAddress, blockNumber, price] of ASSET_PRICE_TEST_CASE) {
-      const fetcher: Fetcher = new Fetcher(mockProvider as any);
+    const fetcher: Fetcher = new Fetcher(mockProvider as any);
 
+    for (let [umeeOracleAddress, assetAddress, blockNumber, price] of ASSET_PRICE_TEST_CASE) {
       createMockAssetPriceCall(umeeOracleAddress, assetAddress, blockNumber, price);
 
       const fetchedPrice = await fetcher.getAssetPrice(umeeOracleAddress, assetAddress, blockNumber);
 
       expect(fetchedPrice).toStrictEqual(ethersBnToBn(price, 18));
     }
+
+    expect(mockProvider.call).toBeCalledTimes(3);
   });
 });
