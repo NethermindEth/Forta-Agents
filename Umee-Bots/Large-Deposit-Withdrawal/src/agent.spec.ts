@@ -155,13 +155,13 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
     ]);
   });
 
-  it("shouldn ignore when the value in USD doesn't exceed threshold", async () => {
+  it("should ignore when the value in USD doesn't exceed threshold", async () => {
     // events generation
     const log1 = EVENTS_IFACE.encodeEventLog(EVENTS_IFACE.getEvent("Deposit"), [
       createAddress("0x1"), // reserve
       createAddress("0x2"), // user
       createAddress("0x3"), // onBehalfOf
-      ethers.BigNumber.from("1000000000"), // amount exceeding the threshold
+      ethers.BigNumber.from("1000000000"), // amount not exceeding the threshold
       5, // referral
     ]);
 
@@ -169,7 +169,7 @@ describe("Large deposit/ withdrawal agent tests suite", () => {
       createAddress("0x4"), // reserve
       createAddress("0x5"), // user
       createAddress("0x6"), // to
-      ethers.BigNumber.from("2000000000"), // amount exceeding the threshold
+      ethers.BigNumber.from("2000000000"), // amount not exceeding the threshold
     ]);
 
     const tx: TransactionEvent = new TestTransactionEvent()
