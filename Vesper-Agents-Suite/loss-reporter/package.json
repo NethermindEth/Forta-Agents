@@ -22,7 +22,8 @@
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.32",
     "forta-agent-tools": "^1.0.32",
-    "lru-cache": "^6.0.0"
+    "lru-cache": "^6.0.0",
+    "vesper-forta-module": "^1.0.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

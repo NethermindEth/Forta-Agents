@@ -1,6 +1,6 @@
 {
   "name": "vesper-forta-module",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Common function required by Vesper to run Forta bots",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

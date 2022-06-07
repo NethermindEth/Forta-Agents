@@ -3,7 +3,7 @@ import { createFetcher, provideGetNetworkId } from "./utils";
 import { isZeroAddress } from "ethereumjs-util";
 import Web3 from "web3";
 import LRU from "lru-cache";
-import { STRATEGY, Strategy_ABI, Pool_ABI, GET_STRATEGIES, Accountant_ABI } from "./abi";
+import { STRATEGY, STRATEGY_ABI, POOL_ABI, GET_STRATEGIES, ACCOUNTANT_ABI } from "./abi";
 import { Network, getEthersProvider } from "forta-agent";
 const axios = require("axios");
 
@@ -14,7 +14,6 @@ const IGNORE_ADDRESS = ["0xbA4cFE5741b357FA371b506e5db0774aBFeCf8Fc"];
 // Used for V2
 const CONTROLLER: string = "0xa4f1671d3aee73c05b552d57f2d16d3cfcbd0217";
 type BlockId = string | number;
-const poolAccountantsCache = new LRU({ max: 10_000 });
 
 interface StrategiesData {
   V2: Set<string>;
@@ -26,12 +25,16 @@ export default class VesperFetcher {
   private web3: Web3;
   private controller: string;
   private cache: LRU<BlockId, any>;
+  private poolAccountantsCache: LRU<BlockId, any>;
+  private poolCache: LRU<BlockId, any>;
 
   constructor(web3: any) {
     this.web3 = web3
     this.web3Call = web3.eth.call;
     this.controller = CONTROLLER;
     this.cache = new LRU<BlockId, any>({ max: 10_000 });
+    this.poolAccountantsCache = new LRU({ max: 10_000 });
+    this.poolCache = new LRU({ max: 10_000 });
   }
 
   public getApiUrl = (network: number) => {
@@ -50,7 +53,7 @@ export default class VesperFetcher {
     address: string,
     blockNumber: string | number = "latest"
   ) => {
-    const Strategy = new web3.eth.Contract(Strategy_ABI, address);
+    const Strategy = new web3.eth.Contract(STRATEGY_ABI, address);
     const result = await Strategy.methods
       .isLossMaking()
       .call({}, blockNumber);
@@ -58,10 +61,17 @@ export default class VesperFetcher {
     return result;
   };
 
-  public getPools = async (network: number) => {
+  public getPools = async (blockNumber: BlockId, network: number) => {
+    if (
+      blockNumber !== "latest" &&
+      this.poolCache.get(blockNumber) !== undefined
+    ) {
+      return this.poolCache.get(blockNumber) as any;
+    }
+
     const apiUrl = this.getApiUrl(network)
     return axios.get(apiUrl).then((response: { data: { pools: any[] } }) => {
-      return response.data.pools
+      const pools = response.data.pools
         .filter(
           (pool: {
             status: string;
@@ -73,6 +83,8 @@ export default class VesperFetcher {
             !IGNORE_ADDRESS.includes(pool.contract.address)
         )
         .map((pool) => pool.contract.address);
+      this.poolAccountantsCache.set(blockNumber, pools);
+      return pools
     });
   };
 
@@ -82,7 +94,7 @@ export default class VesperFetcher {
   ): Promise<StrategiesData> {
     const provider = await getEthersProvider()
     const network = await provideGetNetworkId(provider)
-    const pools = await this.getPools(network);
+    const pools = await this.getPools(block, network);
     const V2: Set<string> = new Set<string>();
     const V3: Set<string> = new Set<string>();
     const fetchStrat = await createFetcher(
@@ -101,7 +113,7 @@ export default class VesperFetcher {
           const poolAccountant = (await createFetcher(
             this.web3Call,
             pool,
-            Pool_ABI
+            POOL_ABI[0]
           )(block))[0];
 
           const { strategiesList } = await createFetcher(
@@ -113,7 +125,7 @@ export default class VesperFetcher {
             const { active, debtRatio } = (await createFetcher(
               this.web3Call,
               poolAccountant,
-              Accountant_ABI
+              ACCOUNTANT_ABI
             )(block, poolAccountant));
             if (active && BigInt(debtRatio) > 0) {
               V3.add(addr.toLowerCase());
@@ -156,32 +168,47 @@ export default class VesperFetcher {
   };
 
   public async getPoolAccountants(
-    blockNumber: number | string = "latest"
+    block: BlockId
   ): Promise<string[]> {
     if (
-      blockNumber !== "latest" &&
-      poolAccountantsCache.get(blockNumber) !== undefined
+      block !== "latest" &&
+      this.poolAccountantsCache.get(block) !== undefined
     ) {
-      return poolAccountantsCache.get(blockNumber) as any;
+      return this.poolAccountantsCache.get(block) as any;
     }
 
     const poolAccountants: string[] = [];
     const provider = await getEthersProvider()
     const network = await provideGetNetworkId(provider)
-    const pools: string[] = await this.getPools(network);
+    const pools: string[] = await this.getPools(block, network);
     for (let pool of pools) {
       try {
-        const poolContract = new this.web3.eth.Contract(Pool_ABI, pool);
+        const poolContract = new this.web3.eth.Contract(POOL_ABI, pool);
         const poolAccountant = await poolContract.methods
           .poolAccountant()
-          .call({}, blockNumber);
+          .call({}, block);
         poolAccountants.push(poolAccountant);
       } catch {
-
       }
     }
-    poolAccountantsCache.set(blockNumber, poolAccountants);
+    this.poolAccountantsCache.set(block, poolAccountants);
     return poolAccountants;
   };
 
+  public async getMetaData(strategyAddress: string, block: BlockId) {
+    const strategyContract = new this.web3.eth.Contract(
+      STRATEGY_ABI,
+      strategyAddress,
+    );
+    const poolAddress = await strategyContract.methods.pool().call({}, block)
+    const poolContract = new this.web3.eth.Contract(
+      POOL_ABI,
+      poolAddress,
+    );
+    return Promise.all([strategyContract.methods.NAME().call({}, block), poolContract.methods.name().call({}, block)])
+      .then(function ([strategyName, poolName]) {
+        return
+        ` strategyName =  ${strategyName}, strategyAddress = ${strategyAddress}, poolName = ${poolName}, poolAddress = ${poolAddress}`        
+      })
+  }
 }

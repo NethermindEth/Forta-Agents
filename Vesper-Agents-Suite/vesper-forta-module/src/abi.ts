@@ -17,7 +17,7 @@ export const STRATEGY: AbiItem = {
   ],
 } as AbiItem;
 
-export const Strategy_ABI = [
+export const STRATEGY_ABI = [
   {
     inputs: [],
     name: "isLossMaking",
@@ -36,6 +36,40 @@ export const Strategy_ABI = [
     outputs: [{ internalType: "string", name: "", type: "string" }],
     stateMutability: "view",
     type: "function"
+  },
+  {
+    inputs: [],
+    name: "borrowCToken",
+    outputs: [{ internalType: "contract cToken", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "supplyCToken",
+    outputs: [{ internalType: "contract CToken", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "comptroller",
+    outputs: [{ internalType: "contract comptroller", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [], "name": "pool",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "maxBorrowLimit",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
   }
 ] as AbiItem[];
 
@@ -51,19 +85,27 @@ export const GET_STRATEGIES: AbiItem = {
   ],
 } as AbiItem;
 
-export const Pool_ABI: AbiItem = {
-  name: "poolAccountant",
-  type: "function",
-  inputs: [],
-  outputs: [
-    {
-      type: "address",
-      name: "",
-    },
-  ],
-} as AbiItem;
+export const POOL_ABI = [
+  {
+    name: "poolAccountant",
+    type: "function",
+    inputs: [],
+    outputs: [
+      {
+        type: "address",
+        name: "",
+      },
+    ],
+  },{
+    inputs: [],
+    name: "name",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function"
+  },,
+] as AbiItem[];
 
-export const Accountant_ABI =
+export const ACCOUNTANT_ABI =
   {
     name: "strategy",
     type: "function",
@@ -120,8 +162,8 @@ export const Accountant_ABI =
 
 export default {
   STRATEGY,
-  Strategy_ABI,
+  STRATEGY_ABI,
   GET_STRATEGIES,
-  Pool_ABI,
-  Accountant_ABI,
+  POOL_ABI,
+  ACCOUNTANT_ABI,
 };

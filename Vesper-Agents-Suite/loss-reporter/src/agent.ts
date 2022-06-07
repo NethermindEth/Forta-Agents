@@ -11,45 +11,24 @@ import {
 import {
   createFindingCallDetector,
   createFindingEventDetector,
-  getPoolAccountants,
   hasLosses,
 } from "./utils";
+import { VesperFetcher } from 'vesper-forta-module';
 import Web3 from "web3";
 const web3: Web3 = new Web3(getJsonRpcUrl());
-import { reportLossABI, earningReportedSignature } from "./abi";
-import TimeTracker from './time.tracker';
-import LRU from "lru-cache";
-
-const cache: LRU<string, string[]> = new LRU<string, string[]>({ max: 100 });
-const tracker: TimeTracker = new TimeTracker();
-const ONE_HOUR: number = 3600000; // one hour in miliseconds
-const POOL_ACCOUNTANTS_KEY = "_poolAccountants"
-
-export const loadPoolAccountants = async (web3: Web3, blockNumber: number): Promise<string[]> => {
-  const currentTime = Date.now()
-  const [success, time] = tracker.tryGetLastTime(POOL_ACCOUNTANTS_KEY);
-  if (!success || (currentTime - time >= ONE_HOUR)) {
-    const poolAccountant: string[] = await getPoolAccountants(
-      web3,
-      blockNumber
-    );
-    tracker.update(POOL_ACCOUNTANTS_KEY, currentTime);
-    cache.set(POOL_ACCOUNTANTS_KEY, poolAccountant)
-    return poolAccountant;
-  }
-  return cache.get(POOL_ACCOUNTANTS_KEY) || []
-}
+const vesperFetcher: VesperFetcher = new VesperFetcher(web3);
+import { REPORT_LOSS_ABI, earningReportedSignature } from "./abi";
 
 export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const poolAccountant: string[] = await loadPoolAccountants(
-      web3, txEvent.blockNumber
-    );
+    const poolAccountant: string[] = await vesperFetcher.getPoolAccountants(
+      txEvent.blockNumber
+    )
     const reportLossHandlers: HandleTransaction[] = poolAccountant.map(
       (poolAccountant) =>
         provideFunctionCallsDetectorHandler(
           createFindingCallDetector,
-          reportLossABI,
+          REPORT_LOSS_ABI,
           {
             to: poolAccountant,
             filterOnArguments: (args: { [key: string]: any }): boolean => {
@@ -80,7 +59,14 @@ export const provideHandleTransaction = (web3: Web3): HandleTransaction => {
       findings = findings.concat(await reportEarningReportedEvent(txEvent));
     }
 
-    return findings;
+    let findingsWithMetadata: Finding[] = [];
+    for (let finding of findings) {
+      const metadataInfo = await vesperFetcher.getMetaData(finding.metadata.strategyAddress, txEvent.blockNumber)
+      const description = finding.description + metadataInfo + ", lossValue = " + finding.metadata.lossValue;
+      const findingWithMetadata = { ...finding, description: description }
+      findingsWithMetadata = findingsWithMetadata.concat(Finding.fromObject(findingWithMetadata));
+    }
+    return findingsWithMetadata;
   };
 };
 

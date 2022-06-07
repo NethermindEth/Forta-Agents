@@ -11,6 +11,8 @@ RUN npm run build
 # Final stage: copy compiled Javascript from previous stage and install production dependencies
 FROM node:14.15.5-alpine
 ENV NODE_ENV=production
+# Added following line to enable agent logging
+LABEL "network.forta.settings.agent-logs.enable"="true"
 WORKDIR /app
 # if using obfuscated code:
 # COPY --from=builder /app/obfuscated ./src
