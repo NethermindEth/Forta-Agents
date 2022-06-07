@@ -8,9 +8,11 @@ export const provideHandleTransaction = (fetcher: Fetcher, config: AgentConfig):
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const ethPrice = await fetcher.getEthPrice(txEvent.blockNumber, config.ethUsdFeedAddress);
-
     const logs = txEvent.filterLog([DEPOSIT_ABI, WITHDRAW_ABI], config.lendingPoolAddress);
+
+    if (!logs.length) return [];
+
+    const ethPrice = await fetcher.getEthPrice(txEvent.blockNumber, config.ethUsdFeedAddress);
 
     await Promise.all(
       logs.map(async (log) => {
