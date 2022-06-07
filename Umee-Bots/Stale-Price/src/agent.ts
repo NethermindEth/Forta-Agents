@@ -11,9 +11,9 @@ import {
 
 import CONFIG from "./agent.config";
 
-import utils, { AgentConfig, AssetDataI } from "./utils";
+import utils, { AgentConfig, AssetData } from "./utils";
 
-const assetsDataList: AssetDataI[] = [];
+const assetsDataList: AssetData[] = [];
 
 export const provideInitialize =
   (provider: ethers.providers.Provider): Initialize =>
@@ -24,7 +24,7 @@ export const provideInitialize =
 export const provideHandleTransaction = (
   config: AgentConfig,
   provider: ethers.providers.Provider,
-  assetsDataList: AssetDataI[]
+  assetsDataList: AssetData[]
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -35,7 +35,7 @@ export const provideHandleTransaction = (
         const assetsDataIndex = assetsDataList.findIndex((assetsData) => {
           return assetsData.asset === asset.toLowerCase();
         });
-        const lastUpdatedAt = await utils.fetchLatestTimestamp(source, txEvent.blockNumber, provider);
+        const lastUpdatedAt = await utils.fetchLatestTimestamp(source, provider);
         if (assetsDataIndex === -1) {
           assetsDataList.push({
             asset: asset.toLowerCase(),
@@ -60,14 +60,14 @@ export const provideHandleTransaction = (
 export const provideHandleBlock = (
   config: AgentConfig,
   provider: ethers.providers.Provider,
-  assetsDataList: AssetDataI[]
+  assetsDataList: AssetData[]
 ): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     await Promise.all(
       assetsDataList.map(async (assetsData) => {
         if (blockEvent.block.timestamp - assetsData.referenceTimestamp >= config.threshold) {
-          const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, blockEvent.blockNumber, provider);
+          const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, provider);
           if (blockEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
             findings.push(utils.createFinding({ ...assetsData, referenceTimestamp: lastUpdatedAt }));
             assetsData.referenceTimestamp = blockEvent.block.timestamp;

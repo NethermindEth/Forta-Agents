@@ -37,20 +37,19 @@ describe("Lending pool reentrancy agent tests suit", () => {
     mockProvider = new MockEthersProvider();
   });
   it("returns empty finding if time between latest timestamp and current timestamp is less than the threshold", async () => {
-    const block = 14717599;
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - 10;
 
     const assetData = generateAssetData(lastUpdatedAt);
 
-    const mockTxEvent = new TestTransactionEvent().setBlock(block).setTimestamp(currentTimestamp);
+    const mockTxEvent = new TestTransactionEvent().setTimestamp(currentTimestamp);
 
     handleTx = provideHandleTransaction(CONFIG, mockProvider as any, assetData);
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([]);
   });
   it("return a finding if the initialized assetData has a staled price", async () => {
-    const block = 14717599;
+    const block = "latest";
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - CONFIG.threshold;
     const expectedAssetData = {
@@ -71,20 +70,18 @@ describe("Lending pool reentrancy agent tests suit", () => {
       outputs: [lastUpdatedAt],
     });
 
-    mockProvider.setLatestBlock(block);
-
     // Test initialize
     const assetData = await utils.getAssetData(CONFIG, mockProvider as any);
     expect(assetData).toStrictEqual([expectedAssetData]);
 
-    const mockTxBlock = new TestBlockEvent().setNumber(block).setTimestamp(currentTimestamp);
+    const mockTxBlock = new TestBlockEvent().setTimestamp(currentTimestamp);
     handleBlock = provideHandleBlock(CONFIG, mockProvider as any, assetData);
     const findings = await handleBlock(mockTxBlock);
 
     expect(findings).toStrictEqual([utils.createFinding(expectedAssetData)]);
   });
   it("returns a finding if a new asset have been added with staled price", async () => {
-    const block = 14717599;
+    const block = "latest";
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - CONFIG.threshold;
     const assetData = {
@@ -94,7 +91,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
     };
     const event = utils.FUNCTIONS_INTERFACE.getEvent("AssetSourceUpdated");
     const mockTxEvent = new TestTransactionEvent()
-      .setBlock(block)
       .setTimestamp(currentTimestamp)
       .addInterfaceEventLog(event, CONFIG.umeeOracleAddress, [assetData.asset, assetData.source]);
 
@@ -102,8 +98,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       inputs: [],
       outputs: [lastUpdatedAt],
     });
-
-    mockProvider.setLatestBlock(block);
 
     const expectedFinding = [utils.createFinding(assetData)];
 
@@ -113,7 +107,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
   });
 
   it("returns three finding if time between latest timestamp and current timestamp more than the threshold", async () => {
-    const block = 14717599;
+    const block = "latest";
     const currentTimestamp = 1000000;
     const lastUpdatedAt = currentTimestamp - CONFIG.threshold;
 
@@ -127,12 +121,10 @@ describe("Lending pool reentrancy agent tests suit", () => {
       mockProvider.addCallTo(assetData[index].source, block, utils.FUNCTIONS_INTERFACE, "latestTimestamp", {
         inputs: [],
         outputs: [lastUpdatedAt],
-        }
-      );
+      });
     }
 
-    const mockTxBlock = new TestBlockEvent().setNumber(block).setTimestamp(currentTimestamp);
-    mockProvider.setLatestBlock(block);
+    const mockTxBlock = new TestBlockEvent().setTimestamp(currentTimestamp);
     handleBlock = provideHandleBlock(CONFIG, mockProvider as any, assetData);
     const findings = await handleBlock(mockTxBlock);
     expect(findings).toStrictEqual(expectedFinding);
