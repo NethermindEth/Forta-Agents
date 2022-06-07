@@ -50,11 +50,11 @@ In order to check the results, uncomment the lines indicated in `src/agent.confi
 For Large Deposit, run:
 
 ```
-npm run tx npm run tx 0xdeb1ee55f1b8daf297ddd8578422b83f44705ee0fa9f4fbef9d7c258bae831fb
+npm run tx 0xdeb1ee55f1b8daf297ddd8578422b83f44705ee0fa9f4fbef9d7c258bae831fb
 ```
 
 For Large Withdrawal, run:
 
 ```
-npm run tx npm run tx 0x92767d4e1b7e558b2fb6732b8c07fa85c379b12f48ee212fb51a37a156e14216
+npm run tx 0x92767d4e1b7e558b2fb6732b8c07fa85c379b12f48ee212fb51a37a156e14216
 ```
