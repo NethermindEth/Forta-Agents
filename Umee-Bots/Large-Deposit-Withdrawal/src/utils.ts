@@ -1,6 +1,7 @@
 import BigNumber from "bignumber.js";
 import { ethers, Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 
+BigNumber.set({ DECIMAL_PLACES: 18 });
 export interface AgentConfig {
   threshold: string;
   ethUsdFeedAddress: string;
