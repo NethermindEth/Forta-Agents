@@ -1,74 +1,167 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { Interface } from "ethers/lib/utils";
+import { Finding, HandleTransaction, TransactionEvent, ethers } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { provideHandleTransaction } from "./agent";
+import { DEPOSIT_ABI, BORROW_ABI, FLASHLOAN_ABI, createFinding } from "./utils";
 
-describe("high tether transfer agent", () => {
-  let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+describe("Flash loan with Deposit or Borrow events detection bot test suite", () => {
+  const lendingPool = createAddress("0x1");
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+  const handler: HandleTransaction = provideHandleTransaction(lendingPool);
+
+  const EVENTS_IFACE = new Interface([FLASHLOAN_ABI, BORROW_ABI, DEPOSIT_ABI]);
+
+  const IRRELEVANT_EVENT_IFACE = new Interface([
+    "event IrrelevantEvent(address indexed reserve, address user, address indexed onBehalfOf, uint256 amount, uint16 indexed referral)",
+  ]);
+
+  it("should ignore empty transactions", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent();
+
+    const findings = await handler(tx);
+    expect(findings).toStrictEqual([]);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
-
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
+  it("should ignore irrelevant event on the same contract", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setTo(createAddress("0xa1"))
+      .addInterfaceEventLog(IRRELEVANT_EVENT_IFACE.getEvent("IrrelevantEvent"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        2, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Deposit"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        2, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), lendingPool, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        1, // referralCode
       ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+
+    const findings: Finding[] = await handler(tx);
+
+    expect(findings).toStrictEqual([createFinding("Deposit", tx.transaction.from, tx.transaction.to)]);
+  });
+
+  it("should ignore events emitted on a different contract", async () => {
+    const differentContract = createAddress("0xd1");
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setTo(createAddress("0xa1"))
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Deposit"), differentContract, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        2, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), differentContract, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        1, // referralCode
+      ]);
+
+    const findings: Finding[] = await handler(tx);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should detect when Deposit and FlashLoan events are emitted in the same tx", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setTo(createAddress("0xa1"))
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Deposit"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        2, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), lendingPool, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        1, // referralCode
+      ]);
+
+    const findings: Finding[] = await handler(tx);
+
+    expect(findings).toStrictEqual([createFinding("Deposit", tx.transaction.from, tx.transaction.to)]);
+  });
+
+  it("should detect when Borrow and FlashLoan events are emitted in the same tx", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setTo(createAddress("0xb1"))
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Borrow"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("3000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // borrowRateMode
+        ethers.BigNumber.from("2000000000"), // borrowRate
+        1, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), lendingPool, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        2, // referralCode
+      ]);
+
+    const findings: Finding[] = await handler(tx);
+
+    expect(findings).toStrictEqual([createFinding("Borrow", tx.transaction.from, tx.transaction.to)]);
+  });
+
+  it("should detect multiple findings when Borrow, Deposit and FlashLoan events are emitted in the same tx", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .setTo(createAddress("0xb1"))
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Borrow"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // borrowRateMode
+        ethers.BigNumber.from("2000000000"), // borrowRate
+        1, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("Deposit"), lendingPool, [
+        createAddress("0x4"), // reserve
+        createAddress("0x5"), // user
+        createAddress("0x6"), // onBehalfOf
+        ethers.BigNumber.from("5000000000"), // amount
+        2, // referral
+      ])
+      .addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), lendingPool, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        3, // referralCode
+      ]);
+
+    const findings: Finding[] = await handler(tx);
+
+    expect(findings).toStrictEqual([
+      createFinding("Deposit", tx.transaction.from, tx.transaction.to),
+      createFinding("Borrow", tx.transaction.from, tx.transaction.to),
+    ]);
   });
 });
