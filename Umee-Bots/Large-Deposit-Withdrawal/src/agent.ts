@@ -23,7 +23,7 @@ export const provideHandleTransaction = (fetcher: Fetcher, config: AgentConfig):
         const totalValue = assetPrice.times(ethPrice).times(amount);
 
         if (totalValue.gte(config.threshold)) {
-          findings.push(createFinding(log, totalValue.toString()));
+          findings.push(createFinding(log, totalValue.toString(10)));
         }
       })
     );

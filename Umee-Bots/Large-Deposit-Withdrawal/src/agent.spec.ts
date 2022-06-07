@@ -30,7 +30,7 @@ const ETH_PRICE = ethersBnToBn(ethers.BigNumber.from("200000000000"), 8);
 const ASSET_PRICE = ethersBnToBn(ethers.BigNumber.from("410000000000000000"), 18);
 
 const calculateValueInUsd = (assetPrice: BigNumber, ethPrice: BigNumber, amount: ethers.BigNumber) => {
-  return assetPrice.times(ethPrice).times(ethersBnToBn(amount, 6)).toString();
+  return assetPrice.times(ethPrice).times(ethersBnToBn(amount, 6)).toString(10);
 };
 
 const createFinding = (logDesc: any, valueInUsd: string) => {
