@@ -16,7 +16,7 @@ The bot's behavior can be customized by editing the configuration fields in `src
   - Severity is always set to "medium"
   - Type is always set to "info"
   - Metadata:
-    - `address`: lender address
+    - `address`: borrower address
     - `healthFactor`: health factor of the borrow position
     - `totalCollateralUsd`: the value of the position's collateral in USD
 
