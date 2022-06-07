@@ -24,13 +24,14 @@ export interface AssetDataI {
   referenceTimestamp: number;
 }
 
-const fetchLatestTimestamp = async (source: string, provider: ethers.providers.Provider): Promise<number> => {
+const fetchLatestTimestamp = async (
+  source: string,
+  blockNumber: number,
+  provider: ethers.providers.Provider
+): Promise<number> => {
   // use try/catch because source maybe a zero address or a erc20 token without chainLink aggregator support
   try {
-    const [chainLinkAggregator, blockNumber] = await Promise.all([
-      new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider),
-      provider.getBlockNumber(),
-    ]);
+    const chainLinkAggregator = await new ethers.Contract(source, UMEE_FUNCTIONS_ABI, provider);
     return (await chainLinkAggregator.latestTimestamp({ blockTag: blockNumber })).toNumber();
   } catch (error) {
     return 0;
@@ -41,9 +42,9 @@ const getAssetData = async (config: AgentConfig, provider: ethers.providers.Prov
   const lendingPoolContract = new ethers.Contract(config.lendingPoolAddress, UMEE_FUNCTIONS_ABI, provider);
   const umeeOracleContract = new ethers.Contract(config.umeeOracleAddress, UMEE_FUNCTIONS_ABI, provider);
   const blockNumber = await provider.getBlockNumber();
-  const reservedList = await lendingPoolContract.getReservesList({ blockTag: blockNumber });
+  const reservesList = await lendingPoolContract.getReservesList({ blockTag: blockNumber });
   const sources = await Promise.all(
-    reservedList.filter(async (asset: string) => {
+    reservesList.filter(async (asset: string) => {
       // use try/catch because some asset may be without source
       try {
         return await umeeOracleContract.getSourceOfAsset(asset, { blockTag: blockNumber });
@@ -55,9 +56,9 @@ const getAssetData = async (config: AgentConfig, provider: ethers.providers.Prov
 
   const assetData = await Promise.all(
     sources.map(async (source, index) => {
-      const lastUpdatedAt = await fetchLatestTimestamp(source, provider);
+      const lastUpdatedAt = await fetchLatestTimestamp(source, blockNumber, provider);
       return {
-        asset: reservedList[index],
+        asset: reservesList[index].toLowerCase(),
         source: sources[index],
         referenceTimestamp: lastUpdatedAt,
       };
