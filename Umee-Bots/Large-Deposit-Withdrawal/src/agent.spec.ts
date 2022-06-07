@@ -11,13 +11,13 @@ const TEST_CONFIG: AgentConfig = {
   threshold: "2000000",
 
   // Chainlink feed for the ETH-USD pair
-  ethUsdFeedAddress: createAddress("0xeth"),
+  ethUsdFeedAddress: createAddress("0xe1"),
 
   // Address of the LendingPool contract
-  lendingPoolAddress: createAddress("0xlp"),
+  lendingPoolAddress: createAddress("0xc1"),
 
   // Address of the Umee Oracle contract
-  umeeOracleAddress: createAddress("0xorc"),
+  umeeOracleAddress: createAddress("0xc2"),
 };
 
 const EVENTS_IFACE = new Interface([WITHDRAW_ABI, DEPOSIT_ABI]);
