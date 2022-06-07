@@ -3,7 +3,7 @@ import { ethers, HandleTransaction } from "forta-agent";
 import { MockEthersProvider, TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
 import { BALANCE_OF_ABI, BORROW_ABI, GET_RESERVE_DATA_ABI } from "./constants";
-import { createFinding } from "./utils";
+import { createFinding, SmartCaller } from "./utils";
 
 const LENDING_POOL_ADDRESS = createAddress("0x4001");
 const LENDING_POOL_IFACE = new ethers.utils.Interface([BORROW_ABI, GET_RESERVE_DATA_ABI]);
@@ -73,6 +73,8 @@ describe("large borrow bot", () => {
     beforeEach(() => {
       mockProvider = new MockEthersProvider();
       provider = mockProvider as any as ethers.providers.Provider;
+
+      SmartCaller.clearCache();
     });
 
     it("should return empty findings when handling an empty transaction", async () => {
@@ -123,7 +125,7 @@ describe("large borrow bot", () => {
       expect(mockProvider.call).toHaveBeenCalledTimes(2);
     });
 
-    it("caches uToken addresses from assets", async () => {
+    it("should cache uToken addresses and uToken asset balance", async () => {
       const txEvent = new TestTransactionEvent().setBlock(1000);
       const config = {
         lendingPoolAddress: LENDING_POOL_ADDRESS,
@@ -146,7 +148,32 @@ describe("large borrow bot", () => {
 
       await handleTransaction(txEvent);
 
-      expect(mockProvider.call).toHaveBeenCalledTimes(3);
+      expect(mockProvider.call).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not repeat similar calls", async () => {
+      const txEvent = new TestTransactionEvent().setBlock(1000);
+      const config = {
+        lendingPoolAddress: LENDING_POOL_ADDRESS,
+        tvlPercentageThreshold: "50.5",
+      };
+
+      handleTransaction = provideHandleTransaction(provider, config);
+
+      const reserve = createAddress("0x2e");
+      const uToken = createAddress("0x2f");
+      const reserveAmount = ethers.BigNumber.from("10000");
+      const borrowAmount = ethers.BigNumber.from("5049");
+
+      addBorrow(txEvent, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addBorrow(txEvent, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addBorrow(txEvent, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addBorrow(txEvent, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addReserve(mockProvider, LENDING_POOL_ADDRESS, reserve, uToken, reserveAmount, 1000);
+
+      await handleTransaction(txEvent);
+
+      expect(mockProvider.call).toHaveBeenCalledTimes(2);
     });
 
     it("should return non-empty findings if the borrowed amount is greater than or equal to the TVL threshold", async () => {
@@ -218,8 +245,8 @@ describe("large borrow bot", () => {
           );
         })
       );
-      // since the uTokens aren't cached yet, each call will try fetching the uToken addresses
-      expect(mockProvider.call).toHaveBeenCalledTimes(2 * borrows.length);
+      // 2 calls for fetching reserve uTokens, 2 calls for fetching the reserves' underlying asset balance
+      expect(mockProvider.call).toHaveBeenCalledTimes(2 + 2);
     });
   });
 });
