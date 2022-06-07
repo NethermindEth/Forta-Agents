@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "umee-deposit-borrow-as-flashloan",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors deposit or borrow events together with flash loan event.",
   "chainIds": [
     1
   ],
@@ -19,7 +19,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.6"
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.0.7",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
