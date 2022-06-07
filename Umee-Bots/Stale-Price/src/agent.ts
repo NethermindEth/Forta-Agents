@@ -26,20 +26,19 @@ export const provideHandleTransaction = (
   provider: ethers.providers.Provider,
   assetsDataList: AssetDataI[]
 ): HandleTransaction => {
-  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const updateSourceLogs = txEvent.filterLog(utils.EVENT_ABI, config.umeeOracleAddress);
     await Promise.all(
       updateSourceLogs.map(async (logs) => {
         const [asset, source] = logs.args;
         const assetsDataIndex = assetsDataList.findIndex((assetsData) => {
-          return assetsData.asset;
+          return assetsData.asset === asset.toLowerCase();
         });
-        const lastUpdatedAt = await utils.fetchLatestTimestamp(source, provider);
-
+        const lastUpdatedAt = await utils.fetchLatestTimestamp(source, txEvent.blockNumber, provider);
         if (assetsDataIndex === -1) {
           assetsDataList.push({
-            asset,
+            asset: asset.toLowerCase(),
             source,
             referenceTimestamp: lastUpdatedAt,
           });
@@ -47,7 +46,6 @@ export const provideHandleTransaction = (
           assetsDataList[assetsDataIndex].source = source;
           assetsDataList[assetsDataIndex].referenceTimestamp = lastUpdatedAt;
         }
-
         if (txEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
           findings.push(utils.createFinding({ asset, source, referenceTimestamp: lastUpdatedAt }));
           const index = assetsDataIndex === -1 ? assetsDataList.length - 1 : assetsDataIndex;
@@ -57,7 +55,6 @@ export const provideHandleTransaction = (
     );
     return findings;
   };
-  return handleTransaction;
 };
 
 export const provideHandleBlock = (
@@ -65,12 +62,12 @@ export const provideHandleBlock = (
   provider: ethers.providers.Provider,
   assetsDataList: AssetDataI[]
 ): HandleBlock => {
-  const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
+  return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     await Promise.all(
       assetsDataList.map(async (assetsData) => {
         if (blockEvent.block.timestamp - assetsData.referenceTimestamp >= config.threshold) {
-          const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, provider);
+          const lastUpdatedAt = await utils.fetchLatestTimestamp(assetsData.source, blockEvent.blockNumber, provider);
           if (blockEvent.block.timestamp - lastUpdatedAt >= config.threshold) {
             findings.push(utils.createFinding({ ...assetsData, referenceTimestamp: lastUpdatedAt }));
             assetsData.referenceTimestamp = blockEvent.block.timestamp;
@@ -80,10 +77,8 @@ export const provideHandleBlock = (
         }
       })
     );
-
     return findings;
   };
-  return handleBlock;
 };
 
 export default {
