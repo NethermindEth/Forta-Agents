@@ -14,6 +14,8 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 
 let tokens: MonitoringInfo[];
 
+export const getTokens = () => tokens;
+
 export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
   return async () => {
     tokens = await Promise.all(
@@ -91,7 +93,4 @@ export default {
   initialize: provideInitialize(getEthersProvider(), CONFIG),
   provideHandleBlock,
   handleBlock: provideHandleBlock(),
-
-  // testing
-  getTokens: () => tokens,
 };
