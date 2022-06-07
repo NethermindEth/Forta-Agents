@@ -46,5 +46,5 @@ This bot behavior can be verified through our PoC contracts deployed on Kovan te
 
 ### Test transaction
 
-- 0x105810131a62dd88f73f59add0f15f9410dc531b375d2730daa1ef645318efd5.(reentrancy on `TestTarget`).
+- 0x105810131a62dd88f73f59add0f15f9410dc531b375d2730daa1ef645318efd5 (reentrancy on `TestTarget`).
 - 0x34103cfe0617268c77489a901beca99e2e9beb338f97544567ff8d3993df9ee7 (reentrancy on `TestMarket`).
