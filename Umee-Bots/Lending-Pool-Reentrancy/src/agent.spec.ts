@@ -94,12 +94,11 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expect(findings).toStrictEqual(expected);
     });
 
-    it("Should detect three finding if deposit,withdraw,deposit,any call, deposit.... any calls then withdraw in a reentrant way", async () => {
+    it("Should detect a finding from a complicated trace tree", async () => {
       const iFace = new Interface([
         "function withdraw(address asset,uint256 amount,address to)",
         "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
       ]);
-
 
       const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
         createAddress("0x0a"),
@@ -124,9 +123,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
 
       const expected: Finding[] = [];
       expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[1]));
-      expected.push(utils.createFinding(sighashes[3], testEncodedDepositFuncCall.slice(0, 10)));
-      expected.push(utils.createFinding(sighashes[3], testEncodedDepositFuncCall.slice(0, 10)));
-      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[3]));
 
       const findings: Finding[] = await handleTx(tx);
       expect(findings).toStrictEqual(expected);
