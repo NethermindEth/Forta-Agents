@@ -31,20 +31,32 @@ export function createFinding(
   });
 }
 
+export interface SmartCallerOptions {
+  cacheByBlockTag: boolean;
+}
+
 export class SmartCaller {
   static cache = new LRU<string, Promise<any>>({ max: 200 });
   static mutex = new Mutex();
 
   [key: string]: ((...args: any[]) => Promise<any>) | any;
   contract: ethers.Contract;
+  options: SmartCallerOptions;
 
-  constructor(contract: ethers.Contract) {
+  constructor(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}) {
     this.contract = contract;
+    this.options = Object.assign(
+      {},
+      {
+        cacheByBlockTag: true,
+        ...options,
+      }
+    );
     this.generateMethods();
   }
 
-  static from(contract: ethers.Contract): SmartCaller {
-    return new SmartCaller(contract);
+  static from(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}): SmartCaller {
+    return new SmartCaller(contract, options);
   }
 
   protected generateMethods() {
@@ -57,7 +69,7 @@ export class SmartCaller {
           Object.assign(overrides, args.pop());
         }
 
-        return SmartCaller.smartCall(this.contract, functionName, args, overrides);
+        return SmartCaller.smartCall(this.contract, functionName, args, overrides, this.options);
       };
     });
   }
@@ -66,13 +78,18 @@ export class SmartCaller {
     contract: ethers.Contract,
     functionName: string,
     args: any[],
-    overrides: CallOverrides = {}
+    overrides: CallOverrides = {},
+    options: SmartCallerOptions
   ): Promise<any> {
-    if (overrides.blockTag === "latest") {
+    if (options.cacheByBlockTag && overrides.blockTag === "latest") {
       throw new Error("Caching for 'latest' block is not supported");
     }
 
-    const key = JSON.stringify([contract.address, functionName, overrides.blockTag, args]);
+    const key = JSON.stringify(
+      options.cacheByBlockTag
+        ? [contract.address, functionName, overrides.blockTag, args]
+        : [contract.address, functionName, args]
+    );
 
     let promise;
 

@@ -38,7 +38,7 @@ function addReserve(
   tvl: ethers.BigNumber,
   block: number
 ) {
-  mockProvider.addCallTo(lendingPool, block, LENDING_POOL_IFACE, "getReserveData", {
+  mockProvider.addCallTo(lendingPool, "latest", LENDING_POOL_IFACE, "getReserveData", {
     inputs: [asset],
     outputs: [
       {

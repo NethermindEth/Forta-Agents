@@ -11,7 +11,10 @@ export const provideHandleTransaction = (
   config: AgentConfig
 ): HandleTransaction => {
   const LendingPool = SmartCaller.from(
-    new ethers.Contract(config.lendingPoolAddress, [GET_RESERVE_DATA_ABI], provider)
+    new ethers.Contract(config.lendingPoolAddress, [GET_RESERVE_DATA_ABI], provider),
+    {
+      cacheByBlockTag: false,
+    }
   );
   const threshold = new BigNumber(config.tvlPercentageThreshold);
 
@@ -23,7 +26,7 @@ export const provideHandleTransaction = (
       logs.map(async (log) => {
         const { reserve, amount, user, onBehalfOf } = log.args;
 
-        const { uTokenAddress } = await LendingPool.getReserveData(reserve, { blockTag: txEvent.blockNumber });
+        const { uTokenAddress } = await LendingPool.getReserveData(reserve, { blockTag: "latest" });
         const erc20Asset = SmartCaller.from(new ethers.Contract(reserve, [BALANCE_OF_ABI], provider));
         const tvl = await erc20Asset.balanceOf(uTokenAddress, { blockTag: txEvent.blockNumber - 1 });
 
