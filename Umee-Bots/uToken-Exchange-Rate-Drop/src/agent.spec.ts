@@ -11,19 +11,19 @@ const mockFetcher = {
   getReserveNormalizedIncome: jest.fn(),
 };
 
-const testUnderlyingAssetAddresses = [createAddress("0xua1"), createAddress("0xua2"), createAddress("0xua3")];
+const testUnderlyingAssetAddresses = [createAddress("0x0a1"), createAddress("0x0a2"), createAddress("0x0a3")];
 
 const testPrices: BigNumber[] = [
-  new BigNumber(1000000000000000000),
-  new BigNumber(500000000000000),
-  new BigNumber(625000000000000),
-  new BigNumber(540000000000000),
+  new BigNumber("1000000000000000000"),
+  new BigNumber("500000000000000"),
+  new BigNumber("625000000000000"),
+  new BigNumber("540000000000000"),
 ];
 
 const testNormalizedIncomes: BigNumber[] = [
-  new BigNumber(1000000000000000000000000000),
-  new BigNumber(1200000000000000000000000000),
-  new BigNumber(1000100000000000000000000000),
+  new BigNumber("1000000000000000000000000000"),
+  new BigNumber("1200000000000000000000000000"),
+  new BigNumber("1000100000000000000000000000"),
 ];
 
 const TEST_CONFIG: AgentConfig = {
@@ -33,9 +33,9 @@ const TEST_CONFIG: AgentConfig = {
     { uToken: "uTOKEN3", address: createAddress("0xa3") },
   ],
   uTokenPairs: [
-    { uToken1: "uTOKEN1", uToken2: "uTOKEN2", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN2
-    { uToken1: "uTOKEN2", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN2 / uTOKEN3
-    { uToken1: "uTOKEN1", uToken2: "uTOKEN3", threshold: 0.1, difference: 0.05 }, // ratio of uTOKEN1 / uTOKEN3
+    { uToken1: "uTOKEN1", uToken2: "uTOKEN2", threshold: "0.1", difference: "0.05" }, // ratio of uTOKEN1 / uTOKEN2
+    { uToken1: "uTOKEN2", uToken2: "uTOKEN3", threshold: "0.1", difference: "0.05" }, // ratio of uTOKEN2 / uTOKEN3
+    { uToken1: "uTOKEN1", uToken2: "uTOKEN3", threshold: "0.1", difference: "0.05" }, // ratio of uTOKEN1 / uTOKEN3
   ],
   umeeOracle: createAddress("0xorc"),
   lendingPool: createAddress("0xlp"),

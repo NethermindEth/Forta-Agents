@@ -51,7 +51,11 @@ export const provideHandleBlock =
     return findings;
   };
 
-const getUTokenPrices = async (fetcher: Fetcher, underlyingAssets: any, block: string | number) => {
+const getUTokenPrices = async (
+  fetcher: Fetcher,
+  underlyingAssets: Array<{ uTokenName: string; address: string }>,
+  block: string | number
+) => {
   const priceMap = new Map();
 
   await Promise.all(

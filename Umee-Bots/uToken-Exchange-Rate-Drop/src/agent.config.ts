@@ -21,10 +21,10 @@ const CONFIG: AgentConfig = {
     `Critical`: 0.30+
   */
   uTokenPairs: [
-    { uToken1: "uUSDC", uToken2: "uDAI", threshold: 0.1, difference: 0.05 }, // ratio of uDAI / uUSDC
-    { uToken1: "uUSDC", uToken2: "uUSDT", threshold: 0.1, difference: 0.05 }, // ratio of uUSDC / uUSDT
-    { uToken1: "uDAI", uToken2: "uUSDT", threshold: 0.1, difference: 0.05 }, // ratio of uDAI / uUSDT
-    { uToken1: "uWETH", uToken2: "uATOM", threshold: 0.1, difference: 0.05 }, // ratio of uWETH / uATOM
+    { uToken1: "uUSDC", uToken2: "uDAI", threshold: "0.1", difference: "0.05" }, // ratio of uDAI / uUSDC
+    { uToken1: "uUSDC", uToken2: "uUSDT", threshold: "0.1", difference: "0.05" }, // ratio of uUSDC / uUSDT
+    { uToken1: "uDAI", uToken2: "uUSDT", threshold: "0.1", difference: "0.05" }, // ratio of uDAI / uUSDT
+    { uToken1: "uWETH", uToken2: "uATOM", threshold: "0.1", difference: "0.05" }, // ratio of uWETH / uATOM
   ],
 
   umeeOracle: "0x67386481E5A3076563F39831Bb79d05D393d57bf",
@@ -41,9 +41,9 @@ const CONFIG: AgentConfig = {
 // CONFIG.uTokens[2].address = "0x99779742921ADa303946F0e3EB3F563F8F822c80";
 // CONFIG.uTokens[3].address = "0xBe716bd6726746833CB572f7baB0e719caba0dC6";
 // CONFIG.uTokens[4].address = "0x3fc18c6fE91Dd46f29c641f54763f195a21fcfA3";
-// CONFIG.uTokenPairs[1].threshold = 0.1;
-// CONFIG.uTokenPairs[2].threshold = 0.1;
-// CONFIG.uTokenPairs[3].threshold = 0.1;
-// CONFIG.uTokenPairs[0].threshold = 0.1;
+// CONFIG.uTokenPairs[1].threshold = "0.1";
+// CONFIG.uTokenPairs[2].threshold = "0.1";
+// CONFIG.uTokenPairs[3].threshold = "0.1";
+// CONFIG.uTokenPairs[0].threshold = "0.1";
 
 export default CONFIG;

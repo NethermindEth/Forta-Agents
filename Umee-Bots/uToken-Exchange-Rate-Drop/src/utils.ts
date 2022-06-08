@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 
 export interface AgentConfig {
   uTokens: Array<{ uToken: string; address: string }>;
-  uTokenPairs: Array<{ uToken1: string; uToken2: string; threshold: number; difference: number }>;
+  uTokenPairs: Array<{ uToken1: string; uToken2: string; threshold: string; difference: string }>;
   umeeOracle: string;
   lendingPool: string;
 }
@@ -47,7 +47,7 @@ export const calculatePriceRatio = (
   return new BigNumber(numeratorPrice.toString()).div(denominatorPrice.toString());
 };
 
-export const calculateSeverity = (ratioDifference: BigNumber, pairThreshold: number, thresholdDifference: number) => {
+export const calculateSeverity = (ratioDifference: BigNumber, pairThreshold: string, thresholdDifference: string) => {
   let severity;
 
   switch (ratioDifference.minus(pairThreshold).div(thresholdDifference).integerValue(BigNumber.ROUND_CEIL).toNumber()) {
