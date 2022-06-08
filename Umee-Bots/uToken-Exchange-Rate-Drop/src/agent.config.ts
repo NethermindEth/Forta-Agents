@@ -32,6 +32,13 @@ const CONFIG: AgentConfig = {
   lendingPool: "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa",
 };
 
+// Uncomment these lines for the mainnet test:
+
+// CONFIG.uTokenPairs[1].threshold = "0";
+// CONFIG.uTokenPairs[2].threshold = "0";
+// CONFIG.uTokenPairs[3].threshold = "0";
+// CONFIG.uTokenPairs[0].threshold = "0";
+
 // Uncomment these lines for the testnet test:
 
 // CONFIG.umeeOracle = "0xAc42062E914114dBe75A79468a22FB873D36860b";
