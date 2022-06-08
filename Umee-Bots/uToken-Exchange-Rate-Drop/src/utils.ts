@@ -1,6 +1,7 @@
 import { Finding, FindingSeverity, FindingType, ethers } from "forta-agent";
 import { Interface } from "ethers/lib/utils";
 import BigNumber from "bignumber.js";
+import Fetcher from "./fetcher";
 
 export interface AgentConfig {
   uTokens: Array<{ uToken: string; address: string }>;
@@ -39,6 +40,26 @@ export function createFinding(
     },
   });
 }
+
+export const getUTokenPrices = async (
+  fetcher: Fetcher,
+  underlyingAssets: Array<{ uTokenName: string; address: string }>,
+  block: string | number
+) => {
+  const priceMap = new Map();
+
+  await Promise.all(
+    underlyingAssets.map(async (underlyingAsset: { uTokenName: string; address: string }) => {
+      const assetPrice = await fetcher.getPrice(underlyingAsset.address, block);
+      const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(underlyingAsset.address, block);
+      const uTokenPrice = assetPrice.times(reserveNormalizedIncome);
+
+      priceMap.set(underlyingAsset.uTokenName, uTokenPrice);
+    })
+  );
+
+  return priceMap;
+};
 
 export const calculatePriceRatio = (
   numeratorPrice: ethers.BigNumber,

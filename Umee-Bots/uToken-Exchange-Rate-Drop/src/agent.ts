@@ -1,7 +1,7 @@
 import { BlockEvent, Finding, HandleBlock, getEthersProvider, Initialize } from "forta-agent";
 import Fetcher from "./fetcher";
 import CONFIG from "./agent.config";
-import { createFinding, calculatePriceRatio, calculateSeverity } from "./utils";
+import { createFinding, getUTokenPrices, calculatePriceRatio, calculateSeverity } from "./utils";
 import BigNumber from "bignumber.js";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
@@ -50,26 +50,6 @@ export const provideHandleBlock =
 
     return findings;
   };
-
-const getUTokenPrices = async (
-  fetcher: Fetcher,
-  underlyingAssets: Array<{ uTokenName: string; address: string }>,
-  block: string | number
-) => {
-  const priceMap = new Map();
-
-  await Promise.all(
-    underlyingAssets.map(async (underlyingAsset: { uTokenName: string; address: string }) => {
-      const assetPrice = await fetcher.getPrice(underlyingAsset.address, block);
-      const reserveNormalizedIncome = await fetcher.getReserveNormalizedIncome(underlyingAsset.address, block);
-      const uTokenPrice = assetPrice.times(reserveNormalizedIncome);
-
-      priceMap.set(underlyingAsset.uTokenName, uTokenPrice);
-    })
-  );
-
-  return priceMap;
-};
 
 export default {
   initialize: provideInitialize(new Fetcher(getEthersProvider(), CONFIG), CONFIG.uTokens),
