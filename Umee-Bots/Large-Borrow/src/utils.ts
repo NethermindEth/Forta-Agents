@@ -45,13 +45,11 @@ export class SmartCaller {
 
   constructor(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}) {
     this.contract = contract;
-    this.options = Object.assign(
-      {},
-      {
-        cacheByBlockTag: true,
-        ...options,
-      }
-    );
+    this.options = {
+      cacheByBlockTag: true,
+      ...options,
+    };
+
     this.generateMethods();
   }
 
