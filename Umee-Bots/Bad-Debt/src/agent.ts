@@ -9,7 +9,7 @@ export const provideHandleTransaction = (
   config: AgentConfig,
   provider: ethers.providers.Provider
 ): HandleTransaction => {
-  const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const eventsLog: LogDescription[] = txEvent.filterLog(EVENTS_ABI, config.lendingPoolAddress);
     await Promise.all(
@@ -32,7 +32,6 @@ export const provideHandleTransaction = (
     );
     return findings;
   };
-  return handleTransaction;
 };
 
 export default {
