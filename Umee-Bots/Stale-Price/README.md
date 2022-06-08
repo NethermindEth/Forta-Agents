@@ -32,4 +32,4 @@ To check the results, uncomment the lines indicated in `src/agent.config.ts`, se
 npm run block 31914255
 ```
 
-In the block `31914255`, `MockUmeeOracle` the PoC has a `reserveList` query with one `source` address. This `source` latest time was `Thu Jan 01, 1970` so bot emits finding for the staling price.
+In the block `31914255`, `MockUmeeOracle` had been deployed with static `latestTimestamp` at  `Thu Jan 01, 1970`, so the bot emits finding for the staling price.
