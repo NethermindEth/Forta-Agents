@@ -28,7 +28,7 @@ export function createFinding(
   return Finding.from({
     alertId: "UMEE-2",
     name: "uToken exchange ratio drop",
-    description: `uToken pair of ${pair} has dropped.`,
+    description: `${pair} rate had a significant drop from the previous block`,
     type: FindingType.Info,
     severity,
     protocol: "Umee",
