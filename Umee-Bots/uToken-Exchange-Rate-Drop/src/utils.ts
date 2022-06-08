@@ -40,18 +40,6 @@ export function createFinding(
   });
 }
 
-// export const calculatePriceRatio = (numeratorPrice: BigNumber, denominatorPrice: BigNumber) => {
-//   return (
-//     Number(
-//       numeratorPrice
-//         .mul(`${10 ** CONFIG.decimals}`)
-//         .div(denominatorPrice)
-//         .toString()
-//     ) /
-//     10 ** CONFIG.decimals
-//   );
-// };
-
 export const calculatePriceRatio = (
   numeratorPrice: ethers.BigNumber,
   denominatorPrice: ethers.BigNumber
