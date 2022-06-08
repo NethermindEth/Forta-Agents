@@ -2,8 +2,8 @@
 
 ## Description
 
-This bot monitors price oracle data to see if it has not been updated for longer than a configured interval.
-This behavior can be customized in `src/agent.config.ts`.
+This bot monitors reserve assets price oracle data to check if it has not been updated for longer than a configured interval, also updating its local records when a new asset is added or an asset source is changed.
+The bot behavior can be customized in `src/agent.config.ts`.
 
 ## Supported Chains
 
@@ -12,13 +12,13 @@ This behavior can be customized in `src/agent.config.ts`.
 ## Alerts
 
 - UMEE-3
-  - Fired when any asset price stops being updated in a particular period.
+  - Fired when any asset price gets stale.
   - Severity is always set to "Medium"
   - Type is always set to "Suspicious"
   - Metadata contains:
     - `asset`: The address of the asset
     - `source`: The address of the source
-    - `referenceTimestamp`: The last time the bot checked the changed time
+    - `referenceTimestamp`: The latest price update timestamp for the asset
 
 ## Test Data
 
