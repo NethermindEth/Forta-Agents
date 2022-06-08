@@ -151,6 +151,38 @@ describe("large borrow bot", () => {
       expect(mockProvider.call).toHaveBeenCalledTimes(2);
     });
 
+    it("should not use uToken asset balance cache if it's from another block and should use cache of uToken address", async () => {
+      const txEvent = new TestTransactionEvent().setBlock(1000);
+      const txEvent2 = new TestTransactionEvent().setBlock(1001);
+      const config = {
+        lendingPoolAddress: LENDING_POOL_ADDRESS,
+        tvlPercentageThreshold: "50.5",
+      };
+
+      handleTransaction = provideHandleTransaction(provider, config);
+
+      const reserve = createAddress("0x2e");
+      const uToken = createAddress("0x2f");
+      const reserveAmount = ethers.BigNumber.from("10000");
+      const borrowAmount = ethers.BigNumber.from("5049");
+
+      addBorrow(txEvent, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addBorrow(txEvent2, LENDING_POOL_ADDRESS, reserve, USER_ADDRESS, ON_BEHALF_OF_ADDRESS, borrowAmount);
+      addReserve(mockProvider, LENDING_POOL_ADDRESS, reserve, uToken, reserveAmount, 1000);
+      addReserve(mockProvider, LENDING_POOL_ADDRESS, reserve, uToken, reserveAmount, 1001);
+
+      await handleTransaction(txEvent);
+
+      // 1 call to fetch the uToken address, 1 call to fetch the reserve asset balance
+      expect(mockProvider.call).toHaveBeenCalledTimes(2);
+
+      await handleTransaction(txEvent2);
+
+      // 1 call to fetch the reserve asset balance (block changed so shouldn't get it from the cache)
+      // no calls to fetch the uToken address (doesn't consider block tag in the cache key)
+      expect(mockProvider.call).toHaveBeenCalledTimes(2 + 1);
+    });
+
     it("should not repeat similar calls", async () => {
       const txEvent = new TestTransactionEvent().setBlock(1000);
       const config = {
