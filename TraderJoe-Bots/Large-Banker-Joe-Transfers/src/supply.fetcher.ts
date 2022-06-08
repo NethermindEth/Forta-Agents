@@ -21,10 +21,16 @@ export default class SupplyFetcher {
 
     if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
 
-    const jTokenContract = new Contract(jToken, SUPPLY_IFACE, this.provider);
-    const supply = jTokenContract.totalSupply({ blockTag: block });
+    try {
+      const jTokenContract = new Contract(jToken, SUPPLY_IFACE, this.provider);
+      const supply = jTokenContract.totalSupply({ blockTag: block });
 
-    this.cache.set(key, supply);
-    return supply;
+      this.cache.set(key, supply);
+      return supply;
+    } catch {
+      // If the network call fails, we return 0 to avoid a crash.
+      // This value is not saved on cache to allow the bot to fetch the correct supply when the function is called another time.
+      return BigNumber.from(0);
+    }
   }
 }
