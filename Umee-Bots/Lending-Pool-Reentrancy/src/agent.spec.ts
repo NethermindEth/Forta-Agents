@@ -100,11 +100,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
         "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
       ]);
 
-      const testEncodedWithdrawFuncCall: string = iFace.encodeFunctionData("withdraw", [
-        createAddress("0x0a"),
-        234,
-        createAddress("0x0b"),
-      ]);
 
       const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
         createAddress("0x0a"),
