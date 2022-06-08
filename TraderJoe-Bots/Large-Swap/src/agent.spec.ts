@@ -36,7 +36,7 @@ const mockProvider: MockEthersProvider = new MockEthersProvider();
 // const mockSigner: MockEthersSigner = new MockEthersSigner(mockProvider);
 
 const mockNetworkManager: NetworkData = {
-  multicall: createAddress("0xaa111"),
+  multicall2: createAddress("0xaa111"),
   factory: createAddress("0xaa112"),
   pairInitCodeHash: "0xea2e4d8ff7b84771dace7688751971197f2a4578c0298c78d11d93165de73773",
   networkMap: {},
@@ -157,8 +157,8 @@ describe("Large Swap test suite", () => {
     const reservesCall: string[][] = [[testPairs[0], PAIR_IFACE.encodeFunctionData("getReserves")]];
     const reservesReturnData: string[] = [PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[0])];
 
-    createAggregateCall(mockNetworkManager.multicall, tokenCalls, tokenReturnData, testBlocks[0]);
-    createAggregateCall(mockNetworkManager.multicall, reservesCall, reservesReturnData, testBlocks[0] - 1);
+    createAggregateCall(mockNetworkManager.multicall2, tokenCalls, tokenReturnData, testBlocks[0]);
+    createAggregateCall(mockNetworkManager.multicall2, reservesCall, reservesReturnData, testBlocks[0] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -195,8 +195,8 @@ describe("Large Swap test suite", () => {
     const reservesCall: string[][] = [[testPairs[1], PAIR_IFACE.encodeFunctionData("getReserves")]];
     const reservesReturnData: string[] = [PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[1])];
 
-    createAggregateCall(mockNetworkManager.multicall, tokenCalls, tokenReturnData, testBlocks[1]);
-    createAggregateCall(mockNetworkManager.multicall, reservesCall, reservesReturnData, testBlocks[1] - 1);
+    createAggregateCall(mockNetworkManager.multicall2, tokenCalls, tokenReturnData, testBlocks[1]);
+    createAggregateCall(mockNetworkManager.multicall2, reservesCall, reservesReturnData, testBlocks[1] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -234,8 +234,8 @@ describe("Large Swap test suite", () => {
     const reservesCall: string[][] = [[testPairs[2], PAIR_IFACE.encodeFunctionData("getReserves")]];
     const reservesReturnData: string[] = [PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[2])];
 
-    createAggregateCall(mockNetworkManager.multicall, tokenCalls, tokenReturnData, testBlocks[2]);
-    createAggregateCall(mockNetworkManager.multicall, reservesCall, reservesReturnData, testBlocks[2] - 1);
+    createAggregateCall(mockNetworkManager.multicall2, tokenCalls, tokenReturnData, testBlocks[2]);
+    createAggregateCall(mockNetworkManager.multicall2, reservesCall, reservesReturnData, testBlocks[2] - 1);
 
     const swapLogOne = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       senderOne,
@@ -285,8 +285,8 @@ describe("Large Swap test suite", () => {
     const reservesCall: string[][] = [[testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")]];
     const reservesReturnData: string[] = [PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[3])];
 
-    createAggregateCall(mockNetworkManager.multicall, tokenCalls, tokenReturnData, testBlocks[3]);
-    createAggregateCall(mockNetworkManager.multicall, reservesCall, reservesReturnData, testBlocks[3] - 1);
+    createAggregateCall(mockNetworkManager.multicall2, tokenCalls, tokenReturnData, testBlocks[3]);
+    createAggregateCall(mockNetworkManager.multicall2, reservesCall, reservesReturnData, testBlocks[3] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -340,7 +340,7 @@ describe("Large Swap test suite", () => {
       PAIR_IFACE.encodeFunctionResult("token1", [testTokens[4][1]]),
     ];
 
-    createAggregateCall(mockNetworkManager.multicall, tokenCalls, tokenReturnData, testBlocks[4]);
+    createAggregateCall(mockNetworkManager.multicall2, tokenCalls, tokenReturnData, testBlocks[4]);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,

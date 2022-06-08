@@ -9,7 +9,7 @@ export const SWAP_ABI: string = `event Swap(
     address indexed to
 )`;
 
-const GET_RESERVES_ABI: string = `    function getReserves()
+const GET_RESERVES_ABI: string = `function getReserves()
     public
     view
     returns (

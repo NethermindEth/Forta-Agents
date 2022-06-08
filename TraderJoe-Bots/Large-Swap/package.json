@@ -24,6 +24,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "ethers-multicall": "^0.2.3",
     "forta-agent": "^0.1.6",
     "lru-cache": "^7.10.1"
   },
