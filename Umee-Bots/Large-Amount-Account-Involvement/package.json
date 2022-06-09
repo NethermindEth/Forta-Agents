@@ -1,7 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "umee-large-amount-of-account-involvement",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that detects transactions in which large amount of addresses are involved.",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Large-Amount-Account-Involvement",
   "chainIds": [
     1
   ],
@@ -19,7 +20,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.6"
@@ -27,8 +29,10 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.0.7",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.6.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
