@@ -29,15 +29,16 @@ export function provideHandleTransaction(
         // Assign the `Swap` arguments to variables
         const [, amount0In, amount1In, amount0Out, amount1Out] = log.args;
 
-        let multicall2: MulticallProvider;
+        // Create multicall2 instance based on
+        // the current provider's chain id
+        const multicall2: MulticallProvider = new MulticallProvider(
+          provider,
+          networkManager.multicall2Data,
+          networkManager.chainId
+        );
 
-        const { chainId } = await provider.getNetwork();
-        if (chainId === 43114) {
-          multicall2 = new MulticallProvider(provider, { 43114: networkManager.multicall2 }, 43114);
-        } else {
-          multicall2 = new MulticallProvider(provider, { 42: networkManager.multicall2 }, 42);
-        }
-
+        // Create pair contract at emitting address
+        // and fetch `token0` and `token1`
         const pairContract = new MulticallContract(log.address, PAIR_ABI);
         const tokenResults = await multicall2.all([pairContract.token0(), pairContract.token1()], txEvent.blockNumber);
 
@@ -45,7 +46,7 @@ export function provideHandleTransaction(
         const token1 = tokenResults[1]["returnData"];
 
         // Check if the emitting address is a valid pair contract
-        // by comapring to `create2` output
+        // by comparing to `create2` output.
         const create2PairAddress: string = create2Pair(
           token0.toLowerCase(),
           token1.toLowerCase(),
@@ -53,8 +54,9 @@ export function provideHandleTransaction(
           networkManager.pairInitCodeHash
         );
         if (create2PairAddress === log.address) {
+          // Fetch reserves from pair contract
+          // at the previous block
           const reservesResults = await multicall2.all([pairContract.getReserves()], txEvent.blockNumber - 1);
-
           const [reserve0, reserve1] = reservesResults[0]["returnData"];
 
           // Create threshold amounts

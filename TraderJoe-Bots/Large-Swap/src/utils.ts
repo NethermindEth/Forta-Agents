@@ -25,16 +25,60 @@ export const PAIR_ABI: string[] = [TOKEN0_ABI, TOKEN1_ABI, SWAP_ABI, GET_RESERVE
 
 export const PAIR_IFACE: Interface = new Interface(PAIR_ABI);
 
-/* NOTE: UNEDITED
-const AGGREGATE_ABI =
-  "function aggregate((address, bytes)[] calls) public returns (uint256 blockNumber, bytes[] returnData)";
-*/
+// export const MULTICALL2_ABI = ["function tryAggregate(bool requireSuccess, (address, bytes)[] memory calls) public returns ((bool, bytes)[] memory returnData)"];
 
-// NOTE: REMOVE `view`
-const AGGREGATE_ABI =
-  "function aggregate((address, bytes)[] calls) public view returns (uint256 blockNumber, bytes[] returnData)";
+export const MULTICALL2_ABI = [
+  {
+    inputs: [
+      {
+        internalType: "bool",
+        name: "requireSuccess",
+        type: "bool",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "target",
+            type: "address",
+          },
+          {
+            internalType: "bytes",
+            name: "callData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct Multicall2.Call[]",
+        name: "calls",
+        type: "tuple[]",
+      },
+    ],
+    name: "tryAggregate",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "bool",
+            name: "success",
+            type: "bool",
+          },
+          {
+            internalType: "bytes",
+            name: "returnData",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct Multicall2.Result[]",
+        name: "returnData",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
-export const MULTICALL_IFACE: Interface = new Interface([AGGREGATE_ABI]);
+export const MULTICALL2_IFACE: Interface = new Interface(MULTICALL2_ABI);
 
 export const create2Pair = (tokenA: string, tokenB: string, factory: string, initCodeHash: string) => {
   let token0, token1;

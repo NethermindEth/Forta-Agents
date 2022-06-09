@@ -27,7 +27,9 @@ const TEST_CASES: [number, string, Record<number, string>, string, string][] = [
   ],
 ];
 
-const generateNetworkMap = (data: [number, string, Record<number, string>, string, string]): Record<number, NetworkData> => {
+const generateNetworkMap = (
+  data: [number, string, Record<number, string>, string, string]
+): Record<number, NetworkData> => {
   // generates a NetworkMap for one test case.
   let networkMap: Record<number, NetworkData> = {};
 
