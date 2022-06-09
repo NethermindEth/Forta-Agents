@@ -1,7 +1,7 @@
 {
   "name": "traderjoe-3",
   "version": "0.0.1",
-  "description": "Detect large swaps from valid pair contracts",
+  "description": "Detect large swaps from valid JoePair contracts",
   "chainIds": [
     43114
   ],
