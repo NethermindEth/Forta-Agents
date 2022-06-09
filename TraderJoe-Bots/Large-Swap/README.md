@@ -31,7 +31,7 @@ The bot behavior can be verified with the following contracts on the Kovan ETH t
 
 [0xDF31A3B3bF5e738895f477d0c65973ed6D275bb4](https://kovan.etherscan.io/address/0xdf31a3b3bf5e738895f477d0c65973ed6d275bb4) - `TestJoePair`.
 
-[0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A](https://kovan.etherscan.io/address/0x2cc8688c5f75e365aaeeb4ea8d6a480405a48d2a#contracts) - `Multicall` (deployed by MakerDAO, code [here](https://github.com/makerdao/multicall/blob/master/src/Multicall.sol)).
+[0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696](https://kovan.etherscan.io/address/0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696) - `Multicall2`.
 
 
 [0x3bfd88457cd5161a44f95231e777cc26c66424985fed5c089bc941af55b861c6](https://kovan.etherscan.io/tx/0x3bfd88457cd5161a44f95231e777cc26c66424985fed5c089bc941af55b861c6) - "Large" `Swap` event emission.
