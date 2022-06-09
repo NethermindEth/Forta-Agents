@@ -42,8 +42,19 @@ export function provideHandleTransaction(
         const pairContract = new MulticallContract(log.address, PAIR_ABI);
         const tokenResults = await multicall2.all([pairContract.token0(), pairContract.token1()], txEvent.blockNumber);
 
-        const token0 = tokenResults[0]["returnData"];
-        const token1 = tokenResults[1]["returnData"];
+        // Set token addresses
+        // to zero as default
+        let tokenAddresses = [
+          "0x0000000000000000000000000000000000000000",
+          "0x0000000000000000000000000000000000000000",
+        ];
+        // Set the tokenAddresses value to the
+        // returnData that equaled 'true' from
+        // `multicall2.tryAggregate`
+        for (let i = 0; i < tokenResults.length; i++) {
+          tokenAddresses[i] = tokenResults[i]["returnData"];
+        }
+        const [token0, token1] = tokenAddresses;
 
         // Check if the emitting address is a valid pair contract
         // by comparing to `create2` output.
@@ -71,7 +82,7 @@ export function provideHandleTransaction(
             amount1In.gte(reserve1Threshold) ||
             amount1Out.gte(reserve1Threshold)
           ) {
-            findings.push(createFinding(log.args));
+            findings.push(createFinding(log.args, log.address));
           }
         }
       })

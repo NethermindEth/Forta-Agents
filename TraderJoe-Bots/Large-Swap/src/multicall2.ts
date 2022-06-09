@@ -47,6 +47,11 @@ class MulticallProvider extends Provider {
     for (let i = 0; i < calls.length; i++) {
       const outputs = calls[i].outputs;
       const result = response[i];
+
+      if (result.success === false) {
+        break;
+      }
+
       const params = Abi.decode(outputs, result.returnData);
       results.push({
         success: result.success,
@@ -56,4 +61,5 @@ class MulticallProvider extends Provider {
     return results as T;
   }
 }
+
 export { MulticallContract, MulticallProvider };

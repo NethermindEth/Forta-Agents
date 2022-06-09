@@ -1,6 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (args: any) => {
+export const createFinding = (args: any, address: string) => {
   return Finding.fromObject({
     name: "Large Swap has occurred",
     description: "Swap event was emitted with a large amount",
@@ -16,5 +16,6 @@ export const createFinding = (args: any) => {
       amount1Out: args.amount1Out.toString(),
       to: args.to.toLowerCase(),
     },
+    addresses: [address],
   });
 };

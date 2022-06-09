@@ -1,10 +1,17 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent, createAddress, MockEthersProvider, MockEthersSigner } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { Interface, keccak256, getCreate2Address } from "ethers/lib/utils";
 import { provideHandleTransaction } from "./agent";
 import NetworkData from "./network";
-import { MULTICALL2_IFACE, PAIR_IFACE, create2Pair } from "./utils";
+import { MULTICALL2_IFACE, PAIR_IFACE } from "./utils";
+
+const create2Pair = (tokenA: string, tokenB: string, factory: string, initCodeHash: string) => {
+  let token0, token1;
+  tokenA < tokenB ? ((token0 = tokenA), (token1 = tokenB)) : ((token0 = tokenB), (token1 = tokenA));
+  const salt: string = keccak256(token0.concat(token1.slice(2)));
+  return getCreate2Address(factory, salt, initCodeHash).toLowerCase();
+};
 
 const createFinding = (
   sender: string,
@@ -12,7 +19,8 @@ const createFinding = (
   amount1In: BigNumber,
   amount0Out: BigNumber,
   amount1Out: BigNumber,
-  to: string
+  to: string,
+  emittingAddress: string
 ) => {
   return Finding.fromObject({
     name: "Large Swap has occurred",
@@ -29,6 +37,7 @@ const createFinding = (
       amount1Out: amount1Out.toString(),
       to,
     },
+    addresses: [emittingAddress],
   });
 };
 
@@ -180,7 +189,9 @@ describe("Large Swap test suite", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(sender, amount0In, amount1In, amount0Out, amount1Out, to)]);
+    expect(findings).toStrictEqual([
+      createFinding(sender, amount0In, amount1In, amount0Out, amount1Out, to, testPairs[0]),
+    ]);
   });
 
   it("should detect a large Swap event emission with `amount0In` greater than threshold", async () => {
@@ -220,7 +231,9 @@ describe("Large Swap test suite", () => {
 
     const findings = await handleTransaction(txEvent);
 
-    expect(findings).toStrictEqual([createFinding(sender, amount0In, amount1In, amount0Out, amount1Out, to)]);
+    expect(findings).toStrictEqual([
+      createFinding(sender, amount0In, amount1In, amount0Out, amount1Out, to, testPairs[1]),
+    ]);
   });
 
   it("should detect multiple large Swap event emissions with `amount0Out` and `amount1In` greater than threshold", async () => {
@@ -272,8 +285,8 @@ describe("Large Swap test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([
-      createFinding(senderOne, amount0InOne, amount1InOne, amount0OutOne, amount1OutOne, toOne),
-      createFinding(senderTwo, amount0InTwo, amount1InTwo, amount0OutTwo, amount1OutTwo, toTwo),
+      createFinding(senderOne, amount0InOne, amount1InOne, amount0OutOne, amount1OutOne, toOne, testPairs[2]),
+      createFinding(senderTwo, amount0InTwo, amount1InTwo, amount0OutTwo, amount1OutTwo, toTwo, testPairs[2]),
     ]);
   });
 
@@ -365,6 +378,72 @@ describe("Large Swap test suite", () => {
       .setFrom(sender)
       .setBlock(testBlocks[4])
       .addAnonymousEventLog(nonValidPair, swapLog.data, ...swapLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect a Swap event emission when a token fetch returns false", async () => {
+    const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
+
+    const tokenCalls: [string, string][] = [
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+    ];
+    const tokenReturnData: [boolean, string][] = [
+      [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[3][0]])],
+      [false, "0x"],
+    ];
+
+    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3]);
+
+    const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
+      sender,
+      amount0In,
+      amount1In,
+      amount0Out,
+      amount1Out,
+      to,
+    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testPairs[3])
+      .setFrom(sender)
+      .setBlock(testBlocks[3])
+      .addAnonymousEventLog(testPairs[3], swapLog.data, ...swapLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect a Swap event emission when both token fetches returns false", async () => {
+    const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
+
+    const tokenCalls: [string, string][] = [
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+    ];
+    const tokenReturnData: [boolean, string][] = [
+      [false, "0x"],
+      [false, "0x"],
+    ];
+
+    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3]);
+
+    const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
+      sender,
+      amount0In,
+      amount1In,
+      amount0Out,
+      amount1Out,
+      to,
+    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testPairs[3])
+      .setFrom(sender)
+      .setBlock(testBlocks[3])
+      .addAnonymousEventLog(testPairs[3], swapLog.data, ...swapLog.topics);
 
     const findings = await handleTransaction(txEvent);
 

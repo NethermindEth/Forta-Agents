@@ -25,8 +25,6 @@ export const PAIR_ABI: string[] = [TOKEN0_ABI, TOKEN1_ABI, SWAP_ABI, GET_RESERVE
 
 export const PAIR_IFACE: Interface = new Interface(PAIR_ABI);
 
-// export const MULTICALL2_ABI = ["function tryAggregate(bool requireSuccess, (address, bytes)[] memory calls) public returns ((bool, bytes)[] memory returnData)"];
-
 export const MULTICALL2_ABI = [
   {
     inputs: [

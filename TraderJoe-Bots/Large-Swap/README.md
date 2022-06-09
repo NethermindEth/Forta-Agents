@@ -22,6 +22,7 @@ This bot detects swaps from valid pair contracts when any `amount` argument is h
     - `amount0Out`: Amount of token0 out.
     - `amount1Out`: Amount of token1 out.
     - `to`: Recipient address.
+  - `Addresses`: Emitting JoePair contract's address.
 
 ## Test Data
 
