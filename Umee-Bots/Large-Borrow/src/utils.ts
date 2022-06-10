@@ -76,7 +76,7 @@ export class SmartCaller {
     contract: ethers.Contract,
     functionName: string,
     args: any[],
-    overrides: CallOverrides = {},
+    overrides: CallOverrides,
     options: SmartCallerOptions
   ): Promise<any> {
     if (options.cacheByBlockTag && overrides.blockTag === "latest") {
