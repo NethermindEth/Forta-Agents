@@ -70,8 +70,8 @@ describe("Re-entrancy transfers bot test suite", () => {
       type: FindingType.Exploit,
       metadata: {
         from: from, // address initializing the call.
-        initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string, // function that was called in our contract and resulted in a re-entrancy.
-        reentrancyFrom: reentrancyFrom, // the contract re-entring our contract.
+        initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string, // function that was called in a traderJoe contract and resulted in a re-entrancy.
+        reentrancyFrom: reentrancyFrom, // the contract re-entering traderJoe contract.
         reetrantCall: reetrantSig?.slice(9) as string, // second call to the same traderJoe contract.
       },
       addresses: [address],

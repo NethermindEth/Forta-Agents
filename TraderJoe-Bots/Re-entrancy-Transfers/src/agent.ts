@@ -51,7 +51,7 @@ export const provideHandleTransaction =
           }
           // check if a call to the same contract happened in sub-traces.
           if (txEvent.traces[j].action.to.toLowerCase() === txEvent.traces[i].action.to.toLowerCase()) {
-            const reEntrantSelector = txEvent.traces[j].action.input.slice(0, 10);
+            const reentrantSelector = txEvent.traces[j].action.input.slice(0, 10);
             // create a finding
             findings.push(
               createFinding(
@@ -59,7 +59,7 @@ export const provideHandleTransaction =
                 txEvent.traces[i].action.to,
                 txEvent.traces[i].action.from,
                 selector,
-                reEntrantSelector
+                reentrantSelector
               )
             );
           }
