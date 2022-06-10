@@ -14,12 +14,14 @@ export const provideHandleTransaction = (
   config: AgentConfig,
   getTransactionReceipt: (txHash: string) => Promise<Receipt>
 ): HandleTransaction => {
+  const monitoredAddresses = config.monitoredAddresses.map((el) => el.toLowerCase());
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const involvedAddresses: string[] = [];
 
-    config.monitoredAddresses.forEach((address) => {
-      if (address.toLowerCase() in txEvent.addresses) {
+    monitoredAddresses.forEach((address) => {
+      if (address in txEvent.addresses) {
         involvedAddresses.push(address);
       }
     });
