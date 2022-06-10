@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { getEthersProvider } from "forta-agent";
+import { getEthersProvider, LogDescription } from "forta-agent";
 import { HandleTransaction, TransactionEvent, Finding } from "forta-agent";
 import { createFinding } from "./finding";
 import MarketsFetcher from "./markets.fetcher";
@@ -39,7 +39,7 @@ export const provideHandleTransaction =
       });
 
     // Listen to `Mint`, `Redeem` and `Borrow` events on jToken contracts.
-    const logs = txEvent.filterLog(
+    const logs: LogDescription[] = txEvent.filterLog(
       EVENTS_ABIS,
       Array.from(marketsFetcher.markets)
     );
@@ -53,19 +53,12 @@ export const provideHandleTransaction =
     for (let i = 0; i < logs.length; i++) {
       // set threshold
       const threshold = supplies[i].mul(PERCENTAGE).div(100);
-      if (
-        // for `Borrow` events we access amounts through args[1]
-        logs[i].name === "Borrow" &&
-        BigNumber.from(logs[i].args[1]).gte(threshold)
-      )
+
+      if (BigNumber.from(logs[i].args.tokensAmount).gte(threshold)) {
         findings.push(
           createFinding(logs[i].name, logs[i].address, Array.from(logs[i].args))
         );
-      // for `Mint` and `Redeem` events we access amounts through args[2]
-      else if (BigNumber.from(logs[i].args[2]).gte(threshold))
-        findings.push(
-          createFinding(logs[i].name, logs[i].address, Array.from(logs[i].args))
-        );
+      }
     }
     return findings;
   };
