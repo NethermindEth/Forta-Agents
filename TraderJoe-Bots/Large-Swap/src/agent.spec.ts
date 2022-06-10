@@ -155,22 +155,18 @@ describe("Large Swap test suite", () => {
   it("should detect a large Swap event emission with `amount1Out` greater than threshold", async () => {
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[0];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [testPairs[0], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[0], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[0], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[0][0]])],
       [true, PAIR_IFACE.encodeFunctionResult("token1", [testTokens[0][1]])],
-    ];
-
-    const reservesCall: [string, string][] = [[testPairs[0], PAIR_IFACE.encodeFunctionData("getReserves")]];
-    const reservesReturnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[0])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[0]);
-    createTryAggregateCall(mockNetworkManager.multicall2, false, reservesCall, reservesReturnData, testBlocks[0] - 1);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[0] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -197,22 +193,18 @@ describe("Large Swap test suite", () => {
   it("should detect a large Swap event emission with `amount0In` greater than threshold", async () => {
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[1];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [testPairs[1], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[1], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[1], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[1][0]])],
       [true, PAIR_IFACE.encodeFunctionResult("token1", [testTokens[1][1]])],
-    ];
-
-    const reservesCall: [string, string][] = [[testPairs[1], PAIR_IFACE.encodeFunctionData("getReserves")]];
-    const reservesReturnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[1])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[1]);
-    createTryAggregateCall(mockNetworkManager.multicall2, false, reservesCall, reservesReturnData, testBlocks[1] - 1);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[1] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -240,22 +232,18 @@ describe("Large Swap test suite", () => {
     const [senderOne, amount0InOne, amount1InOne, amount0OutOne, amount1OutOne, toOne] = testCases[2];
     const [senderTwo, amount0InTwo, amount1InTwo, amount0OutTwo, amount1OutTwo, toTwo] = testCases[3];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [testPairs[2], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[2], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[2], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[2][0]])],
       [true, PAIR_IFACE.encodeFunctionResult("token1", [testTokens[2][1]])],
-    ];
-
-    const reservesCall: [string, string][] = [[testPairs[2], PAIR_IFACE.encodeFunctionData("getReserves")]];
-    const reservesReturnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[2])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[2]);
-    createTryAggregateCall(mockNetworkManager.multicall2, false, reservesCall, reservesReturnData, testBlocks[2] - 1);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[2] - 1);
 
     const swapLogOne = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       senderOne,
@@ -293,22 +281,18 @@ describe("Large Swap test suite", () => {
   it("should not detect a Swap event emissions with all arguments less than threshold", async () => {
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[3][0]])],
       [true, PAIR_IFACE.encodeFunctionResult("token1", [testTokens[3][1]])],
-    ];
-
-    const reservesCall: [string, string][] = [[testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")]];
-    const reservesReturnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[3])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3]);
-    createTryAggregateCall(mockNetworkManager.multicall2, false, reservesCall, reservesReturnData, testBlocks[3] - 1);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[3] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -353,16 +337,18 @@ describe("Large Swap test suite", () => {
 
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[1];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [nonValidPair, PAIR_IFACE.encodeFunctionData("token0")],
       [nonValidPair, PAIR_IFACE.encodeFunctionData("token1")],
+      [nonValidPair, PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[4][0]])],
       [true, PAIR_IFACE.encodeFunctionResult("token1", [testTokens[4][1]])],
+      [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[4])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[4]);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[4] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -390,13 +376,15 @@ describe("Large Swap test suite", () => {
     const tokenCalls: [string, string][] = [
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
     const tokenReturnData: [boolean, string][] = [
       [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[3][0]])],
       [false, "0x"],
+      [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[3])],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3]);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,
@@ -420,16 +408,88 @@ describe("Large Swap test suite", () => {
   it("should not detect a Swap event emission when both token fetches returns false", async () => {
     const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
 
-    const tokenCalls: [string, string][] = [
+    const calls: [string, string][] = [
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
       [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")],
     ];
-    const tokenReturnData: [boolean, string][] = [
+    const returnData: [boolean, string][] = [
+      [false, "0x"],
+      [false, "0x"],
+      [true, PAIR_IFACE.encodeFunctionResult("getReserves", testReserves[3])],
+    ];
+
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[3] - 1);
+
+    const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
+      sender,
+      amount0In,
+      amount1In,
+      amount0Out,
+      amount1Out,
+      to,
+    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testPairs[3])
+      .setFrom(sender)
+      .setBlock(testBlocks[3])
+      .addAnonymousEventLog(testPairs[3], swapLog.data, ...swapLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect a Swap event emission when reserve fetches returns false", async () => {
+    const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
+
+    const calls: [string, string][] = [
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")],
+    ];
+    const returnData: [boolean, string][] = [
+      [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[3][0]])],
+      [true, PAIR_IFACE.encodeFunctionResult("token0", [testTokens[3][1]])],
+      [false, "0x"],
+    ];
+
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[3] - 1);
+
+    const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
+      sender,
+      amount0In,
+      amount1In,
+      amount0Out,
+      amount1Out,
+      to,
+    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setTo(testPairs[3])
+      .setFrom(sender)
+      .setBlock(testBlocks[3])
+      .addAnonymousEventLog(testPairs[3], swapLog.data, ...swapLog.topics);
+
+    const findings = await handleTransaction(txEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should not detect a Swap event emission when token and reserve fetches return false", async () => {
+    const [sender, amount0In, amount1In, amount0Out, amount1Out, to] = testCases[4];
+
+    const calls: [string, string][] = [
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token0")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("token1")],
+      [testPairs[3], PAIR_IFACE.encodeFunctionData("getReserves")],
+    ];
+    const returnData: [boolean, string][] = [
+      [false, "0x"],
       [false, "0x"],
       [false, "0x"],
     ];
 
-    createTryAggregateCall(mockNetworkManager.multicall2, false, tokenCalls, tokenReturnData, testBlocks[3]);
+    createTryAggregateCall(mockNetworkManager.multicall2, false, calls, returnData, testBlocks[3] - 1);
 
     const swapLog = PAIR_IFACE.encodeEventLog(PAIR_IFACE.getEvent("Swap"), [
       sender,

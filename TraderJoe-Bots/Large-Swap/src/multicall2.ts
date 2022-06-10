@@ -15,7 +15,6 @@ class MulticallProvider extends Provider {
       setMulticallAddress(network, undefined as unknown as string);
     });
     for (const [network, address] of Object.entries(multicallAddress)) {
-      // setMulticallAddress(network as unknown as number, address);
       setMulticallAddress(parseInt(network), address);
     }
     super(provider, chainId);
@@ -49,7 +48,7 @@ class MulticallProvider extends Provider {
       const result = response[i];
 
       if (result.success === false) {
-        break;
+        continue;
       }
 
       const params = Abi.decode(outputs, result.returnData);

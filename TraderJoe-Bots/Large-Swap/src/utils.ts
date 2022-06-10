@@ -80,7 +80,15 @@ export const MULTICALL2_IFACE: Interface = new Interface(MULTICALL2_ABI);
 
 export const create2Pair = (tokenA: string, tokenB: string, factory: string, initCodeHash: string) => {
   let token0, token1;
-  tokenA < tokenB ? ((token0 = tokenA), (token1 = tokenB)) : ((token0 = tokenB), (token1 = tokenA));
+
+  if (tokenA < tokenB) {
+    token0 = tokenA;
+    token1 = tokenB;
+  } else {
+    token0 = tokenB;
+    token1 = tokenA;
+  }
+
   const salt: string = keccak256(token0.concat(token1.slice(2)));
   return getCreate2Address(factory, salt, initCodeHash).toLowerCase();
 };

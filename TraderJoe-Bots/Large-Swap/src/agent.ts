@@ -23,36 +23,55 @@ export function provideHandleTransaction(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
+    // Create multicall2 instance based on
+    // the current provider's chain id
+    const multicall2: MulticallProvider = new MulticallProvider(
+      provider,
+      networkManager.multicall2Data,
+      networkManager.chainId
+    );
+
     await Promise.all(
       // Filter for any `Swap` event emissions
       txEvent.filterLog(SWAP_ABI).map(async (log) => {
         // Assign the `Swap` arguments to variables
         const [, amount0In, amount1In, amount0Out, amount1Out] = log.args;
 
-        // Create multicall2 instance based on
-        // the current provider's chain id
-        const multicall2: MulticallProvider = new MulticallProvider(
-          provider,
-          networkManager.multicall2Data,
-          networkManager.chainId
-        );
-
         // Create pair contract at emitting address
         // and fetch `token0` and `token1`
         const pairContract = new MulticallContract(log.address, PAIR_ABI);
-        const tokenResults = await multicall2.all([pairContract.token0(), pairContract.token1()], txEvent.blockNumber);
+        const results = await multicall2.all(
+          [pairContract.token0(), pairContract.token1(), pairContract.getReserves()],
+          txEvent.blockNumber - 1
+        );
 
-        // Set token addresses
-        // to zero as default
+        // Set token addresses and
+        // reserves to zero as default
         let tokenAddresses = [
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
         ];
+        let [reserveSuccess, reserve0, reserve1]: [boolean, BigNumber, BigNumber] = [
+          false,
+          BigNumber.from(0),
+          BigNumber.from(0),
+        ];
         // Set the tokenAddresses value to the
         // returnData that equaled 'true' from
         // `multicall2.tryAggregate`
-        for (let i = 0; i < tokenResults.length; i++) {
-          tokenAddresses[i] = tokenResults[i]["returnData"];
+        // (Less than two, because the first
+        // two items, index `0` and `1` in
+        // the array are the tokens)
+        for (let i = 0; i < results.length; i++) {
+          // confirm the current item is an address
+          // otherwise, move onto the next
+          if (results[i]["returnData"].length === 42) {
+            tokenAddresses[i] = results[i]["returnData"];
+          } else {
+            reserveSuccess = results[i]["success"];
+            reserve0 = results[i]["returnData"][0];
+            reserve1 = results[i]["returnData"][1];
+          }
         }
         const [token0, token1] = tokenAddresses;
 
@@ -64,12 +83,7 @@ export function provideHandleTransaction(
           networkManager.factory,
           networkManager.pairInitCodeHash
         );
-        if (create2PairAddress === log.address) {
-          // Fetch reserves from pair contract
-          // at the previous block
-          const reservesResults = await multicall2.all([pairContract.getReserves()], txEvent.blockNumber - 1);
-          const [reserve0, reserve1] = reservesResults[0]["returnData"];
-
+        if (create2PairAddress === log.address && reserveSuccess === true) {
           // Create threshold amounts
           const reserve0Threshold: BigNumber = reserve0.mul(thresholdPercentage).div(100);
           const reserve1Threshold: BigNumber = reserve1.mul(thresholdPercentage).div(100);
