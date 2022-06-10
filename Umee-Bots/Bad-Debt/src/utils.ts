@@ -27,25 +27,25 @@ const getUserAddressFromEvent = (logs: LogDescription) => {
     return logs.args.target;
   }
 };
-interface IUserData {
+interface UserData {
   logs: LogDescription;
   lendingPoolAddress: string;
   provider: ethers.providers.Provider;
   blockNumber: number;
 }
-const getUserData = async ({ logs, lendingPoolAddress, provider, blockNumber }: IUserData) => {
+const getUserData = async ({ logs, lendingPoolAddress, provider, blockNumber }: UserData) => {
   const userAddress = getUserAddressFromEvent(logs);
   const contract = await new ethers.Contract(lendingPoolAddress, GET_USER_ACCOUNT_DATA_ABI, provider);
   return await contract.getUserAccountData(userAddress, { blockTag: blockNumber });
 };
-interface IMetaData {
+interface MetaData {
   collateralAmount: string;
   borrowAmount: string;
 }
-const createFinding = ({ collateralAmount, borrowAmount }: IMetaData): Finding => {
+const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding => {
   return Finding.fromObject({
     name: "Detect bad debt immediately after market interaction",
-    description: `User has collaterals ${collateralAmount} and borrowed ${borrowAmount}`,
+    description: `The user borrows assets more than he has in collateral.`,
     alertId: "UMEE-11",
     protocol: "Umee",
     type: FindingType.Exploit,
