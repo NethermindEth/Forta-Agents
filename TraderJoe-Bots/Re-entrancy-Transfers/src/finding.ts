@@ -20,8 +20,8 @@ export const createFinding = (
     metadata: {
       from: from,
       initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string,
-      entrancyFrom: entrancyFrom,
-      reEtrantCall: FUNCTIONS_MAP.get(reEtrantCall)
+      reentrancyFrom: entrancyFrom,
+      reetrantCall: FUNCTIONS_MAP.get(reEtrantCall)
         ? (FUNCTIONS_MAP.get(reEtrantCall)?.slice(9) as string)
         : reEtrantCall,
     },

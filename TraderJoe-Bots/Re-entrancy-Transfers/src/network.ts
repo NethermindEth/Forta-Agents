@@ -32,10 +32,10 @@ export default class NetworkManager implements NetworkData {
   networkMap: Record<number, NetworkData>;
 
   constructor(networkMap: Record<number, NetworkData> = NETWORK_MAP) {
-    this.joeTroller = "";
-    this.sJoeStaking = "";
-    this.masterChefV2 = "";
-    this.moneyMaker = "";
+    this.joeTroller = "0x0000000000000000000000000000000000000000";
+    this.sJoeStaking = "0x0000000000000000000000000000000000000000";
+    this.masterChefV2 = "0x0000000000000000000000000000000000000000";
+    this.moneyMaker = "0x0000000000000000000000000000000000000000";
     this.networkMap = networkMap;
   }
 

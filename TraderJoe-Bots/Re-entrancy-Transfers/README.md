@@ -18,8 +18,8 @@ This bot detects re-entrancy in `StableJoeStaking`, `MasterChefJoeV2` , `MoneyMa
   - Metadata contains:
     - `from`: source address of the first contract call.
     - `initialCall`: signature of the function that was initially called.
-    - `entrancyFrom`: the address source making the second call to the contract.
-    - `reEntrantCall`: signature of the function that was called in the re-entrancy case. If it is a non moitored function, its selector is given.
+    - `reentrancyFrom`: the address source making the second call to the contract.
+    - `reentrantCall`: signature of the function that was called in the re-entrancy case. If it is a non moitored function, its selector is given.
   - addresses contains the address of the contract where the re-entrancy happened.
 
 ## Test Data (Kovan)

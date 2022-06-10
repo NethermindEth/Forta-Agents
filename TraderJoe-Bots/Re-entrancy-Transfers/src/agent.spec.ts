@@ -49,16 +49,16 @@ describe("Re-entrancy transfers bot test suite", () => {
   const createFinding = (
     from: string,
     address: string,
-    rentrancyFrom: string,
+    reentrancyFrom: string,
     initialCall: string,
-    reEtrantCall: string
+    reetrantCall: string
   ) => {
-    let reEtrantSig;
+    let reetrantSig;
     try {
-      reEtrantSig = FUNCTIONS_MAP.get(reEtrantCall);
+      reetrantSig = FUNCTIONS_MAP.get(reetrantCall);
     } catch {
       // if the reentrant call is different from the monitored transfer calls, return the selector.
-      reEtrantSig = reEtrantCall;
+      reetrantSig = reetrantCall;
     }
 
     return Finding.fromObject({
@@ -71,8 +71,8 @@ describe("Re-entrancy transfers bot test suite", () => {
       metadata: {
         from: from, // address initializing the call.
         initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string, // function that was called in our contract and resulted in a re-entrancy.
-        entrancyFrom: rentrancyFrom, // the contract re-entring our contract.
-        reEtrantCall: reEtrantSig?.slice(9) as string, // second call to the same traderJoe contract.
+        reentrancyFrom: reentrancyFrom, // the contract re-entring our contract.
+        reetrantCall: reetrantSig?.slice(9) as string, // second call to the same traderJoe contract.
       },
       addresses: [address],
     });
