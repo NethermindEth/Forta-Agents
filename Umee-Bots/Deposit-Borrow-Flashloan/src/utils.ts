@@ -1,8 +1,8 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-// export const LENDING_POOL = "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa";
+export const LENDING_POOL = "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa";
 // for Kovan network test case, comment out the LENDING_POOL address above and uncomment the LENDING_POOL address below.
-export const LENDING_POOL = "0xa4278adb8f23Ed4B859a92c2C5926338A1F46a9e";
+// export const LENDING_POOL = "0xa4278adb8f23Ed4B859a92c2C5926338A1F46a9e";
 
 export const DEPOSIT_ABI =
   "event Deposit(address indexed reserve, address user, address indexed onBehalfOf, uint256 amount, uint16 indexed referral)";
