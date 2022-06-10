@@ -16,7 +16,6 @@ This bot monitors deposit or borrow events in the same transaction along with a 
   - Severity is always set to "info"
   - Type is always set to "info"
   - metadata:
-    - realizedEvents: Detected event pair.
     - from: Address of the sender of the transaction.
     - to: Address of the message call’s recipient.
 
@@ -25,7 +24,6 @@ This bot monitors deposit or borrow events in the same transaction along with a 
   - Severity is always set to "info"
   - Type is always set to "info"
   - metadata:
-    - realizedEvents: Detected event pair.
     - from: Address of the sender of the transaction.
     - to: Address of the message call’s recipient.
 

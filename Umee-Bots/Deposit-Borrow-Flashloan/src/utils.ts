@@ -27,7 +27,6 @@ export function createFinding(logName: string, from: string, to: string | null):
     severity: FindingSeverity.Info,
     protocol: "Umee",
     metadata: {
-      realizedEvents: `FlashLoan - ${logName}`,
       from,
       to: to ? to : "null",
     },
