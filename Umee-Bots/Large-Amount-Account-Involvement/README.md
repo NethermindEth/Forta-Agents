@@ -26,7 +26,7 @@ The minimum amount of addresses that should trigger the alert is set by the `thr
 
 ## Test Data
 
-For testing purposes, `src/agent.config.ts` monitors 'Umee', 'Lending Pool', 'Umee Oracle' and a random user address.
+Uncomment the lines indicated in `src/agent.config.ts` and set a `traceRpcUrl` for mainnet in your `forta.config.json` file. The testing configuration monitors 'UMEE', 'Lending Pool', 'Umee Oracle' and a random user address.
 
 ### Mainnet
 
@@ -38,8 +38,7 @@ The first transaction will create a finding in which there are 2 monitored addre
 
 ### Kovan Testnet (PoC)
 
-In order to check the results, uncomment the lines indicated in `src/agent.config.ts`, set a Kovan testnet RPC (e.g.
-`https://kovan.poa.network`) as `jsonRpcUrl` in your `forta.config.json` file and run:
+In order to check the results, uncomment the lines indicated in `src/agent.config.ts`, set a trace-enabled Kovan testnet RPC as `jsonRpcUrl` and `traceRpcUrl` in your `forta.config.json` file and run:
 
 ```
 npm run tx 0x78fe7dddec7325817213b04827214e49b7a484d4fa61eded78914c88b0c28410
