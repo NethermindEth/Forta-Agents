@@ -2,8 +2,8 @@
 
 ## Description
 
-This bot detects swaps from valid pair contracts when any `amount` argument is high.
-> Currently, high is set to greater than or equal to `20%`.
+This bot detects swaps from valid JoePair contracts when any `amount` argument is high.
+> Currently, high is set to greater than or equal to `20%` of the `amount`'s respective `reserve`. To update the threshold percentage, go to L9 in `agent.ts`.
 
 ## Supported Chains
 
