@@ -18,8 +18,6 @@ export const provideHandleTransaction = (
     const findings: Finding[] = [];
     const involvedAddresses: string[] = [];
 
-    const sa = await getTransactionReceipt(txEvent.hash);
-
     config.monitoredAddresses.forEach((address) => {
       if (address.toLowerCase() in txEvent.addresses) {
         involvedAddresses.push(address);
