@@ -1,26 +1,64 @@
-# Large Tether Transfer Agent
+# High Amount of Gas Use
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects transactions in which high amount of gas is used.
+
+The accounts that are needed to be monitored must be added inside the `monitoredAddresses` array in `src/agent.config.ts` file.
+
+The minimum amount of gas that should trigger the alert is set by the `mediumGasThreshold`, `highGasThreshold` and `criticalGasThreshold` values in `src/agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- UMEE-12
+  - Fired when a transaction uses high amount of gas
+  - Severity is always set to "Medium", "High" or "Critical" depending on the amount of gas use
+  - Type is always set to "Suspicious"
+  - Metadata:
+    - `from`: Address of the initiator of the transaction
+    - `to`: Address of the transaction recipient
+    - `monitoredAddresses`: Addresses of the monitored accounts that are involved in the transaction
+    - `gasUsed`: Amount of gas spent in the transaction
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+For testing purposes, `src/agent.config.ts` monitors 'Umee', 'Lending Pool', 'Umee Oracle' and a random user address.
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+### Mainnet
+
+Uncomment the lines indicated in `src/agent.config.ts` and run:
+
+```
+npm run tx 0x70e41c3279d8014841665f480f1022569ca3fb840a387baa6b69dd8c74f49675
+```
+
+This transaction will create a finding in which there are 2 monitored addresses because 2 out of 4 addresses that are monitored are both involved in this transaction.
+
+### Kovan Testnet (PoC)
+
+In order to check the results, uncomment the lines indicated in `src/agent.config.ts`, set a Kovan testnet RPC (e.g.
+`https://kovan.poa.network`) as `jsonRpcUrl` in your `forta.config.json` file and run:
+
+Medium severity:
+
+```
+npm run tx 0x5b5e4611841d52794847507757b0e96f6d13c491c275bd781a642e84348d37fb
+```
+
+High severity:
+
+```
+npm run tx 0x69fa4948f92a526374eb393f5cbcad4745093ed4a20eb8cf892a9c19a14d7cdb
+```
+
+Critical severity:
+
+```
+npm run tx 0x44b594d1ace27d1c6db49b38ff4d25b3f02ba58b3c6e6efe1eeda67e76c0ffed
+```
+
+These transactions use different amount of gas above thresholds. Since a contract inside `monitoredAddresses` at `src/agent.config.ts` is involved in these transactions, these commands will create a finding.
