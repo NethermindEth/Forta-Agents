@@ -1,5 +1,5 @@
-import BigNumber from "bignumber.js";
 import {
+  ethers,
   getTransactionReceipt,
   Receipt,
   Finding,
@@ -27,9 +27,9 @@ export const provideHandleTransaction = (
     });
 
     if (involvedAddresses.length) {
-      const gasUsed = new BigNumber((await getTransactionReceipt(txEvent.hash)).gasUsed);
+      const gasUsed = ethers.BigNumber.from((await getTransactionReceipt(txEvent.hash)).gasUsed);
 
-      if (gasUsed.isLessThan(config.mediumGasThreshold)) return findings;
+      if (gasUsed.lt(config.mediumGasThreshold)) return findings;
 
       findings.push(
         Finding.from({
@@ -37,13 +37,13 @@ export const provideHandleTransaction = (
           name: "High amount of gas use",
           description: "High amount of gas is used in transaction",
           type: FindingType.Suspicious,
-          severity: getSeverity(gasUsed),
+          severity: getSeverity(gasUsed, config),
           protocol: "Umee",
           metadata: {
             from: txEvent.from,
             to: txEvent.to || "",
             monitoredAddresses: JSON.stringify(involvedAddresses),
-            gasUsed: gasUsed.toString(10),
+            gasUsed: gasUsed.toString(),
           },
         })
       );
@@ -52,12 +52,14 @@ export const provideHandleTransaction = (
   };
 };
 
-export const getSeverity = (gasUsed: BigNumber) => {
-  return gasUsed.isGreaterThan(CONFIG.criticalGasThreshold)
-    ? FindingSeverity.Critical
-    : gasUsed.isGreaterThan(CONFIG.highGasThreshold)
-    ? FindingSeverity.High
-    : FindingSeverity.Medium;
+export const getSeverity = (gasUsed: ethers.BigNumber, config: AgentConfig) => {
+  if (gasUsed.gte(config.criticalGasThreshold)) {
+    return FindingSeverity.Critical;
+  } else if (gasUsed.gte(config.highGasThreshold)) {
+    return FindingSeverity.High;
+  } else {
+    return FindingSeverity.Medium;
+  }
 };
 
 export default {

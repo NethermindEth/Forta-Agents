@@ -1,8 +1,7 @@
-import { FindingType, Finding, HandleTransaction } from "forta-agent";
+import { FindingType, Finding, HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction, getSeverity } from "./agent";
 import { AgentConfig } from "./agent.config";
-import BigNumber from "bignumber.js";
 
 const CONFIG: AgentConfig = {
   mediumGasThreshold: "100000",
@@ -19,13 +18,13 @@ const testAddresses: string[] = [
   createAddress("0xa5"),
 ];
 
-const createFinding = (from: string, to: string | null, addresses: string[], gasUsed: BigNumber) => {
+const createFinding = (from: string, to: string | null, addresses: string[], gasUsed: ethers.BigNumber) => {
   return Finding.from({
     alertId: "UMEE-12",
     name: "High amount of gas use",
     description: "High amount of gas is used in transaction",
     type: FindingType.Suspicious,
-    severity: getSeverity(gasUsed),
+    severity: getSeverity(gasUsed, CONFIG),
     protocol: "Umee",
     metadata: {
       from,
@@ -91,7 +90,12 @@ describe("Detect transaction involving large amount of addresses", () => {
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(tx.transaction.from, tx.transaction.to, [CONFIG.monitoredAddresses[0]], new BigNumber(gasUsed)),
+      createFinding(
+        tx.transaction.from,
+        tx.transaction.to,
+        [CONFIG.monitoredAddresses[0]],
+        ethers.BigNumber.from(gasUsed)
+      ),
     ]);
   });
 
@@ -112,7 +116,7 @@ describe("Detect transaction involving large amount of addresses", () => {
         tx.transaction.from,
         tx.transaction.to,
         [CONFIG.monitoredAddresses[0], CONFIG.monitoredAddresses[1]],
-        new BigNumber(gasUsed)
+        ethers.BigNumber.from(gasUsed)
       ),
     ]);
   });
@@ -136,7 +140,7 @@ describe("Detect transaction involving large amount of addresses", () => {
         tx.transaction.from,
         tx.transaction.to,
         [CONFIG.monitoredAddresses[0], CONFIG.monitoredAddresses[2]],
-        new BigNumber(gasUsed)
+        ethers.BigNumber.from(gasUsed)
       ),
     ]);
   });
