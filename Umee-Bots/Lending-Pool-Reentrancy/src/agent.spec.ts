@@ -94,7 +94,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
       expect(findings).toStrictEqual(expected);
     });
 
-    it("Should detect a finding from a complicated trace tree", async () => {
+    it("Should detect a finding from a with different call", async () => {
       const iFace = new Interface([
         "function withdraw(address asset,uint256 amount,address to)",
         "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
