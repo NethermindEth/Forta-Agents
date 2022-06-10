@@ -129,6 +129,41 @@ describe("Flash loan with Deposit or Borrow events detection bot test suite", ()
     expect(findings).toStrictEqual([createFinding("Borrow", tx.transaction.from, tx.transaction.to)]);
   });
 
+  it("should emit at most one finding of each type per tx", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent().setTo(createAddress("0xa1"));
+    for (let i = 0; i < 5; i++) {
+      tx.addInterfaceEventLog(EVENTS_IFACE.getEvent("Deposit"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("4000000000"), // amount
+        2, // referral
+      ]);
+      tx.addInterfaceEventLog(EVENTS_IFACE.getEvent("Borrow"), lendingPool, [
+        createAddress("0x1"), // reserve
+        createAddress("0x2"), // user
+        createAddress("0x3"), // onBehalfOf
+        ethers.BigNumber.from("3000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // borrowRateMode
+        ethers.BigNumber.from("2000000000"), // borrowRate
+        1, // referral
+      ]);
+      tx.addInterfaceEventLog(EVENTS_IFACE.getEvent("FlashLoan"), lendingPool, [
+        createAddress("0x1"), // target
+        createAddress("0x2"), // initiator
+        createAddress("0x3"), // asset
+        ethers.BigNumber.from("4000000000"), // amount
+        ethers.BigNumber.from("1000000000"), // premium
+        1, // referralCode
+      ]);
+    }
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      createFinding("Deposit", tx.transaction.from, tx.transaction.to),
+      createFinding("Borrow", tx.transaction.from, tx.transaction.to),
+    ]);
+  });
+
   it("should detect multiple findings when Borrow, Deposit and FlashLoan events are emitted in the same tx", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .setTo(createAddress("0xb1"))
