@@ -16,7 +16,7 @@ const testAddresses: string[] = [
   createAddress("0xa5"),
 ];
 
-const createFinding = (from: string, to: string | null, address: string, amount: number) => {
+const createFinding = (from: string, to: string | null, addresses: string[], amount: number) => {
   return Finding.from({
     alertId: "UMEE-13",
     name: "Large amount of account involvement",
@@ -27,7 +27,7 @@ const createFinding = (from: string, to: string | null, address: string, amount:
     metadata: {
       from,
       to: to || "",
-      monitoredAddress: address,
+      monitoredAddresses: JSON.stringify(addresses),
       amountOfInvolvedAddresses: amount.toString(),
     },
   });
@@ -81,7 +81,7 @@ describe("Detect transaction involving large amount of addresses", () => {
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(tx.transaction.from, tx.transaction.to, CONFIG.monitoredAddresses[0], amountOfInvolvedAddresses),
+      createFinding(tx.transaction.from, tx.transaction.to, [CONFIG.monitoredAddresses[0]], amountOfInvolvedAddresses),
     ]);
   });
 
@@ -97,8 +97,12 @@ describe("Detect transaction involving large amount of addresses", () => {
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(tx.transaction.from, tx.transaction.to, CONFIG.monitoredAddresses[0], amountOfInvolvedAddresses),
-      createFinding(tx.transaction.from, tx.transaction.to, CONFIG.monitoredAddresses[1], amountOfInvolvedAddresses),
+      createFinding(
+        tx.transaction.from,
+        tx.transaction.to,
+        [CONFIG.monitoredAddresses[0], CONFIG.monitoredAddresses[1]],
+        amountOfInvolvedAddresses
+      ),
     ]);
   });
 
@@ -116,8 +120,12 @@ describe("Detect transaction involving large amount of addresses", () => {
     const findings = await handleTransaction(tx);
 
     expect(findings).toStrictEqual([
-      createFinding(tx.transaction.from, tx.transaction.to, CONFIG.monitoredAddresses[0], amountOfInvolvedAddresses),
-      createFinding(tx.transaction.from, tx.transaction.to, CONFIG.monitoredAddresses[2], amountOfInvolvedAddresses),
+      createFinding(
+        tx.transaction.from,
+        tx.transaction.to,
+        [CONFIG.monitoredAddresses[0], CONFIG.monitoredAddresses[2]],
+        amountOfInvolvedAddresses
+      ),
     ]);
   });
 });
