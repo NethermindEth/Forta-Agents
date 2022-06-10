@@ -2,13 +2,15 @@ import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingT
 import { CONFIG, AgentConfig } from "./agent.config";
 
 export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+  const monitoredAddresses = config.monitoredAddresses.map((el) => el.toLowerCase());
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const involvedAddresses: string[] = [];
     const amountOfInvolvedAddresses: number = Object.keys(txEvent.addresses).length;
 
-    config.monitoredAddresses.forEach((address) => {
-      if (address.toLowerCase() in txEvent.addresses) {
+    monitoredAddresses.forEach((address) => {
+      if (address in txEvent.addresses) {
         if (amountOfInvolvedAddresses >= config.threshold) {
           involvedAddresses.push(address);
         }
