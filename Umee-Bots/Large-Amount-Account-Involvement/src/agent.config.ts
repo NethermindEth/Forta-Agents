@@ -28,5 +28,6 @@ export const CONFIG: AgentConfig = {
 // CONFIG.monitoredAddresses = [
 //   "0x3526a2fe5dA32d0f0814086848628bF12A1E4417",
 //   "0x96A2F421D0E1626C0728CaEd5F05cD629D9867dA",
+//   "0x00Cd6757A77014Ab83C9fCD46ea53Ce880bc31CB",
 // ];
-// CONFIG.threshold = 15;
+// CONFIG.threshold = 10;
