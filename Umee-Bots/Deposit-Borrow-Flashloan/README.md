@@ -15,17 +15,17 @@ This bot monitors deposit or borrow events in the same transaction along with a 
   - Fired when `Deposit` and `FlashLoan` events are emitted in the same transaction
   - Severity is always set to "info"
   - Type is always set to "info"
-  - metadata:
-    - from: Address of the sender of the transaction.
-    - to: Address of the message call’s recipient.
+  - Metadata:
+    - `from`: Address of the sender of the transaction.
+    - `to`: Address of the transaction recipient.
 
 - UMEE-14-2
   - Fired when `Borrow` and `FlashLoan` events are emitted in the same transaction
   - Severity is always set to "info"
   - Type is always set to "info"
-  - metadata:
-    - from: Address of the sender of the transaction.
-    - to: Address of the message call’s recipient.
+  - Metadata:
+    - `from`: Address of the sender of the transaction.
+    - `to`: Address of the transaction recipient.
 
 ## Test Data
 
