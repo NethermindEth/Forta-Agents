@@ -8,7 +8,7 @@ export const createFinding = (
   address: string,
   entrancyFrom: string,
   initialCall: string,
-  reEtrantCall: string
+  reentrantCall: string
 ): Finding => {
   return Finding.fromObject({
     name: "Re-entrancy detected on a Trader Joe contract",
@@ -21,9 +21,9 @@ export const createFinding = (
       from: from,
       initialCall: FUNCTIONS_MAP.get(initialCall)?.slice(9) as string,
       reentrancyFrom: entrancyFrom,
-      reetrantCall: FUNCTIONS_MAP.get(reEtrantCall)
-        ? (FUNCTIONS_MAP.get(reEtrantCall)?.slice(9) as string)
-        : reEtrantCall,
+      reetrantCall: FUNCTIONS_MAP.get(reentrantCall)
+        ? (FUNCTIONS_MAP.get(reentrantCall)?.slice(9) as string)
+        : reentrantCall,
     },
     addresses: [address],
   });
