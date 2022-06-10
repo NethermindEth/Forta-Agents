@@ -85,7 +85,7 @@ describe("Detect transaction involving large amount of addresses", () => {
     ]);
   });
 
-  it("returns two findings when there are a large number of transaction addresses involved with two monitored addresses in the same transaction", async () => {
+  it("returns a finding with two monitored addresses when there are a large number of transaction addresses involved with two monitored addresses in the same transaction", async () => {
     const tx = new TestTransactionEvent().addInvolvedAddresses(
       CONFIG.monitoredAddresses[0],
       CONFIG.monitoredAddresses[1],
@@ -106,7 +106,7 @@ describe("Detect transaction involving large amount of addresses", () => {
     ]);
   });
 
-  it("returns multiple findings when there are a large number of transaction addresses involved with multiple monitored addresses in the same transaction", async () => {
+  it("returns a finding with multiple addresses while omitting irrelevant addresses when there are a large number of transaction addresses involved with multiple monitored addresses in the same transaction", async () => {
     const tx = new TestTransactionEvent().addInvolvedAddresses(
       CONFIG.monitoredAddresses[0],
       CONFIG.monitoredAddresses[2],
