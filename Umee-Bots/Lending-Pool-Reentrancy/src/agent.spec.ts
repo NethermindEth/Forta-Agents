@@ -127,5 +127,34 @@ describe("Lending pool reentrancy agent tests suit", () => {
       const findings: Finding[] = await handleTx(tx);
       expect(findings).toStrictEqual(expected);
     });
+    it("Should detect a finding with traces with more than one subtrace and different calls in between", async () => {
+      const iFace = new Interface([
+        "function withdraw(address asset,uint256 amount,address to)",
+        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
+        "function transfer(address user,uint256 amount)", // function outside the lending pool
+      ]);
+
+      const testEncodedTransferFuncCall: string = iFace.encodeFunctionData("transfer", [createAddress("0x0a"), 234]);
+      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
+      const depositSig = sighashes[3];
+      const withdrawSig = sighashes[1];
+
+      const tx: TransactionEvent = createTxEvent(
+        [
+          createTrace([], depositSig), // Deposit call
+          createTrace([0], "0x01234567"), // Outside call
+          createTrace([0, 0, 1], "0x01234567"), // Any call
+          createTrace([0, 0, 0, 1], "0x01234567"), // Any call
+          createTrace([0, 0, 0, 1, 1], withdrawSig), // Withdraw call
+        ],
+        testEncodedTransferFuncCall
+      );
+
+      const expected: Finding[] = [];
+      expected.push(utils.createFinding(depositSig, withdrawSig));
+
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual(expected);
+    });
   });
 });
