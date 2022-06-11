@@ -11,7 +11,7 @@ This bot monitors detect when the user's borrow value is more than his collatera
 ## Alerts
 
 - UMEE-11
-  - Fired when the borrowed value becomes greater than the collateral value.
+  - Fired when the borrowed value becomes is greater than the collateral value after a Umee market interaction.
   - Severity is always set to "High"
   - Type is always set to "Exploit"
   - Metadata contains:
