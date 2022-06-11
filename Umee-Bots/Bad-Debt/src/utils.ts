@@ -45,7 +45,7 @@ interface MetaData {
 const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding => {
   return Finding.fromObject({
     name: "Bad debt immediately after market interaction",
-    description: `The user borrows assets more than he has in collateral.`,
+    description: "A user is currently with a bad debt after a market interaction",
     alertId: "UMEE-11",
     protocol: "Umee",
     type: FindingType.Exploit,
