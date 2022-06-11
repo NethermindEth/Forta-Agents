@@ -39,8 +39,8 @@ const getUserData = async ({ log, lendingPoolAddress, provider, blockNumber }: U
 };
 
 interface MetaData {
-  collateralAmount: string;
-  borrowAmount: string;
+  collateralAmount: ethers.BigNumber;
+  borrowAmount:  ethers.BigNumber;
 }
 
 const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding => {
@@ -52,8 +52,8 @@ const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding =>
     type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
-      collateralAmount,
-      borrowAmount,
+      collateralAmount: ethers.utils.formatEther(collateralAmount).toString(),
+      borrowAmount: ethers.utils.formatEther(borrowAmount).toString(),
     },
   });
 };

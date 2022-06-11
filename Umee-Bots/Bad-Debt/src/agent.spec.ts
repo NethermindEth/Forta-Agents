@@ -39,7 +39,14 @@ describe("Bad debt bot tests suite", () => {
     const blockNumber = 14435;
     const testUser = createAddress("0x02");
     const mockAddress = createAddress("0x03");
-    const userTestData = [50, 10, 57, 1, 1, 1];
+    const userTestData = [
+      ethers.utils.parseEther("50"),
+      ethers.utils.parseEther("10"),
+      ethers.utils.parseEther("57"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+    ];
     const eventArgs = [mockAddress, testUser, mockAddress, 1];
     mockProvider.addCallTo(
       DEFAULT_CONFIG.lendingPoolAddress,
@@ -56,8 +63,8 @@ describe("Bad debt bot tests suite", () => {
     const findings = await handleTx(mockTxEvent);
     expect(findings).toStrictEqual([
       utils.createFinding({
-        collateralAmount: ethers.utils.formatEther(userTestData[0].toString()).toString(),
-        borrowAmount: ethers.utils.formatEther(userTestData[2].toString()).toString(),
+        collateralAmount: userTestData[0],
+        borrowAmount: userTestData[2],
       }),
     ]);
   });
@@ -66,15 +73,22 @@ describe("Bad debt bot tests suite", () => {
     const blockNumber = 14435;
     const testUser = createAddress("0x02");
     const mockAddress = createAddress("0x03");
-    const userTestData = [50, 10, 57, 1, 1, 1];
+    const userTestData = [
+      ethers.utils.parseEther("50"),
+      ethers.utils.parseEther("10"),
+      ethers.utils.parseEther("57"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+    ];
 
     const swapEventArgs = [mockAddress, testUser, 1];
     const flashLoanEventArgs = [testUser, mockAddress, mockAddress, 1, 1, 1];
     const borrowEventArgs = [mockAddress, mockAddress, testUser, 1, 1, 1, 1];
 
     const finding: Finding = utils.createFinding({
-      collateralAmount: ethers.utils.formatEther(userTestData[0].toString()).toString(),
-      borrowAmount: ethers.utils.formatEther(userTestData[2].toString()).toString(),
+      collateralAmount: userTestData[0],
+      borrowAmount: userTestData[2],
     });
     const expectedFindings: Finding[] = [finding, finding, finding];
 
@@ -106,15 +120,22 @@ describe("Bad debt bot tests suite", () => {
     const users = [createAddress("0x01"), createAddress("0x02"), createAddress("0x03")];
 
     const mockAddress = createAddress("0x05");
-    const userTestData = [50, 10, 57, 1, 1, 1];
+    const userTestData = [
+      ethers.utils.parseEther("50"),
+      ethers.utils.parseEther("10"),
+      ethers.utils.parseEther("57"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+      ethers.utils.parseEther("1"),
+    ];
 
     const swapEventArgs = [mockAddress, users[0], 1];
     const flashLoanEventArgs = [users[1], mockAddress, mockAddress, 1, 1, 1];
     const borrowEventArgs = [mockAddress, mockAddress, users[2], 1, 1, 1, 1];
 
     const finding: Finding = utils.createFinding({
-      collateralAmount: ethers.utils.formatEther(userTestData[0].toString()).toString(),
-      borrowAmount: ethers.utils.formatEther(userTestData[2].toString()).toString(),
+      collateralAmount: userTestData[0],
+      borrowAmount: userTestData[2],
     });
     const expectedFindings: Finding[] = [finding, finding, finding];
 

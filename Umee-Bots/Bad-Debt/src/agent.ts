@@ -23,8 +23,8 @@ export const provideHandleTransaction = (
         if (availableBorrowsETH.gt(totalCollateralETH)) {
           findings.push(
             utils.createFinding({
-              collateralAmount: ethers.utils.formatEther(totalCollateralETH).toString(),
-              borrowAmount: ethers.utils.formatEther(availableBorrowsETH).toString(),
+              collateralAmount: totalCollateralETH,
+              borrowAmount: availableBorrowsETH,
             })
           );
         }
