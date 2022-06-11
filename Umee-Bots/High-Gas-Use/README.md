@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions in which high amount of gas is used.
+This bot detects transactions in which high amount of gas is used and specified accounts are involved.
 
 The accounts that are needed to be monitored must be added inside the `monitoredAddresses` array in `src/agent.config.ts` file.
 
