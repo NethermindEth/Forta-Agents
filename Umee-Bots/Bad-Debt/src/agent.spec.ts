@@ -13,9 +13,6 @@ describe("Bad debt bot tests suite", () => {
   let handleTx: HandleTransaction;
   const mockProvider = new MockEthersProvider();
 
-  beforeEach(() => {
-    handleTx = agent.handleTransaction;
-  });
   it("Should return empty finding if the collateral are bigger than the borrowed amount", async () => {
     const blockNumber = 14435;
     const testUser = createAddress("0x02");
