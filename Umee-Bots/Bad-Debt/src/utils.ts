@@ -34,7 +34,7 @@ interface UserData {
 
 const getUserData = async ({ log, lendingPoolAddress, provider, blockNumber }: UserData) => {
   const userAddress = getUserAddressFromEvent(log);
-  const contract = await new ethers.Contract(lendingPoolAddress, GET_USER_ACCOUNT_DATA_ABI, provider);
+  const contract = new ethers.Contract(lendingPoolAddress, GET_USER_ACCOUNT_DATA_ABI, provider);
   return await contract.getUserAccountData(userAddress, { blockTag: blockNumber });
 };
 
