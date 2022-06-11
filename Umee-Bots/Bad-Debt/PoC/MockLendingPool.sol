@@ -11,8 +11,7 @@ contract MockLendingPool {
         uint16 indexed referral
     );
 
-    function borrow(
-    ) external {
+    function borrow() external {
         emit Borrow(address(this), address(this), address(this), 1, 1, 1, 1);
     }
 
