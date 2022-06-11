@@ -1,7 +1,7 @@
 {
   "name": "umee-bad-debt",
   "version": "0.0.1",
-  "description": "Detect bad debt immediately after pool interaction",
+  "description": "Forta bot that detects bad debt immediately after specific Umee protocol pool interactions",
   "chainIds": [1],
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Bad-Debt",
   "scripts": {
