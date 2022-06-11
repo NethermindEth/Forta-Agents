@@ -26,11 +26,11 @@ The minimum amount of gas that should trigger the alert is set by the `mediumGas
 
 ## Test Data
 
-For testing purposes, `src/agent.config.ts` monitors 'Umee', 'Lending Pool', 'Umee Oracle' and a random user address.
+For testing purposes, the test configurations in `src/agent.config.ts` monitors 'Umee', 'Lending Pool', 'Umee Oracle' and a random user address.
 
 ### Mainnet
 
-Uncomment the lines indicated in `src/agent.config.ts` and run:
+Uncomment the lines indicated in `src/agent.config.ts`, add a trace-enabled Mainnet RPC as both `jsonRpcUrl` and `traceRpcUrl` in your `forta.config.json` file and run:
 
 ```
 npm run tx 0x70e41c3279d8014841665f480f1022569ca3fb840a387baa6b69dd8c74f49675
@@ -40,8 +40,7 @@ This transaction will create a finding in which there are 2 monitored addresses 
 
 ### Kovan Testnet (PoC)
 
-In order to check the results, uncomment the lines indicated in `src/agent.config.ts`, set a Kovan testnet RPC (e.g.
-`https://kovan.poa.network`) as `jsonRpcUrl` in your `forta.config.json` file and run:
+In order to check the results, uncomment the lines indicated in `src/agent.config.ts`, set a trace-enabled Kovan testnet RPC as both `jsonRpcUrl` and `traceRpcUrl` in your `forta.config.json` file and run:
 
 Medium severity:
 
