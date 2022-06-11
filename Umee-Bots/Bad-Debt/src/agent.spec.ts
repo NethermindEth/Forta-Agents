@@ -35,7 +35,7 @@ describe("Bad debt bot tests suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("Should return a finding if the collateral are smaller than the borrowed amount", async () => {
+  it("should return a finding if the relevant account collateral amount is less than the borrowed amount after a market interaction", async () => {
     const blockNumber = 14435;
     const testUser = createAddress("0x02");
     const mockAddress = createAddress("0x03");
