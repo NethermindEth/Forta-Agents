@@ -6,16 +6,19 @@ export interface AgentConfig {
 }
 
 export const CONFIG: AgentConfig = {
+  // Gas thresholds for each finding type
   mediumGasThreshold: "1000000",
   highGasThreshold: "3000000",
   criticalGasThreshold: "7000000",
+  
+  // Addresses that need to be involved in the transaction in order for a finding to be emitted
   monitoredAddresses: [
     "0xc0a4Df35568F116C370E6a6A6022Ceb908eedDaC", // Umee
     "0xcE744a9BAf573167B2CF138114BA32ed7De274Fa", // Lending Pool
     "0x67386481E5A3076563F39831Bb79d05D393d57bf", // Umee Oracle
-    "0x45cb9655f26992eac712ae5409b4079781968479", // A random user account
   ],
 };
+
 
 // Uncomment these lines for the mainnet test:
 
