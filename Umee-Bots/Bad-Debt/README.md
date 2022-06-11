@@ -15,8 +15,8 @@ This bot monitors detect when the user's borrow value is more than his collatera
   - Severity is always set to "High"
   - Type is always set to "Exploit"
   - Metadata contains:
-    -  `collateralAmount` The user collaterals amount
-    -  `borrowAmount` The user borrowed amount
+    -  `collateralAmount` The user collateral amount in ETH
+    -  `borrowAmount` The user borrowed amount in ETH
 
 ## Test Data
 
