@@ -43,7 +43,7 @@ describe("Bad debt tests suit", () => {
     const testUser = createAddress("0x02");
     const mockAddress = createAddress("0x03");
     const userTestData = [50, 10, 57, 1, 1, 1];
-    const eventArgs = [mockAddress, mockAddress, testUser, 1];
+    const eventArgs = [mockAddress, testUser, mockAddress, 1];
     mockProvider.addCallTo(
       DEFAULT_CONFIG.lendingPoolAddress,
       blockNumber,
