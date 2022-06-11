@@ -30,4 +30,4 @@ To check the results, uncomment the lines indicated in `src/agent.config.ts` set
 npm run tx 0xcd98d8d7d146c490c96175f676bf4582faca36070d7540a53b425389ca4c15b6
 ```
 
-In the block `32000017`, When user call borrow from `MockLendingPool.borrow()` the `MockLendingPool.getUserAccountData()` will return collaterals value less than the borrow amount.
+In this transaction, an account calls `MockLendingPool.borrow()` and, because `MockLendingPool.getUserAccountData()` will return a collateral value less than the borrow amount for any account (in this case the account to be checked would be the borrow `onBehalfOf` address), a finding will be emitted.
