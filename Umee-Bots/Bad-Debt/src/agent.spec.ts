@@ -9,7 +9,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   lendingPoolAddress: createAddress("0x01"),
 };
 
-describe("Bad debt tests suit", () => {
+describe("Bad debt bot tests suite", () => {
   let handleTx: HandleTransaction;
   const mockProvider = new MockEthersProvider();
 
