@@ -26,14 +26,14 @@ const getUserAddressFromEvent = (log: LogDescription) => {
 };
 
 interface UserData {
-  logs: LogDescription;
+  log: LogDescription;
   lendingPoolAddress: string;
   provider: ethers.providers.Provider;
   blockNumber: number;
 }
 
-const getUserData = async ({ logs, lendingPoolAddress, provider, blockNumber }: UserData) => {
-  const userAddress = getUserAddressFromEvent(logs);
+const getUserData = async ({ log, lendingPoolAddress, provider, blockNumber }: UserData) => {
+  const userAddress = getUserAddressFromEvent(log);
   const contract = await new ethers.Contract(lendingPoolAddress, GET_USER_ACCOUNT_DATA_ABI, provider);
   return await contract.getUserAccountData(userAddress, { blockTag: blockNumber });
 };

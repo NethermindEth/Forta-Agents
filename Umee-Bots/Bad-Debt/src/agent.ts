@@ -13,9 +13,9 @@ export const provideHandleTransaction = (
     const findings: Finding[] = [];
     const eventsLog: LogDescription[] = txEvent.filterLog(EVENTS_ABI, config.lendingPoolAddress);
     await Promise.all(
-      eventsLog.map(async (logs) => {
+      eventsLog.map(async (log) => {
         const { totalCollateralETH, availableBorrowsETH } = await utils.getUserData({
-          logs,
+          log,
           lendingPoolAddress: config.lendingPoolAddress,
           provider,
           blockNumber: txEvent.blockNumber,
