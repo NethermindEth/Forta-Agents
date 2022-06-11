@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot monitors detect when the user's borrow value is more than his collateral values. The agent behavior can customize in `src/agent.config.ts`.
+This bot monitors detect when the user's borrow value is more than his collateral value after performing a deposit, withdraw, swap, flash loan or borrow. The bot's behavior can be customized in `src/agent.config.ts`.
 
 ## Supported Chains
 
