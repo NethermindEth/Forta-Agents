@@ -47,15 +47,18 @@ class MulticallProvider extends Provider {
       const outputs = calls[i].outputs;
       const result = response[i];
 
-      if (result.success === false) {
-        continue;
+      if (result.success) {
+        const params = Abi.decode(outputs, result.returnData);
+        results.push({
+          success: result.success,
+          returnData: outputs.length === 1 ? params[0] : params,
+        });
+      } else {
+        results.push({
+          success: false,
+          returnData: null,
+        });
       }
-
-      const params = Abi.decode(outputs, result.returnData);
-      results.push({
-        success: result.success,
-        returnData: outputs.length === 1 ? params[0] : params,
-      });
     }
     return results as T;
   }

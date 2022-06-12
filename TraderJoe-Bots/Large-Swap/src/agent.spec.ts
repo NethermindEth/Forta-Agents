@@ -1,8 +1,8 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { TestTransactionEvent, createAddress, MockEthersProvider, MockEthersSigner } from "forta-agent-tools/lib/tests";
+import { TestTransactionEvent, createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { Interface, keccak256, getCreate2Address } from "ethers/lib/utils";
-import { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import NetworkData from "./network";
 import { MULTICALL2_IFACE, PAIR_IFACE } from "./utils";
 
@@ -122,11 +122,7 @@ const testReserves: [BigNumber, BigNumber, number][] = [
 const testBlocks: number[] = [444, 3230, 90059, 90210, 230608];
 
 describe("Large Swap test suite", () => {
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
-    mockProvider as any,
-    mockNetworkManager,
-    testThresholdPercentage
-  );
+  let handleTransaction: HandleTransaction;
 
   const createTryAggregateCall = (
     multicall2Address: string,
@@ -141,8 +137,16 @@ describe("Large Swap test suite", () => {
     });
   };
 
-  beforeEach(() => {
+  beforeAll(() => {
+    handleTransaction = provideHandleTransaction(testThresholdPercentage);
+  });
+
+  beforeEach(async () => {
     mockProvider.clear();
+    // @ts-expect-error
+    mockProvider.getNetwork = jest.fn().mockReturnValue({ chainId: mockNetworkManager.chainId });
+    const initialize = provideInitialize(mockNetworkManager, mockProvider as any);
+    await initialize();
   });
 
   it("should return 0 findings in empty transactions", async () => {
