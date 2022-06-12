@@ -18,7 +18,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-    - `gmxVaultAddresss`: Address of GMX Vault contract.
+    - `gmxVault`: Address of GMX Vault contract.
     - `account`: Address of position owner.
     - `positionSize`: Size of the opened position.
     - `positionKey`: Key of the opened position.
@@ -28,7 +28,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-    - `gmxVaultAddress`: Address of GMX Vault contract.
+    - `gmxVault`: Address of GMX Vault contract.
     - `account`: Address of position owner.
     - `initialPositionSize`: Initial position size before increment.
     - `positionIncrementSize`: Size of the increased position 
