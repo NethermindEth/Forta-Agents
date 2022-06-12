@@ -40,7 +40,7 @@ const getUserData = async ({ log, lendingPoolAddress, provider, blockNumber }: U
 
 interface MetaData {
   collateralAmount: ethers.BigNumber;
-  borrowAmount:  ethers.BigNumber;
+  borrowAmount: ethers.BigNumber;
 }
 
 const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding => {
