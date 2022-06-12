@@ -102,7 +102,7 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
     // divide into chunks of 3 later since each reserve needs 3 calls
     const data = arrayChunks((await Promise.all(multicalls)).flat(), 3) as ReserveBalances[];
 
-    const usageRatios = data.map((el) => usageRatio(...el));
+    const usageRatios = data.map((chunk) => usageRatio(...chunk));
     const timestamp = blockEvent.block.timestamp;
 
     reserveData.forEach((reserve, idx) => {
