@@ -9,13 +9,13 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
     const involvedAddresses: string[] = [];
     const amountOfInvolvedAddresses: number = Object.keys(txEvent.addresses).length;
 
-    monitoredAddresses.forEach((address) => {
-      if (address in txEvent.addresses) {
-        if (amountOfInvolvedAddresses >= config.threshold) {
+    if (amountOfInvolvedAddresses >= config.threshold) {
+      monitoredAddresses.forEach((address) => {
+        if (address in txEvent.addresses) {
           involvedAddresses.push(address);
         }
-      }
-    });
+      });
+    }
 
     if (involvedAddresses.length) {
       findings.push(
