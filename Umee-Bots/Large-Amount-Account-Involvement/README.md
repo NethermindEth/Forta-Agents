@@ -21,8 +21,8 @@ The minimum amount of addresses that should trigger the alert is set by the `thr
   - Metadata:
     - `from`: Address of the initiator of the transaction
     - `to`: Address of the transaction recipient
-    - `monitoredAddresses`: Addresses of the monitored accounts that are involved in the transaction
     - `amountOfInvolvedAddresses`: Number of total addresses that are involved in the transaction
+  - Addresses: Addresses of the monitored accounts that are involved in the transaction
 
 ## Test Data
 

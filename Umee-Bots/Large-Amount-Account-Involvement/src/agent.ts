@@ -29,9 +29,9 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
           metadata: {
             from: txEvent.from,
             to: txEvent.to || "",
-            monitoredAddresses: JSON.stringify(involvedAddresses),
             amountOfInvolvedAddresses: amountOfInvolvedAddresses.toString(),
           },
+          addresses: involvedAddresses,
         })
       );
     }

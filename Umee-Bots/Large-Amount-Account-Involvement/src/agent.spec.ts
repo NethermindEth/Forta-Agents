@@ -27,9 +27,9 @@ const createFinding = (from: string, to: string | null, addresses: string[], amo
     metadata: {
       from,
       to: to || "",
-      monitoredAddresses: JSON.stringify(addresses),
       amountOfInvolvedAddresses: amount.toString(),
     },
+    addresses,
   });
 };
 
