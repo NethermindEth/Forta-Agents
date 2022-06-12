@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects when an open/increase position is large. The bot listens to `UpdatePosition` and `IncreasePosition` event emissions and creates a finding if the `sizeDelta` exceeds the `threshold` 
+This bot detects when an open/increase position is large. The bot listens to `UpdatePosition` and `IncreasePosition` event emissions on GMX's Vault Contract and creates a finding if the initial position `size` exceeds the `threshold` 
 
 > The `threshold` can be adjusted in **src/utils.ts**.
 
@@ -14,7 +14,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
 ## Alerts
 
 - GMX-1-1
-  - Fired when the position `size` of the emitted with `UpdatePosition` event is equivalent to the `sizeDelta` of the emitted `IncreasePosition` event
+  - Fired when the position `size` of the `UpdatePosition` event  which exceeds the `threshold` is equivalent to the `sizeDelta` of the `IncreasePosition` event
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
@@ -24,7 +24,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
     - `positionKey`: Key of the opened position.
 
 - GMX-1-2
-  - Fired only when the `sizeDelta` of the emitted `IncreasePosition` event is lower than the position `size` of the emitted `UpdatePosition` event.
+  - Fired only when the `size` of the `UpdatePosition` event which exceeds the `threshold` is greater than the `sizeDelta` of the `IncreasePosition` event
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:

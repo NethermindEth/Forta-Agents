@@ -59,8 +59,8 @@ const mockCreateFinding = (
 ): Finding => {
   if (ethers.BigNumber.from(updatePositionKey).eq(increasePositionKey) && ethers.BigNumber.from(size).eq(sizeDelta)) {
     return Finding.fromObject({
-      name: "Large size position opened",
-      description: "UpdatePosition event with large size detected on GMX's Vault Contract",
+      name: "Large position size opened on GMX's Vault Contract",
+      description: "UpdatePosition event emitted with a large position size",
       alertId: "GMX-1-1",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
@@ -74,8 +74,8 @@ const mockCreateFinding = (
     });
   } else {
     return Finding.fromObject({
-      name: "Large size increase in Position",
-      description: "IncreasePosition event with large size delta detected on GMX's Vault Contract",
+      name: "Existing large position increased on GMX's Vault Contract",
+      description: "IncreasePosition event emitted in an existing large position on GMX's Vault Contract",
       alertId: "GMX-1-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,

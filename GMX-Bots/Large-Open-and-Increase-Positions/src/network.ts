@@ -6,7 +6,7 @@ interface NetworkData {
 }
 
 const ARBITRUM_DATA: NetworkData = {
-  vaultAddress: VAULT_ARBITRUM,
+  vaultAddress: VAULT_ARBITRUM, 
 };
 
 const AVALANCHE_DATA: NetworkData = {
@@ -23,7 +23,7 @@ export default class NetworkManager implements NetworkData {
   networkMap: Record<number, NetworkData>;
 
   constructor(networkMap: Record<number, NetworkData>) {
-    this.vaultAddress = "0x0000000000000000000000000000000000000000";
+    this.vaultAddress = "0x0000000000000000000000000000000000000000"; // zero address by default
     this.networkMap = networkMap;
   }
 

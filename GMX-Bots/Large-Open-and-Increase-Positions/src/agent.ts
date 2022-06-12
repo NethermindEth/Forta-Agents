@@ -24,23 +24,25 @@ export const provideTransactionHandler = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
     const eventLogs: LogDescription[] = txEvent.filterLog(
       [updatePositionEvent, increasePositionEvent],
       networkManager.vaultAddress
     );
 
-    const increaseEvents: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "IncreasePosition");
-    const updateEvents: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "UpdatePosition");
+    // extract only increaseEventLogs
+    const increaseEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "IncreasePosition"); 
 
-    increaseEvents.forEach((increaseEvent, index) => {
-      const updateEvent = updateEvents[index];
-      const { args: increaseArgs } = increaseEvent;
+    // extract only increaseEventLogs
+    const updateEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "UpdatePosition");
+
+    increaseEventLogs.forEach((increaseEvent, index) => {
+      const updateEvent = updateEventLogs[index];
+      const { args: increaseArgs } = increaseEvent; 
       const { args: updateArgs } = updateEvent;
       const { sizeDelta, key: increasePositionKey, account } = increaseArgs;
       const { size, key: updatePositionKey } = updateArgs;
       const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(new BigNumber(PRICE_MULTIPLIER));
-      const positionSizeDifference = ethers.BigNumber.from(size).sub(ethers.BigNumber.from(sizeDelta));
+      const positionSizeDifference = ethers.BigNumber.from(size).sub(ethers.BigNumber.from(sizeDelta)); 
 
       if (baseSizeDelta.gt(new BigNumber(threshold))) {
         findings.push(
