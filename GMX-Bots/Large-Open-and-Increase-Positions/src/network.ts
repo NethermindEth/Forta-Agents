@@ -1,5 +1,4 @@
 import { VAULT_CONSTANTS } from "./constants";
-
 const { VAULT_ARBITRUM, VAULT_AVALANCHE } = VAULT_CONSTANTS;
 
 interface NetworkData {
@@ -31,7 +30,7 @@ export default class NetworkManager implements NetworkData {
   public setNetwork(networkId: number) {
     try {
       const { vaultAddress } = this.networkMap[networkId];
-      this.vaultAddress = vaultAddress;
+      this.vaultAddress = vaultAddress.toLowerCase();
     } catch {
       throw new Error("You are running on an unsupported network");
     }

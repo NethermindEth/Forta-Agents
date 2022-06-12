@@ -2,14 +2,11 @@ import { Finding, ethers, FindingSeverity, FindingType, HandleTransaction, Trans
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideTransactionHandler } from "./agent";
 import NetworkData from "./network";
-
 import { VAULT_CONSTANTS } from "./constants";
 import { ethersBnToBn } from "./utils";
 
 const { INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT, THRESHOLD } = VAULT_CONSTANTS;
-
 const TEST_PRICE_MULTIPLIER = 30;
-
 const MOCK_OTHER_EVENT: string = "event UpdateFundingRate(address token, uint256 fundingRate)";
 const MOCK_EVENT_ABI: string[] = [INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT];
 

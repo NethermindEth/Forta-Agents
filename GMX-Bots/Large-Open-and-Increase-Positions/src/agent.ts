@@ -35,7 +35,6 @@ export const provideTransactionHandler = (
 
     increaseEvents.forEach((increaseEvent, index) => {
       const updateEvent = updateEvents[index];
-
       const { args: increaseArgs } = increaseEvent;
       const { args: updateArgs } = updateEvent;
       const { sizeDelta, key: increasePositionKey, account } = increaseArgs;
