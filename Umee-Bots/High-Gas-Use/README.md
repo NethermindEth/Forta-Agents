@@ -21,8 +21,8 @@ The minimum amount of gas that should trigger the alert is set by the `mediumGas
   - Metadata:
     - `from`: Address of the initiator of the transaction
     - `to`: Address of the transaction recipient
-    - `monitoredAddresses`: Addresses of the monitored accounts that are involved in the transaction
     - `gasUsed`: Amount of gas spent in the transaction
+  - Addresses: Addresses of the monitored accounts that are involved in the transaction
 
 ## Test Data
 

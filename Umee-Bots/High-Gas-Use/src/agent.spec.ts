@@ -29,9 +29,9 @@ const createFinding = (from: string, to: string | null, addresses: string[], gas
     metadata: {
       from,
       to: to || "",
-      monitoredAddresses: JSON.stringify(addresses),
       gasUsed: gasUsed.toString(),
     },
+    addresses,
   });
 };
 

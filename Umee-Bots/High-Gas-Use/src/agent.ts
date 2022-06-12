@@ -42,9 +42,9 @@ export const provideHandleTransaction = (
           metadata: {
             from: txEvent.from,
             to: txEvent.to || "",
-            monitoredAddresses: JSON.stringify(involvedAddresses),
             gasUsed: gasUsed.toString(),
           },
+          addresses: involvedAddresses,
         })
       );
     }
