@@ -1,15 +1,10 @@
 import { TestBlockEvent } from "forta-agent-tools/lib/tests.utils";
 import { ethers, HandleBlock, HandleTransaction, Initialize } from "forta-agent";
 import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import {
-  provideHandleTransaction,
-  provideHandleBlock,
-  resetAssetsDataList,
-  provideInitialize,
-  getAssetsDataList,
-} from "./agent";
+import { provideHandleTransaction, provideHandleBlock, provideInitialize } from "./agent";
 import {
   AgentConfig,
+  AssetData,
   ASSET_SOURCE_UPDATED_ABI,
   createFinding,
   GET_RESERVES_LIST_ABI,
@@ -34,6 +29,9 @@ describe("Lending pool reentrancy agent tests suit", () => {
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
   let mockProvider: MockEthersProvider;
+  let assetsDataList: AssetData[] = [];
+
+  const resetAssetsDataList = () => (assetsDataList = []);
 
   const setReserves = (
     reserves: Array<{ asset: string; source: string; timestamps: Record<number | string, number> }>
@@ -83,7 +81,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     mockProvider = new MockEthersProvider();
     resetAssetsDataList();
 
-    initialize = provideInitialize(mockProvider as any, DEFAULT_CONFIG);
+    initialize = provideInitialize(assetsDataList, mockProvider as any, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(mockProvider as any, DEFAULT_CONFIG);
     handleBlock = provideHandleBlock(mockProvider as any, DEFAULT_CONFIG);
   });
@@ -120,8 +118,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       setReserves(reserves);
 
       await initialize();
-
-      const assetsDataList = getAssetsDataList();
 
       expect(assetsDataList).toStrictEqual(reserves.map((el) => assetData(el.asset, el.source, el.timestamps.latest)));
     });
@@ -177,8 +173,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       });
 
       await handleTransaction(txEvent);
-
-      const assetsDataList = getAssetsDataList();
 
       expect(assetsDataList).toStrictEqual([
         ...reserves.map((el) => assetData(el.asset, el.source, el.timestamps.latest)),
@@ -250,8 +244,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       });
 
       await handleTransaction(txEvent);
-
-      const assetsDataList = getAssetsDataList();
 
       expect(assetsDataList).toStrictEqual([
         assetData(reserves[0].asset, newReserves[0].source, newReserves[0].timestamps[0]),
@@ -412,7 +404,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       await initialize();
 
       const blockEvent = new TestBlockEvent().setNumber(0).setTimestamp(DEFAULT_CONFIG.threshold + 1);
-      const assetsDataList = getAssetsDataList();
 
       expect(await handleBlock(blockEvent)).toStrictEqual([]);
       expect(assetsDataList).toStrictEqual(
@@ -455,7 +446,6 @@ describe("Lending pool reentrancy agent tests suit", () => {
       await initialize();
 
       const blockEvent = new TestBlockEvent().setNumber(0).setTimestamp(DEFAULT_CONFIG.threshold + 2);
-      const assetsDataList = getAssetsDataList();
 
       expect(await handleBlock(blockEvent)).toStrictEqual(
         staleSourceReserves.map((reserve) =>

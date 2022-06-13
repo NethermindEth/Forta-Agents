@@ -20,13 +20,16 @@ import {
   getAssetData,
 } from "./utils";
 
-const assetsDataList: AssetData[] = [];
+let assetsDataList: AssetData[] = [];
 
-export const getAssetsDataList = () => assetsDataList;
-export const resetAssetsDataList = () => (assetsDataList.length = 0);
-
-export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
+export const provideInitialize = (
+  _assetsDataList: AssetData[],
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): Initialize => {
   return async () => {
+    assetsDataList = _assetsDataList;
+
     assetsDataList.push(...(await getAssetData(provider, config)));
   };
 };
@@ -101,7 +104,7 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
 };
 
 export default {
-  initialize: provideInitialize(getEthersProvider(), CONFIG),
+  initialize: provideInitialize(assetsDataList, getEthersProvider(), CONFIG),
   handleTransaction: provideHandleTransaction(getEthersProvider(), CONFIG),
   handleBlock: provideHandleBlock(getEthersProvider(), CONFIG),
 };
