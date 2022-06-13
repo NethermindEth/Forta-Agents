@@ -30,4 +30,4 @@ To check the results, uncomment the lines indicated in `src/agent.config.ts`, us
 npm run block 31913146
 ```
 
-In the block `31913146`, `MockLendingPool.test()` is executed. It will perform a reentrant call to `withdraw()` on `deposit()` and, because of that, a finding will be emitted.
+In the block `31913146`, `MockLendingPool.test()` is executed. It will perform a reentrant call to `withdraw()` on `test()` and, because of that, a finding will be emitted with the initial call as `"(unknown)"`, since `test()`, the interaction with `MockLendingPool` that led to the reentrant call, is not part of `LendingPool`'s ABI specification, and with the reentrant call as `"withdraw"`.
