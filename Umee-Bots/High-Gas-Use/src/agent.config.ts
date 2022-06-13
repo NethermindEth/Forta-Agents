@@ -10,7 +10,7 @@ export const CONFIG: AgentConfig = {
   mediumGasThreshold: "1000000",
   highGasThreshold: "3000000",
   criticalGasThreshold: "7000000",
-  
+
   // Addresses that need to be involved in the transaction in order for a finding to be emitted
   monitoredAddresses: [
     "0xc0a4Df35568F116C370E6a6A6022Ceb908eedDaC", // Umee
@@ -18,7 +18,6 @@ export const CONFIG: AgentConfig = {
     "0x67386481E5A3076563F39831Bb79d05D393d57bf", // Umee Oracle
   ],
 };
-
 
 // Uncomment these lines for the mainnet test:
 
