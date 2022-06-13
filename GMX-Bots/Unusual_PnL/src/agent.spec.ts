@@ -23,7 +23,7 @@ const testCreateFinding = (positionSize: BigNumber, realisedPnl: BigNumber, key:
   });
 
 const TEST_GMX_VAULT = createAddress("0x256H");
-const TEST_UNUSAL_LIMIT = 500;
+const TEST_UNUSUAL_LIMIT = 500;
 const SOME_OTHER_ADDRESS = createAddress("0x578");
 const TEST_PRICE_PRECISION = 30;
 const TEST_HIGH_PNLTOSIZE = 1; // percent
@@ -53,7 +53,7 @@ describe("Unusual PnL from a closed position test suite", () => {
   };
 
   const handleTransaction: HandleTransaction = provideBotHandler(
-    TEST_UNUSAL_LIMIT,
+    TEST_UNUSUAL_LIMIT,
     TEST_HIGH_PNLTOSIZE,
     mockNetworkManager
   );
@@ -77,10 +77,10 @@ describe("Unusual PnL from a closed position test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return empty findings when the realisedPnl isn't UNUSAUL", async () => {
+  it("should return empty findings when the realisedPnl isn't UNUSUAL", async () => {
     const key = ethers.utils.formatBytes32String("positionKey");
     const size = ethers.BigNumber.from(20000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION));
-    // realisedPnl < TEST_UNUSAL_LIMIT
+    // realisedPnl < TEST_UNUSUAL_LIMIT
     const realisedPnl = ethers.BigNumber.from(490).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION));
     const eventLog = createClosePositionEvent(TEST_GMX_VAULT, key, size, realisedPnl);
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(...eventLog);
@@ -101,7 +101,7 @@ describe("Unusual PnL from a closed position test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should correctly return a finding when the realisedPnl is UNUSAUL and PNLTOSIZE is HIGH", async () => {
+  it("should correctly return a finding when the realisedPnl is UNUSUAL and PNLTOSIZE is HIGH", async () => {
     const key = ethers.utils.formatBytes32String("positionKey");
     const size = ethers.BigNumber.from(55000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION));
     const realisedPnl = ethers.BigNumber.from(600).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION));
