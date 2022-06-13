@@ -6,13 +6,7 @@ export interface AgentConfig {
   reentrancyBlacklist: string[];
 }
 
-const getSigHashes = (signaturesArray: string[]): string[] => {
-  return signaturesArray.map((signature) => {
-    return encodeFunctionSignature(signature);
-  });
-};
-
-const createFinding = (initialCallSelector: string, reentrantCallSelector: string): Finding => {
+const createFinding = (initialCall: string, reentrantCall: string): Finding => {
   return Finding.fromObject({
     name: "LendingPool call reentrancy",
     description: "Reentrancy detected in call to LendingPool contract",
@@ -21,12 +15,12 @@ const createFinding = (initialCallSelector: string, reentrantCallSelector: strin
     type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
-      initialCallSelector,
-      reentrantCallSelector,
+      initialCall,
+      reentrantCall,
     },
   });
 };
+
 export default {
-  getSigHashes,
   createFinding,
 };

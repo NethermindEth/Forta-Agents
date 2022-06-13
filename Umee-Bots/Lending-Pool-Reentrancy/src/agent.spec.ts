@@ -9,23 +9,33 @@ import {
   Block,
   Receipt,
   Transaction,
+  ethers,
 } from "forta-agent";
 
 import { createAddress } from "forta-agent-tools/lib/tests";
+import LENDING_POOL_ABI from "./abi";
 
-import CONFIG from "./agent.config";
 import { provideHandleTransaction } from "./agent";
-import utils from "./utils";
+import utils, { AgentConfig } from "./utils";
 
-const createTrace = (stack: number[], input = ""): Trace => {
+const createTrace = (stack: number[], to: string, input: string = "0x"): Trace => {
   return {
     traceAddress: stack,
     action: {
-      to: CONFIG.lendingPoolAddress,
+      to,
       input,
     } as TraceAction,
   } as Trace;
 };
+
+const CONFIG: AgentConfig = {
+  reentrancyBlacklist: ["withdraw", "deposit"],
+  lendingPoolAddress: createAddress("4001"),
+};
+
+const LENDING_POOL_IFACE = new ethers.utils.Interface(LENDING_POOL_ABI);
+const irrelevantSig = "0x12345678";
+const irrelevantAddress = createAddress("0x1");
 
 // We need to use createTransactionEvent because TestTransactionEvent.addTraces
 // Use TraceProps[] as parameters, TraceProps don't have traces address or action properties
@@ -42,119 +52,123 @@ describe("Lending pool reentrancy agent tests suit", () => {
 
   describe("handleTransaction", () => {
     it("Should return empty findings if no traces provided", async () => {
-      const tx: TransactionEvent = createTxEvent([]);
+      const tx: TransactionEvent = createTxEvent([createTrace([], CONFIG.lendingPoolAddress)]);
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("Should return empty findings if the reentrant call was not related to the LendingPool address", async () => {
+      const tx: TransactionEvent = createTxEvent([
+        createTrace([], irrelevantAddress),
+        createTrace([0], irrelevantAddress),
+        createTrace([0, 0], irrelevantAddress, LENDING_POOL_IFACE.getSighash("borrow")),
+        createTrace([0, 0, 0], irrelevantAddress),
+      ]);
       const findings: Finding[] = await handleTx(tx);
       expect(findings).toStrictEqual([]);
     });
 
     it("Should return empty findings if no reentrant call from signatures array detected", async () => {
       const tx: TransactionEvent = createTxEvent([
-        createTrace([]),
-        createTrace([0]),
-        createTrace([0, 0]),
-        createTrace([0, 0, 0]),
+        createTrace([], CONFIG.lendingPoolAddress),
+        createTrace([0], CONFIG.lendingPoolAddress, irrelevantSig),
+        createTrace([0, 0], CONFIG.lendingPoolAddress, irrelevantSig),
+        createTrace([0, 0, 0], CONFIG.lendingPoolAddress, irrelevantSig),
       ]);
       const findings: Finding[] = await handleTx(tx);
       expect(findings).toStrictEqual([]);
     });
 
-    it("Should ignore non reentrant calls", async () => {
-      const tx: TransactionEvent = createTxEvent([]);
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual([]);
-    });
-
-    it("Should detect a finding if deposit then withdraw in a reentrant way", async () => {
-      const iFace = new Interface([
-        "function withdraw(address asset,uint256 amount,address to)",
-        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
+    it("Should detect a finding if a blacklisted function is called in a reentrant way", async () => {
+      const withdraw = LENDING_POOL_IFACE.encodeFunctionData("withdraw", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
       ]);
 
-      const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
+      const tx: TransactionEvent = createTxEvent(
+        [
+          createTrace([], CONFIG.lendingPoolAddress, "0x"),
+          createTrace([0], CONFIG.lendingPoolAddress, withdraw), // Reentrant withdraw call
+        ],
+        "0x"
+      );
+
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual([utils.createFinding("(unknown)", "withdraw")]);
+    });
+
+    it("Should return only one finding per subtree that contains a reentrant call", async () => {
+      const deposit = LENDING_POOL_IFACE.encodeFunctionData("deposit", [
         createAddress("0x0a"),
         234,
         createAddress("0x0b"),
         0,
       ]);
-      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
-      const depositSig = sighashes[3];
-      const withdrawSig = sighashes[1];
-      const tx: TransactionEvent = createTxEvent(
-        [
-          createTrace([], depositSig), // Deposit call
-          createTrace([0], withdrawSig), // Reentrant withdraw call
-        ],
-        testEncodedDepositFuncCall
-      );
 
-      const expected: Finding[] = [];
-      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[1]));
-
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual(expected);
-    });
-
-    it("Should detect a finding from a with different call", async () => {
-      const iFace = new Interface([
-        "function withdraw(address asset,uint256 amount,address to)",
-        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
+      const withdraw = LENDING_POOL_IFACE.encodeFunctionData("withdraw", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
       ]);
 
-      const testEncodedDepositFuncCall: string = iFace.encodeFunctionData("deposit", [
+      const tx: TransactionEvent = createTxEvent(
+        [
+          createTrace([], CONFIG.lendingPoolAddress, deposit), // Deposit call
+          createTrace([0], CONFIG.lendingPoolAddress, withdraw), // Reentrant withdraw call
+          createTrace([0, 0], CONFIG.lendingPoolAddress, withdraw), // Reentrant withdraw call
+          createTrace([0, 1], CONFIG.lendingPoolAddress, irrelevantSig),
+        ],
+        deposit
+      );
+
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual([utils.createFinding("deposit", "withdraw")]);
+    });
+
+    it("Should handle multiple subtrees with and without reentrant calls", async () => {
+      const deposit = LENDING_POOL_IFACE.encodeFunctionData("deposit", [
         createAddress("0x0a"),
         234,
         createAddress("0x0b"),
         0,
       ]);
-      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
-      const depositSig = sighashes[3];
-      const withdrawSig = sighashes[1];
 
-      const tx: TransactionEvent = createTxEvent(
-        [
-          createTrace([], depositSig), // Deposit call
-          createTrace([0], withdrawSig), // Reentrant withdraw call
-          createTrace([0, 0], depositSig), // Reentrant deposit call
-          createTrace([0, 0, 0], "0x01234567"), // Any call
-          createTrace([0, 0, 0, 0], depositSig), // Reentrant deposit call
-        ],
-        testEncodedDepositFuncCall
-      );
-
-      const expected: Finding[] = [];
-      expected.push(utils.createFinding(testEncodedDepositFuncCall.slice(0, 10), sighashes[1]));
-
-      const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual(expected);
-    });
-    it("Should detect a finding with traces with more than one subtrace and different calls in between", async () => {
-      const iFace = new Interface([
-        "function withdraw(address asset,uint256 amount,address to)",
-        "function deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)",
-        "function transfer(address user,uint256 amount)", // function outside the lending pool
+      const withdraw = LENDING_POOL_IFACE.encodeFunctionData("withdraw", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
       ]);
 
-      const testEncodedTransferFuncCall: string = iFace.encodeFunctionData("transfer", [createAddress("0x0a"), 234]);
-      const sighashes = utils.getSigHashes(CONFIG.reentrancyBlacklist);
-      const depositSig = sighashes[3];
-      const withdrawSig = sighashes[1];
-
       const tx: TransactionEvent = createTxEvent(
         [
-          createTrace([], depositSig), // Deposit call
-          createTrace([0], "0x01234567"), // Outside call
-          createTrace([0, 0, 1], "0x01234567"), // Any call
-          createTrace([0, 0, 0, 1], "0x01234567"), // Any call
-          createTrace([0, 0, 0, 1, 1], withdrawSig), // Withdraw call
+          createTrace([], irrelevantAddress, irrelevantSig),
+
+          createTrace([0], CONFIG.lendingPoolAddress, deposit), // -> finding
+          createTrace([0, 0], CONFIG.lendingPoolAddress, withdraw),
+
+          createTrace([1], CONFIG.lendingPoolAddress, deposit), // -> finding
+          createTrace([1, 0], CONFIG.lendingPoolAddress, withdraw),
+
+          createTrace([2], irrelevantAddress, irrelevantSig),
+          createTrace([2, 0], irrelevantAddress, irrelevantSig),
+          createTrace([2, 0, 0], CONFIG.lendingPoolAddress, withdraw), // -> finding
+          createTrace([2, 0, 0, 0], irrelevantAddress, irrelevantSig),
+          createTrace([2, 0, 0, 0, 0], irrelevantAddress, irrelevantSig),
+          createTrace([2, 0, 0, 0, 0, 1], CONFIG.lendingPoolAddress, withdraw),
+
+          createTrace([3], CONFIG.lendingPoolAddress, irrelevantSig),
+          createTrace([3, 0], irrelevantAddress, irrelevantSig),
         ],
-        testEncodedTransferFuncCall
+        irrelevantSig
       );
 
-      const expected: Finding[] = [];
-      expected.push(utils.createFinding(depositSig, withdrawSig));
-
       const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual(expected);
+      expect(findings).toStrictEqual([
+        utils.createFinding("deposit", "withdraw"),
+        utils.createFinding("deposit", "withdraw"),
+        utils.createFinding("withdraw", "withdraw"),
+      ]);
     });
   });
 });
