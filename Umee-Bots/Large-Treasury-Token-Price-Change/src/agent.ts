@@ -12,16 +12,14 @@ import {
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-let tokens: MonitoringInfo[];
+const tokens: MonitoringInfo[] = [];
 
 export const provideInitialize = (
-  _tokens: MonitoringInfo[],
+  tokens: MonitoringInfo[],
   provider: ethers.providers.Provider,
   config: AgentConfig
 ): Initialize => {
   return async () => {
-    tokens = _tokens;
-
     tokens.push(
       ...(await Promise.all(
         config.tokens.map(async (token) => {
@@ -57,7 +55,7 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (): HandleBlock => {
+export const provideHandleBlock = (tokens: MonitoringInfo[]): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     const timestamp = ethers.BigNumber.from(blockEvent.block.timestamp);
@@ -96,7 +94,7 @@ export const provideHandleBlock = (): HandleBlock => {
 
 export default {
   provideInitialize,
-  initialize: provideInitialize([], getEthersProvider(), CONFIG),
+  initialize: provideInitialize(tokens, getEthersProvider(), CONFIG),
   provideHandleBlock,
-  handleBlock: provideHandleBlock(),
+  handleBlock: provideHandleBlock(tokens),
 };

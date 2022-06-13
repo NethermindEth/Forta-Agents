@@ -53,15 +53,12 @@ describe("large treasury token price change bot", () => {
   let handleBlock: HandleBlock;
   let tokens: MonitoringInfo[];
 
-  beforeAll(() => {
-    handleBlock = provideHandleBlock();
-  });
-
   beforeEach(() => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as any as ethers.providers.Provider;
 
     tokens = [];
+    handleBlock = provideHandleBlock(tokens);
   });
 
   describe("initialize", () => {
