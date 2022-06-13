@@ -35,7 +35,7 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
             break; // subtree ended
           }
 
-          if (!alerted && traces[i].action.to === config.lendingPoolAddress) {
+          if (!alerted && traces[i].action.to === lendingPoolAddress) {
             const selector = (traces[i].action.input || "").slice(0, 10); // "0x" and first 4 bytes
             let func;
 
