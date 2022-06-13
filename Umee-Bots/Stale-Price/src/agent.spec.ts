@@ -31,7 +31,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
   let mockProvider: MockEthersProvider;
   let assetsDataList: AssetData[] = [];
 
-  const resetAssetsDataList = () => (assetsDataList = []);
+  const resetAssetsDataList = () => (assetsDataList.length = 0);
 
   const setReserves = (
     reserves: Array<{ asset: string; source: string; timestamps: Record<number | string, number> }>
@@ -82,8 +82,8 @@ describe("Lending pool reentrancy agent tests suit", () => {
     resetAssetsDataList();
 
     initialize = provideInitialize(assetsDataList, mockProvider as any, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(mockProvider as any, DEFAULT_CONFIG);
-    handleBlock = provideHandleBlock(mockProvider as any, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(assetsDataList, mockProvider as any, DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(assetsDataList, mockProvider as any, DEFAULT_CONFIG);
   });
 
   describe("initialize", () => {

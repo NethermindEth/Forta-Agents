@@ -20,21 +20,20 @@ import {
   getAssetData,
 } from "./utils";
 
-let assetsDataList: AssetData[] = [];
+const assetsDataList: AssetData[] = [];
 
 export const provideInitialize = (
-  _assetsDataList: AssetData[],
+  assetsDataList: AssetData[],
   provider: ethers.providers.Provider,
   config: AgentConfig
 ): Initialize => {
   return async () => {
-    assetsDataList = _assetsDataList;
-
     assetsDataList.push(...(await getAssetData(provider, config)));
   };
 };
 
 export const provideHandleTransaction = (
+  assetsDataList: AssetData[],
   provider: ethers.providers.Provider,
   config: AgentConfig
 ): HandleTransaction => {
@@ -75,7 +74,11 @@ export const provideHandleTransaction = (
   };
 };
 
-export const provideHandleBlock = (provider: ethers.providers.Provider, config: AgentConfig): HandleBlock => {
+export const provideHandleBlock = (
+  assetsDataList: AssetData[],
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): HandleBlock => {
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
@@ -105,6 +108,6 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
 
 export default {
   initialize: provideInitialize(assetsDataList, getEthersProvider(), CONFIG),
-  handleTransaction: provideHandleTransaction(getEthersProvider(), CONFIG),
-  handleBlock: provideHandleBlock(getEthersProvider(), CONFIG),
+  handleTransaction: provideHandleTransaction(assetsDataList, getEthersProvider(), CONFIG),
+  handleBlock: provideHandleBlock(assetsDataList, getEthersProvider(), CONFIG),
 };
