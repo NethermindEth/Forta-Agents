@@ -10,7 +10,7 @@ const CONFIG: AgentConfig = {
     "repay(address,uint256,uint256,address)",
     "swapBorrowRateMode(address,uint256)",
     "rebalanceStableBorrowRate(address,address)",
-    "setUserUseReserveAsCollateral(address, bool)",
+    "setUserUseReserveAsCollateral(address,bool)",
     "liquidationCall(address,address,address,uint256,bool)",
     "finalizeTransfer(address,address,address,uint256,uint256,uint256)",
   ],
