@@ -30,7 +30,7 @@ const createTrace = (stack: number[], to: string, input: string = "0x"): Trace =
 
 const CONFIG: AgentConfig = {
   reentrancyBlacklist: ["withdraw", "deposit"],
-  lendingPoolAddress: createAddress("4001"),
+  lendingPoolAddress: createAddress("0x4001"),
 };
 
 const LENDING_POOL_IFACE = new ethers.utils.Interface(LENDING_POOL_ABI);
