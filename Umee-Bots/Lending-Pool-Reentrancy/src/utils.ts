@@ -1,5 +1,4 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { encodeFunctionSignature } from "forta-agent-tools/lib/utils";
 
 export interface AgentConfig {
   lendingPoolAddress: string;
