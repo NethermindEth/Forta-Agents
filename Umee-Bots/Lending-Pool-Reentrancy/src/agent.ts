@@ -48,7 +48,7 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
             if (
               (func && config.reentrancyBlacklist.includes(func.name)) ||
               (selector === "0x" && config.reentrancyBlacklist.includes("(call)")) ||
-              (!func && config.reentrancyBlacklist.includes("(unknown)"))
+              (selector !== "0x" && !func && config.reentrancyBlacklist.includes("(unknown)"))
             ) {
               func = func || { name: selector === "0x" ? "(call)" : "(unknown)" };
 

@@ -174,7 +174,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
     it("Should support specifying '0x' or '(unknown)' as blacklisted functions", async () => {
       const handleTx = provideHandleTransaction({
         ...CONFIG,
-        reentrancyBlacklist: ["0x", "(unknown)"],
+        reentrancyBlacklist: ["(call)", "(unknown)"],
       });
 
       const deposit = LENDING_POOL_IFACE.encodeFunctionData("deposit", [
