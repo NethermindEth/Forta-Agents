@@ -25,17 +25,15 @@ import {
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-let reserveData: ReserveData[];
+const reserveData: ReserveData[] = [];
 let multicallProvider: MulticallProvider = new MulticallProvider(getEthersProvider());
 
 export const provideInitialize = (
-  _reserveData: ReserveData[],
+  reserveData: ReserveData[],
   provider: ethers.providers.Provider,
   config: AgentConfig
 ): Initialize => {
   return async () => {
-    reserveData = _reserveData;
-
     const lendingPool = new ethers.Contract(
       config.lendingPoolAddress,
       [GET_RESERVES_LIST_ABI, GET_RESERVE_DATA_ABI],
@@ -63,7 +61,7 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+export const provideHandleTransaction = (reserveData: ReserveData[], config: AgentConfig): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const reserveInits = txEvent.filterLog(RESERVE_INITIALIZED_ABI, config.lendingPoolConfiguratorAddress);
 
@@ -82,7 +80,11 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
   };
 };
 
-export const provideHandleBlock = (multicallProvider: MulticallProvider, config: AgentConfig): HandleBlock => {
+export const provideHandleBlock = (
+  reserveData: ReserveData[],
+  multicallProvider: MulticallProvider,
+  config: AgentConfig
+): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -141,9 +143,9 @@ export const provideHandleBlock = (multicallProvider: MulticallProvider, config:
 
 export default {
   provideInitialize,
-  initialize: provideInitialize([], getEthersProvider(), CONFIG),
+  initialize: provideInitialize(reserveData, getEthersProvider(), CONFIG),
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(CONFIG),
+  handleTransaction: provideHandleTransaction(reserveData, CONFIG),
   provideHandleBlock,
-  handleBlock: provideHandleBlock(multicallProvider, CONFIG),
+  handleBlock: provideHandleBlock(reserveData, multicallProvider, CONFIG),
 };

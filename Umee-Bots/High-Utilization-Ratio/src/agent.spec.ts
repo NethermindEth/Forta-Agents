@@ -211,7 +211,7 @@ describe("High utilization ratio bot", () => {
 
   describe("handleTransaction", () => {
     it("should include newly added reserves to the monitoring list", async () => {
-      handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+      handleTransaction = provideHandleTransaction(reserveData, DEFAULT_CONFIG);
 
       const txEvent = new TestTransactionEvent();
 
@@ -237,7 +237,7 @@ describe("High utilization ratio bot", () => {
 
   describe("handleBlock", () => {
     it("should return empty findings with an empty monitoring list", async () => {
-      handleBlock = provideHandleBlock(multicallProvider, DEFAULT_CONFIG);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, DEFAULT_CONFIG);
 
       const blockEvent = new TestBlockEvent();
       const findings = await handleBlock(blockEvent);
@@ -248,7 +248,7 @@ describe("High utilization ratio bot", () => {
 
     it("should split reserve list into chunks of 10 for multicall", async () => {
       initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
-      handleBlock = provideHandleBlock(multicallProvider, DEFAULT_CONFIG);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, DEFAULT_CONFIG);
 
       // 10 reserves should require 1 multicall
       const reserves1 = new Array(10).fill(createAddress("0x1"));
@@ -286,7 +286,7 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(multicallProvider, config);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
@@ -322,7 +322,7 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(multicallProvider, config);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
@@ -379,7 +379,7 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(multicallProvider, config);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
@@ -442,7 +442,7 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(multicallProvider, config);
+      handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
       reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
