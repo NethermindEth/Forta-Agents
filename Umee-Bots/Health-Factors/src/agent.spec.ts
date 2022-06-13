@@ -107,7 +107,7 @@ describe("health factors agent", () => {
 
   it("returns empty findings and doesn't add any accounts to monitor when handling an empty transaction", async () => {
     const txEvent = new TestTransactionEvent();
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const findings = await handleTransaction(txEvent);
 
@@ -116,7 +116,7 @@ describe("health factors agent", () => {
 
   it("adds address to monitor when there's a Borrow event from LendingPool", async () => {
     const txEvent = new TestTransactionEvent();
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x2"));
@@ -132,7 +132,7 @@ describe("health factors agent", () => {
 
   it("doesn't add addresses to monitor when there's a Borrow event from a different address", async () => {
     const txEvent = new TestTransactionEvent();
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     addBorrow(txEvent, createAddress("0x0"), USER_ADDRESS);
     addBorrow(txEvent, createAddress("0x0"), createAddress("0x2"));
@@ -150,8 +150,8 @@ describe("health factors agent", () => {
       healthFactor: "0",
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const blockEvent = new TestBlockEvent();
     const findings1 = await handleBlock(blockEvent);
@@ -167,8 +167,8 @@ describe("health factors agent", () => {
       healthFactor: "0",
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -187,8 +187,8 @@ describe("health factors agent", () => {
       healthFactor: "0",
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -207,8 +207,8 @@ describe("health factors agent", () => {
       healthFactor: "0",
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent1 = new TestTransactionEvent();
     addBorrow(txEvent1, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -247,8 +247,8 @@ describe("health factors agent", () => {
       healthFactor: DEFAULT_CONFIG.healthFactorThreshold,
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -267,8 +267,8 @@ describe("health factors agent", () => {
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -287,8 +287,8 @@ describe("health factors agent", () => {
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
@@ -313,8 +313,8 @@ describe("health factors agent", () => {
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
-    handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
+    handleBlock = provideHandleBlock(accounts, provider, DEFAULT_CONFIG);
+    handleTransaction = provideHandleTransaction(accounts, DEFAULT_CONFIG);
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);

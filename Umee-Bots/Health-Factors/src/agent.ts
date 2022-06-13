@@ -17,22 +17,23 @@ import CONFIG from "./agent.config";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-let accounts: Array<{ address: string; alerted: boolean }>;
+const accounts: Array<{ address: string; alerted: boolean }> = [];
 let multicallProvider: MulticallProvider;
 
 export const provideInitialize = (
-  _accounts: Array<{ address: string; alerted: boolean }>,
+  accounts: Array<{ address: string; alerted: boolean }>,
   provider: ethers.providers.Provider
 ): Initialize => {
   return async () => {
     multicallProvider = new MulticallProvider(provider);
     await multicallProvider.init();
-
-    accounts = _accounts;
   };
 };
 
-export const provideHandleTransaction = (config: AgentConfig): HandleTransaction => {
+export const provideHandleTransaction = (
+  accounts: Array<{ address: string; alerted: boolean }>,
+  config: AgentConfig
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const users = txEvent.filterLog(BORROW_ABI, config.lendingPoolAddress).map((el) => el.args.onBehalfOf);
 
@@ -52,7 +53,11 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
   };
 };
 
-export const provideHandleBlock = (provider: ethers.providers.Provider, config: AgentConfig): HandleBlock => {
+export const provideHandleBlock = (
+  accounts: Array<{ address: string; alerted: boolean }>,
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): HandleBlock => {
   const LendingPool = new MulticallContract(config.lendingPoolAddress, [GET_USER_ACCOUNT_DATA_ABI]);
   const EthUsdFeed = new ethers.Contract(config.ethUsdFeedAddress, [LATEST_ANSWER_ABI], provider);
 
@@ -114,9 +119,9 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
 
 export default {
   provideInitialize,
-  initialize: provideInitialize([], getEthersProvider()),
+  initialize: provideInitialize(accounts, getEthersProvider()),
   provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(CONFIG),
+  handleTransaction: provideHandleTransaction(accounts, CONFIG),
   provideHandleBlock,
-  handleBlock: provideHandleBlock(getEthersProvider(), CONFIG),
+  handleBlock: provideHandleBlock(accounts, getEthersProvider(), CONFIG),
 };
