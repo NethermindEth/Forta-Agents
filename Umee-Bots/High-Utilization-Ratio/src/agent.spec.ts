@@ -247,7 +247,6 @@ describe("High utilization ratio bot", () => {
     });
 
     it("should split reserve list into chunks of 10 for multicall", async () => {
-      initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
       handleBlock = provideHandleBlock(reserveData, multicallProvider, DEFAULT_CONFIG);
 
       // 10 reserves should require 1 multicall
@@ -285,7 +284,6 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -321,7 +319,6 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -378,7 +375,6 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -441,7 +437,6 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 15, percentage: 20 },
       };
 
-      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(reserveData, multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
