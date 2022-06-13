@@ -36,7 +36,7 @@ export interface SmartCallerOptions {
 }
 
 export class SmartCaller {
-  static cache = new LRU<string, Promise<any>>({ max: 200 });
+  static cache = new LRU<string, Promise<any>>({ max: 500 });
   static mutex = new Mutex();
 
   [key: string]: ((...args: any[]) => Promise<any>) | any;
