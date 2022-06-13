@@ -10,6 +10,7 @@ import {
   RESERVE_INITIALIZED_ABI,
   TOTAL_SUPPLY_ABI,
 } from "./constants";
+import { MulticallContract, MulticallProvider } from "./multicall";
 import { AgentConfig, createAbsoluteThresholdFinding, createPercentageThresholdFinding, ReserveData } from "./utils";
 
 const MAINNET_MULTICALL_ADDRESS = "0xeefba1e63905ef1d7acba5a8513c70307c1ce441";
@@ -36,6 +37,7 @@ describe("High utilization ratio bot", () => {
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
   let provider: ethers.providers.Provider;
+  let multicallProvider: MulticallProvider;
   let mockProvider: MockEthersProvider;
   let mockMulticallProvider: MockEthersProvider;
   let reserveData: ReserveData[] = [];
@@ -122,6 +124,22 @@ describe("High utilization ratio bot", () => {
     };
   }
 
+  function createReserveData(reserve: string): ReserveData {
+    const addresses = getReserveAddresses(reserve);
+
+    return {
+      asset: new MulticallContract(reserve, [BALANCE_OF_ABI]),
+      uTokenAddress: addresses.uTokenAddress,
+      stableDebtToken: new MulticallContract(addresses.stableDebtTokenAddress, [TOTAL_SUPPLY_ABI]),
+      variableDebtToken: new MulticallContract(addresses.variableDebtTokenAddress, [TOTAL_SUPPLY_ABI]),
+      usageRatio: new BigNumber(-1),
+      lastAlertTimestamp: {
+        absolute: 0,
+        percentage: 0,
+      },
+    };
+  }
+
   function addReserveData(reserve: string, block?: string | number) {
     mockProvider.addCallTo(LENDING_POOL_ADDRESS, block as any, LENDING_POOL_IFACE, "getReserveData", {
       inputs: [reserve],
@@ -151,7 +169,7 @@ describe("High utilization ratio bot", () => {
     }));
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
     mockMulticallProvider = new MockEthersProvider();
@@ -160,6 +178,9 @@ describe("High utilization ratio bot", () => {
 
     // @ts-ignore
     mockProvider.getNetwork = jest.fn().mockImplementation(() => ({ chainId: 1 }));
+
+    multicallProvider = new MulticallProvider(provider);
+    await multicallProvider.init();
 
     resetReserveData();
   });
@@ -216,7 +237,7 @@ describe("High utilization ratio bot", () => {
 
   describe("handleBlock", () => {
     it("should return empty findings with an empty monitoring list", async () => {
-      handleBlock = provideHandleBlock(DEFAULT_CONFIG);
+      handleBlock = provideHandleBlock(multicallProvider, DEFAULT_CONFIG);
 
       const blockEvent = new TestBlockEvent();
       const findings = await handleBlock(blockEvent);
@@ -227,17 +248,12 @@ describe("High utilization ratio bot", () => {
 
     it("should split reserve list into chunks of 10 for multicall", async () => {
       initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
-      handleBlock = provideHandleBlock(DEFAULT_CONFIG);
+      handleBlock = provideHandleBlock(multicallProvider, DEFAULT_CONFIG);
 
       // 10 reserves should require 1 multicall
-
-      setReserves(new Array(10).fill(createAddress("0x1")));
+      const reserves1 = new Array(10).fill(createAddress("0x1"));
+      reserveData.push(...reserves1.map((reserve) => createReserveData(reserve)));
       setReserveBalances(createAddress("0x1"), "1", "1", "1", 0);
-
-      await initialize();
-
-      expect(mockProvider.call).toBeCalledTimes(1 + 10);
-      clearProviderCalls();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0);
       const findings1 = await handleBlock(blockEvent1);
@@ -245,16 +261,14 @@ describe("High utilization ratio bot", () => {
       expect(findings1).toStrictEqual([]);
       expect(mockProvider.call).toBeCalledTimes(1);
       expect(mockMulticallProvider.call).toBeCalledTimes(3 * 10);
+
       clearProviderCalls();
-
-      // 11 reserves should require 2 multicalls
-
       resetReserveData();
-      setReserves(new Array(11).fill(createAddress("0x1")));
-      await initialize();
 
-      expect(mockProvider.call).toBeCalledTimes(1 + 11);
-      clearProviderCalls();
+      // 10 reserves should require 2 multicalls
+      const reserves2 = new Array(11).fill(createAddress("0x1"));
+      reserveData.push(...reserves2.map((reserve) => createReserveData(reserve)));
+      setReserveBalances(createAddress("0x1"), "1", "1", "1", 0);
 
       const blockEvent2 = new TestBlockEvent().setNumber(0);
       const findings2 = await handleBlock(blockEvent2);
@@ -272,12 +286,10 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(config);
+      handleBlock = provideHandleBlock(multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
-      setReserves(reserves);
-
-      await initialize();
+      reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
 
       const blockEvent = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       setReserveBalances(reserves[0], "1", "1", "1", 0);
@@ -310,10 +322,10 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(config);
+      handleBlock = provideHandleBlock(multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
-      setReserves(reserves);
+      reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
 
       setReserveBalances(reserves[0], "5", "10", "10", 0); // 0.8
       setReserveBalances(reserves[1], "10", "100", "10", 0); // ~0.917
@@ -322,8 +334,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[0], "5", "10", "35", 1); // 0.9
       setReserveBalances(reserves[1], "10", "100", "10", 1); // ~0.917
       setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
-
-      await initialize();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);
@@ -369,10 +379,10 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(config);
+      handleBlock = provideHandleBlock(multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
-      setReserves(reserves);
+      reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
 
       setReserveBalances(reserves[0], "5", "10", "10", 0); // 0.8
       setReserveBalances(reserves[1], "10", "100", "10", 0); // ~0.917
@@ -381,8 +391,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[0], "5", "10", "35", 1); // 0.9
       setReserveBalances(reserves[1], "10", "100", "100", 1); // ~0.952
       setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
-
-      await initialize();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);
@@ -434,10 +442,10 @@ describe("High utilization ratio bot", () => {
       };
 
       initialize = provideInitialize(reserveData, provider, config);
-      handleBlock = provideHandleBlock(config);
+      handleBlock = provideHandleBlock(multicallProvider, config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
-      setReserves(reserves);
+      reserveData.push(...reserves.map((reserve) => createReserveData(reserve)));
 
       setReserveBalances(reserves[0], "5", "10", "5", 0); // 0.75
       setReserveBalances(reserves[1], "5", "20", "20", 0); // ~0.889
@@ -450,8 +458,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[0], "5", "1", "4", 2); // 0.5
       setReserveBalances(reserves[1], "5", "20", "25", 2); // 0.9 -> >= absolute threshold
       setReserveBalances(reserves[2], "5", "20", "5", 2); // ~0.833 -> >= relative threshold
-
-      await initialize();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);

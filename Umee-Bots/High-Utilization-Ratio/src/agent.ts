@@ -26,7 +26,7 @@ import {
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 let reserveData: ReserveData[];
-let multicallProvider: MulticallProvider;
+let multicallProvider: MulticallProvider = new MulticallProvider(getEthersProvider());
 
 export const provideInitialize = (
   _reserveData: ReserveData[],
@@ -43,7 +43,9 @@ export const provideInitialize = (
     );
 
     const reserveAddresses: string[] = await lendingPool.getReservesList();
-    const reserves = await Promise.all(reserveAddresses.map((el) => lendingPool.getReserveData(el)));
+    const reserves = await Promise.all(
+      reserveAddresses.map((reserveAddress) => lendingPool.getReserveData(reserveAddress))
+    );
 
     reserves.forEach((data, idx) => {
       reserveData.push(
@@ -80,7 +82,7 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
   };
 };
 
-export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
+export const provideHandleBlock = (multicallProvider: MulticallProvider, config: AgentConfig): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -143,5 +145,5 @@ export default {
   provideHandleTransaction,
   handleTransaction: provideHandleTransaction(CONFIG),
   provideHandleBlock,
-  handleBlock: provideHandleBlock(CONFIG),
+  handleBlock: provideHandleBlock(multicallProvider, CONFIG),
 };
