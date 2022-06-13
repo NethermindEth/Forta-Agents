@@ -1,9 +1,11 @@
 {
-  "name": "umee-bad-debt",
+  "name": "umee-reentrancy-lending-bot",
   "version": "0.0.1",
-  "description": "Forta bot that detects bad debt immediately after specific Umee protocol pool interactions",
-  "chainIds": [1],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Bad-Debt",
+  "description": "Forta bot that detects reentrancy for specified calls to Umee LendingPool.",
+  "chainIds": [
+    1
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Umee-Bots/Lending-Pool-Reentrancy",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
