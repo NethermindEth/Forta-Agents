@@ -1,14 +1,7 @@
 import BigNumber from "bignumber.js";
 import { ethers, HandleBlock, HandleTransaction, Initialize } from "forta-agent";
 import { MockEthersProvider, TestTransactionEvent, TestBlockEvent, createAddress } from "forta-agent-tools/lib/tests";
-import {
-  getReserveData,
-  provideHandleBlock,
-  provideHandleTransaction,
-  provideInitialize,
-  resetReserveData,
-  setReserveData,
-} from "./agent";
+import { provideHandleBlock, provideHandleTransaction, provideInitialize } from "./agent";
 import {
   AGGREGATE_ABI,
   BALANCE_OF_ABI,
@@ -45,6 +38,13 @@ describe("High utilization ratio bot", () => {
   let provider: ethers.providers.Provider;
   let mockProvider: MockEthersProvider;
   let mockMulticallProvider: MockEthersProvider;
+  let reserveData: ReserveData[] = [];
+
+  const resetReserveData = () => (reserveData.length = 0);
+  const setReserveData = (newReserveData: ReserveData[]) => {
+    resetReserveData();
+    reserveData.push(...newReserveData);
+  };
 
   function generateMockProviderCall() {
     const _call = mockProvider.call;
@@ -166,14 +166,12 @@ describe("High utilization ratio bot", () => {
 
   describe("initialize", () => {
     it("should fetch the reserves list", async () => {
-      initialize = provideInitialize(provider, DEFAULT_CONFIG);
+      initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
 
       const reserves = [createAddress("0x1"), createAddress("0x2")];
       setReserves(reserves);
 
       await initialize();
-
-      const reserveData = getReserveData();
 
       reserves.forEach((reserve, idx) => {
         const addresses = getReserveAddresses(reserve);
@@ -200,8 +198,6 @@ describe("High utilization ratio bot", () => {
       setReserves(reserves, undefined, txEvent);
 
       await handleTransaction(txEvent);
-
-      const reserveData = getReserveData();
 
       reserves.forEach((reserve, idx) => {
         const addresses = getReserveAddresses(reserve);
@@ -230,7 +226,7 @@ describe("High utilization ratio bot", () => {
     });
 
     it("should split reserve list into chunks of 10 for multicall", async () => {
-      initialize = provideInitialize(provider, DEFAULT_CONFIG);
+      initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
       handleBlock = provideHandleBlock(DEFAULT_CONFIG);
 
       // 10 reserves should require 1 multicall
@@ -275,7 +271,7 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(provider, config);
+      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -289,7 +285,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[2], "1", "10", "10", 0);
 
       const findings = await handleBlock(blockEvent);
-      const reserveData = getReserveData();
 
       expect(findings).toStrictEqual([
         createAbsoluteThresholdFinding(reserves[1], new BigNumber("11").div("12")),
@@ -314,7 +309,7 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(provider, config);
+      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -329,7 +324,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
 
       await initialize();
-      const reserveData = getReserveData();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);
@@ -374,7 +368,7 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 0, percentage: 0 },
       };
 
-      initialize = provideInitialize(provider, config);
+      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -389,7 +383,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[2], "1000", "100", "100", 1); // ~0.167
 
       await initialize();
-      const reserveData = getReserveData();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);
@@ -440,7 +433,7 @@ describe("High utilization ratio bot", () => {
         alertCooldown: { absolute: 15, percentage: 20 },
       };
 
-      initialize = provideInitialize(provider, config);
+      initialize = provideInitialize(reserveData, provider, config);
       handleBlock = provideHandleBlock(config);
 
       const reserves = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3")];
@@ -459,8 +452,6 @@ describe("High utilization ratio bot", () => {
       setReserveBalances(reserves[2], "5", "20", "5", 2); // ~0.833 -> >= relative threshold
 
       await initialize();
-
-      const reserveData = getReserveData();
 
       const blockEvent1 = new TestBlockEvent().setNumber(0).setTimestamp(1000);
       const findings1 = await handleBlock(blockEvent1);

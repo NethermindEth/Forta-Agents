@@ -25,20 +25,17 @@ import {
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-const reserveData: ReserveData[] = [];
-
-// testing
-export const resetReserveData = () => (reserveData.length = 0);
-export const getReserveData = () => reserveData;
-export const setReserveData = (newReserveData: ReserveData[]) => {
-  resetReserveData();
-  newReserveData.forEach((el) => reserveData.push(el));
-};
-
+let reserveData: ReserveData[];
 let multicallProvider: MulticallProvider;
 
-export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
+export const provideInitialize = (
+  _reserveData: ReserveData[],
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): Initialize => {
   return async () => {
+    reserveData = _reserveData;
+
     const LendingPool = new ethers.Contract(
       config.lendingPoolAddress,
       [GET_RESERVES_LIST_ABI, GET_RESERVE_DATA_ABI],
@@ -142,7 +139,7 @@ export const provideHandleBlock = (config: AgentConfig): HandleBlock => {
 
 export default {
   provideInitialize,
-  initialize: provideInitialize(getEthersProvider(), CONFIG),
+  initialize: provideInitialize([], getEthersProvider(), CONFIG),
   provideHandleTransaction,
   handleTransaction: provideHandleTransaction(CONFIG),
   provideHandleBlock,
