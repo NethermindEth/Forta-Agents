@@ -187,7 +187,7 @@ describe("High utilization ratio bot", () => {
 
   describe("initialize", () => {
     it("should fetch the reserves list", async () => {
-      initialize = provideInitialize(reserveData, provider, DEFAULT_CONFIG);
+      initialize = provideInitialize(reserveData, multicallProvider, provider, DEFAULT_CONFIG);
 
       const reserves = [createAddress("0x1"), createAddress("0x2")];
       setReserves(reserves);

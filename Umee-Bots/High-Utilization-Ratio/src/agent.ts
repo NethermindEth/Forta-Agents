@@ -26,10 +26,11 @@ import {
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const reserveData: ReserveData[] = [];
-let multicallProvider: MulticallProvider = new MulticallProvider(getEthersProvider());
+const multicallProvider: MulticallProvider = new MulticallProvider(getEthersProvider());
 
 export const provideInitialize = (
   reserveData: ReserveData[],
+  multicallProvider: MulticallProvider,
   provider: ethers.providers.Provider,
   config: AgentConfig
 ): Initialize => {
@@ -56,7 +57,6 @@ export const provideInitialize = (
       );
     });
 
-    multicallProvider = new MulticallProvider(provider);
     await multicallProvider.init();
   };
 };
@@ -143,7 +143,7 @@ export const provideHandleBlock = (
 
 export default {
   provideInitialize,
-  initialize: provideInitialize(reserveData, getEthersProvider(), CONFIG),
+  initialize: provideInitialize(reserveData, multicallProvider, getEthersProvider(), CONFIG),
   provideHandleTransaction,
   handleTransaction: provideHandleTransaction(reserveData, CONFIG),
   provideHandleBlock,
