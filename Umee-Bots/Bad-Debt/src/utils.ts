@@ -52,8 +52,8 @@ const createFinding = ({ collateralAmount, borrowAmount }: MetaData): Finding =>
     type: FindingType.Exploit,
     severity: FindingSeverity.High,
     metadata: {
-      collateralAmount: ethers.utils.formatEther(collateralAmount).toString(),
-      borrowAmount: ethers.utils.formatEther(borrowAmount).toString(),
+      collateralAmount: ethers.utils.formatEther(collateralAmount),
+      borrowAmount: ethers.utils.formatEther(borrowAmount),
     },
   });
 };
