@@ -8,19 +8,23 @@ import { MulticallContract, MulticallProvider } from "./multicall2";
 
 const THRESHOLD_PERCENTAGE: number = 20;
 
-let networkManager: NetworkData;
-let multicall2: MulticallProvider;
+const networkManager: NetworkData = new NetworkManager();
 
-export const provideInitialize = (_networkManager: NetworkData, provider: providers.Provider) => async () => {
+export const provideInitialize = (networkManager: NetworkData, provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
-  networkManager = _networkManager;
   networkManager.setNetwork(chainId);
-  multicall2 = new MulticallProvider(provider, networkManager.multicall2Data, chainId);
 };
 
-export function provideHandleTransaction(thresholdPercentage: number): HandleTransaction {
+export function provideHandleTransaction(
+  provider: providers.Provider,
+  thresholdPercentage: number,
+  networkManager: NetworkData
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+
+    const multicall2 = new MulticallProvider(provider, networkManager.multicall2Data, networkManager.chainId);
+
     await Promise.all(
       // Filter for any `Swap` event emissions
       txEvent.filterLog(SWAP_ABI).map(async (log) => {
@@ -69,6 +73,6 @@ export function provideHandleTransaction(thresholdPercentage: number): HandleTra
 }
 
 export default {
-  initialize: provideInitialize(new NetworkManager(), getEthersProvider()),
-  handleTransaction: provideHandleTransaction(THRESHOLD_PERCENTAGE),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(getEthersProvider(), THRESHOLD_PERCENTAGE, networkManager),
 };
