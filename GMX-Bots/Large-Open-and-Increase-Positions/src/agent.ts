@@ -3,10 +3,9 @@ import { providers } from "ethers";
 import BigNumber from "bignumber.js";
 import { createFinding } from "./utils";
 import NetworkData, { NETWORK_MAP } from "./network";
-import { VAULT_CONSTANTS } from "./constants";
+import { INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT, PRICE_MULTIPLIER } from "./constants";
 import NetworkManager from "./network";
 
-const { INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT, THRESHOLD, PRICE_MULTIPLIER } = VAULT_CONSTANTS;
 const networkManager = new NetworkManager(NETWORK_MAP);
 
 export const initialize = (provider: providers.Provider) => {
@@ -18,33 +17,35 @@ export const initialize = (provider: providers.Provider) => {
 
 export const provideTransactionHandler = (
   networkManager: NetworkData,
-  threshold: number,
+  thresholdConfig: NetworkData,
   updatePositionEvent: string,
   increasePositionEvent: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+
+    // filter transaction logs for increase and update position events
     const eventLogs: LogDescription[] = txEvent.filterLog(
-      [updatePositionEvent, increasePositionEvent],
+      [increasePositionEvent, updatePositionEvent],
       networkManager.vaultAddress
     );
 
     // extract only increaseEventLogs
-    const increaseEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "IncreasePosition"); 
+    const increaseEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "IncreasePosition");
 
-    // extract only increaseEventLogs
+    // extract only updateEventLogs
     const updateEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "UpdatePosition");
 
     increaseEventLogs.forEach((increaseEvent, index) => {
       const updateEvent = updateEventLogs[index];
-      const { args: increaseArgs } = increaseEvent; 
+      const { args: increaseArgs } = increaseEvent;
       const { args: updateArgs } = updateEvent;
       const { sizeDelta, key: increasePositionKey, account } = increaseArgs;
       const { size, key: updatePositionKey } = updateArgs;
       const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(new BigNumber(PRICE_MULTIPLIER));
-      const positionSizeDifference = ethers.BigNumber.from(size).sub(ethers.BigNumber.from(sizeDelta)); 
+      const positionSizeDifference = ethers.BigNumber.from(size).sub(ethers.BigNumber.from(sizeDelta));
 
-      if (baseSizeDelta.gt(new BigNumber(threshold))) {
+      if (baseSizeDelta.gt(new BigNumber(thresholdConfig.threshold))) {
         findings.push(
           createFinding(
             account,
@@ -65,7 +66,7 @@ export const provideTransactionHandler = (
 export default {
   handleTransaction: provideTransactionHandler(
     networkManager,
-    THRESHOLD,
+    networkManager,
     UPDATE_POSITION_EVENT,
     INCREASE_POSITION_EVENT
   ),

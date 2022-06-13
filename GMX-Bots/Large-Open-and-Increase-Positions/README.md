@@ -4,7 +4,7 @@
 
 This bot detects when an open/increase position is large. The bot listens to `UpdatePosition` and `IncreasePosition` event emissions on GMX's Vault Contract and creates a finding if the initial position `size` exceeds the `threshold` 
 
-> The `threshold` can be adjusted in **src/utils.ts**.
+> The `threshold` can be adjusted in **src/network.ts**.
 
 ## Supported Chains
 
@@ -40,7 +40,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
 The bot behaviour can be verified with the following transactions:
 - [0xa1497f703ad237a5f43a2df93fe961394e5df2ad548d4cb02c45a865d8fda591](https://arbiscan.io/tx/0xa1497f703ad237a5f43a2df93fe961394e5df2ad548d4cb02c45a865d8fda591) - 
 `Arbitrum Mainnet` - UpdatePosition event 
-  > Position Size - 147986.41
+  > Position size - 147986.41
 
 
 
