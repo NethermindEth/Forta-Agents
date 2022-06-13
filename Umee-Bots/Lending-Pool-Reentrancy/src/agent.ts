@@ -36,13 +36,20 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
               func = null;
             }
 
-            if (func && config.reentrancyBlacklist.includes(func.name)) {
-              let initialFunc;
+            if (
+              (func && config.reentrancyBlacklist.includes(func.name)) ||
+              (selector === "0x" && config.reentrancyBlacklist.includes("(call)")) ||
+              (!func && config.reentrancyBlacklist.includes("(unknown)"))
+            ) {
+              func = func || { name: selector === "0x" ? "(call)" : "(unknown)" };
 
+              const initialSelector = trace.action.input.slice(0, 10);
+
+              let initialFunc;
               try {
-                initialFunc = lendingPool.getFunction(trace.action.input.slice(0, 10));
+                initialFunc = lendingPool.getFunction(initialSelector);
               } catch {
-                initialFunc = { name: "(unknown)" };
+                initialFunc = { name: initialSelector === "0x" ? "(call)" : "(unknown)" };
               }
 
               findings.push(utils.createFinding(initialFunc.name, func.name));

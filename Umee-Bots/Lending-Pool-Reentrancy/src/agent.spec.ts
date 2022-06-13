@@ -170,5 +170,36 @@ describe("Lending pool reentrancy agent tests suit", () => {
         utils.createFinding("withdraw", "withdraw"),
       ]);
     });
+
+    it("Should support specifying '0x' or '(unknown)' as blacklisted functions", async () => {
+      const handleTx = provideHandleTransaction({
+        ...CONFIG,
+        reentrancyBlacklist: ["0x", "(unknown)"],
+      });
+
+      const deposit = LENDING_POOL_IFACE.encodeFunctionData("deposit", [
+        createAddress("0x0a"),
+        234,
+        createAddress("0x0b"),
+        0,
+      ]);
+
+      const tx: TransactionEvent = createTxEvent(
+        [
+          createTrace([], irrelevantAddress, irrelevantSig),
+          createTrace([0], CONFIG.lendingPoolAddress, deposit),
+          createTrace([0, 0], CONFIG.lendingPoolAddress, "0x"),
+          createTrace([1], CONFIG.lendingPoolAddress, deposit),
+          createTrace([1, 0], CONFIG.lendingPoolAddress, irrelevantSig),
+        ],
+        irrelevantSig
+      );
+
+      const findings: Finding[] = await handleTx(tx);
+      expect(findings).toStrictEqual([
+        utils.createFinding("deposit", "(call)"),
+        utils.createFinding("deposit", "(unknown)"),
+      ]);
+    });
   });
 });

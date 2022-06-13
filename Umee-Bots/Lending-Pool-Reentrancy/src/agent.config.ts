@@ -2,6 +2,8 @@ import { AgentConfig } from "./utils";
 
 const CONFIG: AgentConfig = {
   // Functions that will result in a finding emission if called in a reentrant manner
+  // Add "(call)" to account for simple calls and "(unknown)" to account for any call whose
+  // selector isn't included in the LendingPool ABI specification.
   reentrancyBlacklist: [
     "borrow",
     "withdraw",
