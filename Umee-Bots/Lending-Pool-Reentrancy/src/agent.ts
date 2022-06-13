@@ -45,10 +45,8 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
                 initialFunc = { name: "(unknown)" };
               }
 
-              if (initialFunc) {
-                findings.push(utils.createFinding(initialFunc.name, func.name));
-                alerted = true;
-              }
+              findings.push(utils.createFinding(initialFunc.name, func.name));
+              alerted = true;
             }
           }
         }
