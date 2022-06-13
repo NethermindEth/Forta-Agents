@@ -95,7 +95,7 @@ describe("Lending pool reentrancy agent tests suit", () => {
       );
 
       const findings: Finding[] = await handleTx(tx);
-      expect(findings).toStrictEqual([utils.createFinding("(unknown)", "withdraw")]);
+      expect(findings).toStrictEqual([utils.createFinding("(call)", "withdraw")]);
     });
 
     it("Should return only one finding per subtree that contains a reentrant call", async () => {
