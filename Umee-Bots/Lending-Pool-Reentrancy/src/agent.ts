@@ -20,6 +20,15 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
       if (trace.action.to === lendingPoolAddress) {
         let alerted = false;
 
+        const initialSelector = trace.action.input.slice(0, 10);
+
+        let initialFunc;
+        try {
+          initialFunc = lendingPool.getFunction(initialSelector);
+        } catch {
+          initialFunc = { name: initialSelector === "0x" ? "(call)" : "(unknown)" };
+        }
+
         for (i = i + 1; i < traces.length; i++) {
           if (traces[i].traceAddress.length <= depth) {
             i--;
@@ -42,15 +51,6 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
               (!func && config.reentrancyBlacklist.includes("(unknown)"))
             ) {
               func = func || { name: selector === "0x" ? "(call)" : "(unknown)" };
-
-              const initialSelector = trace.action.input.slice(0, 10);
-
-              let initialFunc;
-              try {
-                initialFunc = lendingPool.getFunction(initialSelector);
-              } catch {
-                initialFunc = { name: initialSelector === "0x" ? "(call)" : "(unknown)" };
-              }
 
               findings.push(utils.createFinding(initialFunc.name, func.name));
               alerted = true;
