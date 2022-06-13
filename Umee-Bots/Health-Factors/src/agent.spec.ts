@@ -1,5 +1,5 @@
 import { HandleTransaction, ethers, HandleBlock, Initialize } from "forta-agent";
-import agent, { provideHandleTransaction, provideHandleBlock, provideInitialize } from "./agent";
+import { provideHandleTransaction, provideHandleBlock, provideInitialize } from "./agent";
 import { AgentConfig, createFinding } from "./utils";
 import { createAddress, TestTransactionEvent, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
 import { AGGREGATE_ABI, BORROW_ABI, GET_USER_ACCOUNT_DATA_ABI, LATEST_ANSWER_ABI } from "./constants";
@@ -91,9 +91,18 @@ describe("health factors agent", () => {
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
   let initialize: Initialize;
+  let accounts: Array<{ address: string; alerted: boolean }>;
+  let mockProvider: MockEthersProvider;
+  let provider: ethers.providers.Provider;
 
-  beforeEach(() => {
-    agent.resetAccounts();
+  beforeEach(async () => {
+    mockProvider = createMockProvider();
+    provider = mockProvider as unknown as ethers.providers.Provider;
+
+    accounts = [];
+    initialize = provideInitialize(accounts, provider);
+
+    await initialize();
   });
 
   it("returns empty findings and doesn't add any accounts to monitor when handling an empty transaction", async () => {
@@ -115,7 +124,7 @@ describe("health factors agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([
+    expect(accounts).toStrictEqual([
       { address: USER_ADDRESS, alerted: false },
       { address: createAddress("0x2"), alerted: false },
     ]);
@@ -131,112 +140,88 @@ describe("health factors agent", () => {
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([]);
+    expect(accounts).toStrictEqual([]);
   });
 
   it("returns empty findings when handling an empty block", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: "0",
       totalDebtUsd: "0",
       healthFactor: "0",
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const blockEvent = new TestBlockEvent();
     const findings1 = await handleBlock(blockEvent);
 
     expect(findings1).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([]);
+    expect(accounts).toStrictEqual([]);
   });
 
   it("removes accounts with less than `ignoreThreshold` in debt from the monitoring list", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: "0",
       totalDebtUsd: "0", // less than ignoreThreshold
       healthFactor: "0",
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([]);
+    expect(accounts).toStrictEqual([]);
   });
 
   it("keeps account with at least `ignoreThreshold` in debt in the monitoring list", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: "0",
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: "0",
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
   });
 
   it("shouldn't add duplicate account entries to the monitoring list", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: "0",
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: "0",
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent1 = new TestTransactionEvent();
     addBorrow(txEvent1, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent1)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     const txEvent2 = new TestTransactionEvent();
     addBorrow(txEvent2, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
     addBorrow(txEvent2, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x2"));
 
     expect(await handleTransaction(txEvent2)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([
+    expect(accounts).toStrictEqual([
       { address: USER_ADDRESS, alerted: false },
       { address: createAddress("0x2"), alerted: false },
     ]);
@@ -248,7 +233,7 @@ describe("health factors agent", () => {
     addBorrow(txEvent3, DEFAULT_CONFIG.lendingPoolAddress, createAddress("0x3"));
 
     expect(await handleTransaction(txEvent3)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([
+    expect(accounts).toStrictEqual([
       { address: USER_ADDRESS, alerted: false },
       { address: createAddress("0x2"), alerted: false },
       { address: createAddress("0x3"), alerted: false },
@@ -256,78 +241,60 @@ describe("health factors agent", () => {
   });
 
   it("returns empty findings if the accounts health factor is equal to or greater than `healthFactorThreshold`", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: addOne(DEFAULT_CONFIG.upperThreshold),
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: DEFAULT_CONFIG.healthFactorThreshold,
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
   });
 
   it("returns empty findings if the accounts total collateral in USD is equal to or less than `upperThreshold`", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: DEFAULT_CONFIG.upperThreshold,
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
   });
 
   it("returns findings if the accounts total collateral in USD is greater than `upperThreshold`, total debt in USD is greater or equal than `ignoreThreshold` and health factor is less than `healthFactorThreshold`", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: addOne(DEFAULT_CONFIG.upperThreshold),
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([
       createFinding(
@@ -336,31 +303,25 @@ describe("health factors agent", () => {
         new BigNumber(addOne(DEFAULT_CONFIG.upperThreshold))
       ),
     ]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
   });
 
   it("only returns one finding each time the health factor is less than `healthFactorThreshold`", async () => {
-    const mockProvider = createMockProvider();
     generateMockProviderCall(mockProvider, () => ({
       totalCollateralUsd: addOne(DEFAULT_CONFIG.upperThreshold),
       totalDebtUsd: DEFAULT_CONFIG.ignoreThreshold,
       healthFactor: subOne(DEFAULT_CONFIG.healthFactorThreshold),
     }));
 
-    const provider = mockProvider as any as ethers.providers.Provider;
-
     handleBlock = provideHandleBlock(provider, DEFAULT_CONFIG);
     handleTransaction = provideHandleTransaction(DEFAULT_CONFIG);
-    initialize = provideInitialize(provider);
-
-    await initialize();
 
     const txEvent = new TestTransactionEvent();
     addBorrow(txEvent, DEFAULT_CONFIG.lendingPoolAddress, USER_ADDRESS);
 
     // adds account to monitoring list
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     // emits a finding, health factor below threshold
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([
@@ -370,11 +331,11 @@ describe("health factors agent", () => {
         new BigNumber(addOne(DEFAULT_CONFIG.upperThreshold))
       ),
     ]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
 
     // shouldn't emit a finding again if the position situation hasn't changed
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
 
     // change the account's health factor to be above the health factor threshold
     generateMockProviderCall(mockProvider, () => ({
@@ -385,7 +346,7 @@ describe("health factors agent", () => {
 
     // shouldn't emit a finding, above threshold
     expect(await handleBlock(new TestBlockEvent())).toStrictEqual([]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: false }]);
 
     // change the account's health factor to be, again, below the health factor threshold
     generateMockProviderCall(mockProvider, () => ({
@@ -402,6 +363,6 @@ describe("health factors agent", () => {
         new BigNumber(addOne(DEFAULT_CONFIG.upperThreshold))
       ),
     ]);
-    expect(agent.getAccounts()).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
+    expect(accounts).toStrictEqual([{ address: USER_ADDRESS, alerted: true }]);
   });
 });

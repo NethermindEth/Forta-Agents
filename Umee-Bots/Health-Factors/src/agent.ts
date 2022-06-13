@@ -17,13 +17,18 @@ import CONFIG from "./agent.config";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-let accounts: Array<{ address: string; alerted: boolean }> = [];
+let accounts: Array<{ address: string; alerted: boolean }>;
 let multicallProvider: MulticallProvider;
 
-export const provideInitialize = (provider: ethers.providers.Provider): Initialize => {
+export const provideInitialize = (
+  _accounts: Array<{ address: string; alerted: boolean }>,
+  provider: ethers.providers.Provider
+): Initialize => {
   return async () => {
     multicallProvider = new MulticallProvider(provider);
     await multicallProvider.init();
+
+    accounts = _accounts;
   };
 };
 
@@ -33,9 +38,9 @@ export const provideHandleTransaction = (config: AgentConfig): HandleTransaction
 
     if (users.length) {
       const accountMap: Record<string, boolean> = {};
-      accounts.forEach(el => accountMap[el.address] = true);
+      accounts.forEach((el) => (accountMap[el.address] = true));
 
-      users.forEach(user => {
+      users.forEach((user) => {
         if (!accountMap[user]) {
           accounts.push({ address: user, alerted: false });
           accountMap[user] = true;
@@ -72,7 +77,7 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
       )
     ).flat() as AccountData[];
 
-    accounts = accounts.filter((account, idx) => {
+    const filteredAccounts = accounts.filter((account, idx) => {
       const accountData = accountsData[idx];
       const totalDebtUsd = ethersBnToBn(accountData.totalDebtETH, 18).times(ethToUsd);
       const totalCollateralUsd = ethersBnToBn(accountData.totalCollateralETH, 18).times(ethToUsd);
@@ -99,19 +104,19 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, config: 
       return true;
     });
 
+    // keep array reference
+    accounts.length = 0;
+    accounts.push(...filteredAccounts);
+
     return findings;
   };
 };
 
 export default {
   provideInitialize,
-  initialize: provideInitialize(getEthersProvider()),
+  initialize: provideInitialize([], getEthersProvider()),
   provideHandleTransaction,
   handleTransaction: provideHandleTransaction(CONFIG),
   provideHandleBlock,
   handleBlock: provideHandleBlock(getEthersProvider(), CONFIG),
-
-  // testing
-  getAccounts: () => accounts,
-  resetAccounts: () => (accounts = []),
 };
