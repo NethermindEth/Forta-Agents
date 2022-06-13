@@ -36,14 +36,14 @@ export const provideInitialize = (
   return async () => {
     reserveData = _reserveData;
 
-    const LendingPool = new ethers.Contract(
+    const lendingPool = new ethers.Contract(
       config.lendingPoolAddress,
       [GET_RESERVES_LIST_ABI, GET_RESERVE_DATA_ABI],
       provider
     );
 
-    const reserveAddresses: string[] = await LendingPool.getReservesList();
-    const reserves = await Promise.all(reserveAddresses.map((el) => LendingPool.getReserveData(el)));
+    const reserveAddresses: string[] = await lendingPool.getReservesList();
+    const reserves = await Promise.all(reserveAddresses.map((el) => lendingPool.getReserveData(el)));
 
     reserves.forEach((data, idx) => {
       reserveData.push(
