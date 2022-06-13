@@ -14,39 +14,45 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 
 let tokens: MonitoringInfo[];
 
-export const getTokens = () => tokens;
-
-export const provideInitialize = (provider: ethers.providers.Provider, config: AgentConfig): Initialize => {
+export const provideInitialize = (
+  _tokens: MonitoringInfo[],
+  provider: ethers.providers.Provider,
+  config: AgentConfig
+): Initialize => {
   return async () => {
-    tokens = await Promise.all(
-      config.tokens.map(async (token) => {
-        const ChainlinkFeed = new ethers.Contract(
-          token.chainlinkFeedAddress,
-          [DECIMALS_ABI, DESCRIPTION_ABI, LATEST_ANSWER_ABI, LATEST_ROUND_DATA_ABI],
-          provider
-        );
+    tokens = _tokens;
 
-        const roundData = await ChainlinkFeed.latestRoundData();
-        const decimals = await ChainlinkFeed.decimals();
-        const description = await ChainlinkFeed.description();
+    tokens.push(
+      ...(await Promise.all(
+        config.tokens.map(async (token) => {
+          const ChainlinkFeed = new ethers.Contract(
+            token.chainlinkFeedAddress,
+            [DECIMALS_ABI, DESCRIPTION_ABI, LATEST_ANSWER_ABI, LATEST_ROUND_DATA_ABI],
+            provider
+          );
 
-        if (roundData.answer.isNegative()) {
-          throw new Error("Negative feed answer");
-        }
+          const roundData = await ChainlinkFeed.latestRoundData();
+          const decimals = await ChainlinkFeed.decimals();
+          const description = await ChainlinkFeed.description();
 
-        return {
-          description,
-          decimals,
-          lastAnswer: ethersBnToBn(roundData.answer, decimals),
-          lastTimestamp: roundData.updatedAt,
-          absoluteThreshold: token.absoluteThreshold ? new BigNumber(token.absoluteThreshold) : undefined,
-          ratioThreshold: token.percentageThreshold
-            ? new BigNumber(token.percentageThreshold).shiftedBy(-2)
-            : undefined,
-          intervalSeconds: ethers.BigNumber.from(token.intervalSeconds),
-          contract: ChainlinkFeed,
-        };
-      })
+          if (roundData.answer.isNegative()) {
+            throw new Error("Negative feed answer");
+          }
+
+          return {
+            description,
+            decimals,
+            lastAnswer: ethersBnToBn(roundData.answer, decimals),
+            lastTimestamp: roundData.updatedAt,
+            absoluteThreshold: token.absoluteThreshold ? new BigNumber(token.absoluteThreshold) : undefined,
+            ratioThreshold: token.percentageThreshold
+              ? new BigNumber(token.percentageThreshold).shiftedBy(-2)
+              : undefined,
+            intervalSeconds: ethers.BigNumber.from(token.intervalSeconds),
+            contract: ChainlinkFeed,
+          };
+        })
+      ))
     );
   };
 };
@@ -90,7 +96,7 @@ export const provideHandleBlock = (): HandleBlock => {
 
 export default {
   provideInitialize,
-  initialize: provideInitialize(getEthersProvider(), CONFIG),
+  initialize: provideInitialize([], getEthersProvider(), CONFIG),
   provideHandleBlock,
   handleBlock: provideHandleBlock(),
 };

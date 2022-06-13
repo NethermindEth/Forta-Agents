@@ -1,9 +1,9 @@
 import BigNumber from "bignumber.js";
 import { ethers, HandleBlock, Initialize } from "forta-agent";
 import { MockEthersProvider, TestBlockEvent, createAddress } from "forta-agent-tools/lib/tests";
-import { provideHandleBlock, provideInitialize, getTokens } from "./agent";
+import { provideHandleBlock, provideInitialize } from "./agent";
 import { DECIMALS_ABI, DESCRIPTION_ABI, LATEST_ANSWER_ABI, LATEST_ROUND_DATA_ABI } from "./constants";
-import { createNegativeAnswerFinding, createPriceChangeFinding } from "./utils";
+import { createNegativeAnswerFinding, createPriceChangeFinding, MonitoringInfo } from "./utils";
 
 function mockFeedCalls(
   mockProvider: MockEthersProvider,
@@ -51,6 +51,7 @@ describe("large treasury token price change bot", () => {
   let provider: ethers.providers.Provider = mockProvider as any as ethers.providers.Provider;
   let initialize: Initialize;
   let handleBlock: HandleBlock;
+  let tokens: MonitoringInfo[];
 
   beforeAll(() => {
     handleBlock = provideHandleBlock();
@@ -59,15 +60,17 @@ describe("large treasury token price change bot", () => {
   beforeEach(() => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as any as ethers.providers.Provider;
+
+    tokens = [];
   });
 
   describe("initialize", () => {
     it("should load empty monitoring array if config.tokens is empty", async () => {
-      initialize = provideInitialize(provider, { tokens: [] });
+      initialize = provideInitialize(tokens, provider, { tokens: [] });
 
       await initialize();
 
-      expect(getTokens()).toStrictEqual([]);
+      expect(tokens).toStrictEqual([]);
     });
 
     it("should throw an error if the last feed answer is negative", async () => {
@@ -80,12 +83,12 @@ describe("large treasury token price change bot", () => {
         latestTimestamp: "0",
       });
 
-      initialize = provideInitialize(provider, {
+      initialize = provideInitialize(tokens, provider, {
         tokens: [{ chainlinkFeedAddress: feedAddress, intervalSeconds: "3600" }],
       });
 
       await expect(initialize).rejects.toThrow("Negative feed answer");
-      expect(getTokens()).toStrictEqual([]);
+      expect(tokens).toStrictEqual([]);
     });
 
     it("should successfully load monitoring data using the agent config", async () => {
@@ -109,10 +112,8 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
       await initialize();
-
-      const tokens = getTokens();
 
       expect(tokens[0].description).toStrictEqual(feedCalls.description);
       expect(tokens[0].decimals).toStrictEqual(feedCalls.decimals);
@@ -128,13 +129,13 @@ describe("large treasury token price change bot", () => {
 
   describe("handleBlock", () => {
     it("should return empty findings with an empty monitoring list", async () => {
-      initialize = provideInitialize(provider, { tokens: [] });
+      initialize = provideInitialize(tokens, provider, { tokens: [] });
 
       await initialize();
 
       const blockEvent = new TestBlockEvent().setTimestamp(0);
 
-      expect(getTokens()).toStrictEqual([]);
+      expect(tokens).toStrictEqual([]);
       expect(await handleBlock(blockEvent)).toStrictEqual([]);
     });
 
@@ -159,7 +160,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -199,7 +200,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -231,7 +232,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -264,7 +265,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -297,7 +298,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -337,7 +338,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
@@ -370,7 +371,7 @@ describe("large treasury token price change bot", () => {
 
       mockFeedCalls(mockProvider, feedAddress, feedCalls);
 
-      initialize = provideInitialize(provider, agentConfig);
+      initialize = provideInitialize(tokens, provider, agentConfig);
 
       await initialize();
       expect(mockProvider.call).toHaveBeenCalledTimes(3 * agentConfig.tokens.length);
