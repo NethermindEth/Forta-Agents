@@ -297,7 +297,7 @@ describe("Large Opened and Increased Positions Test Suite", () => {
     ]);
   });
 
-  it("should detect multiple findings for large positions both IncreasePosition and UpdatePositions with large position", async () => {
+  it("should detect multiple findings for both IncreasePosition and UpdatePosition events with large positions", async () => {
     const positionSize1 = ethers.BigNumber.from(500000000).mul(
       ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
     );
