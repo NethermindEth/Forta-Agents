@@ -78,13 +78,15 @@ const createSomeOtherEvent = (contractAddress: string, arg1: string): [string, s
   return ["SomeOtherEvent(uint256)", contractAddress, data];
 };
 
+
 describe("closing of a large position or large decrease in an existing position test suite", () => {
   const mockNetworkManager: NetworkManager = {
     vault: TEST_GMX_VAULT,
+    largeLimit: TEST_LARGE_LIMIT,
     setNetwork: jest.fn(),
   };
 
-  const handleTransaction: HandleTransaction = provideBotHandler(TEST_LARGE_LIMIT, mockNetworkManager);
+  const handleTransaction: HandleTransaction = provideBotHandler(mockNetworkManager);
 
   it("should return empty findings when there are only other events from the vault", async () => {
     const eventLog = createSomeOtherEvent(TEST_GMX_VAULT, "7");

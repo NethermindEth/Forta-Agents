@@ -6,7 +6,6 @@ const DECREASE_POSITION_EVENT =
 const CLOSE_POSITION_EVENT =
   " event ClosePosition(bytes32 key, uint256 size, uint256 collateral,uint256 averagePrice,uint256 entryFundingRate,uint256 reserveAmount,int256 realisedPnl)";
 const PRICE_PRECISION = 10 ** 30;
-const LARGE_LIMIT = 7000;
 
 function isPositionClosed(allCloseEvents: LogDescription[], decreasePositionArgs: ethers.utils.Result): boolean {
   let args: ethers.utils.Result;
@@ -57,4 +56,4 @@ const createFinding = (
         },
       });
 
-export { DECREASE_POSITION_EVENT, CLOSE_POSITION_EVENT, PRICE_PRECISION, LARGE_LIMIT, isPositionClosed, createFinding };
+export { DECREASE_POSITION_EVENT, CLOSE_POSITION_EVENT, PRICE_PRECISION, isPositionClosed, createFinding };

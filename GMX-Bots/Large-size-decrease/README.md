@@ -5,7 +5,7 @@
 This bot detects the closing of a position or decrease in an existing position in GMX vault when the
 `sizeDelta` is considered large.
 
-> The threshold `LARGE_LIMIT` of what is considered large, can be adjusted in **src/utils.ts**.
+> The threshold `largeLimit` of what is considered large for each network can be adjusted in network data in **src/network.ts**.
 
 ## Supported Chains
 
