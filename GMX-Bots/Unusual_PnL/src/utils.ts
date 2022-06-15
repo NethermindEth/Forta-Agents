@@ -3,9 +3,8 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 const CLOSE_POSITION_EVENT =
   " event ClosePosition(bytes32 key, uint256 size, uint256 collateral,uint256 averagePrice,uint256 entryFundingRate,uint256 reserveAmount,int256 realisedPnl)";
+
 const PRICE_PRECISION = 10 ** 30;
-const UNUSUAL_LIMIT = 33000;
-const HIGH_PNLTOSIZE = 1.1; //percent
 
 const createFinding = (positionSize: BigNumber, realisedPnl: BigNumber, key: string, contract: string): Finding =>
   Finding.fromObject({
@@ -23,4 +22,4 @@ const createFinding = (positionSize: BigNumber, realisedPnl: BigNumber, key: str
     },
   });
 
-export { CLOSE_POSITION_EVENT, UNUSUAL_LIMIT, createFinding, HIGH_PNLTOSIZE, PRICE_PRECISION };
+export { CLOSE_POSITION_EVENT, createFinding, PRICE_PRECISION };

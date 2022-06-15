@@ -49,14 +49,12 @@ const createSomeOtherEvent = (contractAddress: string, arg1: string): [string, s
 describe("Unusual PnL from a closed position test suite", () => {
   const mockNetworkManager: NetworkManager = {
     vault: TEST_GMX_VAULT,
+    highPnlToSize: TEST_HIGH_PNLTOSIZE,
+    unUsualLimit: TEST_UNUSUAL_LIMIT,
     setNetwork: jest.fn(),
   };
 
-  const handleTransaction: HandleTransaction = provideBotHandler(
-    TEST_UNUSUAL_LIMIT,
-    TEST_HIGH_PNLTOSIZE,
-    mockNetworkManager
-  );
+  const handleTransaction: HandleTransaction = provideBotHandler(mockNetworkManager);
 
   it("should return empty findings when there are only other events from the vault", async () => {
     const eventLog = createSomeOtherEvent(TEST_GMX_VAULT, "56");
