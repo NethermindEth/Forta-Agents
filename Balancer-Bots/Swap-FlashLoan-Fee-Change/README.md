@@ -28,3 +28,19 @@ This bot detects emissions of `SwapFeePercentageChanged` and `FlashLoanFeePercen
     - `newFeePercentage`: The new fee percentage value in %
 
 ## Test Data
+
+These tests can be run using `npm run tx <TX_HASH>` after setting the `jsonRpcUrl` in `forta.config.json` to an RPC of the network in question.
+
+> Obs.: There wasn't any case in which `FlashLoanFeePercentageChanged` was emitted, so the following tests are only related to `SwapFeePercentageChanged`.
+
+### Ethereum Mainnet
+
+- `0xc421ff8642bdeb12dd0776015e1e7bcaa6c7430970c9079a14f2c2463d22c437` (1 finding - `SwapFeePercentageChanged` was emitted)
+
+### Polygon
+
+- `0x0e5d2108213e1670284340e05e9621dcd3061e66b53d7910d8e2dd4186abd8ec` (1 finding - `SwapFeePercentageChanged` was emitted)
+
+### Arbitrum
+
+- `0x6f428f4ddd9741df8fed61f282ba54e7173aad8e5c317799457f46e4bee27e9b` (1 finding - `SwapFeePercentageChanged` was emitted)
