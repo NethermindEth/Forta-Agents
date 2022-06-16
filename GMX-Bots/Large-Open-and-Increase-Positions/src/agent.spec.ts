@@ -13,7 +13,7 @@ const MOCK_ACCOUNT: string = createAddress("0x11a");
 const MOCK_OTHER_CONTRACT: string = createAddress("0x99");
 const MOCK_VAULT_ADDRESS: string = createAddress("0xa1");
 const MOCK_IFACE: ethers.utils.Interface = new ethers.utils.Interface(MOCK_EVENT_ABI);
-const key: string = ethers.utils.formatBytes32String("updateKey");
+const key: string = ethers.utils.formatBytes32String("positionKey");
 
 const smallSize = ethers.BigNumber.from(1000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER));
 const size1 = ethers.BigNumber.from(500000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
@@ -33,7 +33,8 @@ const sizeDelta6 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10)
 const mockCreateFinding = (
   account: string,
   vaultAddress: string,
-  key: string,
+  updateKey: string,
+  increaseKey: string,
   size: ethers.BigNumber,
   sizeDelta: ethers.BigNumber,
   positionSizeDifference: ethers.BigNumber
@@ -50,7 +51,7 @@ const mockCreateFinding = (
         gmxVault: vaultAddress,
         account: account,
         positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
-        positionKey: key,
+        positionKey: updateKey,
       },
     });
   } else
@@ -67,7 +68,7 @@ const mockCreateFinding = (
         initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
         positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
         finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
-        positionKey: key,
+        positionKey: increaseKey,
       },
     });
 };
@@ -140,6 +141,45 @@ describe("Large Open/Increase Position Test Suite", () => {
     txEvent = new TestTransactionEvent()
       .setTo(MOCK_OTHER_CONTRACT)
       .addAnonymousEventLog(MOCK_OTHER_CONTRACT, updatePositionEventLog.data, ...updatePositionEventLog.topics);
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore event emissions with different increasePosition and updatePosition keys", async () => {
+    const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
+      ethers.utils.formatBytes32String("updateKey"),
+      size1,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ]);
+    const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
+      ethers.utils.formatBytes32String("increaseKey"),
+      MOCK_ACCOUNT,
+      MOCK_TOKEN,
+      MOCK_TOKEN,
+      0,
+      size1,
+      true,
+      0,
+      0,
+    ]);
+
+    txEvent = new TestTransactionEvent()
+      .setTo(MOCK_OTHER_CONTRACT)
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog.data,
+        ...updatePositionEventLog.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        increasePositionEventLog.data,
+        ...increasePositionEventLog.topics
+      );
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -230,6 +270,7 @@ describe("Large Open/Increase Position Test Suite", () => {
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
         key,
+        key,
         positionSize,
         positionSizeDelta,
         ethers.BigNumber.from(positionSize).sub(ethers.BigNumber.from(positionSizeDelta))
@@ -276,6 +317,7 @@ describe("Large Open/Increase Position Test Suite", () => {
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
+        key,
         key,
         size4,
         sizeDelta4,
@@ -368,6 +410,7 @@ describe("Large Open/Increase Position Test Suite", () => {
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
         key,
+        key,
         size1,
         sizeDelta1,
         ethers.BigNumber.from(size1).sub(ethers.BigNumber.from(sizeDelta1))
@@ -376,6 +419,7 @@ describe("Large Open/Increase Position Test Suite", () => {
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
         key,
+        key,
         size2,
         sizeDelta2,
         ethers.BigNumber.from(size2).sub(ethers.BigNumber.from(sizeDelta2))
@@ -383,6 +427,7 @@ describe("Large Open/Increase Position Test Suite", () => {
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
+        key,
         key,
         size3,
         sizeDelta3,
@@ -473,6 +518,7 @@ describe("Large Open/Increase Position Test Suite", () => {
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
         key,
+        key,
         size4,
         sizeDelta4,
         ethers.BigNumber.from(size4).sub(ethers.BigNumber.from(sizeDelta4))
@@ -481,6 +527,7 @@ describe("Large Open/Increase Position Test Suite", () => {
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
         key,
+        key,
         size5,
         sizeDelta5,
         ethers.BigNumber.from(size5).sub(ethers.BigNumber.from(sizeDelta5))
@@ -488,6 +535,7 @@ describe("Large Open/Increase Position Test Suite", () => {
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
+        key,
         key,
         size6,
         sizeDelta6,

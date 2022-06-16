@@ -8,7 +8,8 @@ export function ethersBnToBn(value: ethers.BigNumber, decimals: number): BigNumb
 export const createFinding = (
   account: string,
   vaultAddress: string,
-  key: string,
+  updateKey: string,
+  increaseKey: string,
   size: ethers.BigNumber,
   sizeDelta: ethers.BigNumber,
   positionSizeDifference: ethers.BigNumber
@@ -25,7 +26,7 @@ export const createFinding = (
         gmxVault: vaultAddress,
         account: account,
         positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(),
-        positionKey: key,
+        positionKey: updateKey,
       },
     });
   } else
@@ -42,7 +43,7 @@ export const createFinding = (
         initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
         positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
         finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
-        positionKey: key,
+        positionKey: increaseKey,
       },
     });
 };

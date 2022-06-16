@@ -37,15 +37,26 @@ export const provideTransactionHandler = (
 
     increaseEventLogs.forEach((increaseEventLog, index) => {
       const updateEventLog = updateEventLogs[index];
-      const { sizeDelta, key, account } = increaseEventLog.args;
-      const { size } = updateEventLog.args;
+      const { sizeDelta, key: increaseKey, account } = increaseEventLog.args;
+      const { size, key: updateKey } = updateEventLog.args;
+
       const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
         new BigNumber(PRICE_MULTIPLIER.toString())
       );
+
       const positionSizeDifference = size.sub(sizeDelta);
-      if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
+
+      if (increaseKey === updateKey && baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
         findings.push(
-          createFinding(account, networkManager.vaultAddress, key, size, sizeDelta, positionSizeDifference)
+          createFinding(
+            account,
+            networkManager.vaultAddress,
+            updateKey,
+            increaseKey,
+            size,
+            sizeDelta,
+            positionSizeDifference
+          )
         );
       }
     });
