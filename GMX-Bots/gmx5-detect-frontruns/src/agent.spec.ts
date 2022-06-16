@@ -17,10 +17,7 @@ const ABI: string[] = [
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)",
 ];
 
-const TEST_IFACE: Interface = new Interface([
-  ...ABI,
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)",
-]);
+const TEST_IFACE: Interface = new Interface(ABI);
 
 const mockProvider: MockEthersProvider = new MockEthersProvider();
 const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
