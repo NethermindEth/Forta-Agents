@@ -44,3 +44,15 @@ These tests can be run using `npm run tx <TX_HASH>` after setting the `jsonRpcUr
 ### Arbitrum
 
 - `0x6f428f4ddd9741df8fed61f282ba54e7173aad8e5c317799457f46e4bee27e9b` (1 finding - `SwapFeePercentageChanged` was emitted)
+
+### Kovan Testnet (PoC)
+
+- `0x91eb37edbfe87c58c8c61067e3e5f2678411139a49c8b4d6490875dda4ca3a57` (1 finding - `MockProtocolFeesCollector.setFlashLoanFeePercentage()`)
+  - Related to `MockProtocolFeesCollector.setFlashLoanFeePercentage()`
+  - 1 finding - `SwapFeePercentageChanged` was emitted with the value `1` (1e-16 %)
+- `0xe871fcd1abe72c47e9e096926267cd74e5256303dbdc57f2e5e62d3224e7cd0c`
+  - Related to `MockProtocolFeesCollector.setSwapFeePercentage()`
+  - 1 finding - `SwapFeePercentageChanged` was emitted with the value `2` (2e-16 %)
+- `0x4daa92ace3ba7dbbdd93c22e918b299289c9f85b17c42e15979f35b9d090eacc`
+  - Related to `MockProtocolFeesCollector.test()`
+  - 2 findings - `SwapFeePercentageChanged` was emitted with the value `0.01e18` (1 %) and `FlashLoanFeePercentageChanged` was emitted with the value `0.02e18` (2 %)
