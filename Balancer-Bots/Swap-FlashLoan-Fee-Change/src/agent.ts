@@ -18,18 +18,17 @@ export const provideHandleBlock = (provider: ethers.providers.Provider, networkM
     FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI,
   ]);
 
-  const topics = [
+  const sighashes = [
     protocolFeesCollectorIface.getEventTopic("SwapFeePercentageChanged"),
     protocolFeesCollectorIface.getEventTopic("FlashLoanFeePercentageChanged"),
   ];  
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const logs = await provider.getLogs({
+    const logs = (await provider.getLogs({
       address: networkManager.get("protocolFeesCollectorAddress"),
-      topics,
       fromBlock: blockEvent.blockNumber,
       toBlock: blockEvent.blockNumber,
-    });
+    })).filter(log => sighashes.includes(log.topics[0]));
 
     return logs.map((log) => {
       const decodedLog = protocolFeesCollectorIface.parseLog(log);
