@@ -118,20 +118,8 @@ export const provideHandleTx =
                 }
               }
             });
-            //transaction gets stored
-            if (!sandwichAttack) {
-              callHistory.set(accountBack + token0 + token1, [swapEvent, callHistoryIndex, txEvent.hash]);
-              callHistoryKeys[callHistoryIndex] = accountBack + token0 + token1;
-            }
-          }
-          //transaction gets stored
-          else {
-            callHistory.set(accountBack + token0 + token1, [swapEvent, callHistoryIndex, txEvent.hash]);
-            callHistoryKeys[callHistoryIndex] = accountBack + token0 + token1;
-          }
-        }
         //transaction gets stored
-        else {
+        if (!sandwichAttack) {
           callHistory.set(accountBack + token0 + token1, [swapEvent, callHistoryIndex, txEvent.hash]);
           callHistoryKeys[callHistoryIndex] = accountBack + token0 + token1;
         }
