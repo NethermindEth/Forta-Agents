@@ -15,4 +15,7 @@ const CONFIG: AgentConfig = {
   },
 };
 
+// Uncomment these lines for the Kovan testnet test:
+// CONFIG[42] = { protocolFeesCollectorAddress: "0x5EE8245edAAF0265232F877B36d7F3a96130Aa85" };
+
 export default CONFIG;
