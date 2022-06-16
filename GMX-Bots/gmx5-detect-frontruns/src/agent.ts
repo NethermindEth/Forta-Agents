@@ -192,13 +192,7 @@ export const provideHandleTx =
     return findings;
   };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
-
 export default {
   handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, getEthersProvider()),
-  // handleBlock
+  
 };

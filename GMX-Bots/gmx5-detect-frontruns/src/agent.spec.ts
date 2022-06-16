@@ -34,7 +34,6 @@ const handler = provideHandleTx(
 
 describe("sandwich attack frontrun agent", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
 
   const eventFront = TEST_IFACE.getEvent("Swap");
   const logFront = TEST_IFACE.encodeEventLog(eventFront, [

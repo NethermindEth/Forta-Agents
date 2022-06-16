@@ -1,10 +1,12 @@
 {
-  "name": "forta-agent-starter",
+  "name": "gmx5-detect-frontruns",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects GMX swap transactions that have been frontrun through a sandwich attack",
   "chainIds": [
-    1
+    42161,
+    43114
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/gmx5-detect-frontruns",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -23,8 +25,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
-    "forta-agent-tools": "^2.0.7"
+
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -33,6 +34,8 @@
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "forta-agent-tools": "^2.0.7",
+    "forta-agent": "^0.1.6"
   }
 }
