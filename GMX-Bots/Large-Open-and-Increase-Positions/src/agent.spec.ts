@@ -13,34 +13,32 @@ const MOCK_ACCOUNT: string = createAddress("0x11a");
 const MOCK_OTHER_CONTRACT: string = createAddress("0x99");
 const MOCK_VAULT_ADDRESS: string = createAddress("0xa1");
 const MOCK_IFACE: ethers.utils.Interface = new ethers.utils.Interface(MOCK_EVENT_ABI);
-const updatePositionKey: string = ethers.utils.formatBytes32String("key1");
-const increasePositionKey: string = ethers.utils.formatBytes32String("key2");
-const largeSizeDelta: ethers.BigNumber = ethers.BigNumber.from(50000000).mul(
-  ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-);
-const smallSizeDelta: ethers.BigNumber = ethers.BigNumber.from(100).mul(
-  ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER)
-);
-const largePositionSize: ethers.BigNumber = ethers.BigNumber.from(50000000).mul(
-  ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-);
-const largePositionSize2: ethers.BigNumber = ethers.BigNumber.from(600000).mul(
-  ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-);
-const smallPositionSize: ethers.BigNumber = ethers.BigNumber.from(100).mul(
-  ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER)
-);
+const key: string = ethers.utils.formatBytes32String("updateKey");
+
+const smallSize = ethers.BigNumber.from(1000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER));
+const size1 = ethers.BigNumber.from(500000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const size2 = ethers.BigNumber.from(600000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const size3 = ethers.BigNumber.from(700000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const size4 = ethers.BigNumber.from(8000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const size5 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const size6 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+
+const sizeDelta1 = ethers.BigNumber.from(50000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const sizeDelta2 = ethers.BigNumber.from(60000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const sizeDelta3 = ethers.BigNumber.from(70000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const sizeDelta4 = ethers.BigNumber.from(8000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const sizeDelta5 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+const sizeDelta6 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
 
 const mockCreateFinding = (
   account: string,
   vaultAddress: string,
-  updatePositionKey: string,
-  increasePositionKey: string,
+  key: string,
   size: ethers.BigNumber,
   sizeDelta: ethers.BigNumber,
   positionSizeDifference: ethers.BigNumber
 ): Finding => {
-  if (ethers.BigNumber.from(updatePositionKey).eq(increasePositionKey) && ethers.BigNumber.from(size).eq(sizeDelta)) {
+  if (size.eq(sizeDelta)) {
     return Finding.fromObject({
       name: "Large position size opened on GMX's Vault Contract",
       description: "UpdatePosition event emitted with a large position size",
@@ -51,11 +49,11 @@ const mockCreateFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        positionSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(),
-        positionKey: updatePositionKey,
+        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
+        positionKey: key,
       },
     });
-  } else {
+  } else
     return Finding.fromObject({
       name: "Existing large position increased on GMX's Vault Contract",
       description: "IncreasePosition event emitted in an existing large position on GMX's Vault Contract",
@@ -66,16 +64,15 @@ const mockCreateFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        initialPositionSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(),
-        positionIncrementSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(),
-        finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(),
-        positionKey: increasePositionKey,
+        initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
+        positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
+        finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
+        positionKey: key,
       },
     });
-  }
 };
 
-describe("Large Opened and Increased Positions Test Suite", () => {
+describe("Large Open/Increase Position Test Suite", () => {
   let handleTransaction: HandleTransaction;
   let txEvent: TransactionEvent;
   let findings: Finding[];
@@ -86,16 +83,11 @@ describe("Large Opened and Increased Positions Test Suite", () => {
     vaultAddress: MOCK_VAULT_ADDRESS,
     networkMap: {},
     setNetwork: jest.fn(),
-    threshold: 1000,
+    threshold: "5000",
   };
 
   beforeAll(() => {
-    handleTransaction = provideTransactionHandler(
-      mockNetworkManager,
-      mockNetworkManager,
-      UPDATE_POSITION_EVENT,
-      INCREASE_POSITION_EVENT
-    );
+    handleTransaction = provideTransactionHandler(mockNetworkManager, UPDATE_POSITION_EVENT, INCREASE_POSITION_EVENT);
   });
 
   it("should return no finding in empty transaction", async () => {
@@ -123,12 +115,12 @@ describe("Large Opened and Increased Positions Test Suite", () => {
 
   it("should ignore IncreasePosition emitted from a different contract", async () => {
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      increasePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
       0,
-      largeSizeDelta,
+      sizeDelta1,
       true,
       0,
       0,
@@ -142,16 +134,8 @@ describe("Large Opened and Increased Positions Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore UpdatePosition emitted from a different contract ", async () => {
-    const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      updatePositionKey,
-      largePositionSize,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+  it("should ignore UpdatePosition emitted from a different contract", async () => {
+    const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size1, 0, 0, 0, 0, 0]);
 
     txEvent = new TestTransactionEvent()
       .setTo(MOCK_OTHER_CONTRACT)
@@ -163,20 +147,20 @@ describe("Large Opened and Increased Positions Test Suite", () => {
 
   it("should ignore event emissions whose size delta is not large", async () => {
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      increasePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
       0,
-      smallSizeDelta,
+      smallSize,
       true,
       0,
       0,
     ]);
 
     const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      updatePositionKey,
-      smallPositionSize,
+      key,
+      smallSize,
       0,
       0,
       0,
@@ -197,25 +181,30 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       );
 
     findings = await handleTransaction(txEvent);
+
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect finding for IncreasePosition event whose size delta is large", async () => {
+  it("should detect finding for IncreasePosition event whose size is large", async () => {
+    const positionSize = ethers.BigNumber.from(600000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
+    const positionSizeDelta = ethers.BigNumber.from(500000000).mul(
+      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
+    );
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      updatePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
       0,
-      largeSizeDelta,
+      positionSizeDelta,
       true,
       0,
       0,
     ]);
 
     const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      increasePositionKey,
-      largePositionSize2,
+      key,
+      positionSize,
       0,
       0,
       0,
@@ -240,31 +229,30 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        updatePositionKey,
-        updatePositionKey,
-        largePositionSize2,
-        largeSizeDelta,
-        ethers.BigNumber.from(largePositionSize2).sub(ethers.BigNumber.from(largeSizeDelta))
+        key,
+        positionSize,
+        positionSizeDelta,
+        ethers.BigNumber.from(positionSize).sub(ethers.BigNumber.from(positionSizeDelta))
       ),
     ]);
   });
 
   it("should detect finding for UpdatePosition event whose position size is large", async () => {
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      updatePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
       0,
-      largeSizeDelta,
+      sizeDelta4,
       true,
       0,
       0,
     ]);
 
     const updatePositionEventLog = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      updatePositionKey,
-      largePositionSize,
+      key,
+      sizeDelta4,
       0,
       0,
       0,
@@ -288,40 +276,17 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        updatePositionKey,
-        updatePositionKey,
-        largePositionSize,
-        largeSizeDelta,
-        ethers.BigNumber.from(largePositionSize).sub(ethers.BigNumber.from(largeSizeDelta))
+        key,
+        size4,
+        sizeDelta4,
+        ethers.BigNumber.from(size4).sub(ethers.BigNumber.from(sizeDelta4))
       ),
     ]);
   });
 
   it("should detect multiple findings for both IncreasePosition and UpdatePosition events with large positions", async () => {
-    const positionSize1 = ethers.BigNumber.from(500000000).mul(
-      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-    );
-    const positionSize2 = ethers.BigNumber.from(600000000).mul(
-      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-    );
-    const positionSize3 = ethers.BigNumber.from(700000000).mul(
-      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-    );
-    const positionSize4 = ethers.BigNumber.from(800000000).mul(
-      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-    );
-    const positionSize5 = ethers.BigNumber.from(900000000).mul(
-      ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3)
-    );
-
-    const sizeDelta1 = ethers.BigNumber.from(50000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
-    const sizeDelta2 = ethers.BigNumber.from(60000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
-    const sizeDelta3 = ethers.BigNumber.from(70000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
-    const sizeDelta4 = ethers.BigNumber.from(80000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
-    const sizeDelta5 = ethers.BigNumber.from(90000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_MULTIPLIER - 3));
-
     const increasePositionEventLog1 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      increasePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
@@ -332,18 +297,10 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       0,
     ]);
 
-    const updatePositionEventLog1 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      increasePositionKey,
-      positionSize1,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+    const updatePositionEventLog1 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size1, 0, 0, 0, 0, 0]);
 
     const increasePositionEventLog2 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      increasePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
@@ -354,18 +311,10 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       0,
     ]);
 
-    const updatePositionEventLog2 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      increasePositionKey,
-      positionSize2,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+    const updatePositionEventLog2 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size2, 0, 0, 0, 0, 0]);
 
     const increasePositionEventLog3 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      increasePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
@@ -376,15 +325,7 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       0,
     ]);
 
-    const updatePositionEventLog3 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      increasePositionKey,
-      positionSize3,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+    const updatePositionEventLog3 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size3, 0, 0, 0, 0, 0]);
 
     txEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
@@ -420,38 +361,38 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       );
 
     findings = await handleTransaction(txEvent);
+
+    // multiple findings for updatePosition event
     expect(findings).toStrictEqual([
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        increasePositionKey,
-        increasePositionKey,
-        positionSize1,
+        key,
+        size1,
         sizeDelta1,
-        ethers.BigNumber.from(positionSize1).sub(ethers.BigNumber.from(sizeDelta1))
+        ethers.BigNumber.from(size1).sub(ethers.BigNumber.from(sizeDelta1))
       ),
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        increasePositionKey,
-        increasePositionKey,
-        positionSize2,
+        key,
+        size2,
         sizeDelta2,
-        ethers.BigNumber.from(positionSize2).sub(ethers.BigNumber.from(sizeDelta2))
+        ethers.BigNumber.from(size2).sub(ethers.BigNumber.from(sizeDelta2))
       ),
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        increasePositionKey,
-        increasePositionKey,
-        positionSize3,
+        key,
+        size3,
         sizeDelta3,
-        ethers.BigNumber.from(positionSize3).sub(ethers.BigNumber.from(sizeDelta3))
+        ethers.BigNumber.from(size3).sub(ethers.BigNumber.from(sizeDelta3))
       ),
     ]);
+    expect(findings.length).toStrictEqual(3);
 
     const increasePositionEventLog4 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      updatePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
@@ -462,18 +403,10 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       0,
     ]);
 
-    const updatePositionEventLog4 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      updatePositionKey,
-      positionSize4,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+    const updatePositionEventLog4 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size4, 0, 0, 0, 0, 0]);
 
     const increasePositionEventLog5 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
-      updatePositionKey,
+      key,
       MOCK_ACCOUNT,
       MOCK_TOKEN,
       MOCK_TOKEN,
@@ -484,15 +417,21 @@ describe("Large Opened and Increased Positions Test Suite", () => {
       0,
     ]);
 
-    const updatePositionEventLog5 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [
-      updatePositionKey,
-      positionSize5,
+    const updatePositionEventLog5 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size6, 0, 0, 0, 0, 0]);
+
+    const increasePositionEventLog6 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
+      key,
+      MOCK_ACCOUNT,
+      MOCK_TOKEN,
+      MOCK_TOKEN,
       0,
-      0,
-      0,
+      sizeDelta6,
+      true,
       0,
       0,
     ]);
+
+    const updatePositionEventLog6 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size5, 0, 0, 0, 0, 0]);
 
     txEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
@@ -514,30 +453,47 @@ describe("Large Opened and Increased Positions Test Suite", () => {
         mockNetworkManager.vaultAddress,
         updatePositionEventLog5.data,
         ...updatePositionEventLog5.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        increasePositionEventLog6.data,
+        ...increasePositionEventLog5.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog6.data,
+        ...updatePositionEventLog5.topics
       );
 
     findings = await handleTransaction(txEvent);
-    findings = await handleTransaction(txEvent);
+
+    // multiple findings for updatePosition event
     expect(findings).toStrictEqual([
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        updatePositionKey,
-        updatePositionKey,
-        positionSize4,
+        key,
+        size4,
         sizeDelta4,
-        ethers.BigNumber.from(positionSize4).sub(ethers.BigNumber.from(sizeDelta4))
+        ethers.BigNumber.from(size4).sub(ethers.BigNumber.from(sizeDelta4))
       ),
       mockCreateFinding(
         MOCK_ACCOUNT,
         mockNetworkManager.vaultAddress,
-        updatePositionKey,
-        updatePositionKey,
-        positionSize5,
+        key,
+        size5,
         sizeDelta5,
-        ethers.BigNumber.from(positionSize5).sub(ethers.BigNumber.from(sizeDelta5))
+        ethers.BigNumber.from(size5).sub(ethers.BigNumber.from(sizeDelta5))
+      ),
+      mockCreateFinding(
+        MOCK_ACCOUNT,
+        mockNetworkManager.vaultAddress,
+        key,
+        size6,
+        sizeDelta6,
+        ethers.BigNumber.from(size6).sub(ethers.BigNumber.from(sizeDelta6))
       ),
     ]);
-    expect(findings.length).toStrictEqual(2);
+    expect(findings.length).toStrictEqual(3);
   });
 });

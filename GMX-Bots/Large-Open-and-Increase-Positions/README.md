@@ -46,7 +46,7 @@ The bot behaviour can be verified with the following transactions:
 
 - [0x70562d5cda648946dcefaf394f1db5591122b61a7924fc17e473fa0372a13213](https://arbiscan.io/tx/0x70562d5cda648946dcefaf394f1db5591122b61a7924fc17e473fa0372a13213) -
 `Arbitrum Mainnet` - IncreasePosition event 
-  > Position increment size - 73142.32
+  > Position increment size -  23928.22
 
 
 

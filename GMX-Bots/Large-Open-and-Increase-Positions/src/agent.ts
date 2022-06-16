@@ -1,4 +1,4 @@
-import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent, ethers } from "forta-agent";
+import { Finding, getEthersProvider, HandleTransaction, LogDescription, TransactionEvent } from "forta-agent";
 import { providers } from "ethers";
 import BigNumber from "bignumber.js";
 import { createFinding } from "./utils";
@@ -17,7 +17,6 @@ export const initialize = (provider: providers.Provider) => {
 
 export const provideTransactionHandler = (
   networkManager: NetworkData,
-  thresholdConfig: NetworkData,
   updatePositionEvent: string,
   increasePositionEvent: string
 ): HandleTransaction => {
@@ -36,26 +35,17 @@ export const provideTransactionHandler = (
     // extract only updateEventLogs
     const updateEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "UpdatePosition");
 
-    increaseEventLogs.forEach((increaseEvent, index) => {
-      const updateEvent = updateEventLogs[index];
-      const { args: increaseArgs } = increaseEvent;
-      const { args: updateArgs } = updateEvent;
-      const { sizeDelta, key: increasePositionKey, account } = increaseArgs;
-      const { size, key: updatePositionKey } = updateArgs;
-      const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(new BigNumber(PRICE_MULTIPLIER));
-      const positionSizeDifference = ethers.BigNumber.from(size).sub(ethers.BigNumber.from(sizeDelta));
-
-      if (baseSizeDelta.gt(new BigNumber(thresholdConfig.threshold))) {
+    increaseEventLogs.forEach((increaseEventLog, index) => {
+      const updateEventLog = updateEventLogs[index];
+      const { sizeDelta, key, account } = increaseEventLog.args;
+      const { size } = updateEventLog.args;
+      const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
+        new BigNumber(PRICE_MULTIPLIER.toString())
+      );
+      const positionSizeDifference = size.sub(sizeDelta);
+      if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
         findings.push(
-          createFinding(
-            account,
-            networkManager.vaultAddress,
-            updatePositionKey,
-            increasePositionKey,
-            size,
-            sizeDelta,
-            positionSizeDifference
-          )
+          createFinding(account, networkManager.vaultAddress, key, size, sizeDelta, positionSizeDifference)
         );
       }
     });
@@ -64,11 +54,6 @@ export const provideTransactionHandler = (
 };
 
 export default {
-  handleTransaction: provideTransactionHandler(
-    networkManager,
-    networkManager,
-    UPDATE_POSITION_EVENT,
-    INCREASE_POSITION_EVENT
-  ),
+  handleTransaction: provideTransactionHandler(networkManager, UPDATE_POSITION_EVENT, INCREASE_POSITION_EVENT),
   initialize: initialize(getEthersProvider()),
 };

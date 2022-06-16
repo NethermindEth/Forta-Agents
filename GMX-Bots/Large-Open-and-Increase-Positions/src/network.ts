@@ -2,17 +2,17 @@ import { VAULT_ARBITRUM, VAULT_AVALANCHE } from "./constants";
 
 interface NetworkData {
   vaultAddress: string;
-  threshold: number;
+  threshold: string;
 }
 
 const ARBITRUM_DATA: NetworkData = {
   vaultAddress: VAULT_ARBITRUM,
-  threshold: 6000,
+  threshold: "6000",
 };
 
 const AVALANCHE_DATA: NetworkData = {
   vaultAddress: VAULT_AVALANCHE,
-  threshold: 4000,
+  threshold: "4000",
 };
 
 export const NETWORK_MAP: Record<number, NetworkData> = {
@@ -22,12 +22,12 @@ export const NETWORK_MAP: Record<number, NetworkData> = {
 
 export default class NetworkManager implements NetworkData {
   public vaultAddress: string;
-  public threshold: number;
+  public threshold: string;
   networkMap: Record<number, NetworkData>;
 
   constructor(networkMap: Record<number, NetworkData>) {
     this.vaultAddress = "0x0000000000000000000000000000000000000000"; // zero address by default
-    this.threshold = 0;
+    this.threshold = "0";
     this.networkMap = networkMap;
   }
 

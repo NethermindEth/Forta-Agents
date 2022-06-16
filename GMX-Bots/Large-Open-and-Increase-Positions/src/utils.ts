@@ -8,13 +8,12 @@ export function ethersBnToBn(value: ethers.BigNumber, decimals: number): BigNumb
 export const createFinding = (
   account: string,
   vaultAddress: string,
-  updatePositionKey: string,
-  increasePositionKey: string,
-  positionSize: ethers.BigNumber,
-  positionSizeDelta: ethers.BigNumber,
+  key: string,
+  size: ethers.BigNumber,
+  sizeDelta: ethers.BigNumber,
   positionSizeDifference: ethers.BigNumber
 ): Finding => {
-  if (updatePositionKey === increasePositionKey && ethers.BigNumber.from(positionSize).eq(positionSizeDelta)) {
+  if (size.eq(sizeDelta)) {
     return Finding.fromObject({
       name: "Large position size opened on GMX's Vault Contract",
       description: "UpdatePosition event emitted with a large position size",
@@ -25,11 +24,11 @@ export const createFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        positionSize: ethersBnToBn(positionSizeDelta, 30).decimalPlaces(2).toString(),
-        positionKey: updatePositionKey,
+        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(),
+        positionKey: key,
       },
     });
-  } else {
+  } else
     return Finding.fromObject({
       name: "Existing large position increased on GMX's Vault Contract",
       description: "IncreasePosition event emitted in an existing large position on GMX's Vault Contract",
@@ -40,11 +39,10 @@ export const createFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        initialPositionSize: ethersBnToBn(positionSizeDelta, 30).decimalPlaces(2).toString(),
-        positionIncrementSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(),
-        finalPositionSize: ethersBnToBn(positionSize, 30).decimalPlaces(2).toString(),
-        positionKey: increasePositionKey,
+        initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
+        positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
+        finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
+        positionKey: key,
       },
     });
-  }
 };
