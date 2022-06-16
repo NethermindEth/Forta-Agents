@@ -3,7 +3,7 @@ import { providers } from "ethers";
 import BigNumber from "bignumber.js";
 import { createFinding } from "./utils";
 import NetworkData, { NETWORK_MAP } from "./network";
-import { INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT, PRICE_MULTIPLIER } from "./constants";
+import { INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT, PRICE_PRECISION } from "./constants";
 import NetworkManager from "./network";
 
 const networkManager = new NetworkManager(NETWORK_MAP);
@@ -40,24 +40,24 @@ export const provideTransactionHandler = (
       const { sizeDelta, key: increaseKey, account } = increaseEventLog.args;
       const { size, key: updateKey } = updateEventLog.args;
 
-      const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
-        new BigNumber(PRICE_MULTIPLIER.toString())
-      );
-
-      const positionSizeDifference = size.sub(sizeDelta);
-
-      if (increaseKey === updateKey && baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
-        findings.push(
-          createFinding(
-            account,
-            networkManager.vaultAddress,
-            updateKey,
-            increaseKey,
-            size,
-            sizeDelta,
-            positionSizeDifference
-          )
+      if (increaseKey === updateKey) {
+        const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
+          new BigNumber(PRICE_PRECISION.toString())
         );
+        const positionSizeDifference = size.sub(sizeDelta);
+        if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
+          findings.push(
+            createFinding(
+              account,
+              networkManager.vaultAddress,
+              updateKey,
+              increaseKey,
+              size,
+              sizeDelta,
+              positionSizeDifference
+            )
+          );
+        }
       }
     });
     return findings;

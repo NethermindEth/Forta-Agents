@@ -14,7 +14,7 @@ This bot detects when an open/increase position is large. The bot listens to `Up
 ## Alerts
 
 - GMX-1-1
-  - Fired when a newly open position is large
+  - Fired when a newly open position size is large
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
