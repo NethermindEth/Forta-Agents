@@ -3,11 +3,7 @@ import { ethers } from "forta-agent";
 export default class NetworkManager<T extends Record<any, any>> {
   private chainId: number = -1;
 
-  constructor (
-    public networkMap: Record<number, T>,
-    public provider: ethers.providers.Provider,
-    chainId?: number,
-  ) {
+  constructor(public networkMap: Record<number, T>, public provider: ethers.providers.Provider, chainId?: number) {
     if (chainId !== undefined) {
       this.network = chainId;
     }

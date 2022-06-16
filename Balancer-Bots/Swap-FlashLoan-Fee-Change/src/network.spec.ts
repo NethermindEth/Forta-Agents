@@ -26,7 +26,7 @@ describe("NetworkManager test suite", () => {
       }).not.toThrowError(`The network with ID ${Network.ETHEREUM_MAINNET} is not supported`);
       expect(networkManager!.networkMap).toStrictEqual(data);
       expect(networkManager!.network).toStrictEqual(Network.ETHEREUM_MAINNET);
-  
+
       expect(() => {
         networkManager = new NetworkManager(data, {} as any, Network.POLYGON);
       }).toThrowError(`The network with ID ${Network.POLYGON} is not supported`);
@@ -38,7 +38,7 @@ describe("NetworkManager test suite", () => {
     let chainId: number;
 
     beforeAll(() => {
-      chainId = Network.ETHEREUM_MAINNET
+      chainId = Network.ETHEREUM_MAINNET;
 
       const mockProvider = new MockEthersProvider();
       // @ts-expect-error

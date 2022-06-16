@@ -105,15 +105,11 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
 
     setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
 
-    setLogs(
-      0,
-      PROTOCOL_FEES_COLLECTOR_ADDRESS,
-      [
-        getLog("Swap", ethers.BigNumber.from("1")),
-        getLog("FlashLoan", ethers.BigNumber.from("1")),
-        IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), []) as ethers.providers.Log,
-      ]
-    );
+    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [
+      getLog("Swap", ethers.BigNumber.from("1")),
+      getLog("FlashLoan", ethers.BigNumber.from("1")),
+      IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), []) as ethers.providers.Log,
+    ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
   });
