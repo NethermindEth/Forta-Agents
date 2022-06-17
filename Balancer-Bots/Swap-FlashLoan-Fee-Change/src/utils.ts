@@ -1,11 +1,5 @@
 import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export enum Network {
-  ETHEREUM_MAINNET = 1,
-  POLYGON = 137,
-  ARBITRUM = 42161,
-}
-
 export type AgentConfig = Record<number, NetworkData>;
 
 export interface NetworkData {

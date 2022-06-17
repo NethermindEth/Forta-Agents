@@ -1,7 +1,8 @@
-import { AgentConfig, Network } from "./utils";
+import { Network } from "forta-agent";
+import { AgentConfig } from "./utils";
 
 const CONFIG: AgentConfig = {
-  [Network.ETHEREUM_MAINNET]: {
+  [Network.MAINNET]: {
     // Address of the ProtocolFeesCollector contract
     protocolFeesCollectorAddress: "0xce88686553686da562ce7cea497ce749da109f9f",
   },

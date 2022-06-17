@@ -1,14 +1,17 @@
 import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock, Initialize } from "forta-agent";
 import CONFIG from "./agent.config";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
-import NetworkManager from "./network";
+import { NetworkManager } from "forta-agent-tools";
 import { createFinding, NetworkData } from "./utils";
 
-const networkManager = new NetworkManager<NetworkData>(CONFIG, getEthersProvider());
+const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-export const provideInitialize = (networkManager: NetworkManager<NetworkData>): Initialize => {
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
   return async () => {
-    await networkManager.init();
+    await networkManager.init(provider);
   };
 };
 
@@ -45,6 +48,6 @@ export const provideHandleBlock = (
 };
 
 export default {
-  initialize: provideInitialize(networkManager),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
 };
