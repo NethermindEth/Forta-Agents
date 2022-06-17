@@ -1,4 +1,4 @@
-import { BlockEvent, ethers, HandleBlock, Initialize, Finding } from "forta-agent";
+import { BlockEvent, ethers, HandleBlock, Initialize, Finding, getEthersProvider } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
@@ -9,7 +9,7 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const networkManager = new NetworkManager(CONFIG);
 
-const provideInitialize = (
+export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): Initialize => {
@@ -18,7 +18,7 @@ const provideInitialize = (
   };
 };
 
-const provideHandleBlock = (
+export const provideHandleBlock = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): HandleBlock => {
@@ -50,8 +50,8 @@ const provideHandleBlock = (
           await tokenOut.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
         );
 
-        const percentageTokenIn = toBn(log.args.amountIn).dividedBy(balanceTokenIn);
-        const percentageTokenOut = toBn(log.args.amountOut).dividedBy(balanceTokenOut);
+        const percentageTokenIn = toBn(log.args.amountIn).dividedBy(balanceTokenIn).shiftedBy(2);
+        const percentageTokenOut = toBn(log.args.amountOut).dividedBy(balanceTokenOut).shiftedBy(2);
 
         const tvlPercentageThreshold = networkManager.get("tvlPercentageThreshold");
         if (percentageTokenIn.gte(tvlPercentageThreshold) || percentageTokenOut.gte(tvlPercentageThreshold)) {
@@ -62,4 +62,9 @@ const provideHandleBlock = (
 
     return findings;
   };
+};
+
+export default {
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
 };
