@@ -4,7 +4,9 @@
   "description": "Forta bot that monitors changes in swap and flashloan percentage fees in the Balancer protocol",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Balancer-Bots/Swap-Flashloan-Fee-Change/",
   "chainIds": [
-    1
+    1,
+    137,
+    42161
   ],
   "scripts": {
     "build": "tsc",
@@ -24,7 +26,6 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@ethersproject/providers": "^5.6.8",
     "forta-agent": "^0.1.6",
     "forta-agent-tools": "^2.2.0"
   },
