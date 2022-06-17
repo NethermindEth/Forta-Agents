@@ -1,8 +1,8 @@
-# QI Token Large Transfer and Large Balance Agent
+# QI Token Large Transfer and Large Balance bot
 
 ## Description
 
-This agent detects transfers of a large amount of `QI` tokens and accounts with large amount of `QI` balance.
+This bot detects transfers of a large amount of `QI` tokens and accounts with large amount of `QI` balance.
 
 - Threshold for transferred token amount can be set at `src/utils.ts` line 17. The default amount is set to 1 million tokens.
 
@@ -44,14 +44,14 @@ const THRESHOLD_BALANCE_PERCENTAGE: number = 5;
 
 ### Mainnet
 
-The agent behaviour can be verified with the following test transactions in `AVAX Mainnet Network` if `TRANSFERED_TOKEN_THRESHOLD` is lowered to 6000.
+The bot behaviour can be verified with the following test transactions in `AVAX Mainnet Network` if `TRANSFERED_TOKEN_THRESHOLD` is lowered to 6000.
 
 - 0x86cec2063f9f9941823b69d16c7cdc729ad21bc4d1384f203ad2c852c1e7c1c4 (Large Transfer and Large Balance)
 
 ### Testnet
 
 A PoC `QI Token Contract` is deployed on `AVAX Testnet Network` to catch the monitored conditions.
-In order to run this agent on `AVAX Testnet Network`, two steps must be done:
+In order to run this bot on `AVAX Testnet Network`, two steps must be done:
 
 1. `isTestnet` variable must be changed to `true` at `src/utils.ts` line 8:
 
@@ -59,11 +59,11 @@ In order to run this agent on `AVAX Testnet Network`, two steps must be done:
 const isTestnet: boolean = true;
 ```
 
-Default value is false, which means the agent will run for `QI Token Contract` deployed in `AVAX Mainnet` if it's not changed to `true`.
+Default value is false, which means the bot will run for `QI Token Contract` deployed in `AVAX Mainnet` if it's not changed to `true`.
 
 2. `jsonRpcUrl` in `forta.config.json` must be `https://api.avax-test.network/ext/bc/C/rpc`
 
-The agent behaviour can be verified with the following test transactions in `AVAX Testnet Network`:
+The bot behaviour can be verified with the following test transactions in `AVAX Testnet Network`:
 
 - 0x02a6f7f16bd58994e8d780bb428a3351bd4268ec177e2768efcb0b2f38cabe94 (Large Transfer)
 - 0x9480a4e49be58b564e270960c41f04311881d0e134634bdda0210b07f7a1a853 (Large Balance)
