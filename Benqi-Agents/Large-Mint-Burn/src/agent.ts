@@ -24,7 +24,10 @@ export const provideHandleTransaction =
     // Loop over the logs
     logs.forEach((log) => {
       // Generate a finding if one of the amounts exceeds the threshold
-      if (BigNumber.from(log.args.amount0).mul(100).gte(threshold0) || BigNumber.from(log.args.amount1).mul(100).gte(threshold1))
+      if (
+        BigNumber.from(log.args.amount0).mul(100).gte(threshold0) ||
+        BigNumber.from(log.args.amount1).mul(100).gte(threshold1)
+      )
         findings.push(createFinding(log));
     });
     return findings;
