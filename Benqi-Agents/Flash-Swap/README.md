@@ -1,8 +1,8 @@
-# Flash Swap Alert Agent
+# Flash Swap Alert Bot
 
 ## Description
 
-This agent detects flash swaps occuring on the PGL contract.
+This bot detects flash swaps occuring on the PGL contract.
 
 ## Supported Chains
 
