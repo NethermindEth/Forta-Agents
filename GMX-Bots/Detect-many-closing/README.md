@@ -2,7 +2,8 @@
 
 ## Description
 
-Returns a finding for every time an account close many positions in a certain amount of time.
+Returns a finding for every time an account close many positions in a
+ certain amount of time.
 
 ## Supported Chains
 
