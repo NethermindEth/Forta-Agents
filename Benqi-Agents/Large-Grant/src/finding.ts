@@ -1,5 +1,4 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import { ThresholdMode } from "./utils";
 
 export function createFinding(recipient: string, amount: string): Finding {
   return Finding.fromObject({
