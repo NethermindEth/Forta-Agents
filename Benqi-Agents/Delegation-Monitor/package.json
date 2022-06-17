@@ -1,7 +1,7 @@
 {
   "name": "benqi-2",
   "version": "0.0.1",
-  "description": "This agent detects user with a huge balance delegating their votes",
+  "description": "This bot detects user with a huge balance delegating their votes",
   "chainIds": [
     43114
   ],
