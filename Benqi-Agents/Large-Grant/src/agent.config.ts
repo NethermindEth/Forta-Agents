@@ -22,7 +22,7 @@ const CONFIG: AgentConfig = {
    *     - PERCENTAGE_COMPTROLLER_BALANCE: A percentage of the comptroller's QI
    *      balance on the previous block.
    */
-  thresholdMode: ThresholdMode.ABSOLUTE,
+  thresholdMode: ThresholdMode.PERCENTAGE_TOTAL_SUPPLY,
 
   /**
    * AgentConfig.threshold:
@@ -30,7 +30,7 @@ const CONFIG: AgentConfig = {
    *    of config.thresholdMode being ABSOLUTE, or a string with an integer
    *    indicating a percentage, if config.thresholdMode is PERCENTAGE based.
    */
-  threshold: "1000000000000000000",
+  threshold: "10",
 };
 
 export default CONFIG;
