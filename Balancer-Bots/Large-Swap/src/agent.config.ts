@@ -18,4 +18,7 @@ const CONFIG: AgentConfig = {
   },
 };
 
+// Uncomment these lines for the mainnet test:
+// CONFIG[Network.MAINNET].tvlPercentageThreshold = "0";
+
 export default CONFIG;

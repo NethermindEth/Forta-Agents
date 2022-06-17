@@ -29,3 +29,15 @@ The bot behavior can be customized in the `src/agent.config.ts` file.
     - `percentageOut`: The percentage of `amountOut` relative to the previous block's Vault `tokenOut` balance
 
 ## Test Data
+
+### Mainnet
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts`, set an Ethereum Mainnet RPC url at `jsonRpcUrl` in your
+`forta.config.json` file.
+
+```
+npm run block 14976860
+```
+
+This test configuration has `tvlPercentageThreshold` set to `0`, so every swap is considered a large swap and thus has
+an associated finding.
