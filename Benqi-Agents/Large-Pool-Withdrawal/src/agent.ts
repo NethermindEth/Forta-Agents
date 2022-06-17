@@ -12,7 +12,7 @@ const COMPTROLLER_ADDR = "0x486Af39519B4Dc9a7fCcd318217352830E8AD9b4";
 
 // The threshold for generating findings
 // The percentage is shown in decimal form. EG: 25% = 25
-const THRESHOLD_PERCENTAGE = 20;
+const THRESHOLD_PERCENTAGE = 10;
 
 // Array to track the QiToken pools
 let QITOKENS: string[] = [];
@@ -35,10 +35,10 @@ export const getTotalSupply = async (qiToken: string, blockNumber: number): Prom
   return supply;
 };
 
-export const initialize = async (comptrollerAddr: string) => {
+export const initialize = (comptrollerAddr: string) => async () => {
   // Setup a contract interface for the Comptroller contract
   const comptrollerContract = new ethers.Contract(
-    COMPTROLLER_ADDR,
+    comptrollerAddr,
     [COMPTROLLER_IFACE.getFunction("getAllMarkets").format("full")],
     getEthersProvider()
   );
@@ -87,6 +87,6 @@ export const provideHandleTransaction = (
 };
 
 export default {
-  initialize: initialize,
+  initialize: initialize(COMPTROLLER_ADDR),
   handleTransaction: provideHandleTransaction(QITOKENS, getTotalSupply, THRESHOLD_PERCENTAGE, COMPTROLLER_ADDR),
 };
