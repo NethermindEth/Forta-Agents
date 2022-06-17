@@ -26,13 +26,13 @@ export const provideHandleTransaction =
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.DECREASE_POSITION_EVENT)],
     };
 
-    const increasePositionLogs = await provider.getLogs(filter);
+    const decreasePositionLogs = await provider.getLogs(filter);
 
-    if (!increasePositionLogs) return findings; // getLogs return undefined if result is empty
+    if (!decreasePositionLogs) return findings; // getLogs return undefined if result is empty
 
     const accountByNoOfClosing: Map<string, number> = new Map();
 
-    increasePositionLogs.forEach((log: Log) => {
+    decreasePositionLogs.forEach((log: Log) => {
       const currentEvent = utils.EVENTS_IFACE.decodeEventLog(utils.DECREASE_POSITION_EVENT, log.data, log.topics);
       const noOfClosing = accountByNoOfClosing.get(currentEvent[1]);
       if (noOfClosing) {
