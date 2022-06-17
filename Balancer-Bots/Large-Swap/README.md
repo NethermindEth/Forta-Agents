@@ -1,26 +1,31 @@
-# Large Tether Transfer Agent
+# Balancer Large Swap Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects large swaps (i.e. any of the tokens' amount relative to the Vault's token balance in the previous
+block is above a set threshold) in the Balancer protocol.
+
+The bot behavior can be customized in the `src/agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
+- Arbitrum
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- BAL-3
+  - Fired when a swap is considered "large"
+  - Severity is always set to "unknown"
+  - Type is always set to "info"
+  - Metadata:
+    - `poolId`: The swap's `poolId`
+    - `tokenIn`: The swap's `tokenIn`
+    - `tokenOut`: The swap's `tokenOut`
+    - `amountIn`: The swap's `amountIn`
+    - `amountOut`: The swap's `amountOut`
+    - `percentageIn`: The percentage of `amountIn` relative to the previous block's Vault `tokenIn` balance
+    - `percentageOut`: The percentage of `amountOut` relative to the previous block's Vault `tokenOut` balance
 
 ## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
