@@ -7,7 +7,7 @@ import {
   ethers,
   TransactionEvent,
 } from "forta-agent";
-import agent, { GMX_ROUTER_ADDRESS } from "./agent";
+import agent from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTx } from "./agent";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";

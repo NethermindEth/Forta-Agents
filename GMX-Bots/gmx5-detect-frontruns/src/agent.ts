@@ -11,8 +11,27 @@ import {
   ethers,
   getEthersProvider,
 } from "forta-agent";
-
-export const GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
+import { NetworkManager } from "forta-agent-tools";
+interface NetworkData {
+  address: string;
+  num: number;
+}
+const data: Record<number, NetworkData> = {
+  42161: {
+    address: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064",
+    num: 1,
+  },
+  43114: {
+    address: "0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8",
+    num: 2,
+  },
+};
+let GMX_ROUTER_ADDRESS = "";
+const provider = getEthersProvider();
+export const initialize = (provider: ethers.providers.Provider) => async () => {
+  const networkManager = new NetworkManager(data, (await provider.getNetwork()).chainId);
+  GMX_ROUTER_ADDRESS = networkManager.get("address");
+};
 export const SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
 
@@ -22,7 +41,6 @@ const CALL_HISTORY_SIZE = 20;
 let callHistoryKeys: Array<string> = new Array(CALL_HISTORY_SIZE);
 let callHistoryIndex = 0;
 let mapCleanerCounter = 0;
-let callHistoryFull = false;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
 
 export const provideHandleTx =
@@ -131,7 +149,6 @@ export const provideHandleTx =
 
         //callHistory cleaning
         if (callHistoryIndex == CALL_HISTORY_SIZE) {
-          callHistoryFull = true;
           callHistoryIndex = 0;
 
           if (mapCleanerCounter > 50000) {
@@ -183,5 +200,6 @@ export const provideHandleTx =
   };
 
 export default {
-  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, getEthersProvider()),
+  initialize: initialize(provider),
+  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, provider),
 };
