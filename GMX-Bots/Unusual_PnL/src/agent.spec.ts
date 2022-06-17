@@ -2,10 +2,12 @@ import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction, Trans
 import { provideBotHandler } from "./agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
 import { encodeParameter } from "forta-agent-tools/lib/utils";
-
-import NetworkManager from "./network";
+import NetworkManager from "forta-agent-tools/lib/network.manager";
+import { NetworkData } from "./network";
 import BigNumber from "bignumber.js";
+
 BigNumber.set({ DECIMAL_PLACES: 18 });
+
 const testCreateFinding = (positionSize: BigNumber, realisedPnl: BigNumber, key: string, contract: string): Finding =>
   Finding.fromObject({
     name: "Unusual PnL",
@@ -28,6 +30,14 @@ const SOME_OTHER_ADDRESS = createAddress("0x578");
 const TEST_PRICE_PRECISION = 30;
 const TEST_HIGH_PNLTOSIZE = "1"; // percent
 
+const DATA: Record<number, NetworkData> = {
+  9999: {
+    vault: TEST_GMX_VAULT,
+    unUsualLimit: TEST_UNUSUAL_LIMIT,
+    highPnlToSize: TEST_HIGH_PNLTOSIZE,
+  },
+};
+
 const createClosePositionEvent = (
   vaultAddress: string,
   key: string,
@@ -47,14 +57,8 @@ const createSomeOtherEvent = (contractAddress: string, arg1: string): [string, s
 };
 
 describe("Unusual PnL from a closed position test suite", () => {
-  const mockNetworkManager: NetworkManager = {
-    vault: TEST_GMX_VAULT,
-    highPnlToSize: TEST_HIGH_PNLTOSIZE,
-    unUsualLimit: TEST_UNUSUAL_LIMIT,
-    setNetwork: jest.fn(),
-  };
-
-  const handleTransaction: HandleTransaction = provideBotHandler(mockNetworkManager);
+  const networkManager = new NetworkManager(DATA, 9999);
+  const handleTransaction: HandleTransaction = provideBotHandler(networkManager);
 
   it("should return empty findings when there are only other events from the vault", async () => {
     const eventLog = createSomeOtherEvent(TEST_GMX_VAULT, "56");

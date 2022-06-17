@@ -1,4 +1,4 @@
-export interface NetworkData {
+interface NetworkData {
   vault: string;
   unUsualLimit: string;
   highPnlToSize: string;
@@ -16,26 +16,9 @@ const AVALANCHE_MAINNET_DATA: NetworkData = {
   highPnlToSize: "2.8", // percent
 };
 
-const NETWORK_MAP: Record<number, NetworkData> = {
+const DATA: Record<number, NetworkData> = {
   42161: ARBITRUM_MAINNET_DATA,
   43114: AVALANCHE_MAINNET_DATA,
 };
 
-export default class NetworkManager implements NetworkData {
-  public vault: string;
-  public unUsualLimit: string;
-  public highPnlToSize: string;
-
-  constructor() {
-    this.vault = "";
-    this.unUsualLimit = "";
-    this.highPnlToSize = "";
-  }
-
-  public setNetwork(networkId: number) {
-    const { vault, unUsualLimit, highPnlToSize } = NETWORK_MAP[networkId];
-    this.vault = vault;
-    this.unUsualLimit = unUsualLimit;
-    this.highPnlToSize = highPnlToSize;
-  }
-}
+export { DATA, NetworkData };

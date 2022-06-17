@@ -1,34 +1,32 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import BigNumber from "bignumber.js";
+import NetworkManager from "forta-agent-tools/lib/network.manager";
+import { CLOSE_POSITION_EVENT, createFinding, PRICE_PRECISION } from "./utils";
+import { DATA, NetworkData } from "./network";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
-import { CLOSE_POSITION_EVENT, createFinding, PRICE_PRECISION } from "./utils";
-
-import NetworkManager, { NetworkData } from "./network";
-
-const networkManager = new NetworkManager();
+const networkManager = new NetworkManager(DATA);
 
 export const initialize = (provider: ethers.providers.Provider) => async () => {
-  const { chainId } = await provider.getNetwork();
-  networkManager.setNetwork(chainId);
+  await networkManager.init(provider);
 };
 
-export const provideBotHandler = (networkDetails: NetworkData): HandleTransaction => {
+export const provideBotHandler = (networkDetails: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // filter the transaction logs for close position events
-    const closePositionEvents = txEvent.filterLog(CLOSE_POSITION_EVENT, networkDetails.vault);
+    const closePositionEvents = txEvent.filterLog(CLOSE_POSITION_EVENT, networkDetails.get("vault"));
 
     closePositionEvents.forEach(({ args }) => {
       const realisedPnl = new BigNumber(args.realisedPnl.toString()).dividedBy(PRICE_PRECISION);
       const positionSize = new BigNumber(args.size.toString()).dividedBy(PRICE_PRECISION);
 
-      if (realisedPnl.abs().gt(new BigNumber(networkDetails.unUsualLimit))) {
+      if (realisedPnl.abs().gt(new BigNumber(networkDetails.get("unUsualLimit")))) {
         const pnlToSize = realisedPnl.abs().dividedBy(positionSize).multipliedBy(100);
-        if(pnlToSize.gt(networkDetails.highPnlToSize)) 
-          findings.push(createFinding(positionSize, realisedPnl, args.key, networkDetails.vault));
+        if (pnlToSize.gt(networkDetails.get("highPnlToSize")))
+          findings.push(createFinding(positionSize, realisedPnl, args.key, networkDetails.get("vault")));
       }
     });
 
