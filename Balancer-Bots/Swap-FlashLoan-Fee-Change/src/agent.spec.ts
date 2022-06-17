@@ -1,19 +1,21 @@
-import { AgentConfig, Network } from "./utils";
+import { AgentConfig } from "./utils";
 import { TestBlockEvent, MockEthersProvider, createAddress } from "forta-agent-tools/lib/tests";
-import { ethers, Finding, FindingSeverity, FindingType, HandleBlock } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, HandleBlock, Network } from "forta-agent";
 import { provideHandleBlock } from "./agent";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
-import NetworkManager from "./network";
+import { NetworkManager } from "forta-agent-tools";
 
-const PROTOCOL_FEES_COLLECTOR_ADDRESS = createAddress("0xfee5");
+const createChecksumAddress = (address: string) => ethers.utils.getAddress(createAddress(address.toLowerCase()));
+
+const PROTOCOL_FEES_COLLECTOR_ADDRESS = createChecksumAddress("0xfee5");
 
 const DEFAULT_CONFIG: AgentConfig = {
-  [Network.ETHEREUM_MAINNET]: {
+  [Network.MAINNET]: {
     protocolFeesCollectorAddress: PROTOCOL_FEES_COLLECTOR_ADDRESS,
   },
 };
 
-const VAULT_IFACE = new ethers.utils.Interface([
+const PROTOCOL_FEES_COLLECTOR_IFACE = new ethers.utils.Interface([
   SWAP_FEE_PERCENTAGE_CHANGED_ABI,
   FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI,
 ]);
@@ -53,28 +55,30 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   let provider: ethers.providers.Provider;
   let mockProvider: MockEthersProvider;
 
-  const getLog = (feeFrom: "FlashLoan" | "Swap", newFee: ethers.BigNumber) => {
-    return VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent(`${feeFrom}FeePercentageChanged`), [
-      newFee,
-    ]) as ethers.providers.Log;
+  const getLog = (block: number, emitter: string, feeFrom: "FlashLoan" | "Swap", newFee: ethers.BigNumber) => {
+    return {
+      address: emitter,
+      blockNumber: block,
+      ...PROTOCOL_FEES_COLLECTOR_IFACE.encodeEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent(`${feeFrom}FeePercentageChanged`),
+        [newFee]
+      ),
+    } as ethers.providers.Log;
   };
 
-  const setLogs = (block: number, emitter: string, logs: ethers.providers.Log[]) => {
-    mockProvider.addFilteredLogs(
-      {
-        address: emitter,
-        fromBlock: block,
-        toBlock: block,
-      },
-      logs
-    );
+  const getIrrelevantLog = (block: number, emitter: string) => {
+    return {
+      address: emitter,
+      blockNumber: block,
+      ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), []),
+    } as ethers.providers.Log;
   };
 
   beforeEach(() => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
 
-    const networkManager = new NetworkManager(DEFAULT_CONFIG, provider, Network.ETHEREUM_MAINNET);
+    const networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
     handleBlock = provideHandleBlock(provider, networkManager);
   });
@@ -82,20 +86,16 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should return empty findings on an empty block", async () => {
     const blockEvent = new TestBlockEvent();
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
-
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
   });
 
   it("should ignore target events from other blocks", async () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [
-      getLog("Swap", ethers.BigNumber.from("1")),
-      getLog("FlashLoan", ethers.BigNumber.from("1")),
+    mockProvider.addLogs([
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("1")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1")),
     ]);
-
-    setLogs(1, PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
   });
@@ -103,12 +103,8 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should ignore other events from the target address", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
-
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [
-      getLog("Swap", ethers.BigNumber.from("1")),
-      getLog("FlashLoan", ethers.BigNumber.from("1")),
-      IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), []) as ethers.providers.Log,
+    mockProvider.addLogs([
+      getIrrelevantLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -117,13 +113,11 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should ignore target events emitted from other addresses", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    const irrelevantAddress = createAddress("0x1");
+    const irrelevantAddress = createChecksumAddress("0x1");
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
-
-    setLogs(0, irrelevantAddress, [
-      getLog("Swap", ethers.BigNumber.from("1")),
-      getLog("FlashLoan", ethers.BigNumber.from("1")),
+    mockProvider.addLogs([
+      getLog(0, irrelevantAddress, "Swap", ethers.BigNumber.from("1")),
+      getLog(0, irrelevantAddress, "FlashLoan", ethers.BigNumber.from("1")),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -132,7 +126,9 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should generate a finding when a SwapFeePercentageChanged event is detected", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [getLog("Swap", ethers.BigNumber.from("100000000000000"))]);
+    mockProvider.addLogs([
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("100000000000000")),
+    ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([createSwapFeeFinding("0.01")]);
   });
@@ -140,7 +136,9 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should generate a finding when a SwapFeePercentageChanged event is detected", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [getLog("FlashLoan", ethers.BigNumber.from("1000000000000000"))]);
+    mockProvider.addLogs([
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1000000000000000")),
+    ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([createFlashLoanFeeFinding("0.1")]);
   });
@@ -148,13 +146,13 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should return multiple findings for multiple events", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    setLogs(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, [
-      getLog("Swap", ethers.BigNumber.from("1000000000000000")),
-      getLog("FlashLoan", ethers.BigNumber.from("1000000000000000")),
-      getLog("Swap", ethers.BigNumber.from("20000000000000000")),
-      getLog("FlashLoan", ethers.BigNumber.from("20000000000000000")),
-      getLog("Swap", ethers.BigNumber.from("300000000000000000")),
-      getLog("FlashLoan", ethers.BigNumber.from("300000000000000000")),
+    mockProvider.addLogs([
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("1000000000000000")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1000000000000000")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("20000000000000000")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("20000000000000000")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("300000000000000000")),
+      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("300000000000000000")),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([
