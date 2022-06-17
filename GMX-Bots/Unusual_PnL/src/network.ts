@@ -1,19 +1,19 @@
 export interface NetworkData {
   vault: string;
-  unUsualLimit: number;
-  highPnlToSize: number;
+  unUsualLimit: string;
+  highPnlToSize: string;
 }
 
 const ARBITRUM_MAINNET_DATA: NetworkData = {
   vault: "0x489ee077994B6658eAfA855C308275EAd8097C4A",
-  unUsualLimit: 33000,
-  highPnlToSize: 1.1, //percent
+  unUsualLimit: "33000",
+  highPnlToSize: "1.1", //percent
 };
 
 const AVALANCHE_MAINNET_DATA: NetworkData = {
   vault: "0x9ab2De34A33fB459b538c43f251eB825645e8595",
-  unUsualLimit: 24000,
-  highPnlToSize: 2.8, // percent
+  unUsualLimit: "24000",
+  highPnlToSize: "2.8", // percent
 };
 
 const NETWORK_MAP: Record<number, NetworkData> = {
@@ -23,13 +23,13 @@ const NETWORK_MAP: Record<number, NetworkData> = {
 
 export default class NetworkManager implements NetworkData {
   public vault: string;
-  public unUsualLimit: number;
-  public highPnlToSize: number;
+  public unUsualLimit: string;
+  public highPnlToSize: string;
 
   constructor() {
     this.vault = "";
-    this.unUsualLimit = 0;
-    this.highPnlToSize = 0;
+    this.unUsualLimit = "";
+    this.highPnlToSize = "";
   }
 
   public setNetwork(networkId: number) {

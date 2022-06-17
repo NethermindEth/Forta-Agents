@@ -1,5 +1,6 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import BigNumber from "bignumber.js";
+
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 import { CLOSE_POSITION_EVENT, createFinding, PRICE_PRECISION } from "./utils";
@@ -26,7 +27,7 @@ export const provideBotHandler = (networkDetails: NetworkData): HandleTransactio
 
       if (realisedPnl.abs().gt(new BigNumber(networkDetails.unUsualLimit))) {
         const pnlToSize = realisedPnl.abs().dividedBy(positionSize).multipliedBy(100);
-        pnlToSize.gt(networkDetails.highPnlToSize) &&
+        if(pnlToSize.gt(networkDetails.highPnlToSize)) 
           findings.push(createFinding(positionSize, realisedPnl, args.key, networkDetails.vault));
       }
     });

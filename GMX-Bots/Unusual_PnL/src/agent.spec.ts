@@ -22,11 +22,11 @@ const testCreateFinding = (positionSize: BigNumber, realisedPnl: BigNumber, key:
     },
   });
 
-const TEST_GMX_VAULT = createAddress("0x256H");
-const TEST_UNUSUAL_LIMIT = 500;
+const TEST_GMX_VAULT = createAddress("0x256");
+const TEST_UNUSUAL_LIMIT = "500";
 const SOME_OTHER_ADDRESS = createAddress("0x578");
 const TEST_PRICE_PRECISION = 30;
-const TEST_HIGH_PNLTOSIZE = 1; // percent
+const TEST_HIGH_PNLTOSIZE = "1"; // percent
 
 const createClosePositionEvent = (
   vaultAddress: string,
