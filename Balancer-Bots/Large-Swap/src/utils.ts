@@ -3,12 +3,6 @@ import BigNumber from "bignumber.js";
 import { Mutex } from "async-mutex";
 import LRU from "lru-cache";
 
-export enum Network {
-  ETHEREUM_MAINNET = 1,
-  POLYGON = 137,
-  ARBITRUM = 42161,
-}
-
 export interface NetworkData {
   vaultAddress: string;
   tvlPercentageThreshold: string;
@@ -36,8 +30,8 @@ export function createFinding(
       tokenOut,
       amountIn,
       amountOut,
-      percentageIn: percentageIn.toString(),
-      percentageOut: percentageOut.toString(),
+      percentageIn: percentageIn.toString(10),
+      percentageOut: percentageOut.toString(10),
     },
   });
 }
