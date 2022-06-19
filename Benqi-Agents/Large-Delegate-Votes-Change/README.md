@@ -1,8 +1,8 @@
-# Delegate Votes Monitor Agent
+# Delegate Votes Monitor bot
 
 ## Description
 
-This agent detects large increments in a delegate account's QI token vote
+This bot detects large increments in a delegate account's QI token vote
 balance by monitoring `DelegateVotesChanged` events emitted by the token
 contract.
 
@@ -17,7 +17,7 @@ adjustable in the `constants.ts` file.
 
 - BENQI-1
   - Fired when a delegate account's vote balance increase, based on the
-  previous amount, is greater than or equal to a specified percentage.
+    previous amount, is greater than or equal to a specified percentage.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata contains:
@@ -27,7 +27,7 @@ adjustable in the `constants.ts` file.
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 
 - 0xa47ecb9d12a9baff66c6ba7367ec5edfc7ba02ba459cb9d5a7f01f0e847d97e4 (1 finding)
 - 0x19f58902bb5aceb7cd932693e3e172c9b46d53c331e4e6ca3c4ac9fd1f049580 (1 finding)
