@@ -1,7 +1,11 @@
 {
   "name": "benqi-2",
   "version": "0.0.1",
-  "description": "This agent detects user with a huge balance delegating their votes",
+  "description": "This bot detects user with a huge balance delegating their votes",
+  "chainIds": [
+    43114
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Delegation-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,14 +24,14 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.0.39",
+    "forta-agent": "^0.1.6",
     "lru-cache": "^7.4.2"
-},
+  },
   "devDependencies": {
-    "@types/lru-cache": "^7.4.0",
     "@types/jest": "^27.0.1",
+    "@types/lru-cache": "^7.4.0",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.3",
+    "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.0",
