@@ -35,7 +35,7 @@ This bot detects Mints and Burns on PGL contract with large QI-WAVAX amounts.
 
 ## Test Data
 
-There are no transactions including large Mints/Burns on PGL contract. We have deployed a PoC contract to emit the monitored events. The bot behaviour can be verified with the following test transactions (Avalanche testnet):
+There are no transactions including large Mints/Burns on PGL contract. There is a PoC contract deployed to emit the monitored events. The bot behaviour can be verified with the following test transactions (Avalanche testnet):
 
 > note that `provideHandleTransaction` inputs in the default export of `agent.ts` need to be changed to use `TESTNET_PGL_CONTRACT` instead of `PGL_CONTRACT`.
 
