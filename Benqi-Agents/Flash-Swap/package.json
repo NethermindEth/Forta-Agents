@@ -1,7 +1,11 @@
 {
-  "name": "flash-swap-agent",
+  "name": "benqi-9",
   "version": "0.0.1",
-  "description": "this agent detects flash swaps taken from the PGL contract",
+  "description": "this bot detects flash swaps taken from the PGL contract",
+  "chainIds": [
+    43114
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Flash-Swap",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,12 +24,12 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.0.40"
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.3",
+    "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.1",
