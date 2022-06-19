@@ -1,7 +1,11 @@
 {
-  "name": "large-qi-grant-agent",
+  "name": "benqi-4",
   "version": "0.0.1",
-  "description": "Forta Agent that detects large QI grants in the BENQI Comptroller contract",
+  "description": "Forta bot that detects large QI grants in the BENQI Comptroller contract",
+  "chainIds": [
+    43114
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Large-Grant",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,12 +24,12 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.0.40"
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.3",
+    "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.0",
