@@ -2,8 +2,8 @@
 
 ## Description
 
-This bot detects large swaps (i.e. any of the tokens' amount relative to the Vault's token balance in the previous
-block is above a set threshold) in the Balancer protocol.
+This bot detects large swaps (i.e. the amount of tokens swapped for any of the tokens is a significant fraction of the
+token's pool reserves) in the Balancer protocol.
 
 The bot behavior can be customized in the `src/agent.config.ts` file.
 
