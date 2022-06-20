@@ -30,23 +30,21 @@ describe("Markets Fetcher test suite", () => {
 
       await fetcher.getMarkets(TEST_BLOCKS[i]);
 
-      expect(fetcher.markets).toStrictEqual(new Set(TEST_CASES[i].slice(1)));
+      expect(fetcher.markets).toStrictEqual(TEST_CASES[i].slice(1));
     }
   });
 
-  it("should update the markets set", async () => {
+  it("should update the markets list", async () => {
     for (let i = 0; i < TEST_CASES.length; i++) {
       const fetcher: MarketsFetcher = new MarketsFetcher(mockProvider as any, TEST_CASES[i][0]);
       createCall(TEST_CASES[i][0], TEST_CASES[i].slice(1), TEST_BLOCKS[i]);
       await fetcher.getMarkets(TEST_BLOCKS[i]);
 
-      const newMarket = createAddress("0xffe");
+      const newMarket: string = createAddress("0xffe");
       fetcher.updateMarkets(newMarket);
 
-      const expectedSet = new Set<string>(TEST_CASES[i].slice(1));
-      expectedSet.add(newMarket);
-
-      expect(fetcher.markets).toStrictEqual(expectedSet);
+      const expectedArray = [...TEST_CASES[i].slice(1), newMarket];
+      expect(fetcher.markets).toStrictEqual(expectedArray);
     }
   });
 });
