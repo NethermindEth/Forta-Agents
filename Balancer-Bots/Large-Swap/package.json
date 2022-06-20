@@ -19,14 +19,14 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "async-mutex": "^0.3.2",
     "bignumber.js": "^9.0.2",
     "forta-agent": "^0.1.6",
-    "forta-agent-tools": "^2.1.0",
+    "forta-agent-tools": "^2.2.1",
     "lru-cache": "^7.10.1"
   },
   "devDependencies": {
