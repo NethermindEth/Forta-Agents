@@ -57,10 +57,24 @@ This bot detects BenQi's `QiTokens` interest rates threshold excesses.
 
 ## Test Data
 
-In order to use the `PoC QiTokens Contracts`:
+In order to use the `PoC QiTokens Contracts` and generate the expected findings:
 
-1. Set the `testnetMode` variable to `true` in `src/utils.ts`.
+1. Replace `COMPTROLLER_ADDR` by testnet address on `utils.ts L05`
 2. Change the `jsonRpcUrl` in `forta.config.json` to `https://api.avax-test.network/ext/bc/C/rpc`.
+3. Use the following `THRESHOLD` object, in `utils.ts L10`:
+
+```
+{
+supply: [
+    BigNumber.from(10000), // lower supply rate threshold
+    BigNumber.from(6200000000), // upper supply rate threshold
+  ],
+  borrow: [
+    BigNumber.from(10000), // lower borrow rate threshold
+    BigNumber.from(6200000000), // upper borrow rate threshold
+  ],
+}
+```
 
 ### Avalanche Testnet
 
