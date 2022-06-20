@@ -32,8 +32,8 @@ The bot behavior can be customized in the `src/agent.config.ts` file.
 
 ### Mainnet
 
-> For this test, uncomment the lines indicated in `src/agent.config.ts`, set an Ethereum Mainnet RPC url at `jsonRpcUrl` in your
-`forta.config.json` file.
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set an Ethereum Mainnet RPC url as
+`jsonRpcUrl` in your `forta.config.json` file.
 
 ```
 npm run block 14976860
@@ -41,3 +41,14 @@ npm run block 14976860
 
 This test configuration has `tvlPercentageThreshold` set to `0`, so every swap is considered a large swap and thus has
 an associated finding.
+
+### Kovan Testnet (PoC)
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Kovan Testnet RPC url as `jsonRpcUrl`
+in your `forta.config.json` file.
+
+```
+npm run block 32284039
+```
+
+As noted in the PoC at `PoC/MockVault.sol`, there should be findings from pool IDs `0`, `1`, `3`, `4` and `6` (as `bytes32`).
