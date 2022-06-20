@@ -26,11 +26,11 @@ const data: Record<number, NetworkData> = {
     num: 2,
   },
 };
-let GMX_ROUTER_ADDRESS = "";
+let GMX_ROUTER_ADDRESS = { value: "" };
 const provider = getEthersProvider();
 export const initialize = (provider: ethers.providers.Provider) => async () => {
   const networkManager = new NetworkManager(data, (await provider.getNetwork()).chainId);
-  GMX_ROUTER_ADDRESS = networkManager.get("address");
+  GMX_ROUTER_ADDRESS.value = networkManager.get("address");
 };
 export const SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
@@ -44,11 +44,12 @@ let mapCleanerCounter = 0;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
 
 export const provideHandleTx =
-  (router: string, swapEvent: string, theProvider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
+  (router: any, swapEvent: string, theProvider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
+
     //detect calls to the GMX router
-    if (txEvent.to == router) {
+    if (txEvent.to == router.value) {
       swapEvents.forEach((swapEvent) => {
         const {
           account: accountBack,
