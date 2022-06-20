@@ -1,11 +1,11 @@
 {
-  "name": "benqi-1",
+  "name": "benqi-4",
   "version": "0.0.1",
-  "description": "Forta bot that detects large delegate votes balance change in the QI token contract",
+  "description": "Forta bot that detects large QI grants in the BENQI Comptroller contract",
   "chainIds": [
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Large-Delegate-Votes-Change",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Bots/Large-Grant",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

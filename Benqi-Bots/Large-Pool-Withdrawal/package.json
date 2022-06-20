@@ -1,11 +1,11 @@
 {
-  "name": "benqi-3",
+  "name": "benqi-5",
   "version": "0.0.1",
-  "description": "This bot detects transfer of a large amount of QI tokens and accounts with high amounts of QI balance.",
+  "description": "detects large withdrawals from benqi finance qitoken pools",
   "chainIds": [
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Qi-Transfers",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Bots/Large-Pool-Withdrawal",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,17 +20,15 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
-    "lru-cache": "^7.7.1"
+    "@types/lru-cache": "^7.5.0",
+    "forta-agent": "^0.1.6"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
-    "@types/jest-when": "^3.5.0",
-    "@types/lru-cache": "^7.5.0",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.2.0",
     "jest": "^27.0.6",

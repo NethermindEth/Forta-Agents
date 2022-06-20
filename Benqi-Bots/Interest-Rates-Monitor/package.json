@@ -1,11 +1,11 @@
 {
-  "name": "benqi-7",
+  "name": "benqi-6",
   "version": "0.0.1",
-  "description": "This bot detects deposits and redeems in pgl staking contract with large pgl amounts.",
+  "description": "This bot detects QiTokens interest rates threshold excess",
   "chainIds": [
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Large-Deposits-Redeems",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Bots/Interest-Rates-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,16 +24,19 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@types/lru-cache": "^5.1.1",
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.6",
+    "lru-cache": "^7.10.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/jest-when": "^3.5.0",
+    "@types/lru-cache": "^7.4.0",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
+    "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",
-    "prettier": "^2.6.0",
+    "prettier": "^2.5.1",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }

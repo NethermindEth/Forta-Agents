@@ -5,7 +5,7 @@
   "chainIds": [
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Delegation-Monitor",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Bots/Delegation-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
