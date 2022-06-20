@@ -1,7 +1,11 @@
 {
   "name": "benqi-6",
   "version": "0.0.1",
-  "description": "This agent detects QiTokens interest rates threshold excess",
+  "description": "This bot detects QiTokens interest rates threshold excess",
+  "chainIds": [
+    43114
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Agents/Interest-Rates-Monitor",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,14 +24,15 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.0.39",
-    "@types/lru-cache": "^7.4.0"
+    "forta-agent": "^0.1.6",
+    "lru-cache": "^7.10.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^3.5.0",
+    "@types/lru-cache": "^7.4.0",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.3",
+    "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
     "jest-when": "^3.5.1",
     "nodemon": "^2.0.8",

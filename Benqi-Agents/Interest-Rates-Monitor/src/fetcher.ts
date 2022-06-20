@@ -1,14 +1,27 @@
 import { Contract, BigNumber, providers } from "ethers";
 import { QI_TOKENS_ABI } from "./utils";
 import LRU from "lru-cache";
+import { COMPTROLLER_IFACE } from "./utils";
 
 export default class Fetcher {
-  private provider: any;
+  readonly provider: providers.Provider;
   private cache: LRU<string, Promise<BigNumber>>;
+  private comptrollerContract: Contract;
+  public markets: string[];
 
-  constructor(provider: providers.Provider) {
+  constructor(provider: providers.Provider, _comptrollerContract: string) {
     this.provider = provider;
     this.cache = new LRU<string, Promise<BigNumber>>({ max: 10000 });
+    this.markets = [];
+    this.comptrollerContract = new Contract(_comptrollerContract, COMPTROLLER_IFACE, provider);
+  }
+
+  public async getMarkets(block?: string | number) {
+    this.markets = await this.comptrollerContract.getAllMarkets({ blockTag: block });
+  }
+
+  public updateMarkets(marketAddress: string) {
+    this.markets = [...this.markets, marketAddress];
   }
 
   public async getSupplyInterestRates(block: number, tokenAddress: string): Promise<BigNumber> {
