@@ -24,12 +24,13 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@types/lru-cache": "^7.4.0",
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.6",
+    "lru-cache": "^7.10.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^3.5.0",
+    "@types/lru-cache": "^7.4.0",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
