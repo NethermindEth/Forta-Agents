@@ -11,7 +11,7 @@ const testCreateFinding = (address: string, rate: BigNumber, threshold: BigNumbe
         name: "Supply rate below threshold drop",
         description: `A qiToken's supply interest rate dropped below lower threshold`,
         alertId: "BENQI-6-3",
-        type: FindingType.Suspicious,
+        type: FindingType.Info,
         severity: FindingSeverity.Medium,
         protocol: "Benqi Finance",
         metadata: {
@@ -25,7 +25,7 @@ const testCreateFinding = (address: string, rate: BigNumber, threshold: BigNumbe
         name: "Supply rate upper threshold excess",
         description: `A qiToken's supply interest rate exceeded upper threshold`,
         alertId: "BENQI-6-4",
-        type: FindingType.Suspicious,
+        type: FindingType.Info,
         severity: FindingSeverity.Medium,
         protocol: "Benqi Finance",
         metadata: {
@@ -39,7 +39,7 @@ const testCreateFinding = (address: string, rate: BigNumber, threshold: BigNumbe
         name: "Βorrow rate below threshold drop",
         description: `A qiToken's borrow interest rate dropped below lower threshold`,
         alertId: "BENQI-6-1",
-        type: FindingType.Suspicious,
+        type: FindingType.Info,
         severity: FindingSeverity.Medium,
         protocol: "Benqi Finance",
         metadata: {
@@ -53,7 +53,7 @@ const testCreateFinding = (address: string, rate: BigNumber, threshold: BigNumbe
         name: "Borrow rate upper threshold excess",
         description: `A qiToken's borrow interest rate exceeded upper threshold`,
         alertId: "BENQI-6-2",
-        type: FindingType.Suspicious,
+        type: FindingType.Info,
         severity: FindingSeverity.Medium,
         protocol: "Benqi Finance",
         metadata: {

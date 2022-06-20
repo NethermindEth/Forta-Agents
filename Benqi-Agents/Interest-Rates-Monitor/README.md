@@ -16,9 +16,8 @@ This bot detects BenQi's `QiTokens` interest rates threshold excesses.
 
   - Fired when it detects that `QiToken`'s **supply** interest rate has **dropped** below lower threshold.
   - Severity is always set to "Medium".
-  - Type is always set to "Suspicious".
+  - Type is always set to "Info".
   - Metadata contains:
-    - `token`: QiToken's name.
     - `tokenAddress`: QiToken's address.
     - `supplyInterestRate`: QiToken's supply interest rate.
     - `lowerRateThreshold`: QiToken supply interest rate's lower threshold.
@@ -27,9 +26,8 @@ This bot detects BenQi's `QiTokens` interest rates threshold excesses.
 
   - Fired when it detects that `QiToken`'s **supply** interest rate has **exceeded** upper threshold.
   - Severity is always set to "Medium".
-  - Type is always set to "Suspicious".
+  - Type is always set to "Info".
   - Metadata contains:
-    - `token`: QiToken's name.
     - `tokenAddress`: QiToken's address.
     - `supplyInterestRate`: QiToken's supply interest rate.
     - `upperRateThreshold`: QiToken supply interest rate's upper threshold.
@@ -38,9 +36,8 @@ This bot detects BenQi's `QiTokens` interest rates threshold excesses.
 
   - Fired when it detects that `QiToken`'s **borrow** interest rate has **dropped** below lower threshold.
   - Severity is always set to "Medium".
-  - Type is always set to "Suspicious".
+  - Type is always set to "Info".
   - Metadata contains:
-    - `token`: QiToken's name.
     - `tokenAddress`: QiToken's address.
     - `borrowInterestRate`: QiToken's borrow interest rate.
     - `lowerRateThreshold`: QiToken borrow interest rate's lower threshold.
@@ -48,9 +45,8 @@ This bot detects BenQi's `QiTokens` interest rates threshold excesses.
 - BENQI-6-4
   - Fired when it detects that `QiToken`'s **borrow** interest rate has **exceeded** upper threshold.
   - Severity is always set to "Medium".
-  - Type is always set to "Suspicious".
+  - Type is always set to "Info".
   - Metadata contains:
-    - `token`: QiToken's name.
     - `tokenAddress`: QiToken's address.
     - `borrowInterestRate`: QiToken's borrow interest rate.
     - `upperRateThreshold`: QiToken borrow interest rate's upper threshold.

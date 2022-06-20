@@ -9,12 +9,12 @@ export const COMPTROLLER_IFACE = new utils.Interface(COMPTROLLER_ABI);
 
 export const THRESHOLDS = {
   supply: [
-    BigNumber.from(10000), // lower supply rate threshold
-    BigNumber.from(6200000000), // upper supply rate threshold
+    BigNumber.from(100000), // lower supply rate threshold
+    BigNumber.from(50).mul(1e9).mul(1e9), // 50%  upper supply rate threshold
   ],
   borrow: [
-    BigNumber.from(10000), // lower borrow rate threshold
-    BigNumber.from(6200000000), // upper borrow rate threshold
+    BigNumber.from(100000), // lower borrow rate threshold
+    BigNumber.from(50).mul(1e9).mul(1e9), // 50% upper borrow rate threshold
   ],
 };
 
