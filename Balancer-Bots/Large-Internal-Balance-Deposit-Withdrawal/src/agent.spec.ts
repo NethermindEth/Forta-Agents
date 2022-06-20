@@ -1,74 +1,206 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { BigNumber } from "ethers";
+import { Interface, formatEther } from "ethers/lib/utils";
+import { FindingType, FindingSeverity, Finding, HandleBlock, Network, ethers } from "forta-agent";
+import { createAddress, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
+import { provideHandleBlock } from "./agent";
+import BalanceFetcher from "./balance.fetcher";
+import { TOKEN_ABI, EVENT } from "./constants";
+import { AgentConfig, NetworkData } from "./utils";
+import { NetworkManager } from "forta-agent-tools";
 
-describe("high tether transfer agent", () => {
-  let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+const VAULT_IFACE = new Interface(EVENT);
+const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
+const VAULT_ADDRESS = createAddress("0x1");
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+const getInternalBalanceChangeLog = (
+  emitter: string,
+  block: number,
+  user: string,
+  token: string,
+  delta: ethers.BigNumberish
+): ethers.providers.Log => {
+  return {
+    address: emitter,
+    blockNumber: block,
+    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("InternalBalanceChanged"), [
+      user,
+      token,
+      ethers.BigNumber.from(delta),
+    ]),
+  } as ethers.providers.Log;
+};
+
+const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Log => {
+  return {
+    address: emitter,
+    blockNumber: block,
+    ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("Event"), []),
+  } as ethers.providers.Log;
+};
+
+const createFinding = (user: string, token: string, delta: ethers.BigNumberish) => {
+  let action, alertId;
+
+  BigNumber.from(delta).isNegative()
+    ? ((action = "withdrawal"), (alertId = "BAL-2-1"))
+    : ((action = "deposit"), (alertId = "BAL-2-2"));
+
+  return Finding.fromObject({
+    name: `Large internal balance ${action}`,
+    description: `InternalBalanceChanged event detected with large ${action}`,
+    alertId,
+    protocol: "Balancer",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata: {
+      user: user.toLowerCase(),
+      token: token.toLowerCase(),
+      delta: formatEther(delta.toString()),
+    },
+  });
+};
+
+const DEFAULT_CONFIG: AgentConfig = {
+  [Network.MAINNET]: {
+    vaultAddress: VAULT_ADDRESS,
+    threshold: "10",
+  },
+};
+
+describe("Large internal balance deposits/withdrawals", () => {
+  let provider: ethers.providers.Provider;
+  let mockProvider: MockEthersProvider;
+  let mockBalanceFetcher: BalanceFetcher;
+  let networkManager: NetworkManager<NetworkData>;
+  let handleBlock: HandleBlock;
+
+  const TEST_TOKEN = createAddress("0x2");
+
+  const TEST_BALANCE = BigNumber.from(1000);
+  const TEST_BLOCK = 123;
+
+  beforeEach(() => {
+    mockProvider = new MockEthersProvider();
+    provider = mockProvider as unknown as ethers.providers.Provider;
+
+    mockProvider.addCallTo(TEST_TOKEN, TEST_BLOCK - 1, new Interface(TOKEN_ABI), "balanceOf", {
+      inputs: [VAULT_ADDRESS],
+      outputs: [TEST_BALANCE],
+    });
+
+    networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
+
+    mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
+    mockBalanceFetcher.setData(TEST_TOKEN);
+    handleBlock = provideHandleBlock(provider, networkManager, mockBalanceFetcher);
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("returns empty findings for empty transactions", async () => {
+    const blockEvent = new TestBlockEvent();
 
-      const findings = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  it("should ignore target events emitted from another contract", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(createAddress("0x3"), TEST_BLOCK, createAddress("0x1"), TEST_TOKEN, "120"),
+    ]);
 
-      const findings = await handleTransaction(mockTxEvent);
+    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(0);
+  });
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    });
+  it("should ignore other events emitted from target contract", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([getIrrelevantEvent(VAULT_ADDRESS, TEST_BLOCK)]);
+
+    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(0);
+  });
+
+  it("should ignore events emitted in other blocks", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([getInternalBalanceChangeLog(VAULT_ADDRESS, 1, createAddress("0x3"), TEST_TOKEN, "120")]);
+
+    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(0);
+  });
+
+  it("should not return findings for deposit that are not large", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x3"), TEST_TOKEN, "90"),
+    ]);
+
+    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(1);
+  });
+
+  it("should not return findings for withdrawal that are not large", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x3"), TEST_TOKEN, "-90"),
+    ]);
+
+    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns findings if there are deposits with a large amount", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x3"), TEST_TOKEN, "120"),
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x4"), TEST_TOKEN, "110"),
+    ]);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x3"), TEST_TOKEN, "120"),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "110"),
+    ]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns findings if there are withdrawals with a large amount", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x3"), TEST_TOKEN, "-120"),
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x4"), TEST_TOKEN, "-110"),
+    ]);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x3"), TEST_TOKEN, "-120"),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "-110"),
+    ]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns findings if there are withdrawals and deposits with large amounts", async () => {
+    const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
+
+    mockProvider.addLogs([
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x3"), TEST_TOKEN, "120"),
+      getInternalBalanceChangeLog(VAULT_ADDRESS, TEST_BLOCK, createAddress("0x4"), TEST_TOKEN, "-110"),
+    ]);
+
+    const findings: Finding[] = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      createFinding(createAddress("0x3"), TEST_TOKEN, "120"),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "-110"),
+    ]);
+    expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
 });
