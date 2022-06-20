@@ -1,10 +1,12 @@
 import { ethers, Finding, FindingSeverity, FindingType, HandleBlock, Network } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
-import { MockEthersProvider, TestBlockEvent, createAddress } from "forta-agent-tools/lib/tests";
+import { TestBlockEvent, createAddress as padAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { provideHandleBlock } from "./agent";
 import { BALANCE_OF_ABI, SWAP_ABI } from "./constants";
-import { AgentConfig, NetworkData } from "./utils";
+import { AgentConfig, NetworkData, SmartCaller } from "./utils";
+
+const createAddress = (address: string): string => ethers.utils.getAddress(padAddress(address.toLowerCase()));
 
 const VAULT_IFACE = new ethers.utils.Interface([SWAP_ABI]);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
@@ -24,7 +26,7 @@ const getSwapLog = (
     address: emitter,
     blockNumber: block,
     ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Swap"), [
-      poolId,
+      ethers.utils.hexZeroPad(poolId, 32),
       tokenIn,
       tokenOut,
       ethers.BigNumber.from(amountIn),
@@ -58,7 +60,7 @@ const createFinding = (
     type: FindingType.Info,
     severity: FindingSeverity.Unknown,
     metadata: {
-      poolId,
+      poolId: ethers.utils.hexZeroPad(poolId, 32),
       tokenIn,
       tokenOut,
       amountIn: ethers.BigNumber.from(amountIn).toString(),
@@ -90,6 +92,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
   };
 
   beforeEach(() => {
+    SmartCaller.clearCache();
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
 
@@ -107,7 +110,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
     mockProvider.addLogs([
-      getSwapLog(createAddress("0x1"), 0, "2", createAddress("0x3"), createAddress("0x4"), "5", "6")
+      getSwapLog(createAddress("0x1"), 0, "0x2", createAddress("0x3"), createAddress("0x4"), "5", "6")
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -126,7 +129,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
   it("should ignore events emitted in other blocks", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    mockProvider.addLogs([getSwapLog(VAULT_ADDRESS, 1, "2", createAddress("0x3"), createAddress("0x4"), "5", "6")]);
+    mockProvider.addLogs([getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0x3"), createAddress("0x4"), "5", "6")]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
     expect(mockProvider.call).toHaveBeenCalledTimes(0);
@@ -134,11 +137,10 @@ describe("Balancer Large Swap Bot Test Suite", () => {
 
   it("should not return findings for swaps that are not large", async () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
-
     setBalanceOf(0, createAddress("0x3"), VAULT_ADDRESS, "10000");
     setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "10000");
 
-    mockProvider.addLogs([getSwapLog(VAULT_ADDRESS, 1, "2", createAddress("0x3"), createAddress("0x4"), "5", "6")]);
+    mockProvider.addLogs([getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0x3"), createAddress("0x4"), "5", "6")]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
@@ -151,15 +153,15 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "6");
 
     mockProvider.addLogs([
-      getSwapLog(VAULT_ADDRESS, 1, "1", createAddress("0x3"), createAddress("0x4"), "5", "0"),
-      getSwapLog(VAULT_ADDRESS, 1, "2", createAddress("0x3"), createAddress("0x4"), "0", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "3", createAddress("0x3"), createAddress("0x4"), "5", "6")
+      getSwapLog(VAULT_ADDRESS, 1, "0x1", createAddress("0x3"), createAddress("0x4"), "5", "0"),
+      getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0x3"), createAddress("0x4"), "0", "6"),
+      getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0x3"), createAddress("0x4"), "5", "6")
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([
-      createFinding("1", createAddress("0x3"), createAddress("0x4"), "5", "0", "100", "0"),
-      createFinding("2", createAddress("0x3"), createAddress("0x4"), "0", "6", "0", "100"),
-      createFinding("3", createAddress("0x3"), createAddress("0x4"), "5", "6", "100", "100"),
+      createFinding("0x1", createAddress("0x3"), createAddress("0x4"), "5", "0", "100", "0"),
+      createFinding("0x2", createAddress("0x3"), createAddress("0x4"), "0", "6", "0", "100"),
+      createFinding("0x3", createAddress("0x3"), createAddress("0x4"), "5", "6", "100", "100"),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
@@ -180,16 +182,16 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     setBalanceOf(0, createAddress("0xb4"), VAULT_ADDRESS, "10000");
 
     mockProvider.addLogs([
-      getSwapLog(VAULT_ADDRESS, 1, "1", createAddress("0xa1"), createAddress("0xb1"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "2", createAddress("0xa2"), createAddress("0xb2"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "3", createAddress("0xa3"), createAddress("0xb3"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "4", createAddress("0xa4"), createAddress("0xb4"), "5", "6")
+      getSwapLog(VAULT_ADDRESS, 1, "0x1", createAddress("0xa1"), createAddress("0xb1"), "5", "6"),
+      getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0xa2"), createAddress("0xb2"), "5", "6"),
+      getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0xa3"), createAddress("0xb3"), "5", "6"),
+      getSwapLog(VAULT_ADDRESS, 1, "0x4", createAddress("0xa4"), createAddress("0xb4"), "5", "6")
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([
-      createFinding("1", createAddress("0xa1"), createAddress("0xb1"), "5", "6", "100", "100"),
-      createFinding("2", createAddress("0xa2"), createAddress("0xb2"), "5", "6", "100", "100"),
-      createFinding("3", createAddress("0xa3"), createAddress("0xb3"), "5", "6", "100", "100"),
+      createFinding("0x1", createAddress("0xa1"), createAddress("0xb1"), "5", "6", "100", "100"),
+      createFinding("0x2", createAddress("0xa2"), createAddress("0xb2"), "5", "6", "100", "100"),
+      createFinding("0x3", createAddress("0xa3"), createAddress("0xb3"), "5", "6", "100", "100"),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(8);
   });
