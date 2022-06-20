@@ -2,7 +2,6 @@ import { Interface } from "@ethersproject/abi";
 import { Finding, FindingSeverity, FindingType, getEthersProvider } from "forta-agent";
 
 const provider = getEthersProvider();
-const positionsNumber = 50;
 const DECREASE_POSITION_EVENT = "DecreasePosition";
 
 const EVENT_ABI: string[] = [
@@ -31,6 +30,5 @@ export default {
   DECREASE_POSITION_EVENT,
   EVENT_ABI,
   EVENTS_IFACE,
-  positionsNumber,
   createFinding,
 };
