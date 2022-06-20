@@ -67,8 +67,7 @@ The bot behaviour can be verified in the following blocks:
 
   Generated finding:
 
-  - `description`: "qiQI token's supply interest rate dropped below lower threshold"
-  - `token`: qiQI
+  - `description`: "A qiToken's supply interest rate dropped below lower threshold"
   - `tokenAddress`: 0xba1d29adebbfb8f79eca81a44f8354539ef32adb
   - `supplyInterestRate`: 0
   - `upperRateThreshold`: 10000
@@ -79,8 +78,7 @@ The bot behaviour can be verified in the following blocks:
 
   1.
 
-  - `description`: "qiBTC token's borrow interest rate dropped below lower threshold"
-  - `token`: qiBTC
+  - `description`: "A qiToken's borrow interest rate dropped below lower threshold"
   - `tokenAddress`: 0x106958df060b0bb19223c2666bf57fa9f065b6a0
   - `borrowInterestRate`: 8000
   - `lowerRateThreshold`: 10000
@@ -88,7 +86,6 @@ The bot behaviour can be verified in the following blocks:
   2.
 
   - `description`: "qiQI token's borrow interest rate exceeded upper threshold"
-  - `token`: qiQI
   - `tokenAddress`: 0xba1d29adebbfb8f79eca81a44f8354539ef32adb
   - `borrowInterestRate`: 7300000000
   - `upperRateThreshold`: 6200000000
