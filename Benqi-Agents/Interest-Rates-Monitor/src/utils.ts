@@ -18,6 +18,20 @@ export const THRESHOLDS = {
   ],
 };
 
+// use the below values for test blocks.
+/*
+export const THRESHOLDS = {
+  supply: [
+    BigNumber.from(100000), // lower supply rate threshold
+    BigNumber.from(50).mul(1e9).mul(1e9), // 50%  upper supply rate threshold
+  ],
+  borrow: [
+    BigNumber.from(100000), // lower borrow rate threshold
+    BigNumber.from(50).mul(1e9).mul(1e9), // 50% upper borrow rate threshold
+  ],
+};
+*/
+
 export const QI_TOKENS_ABI: string[] = [
   "function borrowRatePerTimestamp() external view returns (uint)",
   "function supplyRatePerTimestamp() external view returns (uint)",
