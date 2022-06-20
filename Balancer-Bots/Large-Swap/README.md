@@ -48,7 +48,7 @@ an associated finding.
 in your `forta.config.json` file.
 
 ```
-npm run block 32284039
+npm run block 32284194
 ```
 
 As noted in the PoC at `PoC/MockVault.sol`, there should be findings from pool IDs `0`, `1`, `3`, `4` and `6` (as `bytes32`).

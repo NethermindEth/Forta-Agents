@@ -34,14 +34,17 @@ contract MockVault {
     }
 
     function test() public {
-        emit Swap("\x00", address(_token0), address(_token1), 51, 0); // should emit a finding
-        emit Swap("\x01", address(_token0), address(_token1), 50, 0); // should emit a finding
-        emit Swap("\x02", address(_token0), address(_token1), 49, 0); // should not emit a finding
+        address token0 = address(_token0);
+        address token1 = address(_token1);
 
-        emit Swap("\x03", address(_token0), address(_token1), 0, 6); // should emit a finding
-        emit Swap("\x04", address(_token0), address(_token1), 0, 5); // should emit a finding
-        emit Swap("\x05", address(_token0), address(_token1), 0, 4); // should not emit a finding
+        emit Swap("\x00", token0, token1, 51, 0); // should emit a finding
+        emit Swap("\x01", token0, token1, 50, 0); // should emit a finding
+        emit Swap("\x02", token0, token1, 49, 0); // should not emit a finding
 
-        emit Swap("\x06", address(_token0), address(_token1), 50, 5); // should emit a finding
+        emit Swap("\x03", token0, token1, 0, 6); // should emit a finding
+        emit Swap("\x04", token0, token1, 0, 5); // should emit a finding
+        emit Swap("\x05", token0, token1, 0, 4); // should not emit a finding
+
+        emit Swap("\x06", token0, token1, 50, 5); // should emit a finding
     }
 }
