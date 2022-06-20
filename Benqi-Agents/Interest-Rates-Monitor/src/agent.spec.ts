@@ -68,10 +68,7 @@ const testCreateFinding = (address: string, rate: BigNumber, threshold: BigNumbe
 describe("Qi Tokens' interest rate thresholds excess bot test suite", () => {
   const mockGetSupplyInterestRates = jest.fn();
   const mockGetBorrowInterestRates = jest.fn();
-  const mockFetcher = {
-    getSupplyInterestRates: mockGetSupplyInterestRates,
-    getBorrowInterestRates: mockGetBorrowInterestRates,
-  };
+
   const mockProvider = new MockEthersProvider();
   const TEST_MARKETS = [
     createAddress("0x1111"),
@@ -80,9 +77,11 @@ describe("Qi Tokens' interest rate thresholds excess bot test suite", () => {
     createAddress("0x4444"),
   ];
 
-  const mockMarketsFetcher = {
+  const mockFetcher = {
     provider: mockProvider,
     markets: TEST_MARKETS,
+    getSupplyInterestRates: mockGetSupplyInterestRates,
+    getBorrowInterestRates: mockGetBorrowInterestRates,
   };
 
   const TEST_THRESHOLDS = {
@@ -90,7 +89,7 @@ describe("Qi Tokens' interest rate thresholds excess bot test suite", () => {
     borrow: [BigNumber.from(20), BigNumber.from(1000)],
   };
 
-  const handleBlock: HandleBlock = provideHandleBlock(TEST_THRESHOLDS, mockMarketsFetcher as any, mockFetcher as any);
+  const handleBlock: HandleBlock = provideHandleBlock(TEST_THRESHOLDS, mockFetcher as any);
 
   beforeAll(() => {
     when(mockProvider.getLogs).mockReturnValue([]);
