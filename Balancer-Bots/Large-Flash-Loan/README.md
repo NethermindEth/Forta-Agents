@@ -37,6 +37,30 @@ npm run block 15003354
 This test configuration has `tvlPercentageThreshold` set to `2.5%`, and considering the amount borrowed is `~3.56%`, a
 finding will be emitted.
 
+### Polygon
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Polygon RPC url as `jsonRpcUrl` in
+your `forta.config.json` file.
+
+```
+npm run block 29841136
+```
+
+This test configuration has `tvlPercentageThreshold` set to `0.1%`, and considering the amount borrowed is `~0.103%`, a
+finding will be emitted.
+
+### Arbitrum
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set an Arbitrum RPC url as `jsonRpcUrl` in
+your `forta.config.json` file.
+
+```
+npm run block 15235537
+```
+
+This test configuration has `tvlPercentageThreshold` set to `0.015%`, and considering the amount borrowed is `~0.016%`, a
+finding will be emitted.
+
 ### Kovan Testnet (PoC)
 
 > For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Kovan Testnet RPC url as `jsonRpcUrl`
@@ -49,3 +73,5 @@ npm run block 32303946
 As noted in the PoC at `PoC/MockVault.sol`, there should be findings of flash loan amounts `5051` and `5050`
 (MockVault balance of `token0` is `10000` and the threshold is `50.5%`) and also of amount `51` (MockVault balance of
 `token1` is `100` and the threshold is `50.5%`).
+
+
