@@ -29,37 +29,38 @@ export const provideTransactionHandler = (
       networkManager.vaultAddress
     );
 
-    // extract only increaseEventLogs
-    const increaseEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "IncreasePosition");
+    eventLogs.forEach((eventLog, index) => {
+      if (eventLog.name === "IncreasePosition") {
+        const increaseEventLog = eventLogs[index];
+        const updateEventLog = eventLogs[index + 1];
 
-    // extract only updateEventLogs
-    const updateEventLogs: LogDescription[] = eventLogs.filter((eventLogs) => eventLogs.name == "UpdatePosition");
+        const { key: increaseKey, sizeDelta, account } = increaseEventLog.args;
+        const { key: updateKey, size } = updateEventLog.args;
 
-    increaseEventLogs.forEach((increaseEventLog, index) => {
-      const updateEventLog = updateEventLogs[index];
-      const { sizeDelta, key: increaseKey, account } = increaseEventLog.args;
-      const { size, key: updateKey } = updateEventLog.args;
-
-      if (increaseKey === updateKey) {
-        const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
-          new BigNumber(PRICE_PRECISION.toString())
-        );
-        const positionSizeDifference = size.sub(sizeDelta);
-        if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
-          findings.push(
-            createFinding(
-              account,
-              networkManager.vaultAddress,
-              updateKey,
-              increaseKey,
-              size,
-              sizeDelta,
-              positionSizeDifference
-            )
+        // compare increasePosition and updatePosition keys
+        if (increaseKey === updateKey) {
+          const positionSizeDifference = size.sub(sizeDelta);
+          const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
+            new BigNumber(PRICE_PRECISION.toString())
           );
+
+          if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
+            findings.push(
+              createFinding(
+                account,
+                networkManager.vaultAddress,
+                updateKey,
+                increaseKey,
+                size,
+                sizeDelta,
+                positionSizeDifference
+              )
+            );
+          }
         }
       }
     });
+
     return findings;
   };
 };

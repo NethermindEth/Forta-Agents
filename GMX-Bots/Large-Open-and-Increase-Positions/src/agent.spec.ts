@@ -170,15 +170,16 @@ describe("Large Open/Increase Position Test Suite", () => {
     ]);
 
     txEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog.data,
-        ...updatePositionEventLog.topics
-      )
+
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog.data,
         ...increasePositionEventLog.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog.data,
+        ...updatePositionEventLog.topics
       );
 
     findings = await handleTransaction(txEvent);
@@ -302,15 +303,16 @@ describe("Large Open/Increase Position Test Suite", () => {
     ]);
 
     txEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog.data,
-        ...updatePositionEventLog.topics
-      )
+
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog.data,
         ...increasePositionEventLog.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog.data,
+        ...updatePositionEventLog.topics
       );
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
@@ -380,12 +382,6 @@ describe("Large Open/Increase Position Test Suite", () => {
         updatePositionEventLog1.data,
         ...updatePositionEventLog1.topics
       )
-
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog2.data,
-        ...updatePositionEventLog2.topics
-      )
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog2.data,
@@ -393,13 +389,18 @@ describe("Large Open/Increase Position Test Suite", () => {
       )
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
-        updatePositionEventLog3.data,
-        ...updatePositionEventLog3.topics
+        updatePositionEventLog2.data,
+        ...updatePositionEventLog2.topics
       )
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog3.data,
         ...increasePositionEventLog3.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog3.data,
+        ...updatePositionEventLog3.topics
       );
 
     findings = await handleTransaction(txEvent);
@@ -481,14 +482,15 @@ describe("Large Open/Increase Position Test Suite", () => {
     txEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
-        updatePositionEventLog4.data,
-        ...updatePositionEventLog4.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
         increasePositionEventLog4.data,
         ...increasePositionEventLog4.topics
       )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog4.data,
+        ...updatePositionEventLog4.topics
+      )
+
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog5.data,
