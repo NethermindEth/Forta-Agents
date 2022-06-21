@@ -18,7 +18,7 @@ export default class BalanceFetcher {
     this.tokenContract = new Contract(this.tokenAddress, new Interface(TOKEN_ABI), this.provider);
   }
 
-  // Function to initialize fetcher data, called once during the bot initialization.
+  // Function to set the token address.
   public setData(_tokenAddress: string) {
     this.tokenAddress = _tokenAddress;
     if (this.tokenContract.address != this.tokenAddress)
