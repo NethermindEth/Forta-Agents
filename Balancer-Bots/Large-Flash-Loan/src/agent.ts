@@ -3,7 +3,8 @@ import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock, Initialize
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
 import { BALANCE_OF_ABI, FLASH_LOAN_ABI } from "./constants";
-import { createFinding, NetworkData, SmartCaller, toBn } from "./utils";
+import { createFinding } from "./finding";
+import { NetworkData, SmartCaller, toBn } from "./utils";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
