@@ -1,26 +1,26 @@
-# Large Tether Transfer Agent
+# Balancer Large Flash Loan Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects large flash loans (i.e. the amount of tokens borrowed is a significant fraction of the Vault's balance
+for that token) in the Balancer protocol.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
+- Arbitrum
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- BAL-4
+  - Fired when a Balancer flash loan is "large"
+  - Severity is always set to "unknown"
+  - Type is always set to "info"
+  - Metadata:
+    - `recipient`: The flash loan recipient
+    - `token`: The borrowed token address
+    - `amount`: The amount borrowed
+    - `tvlPercentage`: The percentage of the Vault's token balance that was borrowed
 
 ## Test Data
-
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
