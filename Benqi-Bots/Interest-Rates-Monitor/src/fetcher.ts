@@ -23,6 +23,15 @@ export default class Fetcher {
   public updateMarkets(marketAddress: string) {
     this.markets = [...this.markets, marketAddress];
   }
+  public excludeMarkets(marketAddresses: string[]) {
+    const updatedMarketsList: string[] = [...this.markets];
+
+    marketAddresses.forEach((market) => {
+      const index = updatedMarketsList.indexOf(market);
+      if (index > -1) updatedMarketsList.splice(index, 1);
+    });
+    this.markets = updatedMarketsList;
+  }
 
   public async getSupplyInterestRates(block: number, tokenAddress: string): Promise<BigNumber> {
     const key: string = `supply-${tokenAddress}-${block}`;

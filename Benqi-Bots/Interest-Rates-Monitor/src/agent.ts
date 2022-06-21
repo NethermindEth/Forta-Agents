@@ -1,13 +1,14 @@
 import { BigNumber } from "ethers";
 import { findingCase, createFinding } from "./findings";
 import { BlockEvent, Finding, HandleBlock, getEthersProvider } from "forta-agent";
-import { COMPTROLLER_ADDR, COMPTROLLER_IFACE, THRESHOLDS } from "./utils";
+import { COMPTROLLER_ADDR, COMPTROLLER_IFACE, EXCLUDED_MARKETS, THRESHOLDS } from "./utils";
 import Fetcher from "./fetcher";
 
 const fetcher: Fetcher = new Fetcher(getEthersProvider(), COMPTROLLER_ADDR);
 
-const initialize = async () => {
+const provideInitialize = (excludedMarkets: string[]) => async () => {
   await fetcher.getMarkets();
+  fetcher.excludeMarkets(excludedMarkets);
 };
 
 export const provideHandleBlock =
@@ -62,6 +63,6 @@ export const provideHandleBlock =
   };
 
 export default {
-  initialize,
+  initialize: provideInitialize(EXCLUDED_MARKETS),
   handleBlock: provideHandleBlock(THRESHOLDS, fetcher),
 };
