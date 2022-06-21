@@ -1,68 +1,68 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
+  getEthersProvider,
 } from "forta-agent";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
+import { BigNumber, ethers } from "ethers";
+import {
+  MASTERCHEF_ADDRESS,
+  MASTERCHEF_ABI,
+  IBEP20_ABI
+} from './constants';
+
+import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
+import { createFinding } from "./findings";
+
 let findingsCount = 0;
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+export function provideHandleTransaction(
+  config: BotConfig,
+) : HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+      
+    let findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    const provider = getEthersProvider();
+    const masterchefContract = new ethers.Contract(MASTERCHEF_ADDRESS, MASTERCHEF_ABI, provider);
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
+    await Promise.all(
+      // filter the transaction logs for Deposit and withdraw events
+      txEvent.filterLog(
+        [MASTERCHEF_ABI[0], MASTERCHEF_ABI[1]],
+        MASTERCHEF_ADDRESS
+      ).map(async (log) => {
+        // extract event arguments
+        const { user, pid, amount } = log.args;
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+        // Get the address of the LP token
+        var tokenAddress = masterchefContract.lpToken(pid);
+        var tokenContract = new ethers.Contract(tokenAddress, IBEP20_ABI, provider);
+        var tokenName = await tokenContract.name();
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
+        // Get threshold (check config for whether static or dynamic mode)
+        let thresholdAmount: BigNumber;
 
-  return findings;
-};
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+        if (config.mode === "STATIC") thresholdAmount = config.thresholdData;
+        else {
+          // Fetch balance of the token in the Masterchef contract
+          const balance = await tokenContract.balanceOf(MASTERCHEF_ADDRESS, { blockTag: txEvent.blockNumber - 1 });
+          // Set threshold
+          thresholdAmount = BigNumber.from(balance).mul(config.thresholdData).div(100);
+        }
+        
+        // If amount is greater than threshold, create finding
+        if (amount.gte(thresholdAmount)) {
+          findings.push(createFinding(log.name, tokenName, log.args));
+        }
+        findingsCount++;
+      })
+    );
+    return findings;
+  };
+}
 
 export default {
-  handleTransaction,
-  // handleBlock
+  handleTransaction: provideHandleTransaction(STATIC_CONFIG),
 };

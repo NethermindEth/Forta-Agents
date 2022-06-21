@@ -1,74 +1,156 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+import { 
+  MockEthersProvider, 
+  createAddress,
+} from "forta-agent-tools/lib/tests";
 
-describe("high tether transfer agent", () => {
-  let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+import { BigNumber, utils, ethers } from "ethers";
+import { provideHandleTransaction } from "./agent";
+import { 
+  MASTERCHEF_ABI,
+  MASTERCHEF_ADDRESS,
+  IBEP20_ABI
+ } from "./constants";
+import { BotConfig } from "./config";
+import { createFinding } from "./findings";
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
-  });
+describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  const mockProvider = new MockEthersProvider();
 
-      const findings = await handleTransaction(mockTxEvent);
 
+  // Static mode
+  describe("STATIC mode", () => {
+    const testStaticConfig: BotConfig = {
+      mode: "STATIC",
+      thresholdData: BigNumber.from("1000000000000000000") // 1
+    };
+
+    const handleTransaction: HandleTransaction = provideHandleTransaction(testStaticConfig);
+
+    it("Should return 0 findings in empty transactions", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent();
+      const findings : Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
     });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
+    it("Should detect a large deposit event", async () => {
+      const testSpender: string = createAddress("0x1");
+      
+      const masterchefInterface : ethers.utils.Interface = new ethers.utils.Interface(MASTERCHEF_ABI);
+      const depositLog = masterchefInterface.encodeEventLog(
+        masterchefInterface.getEvent('Deposit'),
+        [
+          testSpender, 10, BigNumber.from("2000000000000000000") // 2
+        ]
+      )
+      // Create test transaction event
+      const txEvent : TransactionEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(MASTERCHEF_ADDRESS, depositLog.data, ...depositLog.topics);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual(
+          [
+            Finding.fromObject({
+            name: "Large LP Token Deposit",
+            description: `Deposit event emitted in Masterchef contract for pool 10, Pancake LPs token with a large amount`,
+            alertId: "CAKE-1",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "PancakeSwap",
+            metadata: {
+                user: testSpender,
+                token: 'Pancake LPs',
+                pid: '10',
+                amount: "2000000000000000000"
+            },
+          })
+        ]
+      )
     });
-  });
-});
+
+    it("Should not detect a deposit event under the threshold", async () => {
+      const testSpender: string = createAddress("0x1");
+      
+      const masterchefInterface : ethers.utils.Interface = new ethers.utils.Interface(MASTERCHEF_ABI);
+      const depositLog = masterchefInterface.encodeEventLog(
+        masterchefInterface.getEvent('Deposit'),
+        [
+          testSpender, 10, BigNumber.from("500000000000000000") // 0.5
+        ]
+      )
+
+      const txEvent : TransactionEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(MASTERCHEF_ADDRESS, depositLog.data, ...depositLog.topics);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([])
+    })
+
+    it("Should detect a large withdrawal event", async () => {
+      const testSpender: string = createAddress("0x2");
+      
+      const masterchefInterface : ethers.utils.Interface = new ethers.utils.Interface(MASTERCHEF_ABI);
+      const withdrawLog = masterchefInterface.encodeEventLog(
+        masterchefInterface.getEvent('Withdraw'),
+        [
+          testSpender, 5, BigNumber.from("1100000000000000000") // 1.1
+        ]
+      )
+      // Create test transaction event
+      const txEvent : TransactionEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual(
+          [
+            Finding.fromObject({
+            name: "Large LP Token Withdrawal",
+            description: `Withdraw event emitted in Masterchef contract for pool 5, Pancake LPs token with a large amount`,
+            alertId: "CAKE-2",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "PancakeSwap",
+            metadata: {
+                user: testSpender,
+                token: 'Pancake LPs',
+                pid: '5',
+                amount: "1100000000000000000"
+            },
+          })
+        ]
+      )
+    });
+
+    it("Should not detect a withdrawal event under the threshold", async () => {
+      const testSpender: string = createAddress("0x2");
+      
+      const masterchefInterface : ethers.utils.Interface = new ethers.utils.Interface(MASTERCHEF_ABI);
+      const withdrawLog = masterchefInterface.encodeEventLog(
+        masterchefInterface.getEvent('Withdraw'),
+        [
+          testSpender, 5, BigNumber.from("900000000000000000") // 0.9
+        ]
+      )
+      // Create test transaction event
+      const txEvent : TransactionEvent = new TestTransactionEvent()
+        .addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([])
+    })
+
+
+  })
+
+
+
+
+
+
+
+
+
+
+})
