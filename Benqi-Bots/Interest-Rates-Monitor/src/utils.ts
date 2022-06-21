@@ -36,3 +36,8 @@ export const QI_TOKENS_ABI: string[] = [
   "function borrowRatePerTimestamp() external view returns (uint)",
   "function supplyRatePerTimestamp() external view returns (uint)",
 ];
+
+// List of markets that will be ignored by the bot.
+export const EXCLUDED_MARKETS: string[] = [
+  "0x35Bd6aedA81a7E5FC7A7832490e71F757b0cD9Ce", // qiQI market.
+];

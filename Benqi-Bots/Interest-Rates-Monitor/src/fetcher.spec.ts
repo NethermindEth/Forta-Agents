@@ -67,6 +67,10 @@ describe("Fetcher test suite", () => {
 
       const expectedArray = [...TEST_MARKETS_DATA[i].slice(2), newMarket];
       expect(fetcher.markets).toStrictEqual(expectedArray);
+
+      // should remove the excluded market and ignore the non-existant one.
+      fetcher.excludeMarkets([newMarket, createAddress("0xfede")]);
+      expect(fetcher.markets).toStrictEqual([...TEST_MARKETS_DATA[i].slice(2)]);
     }
   });
 
