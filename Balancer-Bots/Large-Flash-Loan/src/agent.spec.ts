@@ -1,6 +1,6 @@
 import { ethers, Finding, FindingSeverity, FindingType, HandleBlock, Network } from "forta-agent";
 import { BALANCE_OF_ABI, FLASH_LOAN_ABI } from "./constants";
-import { createAddress, MockEthersProvider, TestBlockEvent as _TestBlockEvent } from "forta-agent-tools/lib/tests";
+import { createAddress, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
 import BigNumber from "bignumber.js";
 import { AgentConfig, NetworkData, SmartCaller } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
@@ -12,22 +12,6 @@ const VAULT_IFACE = new ethers.utils.Interface([FLASH_LOAN_ABI]);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
 const TOKEN_IFACE = new ethers.utils.Interface([BALANCE_OF_ABI]);
 const VAULT_ADDRESS = createChecksumAddress("0xdef1");
-
-class TestBlockEvent extends _TestBlockEvent {
-  constructor(network?: Network) {
-    super(network);
-  }
-
-  public setParentHash(blockHash: string) {
-    this.block.parentHash = blockHash;
-    return this;
-  }
-
-  public setNumber(blockNumber: number) {
-    this.block.number = blockNumber;
-    return this;
-  }
-}
 
 const getFlashLoanLog = (
   emitter: string,
@@ -93,8 +77,8 @@ describe("Balancer Large Flash Loan Test Suite", () => {
   let networkManager: NetworkManager<NetworkData>;
   let handleBlock: HandleBlock;
 
-  const setBalanceOf = (blockHash: string, token: string, account: string, balance: ethers.BigNumberish) => {
-    mockProvider.addCallTo(token, blockHash, TOKEN_IFACE, "balanceOf", {
+  const setBalanceOf = (block: number, token: string, account: string, balance: ethers.BigNumberish) => {
+    mockProvider.addCallTo(token, block, TOKEN_IFACE, "balanceOf", {
       inputs: [account],
       outputs: [ethers.BigNumber.from(balance)],
     });
@@ -134,9 +118,9 @@ describe("Balancer Large Flash Loan Test Suite", () => {
   });
 
   it("should not return findings for flash loans that are not large", async () => {
-    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1).setParentHash("0xf00d");
+    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1);
 
-    setBalanceOf("0xf00d", ADDRESSES[0], VAULT_ADDRESS, "10000");
+    setBalanceOf(0, ADDRESSES[0], VAULT_ADDRESS, "10000");
 
     mockProvider.addLogs([getFlashLoanLog(VAULT_ADDRESS, 1, ADDRESSES[1], ADDRESSES[0], "1")]);
 
@@ -145,9 +129,9 @@ describe("Balancer Large Flash Loan Test Suite", () => {
   });
 
   it("should return a finding for a large flash loan", async () => {
-    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1).setParentHash("0xf00d");
+    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1);
 
-    setBalanceOf("0xf00d", ADDRESSES[0], VAULT_ADDRESS, "10000");
+    setBalanceOf(0, ADDRESSES[0], VAULT_ADDRESS, "10000");
 
     mockProvider.addLogs([getFlashLoanLog(VAULT_ADDRESS, 1, ADDRESSES[1], ADDRESSES[0], "5050")]);
 
@@ -156,10 +140,10 @@ describe("Balancer Large Flash Loan Test Suite", () => {
   });
 
   it("should return one finding for each large flash loan", async () => {
-    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1).setParentHash("0xf00d");
+    const blockEvent = new TestBlockEvent(Network.MAINNET).setNumber(1);
 
-    setBalanceOf("0xf00d", ADDRESSES[0], VAULT_ADDRESS, "10000");
-    setBalanceOf("0xf00d", ADDRESSES[1], VAULT_ADDRESS, "20000");
+    setBalanceOf(0, ADDRESSES[0], VAULT_ADDRESS, "10000");
+    setBalanceOf(0, ADDRESSES[1], VAULT_ADDRESS, "20000");
 
     mockProvider.addLogs([
       getFlashLoanLog(VAULT_ADDRESS, 1, ADDRESSES[2], ADDRESSES[0], "5051"),

@@ -43,7 +43,7 @@ export const provideHandleBlock = (
         const token = SmartCaller.from(new ethers.Contract(log.args.token, tokenIface, provider));
 
         const vaultBalance = toBn(
-          await token.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.block.parentHash })
+          await token.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
         );
 
         const tvlPercentage = toBn(log.args.amount).dividedBy(vaultBalance).shiftedBy(2);
