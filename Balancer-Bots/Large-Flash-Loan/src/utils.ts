@@ -38,7 +38,7 @@ export class SmartCaller {
     return new SmartCaller(contract, options);
   }
 
-  protected generateMethods() {
+  private generateMethods() {
     Object.keys(this.contract.functions).forEach((functionName) => {
       const inputsLength = this.contract.interface.getFunction(functionName).inputs.length;
 
@@ -53,7 +53,7 @@ export class SmartCaller {
     });
   }
 
-  protected static async smartCall(
+  private static async smartCall(
     contract: ethers.Contract,
     functionName: string,
     args: any[],
