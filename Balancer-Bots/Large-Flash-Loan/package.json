@@ -1,5 +1,5 @@
 {
-  "name": "balancer-large-flash-loan",
+  "name": "balancer-large-flash-loan-bot",
   "version": "0.0.1",
   "description": "Forta bot that detects large flash loans in the Balancer protocol",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Balancer-Bots/Large-Flash-Loan/",
