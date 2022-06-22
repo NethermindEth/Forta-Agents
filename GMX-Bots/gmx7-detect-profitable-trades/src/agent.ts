@@ -21,10 +21,9 @@ import {
 //DONE Make bot store addresses after swaps if they are profitable (hardcode profit)
 //DONE Use grace period
 //DONE Add Chainlik Price Feeds (make sure to check eth one)
+//DONE Multiply times number of tokens, taking into account decimals
+//DONE Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
 
-//CHANGE FOREACH TO FOR, because javascript >:( 
-//MULTIPLY TIMES NUMBER OF TOKENS!
-//TODO: Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
 //TODO: Make caching system
 //TODO: Write tests
 //TODO: Make it work for avalanche
@@ -55,16 +54,16 @@ const usdtPriceFeed = new ethers.Contract("0x3f3f5df88dc9f13eac63df89ec16ef6e7e2
 const daiPriceFeed = new ethers.Contract("0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb", aggregatorV3InterfaceABI, provider);
 const fraxPriceFeed = new ethers.Contract("0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8", aggregatorV3InterfaceABI, provider);
 const mimPriceFeed = new ethers.Contract("0x87121f6c9a9f6e90e59591e4cf4804873f54a95b", aggregatorV3InterfaceABI, provider);
-let priceFeeds = new Map<string, ethers.Contract>([]);
-priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",wethPriceFeed); //WETH
-priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",wbtcPriceFeed); //WBTC
-priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",linkPriceFeed); //LINK
-priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",uniPriceFeed); //UNI
-priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",usdcPriceFeed); //USDC
-priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",usdtPriceFeed); //USDT
-priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",daiPriceFeed); //DAI
-priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",fraxPriceFeed); //FRAX
-priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",mimPriceFeed); //MIM
+let priceFeeds = new Map<string, [ethers.Contract, number]>([]);
+priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",[wethPriceFeed, 18]); //WETH
+priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",[wbtcPriceFeed, 8]); //WBTC
+priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",[linkPriceFeed, 18]); //LINK
+priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",[uniPriceFeed, 18]); //UNI
+priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",[usdcPriceFeed, 6]); //USDC
+priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",[usdtPriceFeed, 6]); //USDT
+priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",[daiPriceFeed, 18]); //DAI
+priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",[fraxPriceFeed, 18]); //FRAX
+priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",[mimPriceFeed, 18]); //MIM
 
 let unusualTrades = 0; //REMOVE
 
@@ -75,14 +74,14 @@ export const provideHandleTx =
     console.log(unusualTrades); //REMOVE
     //detect calls to the GMX router
     if (txEvent.to == router) {
-      swapEvents.forEach((swapEvent) => {
+      for(let i = 0; i < swapEvents.length; i++) {
         const {
           account,
           tokenIn,
           tokenOut,
           amountIn,
           amountOut,
-        } = swapEvent.args;
+        } = swapEvents[i].args;
 
         let tooManyProfitableTrades = false;
         //let profitOrLoss = 1;
@@ -93,13 +92,19 @@ export const provideHandleTx =
           let profitableTrades = tradeHistory.get(account)![0];
           let totalTrades = tradeHistory.get(account)![1];
           let totalProfit = tradeHistory.get(account)![2];
-          const priceIn = priceFeeds.get(tokenIn)!.latestRoundData();
-          const priceOut = priceFeeds.get(tokenOut)!.latestRoundData();
+          const {roundId: roundIdIn, answer: unitPriceIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
+          const {roundId: roundIdOut, answer: unitPriceOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
+          
+          const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
+          const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
+          const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
+          const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
+          
           if(priceOut > priceIn){
             profitableTrades++;
           }
           totalTrades++;
-          totalProfit += priceOut - priceIn;
+          totalProfit += (priceOut - priceIn) / 10**8;
           //profitableTrades += profitOrLoss;
           //totalTrades++;
           //totalProfit += profitAmount;
@@ -114,16 +119,18 @@ export const provideHandleTx =
         //store address's first trade information
         else {
           let profitableTrades = 0;
-          const priceIn = await usdcPriceFeed.latestRoundData();
-          const priceOut = wbtcPriceFeed.latestRoundData();
-          console.log("priceIn: " + priceIn);
-          console.log("priceOut: " + priceOut);
+          const {roundId: roundIdIn, answer: unitPriceIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
+          const {roundId: roundIdOut, answer: unitPriceOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
+          
+          const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
+          const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
+          const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
+          const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
+          
           if(priceOut > priceIn){
             profitableTrades++;
           }
-          tradeHistory.set(account, [profitableTrades, 1, priceOut - priceIn]);
-          console.log("profitable?: " + profitableTrades);
-          console.log("profit?: " + (priceOut - priceIn));
+          tradeHistory.set(account, [profitableTrades, 1, (priceOut - priceIn) / 10**8]);
         }
 
         //if an account using gmx has an unusual amount of profitable trades, report it
@@ -142,7 +149,7 @@ export const provideHandleTx =
           );
           unusualTrades++; //REMOVE
         }
-      });
+      }
     }
     return findings;
   };
