@@ -31,21 +31,29 @@ This bot detects emissions of `SwapFeePercentageChanged` and `FlashLoanFeePercen
 
 These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the `jsonRpcUrl` in `forta.config.json` to an RPC of the network in question.
 
-> Obs.: There wasn't any case in which `FlashLoanFeePercentageChanged` was emitted, so the following tests are only related to `SwapFeePercentageChanged`.
-
 ### Ethereum Mainnet
+
+> Obs.: There wasn't any case in which `FlashLoanFeePercentageChanged` was emitted, so the following tests are only related to `SwapFeePercentageChanged`.
 
 - `14250148` (1 finding - `SwapFeePercentageChanged` was emitted)
 
 ### Polygon
 
+> Obs.: There wasn't any case in which `FlashLoanFeePercentageChanged` was emitted, so the following tests are only related to `SwapFeePercentageChanged`.
+
 - `25025173` (1 finding - `SwapFeePercentageChanged` was emitted)
 
 ### Arbitrum
 
+> Obs.: There wasn't any case in which `FlashLoanFeePercentageChanged` was emitted, so the following tests are only related to `SwapFeePercentageChanged`.
+
 - `6203674` (1 finding - `SwapFeePercentageChanged` was emitted)
 
 ### Kovan Testnet (PoC)
+
+> The PoC files are available at `PoC/`.
+
+In order to run the tests below, uncomment the indicated lines in `src/agent.config.ts`.
 
 - `32203465` (1 finding - `MockProtocolFeesCollector.setFlashLoanFeePercentage()`)
   - Related to `MockProtocolFeesCollector.setFlashLoanFeePercentage()`
