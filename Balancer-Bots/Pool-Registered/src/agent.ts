@@ -1,7 +1,8 @@
 import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock } from "forta-agent";
 import CONFIG from "./agent.config";
 import { POOL_REGISTERED_ABI } from "./constants";
-import { AgentConfig, createFinding } from "./utils";
+import { createFinding } from "./finding";
+import { AgentConfig } from "./utils";
 
 export const provideHandleBlock = (config: AgentConfig, provider: ethers.providers.Provider): HandleBlock => {
   const vaultIface = new ethers.utils.Interface([POOL_REGISTERED_ABI]);
