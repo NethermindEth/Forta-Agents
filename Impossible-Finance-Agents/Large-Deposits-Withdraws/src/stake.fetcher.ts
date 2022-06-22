@@ -10,10 +10,7 @@ export default class StakeFetcher {
     this.provider = provider;
     this.cache = new LRU<string, BigNumber>({ max: 10000 });
   }
-  public async getTotalSupply(
-    contract: string,
-    block: number | string
-  ): Promise<BigNumber> {
+  public async getTotalSupply(contract: string, block: number | string): Promise<BigNumber> {
     const key: string = `${block}-${contract}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
     const pContract = new Contract(contract, SUPPLY_ABI, this.provider);

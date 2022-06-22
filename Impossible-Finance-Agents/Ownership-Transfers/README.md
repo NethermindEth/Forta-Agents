@@ -1,8 +1,8 @@
-# Ownership Transfer Agent
+# Ownership Transfer Bot
 
 ## Description
 
-This agent detects ownership transfers in following contracts
+This bot detects ownership transfers in following contracts
 
 - `0x0da6ed8b13214ff28e9ca979dd37439e8a88f6c4`, // STAX
 - `0xb0e1fc65c1a741b4662b813eb787d369b8614af1`, // IF
@@ -11,7 +11,7 @@ This agent detects ownership transfers in following contracts
 
 ## Supported Chains
 
-- BSC
+- Binance Smart Chain
 
 ## Alerts
 
@@ -21,5 +21,11 @@ This agent detects ownership transfers in following contracts
   - Type is always set to "Info"
   - Metadata contains:
     - `contract`: The contract event occured
-    - `previousOwner`: The current owner
+    - `previousOwner`: The previous owner
     - `newOwner`: The new owner
+
+## Test Data 
+
+The bot behavior can be verified with the following transaction (BSC network):
+
+- 0xd6f35b3666992860b8bf2da18ff5ce7ab1deb52f5097e56f21920fc8264847cd (`OwnershipTransferred` on `STAX` contract)

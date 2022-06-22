@@ -1,11 +1,7 @@
 import { BigNumberish } from "ethers";
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 
-type FindingGenerator = (
-  log: LogDescription,
-  reserve0: BigNumberish,
-  reserve1: BigNumberish
-) => Finding;
+type FindingGenerator = (log: LogDescription, reserve0: BigNumberish, reserve1: BigNumberish) => Finding;
 
 const addLiquidityFinding: FindingGenerator = (
   log: LogDescription,

@@ -16,18 +16,19 @@ export default class PairFetcher {
   }
 
   public async isImpossiblePair(block: number | string, pair: string): Promise<boolean> {
-    const key: string = `${block}-${pair}`
-    if(this.cache.has(key))
-      return this.cache.get(key) as boolean;
-    
+    const key: string = `${block}-${pair}`;
+    if (this.cache.has(key)) return this.cache.get(key) as boolean;
+
     try {
       const pairContract: Contract = new Contract(pair, abi.PAIR, this.provider);
       const [token0, token1] = await Promise.all([
         pairContract.token0({ blockTag: block }),
         pairContract.token1({ blockTag: block }),
       ]);
-      const realPair: string = await this.factoryContract.getPair(token0, token1, { blockTag: block });
-      const isCorrectPair: boolean = (realPair.toLowerCase() === pair.toLowerCase());
+      const realPair: string = await this.factoryContract.getPair(token0, token1, {
+        blockTag: block,
+      });
+      const isCorrectPair: boolean = realPair.toLowerCase() === pair.toLowerCase();
       this.cache.set(key, isCorrectPair);
       return isCorrectPair;
     } catch {
