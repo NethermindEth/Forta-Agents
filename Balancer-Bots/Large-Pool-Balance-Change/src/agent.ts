@@ -1,68 +1,88 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { providers, utils, Contract } from "ethers";
+import { BigNumber } from "bignumber.js";
+import { NetworkManager } from "forta-agent-tools";
+import { createFinding, NetworkData, SmartCaller, toBn } from "./utils";
+import { EVENT, TOKEN_ABI } from "./constants";
+import CONFIG from "./agent.config";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
+const networkManager = new NetworkManager<NetworkData>(CONFIG);
+
+export const initialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: providers.Provider
 ) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleBlock = (
+  provider: providers.Provider,
+  networkManager: NetworkManager<NetworkData>
+): HandleBlock => {
+  const vaultIface = new utils.Interface(EVENT);
+
+  const topics = [vaultIface.getEventTopic("PoolBalanceChanged")];
+
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const logs = (
+      await provider.getLogs({
+        address: networkManager.get("vaultAddress"),
+        topics,
+        fromBlock: blockEvent.blockNumber,
+        toBlock: blockEvent.blockNumber,
+      })
+    ).map(el => vaultIface.parseLog(el));
+
+    const vaultContract = new Contract(
+      networkManager.get("vaultAddress"),
+      new utils.Interface(TOKEN_ABI),
+      provider
+    );
+
+    await Promise.all(
+      logs.map(async log => {
+        const { poolId, tokens, deltas } = log.args;
+
+        const poolTokens = SmartCaller.from(vaultContract);
+
+        const poolTokensInfo = await poolTokens.getPoolTokens(poolId, {
+          blockTag: blockEvent.blockNumber,
+        });
+
+        for (let i = 0; i < tokens.length; i++) {
+          const delta = toBn(deltas[i]);
+          const previousBalance = toBn(poolTokensInfo[1][i]).minus(delta);
+
+          const _threshold = previousBalance
+            .multipliedBy(networkManager.get("threshold"))
+            .dividedBy(100);
+
+          if (!previousBalance.lte(0.1) && delta.abs().gte(_threshold)) {
+            const data = {
+              poolId,
+              previousBalance,
+              token: tokens[i],
+              delta,
+              percentage: delta.abs().multipliedBy(100).dividedBy(previousBalance),
+            };
+
+            findings.push(createFinding(data));
+          }
+        }
+      })
+    );
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: initialize(networkManager, getEthersProvider()),
+  handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
 };
