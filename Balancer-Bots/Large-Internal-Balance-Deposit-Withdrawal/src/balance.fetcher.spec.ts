@@ -23,21 +23,12 @@ const VAULT_ADDRESS = createAddress("0xa1");
 const tokenAddress = createAddress("0xa2");
 const BALANCE_IFACE = new Interface(TOKEN_ABI);
 
-const DEFAULT_CONFIG: AgentConfig = {
-  [Network.MAINNET]: {
-    vaultAddress: VAULT_ADDRESS,
-    threshold: "5",
-  },
-};
-
 describe("BalanceFetcher tests suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   let fetcher: BalanceFetcher;
-  let networkManager: NetworkManager<NetworkData>;
 
   beforeAll(() => {
     fetcher = new BalanceFetcher(mockProvider as any);
-    networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
   });
 
   it("should set token address correctly", async () => {
