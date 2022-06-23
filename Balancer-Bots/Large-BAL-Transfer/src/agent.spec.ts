@@ -1,24 +1,12 @@
-import {
-  ethers,
-  Finding,
-  FindingSeverity,
-  FindingType,
-  HandleBlock,
-  Network,
-} from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, HandleBlock, Network } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
-import {
-  TestBlockEvent,
-  createAddress as padAddress,
-  MockEthersProvider,
-} from "forta-agent-tools/lib/tests";
+import { TestBlockEvent, createAddress as padAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { provideHandleBlock } from "./agent";
 import { TOKEN_ABI, EVENT } from "./constants";
 import { AgentConfig, NetworkData, SmartCaller } from "./utils";
 
-const createAddress = (address: string): string =>
-  ethers.utils.getAddress(padAddress(address.toLowerCase()));
+const createAddress = (address: string): string => ethers.utils.getAddress(padAddress(address.toLowerCase()));
 
 const VAULT_IFACE = new ethers.utils.Interface(EVENT);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
@@ -35,11 +23,7 @@ const getTransferLog = (
   return {
     address: emitter,
     blockNumber: block,
-    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Transfer"), [
-      to,
-      from,
-      ethers.BigNumber.from(value),
-    ]),
+    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Transfer"), [to, from, ethers.BigNumber.from(value)]),
   } as ethers.providers.Log;
 };
 
@@ -51,12 +35,7 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
   } as ethers.providers.Log;
 };
 
-const createFinding = (
-  from: string,
-  to: string,
-  value: BigNumber,
-  percentage: BigNumber
-): Finding => {
+const createFinding = (from: string, to: string, value: BigNumber, percentage: BigNumber): Finding => {
   return Finding.from({
     name: "Large BAL Transfer",
     description: "Large amount of BAL transferred",
@@ -136,13 +115,7 @@ describe("Large Bal Token Transfer Bot Test Suite", () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
 
     mockProvider.addLogs([
-      getTransferLog(
-        BAL_ADDRESS,
-        0,
-        createAddress("0x2"),
-        createAddress("0x3"),
-        "5000000000000000000000000"
-      ),
+      getTransferLog(BAL_ADDRESS, 0, createAddress("0x2"), createAddress("0x3"), "5000000000000000000000000"),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -153,13 +126,7 @@ describe("Large Bal Token Transfer Bot Test Suite", () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
 
     mockProvider.addLogs([
-      getTransferLog(
-        BAL_ADDRESS,
-        1,
-        createAddress("0x2"),
-        createAddress("0x3"),
-        "4900000000000000000000000"
-      ),
+      getTransferLog(BAL_ADDRESS, 1, createAddress("0x2"), createAddress("0x3"), "4900000000000000000000000"),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -170,20 +137,8 @@ describe("Large Bal Token Transfer Bot Test Suite", () => {
     const blockEvent = new TestBlockEvent().setNumber(1);
 
     mockProvider.addLogs([
-      getTransferLog(
-        BAL_ADDRESS,
-        1,
-        createAddress("0x2"),
-        createAddress("0x3"),
-        "5000000000000000000000000"
-      ),
-      getTransferLog(
-        BAL_ADDRESS,
-        1,
-        createAddress("0x4"),
-        createAddress("0x5"),
-        "6000000000000000000000000"
-      ),
+      getTransferLog(BAL_ADDRESS, 1, createAddress("0x2"), createAddress("0x3"), "5000000000000000000000000"),
+      getTransferLog(BAL_ADDRESS, 1, createAddress("0x4"), createAddress("0x5"), "6000000000000000000000000"),
     ]);
 
     const percentage1 = new BigNumber("5000000000000000000000000")

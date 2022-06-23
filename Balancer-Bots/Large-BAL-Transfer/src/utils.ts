@@ -34,34 +34,21 @@ export class SmartCaller {
     this.generateMethods();
   }
 
-  static from(
-    contract: ethers.Contract,
-    options: Partial<SmartCallerOptions> = {}
-  ): SmartCaller {
+  static from(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}): SmartCaller {
     return new SmartCaller(contract, options);
   }
 
   protected generateMethods() {
-    Object.keys(this.contract.functions).forEach(functionName => {
-      const inputsLength =
-        this.contract.interface.getFunction(functionName).inputs.length;
+    Object.keys(this.contract.functions).forEach((functionName) => {
+      const inputsLength = this.contract.interface.getFunction(functionName).inputs.length;
 
       this[functionName] = (...args: any[]): Promise<any> => {
         let overrides = {};
-        if (
-          args.length === inputsLength + 1 &&
-          typeof args[args.length - 1] === "object"
-        ) {
+        if (args.length === inputsLength + 1 && typeof args[args.length - 1] === "object") {
           Object.assign(overrides, args.pop());
         }
 
-        return SmartCaller.smartCall(
-          this.contract,
-          functionName,
-          args,
-          overrides,
-          this.options
-        );
+        return SmartCaller.smartCall(this.contract, functionName, args, overrides, this.options);
       };
     });
   }

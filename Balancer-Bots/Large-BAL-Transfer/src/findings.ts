@@ -1,12 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 
-export const createFinding = (
-  from: string,
-  to: string,
-  value: BigNumber,
-  percentage: BigNumber
-): Finding => {
+export const createFinding = (from: string, to: string, value: BigNumber, percentage: BigNumber): Finding => {
   return Finding.from({
     name: "Large BAL Transfer",
     description: "Large amount of BAL transferred",
