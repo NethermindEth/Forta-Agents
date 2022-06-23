@@ -56,7 +56,7 @@ These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the js
 
 ### Arbitrum
 
-- `15453346` (2 finding - Join-Exit)
+- `15453346` (2 findings - Join-Exit)
 
 ### Kovan Testnet (PoC)
 
