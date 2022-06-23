@@ -27,8 +27,8 @@ CONFIG[42] = {
 };
 
 // Uncomment these lines for the mainnet, Polygon or Arbitrum tests:
-// CONFIG[Network.MAINNET].threshold = "15";
-// CONFIG[Network.POLYGON].threshold = "15";
+// CONFIG[Network.MAINNET].threshold = "0";
+// CONFIG[Network.POLYGON].threshold = "0";
 // CONFIG[Network.ARBITRUM].threshold = "0";
 
 export default CONFIG;
