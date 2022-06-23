@@ -1,26 +1,48 @@
-# Large Tether Transfer Agent
+# Large BAL Token Transfer Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects transactions with large Bal transfers.
+
+The thresholds can be set inside `src/agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
+- Arbitrum
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- BAL-7
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when there is a large pool exit from a pool
+  - Severity is always set to "info"
+  - Type is always set to "info"
+  - Metadata:
+    - `from`: Account that transfers the token
+    - `to`: Account that takes the token
+    - `value`: Amount of transferred BAL token
+    - `percentage`: Percentage of transferred BAL token relative to its total supply
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+For the tests, uncomment the lines indicated in `src/agent.config.ts`.
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the jsonRpcUrl in forta.config.json to an RPC of the network in question.
+
+### Ethereum Mainnet
+
+- `15013121` (1 finding)
+
+### Polygon
+
+- `29907924` (1 finding)
+
+### Arbitrum
+
+- `15516266` (2 findings)
+
+### Kovan Testnet (PoC)
+
+- `32334588` (1 finding)
