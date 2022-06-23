@@ -40,8 +40,7 @@ export const createFinding = (data: any): Finding => {
   });
 };
 
-export const toBn = (ethersBn: ethers.BigNumber) =>
-  new BigNumber(ethersBn.toString());
+export const toBn = (ethersBn: ethers.BigNumber) => new BigNumber(ethersBn.toString());
 
 export interface SmartCallerOptions {
   cacheByBlockTag: boolean;
@@ -55,10 +54,7 @@ export class SmartCaller {
   contract: ethers.Contract;
   options: SmartCallerOptions;
 
-  constructor(
-    contract: ethers.Contract,
-    options: Partial<SmartCallerOptions> = {}
-  ) {
+  constructor(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}) {
     this.contract = contract;
     this.options = {
       cacheByBlockTag: true,
@@ -68,34 +64,21 @@ export class SmartCaller {
     this.generateMethods();
   }
 
-  static from(
-    contract: ethers.Contract,
-    options: Partial<SmartCallerOptions> = {}
-  ): SmartCaller {
+  static from(contract: ethers.Contract, options: Partial<SmartCallerOptions> = {}): SmartCaller {
     return new SmartCaller(contract, options);
   }
 
   protected generateMethods() {
     Object.keys(this.contract.functions).forEach((functionName) => {
-      const inputsLength =
-        this.contract.interface.getFunction(functionName).inputs.length;
+      const inputsLength = this.contract.interface.getFunction(functionName).inputs.length;
 
       this[functionName] = (...args: any[]): Promise<any> => {
         let overrides = {};
-        if (
-          args.length === inputsLength + 1 &&
-          typeof args[args.length - 1] === "object"
-        ) {
+        if (args.length === inputsLength + 1 && typeof args[args.length - 1] === "object") {
           Object.assign(overrides, args.pop());
         }
 
-        return SmartCaller.smartCall(
-          this.contract,
-          functionName,
-          args,
-          overrides,
-          this.options
-        );
+        return SmartCaller.smartCall(this.contract, functionName, args, overrides, this.options);
       };
     });
   }

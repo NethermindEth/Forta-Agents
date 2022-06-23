@@ -1,18 +1,7 @@
 import { BigNumber } from "bignumber.js";
 import { Interface, formatBytes32String } from "ethers/lib/utils";
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleBlock,
-  Network,
-  ethers,
-} from "forta-agent";
-import {
-  createAddress,
-  MockEthersProvider,
-  TestBlockEvent,
-} from "forta-agent-tools/lib/tests";
+import { FindingType, FindingSeverity, Finding, HandleBlock, Network, ethers } from "forta-agent";
+import { createAddress, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleBlock } from "./agent";
 import { TOKEN_ABI, EVENT } from "./constants";
 import { AgentConfig, NetworkData, SmartCaller } from "./utils";
@@ -44,10 +33,7 @@ const getPoolBalanceChangeLog = (
   } as ethers.providers.Log;
 };
 
-const getIrrelevantEvent = (
-  emitter: string,
-  block: number
-): ethers.providers.Log => {
+const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Log => {
   return {
     address: emitter,
     blockNumber: block,
@@ -109,16 +95,10 @@ describe("Large pool balance changes", () => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
 
-    mockProvider.addCallTo(
-      VAULT_ADDRESS,
-      1,
-      new Interface(TOKEN_ABI),
-      "getPoolTokens",
-      {
-        inputs: [formatBytes32String(TEST_POOLID)],
-        outputs: TEST_POOL_TOKEN_INFO,
-      }
-    );
+    mockProvider.addCallTo(VAULT_ADDRESS, 1, new Interface(TOKEN_ABI), "getPoolTokens", {
+      inputs: [formatBytes32String(TEST_POOLID)],
+      outputs: TEST_POOL_TOKEN_INFO,
+    });
 
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
@@ -242,17 +222,9 @@ describe("Large pool balance changes", () => {
     ]);
 
     const delta1 = new BigNumber("180");
-    const previousBalance1 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][0].toString()
-    )
-      .minus(delta1)
-      .toString();
+    const previousBalance1 = new BigNumber(TEST_POOL_TOKEN_INFO[1][0].toString()).minus(delta1).toString();
     const delta2 = new BigNumber("350");
-    const previousBalance2 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][1].toString()
-    )
-      .minus(delta2)
-      .toString();
+    const previousBalance2 = new BigNumber(TEST_POOL_TOKEN_INFO[1][1].toString()).minus(delta2).toString();
 
     const data1 = {
       poolId: TEST_POOLID,
@@ -272,10 +244,7 @@ describe("Large pool balance changes", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(data1),
-      createFinding(data2),
-    ]);
+    expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
     expect(mockProvider.call).toHaveBeenCalledTimes(1);
   });
 
@@ -304,17 +273,9 @@ describe("Large pool balance changes", () => {
     ]);
 
     const delta1 = new BigNumber("-180");
-    const previousBalance1 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][0].toString()
-    )
-      .minus(delta1)
-      .toString();
+    const previousBalance1 = new BigNumber(TEST_POOL_TOKEN_INFO[1][0].toString()).minus(delta1).toString();
     const delta2 = new BigNumber("-350");
-    const previousBalance2 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][1].toString()
-    )
-      .minus(delta2)
-      .toString();
+    const previousBalance2 = new BigNumber(TEST_POOL_TOKEN_INFO[1][1].toString()).minus(delta2).toString();
 
     const data1 = {
       poolId: TEST_POOLID,
@@ -334,10 +295,7 @@ describe("Large pool balance changes", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(data1),
-      createFinding(data2),
-    ]);
+    expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
     expect(mockProvider.call).toHaveBeenCalledTimes(1);
   });
 
@@ -366,17 +324,9 @@ describe("Large pool balance changes", () => {
     ]);
 
     const delta1 = new BigNumber("180");
-    const previousBalance1 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][0].toString()
-    )
-      .minus(delta1)
-      .toString();
+    const previousBalance1 = new BigNumber(TEST_POOL_TOKEN_INFO[1][0].toString()).minus(delta1).toString();
     const delta2 = new BigNumber("-350");
-    const previousBalance2 = new BigNumber(
-      TEST_POOL_TOKEN_INFO[1][1].toString()
-    )
-      .minus(delta2)
-      .toString();
+    const previousBalance2 = new BigNumber(TEST_POOL_TOKEN_INFO[1][1].toString()).minus(delta2).toString();
 
     const data1 = {
       poolId: TEST_POOLID,
@@ -396,10 +346,7 @@ describe("Large pool balance changes", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(data1),
-      createFinding(data2),
-    ]);
+    expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
     expect(mockProvider.call).toHaveBeenCalledTimes(1);
   });
 });

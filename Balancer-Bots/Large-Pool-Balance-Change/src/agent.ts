@@ -10,10 +10,7 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-export const initialize = (
-  networkManager: NetworkManager<NetworkData>,
-  provider: providers.Provider
-) => {
+export const initialize = (networkManager: NetworkManager<NetworkData>, provider: providers.Provider) => {
   return async () => {
     await networkManager.init(provider);
   };
@@ -37,16 +34,12 @@ export const provideHandleBlock = (
         fromBlock: blockEvent.blockNumber,
         toBlock: blockEvent.blockNumber,
       })
-    ).map(el => vaultIface.parseLog(el));
+    ).map((el) => vaultIface.parseLog(el));
 
-    const vaultContract = new Contract(
-      networkManager.get("vaultAddress"),
-      new utils.Interface(TOKEN_ABI),
-      provider
-    );
+    const vaultContract = new Contract(networkManager.get("vaultAddress"), new utils.Interface(TOKEN_ABI), provider);
 
     await Promise.all(
-      logs.map(async log => {
+      logs.map(async (log) => {
         const { poolId, tokens, deltas } = log.args;
 
         const poolTokens = SmartCaller.from(vaultContract);
@@ -59,9 +52,7 @@ export const provideHandleBlock = (
           const delta = toBn(deltas[i]);
           const previousBalance = toBn(poolTokensInfo[1][i]).minus(delta);
 
-          const _threshold = previousBalance
-            .multipliedBy(networkManager.get("threshold"))
-            .dividedBy(100);
+          const _threshold = previousBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
           if (!previousBalance.lte(0.1) && delta.abs().gte(_threshold)) {
             const data = {
