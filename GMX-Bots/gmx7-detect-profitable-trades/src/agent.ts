@@ -23,8 +23,8 @@ import {
 //DONE Add Chainlik Price Feeds (make sure to check eth one)
 //DONE Multiply times number of tokens, taking into account decimals
 //DONE Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
+//DONE Make caching system
 
-//TODO: Make caching system
 //TODO: Write tests
 //TODO: Make it work for avalanche
 //TODO: Clean up & apply PR changes
@@ -45,6 +45,9 @@ const aggregatorV3InterfaceABI = [{ "inputs": [], "name": "decimals", "outputs":
 
 //Maps addresses to their trade history [numberOfProfitableTrades, numberOfTrades, profitSoFar]
 let tradeHistory = new Map<string, [number, number, number]>([]);
+
+let priceFeedCache = new Map<[string, number], number>([]);
+
 const wethPriceFeed = new ethers.Contract("0x639fe6ab55c921f74e7fac1ee960c0b6293ba612", aggregatorV3InterfaceABI, provider);
 const wbtcPriceFeed = new ethers.Contract("0x6ce185860a4963106506c203335a2910413708e9", aggregatorV3InterfaceABI, provider);
 const linkPriceFeed = new ethers.Contract("0x86e53cf1b870786351da77a57575e79cb55812cb", aggregatorV3InterfaceABI, provider);
@@ -84,30 +87,43 @@ export const provideHandleTx =
         } = swapEvents[i].args;
 
         let tooManyProfitableTrades = false;
-        //let profitOrLoss = 1;
-        //let profitAmount = 500;
+
+        let unitPriceIn = 0;
+        let unitPriceOut = 0;
+        if(priceFeedCache.has([tokenIn.toLowerCase(), txEvent.blockNumber])){
+          unitPriceIn = priceFeedCache.get([tokenIn.toLowerCase(), txEvent.blockNumber])!;
+        }
+        else{
+          const {roundId: roundIdIn, answer: answerIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
+          priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerIn);
+          unitPriceIn = answerIn;
+        }
+        if(priceFeedCache.has([tokenOut.toLowerCase(), txEvent.blockNumber])){
+          unitPriceOut = priceFeedCache.get([tokenOut.toLowerCase(), txEvent.blockNumber])!;
+        }
+        else{
+          const {roundId: roundIdOut, answer: answerOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
+          priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerOut);
+          unitPriceOut = answerOut;
+        }
+
+        
+        const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
+        const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
+        const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
+        const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
 
         //check if the address has previous trades
         if (tradeHistory.has(account)) {
           let profitableTrades = tradeHistory.get(account)![0];
           let totalTrades = tradeHistory.get(account)![1];
           let totalProfit = tradeHistory.get(account)![2];
-          const {roundId: roundIdIn, answer: unitPriceIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
-          const {roundId: roundIdOut, answer: unitPriceOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
-          
-          const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
-          const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
-          const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
-          const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
-          
+
           if(priceOut > priceIn){
             profitableTrades++;
           }
           totalTrades++;
           totalProfit += (priceOut - priceIn) / 10**8;
-          //profitableTrades += profitOrLoss;
-          //totalTrades++;
-          //totalProfit += profitAmount;
 
           tradeHistory.set(account, [profitableTrades, totalTrades, totalProfit]);
           
@@ -119,14 +135,6 @@ export const provideHandleTx =
         //store address's first trade information
         else {
           let profitableTrades = 0;
-          const {roundId: roundIdIn, answer: unitPriceIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
-          const {roundId: roundIdOut, answer: unitPriceOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
-          
-          const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
-          const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
-          const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
-          const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
-          
           if(priceOut > priceIn){
             profitableTrades++;
           }
