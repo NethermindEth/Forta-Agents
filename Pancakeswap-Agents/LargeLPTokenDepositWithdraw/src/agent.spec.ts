@@ -25,8 +25,9 @@ function addLPTokenAddress(
   mockProvider: MockEthersProvider,
   pid: number,
   tokenAddress: string,
+  block: number
 ) {
-  mockProvider.addCallTo(MASTERCHEF_ADDRESS, "latest", MASTERCHEF_INTERFACE, "lpToken", 
+  mockProvider.addCallTo(MASTERCHEF_ADDRESS, block, MASTERCHEF_INTERFACE, "lpToken", 
     { inputs: [pid], outputs: [tokenAddress] }
   )
 }
@@ -36,12 +37,13 @@ function addLPTokenNameBalance(
   mockProvider: MockEthersProvider,
   tokenAddress: string,
   tokenName: string,
-  balance: ethers.BigNumber
+  balance: ethers.BigNumber,
+  block: number,
 ) {
-  mockProvider.addCallTo(tokenAddress, "latest", IBEP20_INTERFACE, "balanceOf", 
+  mockProvider.addCallTo(tokenAddress, block - 1, IBEP20_INTERFACE, "balanceOf", 
     { inputs: [MASTERCHEF_ADDRESS], outputs: [balance] }
   )
-  mockProvider.addCallTo(tokenAddress, "latest", IBEP20_INTERFACE, "name", 
+  mockProvider.addCallTo(tokenAddress, block, IBEP20_INTERFACE, "name", 
     { inputs: [], outputs: [tokenName] }
   )
 }
@@ -64,7 +66,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     beforeEach( () => {
       mockProvider = new MockEthersProvider();
       provider = mockProvider as any;
-      mockProvider.clear();
     });
     
 
@@ -77,7 +78,8 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large deposit event", async () => {
       
-      const txEvent : TestTransactionEvent = new TestTransactionEvent();
+      const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
+
       handleTransaction = provideHandleTransaction(testStaticConfig, provider);
 
       // Add Deposit event
@@ -93,9 +95,9 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
       // Add token address to Masterchef contract
       const mockTokenAddress : string = createAddress("0x1234");
-      addLPTokenAddress(mockProvider, 10, mockTokenAddress);
+      addLPTokenAddress(mockProvider, 10, mockTokenAddress, 100);
       // Add balance to the token contract (token address above) (balance of 2)
-      addLPTokenNameBalance(mockProvider, mockTokenAddress, "Test Token 1", ethers.BigNumber.from("2000000000000000000"));
+      addLPTokenNameBalance(mockProvider, mockTokenAddress, "Test Token 1", ethers.BigNumber.from("2000000000000000000"), 100);
       
       const findings : Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual(
@@ -109,7 +111,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
             protocol: "PancakeSwap",
             metadata: {
                 user: testSpender,
-                token: 'Pancake LPs',
+                token: 'Test Token 1',
                 pid: '10',
                 amount: "2000000000000000000"
             },

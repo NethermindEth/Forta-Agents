@@ -35,11 +35,11 @@ export function provideHandleTransaction(
         // extract event arguments
         const { user, pid, amount } = log.args;
 
-        // Get the address of the LP token - CODE FAILS HERE
-        const tokenAddress = await masterchefContract.lpToken(pid);
+        // Get the address of the LP token
+        const tokenAddress = await masterchefContract.lpToken(pid, { blockTag: txEvent.blockNumber });
 
         const tokenContract = new ethers.Contract(tokenAddress, IBEP20_ABI, provider);
-        const tokenName = await tokenContract.name();
+        const tokenName = await tokenContract.name({ blockTag: txEvent.blockNumber });
 
         // Get threshold (check config for whether static or dynamic mode)
         let thresholdAmount: BigNumber;
