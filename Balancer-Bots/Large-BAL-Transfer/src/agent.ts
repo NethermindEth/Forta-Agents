@@ -1,68 +1,79 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { providers, utils, Contract } from "ethers";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkData, SmartCaller, toBn } from "./utils";
+import { EVENT, TOKEN_ABI } from "./constants";
+import CONFIG from "./agent.config";
+import { createFinding } from "./findings";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
+export const initialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: providers.Provider
 ) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleBlock = (
+  provider: providers.Provider,
+  networkManager: NetworkManager<NetworkData>
+): HandleBlock => {
+  const vaultIface = new utils.Interface(EVENT);
+
+  const topics = [vaultIface.getEventTopic("Transfer")];
+
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const logs = (
+      await provider.getLogs({
+        address: networkManager.get("balToken"),
+        topics,
+        fromBlock: blockEvent.blockNumber,
+        toBlock: blockEvent.blockNumber,
+      })
+    ).map(el => vaultIface.parseLog(el));
+
+    const balContract = new Contract(
+      networkManager.get("balToken"),
+      new utils.Interface(TOKEN_ABI),
+      provider
+    );
+
+    await Promise.all(
+      logs.map(async log => {
+        const { to, from, value } = log.args;
+
+        const bnValue = toBn(value);
+
+        const balToken = SmartCaller.from(balContract);
+
+        const totalSupply = toBn(
+          await balToken.totalSupply({
+            blockTag: blockEvent.blockNumber,
+          })
+        );
+
+        const _threshold = totalSupply
+          .multipliedBy(networkManager.get("threshold"))
+          .dividedBy(100);
+
+        if (bnValue.gte(_threshold)) {
+          const percentage = bnValue.multipliedBy(100).dividedBy(totalSupply);
+
+          findings.push(createFinding(to, from, value, percentage));
+        }
+      })
+    );
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: initialize(networkManager, getEthersProvider()),
+  handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
 };
