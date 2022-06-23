@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "description": "Forta Agent Typescript starter project",
   "chainIds": [
-    1
+    56
   ],
+
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -22,10 +23,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
-  },
-  "devDependencies": {
-    "@types/jest": "^27.0.1",
+    "forta-agent": "^0.1.6",
+    "bignumber.js": "^9.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",

@@ -15,16 +15,15 @@ import {
 import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
 import { createFinding } from "./findings";
 
-let findingsCount = 0;
 
 export function provideHandleTransaction(
   config: BotConfig,
+  provider: ethers.providers.Provider
 ) : HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
       
     let findings: Finding[] = [];
 
-    const provider = getEthersProvider();
     const masterchefContract = new ethers.Contract(MASTERCHEF_ADDRESS, MASTERCHEF_ABI, provider);
 
     await Promise.all(
@@ -36,10 +35,11 @@ export function provideHandleTransaction(
         // extract event arguments
         const { user, pid, amount } = log.args;
 
-        // Get the address of the LP token
-        var tokenAddress = masterchefContract.lpToken(pid);
-        var tokenContract = new ethers.Contract(tokenAddress, IBEP20_ABI, provider);
-        var tokenName = await tokenContract.name();
+        // Get the address of the LP token - CODE FAILS HERE
+        const tokenAddress = await masterchefContract.lpToken(pid);
+
+        const tokenContract = new ethers.Contract(tokenAddress, IBEP20_ABI, provider);
+        const tokenName = await tokenContract.name();
 
         // Get threshold (check config for whether static or dynamic mode)
         let thresholdAmount: BigNumber;
@@ -56,7 +56,6 @@ export function provideHandleTransaction(
         if (amount.gte(thresholdAmount)) {
           findings.push(createFinding(log.name, tokenName, log.args));
         }
-        findingsCount++;
       })
     );
     return findings;
@@ -64,5 +63,5 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(STATIC_CONFIG),
+  handleTransaction: provideHandleTransaction(STATIC_CONFIG, getEthersProvider()),
 };
