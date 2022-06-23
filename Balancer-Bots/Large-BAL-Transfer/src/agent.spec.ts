@@ -23,7 +23,7 @@ const getTransferLog = (
   return {
     address: emitter,
     blockNumber: block,
-    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Transfer"), [to, from, ethers.BigNumber.from(value)]),
+    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Transfer"), [from, to, ethers.BigNumber.from(value)]),
   } as ethers.providers.Log;
 };
 

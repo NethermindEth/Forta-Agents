@@ -10,8 +10,8 @@ export const createFinding = (from: string, to: string, value: BigNumber, percen
     severity: FindingSeverity.Low,
     type: FindingType.Info,
     metadata: {
-      to,
       from,
+      to,
       value: value.toString(),
       percentage: percentage.toString(),
     },
