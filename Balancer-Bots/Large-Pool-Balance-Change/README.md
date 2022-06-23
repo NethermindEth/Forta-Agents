@@ -1,26 +1,64 @@
-# Large Tether Transfer Agent
+# Large Internal Balance Change Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects large pool balance changes (i.e. any of the tokens' pool balance relative to the amount in the
+previous block is above a set threshold) in the Balancer protocol.
+
+The thresholds can be set inside `src/agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
+- Arbitrum
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- BAL-5-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when there is a large pool exit from a pool
+  - Severity is always set to "info"
+  - Type is always set to "info"
+  - Metadata:
+    - `poolId`: ID of the pool
+    - `previousBalance`: Balance before pool exit
+    - `token`: Address of the token taken away from the pool
+    - `delta`: Token amount taken away from the pool
+    - `percentage`: Percentage of token taken away from the pool relative to previous balance
+
+- BAL-5-2
+
+  - Fired when there is a large deposit to a user's internal balance
+  - Severity is always set to "info"
+  - Type is always set to "info"
+  - Metadata:
+    - `poolId`: ID of the pool
+    - `previousBalance`: Balance before pool join
+    - `token`: Address of the token put into the pool
+    - `delta`: Token amount put into the pool
+    - `percentage`: Percentage of token put into the pool relative to previous balance
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+For the tests, uncomment the lines indicated in `src/agent.config.ts`.
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the jsonRpcUrl in forta.config.json to an RPC of the network in question.
+
+### Ethereum Mainnet
+
+- `15001362` (1 finding - Join)
+- `15003789` (2 findings - Exit)
+
+### Polygon
+
+- `29896975` (2 findings - Exit)
+
+### Arbitrum
+
+- `15453346` (2 finding - Join-Exit)
+
+### Kovan Testnet (PoC)
+
+- `32322862` (1 finding - Join)
+- `32322874` (1 finding - Exit)
