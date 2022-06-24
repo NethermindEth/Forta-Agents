@@ -21,7 +21,7 @@ import {
     // limiting this agent to emit only 5 findings so that the alert feed is not spammed
     if (findingsCount >= 5) return findings;
   
-    // filter the transaction logs for Tether transfer events
+    // filter the transaction logs for function calls
     const functionCalls = txEvent.filterFunction(
       ABI,
       PanCakeSwapLottery_Address
