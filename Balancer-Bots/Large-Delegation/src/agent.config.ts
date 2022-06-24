@@ -14,4 +14,8 @@ const CONFIG: AgentConfig = {
   supplyPercentageThreshold: "50.5", // 50.5%
 };
 
+// Uncomment these lines for the mainnet test:
+// CONFIG.absoluteThreshold = "10000000000000000000000";
+// CONFIG.supplyPercentageThreshold = "1.5";
+
 export default CONFIG;
