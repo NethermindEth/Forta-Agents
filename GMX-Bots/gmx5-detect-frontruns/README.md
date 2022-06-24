@@ -11,7 +11,6 @@ This bot detects GMX swap transactions that have been frontrun through a sandwic
 
 ## Alerts
 
-Describe each of the type of alerts fired by this bot
 
 - GMX-05
   - Fired when a GMX trade transaction has been frontrun through a sandwich attack 

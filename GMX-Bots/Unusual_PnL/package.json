@@ -1,12 +1,11 @@
 {
-  "name": "gmx-5",
+  "name": "gmx-6",
   "version": "0.0.1",
-  "description": "Detects GMX swap transactions that have been frontrun through a sandwich attack",
+  "description": "Detects unusual PnL when closing a position",
   "chainIds": [
     42161,
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/gmx5-detect-frontruns",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -21,20 +20,22 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
+    "bignumber.js": "^9.0.2",
+    "forta-agent": "^0.1.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^2.1.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.2",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4",
-    "forta-agent-tools": "^2.0.7"
-  }
+    "typescript": "^4.3.4"
+  },
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Unusual_PnL"
 }
