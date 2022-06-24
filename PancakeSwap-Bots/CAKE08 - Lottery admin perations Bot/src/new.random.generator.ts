@@ -23,26 +23,27 @@ import {
     // limiting this agent to emit only 5 findings so that the alert feed is not spammed
     if (findingsCount >= 5) return findings;
   
-    // filter the transaction logs for Tether transfer events
+    // filter the transaction logs for NewRandomGenerator events
     const newRandomGeneratorEvents = txEvent.filterLog(
       events.NewRandomGenerator,
       PanCakeSwapLottery_Address
     );
   
     newRandomGeneratorEvents.forEach((newRandomGeneratorEvent) => {
-      // extract transfer event arguments
-      const { to, from } = newRandomGeneratorEvent.args;
+      // extract NewRandomGenerator event arguments
+      const { to, from, randomGenerator } = newRandomGeneratorEvent.args
   
         findings.push(
           Finding.fromObject({
             name: "New Random Generator",
-            description: `High amount of USDT transferred: ${1}`,
+            description: `Random Number Generator changed`,
             alertId: "FORTA-1",
-            severity: FindingSeverity.Low,
+            severity: FindingSeverity.Info,
             type: FindingType.Info,
             metadata: {
               to,
               from,
+              randomGenerator
             },
           })
         );
