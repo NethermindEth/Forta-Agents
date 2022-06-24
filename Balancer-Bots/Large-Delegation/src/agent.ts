@@ -18,7 +18,6 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const timestamp = blockEvent.block.timestamp;
 
     const logs = await provider.getLogs({
       address: config.delegateRegistryAddress,
@@ -33,7 +32,7 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
 
     await Promise.all(
       parsedLogs.map(async (log) => {
-        const delegatedAmount: ethers.BigNumber = await veBal.balanceOf(log.args.delegator, timestamp, {
+        const delegatedAmount: ethers.BigNumber = await veBal.balanceOf(log.args.delegator, {
           blockTag: blockEvent.blockNumber,
         });
 
@@ -42,7 +41,7 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
         }
 
         if (config.supplyPercentageThreshold !== undefined) {
-          const totalSupply: ethers.BigNumber = await veBal.totalSupply(timestamp, {
+          const totalSupply: ethers.BigNumber = await veBal.totalSupply({
             blockTag: blockEvent.blockNumber,
           });
           const supplyPercentage = toBn(delegatedAmount).shiftedBy(2).div(toBn(totalSupply));
