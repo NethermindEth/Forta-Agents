@@ -1,6 +1,6 @@
 export const events = 
 {
-    NewRandomGenerator: "event TicketsPurchase(address indexed, uint256 indexed, uint256)",
+    NewRandomGenerator: "event NewRandomGenerator(address indexed)",
     NewOperatorAndTreasuryAndInjectorAddresses: "event NewOperatorAndTreasuryAndInjectorAddresses(address,address,address)"    
 }
 
