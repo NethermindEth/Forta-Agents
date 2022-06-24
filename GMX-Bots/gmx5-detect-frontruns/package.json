@@ -1,5 +1,5 @@
 {
-  "name": "gmx5-detect-frontruns",
+  "name": "gmx-5",
   "version": "0.0.1",
   "description": "Detects GMX swap transactions that have been frontrun through a sandwich attack",
   "chainIds": [
