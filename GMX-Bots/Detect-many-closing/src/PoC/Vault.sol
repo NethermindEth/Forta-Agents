@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-// deployed at mumbai https://kovan.etherscan.io/address/0x19d7085288bd7130fe67a6ee58ecfbe7005c5e9f
+// deployed at kovan https://kovan.etherscan.io/address/0x19d7085288bd7130fe67a6ee58ecfbe7005c5e9f
 pragma solidity 0.7.0;
 
 

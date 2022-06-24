@@ -1,7 +1,7 @@
 {
   "name": "gmx-4",
   "version": "0.0.1",
-  "description": "Detects many closing in a certain time frame.",
+  "description": "Detects many closing positions in a certain time frame.",
   "chainIds": [
     42161,
     43114
