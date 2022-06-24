@@ -10,7 +10,7 @@ export function createAbsoluteThresholdFinding(
   return Finding.from({
     name: "Large Delegation",
     description: "A large delegation (in absolute terms) was detected",
-    alertId: "BAL-7-1",
+    alertId: "BAL-8-1",
     protocol: "Balancer",
     type: FindingType.Info,
     severity: FindingSeverity.Info,
@@ -32,7 +32,7 @@ export function createPercentageThresholdFinding(
   return Finding.from({
     name: "Large Delegation",
     description: "A large delegation (relative to veBAL total supply) was detected",
-    alertId: "BAL-7-2",
+    alertId: "BAL-8-2",
     protocol: "Balancer",
     type: FindingType.Info,
     severity: FindingSeverity.Info,

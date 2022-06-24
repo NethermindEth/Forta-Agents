@@ -13,7 +13,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
 
 ## Alerts
 
-- BAL-7-1
+- BAL-8-1
   - Fired when a large (in absolute terms) delegation happens
   - Severity is always set to "info"
   - Type is always set to "info"
@@ -22,7 +22,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
     - `delegate`: The delegate address
     - `amount`: The delegator veBAL balance
 
-- BAL-7-1
+- BAL-8-1
   - Fired when a large (in terms of veBAL total supply) delegation happens
   - Severity is always set to "info"
   - Type is always set to "info"
@@ -56,5 +56,5 @@ npm run block 32345000,32345003,32345005
 
 This test configuration has the absolute threshold set to `100` and the total supply percentage threshold set to `20%`. As noted in the PoC at `PoC/MockDelegation.sol`, there should be:
 - No findings in the block `MockDelegation.test0()` is called (`32345000`).
-- One `BAL-7-1` finding in the block `MockDelegation.test1()` is called (`32345003`), since the delegation amount is equal to the absolute threshold.
-- One `BAL-7-1` and one `BAL-7-2` finding in the block `MockDelegation.test2()` is called (`32345005`), since the delegation amount is greater than the absolute threshold and its percentage in relation to the total supply is equal to the total supply percentage threshold.
+- One `BAL-8-1` finding in the block `MockDelegation.test1()` is called (`32345003`), since the delegation amount is equal to the absolute threshold.
+- One `BAL-8-1` and one `BAL-8-2` finding in the block `MockDelegation.test2()` is called (`32345005`), since the delegation amount is greater than the absolute threshold and its percentage in relation to the total supply is equal to the total supply percentage threshold.
