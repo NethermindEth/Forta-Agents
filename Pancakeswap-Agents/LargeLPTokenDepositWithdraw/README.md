@@ -12,11 +12,14 @@ This agent detects large LP Token Deposit/Withdraw on Pancakeswap
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- CAKE-1
+  - Fired when a transaction contains a Deposit above the threshold
+  - Severity is always set to "info" 
+  - Type is always set to "info" 
+- CAKE-2
+  - Fired when a transaction contains a Withdrawal above the threshold
+  - Severity is always set to "info" 
+  - Type is always set to "info" 
 
 ## Test Data
 
