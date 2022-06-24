@@ -1,12 +1,8 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
-  HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
-  Log,
   LogDescription,
   ethers,
   getEthersProvider,

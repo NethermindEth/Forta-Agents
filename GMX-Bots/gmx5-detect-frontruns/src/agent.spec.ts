@@ -3,7 +3,6 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent,
   ethers,
   TransactionEvent,
 } from "forta-agent";
