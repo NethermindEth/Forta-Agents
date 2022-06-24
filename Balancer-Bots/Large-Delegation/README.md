@@ -30,7 +30,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
     - `delegator`: The delegator address
     - `delegate`: The delegate address
     - `amount`: The delegator veBAL balance
-    - `supplyPercentage`: The percentage of the totalSupply represented by the delegation amount (in %)
+    - `supplyPercentage`: The percentage of the veBAL total supply represented by the delegator veBAL balance (in %)
 
 ## Test Data
 
