@@ -8,7 +8,7 @@ const CONFIG: AgentConfig = {
   veBalTokenAddress: "0xC128a9954e6c874eA3d62ce62B468bA073093F25",
 
   // Minimum amount of veBAL that, when delegated, leads to a finding (optional)
-  absoluteThreshold: "1000", // Token decimal places are not considered
+  absoluteThreshold: "100000000000000000000", // Token decimal places are not considered
 
   // Minimum percentage of veBAL total supply that, when delegated, leads to a finding (optional) (in %)
   supplyPercentageThreshold: "50.5", // 50.5%
