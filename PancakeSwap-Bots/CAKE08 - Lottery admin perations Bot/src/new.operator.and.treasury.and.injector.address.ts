@@ -1,0 +1,61 @@
+import {
+    Finding,
+    HandleTransaction,
+    TransactionEvent,
+    FindingSeverity,
+    FindingType,
+  } from "forta-agent";
+  
+  import {
+    events,
+    PanCakeSwapLottery_Address
+  } from "./agent.config"
+  
+  let findingsCount = 0;
+  
+  const handleTransaction: HandleTransaction = async (
+    txEvent: TransactionEvent
+  ) => {
+    const findings: Finding[] = [];
+  
+    // limiting this agent to emit only 5 findings so that the alert feed is not spammed
+    if (findingsCount >= 5) return findings;
+  
+    // filter the transaction logs for NewOperatorAndTreasuryAndInjectorAddresses events
+    const newOperatorAndTreasuryAndInjectorAddressesEvents = txEvent.filterLog(
+      events.NewOperatorAndTreasuryAndInjectorAddresses,
+      PanCakeSwapLottery_Address
+    );
+  
+    newOperatorAndTreasuryAndInjectorAddressesEvents.forEach((newOperatorAndTreasuryAndInjectorAddressesEvent) => {
+      // extract New Operator And Treasury And Injector Addresses event arguments
+      const { from, operator, treasury, injector } = newOperatorAndTreasuryAndInjectorAddressesEvent.args;
+  
+        findings.push(
+          Finding.fromObject({
+            name: "New Operator And Treasury And Injector Addresses",
+            description: `New Operator And Treasury And Injector Addresses`,
+            alertId: "FORTA-2",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            metadata: {
+              from,  
+              operator,
+              treasury,
+              injector
+            },
+          })
+        );
+        findingsCount++;
+    });
+  
+    return findings;
+  };
+  
+
+  
+  export default {
+    handleTransaction,
+    
+  };
+  
