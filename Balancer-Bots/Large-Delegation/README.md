@@ -20,7 +20,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
   - Metadata:
     - `delegator`: The delegator address
     - `delegate`: The delegate address
-    - `amount`: The delegation amount in veBAL
+    - `amount`: The delegator veBAL balance
 
 - BAL-7-1
   - Fired when a large (in terms of veBAL total supply) delegation happens
@@ -29,7 +29,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
   - Metadata:
     - `delegator`: The delegator address
     - `delegate`: The delegate address
-    - `amount`: The delegation amount in veBAL
+    - `amount`: The delegator veBAL balance
     - `supplyPercentage`: The percentage of the totalSupply represented by the delegation amount (in %)
 
 ## Test Data
