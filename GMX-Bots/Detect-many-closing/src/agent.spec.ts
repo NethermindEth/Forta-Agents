@@ -18,7 +18,7 @@ const TEST_NETWORK_DATA = {
   },
 };
 
-const CASES = [
+const EXPECTED_FINDINGS = [
   utils.createFinding(createAddress("0x01"), "50"),
   utils.createFinding(createAddress("0x02"), "150"),
   utils.createFinding(createAddress("0x03"), "200"),
@@ -111,7 +111,7 @@ describe("Detects many position closing from an account within a time-frame test
     handleTx = provideHandleTransaction(networkManager, mockProvider as any);
     const findings: Finding[] = await handleTx(txEvent);
 
-    expect(findings).toStrictEqual([CASES[0]]);
+    expect(findings).toStrictEqual([EXPECTED_FINDINGS[0]]);
   });
 
   it("should return three findings when three accounts close many positions", async () => {
@@ -129,6 +129,6 @@ describe("Detects many position closing from an account within a time-frame test
     handleTx = provideHandleTransaction(networkManager, mockProvider as any);
     const findings: Finding[] = await handleTx(txEvent);
 
-    expect(findings).toStrictEqual(CASES);
+    expect(findings).toStrictEqual(EXPECTED_FINDINGS);
   });
 });
