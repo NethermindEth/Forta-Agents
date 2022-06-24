@@ -11,7 +11,7 @@ Returns a finding for every time an account close many positions in a certain am
 
 ## Alerts
 
-- GMX-3
+- GMX-4
   - Fired when `DecreasePosition` event is emitted on `Vault` contract multiple time in a time-frame.
   - Severity is always set to "Medium".
   - Type is always set to "Suspicious".
