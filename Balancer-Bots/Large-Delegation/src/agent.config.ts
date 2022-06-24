@@ -18,4 +18,10 @@ const CONFIG: AgentConfig = {
 // CONFIG.absoluteThreshold = "10000000000000000000000";
 // CONFIG.supplyPercentageThreshold = "1.5";
 
+// Uncomment these lines for the testnet test:
+// CONFIG.delegateRegistryAddress = "0x53e585e0a55a49bcA7fD63f77bBB3b573C6B4f54";
+// CONFIG.veBalTokenAddress = "0x2024E471c5CeBCb8f4631265583ebaCC772B6dc6";
+// CONFIG.absoluteThreshold = "100";
+// CONFIG.supplyPercentageThreshold = "20";
+
 export default CONFIG;
