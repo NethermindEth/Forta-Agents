@@ -10,7 +10,6 @@ import {
   
   import {
     events,
-    ABI,
     PanCakeSwapLottery_Address
   } from "./agent.config"
   
@@ -32,12 +31,12 @@ import {
   
     newRandomGeneratorEvents.forEach((newRandomGeneratorEvent) => {
       // extract transfer event arguments
-      const { to, from, value } = newRandomGeneratorEvent.args;
+      const { to, from } = newRandomGeneratorEvent.args;
   
         findings.push(
           Finding.fromObject({
             name: "New Random Generator",
-            description: `High amount of USDT transferred: ${normalizedValue}`,
+            description: `High amount of USDT transferred: ${1}`,
             alertId: "FORTA-1",
             severity: FindingSeverity.Low,
             type: FindingType.Info,
