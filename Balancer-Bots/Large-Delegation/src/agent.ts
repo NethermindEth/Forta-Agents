@@ -46,8 +46,6 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
           });
           const supplyPercentage = toBn(delegatedAmount).shiftedBy(2).div(toBn(totalSupply));
 
-          console.debug(totalSupply.toString());
-
           if (supplyPercentage.gte(config.supplyPercentageThreshold)) {
             findings.push(createPercentageThresholdFinding(log, delegatedAmount, supplyPercentage));
           }
