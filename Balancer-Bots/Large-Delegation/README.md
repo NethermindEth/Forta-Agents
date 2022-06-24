@@ -1,26 +1,36 @@
-# Large Tether Transfer Agent
+# Balancer Large Delegation Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects "large" (in terms of an absolute token amount threshold or a total supply percentage threshold) veBAL
+delegations by monitoring delegations through the `DelegateRegistry` contract and checking veBAL balances.
+
+The bot behavior can be configured in the `src/agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- BAL-7-1
+  - Fired when a large (in absolute terms) delegation happens
+  - Severity is always set to "info"
+  - Type is always set to "info"
+  - Metadata:
+    - `delegator`: The delegator address
+    - `delegate`: The delegate address
+    - `amount`: The delegation amount in veBAL
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- BAL-7-1
+  - Fired when a large (in terms of veBAL total supply) delegation happens
+  - Severity is always set to "info"
+  - Type is always set to "info"
+  - Metadata:
+    - `delegator`: The delegator address
+    - `delegate`: The delegate address
+    - `amount`: The delegation amount in veBAL
+    - `supplyPercentage`: The percentage of the totalSupply represented by the delegation amount (in %)
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
