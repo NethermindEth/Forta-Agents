@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "Forta bot that detects de-pegs in specified stable pools in the Balancer protocol",
   "chainIds": [
-    1
+    1,
+    137,
+    42161
   ],
   "scripts": {
     "build": "tsc",
