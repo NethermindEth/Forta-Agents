@@ -11,10 +11,12 @@ export interface NetworkData {
 
 export const toBn = (ethersBn: ethers.BigNumber) => new BigNumber(ethersBn.toString());
 
+export type GetAmpUpdateStartedLog = (blockNumber: number) => Promise<(ethers.utils.LogDescription & { emitter: string })[]>;
+
 export function provideGetAmpUpdateStartedLogs(
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
-): (blockNumber: number) => Promise<(ethers.utils.LogDescription & { emitter: string })[]> {
+): GetAmpUpdateStartedLog {
   const stablePoolIface = new ethers.utils.Interface([AMP_UPDATE_STARTED_ABI]);
   const topics = [stablePoolIface.getEventTopic("AmpUpdateStarted")];
 
