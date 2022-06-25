@@ -11,7 +11,9 @@ export interface NetworkData {
 
 export const toBn = (ethersBn: ethers.BigNumber) => new BigNumber(ethersBn.toString());
 
-export type GetAmpUpdateStartedLog = (blockNumber: number) => Promise<(ethers.utils.LogDescription & { emitter: string })[]>;
+export type GetAmpUpdateStartedLog = (
+  blockNumber: number
+) => Promise<(ethers.utils.LogDescription & { emitter: string })[]>;
 
 export function provideGetAmpUpdateStartedLogs(
   networkManager: NetworkManager<NetworkData>,
@@ -30,7 +32,9 @@ export function provideGetAmpUpdateStartedLogs(
     const stablePoolAddresses = networkManager.get("stablePoolAddresses");
 
     return encodedLogs
-      .filter((log) => stablePoolAddresses.includes(log.address.toLowerCase()))
+      .filter(
+        (log) => stablePoolAddresses.includes(log.address) || stablePoolAddresses.includes(log.address.toLowerCase())
+      )
       .map((log) => ({ ...stablePoolIface.parseLog(log), emitter: log.address }));
   };
 }
