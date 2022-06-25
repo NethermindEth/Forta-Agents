@@ -12,7 +12,7 @@ export const FUNCTIONS_ABI: string[] = [
 export const FACTORY: string = "0xca143ce32fe78f1f7019d7d551a6402fc5350c73";
 
 export const POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from("5000");
-export const THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
+export const THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(3);
 
 export const EVENTS_ABI: string[] = [
   "event Mint(address indexed sender, uint amount0, uint amount1)",

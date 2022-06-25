@@ -1,7 +1,8 @@
 import { BigNumber, utils } from "ethers";
 import { Finding, HandleTransaction, TransactionEvent, LogDescription, getEthersProvider } from "forta-agent";
 import { EVENTS_ABI, POOL_SUPPLY_THRESHOLD, THRESHOLD_PERCENTAGE, FACTORY } from "./constants";
-import { createPair, createFinding } from "./utils";
+import { createPair } from "./utils";
+import { createFinding } from "./finding";
 import PoolFetcher from "./pool.fetcher";
 
 export const provideHandleTransaction =
@@ -28,13 +29,6 @@ export const provideHandleTransaction =
 
         if (valid && log.address === createdPair) {
           const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
-
-          console.log("balance 0____", utils.formatEther(balance0));
-          console.log("balance 1___", utils.formatEther(balance1));
-
-          console.log("pool supply threshold____", poolSupplyThreshold.toString());
-          console.log("amount 0__", utils.formatEther(amount0));
-          console.log("amount 1__", utils.formatEther(amount1));
           if (
             totalSupply.gt(poolSupplyThreshold) &&
             (amount0.mul(100).gt(balance0.mul(thresholdPercentage)) ||
