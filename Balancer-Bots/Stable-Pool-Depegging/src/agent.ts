@@ -41,7 +41,7 @@ export const provideHandleBlock = (
         const endValue = toBn(log.args.endValue);
         const startValue = toBn(log.args.startValue);
 
-        const decreasePercentage = endValue.minus(startValue).div(endValue).shiftedBy(2);
+        const decreasePercentage = startValue.minus(endValue).div(startValue).shiftedBy(2);
 
         if (decreasePercentage.gte(percentageThreshold)) {
           findings.push(createPercentageThresholdFinding(log.emitter, log.args.endValue, decreasePercentage));
