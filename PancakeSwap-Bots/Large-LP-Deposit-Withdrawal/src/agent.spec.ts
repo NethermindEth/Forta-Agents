@@ -8,10 +8,14 @@ import {
 } from "forta-agent";
 import { BigNumber, utils } from "ethers";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { Interface } from "@ethersproject/abi";
+
 import { provideHandleTransaction } from "./agent";
-import { FACTORY, FUNCTIONS_ABI, POOL_SUPPLY_THRESHOLD, THRESHOLD_PERCENTAGE } from "./constants";
+import { EVENTS_ABI, FACTORY, FUNCTIONS_ABI, POOL_SUPPLY_THRESHOLD, THRESHOLD_PERCENTAGE } from "./constants";
 import { createPair } from "./utils";
 
+const MOCK_IFACE: Interface = new Interface(EVENTS_ABI);
+const MOCK_FACTORY: string = createAddress("0x00aabb");
 const MOCK_POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from(1000);
 const MOCK_AMOUNT_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(3);
 
@@ -63,12 +67,20 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
       mockPoolFetcher as any,
       MOCK_POOL_SUPPLY_THRESHOLD,
       MOCK_AMOUNT_THRESHOLD_PERCENTAGE,
-      FACTORY
+      MOCK_FACTORY
     );
   });
 
   it("should return no finding in empty transaction", async () => {
     txEvent = new TestTransactionEvent();
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore other emitted events", async () => {
+    const UNSUPPORTED_IFACE: Interface = new Interface(["event Sync (uint112 reserve0, uint112 reserve1)"]);
+    const unsupportedEventLog = MOCK_IFACE.encodeEventLog(UNSUPPORTED_IFACE.getEvent("Sync"), [10, 10]);
+    txEvent = new TestTransactionEvent().addAnonymousEventLog(unsupportedEventLog.data, ...unsupportedEventLog.topics);
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
