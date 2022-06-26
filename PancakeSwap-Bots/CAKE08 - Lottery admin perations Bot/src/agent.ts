@@ -3,32 +3,35 @@ import {
   TransactionEvent
 } from "forta-agent";
 
-import newRandomGenerator from "./new.random.generator"
-import newOperatorAndTreasuryAndInjectorAddresses from "./new.operator.and.treasury.and.injector.address"
-import functionCallListener from "./function.call.listener"
+import newGeneratorAgent from "./new.random.generator"
+import newOperatorAgent from "./new.operator.and.treasury.and.injector.address"
+import functionCallAgent from "./function.call.listener"
 
 let findingsCount = 0;
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
 
-  const findings = (
-    await Promise.all([
-      newRandomGenerator.handleTransaction(txEvent),
-      newOperatorAndTreasuryAndInjectorAddresses.handleTransaction(txEvent),
-      functionCallListener.handleTransaction(txEvent)
-
-    ])
-  ).flat();
-
-  findingsCount++;
+function provideHandleTransaction (newGeneratorAgent: any, newOperatorAgent: any, functionCallAgent: any): HandleTransaction
+{
+    return async function handleTransaction( txEvent: TransactionEvent) {
     
+      const findings = (
+        await Promise.all([
+          newGeneratorAgent.handleTransaction(txEvent),
+          newOperatorAgent.handleTransaction(txEvent),
+          functionCallAgent.handleTransaction(txEvent)
+        
+        ])
+      ).flat()
+      
+      findingsCount = findings.length
 
-  return findings;
-};
+      
+      return findings;
+    };
+}
 
 export default {
-  handleTransaction
+  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(newGeneratorAgent, newOperatorAgent, functionCallAgent)
  
 };
