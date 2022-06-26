@@ -36,7 +36,7 @@ import {ABI, PanCakeSwapLottery_Address} from "./agent.config"
   
       })
 
-      it("returns findings if there are function calls", async () => {
+      it("returns findings if there are function calls for the specified ABI", async () => {
   
         const mockSwapEvent = {
             
