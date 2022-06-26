@@ -1,86 +1,57 @@
 import {
-  FindingType,
-  FindingSeverity,
-  Finding,
   HandleTransaction,
   createTransactionEvent,
-  ethers,
-} from "forta-agent";
+} from "forta-agent"
 
 import agent from "./agent"
-import {events, ABI, PanCakeSwapLottery_Address} from "./agent.config"
 
 describe("PancakeSwap Lottery", () => {
-  let handleTransaction: HandleTransaction;
+  let handleTransaction: HandleTransaction
 
   const mockNewGeneratorAgent = {
     handleTransaction: jest.fn(),
-  };
+  }
 
   const mockNewOperatorAgent = {
     handleTransaction: jest.fn(),
-  };
+  }
 
   const mockFunctionCallAgent = {
     handleTransaction: jest.fn(),
-  };
+  }
 
-  const mockTxEvent = createTransactionEvent({} as any);
+  const mockTxEvent = createTransactionEvent({} as any)
 
   beforeAll(() => {
-    handleTransaction = agent.provideHandleTransaction(mockNewGeneratorAgent, mockNewOperatorAgent, mockFunctionCallAgent);
-  });
+    handleTransaction = agent.provideHandleTransaction(mockNewGeneratorAgent, mockNewOperatorAgent, mockFunctionCallAgent)
+  })
 
   describe("handleTransaction", () => {
-    it("returns empty findings if there are no NewRandomGenerator events", async () => {
+    it("returns findings if there are events emmited and function calls ", async () => {
 
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+      mockTxEvent.filterLog = jest.fn().mockReturnValue([])
 
-      const findings = await handleTransaction(mockTxEvent);
+      const mockNewGeneratorFinding = { event: "NewRandomGenerator" }
+      const mockNewOperatorFinding = { event: "NewOperatorAndTreasuryAndInjectorAddresses" }
+      const mockFunctionCallFinding = { function: "setMaxNumberTicketsPerBuy" }
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        events.NewRandomGenerator,
-        PanCakeSwapLottery_Address
-      );
-    });
+      mockNewGeneratorAgent.handleTransaction.mockReturnValueOnce([mockNewGeneratorFinding])
+      mockNewOperatorAgent.handleTransaction.mockReturnValueOnce([mockNewOperatorFinding])
+      mockFunctionCallAgent.handleTransaction.mockReturnValueOnce([mockFunctionCallFinding])
 
-/*     it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
+      const findings = await handleTransaction(mockTxEvent)
 
-      const findings = await handleTransaction(mockTxEvent);
+      expect(findings).toStrictEqual([mockNewGeneratorFinding, mockNewOperatorFinding, mockFunctionCallFinding])
+      expect(mockNewGeneratorAgent.handleTransaction).toHaveBeenCalledTimes(1)
+      expect(mockNewGeneratorAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent)
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
-    }); */
-  });
-});
+      expect(mockNewOperatorAgent.handleTransaction).toHaveBeenCalledTimes(1)
+      expect(mockNewOperatorAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent)
+
+      expect(mockFunctionCallAgent.handleTransaction).toHaveBeenCalledTimes(1)
+      expect(mockFunctionCallAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent)
+
+    })
+
+  })
+})
