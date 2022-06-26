@@ -1,4 +1,4 @@
-/* import {
+import {
   FindingType,
   FindingSeverity,
   Finding,
@@ -6,22 +6,34 @@
   createTransactionEvent,
   ethers,
 } from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
 
-describe("high tether transfer agent", () => {
+import agent from "./agent"
+import {events, ABI, PanCakeSwapLottery_Address} from "./agent.config"
+
+describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
+
+  const mockNewGeneratorAgent = {
+    handleTransaction: jest.fn(),
+  };
+
+  const mockNewOperatorAgent = {
+    handleTransaction: jest.fn(),
+  };
+
+  const mockFunctionCallAgent = {
+    handleTransaction: jest.fn(),
+  };
+
   const mockTxEvent = createTransactionEvent({} as any);
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = agent.provideHandleTransaction(mockNewGeneratorAgent, mockNewOperatorAgent, mockFunctionCallAgent);
   });
 
   describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
+    it("returns empty findings if there are no NewRandomGenerator events", async () => {
+
       mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
 
       const findings = await handleTransaction(mockTxEvent);
@@ -29,12 +41,12 @@ describe("high tether transfer agent", () => {
       expect(findings).toStrictEqual([]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
       expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+        events.NewRandomGenerator,
+        PanCakeSwapLottery_Address
       );
     });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
+/*     it("returns a finding if there is a Tether transfer over 10,000", async () => {
       const mockTetherTransferEvent = {
         args: {
           from: "0xabc",
@@ -69,7 +81,6 @@ describe("high tether transfer agent", () => {
         ERC20_TRANSFER_EVENT,
         TETHER_ADDRESS
       );
-    });
+    }); */
   });
 });
- */
