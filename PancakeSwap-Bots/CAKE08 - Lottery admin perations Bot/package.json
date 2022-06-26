@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "pancakeswap-lottery-agent",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "PancakeSwap Lottery Agent",
   "chainIds": [
     56
   ],
