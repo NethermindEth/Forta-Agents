@@ -22,7 +22,14 @@ export const provideHandleTransaction =
     await Promise.all(
       logs.map(async (log) => {
         const { amount0, amount1 } = log.args;
+        console.log("formated amount0:", utils.formatEther(amount0))
+        console.log("formated amount1:", utils.formatEther(amount1))
+
+        console.log("log args", log.args);
+        console.log("log address 1__", log.address);
         const [valid, tokenA, tokenB, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
+        console.log("log address 2__", log.address);
+
         let token0: string = tokenA < tokenB ? tokenA : tokenB;
         let token1: string = tokenA < tokenB ? tokenB : tokenA;
         const createdPair = createPair(token0, token1, factory);

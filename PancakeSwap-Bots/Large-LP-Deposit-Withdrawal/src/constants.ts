@@ -6,7 +6,6 @@ export const FUNCTIONS_ABI: string[] = [
   "function token1() public view returns (address)",
   "function totalSupply() public view returns (uint256)",
   "function balanceOf(address) public view returns (uint256)",
-  "function getPair(address token0, address token1) view returns (address pair)",
 ];
 
 export const FACTORY: string = "0xca143ce32fe78f1f7019d7d551a6402fc5350c73";

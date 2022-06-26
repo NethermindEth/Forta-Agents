@@ -5,10 +5,10 @@ export const createFinding = (log: LogDescription, token0: string, token1: strin
   const metadata = {
     pool: log.address,
     token0: token0,
-    amount0: parseInt(utils.formatEther(log.args.amount0)).toFixed(2),
     token1: token1,
-    amount1: parseInt(utils.formatEther(log.args.amount1)).toFixed(2),
-    totalSupply: parseInt(utils.formatEther(totalSupply)).toFixed(2),
+    amount0: log.args.amount0.toString(),
+    amount1: log.args.amount1.toString(),
+    totalSupply: totalSupply.toString(),
   };
 
   if (log.name === "Mint") {
@@ -28,7 +28,7 @@ export const createFinding = (log: LogDescription, token0: string, token1: strin
       alertId: "CAKE-3-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "Apeswap",
+      protocol: "Pancakeswap",
       metadata,
     });
 };

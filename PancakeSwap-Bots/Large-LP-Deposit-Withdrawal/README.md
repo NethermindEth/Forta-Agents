@@ -33,8 +33,8 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools
   - Metadata:
     - `poolAddress`: The address of the liquidity pool 
     - `token0`: The address of token0
-    - `amount0`: The withdrawn amount of token0
     - `token1`: The address of token1
+    - `amount0`: The withdrawn amount of token0
     - `amount1`: The withdrawn amount of token1
     - `totalSupply`: The total supply of the pool before the deposit transaction (supply snapshot taken at previous block)
     
