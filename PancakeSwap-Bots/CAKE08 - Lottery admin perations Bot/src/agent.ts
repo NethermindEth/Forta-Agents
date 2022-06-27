@@ -12,8 +12,8 @@ function provideHandleTransaction(
   functionCallAgent: any
 ): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
-
-    if(findingsCount >= 5) return []
+    //limit findings to 5 to avoid a spammed alert feed
+    if (findingsCount >= 5) return [];
 
     const findings = (
       await Promise.all([
