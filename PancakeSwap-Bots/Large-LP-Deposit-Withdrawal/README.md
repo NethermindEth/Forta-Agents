@@ -1,8 +1,10 @@
-# Large Liquidity Pool Deposits/Withdrawals 
+# Large Liquidity Pool Deposit/Withdrawal Bot
 
 ## Description
 
-This bot detects large addition/removal of liquidity in PancakeSwap pools
+This bot detects large addition/removal of liquidity in PancakeSwap pools. 
+> The `POOL_SUPPLY_THRESHOLD` `THRESHOLD_PERCENTAGE` can be adjusted in **src/constants.ts**.
+
 
 
 ## Supported Chains
