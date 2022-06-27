@@ -41,9 +41,13 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
 const createFinding = (user: string, token: string, delta: ethers.BigNumberish) => {
   let action, alertId;
 
-  BigNumber.from(delta).isNegative()
-    ? ((action = "withdrawal"), (alertId = "BAL-2-1"))
-    : ((action = "deposit"), (alertId = "BAL-2-2"));
+  if (BigNumber.from(delta).isNegative()) {
+    action = "withdrawal";
+    alertId = "BAL-2-1";
+  } else {
+    action = "deposit";
+    alertId = "BAL-2-2";
+  }
 
   return Finding.fromObject({
     name: `Large internal balance ${action}`,

@@ -4,9 +4,13 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 export const createFinding = (args: Result): Finding => {
   let action, alertId;
 
-  args.delta.isNegative()
-    ? ((action = "withdrawal"), (alertId = "BAL-2-1"))
-    : ((action = "deposit"), (alertId = "BAL-2-2"));
+  if (args.delta.isNegative()) {
+    action = "withdrawal";
+    alertId = "BAL-2-1";
+  } else {
+    action = "deposit";
+    alertId = "BAL-2-2";
+  }
 
   return Finding.from({
     name: `Large internal balance ${action}`,
