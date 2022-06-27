@@ -1,7 +1,8 @@
+import BigNumber from "bignumber.js";
 import { Result } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (args: Result): Finding => {
+export const createFinding = (args: Result, percentage: BigNumber): Finding => {
   let action, alertId;
 
   if (args.delta.isNegative()) {
@@ -23,6 +24,7 @@ export const createFinding = (args: Result): Finding => {
       user: args.user,
       token: args.token.toLowerCase(),
       delta: args.delta.toString(),
+      percentage: percentage.toString(10),
     },
   });
 };

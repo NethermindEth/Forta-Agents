@@ -38,7 +38,7 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
   } as ethers.providers.Log;
 };
 
-const createFinding = (user: string, token: string, delta: ethers.BigNumberish) => {
+const createFinding = (user: string, token: string, delta: ethers.BigNumberish, percentage: BigNumber) => {
   let action, alertId;
 
   if (ethers.BigNumber.from(delta).isNegative()) {
@@ -60,6 +60,7 @@ const createFinding = (user: string, token: string, delta: ethers.BigNumberish) 
       user: user.toLowerCase(),
       token: token.toLowerCase(),
       delta: delta.toString(),
+      percentage: percentage.toString(10),
     },
   });
 };
@@ -167,9 +168,12 @@ describe("Large internal balance deposits/withdrawals", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
+    const percentage1 = new BigNumber(120 * 100).dividedBy(toBn(TEST_BALANCE));
+    const percentage2 = new BigNumber(110 * 100).dividedBy(toBn(TEST_BALANCE));
+
     expect(findings).toStrictEqual([
-      createFinding(createAddress("0x3"), TEST_TOKEN, "120"),
-      createFinding(createAddress("0x4"), TEST_TOKEN, "110"),
+      createFinding(createAddress("0x3"), TEST_TOKEN, "120", percentage1),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "110", percentage2),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
@@ -184,9 +188,12 @@ describe("Large internal balance deposits/withdrawals", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
+    const percentage1 = new BigNumber(120 * 100).dividedBy(toBn(TEST_BALANCE));
+    const percentage2 = new BigNumber(110 * 100).dividedBy(toBn(TEST_BALANCE));
+
     expect(findings).toStrictEqual([
-      createFinding(createAddress("0x3"), TEST_TOKEN, "-120"),
-      createFinding(createAddress("0x4"), TEST_TOKEN, "-110"),
+      createFinding(createAddress("0x3"), TEST_TOKEN, "-120", percentage1),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "-110", percentage2),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
@@ -201,9 +208,12 @@ describe("Large internal balance deposits/withdrawals", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
+    const percentage1 = new BigNumber(120 * 100).dividedBy(toBn(TEST_BALANCE));
+    const percentage2 = new BigNumber(110 * 100).dividedBy(toBn(TEST_BALANCE));
+
     expect(findings).toStrictEqual([
-      createFinding(createAddress("0x3"), TEST_TOKEN, "120"),
-      createFinding(createAddress("0x4"), TEST_TOKEN, "-110"),
+      createFinding(createAddress("0x3"), TEST_TOKEN, "120", percentage1),
+      createFinding(createAddress("0x4"), TEST_TOKEN, "-110", percentage2),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });

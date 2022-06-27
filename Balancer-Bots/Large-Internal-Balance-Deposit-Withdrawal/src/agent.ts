@@ -53,7 +53,9 @@ export const provideHandleBlock = (
         const _threshold = totalBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
         if (delta.abs().gte(_threshold)) {
-          findings.push(createFinding(decodedLog.args));
+          const percentage = delta.abs().multipliedBy(100).dividedBy(totalBalance);
+
+          findings.push(createFinding(decodedLog.args, percentage));
         }
       })
     );
