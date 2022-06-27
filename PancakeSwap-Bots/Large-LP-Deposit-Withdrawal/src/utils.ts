@@ -1,7 +1,5 @@
-import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
-
 import { getCreate2Address } from "@ethersproject/address";
-import { BigNumber, utils } from "ethers";
+import { utils } from "ethers";
 import { PAIR_INIT_CODE_HASH } from "./constants";
 
 export const createPair = (token0: string, token1: string, factory: string): string => {

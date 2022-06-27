@@ -1,5 +1,5 @@
 import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
-import { BigNumber, utils } from "ethers";
+import { BigNumber } from "ethers";
 
 export const createFinding = (log: LogDescription, token0: string, token1: string, totalSupply: BigNumber): Finding => {
   const metadata = {
