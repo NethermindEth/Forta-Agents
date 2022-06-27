@@ -22,9 +22,13 @@ describe("PancakeSwap Lottery", () => {
       expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
-    it("returns findings if there are function calls for the specified ABI", async () => {
+    it("returns findings if there are function setMinAndMaxTicketPriceInCake is called", async () => {
       const mockSwapEvent = {
-        name: "setMaxNumberTicketsPerBuy",
+        args:{
+          _minPriceTicketInCake: "1000000",
+          _maxPriceTicketInCake: "2000000"
+        },
+        name: "setMinAndMaxTicketPriceInCake"
       };
 
       mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockSwapEvent]);
@@ -33,14 +37,51 @@ describe("PancakeSwap Lottery", () => {
 
       const name = mockSwapEvent.name;
 
+      const {_minPriceTicketInCake, _maxPriceTicketInCake} = mockSwapEvent.args
+
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Function Call",
           description: `Function called: ${name}`,
-          alertId: "FORTA-3",
+          alertId: "PCSLottery-3",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
-          metadata: {},
+          metadata:{
+            _minPriceTicketInCake,
+            _maxPriceTicketInCake
+          },
+        }),
+      ]);
+      expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
+      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
+    });
+
+    it("returns findings if there are function setMaxNumberTicketsPerBuy is called", async () => {
+      const mockSwapEvent = {
+        args:{
+          _maxNumberTicketsPerBuy: "10"
+        },
+        name: "setMaxNumberTicketsPerBuy"
+      };
+
+      mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockSwapEvent]);
+
+      const findings = await handleTransaction(mockTxEvent);
+
+      const name = mockSwapEvent.name;
+
+      const {_maxNumberTicketsPerBuy} = mockSwapEvent.args
+
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "Function Call",
+          description: `Function called: ${name}`,
+          alertId: "PCSLottery-3",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata:{
+            _maxNumberTicketsPerBuy
+          },
         }),
       ]);
       expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
