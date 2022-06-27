@@ -1,14 +1,14 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 
-import { events, PanCakeSwapLottery_Address } from "./agent.config";
+import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
 
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
   // filter the transaction logs for NewOperatorAndTreasuryAndInjectorAddresses events
   const newOperatorAndTreasuryAndInjectorAddressesEvents = txEvent.filterLog(
-    events.NewOperatorAndTreasuryAndInjectorAddresses,
-    PanCakeSwapLottery_Address
+    EVENTS.NewOperatorAndTreasuryAndInjectorAddresses,
+    PANCAKE_SWAP_LOTTERY_ADDRESS
   );
 
   newOperatorAndTreasuryAndInjectorAddressesEvents.forEach((newOperatorAndTreasuryAndInjectorAddressesEvent) => {
@@ -23,7 +23,6 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
-          from,
           operator,
           treasury,
           injector,
