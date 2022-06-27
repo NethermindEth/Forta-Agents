@@ -2,6 +2,10 @@
   "name": "pancakeswap-lottery-agent",
   "version": "0.0.1",
   "description": "PancakeSwap Lottery Agent",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RodrigoPina407/Forta-Agents.git"
+  },
   "chainIds": [
     56
   ],
