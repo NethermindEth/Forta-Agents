@@ -2,7 +2,8 @@ import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent
 import { providers, utils, Contract } from "ethers";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding, NetworkData, SmartCaller, toBn } from "./utils";
+import { NetworkData, SmartCaller, toBn } from "./utils";
+import { createFinding } from "./finding";
 import { EVENT, TOKEN_ABI } from "./constants";
 import CONFIG from "./agent.config";
 
