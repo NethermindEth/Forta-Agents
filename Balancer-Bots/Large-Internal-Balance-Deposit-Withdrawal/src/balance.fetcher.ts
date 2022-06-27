@@ -21,9 +21,9 @@ export default class BalanceFetcher {
   // Function to set the token address.
   public setData(_tokenAddress: string) {
     this.tokenAddress = _tokenAddress;
-    if (this.tokenContract.address != this.tokenAddress)
-      this.tokenContract = new Contract(this.tokenAddress, new Interface(TOKEN_ABI), this.provider);
-    this.tokenContract.attach;
+    if (this.tokenContract.address != this.tokenAddress) {
+      this.tokenContract = this.tokenContract.attach(this.tokenAddress);
+    }
   }
 
   // Main function to fetch the contract balance.
