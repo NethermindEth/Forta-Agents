@@ -5,7 +5,6 @@
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Balancer-Bots/Large-BAL-Transfer",
   "chainIds": [
     1,
-    42,
     137,
     42161
   ],
@@ -29,7 +28,7 @@
   "dependencies": {
     "async-mutex": "^0.3.2",
     "bignumber.js": "^9.0.2",
-    "forta-agent": "^0.1.7",
+    "forta-agent": "^0.1.8",
     "forta-agent-tools": "^2.2.1",
     "lru-cache": "^7.10.1"
   },
