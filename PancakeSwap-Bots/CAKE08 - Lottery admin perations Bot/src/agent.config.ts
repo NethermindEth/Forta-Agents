@@ -9,10 +9,6 @@ export const ABI = [
   "function setMaxNumberTicketsPerBuy(uint256 _maxNumberTicketsPerBuy)",
 ];
 
-export const FUNCTION_NAMES = [
-  "setMinAndMaxTicketPriceInCake",
-  "setMaxNumberTicketsPerBuy"
-]
-
+export const FUNCTION_NAMES = ["setMinAndMaxTicketPriceInCake", "setMaxNumberTicketsPerBuy"];
 
 export const PANCAKE_SWAP_LOTTERY_ADDRESS = "0x5aF6D33DE2ccEC94efb1bDF8f92Bd58085432d2c";

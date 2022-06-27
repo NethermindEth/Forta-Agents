@@ -51,7 +51,7 @@ describe("PancakeSwap Lottery", () => {
           metadata: {
             operator,
             treasury,
-            injector
+            injector,
           },
         }),
       ]);

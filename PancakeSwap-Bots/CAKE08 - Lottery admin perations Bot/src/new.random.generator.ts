@@ -1,10 +1,4 @@
-import {
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 
 import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
 
@@ -16,7 +10,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   newRandomGeneratorEvents.forEach((newRandomGeneratorEvent) => {
     // extract NewRandomGenerator event arguments
-    const {randomGenerator } = newRandomGeneratorEvent.args;
+    const { randomGenerator } = newRandomGeneratorEvent.args;
 
     findings.push(
       Finding.fromObject({
@@ -26,7 +20,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
-          randomGenerator
+          randomGenerator,
         },
       })
     );
