@@ -12,6 +12,9 @@ function provideHandleTransaction(
   functionCallAgent: any
 ): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
+
+    if(findingsCount >= 5) return []
+
     const findings = (
       await Promise.all([
         newGeneratorAgent.handleTransaction(txEvent),
@@ -19,6 +22,7 @@ function provideHandleTransaction(
         functionCallAgent.handleTransaction(txEvent),
       ])
     ).flat();
+
     findingsCount = findings.length;
     return findings;
   };
