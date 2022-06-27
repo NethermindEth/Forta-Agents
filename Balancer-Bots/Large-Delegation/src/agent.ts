@@ -13,25 +13,23 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
     new ethers.Contract(config.veBalTokenAddress, [BALANCE_OF_ABI, TOTAL_SUPPLY_ABI], provider)
   );
 
-  const topics = [delegateRegistryIface.getEventTopic("SetDelegate")];
   const balancerId = ethers.utils.formatBytes32String("balancer.eth");
+  const topics = [delegateRegistryIface.getEventTopic("SetDelegate"), null, balancerId];
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = await provider.getLogs({
-      address: config.delegateRegistryAddress,
-      topics,
-      fromBlock: blockEvent.blockNumber,
-      toBlock: blockEvent.blockNumber,
-    });
-
-    const parsedLogs = logs
-      .map((log) => delegateRegistryIface.parseLog(log))
-      .filter((log) => log.args.id === balancerId);
+    const logs = (
+      await provider.getLogs({
+        address: config.delegateRegistryAddress,
+        topics,
+        fromBlock: blockEvent.blockNumber,
+        toBlock: blockEvent.blockNumber,
+      })
+    ).map((log) => delegateRegistryIface.parseLog(log));
 
     await Promise.all(
-      parsedLogs.map(async (log) => {
+      logs.map(async (log) => {
         const delegatedAmount: ethers.BigNumber = await veBal.balanceOf(log.args.delegator, {
           blockTag: blockEvent.blockNumber,
         });
