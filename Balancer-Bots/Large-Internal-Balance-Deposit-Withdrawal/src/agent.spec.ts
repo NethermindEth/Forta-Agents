@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { Interface, formatEther } from "ethers/lib/utils";
+import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleBlock, Network, ethers } from "forta-agent";
 import { createAddress, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleBlock } from "./agent";
@@ -55,7 +55,7 @@ const createFinding = (user: string, token: string, delta: ethers.BigNumberish) 
     metadata: {
       user: user.toLowerCase(),
       token: token.toLowerCase(),
-      delta: formatEther(delta.toString()),
+      delta: delta.toString(),
     },
   });
 };

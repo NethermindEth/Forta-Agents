@@ -5,7 +5,7 @@ export interface NetworkData {
 
 export type AgentConfig = Record<number, NetworkData>;
 
-import { Result, formatEther } from "ethers/lib/utils";
+import { Result } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const createFinding = (args: Result): Finding => {
@@ -25,7 +25,7 @@ export const createFinding = (args: Result): Finding => {
     metadata: {
       user: args.user,
       token: args.token.toLowerCase(),
-      delta: formatEther(args.delta.toString()),
+      delta: args.delta.toString(),
     },
   });
 };
