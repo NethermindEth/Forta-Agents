@@ -26,7 +26,6 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools.
     - `totalSupply`: The total supply of the pool before the deposit transaction at the preceeding block
     
 
-
 - CAKE-3-1
   - Fired when there's large withdrawal from a liquidity pool 
   - Severity is always set to "Medium"
