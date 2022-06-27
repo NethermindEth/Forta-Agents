@@ -5,8 +5,8 @@ export const EVENTS = {
 };
 
 export const ABI = [
-  "function setMinAndMaxTicketPriceInCake(uint256 _minPriceTicketInCake,uint256 _minPriceTicketInCake)",
-  "function setMaxNumberTicketsPerBuy(uint256)",
+  "function setMinAndMaxTicketPriceInCake(uint256 _minPriceTicketInCake,uint256 _maxPriceTicketInCake)",
+  "function setMaxNumberTicketsPerBuy(uint256 _maxNumberTicketsPerBuy)",
 ];
 
 export const FUNCTION_NAMES = [
