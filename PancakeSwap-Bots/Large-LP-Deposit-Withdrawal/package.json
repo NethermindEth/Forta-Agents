@@ -2,6 +2,7 @@
   "name": "pancakeswap-3",
   "version": "0.0.1",
   "description": "Detects large LP deposits/withdrawals to/from a Pancakeswap pool",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-LP-Deposit-Withdrawal",
   "chainIds": [
     56
   ],

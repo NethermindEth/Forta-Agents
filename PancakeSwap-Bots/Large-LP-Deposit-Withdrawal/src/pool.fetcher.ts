@@ -16,7 +16,6 @@ export default class PoolFetcher {
     const key: string = `pool-${poolAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as [boolean, string, string, BigNumber];
     const pool = new Contract(poolAddress, FUNCTIONS_ABI, this.provider);
-
     try {
       const [token0, token1, totalSupply] = await Promise.all([
         pool.token0({ blockTag: block }),
@@ -28,7 +27,6 @@ export default class PoolFetcher {
       returnedValues = [false, "", "", BigNumber.from(0)];
     }
     this.cache.set(key, returnedValues);
-
     return returnedValues;
   }
 

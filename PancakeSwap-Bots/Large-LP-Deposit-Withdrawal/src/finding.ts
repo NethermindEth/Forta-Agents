@@ -3,7 +3,7 @@ import { BigNumber } from "ethers";
 
 export const createFinding = (log: LogDescription, token0: string, token1: string, totalSupply: BigNumber): Finding => {
   const metadata = {
-    pool: log.address,
+    poolAddress: log.address,
     token0: token0,
     token1: token1,
     amount0: log.args.amount0.toString(),

@@ -101,7 +101,7 @@ const mockCreateFinding = (
   totalSupply: string
 ): Finding => {
   const metadata = {
-    pool,
+    poolAddress: pool,
     token0: token0,
     amount0: amount0.toString(),
     token1: token1,
@@ -119,22 +119,21 @@ const mockCreateFinding = (
       protocol: "Pancakeswap",
       metadata,
     });
-  } 
-    return Finding.fromObject({
-      name: "Large LP Withdrawal from Pancakeswap pool",
-      description: `${event} event with large amount emitted from an Pancakeswap pool`,
-      alertId: "CAKE-3-2",
-      severity: FindingSeverity.Info,
-      type: FindingType.Info,
-      protocol: "Pancakeswap",
-      metadata,
-    });
+  }
+  return Finding.fromObject({
+    name: "Large LP Withdrawal from Pancakeswap pool",
+    description: `${event} event with large amount emitted from an Pancakeswap pool`,
+    alertId: "CAKE-3-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "Pancakeswap",
+    metadata,
+  });
 };
 
 describe("Large LP Deposit/Withdraw Test Suite", () => {
   const mockGetPoolData = jest.fn();
   const mockGetPoolBalance = jest.fn();
-  let pool: string = mockCreatePair(CASES[1][1], CASES[1][2]);
 
   const mockPoolFetcher = {
     getPoolData: mockGetPoolData,
@@ -187,7 +186,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
   });
 
   it("should ignore small LP deposit to Pancakeswap pool", async () => {
-    let pool = mockCreatePair(FAIL_CASES[0][1], FAIL_CASES[0][2]);
+    const pool = mockCreatePair(FAIL_CASES[0][1], FAIL_CASES[0][2]);
     when(mockGetPoolData)
       .calledWith(testBlocks[1], pool)
       .mockReturnValue([true, FAIL_CASES[0][1], FAIL_CASES[0][2], FAIL_CASES[1][5]]);
@@ -205,6 +204,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
   });
 
   it("should return a finding when there is large deposit to Pancakeswap pool", async () => {
+    const pool: string = mockCreatePair(CASES[1][1], CASES[1][2]);
     when(mockGetPoolData)
       .calledWith(testBlocks[0], pool)
       .mockReturnValue([CASES[1][0], CASES[1][1], CASES[1][2], CASES[1][5]]);
@@ -246,6 +246,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
   });
 
   it("should return multiple findings when there is a large LP deposit/withdrawal to/from a Pancakeswap pool", async () => {
+    const pool: string = mockCreatePair(CASES[1][1], CASES[1][2]);
     when(mockGetPoolData)
       .calledWith(testBlocks[1], pool)
       .mockReturnValue([CASES[1][0], CASES[1][1], CASES[1][2], CASES[1][5]]);
