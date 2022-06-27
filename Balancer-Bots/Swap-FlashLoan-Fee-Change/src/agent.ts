@@ -35,8 +35,9 @@ export const provideHandleBlock = (
         address: networkManager.get("protocolFeesCollectorAddress"),
         fromBlock: blockEvent.blockNumber,
         toBlock: blockEvent.blockNumber,
+        topics: [sighashes],
       })
-    ).filter((log) => sighashes.includes(log.topics[0]));
+    );
 
     return logs.map((log) => {
       const decodedLog = protocolFeesCollectorIface.parseLog(log);
