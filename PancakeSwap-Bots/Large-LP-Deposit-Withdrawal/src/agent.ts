@@ -18,13 +18,10 @@ export const provideHandleTransaction =
     const block: number = txEvent.blockNumber;
     const logs: LogDescription[] = txEvent.filterLog(EVENTS_ABI);
     if (!logs) return findings;
-
     await Promise.all(
       logs.map(async (log) => {
         const { amount0, amount1 } = log.args;
-        const [valid, tokenA, tokenB, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
-        let token0: string = tokenA < tokenB ? tokenA : tokenB;
-        let token1: string = tokenA < tokenB ? tokenB : tokenA;
+        const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
         const createdPair = createPair(token0, token1, factory);
         if (valid && log.address === createdPair) {
           const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);

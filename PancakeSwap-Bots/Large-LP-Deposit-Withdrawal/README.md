@@ -14,7 +14,8 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools.
 ## Alerts
 
 - CAKE-3-1
-  - Fired when there's large deposit into a liquidity pool 
+
+  - Fired when large liquidity is deposited to a Pancakeswap pool as `Mint` event is emitted with a `totalSuppply` that exceeds the pool's `poolSupplyThreshold` and `amount0`/`amount1` that exceeds `token0`/`token1` `thresholdPercentage`
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata:
@@ -27,7 +28,7 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools.
     
 
 - CAKE-3-1
-  - Fired when there's large withdrawal from a liquidity pool 
+  - Fired when large liquidity is withdrawn from a Pancakeswap pool as `Mint` event is emitted with a `totalSuppply` that exceeds the pool's `poolSupplyThreshold` threshold and `amount0`/`amount1` that exceeds `token0`/`token1` `thresholdPercentage`
   - Severity is always set to "Medium"
   - Type is always set to "Suspicious"
   - Metadata:
@@ -40,9 +41,10 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools.
     
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 - [0xc850b85d120645ab9fb30e1bf29e972f6f65a491d307b01bb516b3df257c74af](https://bscscan.com/tx/0xc850b85d120645ab9fb30e1bf29e972f6f65a491d307b01bb516b3df257c74af) - 
 `Binance Smart Chain` - Large LP Deposit 
+
 - [0xdfa06befcd04565b03359dfbf8d6cc9bbcfb1d7a2051f54834bb934716f54bb8](https://bscscan.com/tx/0xdfa06befcd04565b03359dfbf8d6cc9bbcfb1d7a2051f54834bb934716f54bb8) - 
 `Binance Smart Chain` - Large LP Withdrawal
 
