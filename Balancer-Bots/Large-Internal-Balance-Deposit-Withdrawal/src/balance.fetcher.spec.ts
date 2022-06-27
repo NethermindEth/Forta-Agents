@@ -1,11 +1,8 @@
-import { Network } from "forta-agent";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import { TOKEN_ABI } from "./constants";
 import { Interface } from "ethers/lib/utils";
-import { NetworkManager } from "forta-agent-tools";
-import { AgentConfig, NetworkData } from "./utils";
 
 // [blockNumber, balance]
 const TEST_BALANCES: [number, BigNumber][] = [
