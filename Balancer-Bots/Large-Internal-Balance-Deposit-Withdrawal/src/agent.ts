@@ -2,7 +2,8 @@ import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent
 import { providers, BigNumber, utils } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding, NetworkData } from "./utils";
+import { NetworkData } from "./utils";
+import { createFinding } from "./finding";
 import { EVENT } from "./constants";
 import CONFIG from "./agent.config";
 
