@@ -1,8 +1,7 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
 
 import agent from "./new.random.generator";
-import { events, PanCakeSwapLottery_Address } from "./agent.config";
-import newRandomGenerator from "./new.random.generator";
+import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -20,7 +19,7 @@ describe("PancakeSwap Lottery", () => {
 
       expect(findings).toStrictEqual([]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(events.NewRandomGenerator, PanCakeSwapLottery_Address);
+      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(EVENTS.NewRandomGenerator, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
     it("returns findings if there are NewRandomGenerator events emmited ", async () => {
@@ -53,7 +52,7 @@ describe("PancakeSwap Lottery", () => {
         }),
       ]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(events.NewRandomGenerator, PanCakeSwapLottery_Address);
+      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(EVENTS.NewRandomGenerator, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
   });
 });

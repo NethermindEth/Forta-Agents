@@ -1,7 +1,7 @@
 import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent } from "forta-agent";
 
 import agent from "./function.call.listener";
-import { ABI, PanCakeSwapLottery_Address } from "./agent.config";
+import { ABI, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -19,7 +19,7 @@ describe("PancakeSwap Lottery", () => {
 
       expect(findings).toStrictEqual([]);
       expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PanCakeSwapLottery_Address);
+      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
     it("returns findings if there are function calls for the specified ABI", async () => {
@@ -44,7 +44,7 @@ describe("PancakeSwap Lottery", () => {
         }),
       ]);
       expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PanCakeSwapLottery_Address);
+      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
   });
 });

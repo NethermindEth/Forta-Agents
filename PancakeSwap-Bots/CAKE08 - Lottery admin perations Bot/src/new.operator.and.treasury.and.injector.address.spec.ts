@@ -1,7 +1,7 @@
 import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent } from "forta-agent";
 
 import agent from "./new.operator.and.treasury.and.injector.address";
-import { events, PanCakeSwapLottery_Address } from "./agent.config";
+import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -20,8 +20,8 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
       expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        events.NewOperatorAndTreasuryAndInjectorAddresses,
-        PanCakeSwapLottery_Address
+        EVENTS.NewOperatorAndTreasuryAndInjectorAddresses,
+        PANCAKE_SWAP_LOTTERY_ADDRESS
       );
     });
 
@@ -58,8 +58,8 @@ describe("PancakeSwap Lottery", () => {
       ]);
       expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
       expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        events.NewOperatorAndTreasuryAndInjectorAddresses,
-        PanCakeSwapLottery_Address
+        EVENTS.NewOperatorAndTreasuryAndInjectorAddresses,
+        PANCAKE_SWAP_LOTTERY_ADDRESS
       );
     });
   });
