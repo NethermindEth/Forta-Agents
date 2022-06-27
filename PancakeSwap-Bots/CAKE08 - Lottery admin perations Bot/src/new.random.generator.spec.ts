@@ -35,19 +35,17 @@ describe("PancakeSwap Lottery", () => {
 
       const findings = await handleTransaction(mockTxEvent);
 
-      const { to, from, randomGenerator } = mockSwapEvent.args;
+      const {randomGenerator } = mockSwapEvent.args;
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "New Random Generator",
           description: `Random Number Generator changed`,
-          alertId: "FORTA-1",
+          alertId: "PCSLottery-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-            to,
-            from,
-            randomGenerator,
+            randomGenerator
           },
         }),
       ]);
