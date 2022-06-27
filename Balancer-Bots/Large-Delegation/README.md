@@ -2,8 +2,8 @@
 
 ## Description
 
-This bot detects "large" (in terms of an absolute token amount threshold or a total supply percentage threshold) veBAL
-delegations by monitoring delegations through the `DelegateRegistry` contract and checking veBAL balances.
+This bot detects "large" veBAL delegations by monitoring delegations through the `DelegateRegistry` contract and checking veBAL balances.
+> "Large" is defined in terms of an absolute token amount threshold or a total supply percentage threshold 
 
 The bot behavior can be configured in the `src/agent.config.ts` file.
 
