@@ -22,7 +22,7 @@ The bot behavior can be configured in the `src/agent.config.ts` file.
     - `delegate`: The delegate address
     - `amount`: The delegator veBAL balance
 
-- BAL-8-1
+- BAL-8-2
   - Fired when a large (in terms of veBAL total supply) delegation happens
   - Severity is always set to "info"
   - Type is always set to "info"
