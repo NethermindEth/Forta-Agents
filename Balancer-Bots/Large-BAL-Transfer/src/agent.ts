@@ -1,10 +1,13 @@
 import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { BigNumber } from "bignumber.js";
 import { providers, utils, Contract } from "ethers";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, SmartCaller, toBn } from "./utils";
 import { EVENT, TOKEN_ABI } from "./constants";
 import CONFIG from "./agent.config";
 import { createFinding } from "./findings";
+
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
