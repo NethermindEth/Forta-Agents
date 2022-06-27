@@ -13,7 +13,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       Finding.fromObject({
         name: "Function Call",
         description: `Function called: ${functionCall.name}`,
-        alertId: "FORTA-3",
+        alertId: "PCSLottery-3",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {},

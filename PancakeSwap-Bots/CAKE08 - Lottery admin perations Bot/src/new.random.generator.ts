@@ -24,7 +24,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       Finding.fromObject({
         name: "New Random Generator",
         description: `Random Number Generator changed`,
-        alertId: "FORTA-1",
+        alertId: "PCSLottery-1",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {

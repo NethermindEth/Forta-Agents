@@ -19,7 +19,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       Finding.fromObject({
         name: "New Operator And Treasury And Injector Addresses",
         description: `New Operator And Treasury And Injector Addresses`,
-        alertId: "FORTA-2",
+        alertId: "PCSLottery-2",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
