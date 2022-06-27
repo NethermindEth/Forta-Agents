@@ -25,7 +25,7 @@ export const provideHandleBlock = (
 ): HandleBlock => {
   const vaultIface = new utils.Interface(EVENT);
 
-  const sighash = [vaultIface.getEventTopic("InternalBalanceChanged")];
+  const topics = [vaultIface.getEventTopic("InternalBalanceChanged")];
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -33,17 +33,16 @@ export const provideHandleBlock = (
     const logs = (
       await provider.getLogs({
         address: networkManager.get("vaultAddress"),
+        topics,
         fromBlock: blockEvent.blockNumber,
         toBlock: blockEvent.blockNumber,
       })
-    ).filter((log) => sighash.includes(log.topics[0]));
+    ).map((log) => vaultIface.parseLog(log));
 
     await Promise.all(
       logs.map(async (log) => {
-        const decodedLog = vaultIface.parseLog(log);
-
-        const delta: BigNumber = toBn(decodedLog.args.delta);
-        balanceFetcher.setData(decodedLog.args.token);
+        const delta: BigNumber = toBn(log.args.delta);
+        balanceFetcher.setData(log.args.token);
 
         // fetch token balance of the contract then set threshold.
         const totalBalance: BigNumber = toBn(
@@ -55,7 +54,7 @@ export const provideHandleBlock = (
         if (delta.abs().gte(_threshold)) {
           const percentage = delta.abs().multipliedBy(100).dividedBy(totalBalance);
 
-          findings.push(createFinding(decodedLog.args, percentage));
+          findings.push(createFinding(log.args, percentage));
         }
       })
     );
