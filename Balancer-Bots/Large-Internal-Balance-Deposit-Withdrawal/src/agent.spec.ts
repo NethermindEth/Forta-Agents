@@ -1,11 +1,11 @@
-import { BigNumber } from "ethers";
+import { BigNumber } from "bignumber.js";
 import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleBlock, Network, ethers } from "forta-agent";
 import { createAddress, MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleBlock } from "./agent";
 import BalanceFetcher from "./balance.fetcher";
 import { TOKEN_ABI, EVENT } from "./constants";
-import { AgentConfig, NetworkData } from "./utils";
+import { AgentConfig, NetworkData, toBn } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 
 const VAULT_IFACE = new Interface(EVENT);
@@ -41,7 +41,7 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
 const createFinding = (user: string, token: string, delta: ethers.BigNumberish) => {
   let action, alertId;
 
-  if (BigNumber.from(delta).isNegative()) {
+  if (ethers.BigNumber.from(delta).isNegative()) {
     action = "withdrawal";
     alertId = "BAL-2-1";
   } else {
@@ -80,7 +80,7 @@ describe("Large internal balance deposits/withdrawals", () => {
 
   const TEST_TOKEN = createAddress("0x2");
 
-  const TEST_BALANCE = BigNumber.from(1000);
+  const TEST_BALANCE = ethers.BigNumber.from("1000");
   const TEST_BLOCK = 123;
 
   beforeEach(() => {
