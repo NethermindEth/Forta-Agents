@@ -16,11 +16,11 @@ This agent detects PancakeSwap Lottery Admin Operations:
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
+- PCSLottery-1
   - Triggered when a NewRandomGenerator Event is detected
-- FORTA-2
+- PCSLottery-2
   - Triggered when a NewOperatorAndTreasuryAndInjectorAddresses Event is detected
-- FORTA-3
+- PCSLottery-3
   - Triggered when a function call is detected for:
     - setMinAndMaxTicketPriceInCake
     - setMaxNumberTicketsPerBuy
