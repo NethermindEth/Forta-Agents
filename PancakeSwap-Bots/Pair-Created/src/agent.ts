@@ -4,10 +4,17 @@ import { FACTORY, CREATE_PAIR_FUNCTION } from "./constants";
 import { createPair } from "./utils";
 import { createFinding } from "./finding";
 
-export const provideHandleTransaction = (factory: string, functionAbi: string, createPair: any): HandleTransaction => {
+export const provideHandleTransaction = (
+  factory: string,
+  functionAbi: string,
+  createPair: any
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const txLogs: TransactionDescription[] = txEvent.filterFunction(functionAbi, factory);
+    const txLogs: TransactionDescription[] = txEvent.filterFunction(
+      functionAbi,
+      factory
+    );
     if (!txLogs) return findings;
 
     txLogs.forEach((log) => {
@@ -26,5 +33,9 @@ export const provideHandleTransaction = (factory: string, functionAbi: string, c
   };
 };
 export default {
-  handleTransaction: provideHandleTransaction(FACTORY, CREATE_PAIR_FUNCTION, createPair),
+  handleTransaction: provideHandleTransaction(
+    FACTORY,
+    CREATE_PAIR_FUNCTION,
+    createPair
+  ),
 };
