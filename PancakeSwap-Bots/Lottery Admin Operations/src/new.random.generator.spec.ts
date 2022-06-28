@@ -1,11 +1,12 @@
-import { Finding, FindingSeverity, FindingType, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, HandleTransaction, createTransactionEvent, ethers, TransactionEvent } from "forta-agent";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
 
 import agent from "./new.random.generator";
 import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+  let mockTxEvent: TestTransactionEvent = new TestTransactionEvent();
 
   beforeAll(() => {
     handleTransaction = agent.handleTransaction;
@@ -13,27 +14,28 @@ describe("PancakeSwap Lottery", () => {
 
   describe("NewRandomGenerator handleTransaction", () => {
     it("returns no findings if there are no NewRandomGenerator events emitted ", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
 
       const findings = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(EVENTS.NewRandomGenerator, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
     it("returns findings if there are NewRandomGenerator events emitted ", async () => {
-      const mockSwapEvent = {
-        args: {
-          randomGenerator: "random generator",
-        },
-      };
+      
 
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([mockSwapEvent]);
+      let eventInterface = new ethers.utils.Interface([EVENTS.NewRandomGenerator])
+      let randomG = createAddress("0x123")
 
+      const eventLog = eventInterface.encodeEventLog(
+        eventInterface.getEvent('NewRandomGenerator'),
+        [
+          randomG
+        ]
+      )
+      
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics)
+      
       const findings = await handleTransaction(mockTxEvent);
-
-      const { randomGenerator } = mockSwapEvent.args;
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
@@ -44,12 +46,12 @@ describe("PancakeSwap Lottery", () => {
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-            randomGenerator,
+            randomGenerator: randomG
           },
         }),
       ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(EVENTS.NewRandomGenerator, PANCAKE_SWAP_LOTTERY_ADDRESS);
+
     });
+
   });
 });
