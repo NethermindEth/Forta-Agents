@@ -269,7 +269,7 @@ describe("Large Open/Increase Position Test Suite", () => {
     ]);
   });
 
-  it("should detect finding for UpdatePosition event whose position size is large", async () => {
+  it("should return a finding when a large position is opened", async () => {
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
       key,
       MOCK_ACCOUNT,
@@ -310,7 +310,7 @@ describe("Large Open/Increase Position Test Suite", () => {
     ]);
   });
 
-  it("should detect multiple findings for both IncreasePosition event emitted with a large increase in an existing position and UpdatePosition event emitted with a large position size", async () => {
+  it("should detect multiple findings for both IncreasePosition event emitted with a large increase in an existing position and UpdatePosition event emitted when a large position is opened", async () => {
     const increasePositionEventLog1 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
       key,
       MOCK_ACCOUNT,
