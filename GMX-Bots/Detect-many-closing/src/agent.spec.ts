@@ -1,7 +1,7 @@
-import { Finding, HandleTransaction, ethers } from "forta-agent";
+import { Finding, ethers, HandleBlock } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import { createAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { provideHandleTransaction } from "./agent";
+import { createAddress, MockEthersProvider, TestBlockEvent, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { provideHandleBlock } from "./agent";
 import utils from "./utils";
 
 const WRONG_EVENT_ABI: string[] = ["event Transfer(address indexed from,address indexed to,uint256 value)"];
@@ -47,7 +47,7 @@ const generateLogs = (account: string, numberOfLogs: number, fromBlock: number) 
   return logs;
 };
 describe("Detects many position closing from an account within a time-frame test suite", () => {
-  let handleTx: HandleTransaction;
+  let handleBlock: HandleBlock;
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const networkManager = new NetworkManager(TEST_NETWORK_DATA);
   networkManager.setNetwork(0);
@@ -60,11 +60,11 @@ describe("Detects many position closing from an account within a time-frame test
       address: wrongContractAddress,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.DECREASE_POSITION_EVENT)],
     };
-    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const blockEvent = new TestBlockEvent().setNumber(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = provideHandleTransaction(networkManager, mockProvider as any);
-    const findings: Finding[] = await handleTx(txEvent);
+    handleBlock = provideHandleBlock(networkManager, mockProvider as any);
+    const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
@@ -75,11 +75,11 @@ describe("Detects many position closing from an account within a time-frame test
       address: TEST_GMX_VAULT,
       topics: [WRONG_EVENTS_IFACE.getEventTopic("Transfer")],
     };
-    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const blockEvent = new TestBlockEvent().setNumber(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = provideHandleTransaction(networkManager, mockProvider as any);
-    const findings: Finding[] = await handleTx(txEvent);
+    handleBlock = provideHandleBlock(networkManager, mockProvider as any);
+    const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
@@ -90,44 +90,45 @@ describe("Detects many position closing from an account within a time-frame test
       address: TEST_GMX_VAULT,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.DECREASE_POSITION_EVENT)],
     };
-    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const blockEvent = new TestBlockEvent().setNumber(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 2, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = provideHandleTransaction(networkManager, mockProvider as any);
-    const findings: Finding[] = await handleTx(txEvent);
+    handleBlock = provideHandleBlock(networkManager, mockProvider as any);
+    const findings: Finding[] = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
   it("should return a finding when account close many positions", async () => {
     const filter = {
-      fromBlock: 1400,
-      toBlock: 1500,
+      fromBlock: 30000,
+      toBlock: 30100,
       address: TEST_GMX_VAULT,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.DECREASE_POSITION_EVENT)],
     };
-    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+
+    const blockEvent = new TestBlockEvent().setNumber(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = provideHandleTransaction(networkManager, mockProvider as any);
-    const findings: Finding[] = await handleTx(txEvent);
+    handleBlock = provideHandleBlock(networkManager, mockProvider as any);
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([EXPECTED_FINDINGS[0]]);
   });
 
   it("should return three findings when three accounts close many positions", async () => {
     const filter = {
-      fromBlock: 1400,
-      toBlock: 1500,
+      fromBlock: 30100,
+      toBlock: 30200,
       address: TEST_GMX_VAULT,
       topics: [utils.EVENTS_IFACE.getEventTopic(utils.DECREASE_POSITION_EVENT)],
     };
-    const txEvent = new TestTransactionEvent().setBlock(filter.toBlock);
+    const blockEvent = new TestBlockEvent().setNumber(filter.toBlock);
     const logs = generateLogs(createAddress("0x01"), 50, filter.fromBlock);
     logs.push(...generateLogs(createAddress("0x02"), 150, filter.fromBlock));
     logs.push(...generateLogs(createAddress("0x03"), 200, filter.fromBlock));
     mockProvider.addFilteredLogs(filter, logs as any);
-    handleTx = provideHandleTransaction(networkManager, mockProvider as any);
-    const findings: Finding[] = await handleTx(txEvent);
+    handleBlock = provideHandleBlock(networkManager, mockProvider as any);
+    const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual(EXPECTED_FINDINGS);
   });
