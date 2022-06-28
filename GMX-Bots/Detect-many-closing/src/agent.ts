@@ -6,9 +6,8 @@ import utils from "./utils";
 
 const networkManager = new NetworkManager(networkData);
 
-export const provideInitialize = () => {
+export const provideInitialize = (provider: ethers.providers.JsonRpcProvider) => {
   return async () => {
-    const provider = getEthersProvider();
     await networkManager.init(provider);
   };
 };
@@ -35,11 +34,7 @@ export const provideHandleTransaction =
     decreasePositionLogs.forEach((log: Log) => {
       const currentEvent = utils.EVENTS_IFACE.decodeEventLog(utils.DECREASE_POSITION_EVENT, log.data, log.topics);
       const noOfClosing = accountByNoOfClosing.get(currentEvent[1]);
-      if (noOfClosing) {
-        accountByNoOfClosing.set(currentEvent[1], noOfClosing + 1);
-      } else {
-        accountByNoOfClosing.set(currentEvent[1], 1);
-      }
+      accountByNoOfClosing.set(currentEvent[1], noOfClosing ? noOfClosing + 1 : 1);
     });
 
     accountByNoOfClosing.forEach((noOfClosing, account) => {
@@ -52,6 +47,6 @@ export const provideHandleTransaction =
   };
 
 export default {
-  initialize: provideInitialize(),
+  initialize: provideInitialize(utils.provider),
   handleTransaction: provideHandleTransaction(networkManager, utils.provider),
 };
