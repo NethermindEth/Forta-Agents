@@ -1,11 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  ethers,
-  TransactionEvent,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, ethers, TransactionEvent } from "forta-agent";
 import agent from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTx } from "./agent";
@@ -19,14 +12,10 @@ const ABI: string[] = [
 const TEST_IFACE: Interface = new Interface(ABI);
 
 const mockProvider: MockEthersProvider = new MockEthersProvider();
-const MOCK_GMX_ROUTER_ADDRESS = {value: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064"};
+const MOCK_GMX_ROUTER_ADDRESS = { value: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064" };
 const MOCK_SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
-const handler = provideHandleTx(
-  MOCK_GMX_ROUTER_ADDRESS,
-  MOCK_SWAP_EVENT,
-  mockProvider as unknown as ethers.providers.Provider
-);
+const handler = provideHandleTx(MOCK_GMX_ROUTER_ADDRESS, MOCK_SWAP_EVENT);
 
 describe("sandwich attack frontrun agent", () => {
   let handleTransaction: HandleTransaction;

@@ -40,7 +40,7 @@ let mapCleanerCounter = 0;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
 
 export const provideHandleTx =
-  (router: any, swapEvent: string, theProvider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
+  (router: any, swapEvent: string) => async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
 
@@ -198,5 +198,5 @@ export const provideHandleTx =
 
 export default {
   initialize: initialize(provider),
-  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, provider),
+  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT),
 };
