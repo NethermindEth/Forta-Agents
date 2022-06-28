@@ -2,7 +2,8 @@ import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock, Initialize
 import CONFIG from "./agent.config";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding, NetworkData } from "./utils";
+import { NetworkData } from "./utils";
+import { createFinding } from "./finding";
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
