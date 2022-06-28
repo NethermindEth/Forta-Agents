@@ -4,16 +4,12 @@ import newGeneratorBot from "./new.random.generator";
 import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
 
-let findingsCount = 0;
-
 function provideHandleTransaction(
   newGeneratorBot: any,
   newOperatorBot: any,
   functionCallBot: any
 ): HandleTransaction {
   return async function handleTransaction(txEvent: TransactionEvent) {
-    //limit findings to 5 to avoid a spammed alert feed
-    if (findingsCount >= 5) return [];
 
     const findings = (
       await Promise.all([
@@ -23,7 +19,6 @@ function provideHandleTransaction(
       ])
     ).flat();
 
-    findingsCount = findings.length;
     return findings;
   };
 }
