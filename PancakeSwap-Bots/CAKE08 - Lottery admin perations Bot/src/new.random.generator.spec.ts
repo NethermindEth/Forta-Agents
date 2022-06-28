@@ -40,8 +40,9 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "New Random Generator",
-          description: `Random Number Generator changed`,
-          alertId: "PCSLottery-1",
+          description: "PancakeSwapLottery: Random Number Generator changed",
+          alertId: "CAKE-8-1",
+          protocol: "PancakeSwap",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {

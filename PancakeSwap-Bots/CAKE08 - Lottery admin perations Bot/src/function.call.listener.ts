@@ -22,8 +22,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     findings.push(
       Finding.fromObject({
         name: "Function Call",
-        description: `Function called: ${functionCall.name}`,
-        alertId: "PCSLottery-3",
+        description: `PancakeSwapLottery: Function called: ${functionCall.name}`,
+        alertId: "CAKE-8-3",
+        protocol: "PancakeSwap",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata,
