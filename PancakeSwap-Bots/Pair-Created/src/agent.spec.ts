@@ -115,4 +115,22 @@ describe("Pair Created Test Suite", () => {
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
+
+  it("should return finding when createPair function is called on Pancakeswap's Factory contract", async () => {
+    txEvent = new TestTransactionEvent().addTraces({
+      to: MOCK_FACTORY,
+      input: MOCK_IFACE.encodeFunctionData("createPair", [
+        TEST_CASES[0],
+        TEST_CASES[1],
+      ]),
+    });
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      mockCreateFinding(
+        TEST_CASES[0],
+        TEST_CASES[1],
+        mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])
+      ),
+    ]);
+  });
 });
