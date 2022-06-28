@@ -36,7 +36,7 @@ const getIrrelevantLog = (emitter: string, block: number): ethers.providers.Log 
   } as ethers.providers.Log;
 };
 
-export function createAbsoluteThresholdFinding(pool: string, endValue: string): Finding {
+function createValueThresholdFinding(pool: string, endValue: string): Finding {
   return Finding.from({
     name: "Low Stable Pool Amplification Parameter",
     description: "A low amplification parameter endValue was detected in a stable pool",
@@ -51,11 +51,27 @@ export function createAbsoluteThresholdFinding(pool: string, endValue: string): 
   });
 }
 
-export function createPercentageThresholdFinding(pool: string, endValue: string, decreasePercentage: string): Finding {
+function createDecreaseThresholdFinding(pool: string, endValue: string, decrease: string): Finding {
   return Finding.from({
     name: "High Stable Pool Amplification Parameter Decrease",
-    description: "A stable pool amplification parameter will be significantly decreased",
+    description: "A stable pool amplification parameter will have a significant decrease",
     alertId: "BAL-9-2",
+    protocol: "Balancer",
+    type: FindingType.Info,
+    severity: FindingSeverity.Unknown,
+    metadata: {
+      pool,
+      endValue,
+      decrease,
+    },
+  });
+}
+
+function createDecreasePercentageThresholdFinding(pool: string, endValue: string, decreasePercentage: string): Finding {
+  return Finding.from({
+    name: "High Stable Pool Amplification Parameter Decrease",
+    description: "A stable pool amplification parameter will have a significant decrease in percentage",
+    alertId: "BAL-9-3",
     protocol: "Balancer",
     type: FindingType.Info,
     severity: FindingSeverity.Unknown,
@@ -77,17 +93,21 @@ describe("Bot Test Suite", () => {
   let networkManager: NetworkManager<NetworkData>;
   let handleBlock: HandleBlock;
   let getAmpUpdateStartedLogs: GetAmpUpdateStartedLog;
-  let absoluteThreshold: string | undefined;
-  let percentageThreshold: string | undefined;
+  let valueThreshold: string | undefined;
+  let decreasePercentageThreshold: string | undefined;
+  let decreaseThreshold: string | undefined;
 
   const CONFIG: AgentConfig = {
     [Network.MAINNET]: {
       stablePoolAddresses: STABLE_POOL_ADDRESSES,
-      get absoluteThreshold() {
-        return absoluteThreshold;
+      get valueThreshold() {
+        return valueThreshold;
       },
-      get percentageThreshold() {
-        return percentageThreshold;
+      get decreasePercentageThreshold() {
+        return decreasePercentageThreshold;
+      },
+      get decreaseThreshold() {
+        return decreaseThreshold;
       },
     },
   };
@@ -156,8 +176,9 @@ describe("Bot Test Suite", () => {
       provider = mockProvider as unknown as ethers.providers.Provider;
       networkManager = new NetworkManager(CONFIG, Network.MAINNET);
 
-      absoluteThreshold = undefined;
-      percentageThreshold = undefined;
+      valueThreshold = undefined;
+      decreasePercentageThreshold = undefined;
+      decreaseThreshold = undefined;
 
       handleBlock = provideHandleBlock(networkManager, provider);
     });
@@ -168,10 +189,10 @@ describe("Bot Test Suite", () => {
       expect(await handleBlock(blockEvent)).toStrictEqual([]);
     });
 
-    it("should not return a finding for an update that is not at or below the absolute threshold", async () => {
+    it("should not return a finding for an update that is not at or below the value threshold", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      absoluteThreshold = "10";
+      valueThreshold = "10";
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 0, 11, 0, 0)]);
 
@@ -181,70 +202,86 @@ describe("Bot Test Suite", () => {
     it("should not return a finding for an update that is not at or above the percentage decrease threshold", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      percentageThreshold = "10";
+      decreasePercentageThreshold = "10";
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 100, 99, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([]);
     });
 
-    it("should return a finding for an update that is at or below the absolute threshold", async () => {
+    it("should return a finding for an update that is at or below the value threshold", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      absoluteThreshold = "10";
+      valueThreshold = "10";
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 0, 9, 0, 0)]);
 
+      expect(await handleBlock(blockEvent)).toStrictEqual([createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "9")]);
+    });
+
+    it("should return a finding for an update that is at or above the decrease threshold", async () => {
+      const blockEvent = new TestBlockEvent().setNumber(0);
+
+      decreaseThreshold = "100";
+
+      mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 900, 0, 0)]);
+
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createAbsoluteThresholdFinding(STABLE_POOL_ADDRESSES[0], "9"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "900", "100"),
       ]);
     });
 
     it("should return a finding for an update that is at or above the percentage decrease threshold", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      percentageThreshold = "10";
+      decreasePercentageThreshold = "10";
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 899, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createPercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
       ]);
     });
 
-    it("should return both findings for an update if it satisfies both thresholds", async () => {
+    it("should return all findings for an update if it satisfies all thresholds", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      percentageThreshold = "10";
-      absoluteThreshold = "1000";
+      decreasePercentageThreshold = "10";
+      decreaseThreshold = "100";
+      valueThreshold = "1000";
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 899, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createAbsoluteThresholdFinding(STABLE_POOL_ADDRESSES[0], "899"),
-        createPercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "899"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "101"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
       ]);
     });
 
     it("should multiple findings for multiple updates that satisfy one or more thresholds", async () => {
       const blockEvent = new TestBlockEvent().setNumber(0);
 
-      percentageThreshold = "10";
-      absoluteThreshold = "1000";
+      decreasePercentageThreshold = "10";
+      decreaseThreshold = "50";
+      valueThreshold = "1000";
 
       mockProvider.addLogs([
         getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 1100, 0, 0), // no findings
-        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[1], 0, 2000, 1900, 0, 0), // no findings
-        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 999, 0, 0), // absolute threshold finding
-        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[1], 0, 2000, 1800, 0, 0), // percentage threshold finding
-        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 875, 0, 0), // both findings
+        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[1], 0, 2000, 1900, 0, 0), // decrease threshold finding
+        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 999, 0, 0), // value threshold finding
+        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[1], 0, 50, 45, 0, 0), // percentage and value thresholds findings
+        getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 875, 0, 0), // all findings
       ]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createAbsoluteThresholdFinding(STABLE_POOL_ADDRESSES[0], "999"),
-        createPercentageThresholdFinding(STABLE_POOL_ADDRESSES[1], "1800", "10"),
-        createAbsoluteThresholdFinding(STABLE_POOL_ADDRESSES[0], "875"),
-        createPercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "875", "12.5"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[1], "1900", "100"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "999"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[1], "45"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[1], "45", "10"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "875"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "875", "125"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "875", "12.5"),
       ]);
     });
   });
