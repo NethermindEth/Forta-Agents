@@ -14,14 +14,14 @@ This bot detects emissions of `SwapFeePercentageChanged` and `FlashLoanFeePercen
 ## Alerts
 
 - BAL-1-1
-  - Fired when the swap fee is changed (i.e. `SwapFeePercentageChanged` is emitted)
+  - Fired when the flash loan fee is changed (i.e. `FlashLoanFeePercentageChanged` is emitted)
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata:
     - `newFeePercentage`: The new fee percentage value in %
 
 - BAL-1-2
-  - Fired when the flash loan fee is changed (i.e. `FlashLoanFeePercentageChanged` is emitted)
+  - Fired when the swap fee is changed (i.e. `SwapFeePercentageChanged` is emitted)
   - Severity is always set to "info"
   - Type is always set to "info"
   - Metadata:
