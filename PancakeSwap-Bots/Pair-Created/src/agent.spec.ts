@@ -1,29 +1,15 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  ethers,
-} from "forta-agent";
-import {
-  createAddress,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/tests";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, ethers } from "forta-agent";
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { keccak256 } from "forta-agent/dist/sdk/utils";
 import { utils } from "ethers";
 import { getCreate2Address } from "@ethersproject/address";
 import { provideHandleTransaction } from "./agent";
 import { CREATE_PAIR_FUNCTION } from "./constants";
 
-const MOCK_OTHER_FUNCTION: string =
-  "function setFeeToSetter(address _feeToSetter)";
+const MOCK_OTHER_FUNCTION: string = "function setFeeToSetter(address _feeToSetter)";
 const MOCK_FACTORY: string = createAddress("0x9a9a");
 const MOCK_INIT_CODE_HASH: string = keccak256(MOCK_FACTORY);
-const MOCK_IFACE: ethers.utils.Interface = new ethers.utils.Interface([
-  CREATE_PAIR_FUNCTION,
-  MOCK_OTHER_FUNCTION,
-]);
+const MOCK_IFACE: ethers.utils.Interface = new ethers.utils.Interface([CREATE_PAIR_FUNCTION, MOCK_OTHER_FUNCTION]);
 
 const TEST_CASES: string[] = [
   createAddress("0xaa1111"),
@@ -36,11 +22,7 @@ const TEST_CASES: string[] = [
   createAddress("0xccdd88"),
 ];
 
-const mockCreateFinding = (
-  tokenA: string,
-  tokenB: string,
-  pair: string
-): Finding => {
+const mockCreateFinding = (tokenA: string, tokenB: string, pair: string): Finding => {
   return Finding.fromObject({
     name: "New pair creation on Pancakeswap's Factory contract",
     description: "New pair creation call detected on Factory contract",
@@ -57,20 +39,9 @@ const mockCreateFinding = (
 };
 
 // generate new pair address
-const mockCreatePair = (
-  mockFactory: string,
-  token0: string,
-  token1: string
-): string => {
-  let salt: string = utils.solidityKeccak256(
-    ["address", "address"],
-    [token0, token1]
-  );
-  return getCreate2Address(
-    mockFactory,
-    salt,
-    MOCK_INIT_CODE_HASH
-  ).toLowerCase();
+const mockCreatePair = (mockFactory: string, token0: string, token1: string): string => {
+  let salt: string = utils.solidityKeccak256(["address", "address"], [token0, token1]);
+  return getCreate2Address(mockFactory, salt, MOCK_INIT_CODE_HASH).toLowerCase();
 };
 
 describe("Pair Created Test Suite", () => {
@@ -78,11 +49,7 @@ describe("Pair Created Test Suite", () => {
   let handleTransaction: HandleTransaction;
 
   beforeAll(() => {
-    handleTransaction = provideHandleTransaction(
-      MOCK_FACTORY,
-      CREATE_PAIR_FUNCTION,
-      mockCreatePair
-    );
+    handleTransaction = provideHandleTransaction(MOCK_FACTORY, CREATE_PAIR_FUNCTION, mockCreatePair);
   });
 
   let findings: Finding[];
@@ -107,10 +74,7 @@ describe("Pair Created Test Suite", () => {
   it("should ignore createPair function call on a non-Pancakeswap Factory contract", async () => {
     txEvent = new TestTransactionEvent().addTraces({
       to: createAddress("0x567"), // different contract
-      input: MOCK_IFACE.encodeFunctionData("createPair", [
-        TEST_CASES[0],
-        TEST_CASES[1],
-      ]),
+      input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[0], TEST_CASES[1]]),
     });
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -119,18 +83,11 @@ describe("Pair Created Test Suite", () => {
   it("should return finding when createPair function is called on Pancakeswap's Factory contract", async () => {
     txEvent = new TestTransactionEvent().addTraces({
       to: MOCK_FACTORY,
-      input: MOCK_IFACE.encodeFunctionData("createPair", [
-        TEST_CASES[0],
-        TEST_CASES[1],
-      ]),
+      input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[0], TEST_CASES[1]]),
     });
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(
-        TEST_CASES[0],
-        TEST_CASES[1],
-        mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])
-      ),
+      mockCreateFinding(TEST_CASES[0], TEST_CASES[1], mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])),
     ]);
   });
 
@@ -138,56 +95,28 @@ describe("Pair Created Test Suite", () => {
     txEvent = new TestTransactionEvent().addTraces(
       {
         to: MOCK_FACTORY,
-        input: MOCK_IFACE.encodeFunctionData("createPair", [
-          TEST_CASES[0],
-          TEST_CASES[1],
-        ]),
+        input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[0], TEST_CASES[1]]),
       },
       {
         to: MOCK_FACTORY,
-        input: MOCK_IFACE.encodeFunctionData("createPair", [
-          TEST_CASES[2],
-          TEST_CASES[3],
-        ]),
+        input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[2], TEST_CASES[3]]),
       },
       {
         to: MOCK_FACTORY,
-        input: MOCK_IFACE.encodeFunctionData("createPair", [
-          TEST_CASES[4],
-          TEST_CASES[5],
-        ]),
+        input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[4], TEST_CASES[5]]),
       },
       {
         to: MOCK_FACTORY,
-        input: MOCK_IFACE.encodeFunctionData("createPair", [
-          TEST_CASES[6],
-          TEST_CASES[7],
-        ]),
+        input: MOCK_IFACE.encodeFunctionData("createPair", [TEST_CASES[6], TEST_CASES[7]]),
       }
     );
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(
-        TEST_CASES[0],
-        TEST_CASES[1],
-        mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])
-      ),
-      mockCreateFinding(
-        TEST_CASES[2],
-        TEST_CASES[3],
-        mockCreatePair(MOCK_FACTORY, TEST_CASES[2], TEST_CASES[3])
-      ),
-      mockCreateFinding(
-        TEST_CASES[4],
-        TEST_CASES[5],
-        mockCreatePair(MOCK_FACTORY, TEST_CASES[4], TEST_CASES[5])
-      ),
-      mockCreateFinding(
-        TEST_CASES[6],
-        TEST_CASES[7],
-        mockCreatePair(MOCK_FACTORY, TEST_CASES[6], TEST_CASES[7])
-      ),
+      mockCreateFinding(TEST_CASES[0], TEST_CASES[1], mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])),
+      mockCreateFinding(TEST_CASES[2], TEST_CASES[3], mockCreatePair(MOCK_FACTORY, TEST_CASES[2], TEST_CASES[3])),
+      mockCreateFinding(TEST_CASES[4], TEST_CASES[5], mockCreatePair(MOCK_FACTORY, TEST_CASES[4], TEST_CASES[5])),
+      mockCreateFinding(TEST_CASES[6], TEST_CASES[7], mockCreatePair(MOCK_FACTORY, TEST_CASES[6], TEST_CASES[7])),
     ]);
   });
 });
