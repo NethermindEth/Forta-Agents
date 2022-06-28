@@ -139,10 +139,9 @@ export const provideHandleTx =
         if (!sandwichAttack) {
           callHistory.set(accountBack + token0 + token1, [swapEvent, callHistoryIndex, txEvent.hash]);
           callHistoryKeys[callHistoryIndex] = accountBack + token0 + token1;
+          callHistoryIndex++;
+          mapCleanerCounter++;
         }
-
-        callHistoryIndex++;
-        mapCleanerCounter++;
 
         //callHistory cleaning
         if (callHistoryIndex == CALL_HISTORY_SIZE) {
