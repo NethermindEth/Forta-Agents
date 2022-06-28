@@ -1,26 +1,52 @@
-# Large Tether Transfer Agent
+# Balancer Stable Pool Depegging Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects possible de-peggings by analyzing changes in stable pools amplification factors, since, in this case,
+it should be low or decrease significantly to make the swap curve closer to a constant product as opposed to a constant
+sum curve.
+
+These changes can be analyzed using three independent thresholds associated to different alerts:
+ * An absolute value threshold: Related to the end value of the change.
+ * A decrease threshold: Related to the difference between the start and the end value of the change.
+ * A decrease percentage threshold: Related to the decrease percentage between the start and end values of the change.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
+- Arbitrum
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- BAL-9-1
+  - Fired when a stable pool amplification factor will be changed to be at or below the value threshold set in the configuration
+  - Severity is always set to "unknown"
+  - Type is always set to "info"
+  - Metadata:
+    - `pool`: The address of the monitored pool
+    - `startValue`: The start value of the amplification factor change
+    - `endValue`: The end value of the amplification factor change
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- BAL-9-2
+  - Fired when a stable pool amplification factor will be decreased by at least the decrease threshold set in the configuration
+  - Severity is always set to "unknown"
+  - Type is always set to "info"
+  - Metadata:
+    - `pool`: The address of the monitored pool
+    - `startValue`: The start value of the amplification factor change
+    - `endValue`: The end value of the amplification factor change
+    - `decrease`: The difference between the start and end amplification factor values
+
+- BAL-9-3
+  - Fired when a stable pool amplification factor will be decreased by at least the percentage set in the configuration
+  - Severity is always set to "unknown"
+  - Type is always set to "info"
+  - Metadata:
+    - `pool`: The address of the monitored pool
+    - `startValue`: The start value of the amplification factor change
+    - `endValue`: The end value of the amplification factor change
+    - `decreasePercentage`: The decrease in % between the start and end amplification factor values
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
