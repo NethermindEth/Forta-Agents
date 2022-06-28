@@ -3,7 +3,8 @@ import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
 import { BALANCE_OF_ABI, SWAP_ABI } from "./constants";
-import { createFinding, NetworkData, SmartCaller, toBn } from "./utils";
+import { NetworkData, SmartCaller, toBn } from "./utils";
+import { createFinding } from "./finding";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
