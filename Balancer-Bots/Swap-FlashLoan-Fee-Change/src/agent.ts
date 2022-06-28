@@ -37,13 +37,12 @@ export const provideHandleBlock = (
         toBlock: blockEvent.blockNumber,
         topics: [sighashes],
       })
-    );
+    ).map((log) => protocolFeesCollectorIface.parseLog(log));
 
     return logs.map((log) => {
-      const decodedLog = protocolFeesCollectorIface.parseLog(log);
-      const feeFrom = decodedLog.name.replace("FeePercentageChanged", "");
+      const feeFrom = log.name.replace("FeePercentageChanged", "");
 
-      return createFinding(feeFrom as "FlashLoan" | "Swap", decodedLog.args[0]);
+      return createFinding(feeFrom as "FlashLoan" | "Swap", log.args[0]);
     });
   };
 };
