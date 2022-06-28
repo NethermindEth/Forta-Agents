@@ -5,8 +5,9 @@ import { AMP_UPDATE_STARTED_ABI } from "./constants";
 
 export interface NetworkData {
   stablePoolAddresses: string[];
-  absoluteThreshold?: string;
-  percentageThreshold?: string;
+  valueThreshold?: string;
+  decreaseThreshold?: string;
+  decreasePercentageThreshold?: string;
 }
 
 export const toBn = (ethersBn: ethers.BigNumber) => new BigNumber(ethersBn.toString());

@@ -12,12 +12,16 @@ const CONFIG: AgentConfig = {
     ],
 
     // Absolute amplification parameter value at and below which a finding will be emitted (decimal places are not
-    // considered) (optional)
-    absoluteThreshold: "10000",
+    // considered) (optional).
+    valueThreshold: "10000",
+
+    // Minimum amplification parameter drop from the previous value at and above which a finding will be emitted
+    // (decimal places are not considered) (optional).
+    decreaseThreshold: "10000",
 
     // Minimum amplification parameter drop percentage from the previous value at and above which a finding will be
     // emitted (in %) (optional).
-    percentageThreshold: "40.5",
+    decreasePercentageThreshold: "40.5",
   },
 
   [Network.POLYGON]: {
@@ -27,17 +31,16 @@ const CONFIG: AgentConfig = {
       "0xfeadd389a5c427952d8fdb8057d6c8ba1156cc56",
       "0x06df3b2bbb68adc8b0e302443692037ed9f91b42",
     ],
-    absoluteThreshold: "10000",
-    percentageThreshold: "40.5",
+    valueThreshold: "10000",
+    decreaseThreshold: "10000",
+    decreasePercentageThreshold: "40.5",
   },
 
   [Network.ARBITRUM]: {
-    stablePoolAddresses: [
-      "0x0510cCF9eB3AB03C1508d3b9769E8Ee2CFd6FDcF",
-      "0x1533A3278f3F9141d5F820A184EA4B017fce2382",
-    ],
-    absoluteThreshold: "10000",
-    percentageThreshold: "40.5",
+    stablePoolAddresses: ["0x0510cCF9eB3AB03C1508d3b9769E8Ee2CFd6FDcF", "0x1533A3278f3F9141d5F820A184EA4B017fce2382"],
+    valueThreshold: "10000",
+    decreaseThreshold: "10000",
+    decreasePercentageThreshold: "40.5",
   },
 };
 

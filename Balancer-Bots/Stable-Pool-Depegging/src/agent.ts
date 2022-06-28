@@ -1,6 +1,10 @@
 import { ethers, Finding, getEthersProvider, Initialize, HandleBlock, BlockEvent } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import { createAbsoluteThresholdFinding, createPercentageThresholdFinding } from "./finding";
+import {
+  createValueThresholdFinding,
+  createDecreasePercentageThresholdFinding,
+  createDecreaseThresholdFinding,
+} from "./finding";
 import { NetworkData, provideGetAmpUpdateStartedLogs, toBn } from "./utils";
 import CONFIG from "./agent.config";
 import BigNumber from "bignumber.js";
@@ -27,24 +31,32 @@ export const provideHandleBlock = (
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const logs = await getAmpUpdateStartedLogs(blockEvent.blockNumber);
 
-    const absoluteThreshold = networkManager.get("absoluteThreshold");
-    const percentageThreshold = networkManager.get("percentageThreshold");
+    const valueThreshold = networkManager.get("valueThreshold");
+    const decreaseThreshold = networkManager.get("decreaseThreshold");
+    const decreasePercentageThreshold = networkManager.get("decreasePercentageThreshold");
 
     const findings: Finding[] = [];
 
     logs.forEach((log) => {
-      if (absoluteThreshold !== undefined && log.args.endValue.lte(absoluteThreshold)) {
-        findings.push(createAbsoluteThresholdFinding(log.emitter, log.args.endValue));
+      const startValue: ethers.BigNumber = log.args.startValue;
+      const endValue: ethers.BigNumber = log.args.endValue;
+
+      if (valueThreshold !== undefined && endValue.lte(valueThreshold)) {
+        findings.push(createValueThresholdFinding(log.emitter, endValue));
       }
 
-      if (percentageThreshold !== undefined) {
-        const endValue = toBn(log.args.endValue);
-        const startValue = toBn(log.args.startValue);
+      if (decreaseThreshold !== undefined && startValue.sub(endValue).gte(decreaseThreshold)) {
+        findings.push(createDecreaseThresholdFinding(log.emitter, endValue, startValue.sub(endValue)));
+      }
 
-        const decreasePercentage = startValue.minus(endValue).div(startValue).shiftedBy(2);
+      if (decreasePercentageThreshold !== undefined) {
+        const endValueBn = toBn(endValue);
+        const startValueBn = toBn(startValue);
 
-        if (decreasePercentage.gte(percentageThreshold)) {
-          findings.push(createPercentageThresholdFinding(log.emitter, log.args.endValue, decreasePercentage));
+        const decreasePercentage = startValueBn.minus(endValueBn).div(startValueBn).shiftedBy(2);
+
+        if (decreasePercentage.gte(decreasePercentageThreshold)) {
+          findings.push(createDecreasePercentageThresholdFinding(log.emitter, endValue, decreasePercentage));
         }
       }
     });
