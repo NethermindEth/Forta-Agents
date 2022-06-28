@@ -24,7 +24,7 @@ This bot detects a large size position opening and a large increase in an existi
     - `positionKey`: Key of the opened position.
 
 - GMX-1-2
-  - Fired when there is increase of an existing large position
+  - Fired when there is a large increase of an existing position
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
