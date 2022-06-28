@@ -25,8 +25,6 @@ describe("PancakeSwap Lottery", () => {
     it("returns findings if there are NewRandomGenerator events emitted ", async () => {
       const mockSwapEvent = {
         args: {
-          to: "0x0123",
-          from: "0x0abc",
           randomGenerator: "random generator",
         },
       };
