@@ -57,7 +57,7 @@ In order to run the tests below, uncomment the indicated lines in `src/agent.con
 
 - `32203465` (1 finding - `MockProtocolFeesCollector.setFlashLoanFeePercentage()`)
   - Related to `MockProtocolFeesCollector.setFlashLoanFeePercentage()`
-  - 1 finding - `SwapFeePercentageChanged` was emitted with the value `1` (1e-16 %)
+  - 1 finding - `FlashLoanFeePercentageChanged` was emitted with the value `1` (1e-16 %)
 - `32203467`
   - Related to `MockProtocolFeesCollector.setSwapFeePercentage()`
   - 1 finding - `SwapFeePercentageChanged` was emitted with the value `2` (2e-16 %)
