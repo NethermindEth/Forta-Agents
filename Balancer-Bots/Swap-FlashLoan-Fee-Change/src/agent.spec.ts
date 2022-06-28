@@ -103,9 +103,7 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   it("should ignore other events from the target address", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    mockProvider.addLogs([
-      getIrrelevantLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS),
-    ]);
+    mockProvider.addLogs([getIrrelevantLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS)]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
   });
