@@ -110,7 +110,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
     mockProvider.addLogs([
-      getSwapLog(createAddress("0x1"), 0, "0x2", createAddress("0x3"), createAddress("0x4"), "5", "6")
+      getSwapLog(createAddress("0x1"), 0, "0x2", createAddress("0x3"), createAddress("0x4"), "5", "6"),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
@@ -155,7 +155,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     mockProvider.addLogs([
       getSwapLog(VAULT_ADDRESS, 1, "0x1", createAddress("0x3"), createAddress("0x4"), "5", "0"),
       getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0x3"), createAddress("0x4"), "0", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0x3"), createAddress("0x4"), "5", "6")
+      getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0x3"), createAddress("0x4"), "5", "6"),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([
@@ -185,7 +185,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
       getSwapLog(VAULT_ADDRESS, 1, "0x1", createAddress("0xa1"), createAddress("0xb1"), "5", "6"),
       getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0xa2"), createAddress("0xb2"), "5", "6"),
       getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0xa3"), createAddress("0xb3"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "0x4", createAddress("0xa4"), createAddress("0xb4"), "5", "6")
+      getSwapLog(VAULT_ADDRESS, 1, "0x4", createAddress("0xa4"), createAddress("0xb4"), "5", "6"),
     ]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([
