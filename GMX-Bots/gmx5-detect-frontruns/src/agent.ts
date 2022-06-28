@@ -8,33 +8,15 @@ import {
   getEthersProvider,
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-interface NetworkData {
-  address: string;
-  num: number;
-}
-const data: Record<number, NetworkData> = {
-  42161: {
-    address: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064",
-    num: 1,
-  },
-  43114: {
-    address: "0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8",
-    num: 2,
-  },
-};
+import util from "./utils";
 let GMX_ROUTER_ADDRESS = { value: "" };
 const provider = getEthersProvider();
 export const initialize = (provider: ethers.providers.Provider) => async () => {
-  const networkManager = new NetworkManager(data, (await provider.getNetwork()).chainId);
+  const networkManager = new NetworkManager(util.data, (await provider.getNetwork()).chainId);
   GMX_ROUTER_ADDRESS.value = networkManager.get("address");
 };
-export const SWAP_EVENT =
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
 
-//Represents the calls that will be stored to check for frontrunning. A bigger value makes sure no cases are ignored but makes the bot less efficient
-const CALL_HISTORY_SIZE = 20;
-
-let callHistoryKeys: Array<string> = new Array(CALL_HISTORY_SIZE);
+let callHistoryKeys: Array<string> = new Array(util.CALL_HISTORY_SIZE);
 let callHistoryIndex = 0;
 let mapCleanerCounter = 0;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
@@ -144,7 +126,7 @@ export const provideHandleTx =
         }
 
         //callHistory cleaning
-        if (callHistoryIndex == CALL_HISTORY_SIZE) {
+        if (callHistoryIndex == util.CALL_HISTORY_SIZE) {
           callHistoryIndex = 0;
 
           if (mapCleanerCounter > 50000) {
@@ -197,5 +179,5 @@ export const provideHandleTx =
 
 export default {
   initialize: initialize(provider),
-  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT),
+  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, util.SWAP_EVENT),
 };
