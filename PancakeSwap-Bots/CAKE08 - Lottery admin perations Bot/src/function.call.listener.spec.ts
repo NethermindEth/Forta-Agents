@@ -12,7 +12,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   describe("Function Calls handleTransaction", () => {
-    it("returns no findings if there are no function calls", async () => {
+    it("returns no findings if no function called", async () => {
       mockTxEvent.filterFunction = jest.fn().mockReturnValue([]);
 
       const findings = await handleTransaction(mockTxEvent);
@@ -22,7 +22,7 @@ describe("PancakeSwap Lottery", () => {
       expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
-    it("returns findings if there are function setMinAndMaxTicketPriceInCake is called", async () => {
+    it("returns findings if function setMinAndMaxTicketPriceInCake is called", async () => {
       const mockSwapEvent = {
         args: {
           _minPriceTicketInCake: "1000000",
@@ -56,7 +56,7 @@ describe("PancakeSwap Lottery", () => {
       expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
-    it("returns findings if there are function setMaxNumberTicketsPerBuy is called", async () => {
+    it("returns findings if function setMaxNumberTicketsPerBuy is called", async () => {
       const mockSwapEvent = {
         args: {
           _maxNumberTicketsPerBuy: "10",
