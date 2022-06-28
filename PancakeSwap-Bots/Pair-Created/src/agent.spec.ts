@@ -93,4 +93,16 @@ describe("Pair Created Test Suite", () => {
 
     expect(findings).toStrictEqual([]);
   });
+
+  it("should ignore non-createPair function call on Pancakeswap's Factory contract", async () => {
+    txEvent = new TestTransactionEvent().addTraces({
+      to: MOCK_FACTORY,
+      input: MOCK_IFACE.encodeFunctionData("setFeeToSetter", [
+        TEST_CASES[0], 
+      ]),// different function - setFeeToSetter
+    });
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 });
