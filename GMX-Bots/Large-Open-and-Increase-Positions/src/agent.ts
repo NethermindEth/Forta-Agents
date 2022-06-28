@@ -15,17 +15,14 @@ export const initialize = (provider: providers.Provider) => {
   };
 };
 
-export const provideTransactionHandler = (
-  networkManager: NetworkData,
-  updatePositionEvent: string,
-  increasePositionEvent: string
-): HandleTransaction => {
+export const provideTransactionHandler = (networkManager: NetworkData): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // filter transaction logs for increase and update position events
     const eventLogs: LogDescription[] = txEvent.filterLog(
-      [increasePositionEvent, updatePositionEvent],
+      // [increasePositionEvent, updatePositionEvent],
+      [INCREASE_POSITION_EVENT, UPDATE_POSITION_EVENT],
       networkManager.vaultAddress
     );
 
@@ -39,23 +36,12 @@ export const provideTransactionHandler = (
 
         // compare increasePosition and updatePosition keys
         if (increaseKey === updateKey) {
-          const positionSizeDifference = size.sub(sizeDelta);
           const baseSizeDelta: BigNumber = new BigNumber(sizeDelta.toString()).dividedBy(
             new BigNumber(PRICE_PRECISION.toString())
           );
 
           if (baseSizeDelta.gt(new BigNumber(networkManager.threshold))) {
-            findings.push(
-              createFinding(
-                account,
-                networkManager.vaultAddress,
-                updateKey,
-                increaseKey,
-                size,
-                sizeDelta,
-                positionSizeDifference
-              )
-            );
+            findings.push(createFinding(account, networkManager.vaultAddress, updateKey, increaseKey, size, sizeDelta));
           }
         }
       }
@@ -66,6 +52,6 @@ export const provideTransactionHandler = (
 };
 
 export default {
-  handleTransaction: provideTransactionHandler(networkManager, UPDATE_POSITION_EVENT, INCREASE_POSITION_EVENT),
+  handleTransaction: provideTransactionHandler(networkManager),
   initialize: initialize(getEthersProvider()),
 };

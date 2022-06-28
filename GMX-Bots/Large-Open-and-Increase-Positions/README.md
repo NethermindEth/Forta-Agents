@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects when an open/increase position is large. The bot listens to `UpdatePosition` and `IncreasePosition` event emissions on GMX's Vault Contract and creates a finding if the position `size` exceeds the `threshold` 
+This bot detects a large size position opening and a large increase in an existing  position. It listens to `UpdatePosition` and `IncreasePosition` event emissions on GMX's Vault Contract and creates a finding if `sizeDelta` exceeds a `threshold`. 
 
 > The `threshold` can be adjusted in **src/network.ts**.
 
@@ -30,7 +30,6 @@ This bot detects when an open/increase position is large. The bot listens to `Up
   - Metadata contains:
     - `gmxVault`: Address of GMX Vault contract.
     - `account`: Address of position owner.
-    - `initialPositionSize`: Initial position size before increment.
     - `positionIncrementSize`: Size of the increased position 
     - `finalPositionSize`: Final position size after increment
     - `positionKey`: Key of the increased position.

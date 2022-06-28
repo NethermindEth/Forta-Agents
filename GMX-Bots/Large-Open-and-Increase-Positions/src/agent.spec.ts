@@ -36,8 +36,7 @@ const mockCreateFinding = (
   updateKey: string,
   increaseKey: string,
   size: ethers.BigNumber,
-  sizeDelta: ethers.BigNumber,
-  positionSizeDifference: ethers.BigNumber
+  sizeDelta: ethers.BigNumber
 ): Finding => {
   if (size.eq(sizeDelta)) {
     return Finding.fromObject({
@@ -50,14 +49,14 @@ const mockCreateFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
+        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(),
         positionKey: updateKey,
       },
     });
   } else
     return Finding.fromObject({
-      name: "Existing large position increased on GMX's Vault Contract",
-      description: "IncreasePosition event emitted in an existing large position on GMX's Vault Contract",
+      name: "Large increase in an existing position on GMX's Vault Contract",
+      description: "IncreasePosition event emitted with large increase in an existing position on GMX's Vault Contract",
       alertId: "GMX-1-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
@@ -65,9 +64,8 @@ const mockCreateFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
+        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
         positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
-        finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
         positionKey: increaseKey,
       },
     });
@@ -88,7 +86,7 @@ describe("Large Open/Increase Position Test Suite", () => {
   };
 
   beforeAll(() => {
-    handleTransaction = provideTransactionHandler(mockNetworkManager, UPDATE_POSITION_EVENT, INCREASE_POSITION_EVENT);
+    handleTransaction = provideTransactionHandler(mockNetworkManager);
   });
 
   it("should return no finding in empty transaction", async () => {
@@ -226,9 +224,9 @@ describe("Large Open/Increase Position Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should detect finding for IncreasePosition event whose size is large", async () => {
-    const positionSize = ethers.BigNumber.from(600000000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION - 3));
-    const positionSizeDelta = ethers.BigNumber.from(500000000).mul(
+  it("should return a finding for large increase in an existing position", async () => {
+    const positionSize = ethers.BigNumber.from(600000).mul(ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION - 3));
+    const positionSizeDelta = ethers.BigNumber.from(5000000000).mul(
       ethers.BigNumber.from(10).pow(TEST_PRICE_PRECISION - 3)
     );
     const increasePositionEventLog = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
@@ -267,15 +265,7 @@ describe("Large Open/Increase Position Test Suite", () => {
 
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        positionSize,
-        positionSizeDelta,
-        ethers.BigNumber.from(positionSize).sub(ethers.BigNumber.from(positionSizeDelta))
-      ),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, positionSize, positionSizeDelta),
     ]);
   });
 
@@ -316,19 +306,11 @@ describe("Large Open/Increase Position Test Suite", () => {
       );
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size4,
-        sizeDelta4,
-        ethers.BigNumber.from(size4).sub(ethers.BigNumber.from(sizeDelta4))
-      ),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size4, sizeDelta4),
     ]);
   });
 
-  it("should detect multiple findings for both IncreasePosition and UpdatePosition events with large positions", async () => {
+  it("should detect multiple findings for both IncreasePosition event emitted with a large increase in an existing position and UpdatePosition event emitted with a large position size", async () => {
     const increasePositionEventLog1 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
       key,
       MOCK_ACCOUNT,
@@ -370,72 +352,6 @@ describe("Large Open/Increase Position Test Suite", () => {
     ]);
 
     const updatePositionEventLog3 = MOCK_IFACE.encodeEventLog(updatePositionEventFragment, [key, size3, 0, 0, 0, 0, 0]);
-
-    txEvent = new TestTransactionEvent()
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        increasePositionEventLog1.data,
-        ...increasePositionEventLog1.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog1.data,
-        ...updatePositionEventLog1.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        increasePositionEventLog2.data,
-        ...increasePositionEventLog2.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog2.data,
-        ...updatePositionEventLog2.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        increasePositionEventLog3.data,
-        ...increasePositionEventLog3.topics
-      )
-      .addAnonymousEventLog(
-        mockNetworkManager.vaultAddress,
-        updatePositionEventLog3.data,
-        ...updatePositionEventLog3.topics
-      );
-
-    findings = await handleTransaction(txEvent);
-
-    // multiple findings for increasePosition event
-    expect(findings).toStrictEqual([
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size1,
-        sizeDelta1,
-        ethers.BigNumber.from(size1).sub(ethers.BigNumber.from(sizeDelta1))
-      ),
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size2,
-        sizeDelta2,
-        ethers.BigNumber.from(size2).sub(ethers.BigNumber.from(sizeDelta2))
-      ),
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size3,
-        sizeDelta3,
-        ethers.BigNumber.from(size3).sub(ethers.BigNumber.from(sizeDelta3))
-      ),
-    ]);
-    expect(findings.length).toStrictEqual(3);
 
     const increasePositionEventLog4 = MOCK_IFACE.encodeEventLog(increasePositionEventFragment, [
       key,
@@ -482,6 +398,36 @@ describe("Large Open/Increase Position Test Suite", () => {
     txEvent = new TestTransactionEvent()
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
+        increasePositionEventLog1.data,
+        ...increasePositionEventLog1.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog1.data,
+        ...updatePositionEventLog1.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        increasePositionEventLog2.data,
+        ...increasePositionEventLog2.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog2.data,
+        ...updatePositionEventLog2.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        increasePositionEventLog3.data,
+        ...increasePositionEventLog3.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
+        updatePositionEventLog3.data,
+        ...updatePositionEventLog3.topics
+      )
+      .addAnonymousEventLog(
+        mockNetworkManager.vaultAddress,
         increasePositionEventLog4.data,
         ...increasePositionEventLog4.topics
       )
@@ -490,7 +436,6 @@ describe("Large Open/Increase Position Test Suite", () => {
         updatePositionEventLog4.data,
         ...updatePositionEventLog4.topics
       )
-
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog5.data,
@@ -504,46 +449,24 @@ describe("Large Open/Increase Position Test Suite", () => {
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         increasePositionEventLog6.data,
-        ...increasePositionEventLog5.topics
+        ...increasePositionEventLog6.topics
       )
       .addAnonymousEventLog(
         mockNetworkManager.vaultAddress,
         updatePositionEventLog6.data,
-        ...updatePositionEventLog5.topics
+        ...updatePositionEventLog6.topics
       );
 
     findings = await handleTransaction(txEvent);
 
-    // multiple findings for updatePosition event
+    // multiple findings for increasePosition and updatePosition event
     expect(findings).toStrictEqual([
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size4,
-        sizeDelta4,
-        ethers.BigNumber.from(size4).sub(ethers.BigNumber.from(sizeDelta4))
-      ),
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size5,
-        sizeDelta5,
-        ethers.BigNumber.from(size5).sub(ethers.BigNumber.from(sizeDelta5))
-      ),
-      mockCreateFinding(
-        MOCK_ACCOUNT,
-        mockNetworkManager.vaultAddress,
-        key,
-        key,
-        size6,
-        sizeDelta6,
-        ethers.BigNumber.from(size6).sub(ethers.BigNumber.from(sizeDelta6))
-      ),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size1, sizeDelta1),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size2, sizeDelta2),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size3, sizeDelta3),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size4, sizeDelta4),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size5, sizeDelta5),
+      mockCreateFinding(MOCK_ACCOUNT, mockNetworkManager.vaultAddress, key, key, size6, sizeDelta6),
     ]);
-    expect(findings.length).toStrictEqual(3);
   });
 });

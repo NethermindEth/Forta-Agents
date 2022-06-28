@@ -11,8 +11,7 @@ export const createFinding = (
   updateKey: string,
   increaseKey: string,
   size: ethers.BigNumber,
-  sizeDelta: ethers.BigNumber,
-  positionSizeDifference: ethers.BigNumber
+  sizeDelta: ethers.BigNumber
 ): Finding => {
   if (size.eq(sizeDelta)) {
     return Finding.fromObject({
@@ -31,8 +30,8 @@ export const createFinding = (
     });
   } else
     return Finding.fromObject({
-      name: "Existing large position increased on GMX's Vault Contract",
-      description: "IncreasePosition event emitted in an existing large position on GMX's Vault Contract",
+      name: "Large increase in an existing position on GMX's Vault Contract",
+      description: "IncreasePosition event emitted with large increase in an existing position on GMX's Vault Contract",
       alertId: "GMX-1-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
@@ -40,9 +39,8 @@ export const createFinding = (
       metadata: {
         gmxVault: vaultAddress,
         account: account,
-        initialPositionSize: ethersBnToBn(positionSizeDifference, 30).decimalPlaces(2).toString(10),
+        positionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
         positionIncrementSize: ethersBnToBn(sizeDelta, 30).decimalPlaces(2).toString(10),
-        finalPositionSize: ethersBnToBn(size, 30).decimalPlaces(2).toString(10),
         positionKey: increaseKey,
       },
     });
