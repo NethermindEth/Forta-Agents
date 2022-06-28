@@ -12,7 +12,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   describe("NewRandomGenerator handleTransaction", () => {
-    it("returns no findings if there are no NewRandomGenerator events emmited ", async () => {
+    it("returns no findings if there are no NewRandomGenerator events emitted ", async () => {
       mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
 
       const findings = await handleTransaction(mockTxEvent);
@@ -22,7 +22,7 @@ describe("PancakeSwap Lottery", () => {
       expect(mockTxEvent.filterLog).toHaveBeenCalledWith(EVENTS.NewRandomGenerator, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
-    it("returns findings if there are NewRandomGenerator events emmited ", async () => {
+    it("returns findings if there are NewRandomGenerator events emitted ", async () => {
       const mockSwapEvent = {
         args: {
           to: "0x0123",

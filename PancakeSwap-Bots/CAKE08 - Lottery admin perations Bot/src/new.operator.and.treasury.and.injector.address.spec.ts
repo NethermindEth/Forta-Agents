@@ -12,7 +12,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   describe("NewOperatorAndTreasuryAndInjectorAddresses handleTransaction", () => {
-    it("returns no findings if there are no NewOperatorAndTreasuryAndInjectorAddresses events emmited ", async () => {
+    it("returns no findings if there are no NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
       mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
 
       const findings = await handleTransaction(mockTxEvent);
@@ -25,7 +25,7 @@ describe("PancakeSwap Lottery", () => {
       );
     });
 
-    it("returns findings if there are NewOperatorAndTreasuryAndInjectorAddresses events emmited ", async () => {
+    it("returns findings if there are NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
       const mockSwapEvent = {
         args: {
           operator: "0x0123",
