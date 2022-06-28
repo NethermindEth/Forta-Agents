@@ -133,4 +133,61 @@ describe("Pair Created Test Suite", () => {
       ),
     ]);
   });
+
+  it("should return multiple findings when createPair function is called more than once on Pancakeswap's Factory contract", async () => {
+    txEvent = new TestTransactionEvent().addTraces(
+      {
+        to: MOCK_FACTORY,
+        input: MOCK_IFACE.encodeFunctionData("createPair", [
+          TEST_CASES[0],
+          TEST_CASES[1],
+        ]),
+      },
+      {
+        to: MOCK_FACTORY,
+        input: MOCK_IFACE.encodeFunctionData("createPair", [
+          TEST_CASES[2],
+          TEST_CASES[3],
+        ]),
+      },
+      {
+        to: MOCK_FACTORY,
+        input: MOCK_IFACE.encodeFunctionData("createPair", [
+          TEST_CASES[4],
+          TEST_CASES[5],
+        ]),
+      },
+      {
+        to: MOCK_FACTORY,
+        input: MOCK_IFACE.encodeFunctionData("createPair", [
+          TEST_CASES[6],
+          TEST_CASES[7],
+        ]),
+      }
+    );
+
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      mockCreateFinding(
+        TEST_CASES[0],
+        TEST_CASES[1],
+        mockCreatePair(MOCK_FACTORY, TEST_CASES[0], TEST_CASES[1])
+      ),
+      mockCreateFinding(
+        TEST_CASES[2],
+        TEST_CASES[3],
+        mockCreatePair(MOCK_FACTORY, TEST_CASES[2], TEST_CASES[3])
+      ),
+      mockCreateFinding(
+        TEST_CASES[4],
+        TEST_CASES[5],
+        mockCreatePair(MOCK_FACTORY, TEST_CASES[4], TEST_CASES[5])
+      ),
+      mockCreateFinding(
+        TEST_CASES[6],
+        TEST_CASES[7],
+        mockCreatePair(MOCK_FACTORY, TEST_CASES[6], TEST_CASES[7])
+      ),
+    ]);
+  });
 });
