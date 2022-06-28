@@ -13,20 +13,23 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
     if (functionCall.name === FUNCTION_NAMES[0]) {
 
-      let { _minPriceTicketInCake, _maxPriceTicketInCake } = functionCall.args;
+      let _minPriceTicketInCake = functionCall.args._minPriceTicketInCake.toString()
+      let _maxPriceTicketInCake  = functionCall.args._maxPriceTicketInCake.toString();
+
       metadata = { _minPriceTicketInCake, _maxPriceTicketInCake };
 
     } else if (functionCall.name === FUNCTION_NAMES[1]) {
 
-      let { _maxNumberTicketsPerBuy } = functionCall.args;
+      let  _maxNumberTicketsPerBuy  = functionCall.args._maxNumberTicketsPerBuy.toString();
+
       metadata = { _maxNumberTicketsPerBuy };
-      
+
     }
 
     findings.push(
       Finding.fromObject({
         name: "Function Call",
-        description: `PancakeSwapLottery: Function called: ${functionCall.name}`,
+        description: `PancakeSwapLottery: ${functionCall.name}`,
         alertId: "CAKE-8-3",
         protocol: "PancakeSwap",
         severity: FindingSeverity.Info,
