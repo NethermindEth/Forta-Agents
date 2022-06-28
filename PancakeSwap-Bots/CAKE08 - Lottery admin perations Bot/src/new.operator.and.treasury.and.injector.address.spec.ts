@@ -28,7 +28,6 @@ describe("PancakeSwap Lottery", () => {
     it("returns findings if there are NewOperatorAndTreasuryAndInjectorAddresses events emmited ", async () => {
       const mockSwapEvent = {
         args: {
-          from: "0x0abc",
           operator: "0x0123",
           treasury: "0x0def",
           injector: "0x0456",
@@ -39,7 +38,7 @@ describe("PancakeSwap Lottery", () => {
 
       const findings = await handleTransaction(mockTxEvent);
 
-      const { from, operator, treasury, injector } = mockSwapEvent.args;
+      const { operator, treasury, injector } = mockSwapEvent.args;
 
       expect(findings).toStrictEqual([
         Finding.fromObject({
