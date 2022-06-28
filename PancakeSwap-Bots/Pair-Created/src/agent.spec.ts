@@ -97,11 +97,21 @@ describe("Pair Created Test Suite", () => {
   it("should ignore non-createPair function call on Pancakeswap's Factory contract", async () => {
     txEvent = new TestTransactionEvent().addTraces({
       to: MOCK_FACTORY,
-      input: MOCK_IFACE.encodeFunctionData("setFeeToSetter", [
-        TEST_CASES[0], 
-      ]),// different function - setFeeToSetter
+      input: MOCK_IFACE.encodeFunctionData("setFeeToSetter", [TEST_CASES[0]]), // different function - setFeeToSetter
     });
 
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore createPair function call on a non-Pancakeswap Factory contract", async () => {
+    txEvent = new TestTransactionEvent().addTraces({
+      to: createAddress("0x567"), // different contract
+      input: MOCK_IFACE.encodeFunctionData("createPair", [
+        TEST_CASES[0],
+        TEST_CASES[1],
+      ]),
+    });
     findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
