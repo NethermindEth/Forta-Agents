@@ -1,7 +1,11 @@
 import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
 import BigNumber from "bignumber.js";
 
-export function createValueThresholdFinding(pool: string, endValue: ethers.BigNumber): Finding {
+export function createValueThresholdFinding(
+  pool: string,
+  startValue: ethers.BigNumber,
+  endValue: ethers.BigNumber
+): Finding {
   return Finding.from({
     name: "Low Stable Pool Amplification Parameter",
     description: "A low amplification parameter endValue was detected in a stable pool",
@@ -11,6 +15,7 @@ export function createValueThresholdFinding(pool: string, endValue: ethers.BigNu
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
+      startValue: startValue.toString(),
       endValue: endValue.toString(),
     },
   });
@@ -18,6 +23,7 @@ export function createValueThresholdFinding(pool: string, endValue: ethers.BigNu
 
 export function createDecreaseThresholdFinding(
   pool: string,
+  startValue: ethers.BigNumber,
   endValue: ethers.BigNumber,
   decrease: ethers.BigNumber
 ): Finding {
@@ -30,6 +36,7 @@ export function createDecreaseThresholdFinding(
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
+      startValue: startValue.toString(),
       endValue: endValue.toString(),
       decrease: decrease.toString(),
     },
@@ -38,6 +45,7 @@ export function createDecreaseThresholdFinding(
 
 export function createDecreasePercentageThresholdFinding(
   pool: string,
+  startValue: ethers.BigNumber,
   endValue: ethers.BigNumber,
   decreasePercentage: BigNumber
 ): Finding {
@@ -50,6 +58,7 @@ export function createDecreasePercentageThresholdFinding(
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
+      startValue: startValue.toString(),
       endValue: endValue.toString(),
       decreasePercentage: decreasePercentage.toString(10),
     },

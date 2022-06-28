@@ -42,11 +42,11 @@ export const provideHandleBlock = (
       const endValue: ethers.BigNumber = log.args.endValue;
 
       if (valueThreshold !== undefined && endValue.lte(valueThreshold)) {
-        findings.push(createValueThresholdFinding(log.emitter, endValue));
+        findings.push(createValueThresholdFinding(log.emitter, startValue, endValue));
       }
 
       if (decreaseThreshold !== undefined && startValue.sub(endValue).gte(decreaseThreshold)) {
-        findings.push(createDecreaseThresholdFinding(log.emitter, endValue, startValue.sub(endValue)));
+        findings.push(createDecreaseThresholdFinding(log.emitter, startValue, endValue, startValue.sub(endValue)));
       }
 
       if (decreasePercentageThreshold !== undefined) {
@@ -56,7 +56,9 @@ export const provideHandleBlock = (
         const decreasePercentage = startValueBn.minus(endValueBn).div(startValueBn).shiftedBy(2);
 
         if (decreasePercentage.gte(decreasePercentageThreshold)) {
-          findings.push(createDecreasePercentageThresholdFinding(log.emitter, endValue, decreasePercentage));
+          findings.push(
+            createDecreasePercentageThresholdFinding(log.emitter, startValue, endValue, decreasePercentage)
+          );
         }
       }
     });

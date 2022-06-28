@@ -36,7 +36,7 @@ const getIrrelevantLog = (emitter: string, block: number): ethers.providers.Log 
   } as ethers.providers.Log;
 };
 
-function createValueThresholdFinding(pool: string, endValue: string): Finding {
+function createValueThresholdFinding(pool: string, startValue: string, endValue: string): Finding {
   return Finding.from({
     name: "Low Stable Pool Amplification Parameter",
     description: "A low amplification parameter endValue was detected in a stable pool",
@@ -46,12 +46,13 @@ function createValueThresholdFinding(pool: string, endValue: string): Finding {
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
-      endValue: endValue,
+      startValue,
+      endValue,
     },
   });
 }
 
-function createDecreaseThresholdFinding(pool: string, endValue: string, decrease: string): Finding {
+function createDecreaseThresholdFinding(pool: string, startValue: string, endValue: string, decrease: string): Finding {
   return Finding.from({
     name: "High Stable Pool Amplification Parameter Decrease",
     description: "A stable pool amplification parameter will have a significant decrease",
@@ -61,13 +62,19 @@ function createDecreaseThresholdFinding(pool: string, endValue: string, decrease
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
+      startValue,
       endValue,
       decrease,
     },
   });
 }
 
-function createDecreasePercentageThresholdFinding(pool: string, endValue: string, decreasePercentage: string): Finding {
+function createDecreasePercentageThresholdFinding(
+  pool: string,
+  startValue: string,
+  endValue: string,
+  decreasePercentage: string
+): Finding {
   return Finding.from({
     name: "High Stable Pool Amplification Parameter Decrease",
     description: "A stable pool amplification parameter will have a significant decrease in percentage",
@@ -77,8 +84,9 @@ function createDecreasePercentageThresholdFinding(pool: string, endValue: string
     severity: FindingSeverity.Unknown,
     metadata: {
       pool,
-      endValue: endValue,
-      decreasePercentage: decreasePercentage,
+      startValue,
+      endValue,
+      decreasePercentage,
     },
   });
 }
@@ -93,6 +101,7 @@ describe("Bot Test Suite", () => {
   let networkManager: NetworkManager<NetworkData>;
   let handleBlock: HandleBlock;
   let getAmpUpdateStartedLogs: GetAmpUpdateStartedLog;
+
   let valueThreshold: string | undefined;
   let decreasePercentageThreshold: string | undefined;
   let decreaseThreshold: string | undefined;
@@ -216,7 +225,9 @@ describe("Bot Test Suite", () => {
 
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 0, 9, 0, 0)]);
 
-      expect(await handleBlock(blockEvent)).toStrictEqual([createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "9")]);
+      expect(await handleBlock(blockEvent)).toStrictEqual([
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "0", "9"),
+      ]);
     });
 
     it("should return a finding for an update that is at or above the decrease threshold", async () => {
@@ -227,7 +238,7 @@ describe("Bot Test Suite", () => {
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 900, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "900", "100"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "900", "100"),
       ]);
     });
 
@@ -239,7 +250,7 @@ describe("Bot Test Suite", () => {
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 899, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "899", "10.1"),
       ]);
     });
 
@@ -253,9 +264,9 @@ describe("Bot Test Suite", () => {
       mockProvider.addLogs([getAmpUpdateStartedLog(STABLE_POOL_ADDRESSES[0], 0, 1000, 899, 0, 0)]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "899"),
-        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "101"),
-        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "899", "10.1"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "899"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "899", "101"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "899", "10.1"),
       ]);
     });
 
@@ -275,13 +286,13 @@ describe("Bot Test Suite", () => {
       ]);
 
       expect(await handleBlock(blockEvent)).toStrictEqual([
-        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[1], "1900", "100"),
-        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "999"),
-        createValueThresholdFinding(STABLE_POOL_ADDRESSES[1], "45"),
-        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[1], "45", "10"),
-        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "875"),
-        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "875", "125"),
-        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "875", "12.5"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[1], "2000", "1900", "100"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "999"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[1], "50", "45"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[1], "50", "45", "10"),
+        createValueThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "875"),
+        createDecreaseThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "875", "125"),
+        createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "875", "12.5"),
       ]);
     });
   });
