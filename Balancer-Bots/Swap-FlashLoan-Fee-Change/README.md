@@ -55,7 +55,7 @@ These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the `j
 
 In order to run the tests below, uncomment the indicated lines in `src/agent.config.ts`.
 
-- `32203465` (1 finding - `MockProtocolFeesCollector.setFlashLoanFeePercentage()`)
+- `32203465` 
   - Related to `MockProtocolFeesCollector.setFlashLoanFeePercentage()`
   - 1 finding - `FlashLoanFeePercentageChanged` was emitted with the value `1` (1e-16 %)
 - `32203467`
