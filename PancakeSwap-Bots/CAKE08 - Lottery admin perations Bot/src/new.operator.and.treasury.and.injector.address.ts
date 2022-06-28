@@ -13,7 +13,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   newOperatorAndTreasuryAndInjectorAddressesEvents.forEach((newOperatorAndTreasuryAndInjectorAddressesEvent) => {
     // extract New Operator And Treasury And Injector Addresses event arguments
-    const { from, operator, treasury, injector } = newOperatorAndTreasuryAndInjectorAddressesEvent.args;
+    const { operator, treasury, injector } = newOperatorAndTreasuryAndInjectorAddressesEvent.args;
 
     findings.push(
       Finding.fromObject({
