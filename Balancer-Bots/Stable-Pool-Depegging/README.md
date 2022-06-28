@@ -50,3 +50,14 @@ These changes can be analyzed using three independent thresholds associated to d
 
 ## Test Data
 
+### Kovan Testnet (PoC)
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Kovan Testnet RPC url as `jsonRpcUrl`
+in your `forta.config.json` file.
+
+```
+npm run block 32437894
+```
+
+As noted in the PoC at `PoC/MockStablePoolGroup.sol`, this should emit 6 findings, in sequence: BAL-9-1, BAL-9-2,
+BAL-9-3, BAL-9-1, BAL-9-2 and BAL-9-3.

@@ -44,4 +44,17 @@ const CONFIG: AgentConfig = {
   },
 };
 
+// Uncomment these lines for the testnet test:
+
+// CONFIG[42] = {
+//   stablePoolAddresses: [
+//     "0x17Ba6D4f873A7E3197B21A5475562b284d415476",
+//     "0x83e1bA0Fe48aB7c513039885956ec8492BF58E7b",
+//     "0x542B13a5d5f81Ba47157691Db5323002CD942a9d",
+//   ],
+//   valueThreshold: "200",
+//   decreaseThreshold: "100",
+//   decreasePercentageThreshold: "20",
+// };
+
 export default CONFIG;
