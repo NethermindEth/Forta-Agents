@@ -29,16 +29,16 @@ export const provideHandleTransaction =
 
     if (!decreasePositionLogs) return findings; // getLogs return undefined if result is empty
 
-    const accountByNoOfClosing: Map<string, number> = new Map();
+    const accountToClosings: Map<string, number> = new Map();
 
     decreasePositionLogs.forEach((log: Log) => {
       const currentEvent = utils.EVENTS_IFACE.decodeEventLog(utils.DECREASE_POSITION_EVENT, log.data, log.topics);
-      const noOfClosing = accountByNoOfClosing.get(currentEvent[1]);
-      accountByNoOfClosing.set(currentEvent[1], noOfClosing ? noOfClosing + 1 : 1);
+      const noOfClosing = accountToClosings.get(currentEvent[1]);
+      accountToClosings.set(currentEvent[1], noOfClosing ? noOfClosing + 1 : 1);
     });
 
-    accountByNoOfClosing.forEach((noOfClosing, account) => {
-      if (noOfClosing >= networkManager.get("positionsNumber")) {
+    accountToClosings.forEach((noOfClosing, account) => {
+      if (noOfClosing >= networkManager.get("threshold")) {
         findings.push(utils.createFinding(account, noOfClosing.toString()));
       }
     });

@@ -13,7 +13,7 @@ const TEST_GMX_VAULT: string = createAddress("0xcdcd");
 const TEST_NETWORK_DATA = {
   0: {
     address: TEST_GMX_VAULT,
-    positionsNumber: 50,
+    threshold: 50,
     blockNumber: 100,
   },
 };
