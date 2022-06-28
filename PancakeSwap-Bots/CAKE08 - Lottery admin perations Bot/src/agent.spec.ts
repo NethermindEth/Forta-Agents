@@ -28,7 +28,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   describe("handleTransaction", () => {
-    it("returns findings if there are events emmited and function calls ", async () => {
+    it("returns findings if there are events emitted and function called ", async () => {
       mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
 
       const mockNewGeneratorFinding = { event: "NewRandomGenerator" };
