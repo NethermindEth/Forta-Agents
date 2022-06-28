@@ -133,7 +133,7 @@ describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
     expect(await handleBlock(blockEvent)).toStrictEqual([createSwapFeeFinding("0.01")]);
   });
 
-  it("should generate a finding when a SwapFeePercentageChanged event is detected", async () => {
+  it("should generate a finding when a FlashLoanFeePercentageChanged event is detected", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
     mockProvider.addLogs([
