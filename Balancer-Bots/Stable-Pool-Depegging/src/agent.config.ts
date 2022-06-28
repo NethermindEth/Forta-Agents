@@ -44,6 +44,12 @@ const CONFIG: AgentConfig = {
   },
 };
 
+// Uncomment these lines for the mainnet test:
+
+// CONFIG[Network.MAINNET].valueThreshold = "130000";
+// CONFIG[Network.MAINNET].decreaseThreshold = "10000";
+// CONFIG[Network.MAINNET].decreasePercentageThreshold = "10";
+
 // Uncomment these lines for the testnet test:
 
 // CONFIG[42] = {

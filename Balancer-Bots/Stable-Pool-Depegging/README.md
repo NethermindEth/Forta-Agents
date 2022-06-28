@@ -50,6 +50,19 @@ These changes can be analyzed using three independent thresholds associated to d
 
 ## Test Data
 
+### Mainnet
+
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set an Ethereum Mainnet Testnet RPC url as
+`jsonRpcUrl` in your `forta.config.json` file.
+
+```
+npm run block 13271033
+```
+
+The test configuration is adjusted so all findings are emitted for this amplification parameter change, since the
+`endValue` is equal to the `valueThreshold` and the absolute and percentage decreases are larger than
+`decreaseThreshold` and `decreasePercentageThreshold`.
+
 ### Kovan Testnet (PoC)
 
 > For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Kovan Testnet RPC url as `jsonRpcUrl`
