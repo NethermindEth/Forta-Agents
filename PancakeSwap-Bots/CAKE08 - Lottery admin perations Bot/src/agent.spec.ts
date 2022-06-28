@@ -1,29 +1,29 @@
 import { HandleTransaction, createTransactionEvent } from "forta-agent";
 
-import agent from "./agent";
+import bot from "./agent";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
 
-  const mockNewGeneratorAgent = {
+  const mockNewGeneratorBot = {
     handleTransaction: jest.fn(),
   };
 
-  const mockNewOperatorAgent = {
+  const mockNewOperatorBot = {
     handleTransaction: jest.fn(),
   };
 
-  const mockFunctionCallAgent = {
+  const mockFunctionCallBot = {
     handleTransaction: jest.fn(),
   };
 
   const mockTxEvent = createTransactionEvent({} as any);
 
   beforeAll(() => {
-    handleTransaction = agent.provideHandleTransaction(
-      mockNewGeneratorAgent,
-      mockNewOperatorAgent,
-      mockFunctionCallAgent
+    handleTransaction = bot.provideHandleTransaction(
+      mockNewGeneratorBot,
+      mockNewOperatorBot,
+      mockFunctionCallBot
     );
   });
 
@@ -37,21 +37,21 @@ describe("PancakeSwap Lottery", () => {
       };
       const mockFunctionCallFinding = { function: "setMaxNumberTicketsPerBuy" };
 
-      mockNewGeneratorAgent.handleTransaction.mockReturnValueOnce([mockNewGeneratorFinding]);
-      mockNewOperatorAgent.handleTransaction.mockReturnValueOnce([mockNewOperatorFinding]);
-      mockFunctionCallAgent.handleTransaction.mockReturnValueOnce([mockFunctionCallFinding]);
+      mockNewGeneratorBot.handleTransaction.mockReturnValueOnce([mockNewGeneratorFinding]);
+      mockNewOperatorBot.handleTransaction.mockReturnValueOnce([mockNewOperatorFinding]);
+      mockFunctionCallBot.handleTransaction.mockReturnValueOnce([mockFunctionCallFinding]);
 
       const findings = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([mockNewGeneratorFinding, mockNewOperatorFinding, mockFunctionCallFinding]);
-      expect(mockNewGeneratorAgent.handleTransaction).toHaveBeenCalledTimes(1);
-      expect(mockNewGeneratorAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
+      expect(mockNewGeneratorBot.handleTransaction).toHaveBeenCalledTimes(1);
+      expect(mockNewGeneratorBot.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
 
-      expect(mockNewOperatorAgent.handleTransaction).toHaveBeenCalledTimes(1);
-      expect(mockNewOperatorAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
+      expect(mockNewOperatorBot.handleTransaction).toHaveBeenCalledTimes(1);
+      expect(mockNewOperatorBot.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
 
-      expect(mockFunctionCallAgent.handleTransaction).toHaveBeenCalledTimes(1);
-      expect(mockFunctionCallAgent.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
+      expect(mockFunctionCallBot.handleTransaction).toHaveBeenCalledTimes(1);
+      expect(mockFunctionCallBot.handleTransaction).toHaveBeenCalledWith(mockTxEvent);
     });
   });
 });

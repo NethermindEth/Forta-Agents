@@ -1,7 +1,7 @@
 import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent } from "forta-agent";
 
 import agent from "./new.operator.and.treasury.and.injector.address";
-import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
+import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;

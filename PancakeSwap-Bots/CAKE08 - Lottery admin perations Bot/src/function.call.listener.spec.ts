@@ -1,14 +1,14 @@
 import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent } from "forta-agent";
 
-import agent from "./function.call.listener";
-import { ABI, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./agent.config";
+import bot from "./function.call.listener";
+import { ABI, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
   const mockTxEvent = createTransactionEvent({} as any);
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = bot.handleTransaction;
   });
 
   describe("Function Calls handleTransaction", () => {
