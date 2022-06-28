@@ -42,7 +42,7 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Function Call",
-          description: `PancakeSwapLottery: Function called: ${name}`,
+          description: `PancakeSwapLottery: ${name}`,
           alertId: "CAKE-8-3",
           protocol: "PancakeSwap",
           severity: FindingSeverity.Info,
@@ -76,7 +76,7 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Function Call",
-          description: `PancakeSwapLottery: Function called: ${name}`,
+          description: `PancakeSwapLottery: ${name}`,
           alertId: "CAKE-8-3",
           protocol: "PancakeSwap",
           severity: FindingSeverity.Info,
