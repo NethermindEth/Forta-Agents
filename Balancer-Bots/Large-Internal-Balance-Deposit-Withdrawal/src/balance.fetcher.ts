@@ -6,7 +6,6 @@ import { TOKEN_ABI } from "./constants";
 export default class BalanceFetcher {
   provider: providers.Provider;
   private cache: LRU<string, BigNumber>;
-  tokenAddress: string;
   private tokenContract: Contract;
 
   constructor(provider: providers.Provider) {
@@ -14,21 +13,17 @@ export default class BalanceFetcher {
     this.cache = new LRU<string, BigNumber>({
       max: 10000,
     });
-    this.tokenAddress = "";
-    this.tokenContract = new Contract(this.tokenAddress, new Interface(TOKEN_ABI), this.provider);
+    this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
   }
 
   // Main function to fetch the contract balance.
-  public async getBalance(block: number | string, vaultAddress: string, _tokenAddress: string): Promise<BigNumber> {
-    this.tokenAddress = _tokenAddress;
-    if (this.tokenContract.address != this.tokenAddress) {
-      this.tokenContract = this.tokenContract.attach(this.tokenAddress);
-    }
+  public async getBalance(block: number | string, vaultAddress: string, tokenAddress: string): Promise<BigNumber> {
+    const token = this.tokenContract.attach(tokenAddress);
 
-    const key: string = `${this.tokenAddress}-${block}`;
+    const key: string = `${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const balance: BigNumber = await this.tokenContract.balanceOf(vaultAddress, {
+    const balance: BigNumber = await token.balanceOf(vaultAddress, {
       blockTag: block,
     });
 
