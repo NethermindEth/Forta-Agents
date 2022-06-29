@@ -7,7 +7,7 @@ import {
 } 
 from "./bot.test.constants"
 
-import agent from "./new.random.generator";
+import bot from "./new.random.generator";
 import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
@@ -15,7 +15,7 @@ describe("PancakeSwap Lottery", () => {
   let mockTxEvent: TestTransactionEvent = new TestTransactionEvent();
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = bot.handleTransaction;
   });
 
   describe("NewRandomGenerator handleTransaction", () => {
