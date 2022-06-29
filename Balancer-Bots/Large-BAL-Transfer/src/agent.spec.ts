@@ -76,7 +76,7 @@ describe("Large BAL Token Transfer Bot Test Suite", () => {
     });
 
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
-    handleBlock = provideHandleBlock(provider, networkManager);
+    handleBlock = provideHandleBlock(networkManager, provider);
   });
 
   it("should return empty findings with an empty logs list", async () => {
