@@ -20,8 +20,8 @@ const CONFIG: AgentConfig = {
   },
 };
 
-// this line is for the Kovan testnet test:
-CONFIG[42] = { vaultAddress: "0x9e324ef913f35e3d0f6fc35c32ce4ee3bb27423e", threshold: "5" };
+// Uncomment this line for the Kovan testnet test:
+// CONFIG[42] = { vaultAddress: "0x9e324ef913f35e3d0f6fc35c32ce4ee3bb27423e", threshold: "5" };
 
 // Uncomment these lines for the mainnet, Polygon or Arbitrum tests:
 // CONFIG[Network.MAINNET].threshold = "0";
