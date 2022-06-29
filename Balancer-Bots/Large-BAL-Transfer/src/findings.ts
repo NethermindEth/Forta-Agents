@@ -12,8 +12,8 @@ export const createFinding = (from: string, to: string, value: BigNumber, percen
     metadata: {
       from,
       to,
-      value: value.toString(),
-      percentage: percentage.toString(),
+      value: value.toString(10),
+      percentage: percentage.toString(10),
     },
   });
 };
