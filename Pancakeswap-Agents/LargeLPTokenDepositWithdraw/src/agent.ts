@@ -51,7 +51,8 @@ export function provideHandleTransaction(
           // Set threshold
           thresholdAmount = BigNumber.from(balance).mul(config.thresholdData).div(100);
         }
-        
+        console.log('Threshold Amount', thresholdAmount.toString())
+        console.log('Deposit Amount', amount.toString())
         // If amount is greater than threshold, create finding
         if (amount.gte(thresholdAmount)) {
           findings.push(createFinding(log.name, tokenName, log.args));
@@ -63,5 +64,5 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(STATIC_CONFIG, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(DYNAMIC_CONFIG, getEthersProvider()),
 };
