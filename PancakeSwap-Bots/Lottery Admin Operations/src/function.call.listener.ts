@@ -9,15 +9,18 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   const functionCalls = txEvent.filterFunction(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
 
   functionCalls.forEach((functionCall) => {
-    let metadata = {};
+    let metadata = {}
+    let alertId = ""
 
     if (functionCall.name === FUNCTION_NAMES[0]) {
       let _minPriceTicketInCake = functionCall.args._minPriceTicketInCake.toString();
       let _maxPriceTicketInCake = functionCall.args._maxPriceTicketInCake.toString();
+      alertId = "CAKE-8-3"
 
       metadata = { _minPriceTicketInCake, _maxPriceTicketInCake };
     } else if (functionCall.name === FUNCTION_NAMES[1]) {
       let _maxNumberTicketsPerBuy = functionCall.args._maxNumberTicketsPerBuy.toString();
+      alertId = "CAKE-8-4"
 
       metadata = { _maxNumberTicketsPerBuy };
     }
@@ -26,7 +29,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       Finding.fromObject({
         name: "Function Call",
         description: `PancakeSwapLottery: ${functionCall.name}`,
-        alertId: "CAKE-8-3",
+        alertId,
         protocol: "PancakeSwap",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
