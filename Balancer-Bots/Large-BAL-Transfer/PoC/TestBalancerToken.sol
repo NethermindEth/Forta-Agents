@@ -2,7 +2,7 @@
 pragma solidity ^0.6.0;
 
 contract TestBalancerToken {
-    uint256 _totalSupply = 50000000000000000000000000;
+    uint256 internal _totalSupply = 50000000000000000000000000;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
