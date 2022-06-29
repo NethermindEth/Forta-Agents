@@ -151,7 +151,7 @@ export const provideHandleTx =
               severity: FindingSeverity.Medium,
               type: FindingType.Suspicious,
               metadata: {
-                aacount: account,
+                acount: account,
               },
             })
           );
