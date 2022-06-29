@@ -37,19 +37,20 @@ describe("sandwich attack frontrun agent", () => {
   const mockTxEvent = createTransactionEvent({} as any);
 
 
-  const eventIrrelevant2 = TEST_IFACE.getEvent("Swap");
-  const logIrrelevant2 = TEST_IFACE.encodeEventLog(eventIrrelevant2, [
+  const eventGain = TEST_IFACE.getEvent("Swap");
+  const logGain = TEST_IFACE.encodeEventLog(eventGain, [
     createAddress("0xf0"),
-    createAddress("0xf7"),
-    createAddress("0xf8"),
-    20,
-    20,
+    "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", //USDC
+    "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", //WBTC
+    1,
+    1,
   ]);
 
   beforeAll(() => {
     handleTransaction = agent.handleTransaction;
   });
 
+  jest.setTimeout(25000);
   describe("handleTransaction", () => {
     //empty findings
     
@@ -76,7 +77,7 @@ describe("sandwich attack frontrun agent", () => {
         .setFrom(createAddress("0xf0"))
         .setTo(createAddress("0x0f"))
         .setBlock(1)
-        .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
+        .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
       const findings = await handler(transaction1);
 
       expect(findings).toStrictEqual([]);
@@ -86,15 +87,15 @@ describe("sandwich attack frontrun agent", () => {
 
   //Transaction found
 
-  it("returns findings if there is a sandwich attack frontrun (front-victim-back)", async () => {
-    //front
+  it("returns findings if there is an account with a suspicious amount of profitable trades", async () => {
     const transaction: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
       .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
-      .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
+      .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
 
-    let findings = await handler(transaction);
+    let findings = await handler(transaction); //for 5 grace trades
+    findings = await handler(transaction);
     findings = await handler(transaction);
     findings = await handler(transaction);
     findings = await handler(transaction);
@@ -102,20 +103,17 @@ describe("sandwich attack frontrun agent", () => {
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
-        name: "Sandwich Attack Frontrun",
-        description: `User ${createAddress("0xe0")} suffered a sandwich attack`,
-        alertId: "GMX-05",
+        name: "Unusual amount of profitable trades",
+        description: `User ${createAddress("0xf0").toLowerCase()} has a ${(6 / 6) * 100}% profitable trade ratio`,
+        alertId: "GMX-07",
         protocol: "GMX",
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
         metadata: {
-          victimAddress: createAddress("0xe0"),
-          victimTokenIn: createAddress("0xf1"),
-          victimTokenOut: createAddress("0xf2"),
-          victimTokenInAmount: "50",
-          victimTokenOutAmount: "40",
-          frontrunnerAddress: createAddress("0xf0"),
-          frontrunnerProfit: "10", //in terms of tokenIn
+          acount: createAddress("0xf0").toLowerCase(),
+          profitableTrades: "6",
+          totalTrades: "6",
+          totalProfit: "10000000" //in USD
         },
       }),
     ]);

@@ -26,6 +26,8 @@ import {
 //DONE Make caching system
 
 //TODO: Write tests
+//TODO: Write Mock chainlink datafeed
+//TODO: Check if cache is working
 //TODO: Make it work for avalanche
 //TODO: Clean up & apply PR changes
 
@@ -57,16 +59,16 @@ const usdtPriceFeed = new ethers.Contract("0x3f3f5df88dc9f13eac63df89ec16ef6e7e2
 const daiPriceFeed = new ethers.Contract("0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb", aggregatorV3InterfaceABI, provider);
 const fraxPriceFeed = new ethers.Contract("0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8", aggregatorV3InterfaceABI, provider);
 const mimPriceFeed = new ethers.Contract("0x87121f6c9a9f6e90e59591e4cf4804873f54a95b", aggregatorV3InterfaceABI, provider);
-let priceFeeds = new Map<string, [ethers.Contract, number]>([]);
-priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",[wethPriceFeed, 18]); //WETH
-priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",[wbtcPriceFeed, 8]); //WBTC
-priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",[linkPriceFeed, 18]); //LINK
-priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",[uniPriceFeed, 18]); //UNI
-priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",[usdcPriceFeed, 6]); //USDC
-priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",[usdtPriceFeed, 6]); //USDT
-priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",[daiPriceFeed, 18]); //DAI
-priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",[fraxPriceFeed, 18]); //FRAX
-priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",[mimPriceFeed, 18]); //MIM
+let priceFeeds = new Map<string, ethers.Contract>([]);
+priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",wethPriceFeed); //WETH
+priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",wbtcPriceFeed); //WBTC
+priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",linkPriceFeed); //LINK
+priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",uniPriceFeed); //UNI
+priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",usdcPriceFeed); //USDC
+priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",usdtPriceFeed); //USDT
+priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",daiPriceFeed); //DAI
+priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",fraxPriceFeed); //FRAX
+priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",mimPriceFeed); //MIM
 
 let unusualTrades = 0; //REMOVE
 
@@ -74,7 +76,7 @@ export const provideHandleTx =
   (router: string, swapEvent: string, theProvider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
-    console.log(unusualTrades); //REMOVE
+    console.log(unusualTrades.toString()); //REMOVE
     //detect calls to the GMX router
     if (txEvent.to == router) {
       for(let i = 0; i < swapEvents.length; i++) {
@@ -86,15 +88,13 @@ export const provideHandleTx =
           amountOut,
         } = swapEvents[i].args;
 
-        let tooManyProfitableTrades = false;
-
         let unitPriceIn = 0;
         let unitPriceOut = 0;
         if(priceFeedCache.has([tokenIn.toLowerCase(), txEvent.blockNumber])){
           unitPriceIn = priceFeedCache.get([tokenIn.toLowerCase(), txEvent.blockNumber])!;
         }
         else{
-          const {roundId: roundIdIn, answer: answerIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())![0].latestRoundData();
+          const {roundId: roundIdIn, answer: answerIn, startedAt: startedAtIn, updatedAt: updatedAtIn, answeredInRound: answeredInRoundIn} = await priceFeeds.get(tokenIn.toLowerCase())!.latestRoundData();
           priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerIn);
           unitPriceIn = answerIn;
         }
@@ -102,16 +102,17 @@ export const provideHandleTx =
           unitPriceOut = priceFeedCache.get([tokenOut.toLowerCase(), txEvent.blockNumber])!;
         }
         else{
-          const {roundId: roundIdOut, answer: answerOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())![0].latestRoundData();
+          const {roundId: roundIdOut, answer: answerOut, startedAt: startedAtOut, updatedAt: updatedAtOut, answeredInRound: answeredInRoundOut} = await priceFeeds.get(tokenOut.toLowerCase())!.latestRoundData();
           priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerOut);
           unitPriceOut = answerOut;
         }
 
         
-        const decimalsIn = priceFeeds.get(tokenIn.toLowerCase())![1];
-        const decimalsOut = priceFeeds.get(tokenOut.toLowerCase())![1];
-        const priceIn = unitPriceIn * (amountIn / 10**decimalsIn);
-        const priceOut = unitPriceOut * (amountOut / 10**decimalsOut);
+        const priceIn = unitPriceIn * (amountIn / 10**8);
+        console.log("AAAAAAAAAAA");
+        console.log(unitPriceIn.toString());
+        console.log(amountIn.toString());
+        const priceOut = unitPriceOut * (amountOut / 10**8);
 
         //check if the address has previous trades
         if (tradeHistory.has(account)) {
@@ -123,12 +124,33 @@ export const provideHandleTx =
             profitableTrades++;
           }
           totalTrades++;
-          totalProfit += (priceOut - priceIn) / 10**8;
+          totalProfit += (priceOut - priceIn);
+          console.log(priceIn);
+          console.log(priceOut);
+          console.log(totalProfit);
 
           tradeHistory.set(account, [profitableTrades, totalTrades, totalProfit]);
           
+          //if an account using gmx has an unusual amount of profitable trades, report it
           if(profitableTrades / totalTrades >= PROFIT_RATIO && totalTrades > GRACE_TRADES){
-            tooManyProfitableTrades = true;
+
+            findings.push(
+              Finding.fromObject({
+                name: "Unusual amount of profitable trades",
+                description: `User ${account.toLowerCase()} has a ${(profitableTrades / totalTrades) * 100}% profitable trade ratio`,
+                alertId: "GMX-07",
+                protocol: "GMX",
+                severity: FindingSeverity.Medium,
+                type: FindingType.Suspicious,
+                metadata: {
+                  acount: account.toLowerCase(),
+                  profitableTrades: profitableTrades.toString(),
+                  totalTrades: totalTrades.toString(),
+                  totalProfit: totalProfit.toString() //in USD
+                },
+              })
+            );
+            unusualTrades++; //REMOVE
           }
 
         }
@@ -141,22 +163,6 @@ export const provideHandleTx =
           tradeHistory.set(account, [profitableTrades, 1, (priceOut - priceIn) / 10**8]);
         }
 
-        //if an account using gmx has an unusual amount of profitable trades, report it
-        if (tooManyProfitableTrades) {
-          findings.push(
-            Finding.fromObject({
-              name: "Sandwich Attack Frontrun",
-              description: `User ${account.toLowerCase()} has a ${PROFIT_RATIO * 100}% profitable trade ratio`,
-              alertId: "GMX-05",
-              severity: FindingSeverity.Medium,
-              type: FindingType.Suspicious,
-              metadata: {
-                acount: account,
-              },
-            })
-          );
-          unusualTrades++; //REMOVE
-        }
       }
     }
     return findings;
