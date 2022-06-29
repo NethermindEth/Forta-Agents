@@ -1,93 +1,60 @@
-import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent } from "forta-agent";
+import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+
+import {SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING, SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING} from "./bot.test.constants"
 
 import bot from "./function.call.listener";
-import { ABI, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
+import { ABI, PANCAKE_SWAP_LOTTERY_ADDRESS, FUNCTION_NAMES } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+  let mockTxEvent: TestTransactionEvent 
+
+  let functionInterface: ethers.utils.Interface
+
+  beforeEach(() => {
+
+    mockTxEvent = new TestTransactionEvent()
+
+  })
 
   beforeAll(() => {
     handleTransaction = bot.handleTransaction;
+    functionInterface = new ethers.utils.Interface(ABI)
   });
 
   describe("Function Calls handleTransaction", () => {
     it("returns no findings if no function called", async () => {
-      mockTxEvent.filterFunction = jest.fn().mockReturnValue([]);
+      
+      const data = "0x000"
+      mockTxEvent.setData(data).setTo(PANCAKE_SWAP_LOTTERY_ADDRESS)
 
       const findings = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
+     
     });
 
     it("returns findings if function setMinAndMaxTicketPriceInCake is called", async () => {
-      const mockSwapEvent = {
-        args: {
-          _minPriceTicketInCake: "1000000",
-          _maxPriceTicketInCake: "2000000",
-        },
-        name: "setMinAndMaxTicketPriceInCake",
-      };
-
-      mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockSwapEvent]);
+      
+      const data = functionInterface.encodeFunctionData(FUNCTION_NAMES[0], [100000, 200000])
+      mockTxEvent.setData(data).setTo(PANCAKE_SWAP_LOTTERY_ADDRESS)
 
       const findings = await handleTransaction(mockTxEvent);
 
-      const name = mockSwapEvent.name;
+      expect(findings).toStrictEqual([SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING]);
 
-      const { _minPriceTicketInCake, _maxPriceTicketInCake } = mockSwapEvent.args;
-
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "Function Call",
-          description: `PancakeSwapLottery: ${name}`,
-          alertId: "CAKE-8-3",
-          protocol: "PancakeSwap",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          metadata: {
-            _minPriceTicketInCake,
-            _maxPriceTicketInCake,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
 
     it("returns findings if function setMaxNumberTicketsPerBuy is called", async () => {
-      const mockSwapEvent = {
-        args: {
-          _maxNumberTicketsPerBuy: "10",
-        },
-        name: "setMaxNumberTicketsPerBuy",
-      };
 
-      mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockSwapEvent]);
+      const data = functionInterface.encodeFunctionData(FUNCTION_NAMES[1], [10])
+      mockTxEvent.setData(data).setTo(PANCAKE_SWAP_LOTTERY_ADDRESS)
 
-      const findings = await handleTransaction(mockTxEvent);
+      const findings: Finding[] = await handleTransaction(mockTxEvent)
 
-      const name = mockSwapEvent.name;
+      expect(findings).toStrictEqual([SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING])
 
-      const { _maxNumberTicketsPerBuy } = mockSwapEvent.args;
-
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "Function Call",
-          description: `PancakeSwapLottery: ${name}`,
-          alertId: "CAKE-8-3",
-          protocol: "PancakeSwap",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          metadata: {
-            _maxNumberTicketsPerBuy,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(ABI, PANCAKE_SWAP_LOTTERY_ADDRESS);
     });
   });
 });
