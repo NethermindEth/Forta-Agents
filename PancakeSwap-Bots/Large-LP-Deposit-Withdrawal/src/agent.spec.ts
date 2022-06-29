@@ -11,7 +11,7 @@ const MOCK_IFACE: Interface = new Interface(EVENTS_ABI);
 const MOCK_FACTORY: string = createAddress("0x1111");
 
 const MOCK_POOL_SUPPLY_THRESHOLD: BigNumber = BigNumber.from(10000);
-const MOCK_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(50);
+const MOCK_THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(10);
 
 // valid, token0, token1, amount0, amount1, totalSupply
 const CASES: [boolean, string, string, string, string, BigNumber][] = [
@@ -73,7 +73,7 @@ const FAIL_CASES: [boolean, string, string, string, string, BigNumber][] = [
     createAddress("0xbaaa"),
     "200000000000000000",
     "300000000000000",
-    BigNumber.from(65000), // low totalSupply
+    BigNumber.from(7500), // low totalSupply
   ],
 ];
 
@@ -82,7 +82,7 @@ const testBlocks: number[] = [341530, 341531, 341532];
 //balance0, balance1
 const BALANCES: BigNumber[][] = [
   [BigNumber.from(95344598534), BigNumber.from(34945853498)],
-  [BigNumber.from(1953495), BigNumber.from(1349853)],
+  [BigNumber.from(19535), BigNumber.from(13498)],
   [BigNumber.from(65976577567), BigNumber.from(1231234596599)],
 ];
 
@@ -185,17 +185,36 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should ignore small LP deposit to Pancakeswap pool", async () => {
+  it("should ignore small LP deposit to large Pancakeswap pools", async () => {
     const pool = mockCreatePair(FAIL_CASES[0][1], FAIL_CASES[0][2]);
     when(mockGetPoolData)
       .calledWith(testBlocks[1], pool)
-      .mockReturnValue([true, FAIL_CASES[0][1], FAIL_CASES[0][2], FAIL_CASES[1][5]]);
+      .mockReturnValue([FAIL_CASES[0][0], FAIL_CASES[0][1], FAIL_CASES[0][2], FAIL_CASES[0][5]]);
     when(mockGetPoolBalance)
       .calledWith(testBlocks[1], pool, FAIL_CASES[0][1], FAIL_CASES[0][2])
-      .mockReturnValue([BALANCES[1][1], BALANCES[1][1]]);
-    const event: utils.EventFragment = MOCK_IFACE.getEvent("Mint");
+      .mockReturnValue([BALANCES[0][0], BALANCES[0][1]]);
 
+    const event: utils.EventFragment = MOCK_IFACE.getEvent("Mint");
     const eventLog = MOCK_IFACE.encodeEventLog(event, [pool, FAIL_CASES[0][3], FAIL_CASES[0][4]]);
+    txEvent = new TestTransactionEvent()
+      .setBlock(testBlocks[2])
+      .addAnonymousEventLog(pool, eventLog.data, ...eventLog.topics);
+    findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore large deposits to small Pancakeswap pools", async () => {
+    const pool = mockCreatePair(FAIL_CASES[1][1], FAIL_CASES[1][2]);
+    when(mockGetPoolData)
+      .calledWith(testBlocks[1], pool)
+      .mockReturnValue([FAIL_CASES[1][0], FAIL_CASES[1][1], FAIL_CASES[1][2], FAIL_CASES[1][5]]);
+
+    when(mockGetPoolBalance)
+      .calledWith(testBlocks[1], pool, FAIL_CASES[1][1], FAIL_CASES[1][2])
+      .mockReturnValue([BALANCES[1][0], BALANCES[1][1]]);
+
+    const event: utils.EventFragment = MOCK_IFACE.getEvent("Mint");
+    const eventLog = MOCK_IFACE.encodeEventLog(event, [pool, FAIL_CASES[1][3], FAIL_CASES[1][4]]);
     txEvent = new TestTransactionEvent()
       .setBlock(testBlocks[2])
       .addAnonymousEventLog(pool, eventLog.data, ...eventLog.topics);
@@ -210,7 +229,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
       .mockReturnValue([CASES[1][0], CASES[1][1], CASES[1][2], CASES[1][5]]);
     when(mockGetPoolBalance)
       .calledWith(testBlocks[0], pool, CASES[1][1], CASES[1][2])
-      .mockReturnValue([BALANCES[0][0], BALANCES[0][1]]);
+      .mockReturnValue([BALANCES[1][0], BALANCES[1][1]]);
 
     const event = MOCK_IFACE.getEvent("Mint");
     const log = MOCK_IFACE.encodeEventLog(event, [pool, CASES[1][3], CASES[1][4]]);
@@ -218,7 +237,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
       .setBlock(testBlocks[1])
       .addAnonymousEventLog(pool, log.data, ...log.topics);
 
-    const findings: Finding[] = await handleTransaction(txEvent);
+    findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       mockCreateFinding("Mint", pool, CASES[1][1], CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][5].toString()),
     ]);
@@ -239,7 +258,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
       .setBlock(testBlocks[1])
       .addAnonymousEventLog(pool, log.data, ...log.topics);
 
-    const findings: Finding[] = await handleTransaction(txEvent);
+    findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       mockCreateFinding("Burn", pool, CASES[1][1], CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][5].toString()),
     ]);
@@ -268,7 +287,7 @@ describe("Large LP Deposit/Withdraw Test Suite", () => {
       .addAnonymousEventLog(pool, log2.data, ...log2.topics)
       .addAnonymousEventLog(pool, log3.data, ...log3.topics);
 
-    const findings: Finding[] = await handleTransaction(txEvent);
+    findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       mockCreateFinding("Mint", pool, CASES[1][1], CASES[1][2], CASES[1][3], CASES[1][4], CASES[1][5].toString()),
       mockCreateFinding("Mint", pool, CASES[1][1], CASES[1][2], CASES[2][3], CASES[2][4], CASES[1][5].toString()),
