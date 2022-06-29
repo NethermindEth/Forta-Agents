@@ -1,4 +1,4 @@
-import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { Finding, HandleBlock, BlockEvent, getEthersProvider, Initialize } from "forta-agent";
 import { providers, utils, Contract } from "ethers";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
@@ -11,7 +11,7 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-export const initialize = (networkManager: NetworkManager<NetworkData>, provider: providers.Provider) => {
+const provideInitialize = (networkManager: NetworkManager<NetworkData>, provider: providers.Provider): Initialize => {
   return async () => {
     await networkManager.init(provider);
   };
@@ -75,6 +75,6 @@ export const provideHandleBlock = (
 };
 
 export default {
-  initialize: initialize(networkManager, getEthersProvider()),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
 };
