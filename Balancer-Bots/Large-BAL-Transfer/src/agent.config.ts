@@ -5,7 +5,8 @@ const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Address of BAL token contract
     balToken: "0xba100000625a3754423978a60c9317c58a424e3d",
-    // Minimum percentage token amount relative to the BAL token's balance
+    // Minimum percentage token transfer amount relative to BAL total supply in that network that leads to a finding
+    // (in %)
     threshold: "5",
   },
 
@@ -20,11 +21,11 @@ const CONFIG: AgentConfig = {
   },
 };
 
-// this line is for the Kovan testnet test:
-CONFIG[42] = {
-  balToken: "0xdba73aCEa7BC780f4c3f565732c10fDcAC5b28D6",
-  threshold: "10",
-};
+// Uncomment these lines for the Kovan testnet test:
+// CONFIG[42] = {
+//   balToken: "0xdba73aCEa7BC780f4c3f565732c10fDcAC5b28D6",
+//   threshold: "10",
+// };
 
 // Uncomment these lines for the mainnet, Polygon or Arbitrum tests:
 // CONFIG[Network.MAINNET].threshold = "0";
