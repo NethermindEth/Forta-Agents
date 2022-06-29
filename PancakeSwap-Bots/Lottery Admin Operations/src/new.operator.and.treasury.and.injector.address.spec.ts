@@ -14,30 +14,23 @@ describe("PancakeSwap Lottery", () => {
 
   describe("NewOperatorAndTreasuryAndInjectorAddresses handleTransaction", () => {
     it("returns no findings if there are no NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
-
       const findings = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
-
     });
 
     it("returns findings if there are NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
-
-      let eventInterface = new ethers.utils.Interface([EVENTS.NewOperatorAndTreasuryAndInjectorAddresses])
-      let operator = createAddress("0x0123")
-      let treasury = createAddress("0x0456")
-      let injector = createAddress("0x0789")
+      let eventInterface = new ethers.utils.Interface([EVENTS.NewOperatorAndTreasuryAndInjectorAddresses]);
+      let operator = createAddress("0x0123");
+      let treasury = createAddress("0x0456");
+      let injector = createAddress("0x0789");
 
       const eventLog = eventInterface.encodeEventLog(
-        eventInterface.getEvent('NewOperatorAndTreasuryAndInjectorAddresses'),
-        [
-          operator,
-          treasury,
-          injector
-        ]
-      )
-      
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics)
+        eventInterface.getEvent("NewOperatorAndTreasuryAndInjectorAddresses"),
+        [operator, treasury, injector]
+      );
+
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
 
       const findings = await handleTransaction(mockTxEvent);
 
@@ -52,11 +45,10 @@ describe("PancakeSwap Lottery", () => {
           metadata: {
             operator,
             treasury,
-            injector
+            injector,
           },
         }),
       ]);
-
     });
   });
 });

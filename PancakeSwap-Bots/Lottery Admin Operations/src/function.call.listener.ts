@@ -12,18 +12,14 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     let metadata = {};
 
     if (functionCall.name === FUNCTION_NAMES[0]) {
-
-      let _minPriceTicketInCake = functionCall.args._minPriceTicketInCake.toString()
-      let _maxPriceTicketInCake  = functionCall.args._maxPriceTicketInCake.toString();
+      let _minPriceTicketInCake = functionCall.args._minPriceTicketInCake.toString();
+      let _maxPriceTicketInCake = functionCall.args._maxPriceTicketInCake.toString();
 
       metadata = { _minPriceTicketInCake, _maxPriceTicketInCake };
-
     } else if (functionCall.name === FUNCTION_NAMES[1]) {
-
-      let  _maxNumberTicketsPerBuy  = functionCall.args._maxNumberTicketsPerBuy.toString();
+      let _maxNumberTicketsPerBuy = functionCall.args._maxNumberTicketsPerBuy.toString();
 
       metadata = { _maxNumberTicketsPerBuy };
-
     }
 
     findings.push(
