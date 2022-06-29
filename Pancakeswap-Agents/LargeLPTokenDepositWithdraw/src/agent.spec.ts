@@ -5,7 +5,7 @@ import {
   createAddress,
 } from "forta-agent-tools/lib/tests";
 
-import { BigNumber, utils, ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { provideHandleTransaction } from "./agent";
 import { 
   MASTERCHEF_ABI,
@@ -13,7 +13,6 @@ import {
   IBEP20_ABI
  } from "./constants";
 import { BotConfig } from "./config";
-import { createFinding } from "./findings";
 
 // Add mock calls to the provider
 const MASTERCHEF_INTERFACE = new ethers.utils.Interface(MASTERCHEF_ABI);
