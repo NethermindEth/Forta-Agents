@@ -32,18 +32,6 @@ export const NEW_OPERATOR_TREASURY_INJECTOR_FINDING = Finding.fromObject({
   },
 });
 
-export const SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING = Finding.fromObject({
-  name: "Function Call",
-  description: "PancakeSwapLottery: setMaxNumberTicketsPerBuy",
-  alertId: "CAKE-8-3",
-  protocol: "PancakeSwap",
-  severity: FindingSeverity.Info,
-  type: FindingType.Info,
-  metadata: {
-    _maxNumberTicketsPerBuy: "10",
-  },
-});
-
 export const SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING = Finding.fromObject({
   name: "Function Call",
   description: "PancakeSwapLottery: setMinAndMaxTicketPriceInCake",
@@ -56,3 +44,16 @@ export const SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING = Finding.fromObject({
     _maxPriceTicketInCake: "200000",
   },
 });
+
+export const SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING = Finding.fromObject({
+  name: "Function Call",
+  description: "PancakeSwapLottery: setMaxNumberTicketsPerBuy",
+  alertId: "CAKE-8-4",
+  protocol: "PancakeSwap",
+  severity: FindingSeverity.Info,
+  type: FindingType.Info,
+  metadata: {
+    _maxNumberTicketsPerBuy: "10",
+  },
+});
+
