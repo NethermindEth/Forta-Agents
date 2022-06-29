@@ -23,7 +23,7 @@ export const provideHandleBlock = (
 ): HandleBlock => {
   const balIface = new utils.Interface(EVENT);
 
-  const topics = [vaultIface.getEventTopic("Transfer")];
+  const topics = [balIface.getEventTopic("Transfer")];
 
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
