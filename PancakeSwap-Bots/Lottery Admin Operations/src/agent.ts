@@ -16,7 +16,6 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
     return findings;
   };
-}
 
 export default {
   handleTransaction
