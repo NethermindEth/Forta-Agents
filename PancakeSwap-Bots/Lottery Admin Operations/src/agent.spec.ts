@@ -6,6 +6,7 @@ import {
   NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
   SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
   SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING,
+  MOCK_CONTRACT_ADDRESS,
   randomGenerator,
   operator,
   treasury,
@@ -14,7 +15,7 @@ import {
 
 import bot from "./agent";
 
-import { EVENTS, ABI, PANCAKE_SWAP_LOTTERY_ADDRESS, FUNCTION_NAMES } from "./bot.config";
+import { EVENTS, ABI, FUNCTION_NAMES } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -33,7 +34,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   beforeAll(() => {
-    handleTransaction = bot.handleTransaction;
+    handleTransaction = bot.providerHandleTransaction(MOCK_CONTRACT_ADDRESS);
 
     eventInterface = new ethers.utils.Interface([
       EVENTS.NewRandomGenerator,
@@ -53,7 +54,7 @@ describe("PancakeSwap Lottery", () => {
 
   describe("handleTransaction", () => {
     it("returns empty findings if no events is emitted or function called", async () => {
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, "", ...[]);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, "", ...[]);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -70,7 +71,7 @@ describe("PancakeSwap Lottery", () => {
 
     it("returns finding if function is called", async () => {
       const data = functionInterface.encodeFunctionData(FUNCTION_NAMES[1], [10]);
-      mockTxEvent.setData(data).setTo(PANCAKE_SWAP_LOTTERY_ADDRESS);
+      mockTxEvent.setData(data).setTo(MOCK_CONTRACT_ADDRESS);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -78,8 +79,8 @@ describe("PancakeSwap Lottery", () => {
     });
 
     it("returns findings with events emitted", async () => {
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -87,12 +88,12 @@ describe("PancakeSwap Lottery", () => {
     });
 
     it("returns findings with Event and Function call alerts", async () => {
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
 
       //encode data into mockTxEvent to simulate function call
       const data = functionInterface.encodeFunctionData(FUNCTION_NAMES[0], [100000, 200000]);
-      mockTxEvent.setData(data).setTo(PANCAKE_SWAP_LOTTERY_ADDRESS);
+      mockTxEvent.setData(data).setTo(MOCK_CONTRACT_ADDRESS);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 

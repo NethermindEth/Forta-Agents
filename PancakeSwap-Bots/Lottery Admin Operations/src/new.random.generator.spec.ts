@@ -1,10 +1,10 @@
 import { HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 
-import { NEW_RANDOM_GENERATOR_FINDING, randomGenerator } from "./bot.test.constants";
+import { NEW_RANDOM_GENERATOR_FINDING, randomGenerator, MOCK_CONTRACT_ADDRESS } from "./bot.test.constants";
 
 import bot from "./new.random.generator";
-import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
+import { EVENTS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -16,7 +16,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   beforeAll(() => {
-    handleTransaction = bot.handleTransaction;
+    handleTransaction = bot.providerHandleTransaction(MOCK_CONTRACT_ADDRESS);
     eventInterface = new ethers.utils.Interface([EVENTS.NewRandomGenerator]);
   });
 
@@ -30,7 +30,7 @@ describe("PancakeSwap Lottery", () => {
     it("returns findings if there are NewRandomGenerator events emitted ", async () => {
       const eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("NewRandomGenerator"), [randomGenerator]);
 
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
 
       const findings = await handleTransaction(mockTxEvent);
 
@@ -40,9 +40,9 @@ describe("PancakeSwap Lottery", () => {
     it("returns findings if there are multiple NewRandomGenerator events emitted ", async () => {
       const eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("NewRandomGenerator"), [randomGenerator]);
 
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
 
       const findings = await handleTransaction(mockTxEvent);
 
@@ -57,7 +57,7 @@ describe("PancakeSwap Lottery", () => {
       let wrongEventInterface = new ethers.utils.Interface(["event WrongEvent(uint256 x)"]);
 
       const eventLog = wrongEventInterface.encodeEventLog(wrongEventInterface.getEvent("WrongEvent"), [120]);
-      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
 
       const findings = await handleTransaction(mockTxEvent);
 

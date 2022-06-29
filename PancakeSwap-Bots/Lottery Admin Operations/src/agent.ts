@@ -1,21 +1,28 @@
-import { HandleTransaction, TransactionEvent } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 
 import newGeneratorBot from "./new.random.generator";
 import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
+import { PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings = (
-    await Promise.all([
-      newGeneratorBot.handleTransaction(txEvent),
-      newOperatorBot.handleTransaction(txEvent),
-      functionCallBot.handleTransaction(txEvent),
-    ])
-  ).flat();
+function providerHandleTransaction(contractAddress: string): HandleTransaction {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    let newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(contractAddress);
+    let newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(contractAddress);
+    let functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(contractAddress);
 
-  return findings;
-};
+    const findings = (
+      await Promise.all([
+        newGeneratorBotHandleTransaction(txEvent),
+        newOperatorBotHandleTransaction(txEvent),
+        functionCallBotHandleTransaction(txEvent),
+      ])
+    ).flat();
 
+    return findings;
+  };
+}
 export default {
-  handleTransaction,
+  providerHandleTransaction,
+  handleTransaction: providerHandleTransaction(PANCAKE_SWAP_LOTTERY_ADDRESS),
 };
