@@ -4,12 +4,7 @@ import newGeneratorBot from "./new.random.generator";
 import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
 
-function provideHandleTransaction(
-  newGeneratorBot: any,
-  newOperatorBot: any,
-  functionCallBot: any
-): HandleTransaction {
-  return async function handleTransaction(txEvent: TransactionEvent) {
+const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
 
     const findings = (
       await Promise.all([
@@ -24,6 +19,5 @@ function provideHandleTransaction(
 }
 
 export default {
-  provideHandleTransaction,
-  handleTransaction: provideHandleTransaction(newGeneratorBot, newOperatorBot, functionCallBot),
+  handleTransaction
 };
