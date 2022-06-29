@@ -34,7 +34,7 @@ describe("PancakeSwap Lottery", () => {
   });
 
   beforeAll(() => {
-    handleTransaction = bot.providerHandleTransaction(MOCK_CONTRACT_ADDRESS);
+    handleTransaction = bot.handleTransaction;
 
     eventInterface = new ethers.utils.Interface([
       EVENTS.NewRandomGenerator,
@@ -55,7 +55,7 @@ describe("PancakeSwap Lottery", () => {
   describe("handleTransaction", () => {
     it("returns empty findings if no events is emitted or function called", async () => {
       mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, "", ...[]);
-
+      
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
