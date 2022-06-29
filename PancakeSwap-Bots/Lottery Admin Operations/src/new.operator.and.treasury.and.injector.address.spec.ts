@@ -1,15 +1,23 @@
-import { Finding, FindingType, FindingSeverity, HandleTransaction, ethers } from "forta-agent";
-import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
+import { HandleTransaction, ethers } from "forta-agent";
+import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
+
+import { operator, treasury, injector, NEW_OPERATOR_TREASURY_INJECTOR_FINDING } from "./bot.test.constants";
 
 import bot from "./new.operator.and.treasury.and.injector.address";
 import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
-  let mockTxEvent: TestTransactionEvent = new TestTransactionEvent();
+  let mockTxEvent: TestTransactionEvent;
+  let eventInterface: ethers.utils.Interface;
+
+  beforeEach(() => {
+    mockTxEvent = new TestTransactionEvent();
+  });
 
   beforeAll(() => {
     handleTransaction = bot.handleTransaction;
+    eventInterface = new ethers.utils.Interface([EVENTS.NewOperatorAndTreasuryAndInjectorAddresses]);
   });
 
   describe("NewOperatorAndTreasuryAndInjectorAddresses handleTransaction", () => {
@@ -19,12 +27,7 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns findings if there are NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
-      let eventInterface = new ethers.utils.Interface([EVENTS.NewOperatorAndTreasuryAndInjectorAddresses]);
-      let operator = createAddress("0x0123");
-      let treasury = createAddress("0x0456");
-      let injector = createAddress("0x0789");
-
+    it("returns finding if there is one NewOperatorAndTreasuryAndInjectorAddresses event emitted ", async () => {
       const eventLog = eventInterface.encodeEventLog(
         eventInterface.getEvent("NewOperatorAndTreasuryAndInjectorAddresses"),
         [operator, treasury, injector]
@@ -34,21 +37,38 @@ describe("PancakeSwap Lottery", () => {
 
       const findings = await handleTransaction(mockTxEvent);
 
+      expect(findings).toStrictEqual([NEW_OPERATOR_TREASURY_INJECTOR_FINDING]);
+    });
+
+    it("returns findings if there are multiple NewOperatorAndTreasuryAndInjectorAddresses events emitted ", async () => {
+      const eventLog = eventInterface.encodeEventLog(
+        eventInterface.getEvent("NewOperatorAndTreasuryAndInjectorAddresses"),
+        [operator, treasury, injector]
+      );
+
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+
+      const findings = await handleTransaction(mockTxEvent);
+
       expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "New Operator And Treasury And Injector Addresses",
-          description: "PancakeSwapLottery: New Operator And Treasury And Injector Addresses",
-          alertId: "CAKE-8-2",
-          protocol: "PancakeSwap",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          metadata: {
-            operator,
-            treasury,
-            injector,
-          },
-        }),
+        NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
+        NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
+        NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
       ]);
+    });
+
+    it("returns no findings if the event emitted is not the correct one ", async () => {
+      
+      let wrongEventInterface = new ethers.utils.Interface(["event WrongEvent(uint256 x)"]);
+
+      const eventLog = wrongEventInterface.encodeEventLog(wrongEventInterface.getEvent("WrongEvent"), [120]);
+      mockTxEvent.addAnonymousEventLog(PANCAKE_SWAP_LOTTERY_ADDRESS, eventLog.data, ...eventLog.topics);
+
+      const findings = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([]);
     });
   });
 });
