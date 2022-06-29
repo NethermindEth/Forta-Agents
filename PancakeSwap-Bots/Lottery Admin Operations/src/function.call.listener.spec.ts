@@ -1,4 +1,4 @@
-import { Finding, FindingType, FindingSeverity, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import { Finding, HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 
 import { SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING, SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING } from "./bot.test.constants";
