@@ -18,8 +18,8 @@ const provideInitialize = (networkManager: NetworkManager<NetworkData>, provider
 };
 
 export const provideHandleBlock = (
-  provider: providers.Provider,
-  networkManager: NetworkManager<NetworkData>
+  networkManager: NetworkManager<NetworkData>,
+  provider: providers.Provider
 ): HandleBlock => {
   const vaultIface = new utils.Interface(EVENT);
 
@@ -76,5 +76,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
+  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
 };

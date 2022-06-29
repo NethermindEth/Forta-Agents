@@ -102,7 +102,7 @@ describe("Large pool balance changes", () => {
 
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
-    handleBlock = provideHandleBlock(provider, networkManager);
+    handleBlock = provideHandleBlock(networkManager, provider);
   });
 
   it("returns empty findings for empty transactions", async () => {
