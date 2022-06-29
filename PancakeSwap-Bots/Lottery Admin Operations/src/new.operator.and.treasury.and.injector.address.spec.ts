@@ -1,7 +1,7 @@
 import { Finding, FindingType, FindingSeverity, HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests.utils";
 
-import agent from "./new.operator.and.treasury.and.injector.address";
+import bot from "./new.operator.and.treasury.and.injector.address";
 import { EVENTS, PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
@@ -9,7 +9,7 @@ describe("PancakeSwap Lottery", () => {
   let mockTxEvent: TestTransactionEvent = new TestTransactionEvent();
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = bot.handleTransaction;
   });
 
   describe("NewOperatorAndTreasuryAndInjectorAddresses handleTransaction", () => {
