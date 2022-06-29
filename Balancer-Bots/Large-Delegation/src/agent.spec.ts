@@ -147,7 +147,7 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
   it("should ignore delegations whose id is not 'balancer.eth'", async () => {
     const blockEvent = new TestBlockEvent().setNumber(0);
 
-    mockProvider.addLogs([getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 1, ADDRESSES[0], "some.id", ADDRESSES[1])]);
+    mockProvider.addLogs([getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 0, ADDRESSES[0], "some.id", ADDRESSES[1])]);
 
     expect(await handleBlock(blockEvent)).toStrictEqual([]);
     expect(mockProvider.call).not.toHaveBeenCalled();
