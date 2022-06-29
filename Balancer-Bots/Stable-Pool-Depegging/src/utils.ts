@@ -33,9 +33,7 @@ export function provideGetAmpUpdateStartedLogs(
     const stablePoolAddresses = networkManager.get("stablePoolAddresses");
 
     return encodedLogs
-      .filter(
-        (log) => stablePoolAddresses.includes(log.address) || stablePoolAddresses.includes(log.address.toLowerCase())
-      )
+      .filter((log) => stablePoolAddresses.find((address) => address.toLowerCase() === log.address.toLowerCase()))
       .map((log) => ({ ...stablePoolIface.parseLog(log), emitter: log.address }));
   };
 }
