@@ -18,16 +18,13 @@ export default class BalanceFetcher {
     this.tokenContract = new Contract(this.tokenAddress, new Interface(TOKEN_ABI), this.provider);
   }
 
-  // Function to set the token address.
-  public setData(_tokenAddress: string) {
+  // Main function to fetch the contract balance.
+  public async getBalance(block: number | string, vaultAddress: string, _tokenAddress: string): Promise<BigNumber> {
     this.tokenAddress = _tokenAddress;
     if (this.tokenContract.address != this.tokenAddress) {
       this.tokenContract = this.tokenContract.attach(this.tokenAddress);
     }
-  }
 
-  // Main function to fetch the contract balance.
-  public async getBalance(block: number | string, vaultAddress: string): Promise<BigNumber> {
     const key: string = `${this.tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 

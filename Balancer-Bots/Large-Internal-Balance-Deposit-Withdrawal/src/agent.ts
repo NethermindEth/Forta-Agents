@@ -42,11 +42,14 @@ export const provideHandleBlock = (
     await Promise.all(
       logs.map(async (log) => {
         const delta: BigNumber = toBn(log.args.delta);
-        balanceFetcher.setData(log.args.token);
 
         // fetch token balance of the contract then set threshold.
         const totalBalance: BigNumber = toBn(
-          await balanceFetcher.getBalance(blockEvent.blockNumber - 1, networkManager.get("vaultAddress"))
+          await balanceFetcher.getBalance(
+            blockEvent.blockNumber - 1,
+            networkManager.get("vaultAddress"),
+            log.args.token
+          )
         );
 
         const _threshold = totalBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);

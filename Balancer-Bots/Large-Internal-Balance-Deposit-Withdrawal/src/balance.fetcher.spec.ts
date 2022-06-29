@@ -28,24 +28,13 @@ describe("BalanceFetcher tests suite", () => {
     fetcher = new BalanceFetcher(mockProvider as any);
   });
 
-  it("should set token address correctly", async () => {
-    for (let tokenAddress of TEST_DATA) {
-      // set fetcher data
-      fetcher.setData(tokenAddress);
-      expect(fetcher.tokenAddress).toStrictEqual(tokenAddress);
-    }
-    expect(mockProvider.call).toBeCalledTimes(0);
-  });
-
   it("should fetch balance and use cache correctly", async () => {
-    fetcher.setData(tokenAddress);
-
     for (let [block, balance] of TEST_BALANCES) {
       mockProvider.addCallTo(tokenAddress, block, BALANCE_IFACE, "balanceOf", {
         inputs: [VAULT_ADDRESS],
         outputs: [balance],
       });
-      const fetchedBalance = await fetcher.getBalance(block, VAULT_ADDRESS);
+      const fetchedBalance = await fetcher.getBalance(block, VAULT_ADDRESS, tokenAddress);
       expect(fetchedBalance).toStrictEqual(balance);
     }
     expect(mockProvider.call).toBeCalledTimes(5);
@@ -53,7 +42,7 @@ describe("BalanceFetcher tests suite", () => {
     // clear mockProvider to use cache
     mockProvider.clear();
     for (let [block, balance] of TEST_BALANCES) {
-      const fetchedBalance = await fetcher.getBalance(block, VAULT_ADDRESS);
+      const fetchedBalance = await fetcher.getBalance(block, VAULT_ADDRESS, tokenAddress);
       expect(fetchedBalance).toStrictEqual(balance);
     }
     expect(mockProvider.call).toBeCalledTimes(5);

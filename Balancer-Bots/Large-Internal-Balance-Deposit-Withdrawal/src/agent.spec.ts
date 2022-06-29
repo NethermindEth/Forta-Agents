@@ -96,7 +96,7 @@ describe("Large internal balance deposits/withdrawals", () => {
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
-    mockBalanceFetcher.setData(TEST_TOKEN);
+
     handleBlock = provideHandleBlock(provider, networkManager, mockBalanceFetcher);
   });
 
