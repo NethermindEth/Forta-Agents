@@ -56,7 +56,7 @@ export const provideHandleBlock = (
         if (bnValue.gte(_threshold)) {
           const percentage = bnValue.multipliedBy(100).dividedBy(totalSupply);
 
-          findings.push(createFinding(from, to, value, percentage));
+          findings.push(createFinding(from, to, bnValue, percentage));
         }
       })
     );
