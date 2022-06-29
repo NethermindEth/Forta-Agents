@@ -59,7 +59,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   },
 };
 
-describe("Large Bal Token Transfer Bot Test Suite", () => {
+describe("Large BAL Token Transfer Bot Test Suite", () => {
   let provider: ethers.providers.Provider;
   let mockProvider: MockEthersProvider;
   let networkManager: NetworkManager<NetworkData>;
