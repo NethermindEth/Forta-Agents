@@ -57,7 +57,7 @@ describe("sandwich attack frontrun agent", () => {
   ]);
 
   const eventIrrelevant2 = TEST_IFACE.getEvent("Swap");
-  const logIrrelevant2 = TEST_IFACE.encodeEventLog(eventIrrelevant1, [
+  const logIrrelevant2 = TEST_IFACE.encodeEventLog(eventIrrelevant2, [
     createAddress("0xf0"),
     createAddress("0xf7"),
     createAddress("0xf8"),
