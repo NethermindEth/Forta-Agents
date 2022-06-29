@@ -37,9 +37,7 @@ export const provideHandleBlock = (
       })
     ).map((el) => balIface.parseLog(el));
 
-    const balToken = SmartCaller.from(
-      new Contract(networkManager.get("balToken"), new utils.Interface(TOKEN_ABI), provider)
-    );
+    const balToken = SmartCaller.from(new Contract(networkManager.get("balToken"), TOKEN_ABI, provider));
 
     await Promise.all(
       logs.map(async (log) => {
