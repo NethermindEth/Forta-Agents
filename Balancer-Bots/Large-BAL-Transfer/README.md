@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with large Bal transfers.
+This bot detects transactions with large BAL transfers.
 
 The thresholds can be set inside `src/agent.config.ts` file.
 
@@ -15,7 +15,6 @@ The thresholds can be set inside `src/agent.config.ts` file.
 ## Alerts
 
 - BAL-7
-
   - Fired when there is a large pool exit from a pool
   - Severity is always set to "info"
   - Type is always set to "info"
