@@ -21,7 +21,7 @@ export const provideHandleBlock = (
   provider: providers.Provider,
   networkManager: NetworkManager<NetworkData>
 ): HandleBlock => {
-  const vaultIface = new utils.Interface(EVENT);
+  const balIface = new utils.Interface(EVENT);
 
   const topics = [vaultIface.getEventTopic("Transfer")];
 
@@ -35,7 +35,7 @@ export const provideHandleBlock = (
         fromBlock: blockEvent.blockNumber,
         toBlock: blockEvent.blockNumber,
       })
-    ).map((el) => vaultIface.parseLog(el));
+    ).map((el) => balIface.parseLog(el));
 
     const balToken = SmartCaller.from(
       new Contract(networkManager.get("balToken"), new utils.Interface(TOKEN_ABI), provider)
