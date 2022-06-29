@@ -49,26 +49,29 @@ const aggregatorV3InterfaceABI = [{ "inputs": [], "name": "decimals", "outputs":
 let tradeHistory = new Map<string, [number, number, number]>([]);
 
 let priceFeedCache = new Map<[string, number], number>([]);
-
-const wethPriceFeed = new ethers.Contract("0x639fe6ab55c921f74e7fac1ee960c0b6293ba612", aggregatorV3InterfaceABI, provider);
-const wbtcPriceFeed = new ethers.Contract("0x6ce185860a4963106506c203335a2910413708e9", aggregatorV3InterfaceABI, provider);
-const linkPriceFeed = new ethers.Contract("0x86e53cf1b870786351da77a57575e79cb55812cb", aggregatorV3InterfaceABI, provider);
-const uniPriceFeed = new ethers.Contract("0x9c917083fdb403ab5adbec26ee294f6ecada2720", aggregatorV3InterfaceABI, provider);
-const usdcPriceFeed = new ethers.Contract("0x50834f3163758fcc1df9973b6e91f0f0f0434ad3", aggregatorV3InterfaceABI, provider);
-const usdtPriceFeed = new ethers.Contract("0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7", aggregatorV3InterfaceABI, provider);
-const daiPriceFeed = new ethers.Contract("0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb", aggregatorV3InterfaceABI, provider);
-const fraxPriceFeed = new ethers.Contract("0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8", aggregatorV3InterfaceABI, provider);
-const mimPriceFeed = new ethers.Contract("0x87121f6c9a9f6e90e59591e4cf4804873f54a95b", aggregatorV3InterfaceABI, provider);
+const priceFeedData1 = {
+wethPriceFeed: new ethers.Contract("0x639fe6ab55c921f74e7fac1ee960c0b6293ba612", aggregatorV3InterfaceABI, provider),
+wbtcPriceFeed: new ethers.Contract("0x6ce185860a4963106506c203335a2910413708e9", aggregatorV3InterfaceABI, provider),
+linkPriceFeed: new ethers.Contract("0x86e53cf1b870786351da77a57575e79cb55812cb", aggregatorV3InterfaceABI, provider),
+uniPriceFeed: new ethers.Contract("0x9c917083fdb403ab5adbec26ee294f6ecada2720", aggregatorV3InterfaceABI, provider),
+usdcPriceFeed: new ethers.Contract("0x50834f3163758fcc1df9973b6e91f0f0f0434ad3", aggregatorV3InterfaceABI, provider),
+usdtPriceFeed: new ethers.Contract("0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7", aggregatorV3InterfaceABI, provider),
+daiPriceFeed: new ethers.Contract("0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb", aggregatorV3InterfaceABI, provider),
+fraxPriceFeed: new ethers.Contract("0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8", aggregatorV3InterfaceABI, provider),
+mimPriceFeed: new ethers.Contract("0x87121f6c9a9f6e90e59591e4cf4804873f54a95b", aggregatorV3InterfaceABI, provider)
+};
 let priceFeeds = new Map<string, ethers.Contract>([]);
-priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",wethPriceFeed); //WETH
-priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",wbtcPriceFeed); //WBTC
-priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",linkPriceFeed); //LINK
-priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",uniPriceFeed); //UNI
-priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",usdcPriceFeed); //USDC
-priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",usdtPriceFeed); //USDT
-priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",daiPriceFeed); //DAI
-priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",fraxPriceFeed); //FRAX
-priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",mimPriceFeed); //MIM
+export const initialize = (priceFeedData: any) => async () =>{
+priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1",priceFeedData.wethPriceFeed); //WETH
+priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",priceFeedData.wbtcPriceFeed); //WBTC
+priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4",priceFeedData.linkPriceFeed); //LINK
+priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0",priceFeedData.uniPriceFeed); //UNI
+priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8",priceFeedData.usdcPriceFeed); //USDC
+priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",priceFeedData.usdtPriceFeed); //USDT
+priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",priceFeedData.daiPriceFeed); //DAI
+priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f",priceFeedData.fraxPriceFeed); //FRAX
+priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",priceFeedData.mimPriceFeed); //MIM
+}
 
 let unusualTrades = 0; //REMOVE
 
@@ -109,9 +112,6 @@ export const provideHandleTx =
 
         
         const priceIn = unitPriceIn * (amountIn / 10**8);
-        console.log("AAAAAAAAAAA");
-        console.log(unitPriceIn.toString());
-        console.log(amountIn.toString());
         const priceOut = unitPriceOut * (amountOut / 10**8);
 
         //check if the address has previous trades
@@ -125,9 +125,6 @@ export const provideHandleTx =
           }
           totalTrades++;
           totalProfit += (priceOut - priceIn);
-          console.log(priceIn);
-          console.log(priceOut);
-          console.log(totalProfit);
 
           tradeHistory.set(account, [profitableTrades, totalTrades, totalProfit]);
           
@@ -143,7 +140,7 @@ export const provideHandleTx =
                 severity: FindingSeverity.Medium,
                 type: FindingType.Suspicious,
                 metadata: {
-                  acount: account.toLowerCase(),
+                  account: account.toLowerCase(),
                   profitableTrades: profitableTrades.toString(),
                   totalTrades: totalTrades.toString(),
                   totalProfit: totalProfit.toString() //in USD
@@ -175,6 +172,6 @@ export const provideHandleTx =
 // }
 
 export default {
+  initialize: initialize(priceFeedData1),
   handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, provider),
-  // handleBlock
 };

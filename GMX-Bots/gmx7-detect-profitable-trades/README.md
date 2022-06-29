@@ -16,7 +16,11 @@ Describe each of the type of alerts fired by this agent
   - Fired when an account using GMX has an unusual amount of profitable trades
   - Severity is always set to "Suspicious"
   - Type is always set to "Medium"
-  - Metadata included: 
+  - Metadata included:
+    - `account`: Address pf the account with the unusual amount of profitable trades
+    - `profitableTrades`: Number of profitable trades
+    - `totalTrades`: Number of total trades
+    - `totalProfit`: Total profit of the account, calculated from previous trades (in USD).
 
 ## Changing Network
 By default this bot uses the Arbitrum network, but it can be changed to Avalanche by setting "jsonRpcUrl" and "traceRpcUrl" to
