@@ -47,7 +47,7 @@ This bot detects the following PancakeSwap Lottery Admin Operations:
   
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0x1a79f536EB9E93570C30fd23Debf2a068Ea33d33)) :
+The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0x1a79f536EB9E93570C30fd23Debf2a068Ea33d33)):
 
   - `setMinAndMaxTicketPriceInCake` (expect 1 finding): 0x0653b663d16f09c1dda3df427f836fe72ba2acbb722bb3748b324e390c8b252b
   - `setMaxNumberTicketsPerBuy` (expect 1 finding): 0x8dbc3f96e49e667328032cbd28aeb1c277af496dae5d3920a19f07908377a567
