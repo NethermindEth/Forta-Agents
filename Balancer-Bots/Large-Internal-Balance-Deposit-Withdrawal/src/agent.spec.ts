@@ -136,7 +136,7 @@ describe("Large internal balance deposits/withdrawals", () => {
     expect(mockProvider.call).toHaveBeenCalledTimes(0);
   });
 
-  it("should not return findings for deposit that are not large", async () => {
+  it("should not return a finding for a deposit that is not large", async () => {
     const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
 
     mockProvider.addLogs([
@@ -147,7 +147,7 @@ describe("Large internal balance deposits/withdrawals", () => {
     expect(mockProvider.call).toHaveBeenCalledTimes(1);
   });
 
-  it("should not return findings for withdrawal that are not large", async () => {
+  it("should not return a finding for a withdrawal that is not large", async () => {
     const blockEvent = new TestBlockEvent().setNumber(TEST_BLOCK);
 
     mockProvider.addLogs([
