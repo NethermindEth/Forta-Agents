@@ -37,15 +37,15 @@ export const provideHandleBlock = (
       })
     ).map((el) => vaultIface.parseLog(el));
 
-    const balContract = new Contract(networkManager.get("balToken"), new utils.Interface(TOKEN_ABI), provider);
+    const balToken = SmartCaller.from(
+      new Contract(networkManager.get("balToken"), new utils.Interface(TOKEN_ABI), provider)
+    );
 
     await Promise.all(
       logs.map(async (log) => {
         const { to, from, value } = log.args;
 
         const bnValue = toBn(value);
-
-        const balToken = SmartCaller.from(balContract);
 
         const totalSupply = toBn(
           await balToken.totalSupply({
