@@ -1,3 +1,5 @@
+import { createAddress } from "forta-agent-tools/lib/tests.utils";
+
 export const EVENTS = {
   NewRandomGenerator: "event NewRandomGenerator(address indexed randomGenerator)",
   NewOperatorAndTreasuryAndInjectorAddresses:
@@ -11,5 +13,4 @@ export const ABI = [
 
 export const FUNCTION_NAMES = ["setMinAndMaxTicketPriceInCake", "setMaxNumberTicketsPerBuy"];
 
-export const PANCAKE_SWAP_LOTTERY_ADDRESS = "0x5aF6D33DE2ccEC94efb1bDF8f92Bd58085432d2c";
-export const TEST_PANCAKE_SWAP_LOTTERY_ADDRESS = "0x1a79f536EB9E93570C30fd23Debf2a068Ea33d33"; //test contract
+export const MOCK_CONTRACT_ADDRESS = createAddress("0x1a2c");
