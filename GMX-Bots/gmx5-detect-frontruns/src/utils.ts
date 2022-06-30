@@ -1,15 +1,12 @@
 interface NetworkData {
   address: string;
-  num: number;
 }
 const data: Record<number, NetworkData> = {
   42161: {
     address: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064",
-    num: 1,
   },
   43114: {
     address: "0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8",
-    num: 2,
   },
 };
 const SWAP_EVENT =
