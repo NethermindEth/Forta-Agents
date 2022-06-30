@@ -1,6 +1,6 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
-
-import { ABI, FUNCTION_NAMES } from "./abi";
+import { ABI } from "./abi";
+import { createFunctionFinding } from "./findings";
 
 function providerHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
@@ -11,32 +11,25 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
 
     functionCalls.forEach((functionCall) => {
       let metadata = {};
-      let alertId = "";
 
-      if (functionCall.name === FUNCTION_NAMES[0]) {
+      if (functionCall.name === "setMinAndMaxTicketPriceInCake") {
         let _minPriceTicketInCake = functionCall.args._minPriceTicketInCake.toString();
         let _maxPriceTicketInCake = functionCall.args._maxPriceTicketInCake.toString();
-        alertId = "CAKE-8-3";
 
         metadata = { _minPriceTicketInCake, _maxPriceTicketInCake };
-      } else if (functionCall.name === FUNCTION_NAMES[1]) {
+      } else {
         let _maxNumberTicketsPerBuy = functionCall.args._maxNumberTicketsPerBuy.toString();
-        alertId = "CAKE-8-4";
 
         metadata = { _maxNumberTicketsPerBuy };
       }
 
       findings.push(
-        Finding.fromObject({
-          name: "Function Call",
-          description: `PancakeSwapLottery: ${functionCall.name}`,
-          alertId,
-          protocol: "PancakeSwap",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          metadata,
-        })
-      );
+        createFunctionFinding(
+          functionCall.name,
+          functionCall.name,
+          metadata
+          )
+        );
     });
 
     return findings;
