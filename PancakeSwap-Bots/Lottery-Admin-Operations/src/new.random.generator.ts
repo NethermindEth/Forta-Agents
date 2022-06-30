@@ -1,6 +1,6 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 
-import { EVENTS } from "./bot.config";
+import { EVENTS } from "./abi";
 
 function providerHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {

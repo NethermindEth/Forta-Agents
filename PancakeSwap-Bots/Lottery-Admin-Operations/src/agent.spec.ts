@@ -3,6 +3,7 @@ import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests
 import { NetworkManager } from "forta-agent-tools";
 
 import {
+  MOCK_CONTRACT_ADDRESS,
   NEW_RANDOM_GENERATOR_FINDING,
   NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
   SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
@@ -15,7 +16,7 @@ import {
 
 import bot from "./agent";
 
-import { EVENTS, ABI, FUNCTION_NAMES, MOCK_CONTRACT_ADDRESS } from "./bot.config";
+import { EVENTS, ABI, FUNCTION_NAMES } from "./abi";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
