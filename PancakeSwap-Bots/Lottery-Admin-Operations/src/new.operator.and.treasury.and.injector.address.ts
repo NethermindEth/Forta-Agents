@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 
 import { EVENTS } from "./abi";
 import { createEventFinding } from "./findings";
