@@ -36,7 +36,7 @@ This bot detects large addition/removal of liquidity in PancakeSwap pools.
     - `token1`: The address of token1
     - `amount0`: The withdrawn amount of token0
     - `amount1`: The withdrawn amount of token1
-    - `totalSupply`: The total supply of the pool before the deposit transaction at the preceeding block
+    - `totalSupply`: The total supply of the pool before the withdrawal transaction at the preceeding block
     
 ## Test Data
 
