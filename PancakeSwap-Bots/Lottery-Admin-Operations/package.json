@@ -2,7 +2,7 @@
   "name": "pancakeswap-lottery-bot",
   "version": "0.0.1",
   "description": "PancakeSwap Lottery Bot to detect admin operations",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Lottery-admin-operations",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Lottery-Admin-Operations",
   "chainIds": [
     56
   ],
