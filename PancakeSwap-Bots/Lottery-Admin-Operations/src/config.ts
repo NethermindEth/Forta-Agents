@@ -3,7 +3,7 @@ export interface NetworkData {
     lotteryAddress: string;
   }
 
-export const data: Record<number, NetworkData> = {
+export const DATA: Record<number, NetworkData> = {
     56: {
       lotteryAddress: "0x5aF6D33DE2ccEC94efb1bDF8f92Bd58085432d2c", //BSC Mainnet contract address
     },
