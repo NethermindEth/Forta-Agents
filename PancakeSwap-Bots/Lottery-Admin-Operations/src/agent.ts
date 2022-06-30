@@ -34,7 +34,7 @@ const initialize = async () => {
   let num = networkManager.get("num"); 
 
   //select correct contract according to the network's chainId, default contract is MOCK_CONTRACT_ADDRESS
-  
+
   if (num === 1) {
     CONTRACT_ADDRESS = PANCAKE_SWAP_LOTTERY_ADDRESS;
   } else if (num === 2) {
