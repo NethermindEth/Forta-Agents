@@ -1,6 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
 
 import { EVENTS } from "./abi";
+import { createEventFinding } from "./findings";
 
 function providerHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
@@ -14,18 +15,12 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
       const { randomGenerator } = newRandomGeneratorEvent.args;
 
       findings.push(
-        Finding.fromObject({
-          name: "New Random Generator",
-          description: "PancakeSwapLottery: Random Number Generator changed",
-          alertId: "CAKE-8-1",
-          protocol: "PancakeSwap",
-          severity: FindingSeverity.Info,
-          type: FindingType.Info,
-          metadata: {
-            randomGenerator,
-          },
-        })
-      );
+        createEventFinding(
+          newRandomGeneratorEvent.name,
+          "Random Generator Address changed",
+          randomGenerator
+          )
+        );
     });
 
     return findings;
