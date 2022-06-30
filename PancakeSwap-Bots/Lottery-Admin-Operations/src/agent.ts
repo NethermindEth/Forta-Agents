@@ -1,64 +1,53 @@
-import { HandleTransaction, TransactionEvent, getEthersProvider, ethers } from "forta-agent";
+import { HandleTransaction, TransactionEvent, getEthersProvider, ethers, Initialize, Finding } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import newGeneratorBot from "./new.random.generator";
 import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
-import { PANCAKE_SWAP_LOTTERY_ADDRESS, TEST_PANCAKE_SWAP_LOTTERY_ADDRESS } from "./bot.config";
-import { MOCK_CONTRACT_ADDRESS } from "./bot.test.constants";
+import { MOCK_CONTRACT_ADDRESS } from "./bot.config";
 
-let CONTRACT_ADDRESS = MOCK_CONTRACT_ADDRESS;
-
-const initialize = async () => {
-
-  interface NetworkData {
-    network: string;
-    num: number;
-  }
-
-  const data: Record<number, NetworkData> = {
-    56: {
-      network: "BSC",
-      num: 1,
-    },
-    97: {
-      network: "BSCTestnet",
-      num: 2,
-    },
+interface NetworkData {
+  lotteryAddress: string;
+}
+const data: Record<number, NetworkData> = {
+  56: {
+    lotteryAddress: "0x5aF6D33DE2ccEC94efb1bDF8f92Bd58085432d2c",
+  },
+  97: {
+    lotteryAddress: "0x1a79f536EB9E93570C30fd23Debf2a068Ea33d33",
+  },
+};
+const networkManager = new NetworkManager(data);
+const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
   };
-
-  const provider = getEthersProvider();
-  const networkManager = new NetworkManager(data);
-
-  await networkManager.init(provider);
-
-  let num = networkManager.get("num"); 
-
-  //select correct contract according to the network's chainId, default contract is MOCK_CONTRACT_ADDRESS
-
-  if (num === 1) {
-    CONTRACT_ADDRESS = PANCAKE_SWAP_LOTTERY_ADDRESS;
-  } else if (num === 2) {
-    CONTRACT_ADDRESS = TEST_PANCAKE_SWAP_LOTTERY_ADDRESS;
-  }
 };
+const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    let lotteryAddress;
+    try {
+      lotteryAddress = networkManager.get("lotteryAddress");
+    } catch (e) {
+      lotteryAddress = MOCK_CONTRACT_ADDRESS;
+    }
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  let newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(CONTRACT_ADDRESS);
-  let newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(CONTRACT_ADDRESS);
-  let functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(CONTRACT_ADDRESS);
-
-  const findings = (
-    await Promise.all([
-      newGeneratorBotHandleTransaction(txEvent),
-      newOperatorBotHandleTransaction(txEvent),
-      functionCallBotHandleTransaction(txEvent),
-    ])
-  ).flat();
-
-  return findings;
+    let newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(lotteryAddress);
+    let newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(lotteryAddress);
+    let functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(lotteryAddress);
+    const findings = (
+      await Promise.all([
+        newGeneratorBotHandleTransaction(txEvent),
+        newOperatorBotHandleTransaction(txEvent),
+        functionCallBotHandleTransaction(txEvent),
+      ])
+    ).flat();
+    return findings;
+  };
 };
-
 export default {
-  initialize,
-  handleTransaction,
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
