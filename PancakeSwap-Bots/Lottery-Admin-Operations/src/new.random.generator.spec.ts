@@ -1,10 +1,10 @@
 import { HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 
-import { NEW_RANDOM_GENERATOR_FINDING, randomGenerator, MOCK_CONTRACT_ADDRESS } from "./bot.test.constants";
+import { NEW_RANDOM_GENERATOR_FINDING, randomGenerator } from "./bot.test.constants";
 
 import bot from "./new.random.generator";
-import { EVENTS } from "./bot.config";
+import { EVENTS, MOCK_CONTRACT_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;

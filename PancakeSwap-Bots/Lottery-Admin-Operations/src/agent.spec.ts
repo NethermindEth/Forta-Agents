@@ -6,7 +6,6 @@ import {
   NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
   SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
   SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING,
-  MOCK_CONTRACT_ADDRESS,
   randomGenerator,
   operator,
   treasury,
@@ -15,7 +14,7 @@ import {
 
 import bot from "./agent";
 
-import { EVENTS, ABI, FUNCTION_NAMES } from "./bot.config";
+import { EVENTS, ABI, FUNCTION_NAMES, MOCK_CONTRACT_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;

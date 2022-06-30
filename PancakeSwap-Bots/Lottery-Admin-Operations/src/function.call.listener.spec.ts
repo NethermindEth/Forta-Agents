@@ -1,14 +1,10 @@
 import { Finding, HandleTransaction, ethers } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 
-import {
-  SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
-  SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING,
-  MOCK_CONTRACT_ADDRESS,
-} from "./bot.test.constants";
+import { SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING, SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING } from "./bot.test.constants";
 
 import bot from "./function.call.listener";
-import { ABI, FUNCTION_NAMES } from "./bot.config";
+import { ABI, FUNCTION_NAMES, MOCK_CONTRACT_ADDRESS } from "./bot.config";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
