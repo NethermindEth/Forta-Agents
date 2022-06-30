@@ -5,7 +5,6 @@ import { createFunctionFinding } from "./findings";
 function providerHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
     // filter the transaction logs for function calls
     const functionCalls = txEvent.filterFunction(ABI, contractAddress);
 

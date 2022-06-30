@@ -5,7 +5,6 @@ import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
 import { NetworkData, DATA } from "./config";
 
-
 const networkManager = new NetworkManager(DATA);
 
 const provideInitialize = (
@@ -14,13 +13,10 @@ const provideInitialize = (
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
-
   };
 };
 const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-
     const lotteryAddress = networkManager.get("lotteryAddress");
 
     const newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(lotteryAddress);

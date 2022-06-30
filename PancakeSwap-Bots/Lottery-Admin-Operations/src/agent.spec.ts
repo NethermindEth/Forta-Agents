@@ -2,21 +2,12 @@ import { HandleTransaction, ethers, Finding } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { NetworkManager } from "forta-agent-tools";
 
-import {
-  MOCK_CONTRACT_ADDRESS,
-  NEW_RANDOM_GENERATOR_FINDING,
-  NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
-  SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
-  SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING,
-  randomGenerator,
-  operator,
-  treasury,
-  injector,
-} from "./bot.test.constants";
+import { FUNCTION_NAMES, MOCK_CONTRACT_ADDRESS } from "./bot.test.constants";
 
 import bot from "./agent";
 
-import { EVENTS, ABI, FUNCTION_NAMES } from "./abi";
+import { EVENTS, ABI } from "./abi";
+import { createEventFinding, createFunctionFinding } from "./findings";
 
 describe("PancakeSwap Lottery", () => {
   let handleTransaction: HandleTransaction;
@@ -57,12 +48,14 @@ describe("PancakeSwap Lottery", () => {
 
     functionInterface = new ethers.utils.Interface(ABI);
 
-    eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("NewRandomGenerator"), [randomGenerator]);
+    eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("NewRandomGenerator"), [
+      createAddress("0x2314"),
+    ]);
 
     eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("NewOperatorAndTreasuryAndInjectorAddresses"), [
-      operator,
-      treasury,
-      injector,
+      createAddress("0x0123"),
+      createAddress("0x0124"),
+      createAddress("0x0125"),
     ]);
   });
 
@@ -75,8 +68,8 @@ describe("PancakeSwap Lottery", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if it has the wrong contract address", async () => {
-      mockTxEvent.addAnonymousEventLog(createAddress("0xabc"), eventLog_1.data, ...eventLog_1.topics);
+    it("returns empty findings if the event emitted does not come from the correct contract address", async () => {
+      mockTxEvent.addAnonymousEventLog(createAddress("0x5647"), eventLog_1.data, ...eventLog_1.topics);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -89,7 +82,9 @@ describe("PancakeSwap Lottery", () => {
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([SET_MAX_NUMBER_TICKETS_PER_BUY_FINDING]);
+      expect(findings).toStrictEqual([
+        createFunctionFinding(FUNCTION_NAMES[1], FUNCTION_NAMES[1], { _maxNumberTicketsPerBuy: "10" }),
+      ]);
     });
 
     it("returns findings with events emitted", async () => {
@@ -98,7 +93,16 @@ describe("PancakeSwap Lottery", () => {
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([NEW_RANDOM_GENERATOR_FINDING, NEW_OPERATOR_TREASURY_INJECTOR_FINDING]);
+      expect(findings).toStrictEqual([
+        createEventFinding("NewRandomGenerator", "Random Generator Address changed", {
+          randomGenerator: createAddress("0x2314"),
+        }),
+        createEventFinding(
+          "NewOperatorAndTreasuryAndInjectorAddresses",
+          "Operator, Treasury and Injector Addresses changed",
+          { operator: createAddress("0x0123"), treasury: createAddress("0x0124"), injector: createAddress("0x0125") }
+        ),
+      ]);
     });
 
     it("returns findings with Event and Function call alerts", async () => {
@@ -112,9 +116,18 @@ describe("PancakeSwap Lottery", () => {
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        NEW_RANDOM_GENERATOR_FINDING,
-        NEW_OPERATOR_TREASURY_INJECTOR_FINDING,
-        SET_MIN_MAX_TICKET_PRICE_CAKE_FINDING,
+        createEventFinding("NewRandomGenerator", "Random Generator Address changed", {
+          randomGenerator: createAddress("0x2314"),
+        }),
+        createEventFinding(
+          "NewOperatorAndTreasuryAndInjectorAddresses",
+          "Operator, Treasury and Injector Addresses changed",
+          { operator: createAddress("0x0123"), treasury: createAddress("0x0124"), injector: createAddress("0x0125") }
+        ),
+        createFunctionFinding(FUNCTION_NAMES[0], FUNCTION_NAMES[0], {
+          _minPriceTicketInCake: "100000",
+          _maxPriceTicketInCake: "200000",
+        }),
       ]);
     });
   });

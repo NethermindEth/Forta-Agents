@@ -1,4 +1,3 @@
-
 export const EVENTS = {
   NewRandomGenerator: "event NewRandomGenerator(address indexed randomGenerator)",
   NewOperatorAndTreasuryAndInjectorAddresses:
@@ -10,10 +9,9 @@ export const ABI = [
   "function setMaxNumberTicketsPerBuy(uint256 _maxNumberTicketsPerBuy)",
 ];
 
-
 export const ALERTS = {
   NewRandomGenerator: "CAKE-8-1",
   NewOperatorAndTreasuryAndInjectorAddresses: "CAKE-8-2",
   setMinAndMaxTicketPriceInCake: "CAKE-8-3",
-  setMaxNumberTicketsPerBuy: "CAKE-8-4"
-}
+  setMaxNumberTicketsPerBuy: "CAKE-8-4",
+};
