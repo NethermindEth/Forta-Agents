@@ -13,9 +13,7 @@ let GMX_ROUTER_ADDRESS = "";
 const provider = getEthersProvider();
 const networkManager = new NetworkManager(util.data);
 export const initialize = (provider: ethers.providers.Provider) => async () => {
-  //const networkManager = new NetworkManager(util.data, (await provider.getNetwork()).chainId);
   await networkManager.init(provider);
-  //GMX_ROUTER_ADDRESS.value = networkManager.get("address");
 };
 
 let callHistoryKeys: Array<string> = new Array(util.CALL_HISTORY_SIZE);
