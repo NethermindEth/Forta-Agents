@@ -13,7 +13,7 @@ const TEST_IFACE: Interface = new Interface(ABI);
 const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
 const MOCK_NETWORK_MANAGER = {
   get: jest.fn().mockReturnValue(MOCK_GMX_ROUTER_ADDRESS),
-}
+};
 
 const MOCK_SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";

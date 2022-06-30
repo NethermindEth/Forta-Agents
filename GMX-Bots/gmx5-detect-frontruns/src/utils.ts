@@ -19,7 +19,7 @@ const SWAP_EVENT =
 const CALL_HISTORY_SIZE = 20;
 
 export default {
-    data,
-    SWAP_EVENT,
-    CALL_HISTORY_SIZE
-  };
+  data,
+  SWAP_EVENT,
+  CALL_HISTORY_SIZE,
+};
