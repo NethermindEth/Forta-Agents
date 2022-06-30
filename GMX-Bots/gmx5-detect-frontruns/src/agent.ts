@@ -9,7 +9,6 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import util from "./utils";
-let GMX_ROUTER_ADDRESS = "";
 const provider = getEthersProvider();
 const networkManager = new NetworkManager(util.data);
 export const initialize = (provider: ethers.providers.Provider) => async () => {
@@ -22,12 +21,11 @@ let mapCleanerCounter = 0;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
 
 export const provideHandleTx = (networkManager: any, swapEvent: string) => async (txEvent: TransactionEvent) => {
-  GMX_ROUTER_ADDRESS = networkManager.get("address");
   const findings: Finding[] = [];
   const swapEvents = txEvent.filterLog(swapEvent);
 
   //detect calls to the GMX router
-  if (txEvent.to == GMX_ROUTER_ADDRESS) {
+  if (txEvent.to == networkManager.get("address")) {
     swapEvents.forEach((swapEvent) => {
       const {
         account: accountBack,
