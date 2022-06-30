@@ -25,12 +25,15 @@ const provideInitialize = (
   };
 };
 const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
-  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    let lotteryAddress = networkManager.get("lotteryAddress");
 
-    let newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(lotteryAddress);
-    let newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(lotteryAddress);
-    let functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(lotteryAddress);
+  const lotteryAddress = networkManager.get("lotteryAddress");
+
+  const newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(lotteryAddress);
+  const newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(lotteryAddress);
+  const functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(lotteryAddress);
+  
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+
     const findings = (
       await Promise.all([
         newGeneratorBotHandleTransaction(txEvent),
