@@ -3,7 +3,6 @@ import { NetworkManager } from "forta-agent-tools";
 import newGeneratorBot from "./new.random.generator";
 import newOperatorBot from "./new.operator.and.treasury.and.injector.address";
 import functionCallBot from "./function.call.listener";
-import { MOCK_CONTRACT_ADDRESS } from "./bot.config";
 
 interface NetworkData {
   lotteryAddress: string;
@@ -27,12 +26,7 @@ const provideInitialize = (
 };
 const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    let lotteryAddress;
-    try {
-      lotteryAddress = networkManager.get("lotteryAddress");
-    } catch (e) {
-      lotteryAddress = MOCK_CONTRACT_ADDRESS;
-    }
+    let lotteryAddress = networkManager.get("lotteryAddress");
 
     let newGeneratorBotHandleTransaction = newGeneratorBot.providerHandleTransaction(lotteryAddress);
     let newOperatorBotHandleTransaction = newOperatorBot.providerHandleTransaction(lotteryAddress);
@@ -48,6 +42,7 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
   };
 };
 export default {
+  provideHandleTransaction,
   initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager),
 };

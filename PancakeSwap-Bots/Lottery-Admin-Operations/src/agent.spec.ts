@@ -1,5 +1,6 @@
 import { HandleTransaction, ethers, Finding } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
+import { NetworkManager } from "forta-agent-tools";
 
 import {
   NEW_RANDOM_GENERATOR_FINDING,
@@ -28,12 +29,25 @@ describe("PancakeSwap Lottery", () => {
 
   let mockTxEvent: TestTransactionEvent;
 
+  interface NetworkData {
+    lotteryAddress: string;
+  }
+
+  let networkManager: NetworkManager<NetworkData>;
+
   beforeEach(() => {
     mockTxEvent = new TestTransactionEvent();
   });
 
   beforeAll(() => {
-    handleTransaction = bot.handleTransaction;
+    const mockData: Record<number, NetworkData> = {
+      56: {
+        lotteryAddress: MOCK_CONTRACT_ADDRESS,
+      },
+    };
+
+    networkManager = new NetworkManager(mockData, 56);
+    handleTransaction = bot.provideHandleTransaction(networkManager);
 
     eventInterface = new ethers.utils.Interface([
       EVENTS.NewRandomGenerator,
