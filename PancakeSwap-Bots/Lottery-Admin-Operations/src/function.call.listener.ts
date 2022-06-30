@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { ABI } from "./abi";
 import { createFunctionFinding } from "./findings";
 
@@ -23,13 +23,7 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
         metadata = { _maxNumberTicketsPerBuy };
       }
 
-      findings.push(
-        createFunctionFinding(
-          functionCall.name,
-          functionCall.name,
-          metadata
-          )
-        );
+      findings.push(createFunctionFinding(functionCall.name, functionCall.name, metadata));
     });
 
     return findings;

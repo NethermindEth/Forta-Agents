@@ -20,16 +20,15 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
         operator,
         treasury,
         injector,
-      }
+      };
 
       findings.push(
         createEventFinding(
           newOperatorAndTreasuryAndInjectorAddressesEvent.name,
           "Operator, Treasury and Injector Addresses changed",
           metadata
-          )
-        );
-
+        )
+      );
     });
 
     return findings;

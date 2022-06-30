@@ -15,12 +15,8 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
       const { randomGenerator } = newRandomGeneratorEvent.args;
 
       findings.push(
-        createEventFinding(
-          newRandomGeneratorEvent.name,
-          "Random Generator Address changed",
-          randomGenerator
-          )
-        );
+        createEventFinding(newRandomGeneratorEvent.name, "Random Generator Address changed", {randomGenerator})
+      );
     });
 
     return findings;
