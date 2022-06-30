@@ -1,6 +1,7 @@
 import { createAddress } from "forta-agent-tools/lib/tests.utils";
 import { Finding, FindingType, FindingSeverity } from "forta-agent";
 
+export const MOCK_CONTRACT_ADDRESS = createAddress("0x1a2c");
 export const randomGenerator = createAddress("0x123");
 export const operator = createAddress("0x0123");
 export const treasury = createAddress("0x0456");
