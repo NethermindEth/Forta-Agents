@@ -8,7 +8,6 @@ const networkManager = new NetworkManager(networkData);
 let lastExecutedBlock: number;
 export const provideInitialize = (provider: ethers.providers.JsonRpcProvider) => {
   return async () => {
-    lastExecutedBlock = 0;
     await networkManager.init(provider);
   };
 };
