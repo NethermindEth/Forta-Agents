@@ -9,11 +9,13 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import util from "./utils";
-let GMX_ROUTER_ADDRESS = { value: "" };
+let GMX_ROUTER_ADDRESS = "";
 const provider = getEthersProvider();
+const networkManager = new NetworkManager(util.data);
 export const initialize = (provider: ethers.providers.Provider) => async () => {
-  const networkManager = new NetworkManager(util.data, (await provider.getNetwork()).chainId);
-  GMX_ROUTER_ADDRESS.value = networkManager.get("address");
+  //const networkManager = new NetworkManager(util.data, (await provider.getNetwork()).chainId);
+  await networkManager.init(provider);
+  //GMX_ROUTER_ADDRESS.value = networkManager.get("address");
 };
 
 let callHistoryKeys: Array<string> = new Array(util.CALL_HISTORY_SIZE);
@@ -22,12 +24,13 @@ let mapCleanerCounter = 0;
 let callHistory = new Map<string, [LogDescription, number, string]>([]);
 
 export const provideHandleTx =
-  (router: any, swapEvent: string) => async (txEvent: TransactionEvent) => {
+  (networkManager: any, swapEvent: string) => async (txEvent: TransactionEvent) => {
+    GMX_ROUTER_ADDRESS = networkManager.get("address");
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
-
+    
     //detect calls to the GMX router
-    if (txEvent.to == router.value) {
+    if (txEvent.to == GMX_ROUTER_ADDRESS) {
       swapEvents.forEach((swapEvent) => {
         const {
           account: accountBack,
@@ -179,5 +182,5 @@ export const provideHandleTx =
 
 export default {
   initialize: initialize(provider),
-  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, util.SWAP_EVENT),
+  handleTransaction: provideHandleTx(networkManager, util.SWAP_EVENT),
 };

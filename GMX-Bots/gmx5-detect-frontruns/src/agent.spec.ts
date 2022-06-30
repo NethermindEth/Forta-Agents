@@ -10,11 +10,14 @@ const ABI: string[] = [
 ];
 
 const TEST_IFACE: Interface = new Interface(ABI);
+const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
+const MOCK_NETWORK_MANAGER = {
+  get: jest.fn().mockReturnValue(MOCK_GMX_ROUTER_ADDRESS),
+}
 
-const MOCK_GMX_ROUTER_ADDRESS = { value: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064" };
 const MOCK_SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
-const handler = provideHandleTx(MOCK_GMX_ROUTER_ADDRESS, MOCK_SWAP_EVENT);
+const handler = provideHandleTx(MOCK_NETWORK_MANAGER, MOCK_SWAP_EVENT);
 
 describe("sandwich attack frontrun agent", () => {
   let handleTransaction: HandleTransaction;
@@ -83,7 +86,7 @@ describe("sandwich attack frontrun agent", () => {
     it("returns empty findings if there are no swap events to a router address", async () => {
       const transaction: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0x0f"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value);
+        .setTo(MOCK_GMX_ROUTER_ADDRESS);
       const findings = await handler(transaction);
 
       expect(findings).toStrictEqual([]);
@@ -115,19 +118,19 @@ describe("sandwich attack frontrun agent", () => {
       //front
       const transaction1: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
       //victim
       const transaction2: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xe0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
       //back
       const transaction3: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -142,19 +145,19 @@ describe("sandwich attack frontrun agent", () => {
       //front
       const transaction1: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
       //victim
       const transaction2: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xe0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
       //back
       const transaction3: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -169,19 +172,19 @@ describe("sandwich attack frontrun agent", () => {
       //front
       const transaction1: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
       //victim
       const transaction2: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xe0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
       //back
       const transaction3: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -196,19 +199,19 @@ describe("sandwich attack frontrun agent", () => {
       //front
       const transaction1: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
       //victim
       const transaction2: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xe0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
       //back
       const transaction3: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -223,19 +226,19 @@ describe("sandwich attack frontrun agent", () => {
       //front
       const transaction1: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
       //victim
       const transaction2: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xe0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
       //back
       const transaction3: TransactionEvent = new TestTransactionEvent()
         .setFrom(createAddress("0xf0"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+        .setTo(MOCK_GMX_ROUTER_ADDRESS)
         .setBlock(1)
         .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -253,19 +256,19 @@ describe("sandwich attack frontrun agent", () => {
     //front
     const transaction1: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
     //victim
     const transaction2: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xe0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
     //back
     const transaction3: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
 
@@ -301,25 +304,25 @@ describe("sandwich attack frontrun agent", () => {
     //front
     const transaction1: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
     //victim
     const transaction2: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xe0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
     //back
     const transaction3: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
     //other swaps
     const transaction4: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xaa"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(
         eventIrrelevant1.format("sighash"),
@@ -362,25 +365,25 @@ describe("sandwich attack frontrun agent", () => {
     //front
     const transaction1: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventFront.format("sighash"), createAddress("0x0"), logFront.data, ...logFront.topics.slice(1));
     //victim
     const transaction2: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xe0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventVictim.format("sighash"), createAddress("0x0"), logVictim.data, ...logVictim.topics.slice(1));
     //back
     const transaction3: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(eventBack.format("sighash"), createAddress("0x0"), logBack.data, ...logBack.topics.slice(1));
     //other swaps
     const transaction4: TransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS.value)
+      .setTo(MOCK_GMX_ROUTER_ADDRESS)
       .setBlock(1)
       .addEventLog(
         eventIrrelevant2.format("sighash"),
