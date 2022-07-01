@@ -1,5 +1,5 @@
 import StakeFetcher from "./stake.fetcher";
-import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools";
+import { createAddress, MockEthersProvider as MockProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import { SUPPLY_IFACE } from "./utils";
 
@@ -15,20 +15,23 @@ describe("StakeFetcher test suite", () => {
   const mockProvider: MockProvider = new MockProvider();
   const fetcher: StakeFetcher = new StakeFetcher(mockProvider as any);
 
-  const initialize = () => {
+  beforeEach(() => {
+    mockProvider.clear();
     for (let [contract, block, total] of TEST_DATA) {
       mockProvider.addCallTo(contract, block, SUPPLY_IFACE, "totalSupply", {
         inputs: [],
         outputs: [total],
       });
     }
-  };
-
-  beforeEach(() => mockProvider.clear());
+  });
 
   it("should fetch the correct values", async () => {
-    initialize();
-
+    for (let [contract, block, supply] of TEST_DATA) {
+      const total: BigNumber = await fetcher.getTotalSupply(contract, block);
+      expect(total).toStrictEqual(BigNumber.from(supply));
+    }
+    // clear mockProvider to use cache
+    mockProvider.clear();
     for (let [contract, block, supply] of TEST_DATA) {
       const total: BigNumber = await fetcher.getTotalSupply(contract, block);
       expect(total).toStrictEqual(BigNumber.from(supply));

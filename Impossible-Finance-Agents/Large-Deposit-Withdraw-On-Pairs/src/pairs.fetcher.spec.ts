@@ -1,6 +1,5 @@
-import MockProvider from "./mock.provider";
 import PairFetcher from "./pairs.fetcher";
-import { createAddress } from "forta-agent-tools";
+import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { BigNumber } from "ethers";
 import abi from "./abi";
 
@@ -16,7 +15,7 @@ const CASES: [string, number, string, string, string][] = [
 
 describe("PairFetcher test suite", () => {
   const factory: string = createAddress("0xdead");
-  const mockProvider: MockProvider = new MockProvider();
+  const mockProvider = new MockEthersProvider();
   const fetcher: PairFetcher = new PairFetcher(factory, mockProvider as any);
 
   beforeEach(() => mockProvider.clear());
@@ -31,46 +30,41 @@ describe("PairFetcher test suite", () => {
   });
 
   it("should return false in calls to isImpossiblePair for address that doesn't have token0", async () => {
-    for(let [addr, block,,,token1] of CASES){
-      mockProvider
-        .addCallTo(addr, block, abi.PAIR, "token1", { inputs:[], outputs:[token1]});
+    for (let [addr, block, , , token1] of CASES) {
+      mockProvider.addCallTo(addr, block, abi.PAIR, "token1", { inputs: [], outputs: [token1] });
       // no mock initialization for token0 so calls to token0 should return undefined
       expect(await fetcher.isImpossiblePair(block, addr)).toStrictEqual(false);
     }
   });
 
   it("should return false in calls to isImpossiblePair for address that doesn't have token1", async () => {
-    for(let [addr, block,,token0,] of CASES){
-      mockProvider
-        .addCallTo(addr, block, abi.PAIR, "token0", { inputs:[], outputs:[token0]});
+    for (let [addr, block, , token0] of CASES) {
+      mockProvider.addCallTo(addr, block, abi.PAIR, "token0", { inputs: [], outputs: [token0] });
       // no mock initialization for token1 so calls to token1 should return undefined
       expect(await fetcher.isImpossiblePair(block, addr)).toStrictEqual(false);
     }
   });
 
   it("should return false in calls to isImpossiblePair when the factory mismatch", async () => {
-    for(let [addr, block, factory, token0, token1] of CASES){
+    for (let [addr, block, factory, token0, token1] of CASES) {
       mockProvider
-        .addCallTo(addr, block, abi.PAIR, "token0", { inputs:[], outputs:[token0]})
-        .addCallTo(addr, block, abi.PAIR, "token1", { inputs:[], outputs:[token1]})
-        .addCallTo(
-          factory, block, abi.FACTORY, "getPair", 
-          { inputs:[token0, token1], outputs:[createAddress(`0xdead${block}`)] }
-        );
+        .addCallTo(addr, block, abi.PAIR, "token0", { inputs: [], outputs: [token0] })
+        .addCallTo(addr, block, abi.PAIR, "token1", { inputs: [], outputs: [token1] })
+        .addCallTo(factory, block, abi.FACTORY, "getPair", {
+          inputs: [token0, token1],
+          outputs: [createAddress(`0xdead${block}`)],
+        });
       const fetcher: PairFetcher = new PairFetcher(factory, mockProvider as any);
       expect(await fetcher.isImpossiblePair(block, addr)).toStrictEqual(false);
     }
   });
 
   it("should return true in calls to isImpossiblePair in valid pairs", async () => {
-    for(let [pair, block, factory, token0, token1] of CASES){
+    for (let [pair, block, factory, token0, token1] of CASES) {
       mockProvider
-        .addCallTo(pair, block, abi.PAIR, "token0", { inputs:[], outputs:[token0]})
-        .addCallTo(pair, block, abi.PAIR, "token1", { inputs:[], outputs:[token1]})
-        .addCallTo(
-          factory, block, abi.FACTORY, "getPair", 
-          { inputs:[token0, token1], outputs:[pair] }
-        );
+        .addCallTo(pair, block, abi.PAIR, "token0", { inputs: [], outputs: [token0] })
+        .addCallTo(pair, block, abi.PAIR, "token1", { inputs: [], outputs: [token1] })
+        .addCallTo(factory, block, abi.FACTORY, "getPair", { inputs: [token0, token1], outputs: [pair] });
       const fetcher: PairFetcher = new PairFetcher(factory, mockProvider as any);
       expect(await fetcher.isImpossiblePair(block, pair)).toStrictEqual(true);
 
@@ -83,11 +77,11 @@ describe("PairFetcher test suite", () => {
   it("should fetch the reserves", async () => {
     mockProvider.addCallTo(CASES[0][0], 30, abi.PAIR, "getReserves", {
       inputs: [],
-      outputs: [5, 10, 0],
+      outputs: [5, 10],
     });
     mockProvider.addCallTo(CASES[2][0], 53, abi.PAIR, "getReserves", {
       inputs: [],
-      outputs: [1, 3, 0],
+      outputs: [1, 3],
     });
 
     expect(await fetcher.getReserves(53, CASES[2][0])).toStrictEqual({

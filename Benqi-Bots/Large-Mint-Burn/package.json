@@ -1,0 +1,42 @@
+{
+  "name": "benqi-8",
+  "version": "0.0.1",
+  "description": "this bot detects large mint and burns on benqi PGL contract",
+  "chainIds": [
+    43114
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Benqi-Bots/Large-Mint-Burn",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run start:dev",
+    "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec \"npm run build && forta-agent run\"",
+    "start:prod": "forta-agent run --prod",
+    "tx": "npm run build && forta-agent run --tx",
+    "block": "npm run build && forta-agent run --block",
+    "range": "npm run build && forta-agent run --range",
+    "file": "npm run build && forta-agent run --file",
+    "publish": "forta-agent publish",
+    "push": "forta-agent push",
+    "disable": "forta-agent disable",
+    "enable": "forta-agent enable",
+    "keyfile": "forta-agent keyfile",
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "lru-cache": "^7.10.1",
+    "forta-agent": "^0.1.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@types/nodemon": "^1.19.0",
+    "@types/lru-cache": "^5.1.1",
+    "forta-agent-tools": "^2.1.0",
+    "hardhat": "^2.9.1",
+    "jest": "^27.0.6",
+    "nodemon": "^2.0.8",
+    "prettier": "^2.6.0",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.4"
+  }
+}
