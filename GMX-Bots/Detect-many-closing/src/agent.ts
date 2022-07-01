@@ -6,6 +6,7 @@ import utils from "./utils";
 
 const networkManager = new NetworkManager(networkData);
 let lastExecutedBlock: number;
+
 export const provideInitialize = (provider: ethers.providers.JsonRpcProvider) => {
   return async () => {
     await networkManager.init(provider);
