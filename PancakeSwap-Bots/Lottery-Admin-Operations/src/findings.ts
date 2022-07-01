@@ -3,11 +3,9 @@ import { ALERTS } from "./abi";
 
 export const createEventFinding = (_name: string, _description: string, _metadata: {}) => {
   return Finding.fromObject({
-    name: `Event: ${_name === "NewRandomGenerator" ? "NewRandomGenerator" : _name}`,
-    description: `PancakeSwapLottery: ${_description}`,
-    alertId: `${
-      _name === "NewRandomGenerator" ? ALERTS.NewRandomGenerator : ALERTS.NewOperatorAndTreasuryAndInjectorAddresses
-    }`,
+    name: "PancakeSwapLottery Event Emitted",
+    description: `PancakeSwapLottery Event ${_name}(${_description})`,
+    alertId: ALERTS[_name],
     protocol: "PancakeSwap",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -17,13 +15,9 @@ export const createEventFinding = (_name: string, _description: string, _metadat
 
 export const createFunctionFinding = (_name: string, _description: string, _metadata: {}) => {
   return Finding.fromObject({
-    name: `Function: ${_name === "setMinAndMaxTicketPriceInCake" ? "setMinAndMaxTicketPriceInCake" : _name}`,
-    description: `PancakeSwapLottery: Function ${_description} called`,
-    alertId: `${
-      _name === "setMinAndMaxTicketPriceInCake"
-        ? ALERTS.setMinAndMaxTicketPriceInCake
-        : ALERTS.setMaxNumberTicketsPerBuy
-    }`,
+    name: "PancakeSwapLottery Function Called",
+    description: `PancakeSwapLottery Function (${_description})`,
+    alertId: ALERTS[_name],
     protocol: "PancakeSwap",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
