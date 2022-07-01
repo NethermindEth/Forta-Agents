@@ -9,7 +9,7 @@ export const ABI = [
   "function setMaxNumberTicketsPerBuy(uint256 _maxNumberTicketsPerBuy)",
 ];
 
-export const ALERTS = {
+export const ALERTS: {[key:string]:string} = {
   NewRandomGenerator: "CAKE-8-1",
   NewOperatorAndTreasuryAndInjectorAddresses: "CAKE-8-2",
   setMinAndMaxTicketPriceInCake: "CAKE-8-3",
