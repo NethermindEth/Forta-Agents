@@ -12,6 +12,10 @@ export const DELEGATE_VOTES_CHANGED_EVENT =
 "event DelegateVotesChanged(address indexed delegate, uint previousBalance, uint newBalance)";
 export const CAKE_ADDRESS = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82";
 
+const HIGH_THRESHOLD = 100
+const MEDIUM_THRESHOLD = 50
+const LOW_THRESHOLD = 25
+
 let findingsCount = 0;
 
 const handleTransaction: HandleTransaction = async (
@@ -31,20 +35,22 @@ const handleTransaction: HandleTransaction = async (
   delegateVotesChangedEvents.forEach((delegateVotesChangedEvent) => {
     // extract transfer event arguments
     const { delegate, previousBalance, newBalance } = delegateVotesChangedEvent.args;
-    // shift decimals of transfer value
+    
+    let delta = newBalance - previousBalance
 
     // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
+    if (delta >= LOW_THRESHOLD) {
       findings.push(
         Finding.fromObject({
           name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
+          description: `High amount of USDT transferred: ${}`,
           alertId: "FORTA-1",
           severity: FindingSeverity.Low,
           type: FindingType.Info,
           metadata: {
             delegate,
             previousBalance,
+            newBalance
           },
         })
       );
