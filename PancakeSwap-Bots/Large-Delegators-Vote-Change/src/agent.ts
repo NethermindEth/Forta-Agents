@@ -3,18 +3,35 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
+  Initialize,
+  ethers,
+  getEthersProvider
 } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
 
 import {LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD} from "./constants"
-import {CAKE_ADDRESS, DELEGATE_VOTES_CHANGED_EVENT} from "./abi"
+import {DELEGATE_VOTES_CHANGED_EVENT} from "./abi"
 import {createFinding} from "./findings"
+import {NetworkData, DATA} from "./config"
 
+const networkManager = new NetworkManager(DATA);
+
+const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
+};
 
 const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
+  const contractAddress = await networkManager.get("cakeAddress")
+
   // filter the transaction logs for events
-  const delegateVotesChangedEvents = txEvent.filterLog(DELEGATE_VOTES_CHANGED_EVENT, CAKE_ADDRESS);
+  const delegateVotesChangedEvents = txEvent.filterLog(DELEGATE_VOTES_CHANGED_EVENT, contractAddress);
 
   delegateVotesChangedEvents.forEach((delegateVotesChangedEvent) => {
     // extract event arguments
@@ -46,5 +63,6 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 };
 
 export default {
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction
 };
