@@ -1,20 +1,37 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 
-import { SWAP_EVENT, isValidPancakePair, getERC20Balance, LARGE_THRESHOLD, createFinding, toBn } from "./utils";
+import {
+  SWAP_EVENT,
+  isValidPancakePair,
+  getERC20Balance,
+  LARGE_THRESHOLD,
+  createFinding,
+  toBn,
+  PANCAKE_FACTORY_ADDRESS,
+} from "./utils";
 import BigNumber from "bignumber.js";
+BigNumber.set({ DECIMAL_PLACES: 18 });
 
-export const provideBotHandler = (largePercentage: string, provider: ethers.providers.Provider): HandleTransaction => {
+export const provideBotHandler = (
+  largePercentage: string,
+  pancakeFactory: string,
+  provider: ethers.providers.Provider
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     // filter the transaction logs for swap events
     const swapEvents = txEvent.filterLog(SWAP_EVENT);
-
     try {
       await Promise.all(
         swapEvents.map(async (event) => {
           const pairAddress = event.address;
-          const [isValid, token0Address, token1Address] = await isValidPancakePair(pairAddress, provider);
+          const [isValid, token0Address, token1Address] = await isValidPancakePair(
+            pairAddress,
+            provider,
+            txEvent.blockNumber,
+            pancakeFactory
+          );
           if (isValid) {
             const token0Balance = await getERC20Balance(token0Address, pairAddress, provider, txEvent.blockNumber - 1);
             const token1Balance = await getERC20Balance(token1Address, pairAddress, provider, txEvent.blockNumber - 1);
@@ -26,7 +43,7 @@ export const provideBotHandler = (largePercentage: string, provider: ethers.prov
             if (amount0Out.gt(0)) {
               const percentageToken0Out = amount0Out.multipliedBy(100).dividedBy(token0Balance);
               const percentageToken1In = amount1In.multipliedBy(100).dividedBy(token1Balance);
-              if (percentageToken0Out.gte(LARGE_THRESHOLD) || percentageToken1In.gte(LARGE_THRESHOLD)) {
+              if (percentageToken0Out.gte(largePercentage) || percentageToken1In.gte(largePercentage)) {
                 findings.push(
                   createFinding(
                     pairAddress,
@@ -44,7 +61,7 @@ export const provideBotHandler = (largePercentage: string, provider: ethers.prov
             if (amount1Out.gt(0)) {
               const percentageToken1Out = amount1Out.multipliedBy(100).dividedBy(token1Balance);
               const percentageToken0In = amount0In.multipliedBy(100).dividedBy(token0Balance);
-              if (percentageToken1Out.gte(LARGE_THRESHOLD) || percentageToken0In.gte(LARGE_THRESHOLD)) {
+              if (percentageToken1Out.gte(largePercentage) || percentageToken0In.gte(largePercentage)) {
                 findings.push(
                   createFinding(
                     pairAddress,
@@ -56,14 +73,15 @@ export const provideBotHandler = (largePercentage: string, provider: ethers.prov
                     percentageToken1Out,
                     to
                   )
-                ); // createFinding
+                );
               }
             }
           }
         })
       );
     } catch (error) {
-      throw new Error("error");
+      console.log(error);
+      return findings;
     }
 
     return findings;
@@ -71,6 +89,5 @@ export const provideBotHandler = (largePercentage: string, provider: ethers.prov
 };
 
 export default {
-  //initialize: initialize(getEthersProvider()),
-  handleTransaction: provideBotHandler(LARGE_THRESHOLD, getEthersProvider()),
+  handleTransaction: provideBotHandler(LARGE_THRESHOLD, PANCAKE_FACTORY_ADDRESS, getEthersProvider()),
 };
