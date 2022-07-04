@@ -6,7 +6,7 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 const SWAP_EVENT =
   "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out,uint amount1Out,address indexed to)";
 
-const LARGE_THRESHOLD = "0"; // percent
+const LARGE_THRESHOLD = "2.5"; // percent
 const ERC20ABI = ["function balanceOf(address account) public view returns (uint256)"];
 const PANCAKE_PAIR_ABI = [
   "function token0() external view returns (address)",
