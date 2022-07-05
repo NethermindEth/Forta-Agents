@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "pancakeswap-large-lptoken-deposit-withdraw",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects Large LP Token Deposits or Withdrawals on Pancakeswap",
   "chainIds": [
     56
   ],
@@ -23,7 +23,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
+    "forta-agent": "^0.1.8",
     "bignumber.js": "^9.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",

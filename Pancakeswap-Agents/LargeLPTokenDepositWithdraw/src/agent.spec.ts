@@ -1,4 +1,4 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests.utils";
 import { 
   MockEthersProvider, 
@@ -14,7 +14,6 @@ import {
  } from "./constants";
 import { BotConfig } from "./config";
 
-// Add mock calls to the provider
 const MASTERCHEF_INTERFACE = new ethers.utils.Interface(MASTERCHEF_ABI);
 const IBEP20_INTERFACE = new ethers.utils.Interface(IBEP20_ABI);
 
@@ -31,7 +30,7 @@ function addLPTokenAddress(
   )
 }
 
-// Function to set the name balance of masterchef account at a certian tokenAddress
+// Function to set the name balance of masterchef account at a certain tokenAddress
 function addLPTokenNameBalance(
   mockProvider: MockEthersProvider,
   tokenAddress: string,
@@ -69,7 +68,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     
 
     it("Should return 0 findings in empty transactions", async () => {
-       handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+       handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
       const txEvent: TestTransactionEvent = new TestTransactionEvent();
       const findings : Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -78,7 +77,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should detect a large deposit event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -121,7 +120,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should ignore a deposit event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -149,9 +148,9 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should detect a large withdrawal event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(
         MASTERCHEF_INTERFACE.getEvent('Withdraw'),
@@ -192,7 +191,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should ignore a withdrawal event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x9");
@@ -226,7 +225,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     let mockProvider: MockEthersProvider;
     let provider: ethers.providers.Provider;
 
-    const testStaticConfig: BotConfig = {
+    const testDynamicConfig: BotConfig = {
       mode: "PERCENTAGE",
       thresholdData: BigNumber.from(50) // 50%
     };
@@ -238,7 +237,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     
 
     it("Should return 0 findings in empty transactions", async () => {
-       handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
       const txEvent: TestTransactionEvent = new TestTransactionEvent();
       const findings : Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -247,7 +246,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should detect a large deposit event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -290,7 +289,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should ignore a deposit event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -318,7 +317,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should detect a large withdrawal event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x9");
@@ -361,7 +360,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     it("Should ignore a withdrawal event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider);
+      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
 
       // Add Deposit event
       const testSpender: string = createAddress("0x9");

@@ -18,22 +18,23 @@ import { createFinding } from "./findings";
 
 export function provideHandleTransaction(
   config: BotConfig,
-  provider: ethers.providers.Provider
+  provider: ethers.providers.Provider,
+  masterchefAddress: string
 ) : HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
       
     let findings: Finding[] = [];
 
-    const masterchefContract = new ethers.Contract(MASTERCHEF_ADDRESS, MASTERCHEF_ABI, provider);
+    const masterchefContract = new ethers.Contract(masterchefAddress, MASTERCHEF_ABI, provider);
 
     await Promise.all(
       // filter the transaction logs for Deposit and withdraw events
       txEvent.filterLog(
-        [MASTERCHEF_ABI[0], MASTERCHEF_ABI[1]],
-        MASTERCHEF_ADDRESS
+        [MASTERCHEF_ABI[0], MASTERCHEF_ABI[1], MASTERCHEF_ABI[2]],
+        masterchefAddress
       ).map(async (log) => {
         // extract event arguments
-        const { user, pid, amount } = log.args;
+        const { pid, amount } = log.args;
 
         // Get the address of the LP token
         const tokenAddress = await masterchefContract.lpToken(pid, { blockTag: txEvent.blockNumber });
@@ -51,8 +52,6 @@ export function provideHandleTransaction(
           // Set threshold
           thresholdAmount = BigNumber.from(balance).mul(config.thresholdData).div(100);
         }
-        console.log('Threshold Amount', thresholdAmount.toString())
-        console.log('Deposit Amount', amount.toString())
         // If amount is greater than threshold, create finding
         if (amount.gte(thresholdAmount)) {
           findings.push(createFinding(log.name, tokenName, log.args));
@@ -64,5 +63,5 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(DYNAMIC_CONFIG, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(DYNAMIC_CONFIG, getEthersProvider(), MASTERCHEF_ADDRESS),
 };
