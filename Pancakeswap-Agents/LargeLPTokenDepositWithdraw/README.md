@@ -16,10 +16,29 @@ Describe each of the type of alerts fired by this bot
   - Fired when a transaction contains a Deposit above the threshold
   - Severity is always set to "info" 
   - Type is always set to "info" 
+  - Metadata includes:
+    - user: user who deposited
+    - token: name of the LP token
+    - pid: the affected pool ID
+    - amount: amount deposited
 - CAKE-4-2
-  - Fired when a transaction contains a Withdrawal above the threshold
+  - Fired when a transaction contains a Withdraw above the threshold
   - Severity is always set to "info" 
   - Type is always set to "info" 
+  - Metadata includes:
+    - user: user who withdrew
+    - token: name of the LP token
+    - pid: the affected pool ID
+    - amount: amount withdrew
+- CAKE-4-3
+  - Fired when a transaction contaisn an EmergencyWithdraw above the threshold
+  - Security is always set to "info"
+  - Type is always set to "info"
+  - Metadata includes:
+    - user: user who withdrew
+    - token: name of the LP token
+    - pid: the affected pool ID
+    - amount: amount withdrew
 
 ## Test Data
 
