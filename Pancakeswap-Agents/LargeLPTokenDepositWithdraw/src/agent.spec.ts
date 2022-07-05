@@ -102,7 +102,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
             Finding.fromObject({
             name: "Large LP Token Deposit",
             description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
-            alertId: "CAKE-1",
+            alertId: "CAKE-4-1",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "PancakeSwap",
@@ -145,7 +145,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       )
     });
 
-    it("Should detect a large withdrawal event", async () => {
+    it("Should detect a large withdraw event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
@@ -171,9 +171,9 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual(
           [
             Finding.fromObject({
-            name: "Large LP Token Withdrawal",
-            description: `Withdrawal event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
-            alertId: "CAKE-2",
+            name: "Large LP Token Withdraw",
+            description: `Withdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+            alertId: "CAKE-4-2",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "PancakeSwap",
@@ -188,7 +188,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       )
     });
 
-    it("Should ignore a withdrawal event under the threshold", async () => {
+    it("Should ignore a withdraw event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
@@ -197,6 +197,77 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(
         MASTERCHEF_INTERFACE.getEvent('Withdraw'),
+        [
+          testSpender, 20, BigNumber.from("500000000000000000") // 0.5
+        ]
+      )
+      // Create test transaction with the deposit event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+
+      // Add token address to Masterchef contract
+      const mockTokenAddress : string = createAddress("0x1234");
+      addLPTokenAddress(mockProvider, 20, mockTokenAddress, 100);
+      // Add balance to the token contract (token address above) (balance of 2)
+      addLPTokenNameBalance(mockProvider, mockTokenAddress, "Test Token 2", ethers.BigNumber.from("5000000000000000000"), 100);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual(
+          []
+      )
+    });
+
+    it("Should detect a large EmergencyWithdraw event", async () => {
+      
+      const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
+
+      // Add EmergencyWithdraw event
+      const testSpender: string = createAddress("0x9");
+      const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(
+        MASTERCHEF_INTERFACE.getEvent('EmergencyWithdraw'),
+        [
+          testSpender, 20, BigNumber.from("3000000000000000000") // 3 
+        ]
+      )
+      // Create test transaction with the deposit event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+
+      // Add token address to Masterchef contract
+      const mockTokenAddress : string = createAddress("0x1234");
+      addLPTokenAddress(mockProvider, 20, mockTokenAddress, 100);
+      // Add balance to the token contract (token address above) (balance of 2)
+      addLPTokenNameBalance(mockProvider, mockTokenAddress, "Test Token 2", ethers.BigNumber.from("5000000000000000000"), 100);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual(
+          [
+            Finding.fromObject({
+            name: "Large LP Token EmergencyWithdraw",
+            description: `EmergencyWithdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+            alertId: "CAKE-4-3",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "PancakeSwap",
+            metadata: {
+                user: testSpender,
+                token: 'Test Token 2',
+                pid: '20',
+                amount: "3000000000000000000"
+            },
+          })
+        ]
+      )
+    });
+
+    it("Should ignore a EmergencyWithdraw event under the threshold", async () => {
+      
+      const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
+      handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
+
+      // Add Deposit event
+      const testSpender: string = createAddress("0x9");
+      const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(
+        MASTERCHEF_INTERFACE.getEvent('EmergencyWithdraw'),
         [
           testSpender, 20, BigNumber.from("500000000000000000") // 0.5
         ]
@@ -271,7 +342,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
             Finding.fromObject({
             name: "Large LP Token Deposit",
             description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
-            alertId: "CAKE-1",
+            alertId: "CAKE-4-1",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "PancakeSwap",
@@ -279,6 +350,80 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
                 user: testSpender,
                 token: 'Test Token 1',
                 pid: '10',
+                amount: "2100000000000000000"
+            },
+          })
+        ]
+      )
+    });
+    
+    it("Should detect multiple large deposit events", async () => {
+      
+      const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
+      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
+
+      // Add Deposit event 1
+      const testSpender1: string = createAddress("0x1");
+      const depositLog1 = MASTERCHEF_INTERFACE.encodeEventLog(
+        MASTERCHEF_INTERFACE.getEvent('Deposit'),
+        [
+          testSpender1, 10, BigNumber.from("2100000000000000000") // 2.1
+        ]
+      )
+      // Create test transaction with the deposit event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, depositLog1.data, ...depositLog1.topics);
+
+      // Add Deposit event 2
+      const testSpender2: string = createAddress("0x2");
+      const depositLog2 = MASTERCHEF_INTERFACE.encodeEventLog(
+        MASTERCHEF_INTERFACE.getEvent('Deposit'),
+        [
+          testSpender2, 20, BigNumber.from("2100000000000000000") // 2.1
+        ]
+      )
+      // Create test transaction with the deposit event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, depositLog2.data, ...depositLog2.topics);
+
+      // Add first token address to Masterchef contract
+      const mockTokenAddress1 : string = createAddress("0x1234");
+      addLPTokenAddress(mockProvider, 10, mockTokenAddress1, 100);
+      // Add balance to the token contract (token address above) (balance of 4)
+      addLPTokenNameBalance(mockProvider, mockTokenAddress1, "Test Token 1", ethers.BigNumber.from("4000000000000000000"), 100);
+      
+      // Add second token address to Masterchef contract
+      const mockTokenAddress2 : string = createAddress("0x5678");
+      addLPTokenAddress(mockProvider, 20, mockTokenAddress2, 100);
+      // Add balance to the token contract (token address above) (balance of 4)
+      addLPTokenNameBalance(mockProvider, mockTokenAddress2, "Test Token 2", ethers.BigNumber.from("4000000000000000000"), 100);
+      
+      const findings : Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual(
+          [
+            Finding.fromObject({
+            name: "Large LP Token Deposit",
+            description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
+            alertId: "CAKE-4-1",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "PancakeSwap",
+            metadata: {
+                user: testSpender1,
+                token: 'Test Token 1',
+                pid: '10',
+                amount: "2100000000000000000"
+            },
+          }),
+          Finding.fromObject({
+            name: "Large LP Token Deposit",
+            description: `Deposit event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+            alertId: "CAKE-4-1",
+            severity: FindingSeverity.Info,
+            type: FindingType.Info,
+            protocol: "PancakeSwap",
+            metadata: {
+                user: testSpender2,
+                token: 'Test Token 2',
+                pid: '20',
                 amount: "2100000000000000000"
             },
           })
@@ -314,7 +459,9 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       )
     });
 
-    it("Should detect a large withdrawal event", async () => {
+    
+
+    it("Should detect a large withdraw event", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
@@ -340,9 +487,9 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual(
           [
             Finding.fromObject({
-            name: "Large LP Token Withdrawal",
-            description: `Withdrawal event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
-            alertId: "CAKE-2",
+            name: "Large LP Token Withdraw",
+            description: `Withdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+            alertId: "CAKE-4-2",
             severity: FindingSeverity.Info,
             type: FindingType.Info,
             protocol: "PancakeSwap",
@@ -357,7 +504,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       )
     });
 
-    it("Should ignore a withdrawal event under the threshold", async () => {
+    it("Should ignore a withdraw event under the threshold", async () => {
       
       const txEvent : TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);

@@ -6,7 +6,6 @@ export const MASTERCHEF_ABI = [
     'function lpToken(uint256 input) public view returns (address token)',
 ];
 export const IBEP20_ABI = [
-    'function totalSupply() external view returns (uint256)',
     'function balanceOf(address account) external view returns (uint256)',
     'function name() external view returns (string memory)'
 ];
