@@ -39,4 +39,4 @@ The bot behaviour can be verified with the following transaction:
   > `LARGE_THRESHOLD` should be set to <= 2.5 for this test transaction.
 
 - [0xbfd8af2d95ffef4b42086240cec1d5d681a19a31174c08e3210883e5e4561e60](https://bscscan.com/tx/0xbfd8af2d95ffef4b42086240cec1d5d681a19a31174c08e3210883e5e4561e60)
- > `LARGE_THRESHOLD` should be set to <= 3 for this test transaction.
+   > `LARGE_THRESHOLD` should be set to <= 3 for this test transaction.
