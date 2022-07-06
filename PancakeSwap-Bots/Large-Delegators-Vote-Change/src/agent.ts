@@ -25,7 +25,8 @@ const provideInitialize = (
   };
 };
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const provideHandleTransaction = (networkManager:NetworkManager<NetworkData>):HandleTransaction => {
+  return async (txEvent: TransactionEvent):Promise<Finding[]> => {
   const findings: Finding[] = [];
 
   const contractAddress = await networkManager.get("cakeAddress")
@@ -61,8 +62,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   return findings;
 };
+}
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction
+  handleTransaction: provideHandleTransaction(networkManager)
 };
