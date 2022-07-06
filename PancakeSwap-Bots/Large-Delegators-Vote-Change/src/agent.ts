@@ -66,5 +66,6 @@ const provideHandleTransaction = (networkManager:NetworkManager<NetworkData>):Ha
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(networkManager)
+  handleTransaction: provideHandleTransaction(networkManager),
+  provideHandleTransaction
 };
