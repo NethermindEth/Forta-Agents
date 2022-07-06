@@ -1,74 +1,53 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import {createAddress, TestTransactionEvent} from "forta-agent-tools/lib/tests"
+import {DELEGATE_VOTES_CHANGED_EVENT} from "./abi"
+import {NetworkManager} from "forta-agent-tools"
+import {NetworkData} from "./config"
+import bot from "./agent";
 
-describe("high tether transfer agent", () => {
+describe("delegate votes change bot", () => {
+  const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
+
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+  let eventInterface: ethers.utils.Interface;
+
+  let mockTxEvent: TestTransactionEvent;
+
+  let networkManager: NetworkManager<NetworkData>;
+
+  beforeEach(() => {
+    //create test transaction before each test
+    mockTxEvent = new TestTransactionEvent();
+  })
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+
+    const mockData: Record<number, NetworkData> = {
+      1111: {
+        cakeAddress: MOCK_CONTRACT_ADDRESS,
+      },
+    };
+
+    //initialize network manager with mock network
+    networkManager = new NetworkManager(mockData, 1111);
+
+    handleTransaction = bot.provideHandleTransaction(networkManager);
+
+    eventInterface = new ethers.utils.Interface([DELEGATE_VOTES_CHANGED_EVENT])
+
   });
 
   describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+    it("returns empty findings if no events emitted", async () => {
 
-      const findings = await handleTransaction(mockTxEvent);
+      eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2314"),
+      ]);
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
     });
 
     it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
-        },
-      };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
-      );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
-      );
+   
     });
   });
 });
