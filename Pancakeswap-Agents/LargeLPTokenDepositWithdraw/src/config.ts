@@ -13,8 +13,8 @@ export const STATIC_CONFIG: BotConfig = {
 };
 
 // Use DYNAMIC_CONFIG to run the agent with a dynamic threshold.
-// Update `thresholdData` to ajust the percentage used by the bot to set the threshold.
+// Update `thresholdData` to adjust the percentage used by the bot to set the threshold.
 export const DYNAMIC_CONFIG: BotConfig = {
   mode: "PERCENTAGE",
-  thresholdData: BigNumber.from(1).div(100), // 0.01% threshold
+  thresholdData: BigNumber.from("1"), // 1% threshold
 };
