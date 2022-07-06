@@ -1,4 +1,4 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
+import { FindingSeverity, Finding, HandleTransaction, ethers } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { NetworkManager } from "forta-agent-tools";
