@@ -34,7 +34,7 @@ describe("delegate votes change bot", () => {
 
     handleTransaction = bot.provideHandleTransaction(networkManager);
 
-    eventInterface = new ethers.utils.Interface([DELEGATE_VOTES_CHANGED_EVENT])
+    eventInterface = new ethers.utils.Interface([DELEGATE_VOTES_CHANGED_EVENT, "event MockEvent(uint)"])
 
   });
 
@@ -109,6 +109,60 @@ describe("delegate votes change bot", () => {
       ]);
       
     });
+
+
+    it("returns empty findings if the event is emitted from an incorrect contract address", async () => {
+      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2345"), 1000, 2000
+      ]);
+      mockTxEvent.addAnonymousEventLog(createAddress("0x0012"), eventLog.data, ...eventLog.topics);
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([]);
+      
+    });
+
+    it("returns empty findings if the wrong event is emitted", async () => {
+      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [
+        999
+      ]);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([]);
+      
+    });
+
+    it("returns findings only for the correct event", async () => {
+      let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [
+        999
+      ]);
+
+      let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2045"), 1000, 1900
+      ]);
+
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
+
+      let metadata = {
+        delegate: createAddress("0x2045"),
+        previousBalance: "1000",
+        newBalance: "1900"
+      }
+      
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([createFinding("DelegateVotesChanged", metadata, FindingSeverity.Medium)]);
+      
+    });
+
+ 
+
+    
 
   });
 });
