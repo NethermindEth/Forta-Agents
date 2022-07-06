@@ -38,7 +38,6 @@ This bot detects the following Cake Token events:
     - `previousBalance`: The previous vote balance of the delegate.
     - `newBalance`: The new vote balance of the delegate.
 
-
 ## Test Data
 
 The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0x0151A9301b52CCAfA75cd501Bff874C8901260b0)):
