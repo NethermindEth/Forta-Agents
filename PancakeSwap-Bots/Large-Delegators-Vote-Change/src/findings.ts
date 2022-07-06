@@ -1,22 +1,19 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const ALERTS:{[key in FindingSeverity]?:string}  = {
-    
+export const ALERTS: { [key in FindingSeverity]?: string } = {
   [FindingSeverity.Low]: "CAKE-10-1",
   [FindingSeverity.Medium]: "CAKE-10-2",
   [FindingSeverity.High]: "CAKE-10-3",
+};
 
-}
-
-console.log(FindingSeverity.Low)
-export function createFinding(description:string, metadata:{}, severity:FindingSeverity) {
+export function createFinding(description: string, metadata: {}, severity: FindingSeverity) {
   return Finding.fromObject({
     name: "CakeToken Event Emitted",
     description: `CakeToken event (${description})`,
     alertId: ALERTS[severity]!,
-    protocol:"PancakeSwap",
+    protocol: "PancakeSwap",
     severity: severity,
     type: FindingType.Info,
-    metadata
+    metadata,
   });
 }
