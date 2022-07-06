@@ -37,23 +37,27 @@ const provideHandleTransaction = (networkManager:NetworkManager<NetworkData>):Ha
   delegateVotesChangedEvents.forEach((delegateVotesChangedEvent) => {
     // extract event arguments
     const { delegate, previousBalance, newBalance } = delegateVotesChangedEvent.args;
+    
+
     let metadata = {
       delegate,
-      previousBalance,
-      newBalance
+      previousBalance: previousBalance.toString(),
+      newBalance: newBalance.toString()
     }
 
     let delta = newBalance - previousBalance; // difference between balances
 
-    // if delta is over the threshold create finding accordingly
-    if (delta >= HIGH_THRESHOLD) {
+    let deltaPercentage = (delta/previousBalance) * 100 //delta percentage
+
+    // if delta percentage is over the threshold create finding accordingly
+    if (deltaPercentage >= HIGH_THRESHOLD) {
 
       findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.High));
     }
-    else if(delta >= MEDIUM_THRESHOLD){
+    else if(deltaPercentage >= MEDIUM_THRESHOLD){
       findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Medium));
     }
-    else if(delta >= LOW_THRESHOLD){
+    else if(deltaPercentage >= LOW_THRESHOLD){
       findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Low
         ));
     }
