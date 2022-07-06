@@ -6,7 +6,7 @@ This bot detects large LP Token Deposit/Withdraw on Pancakeswap
 
 ## Supported Chains
 
-- BSC
+- BSC - need to use JsonRpcUrl with archive
 
 ## Alerts
 
