@@ -38,15 +38,23 @@ describe("delegate votes change bot", () => {
   });
 
   describe("handleTransaction", () => {
-    it("returns empty findings if no events emitted", async () => {
+    it("returns empty findings if no events are emitted,", async () => {
 
-      eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2314"),
-      ]);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, "", ...[]);
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([]);   
 
     });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
+    it("returns a finding if there is a DelegateVotesChanged event emitted", async () => {
+      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2314"),
+      ]);
+      mockTxEvent.addAnonymousEventLog(createAddress("0x5647"), eventLog.data, ...eventLog.topics);
+
+     
    
     });
   });
