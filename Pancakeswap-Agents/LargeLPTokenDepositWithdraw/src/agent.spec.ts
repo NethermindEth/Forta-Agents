@@ -181,7 +181,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testStaticConfig, provider, MASTERCHEF_ADDRESS);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("Withdraw"), [
         testSpender,
