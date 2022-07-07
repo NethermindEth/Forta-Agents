@@ -10,16 +10,19 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 
-import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN, DECIMALS } from "./thresholds";
+import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN, DECIMALS, MIN_PREVIOUS_BALANCE } from "./thresholds";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { createFinding } from "./findings";
 import { NetworkData, DATA } from "./config";
 
 const networkManager: NetworkManager<NetworkData> = new NetworkManager(DATA);
 
-const provideInitialize = (networkManager: NetworkManager<NetworkData>): Initialize => {
+const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
   return async () => {
-    await networkManager.init(getEthersProvider());
+    await networkManager.init(provider);
   };
 };
 
@@ -45,17 +48,18 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
         newBalance: newBalance.toString(),
       };
 
-      let delta: ethers.BigNumber = BN.from(newBalance).sub(BN.from(previousBalance)); // difference between balances
+      let delta: ethers.BigNumber = newBalance.sub(previousBalance).div(DECIMALS); // difference between balances
 
-      let normalizedDelta = delta.div(DECIMALS);
+      if (MIN_PREVIOUS_BALANCE.lte(previousBalance)) {
+        let deltaPercentage: number = delta.toNumber() / previousBalance.div(DECIMALS).toNumber(); //percentage of vote increase
 
-      // if delta is over the threshold create finding accordingly
-      if (BN.from(delta).gte(HIGH_THRESHOLD)) {
-        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.High));
-      } else if (BN.from(delta).gte(MEDIUM_THRESHOLD)) {
-        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.Medium));
-      } else if (BN.from(delta).gte(LOW_THRESHOLD)) {
-        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.Low));
+        if (deltaPercentage >= HIGH_THRESHOLD) {
+          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.High));
+        } else if (deltaPercentage >= MEDIUM_THRESHOLD) {
+          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.Medium));
+        } else if (deltaPercentage >= LOW_THRESHOLD) {
+          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.Low));
+        }
       }
     });
 
@@ -64,7 +68,7 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
 };
 
 export default {
-  initialize: provideInitialize(networkManager),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager),
   provideHandleTransaction,
 };
