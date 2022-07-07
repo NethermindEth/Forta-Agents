@@ -9,7 +9,7 @@ export const ALERTS: { [key in FindingSeverity]?: string } = {
 export function createFinding(description: string, metadata: {}, severity: FindingSeverity) {
   return Finding.fromObject({
     name: "CakeToken Event Emitted: DelegateVotesChanged",
-    description: `Delegate Vote Balance increased by: ${description}e18`,
+    description: `Delegate Vote Balance increased by: ${description} %`,
     alertId: ALERTS[severity]!,
     protocol: "PancakeSwap",
     severity: severity,
