@@ -15,11 +15,9 @@ import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { createFinding } from "./findings";
 import { NetworkData, DATA } from "./config";
 
-const networkManager:NetworkManager<NetworkData> = new NetworkManager(DATA);
+const networkManager: NetworkManager<NetworkData> = new NetworkManager(DATA);
 
-const provideInitialize = (
-  networkManager: NetworkManager<NetworkData>
-): Initialize => {
+const provideInitialize = (networkManager: NetworkManager<NetworkData>): Initialize => {
   return async () => {
     await networkManager.init(getEthersProvider());
   };
@@ -29,10 +27,13 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const contractAddress:string = networkManager.get("cakeAddress");
+    const contractAddress: string = networkManager.get("cakeAddress");
 
     // filter the transaction logs for events
-    const delegateVotesChangedEvents:LogDescription[] = txEvent.filterLog(DELEGATE_VOTES_CHANGED_EVENT, contractAddress);
+    const delegateVotesChangedEvents: LogDescription[] = txEvent.filterLog(
+      DELEGATE_VOTES_CHANGED_EVENT,
+      contractAddress
+    );
 
     delegateVotesChangedEvents.forEach((delegateVotesChangedEvent) => {
       // extract event arguments
@@ -44,8 +45,8 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
         newBalance: newBalance.toString(),
       };
 
-      let delta:ethers.BigNumber = BN.from(newBalance).sub(BN.from(previousBalance)); // difference between balances
-      
+      let delta: ethers.BigNumber = BN.from(newBalance).sub(BN.from(previousBalance)); // difference between balances
+
       // if delta is over the threshold create finding accordingly
       if (BN.from(delta).gte(HIGH_THRESHOLD)) {
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.High));
@@ -53,8 +54,7 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Medium));
       } else if (BN.from(delta).gte(LOW_THRESHOLD)) {
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Low));
-      } 
-
+      }
     });
 
     return findings;

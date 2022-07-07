@@ -47,8 +47,7 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns a finding if there is a DelegateVotesChanged event emitted that triggers an alert", async () => {
-
-      const newBalance:ethers.BigNumber = BN.from(10).mul(DECIMALS).add(HIGH_THRESHOLD);
+      const newBalance: ethers.BigNumber = BN.from(10).mul(DECIMALS).add(HIGH_THRESHOLD);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -69,9 +68,8 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns empty findings if the event doesn't exceed the threshold", async () => {
-
-      const previousBalance:ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance:ethers.BigNumber = BN.from(-1).mul(DECIMALS).add(LOW_THRESHOLD);
+      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
+      const newBalance: ethers.BigNumber = BN.from(-1).mul(DECIMALS).add(LOW_THRESHOLD);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -86,13 +84,12 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns multiple findings if there are  multiple DelegateVotesChanged events emitted", async () => {
-
-      const previousBalance_1:ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance_1:ethers.BigNumber = BN.from(5).mul(DECIMALS).add(HIGH_THRESHOLD);
-      const previousBalance_2:ethers.BigNumber = BN.from(1).mul(DECIMALS);
-      const newBalance_2:ethers.BigNumber = BN.from(2).mul(DECIMALS).add(MEDIUM_THRESHOLD);
-      const previousBalance_3:ethers.BigNumber = BN.from(0);
-      const newBalance_3:ethers.BigNumber = BN.from(1).mul(DECIMALS).add(LOW_THRESHOLD);
+      const previousBalance_1: ethers.BigNumber = BN.from(5).mul(DECIMALS);
+      const newBalance_1: ethers.BigNumber = BN.from(5).mul(DECIMALS).add(HIGH_THRESHOLD);
+      const previousBalance_2: ethers.BigNumber = BN.from(1).mul(DECIMALS);
+      const newBalance_2: ethers.BigNumber = BN.from(2).mul(DECIMALS).add(MEDIUM_THRESHOLD);
+      const previousBalance_3: ethers.BigNumber = BN.from(0);
+      const newBalance_3: ethers.BigNumber = BN.from(1).mul(DECIMALS).add(LOW_THRESHOLD);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x0347"),
@@ -121,17 +118,17 @@ describe("delegate votes change bot", () => {
       let metadata_1 = {
         delegate: createAddress("0x0347"),
         previousBalance: previousBalance_1.toString(),
-        newBalance: newBalance_1.toString()
+        newBalance: newBalance_1.toString(),
       };
       let metadata_2 = {
         delegate: createAddress("0x2045"),
         previousBalance: previousBalance_2.toString(),
-        newBalance: newBalance_2.toString()
+        newBalance: newBalance_2.toString(),
       };
       let metadata_3 = {
         delegate: createAddress("0x0345"),
         previousBalance: previousBalance_3.toString(),
-        newBalance: newBalance_3.toString()
+        newBalance: newBalance_3.toString(),
       };
 
       expect(findings).toStrictEqual([
@@ -142,9 +139,8 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns empty findings if the event is emitted from an incorrect contract address", async () => {
-
-      const previousBalance:ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance:ethers.BigNumber = BN.from(5).mul(DECIMALS).add(HIGH_THRESHOLD);
+      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
+      const newBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS).add(HIGH_THRESHOLD);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -168,9 +164,8 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns findings only for the correct event", async () => {
-
-      const previousBalance:ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance:ethers.BigNumber = BN.from(6).mul(DECIMALS).add(MEDIUM_THRESHOLD);
+      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
+      const newBalance: ethers.BigNumber = BN.from(6).mul(DECIMALS).add(MEDIUM_THRESHOLD);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [999]);
       let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
