@@ -466,14 +466,14 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, MASTERCHEF_ADDRESS);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("Withdraw"), [
         testSpender,
         20,
         BigNumber.from("3000000000000000000"), // 3
       ]);
-      // Create test transaction with the deposit event
+      // Create test transaction with the withdraw event
       txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
 
       // Add token address to Masterchef contract
