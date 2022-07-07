@@ -64,7 +64,20 @@ describe("delegate votes change bot", () => {
       expect(findings).toStrictEqual([createFinding("DelegateVotesChanged", metadata, FindingSeverity.High)]);
     });
 
-    it("returns multiple finding if there are  multiple DelegateVotesChanged events emitted", async () => {
+    it("returns empty findings if the event doesn't exceed the threshold", async () => {
+      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2345"),
+        1000,
+        1100,
+      ]);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("returns multiple findings if there are  multiple DelegateVotesChanged events emitted", async () => {
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x0347"),
         1000,
