@@ -1,7 +1,7 @@
 {
   "name": "pancakeswap-delegators-vote-change-bot",
   "version": "0.0.1",
-  "description": "PancakeSwap Cake Token to detect large delegators vote balance change",
+  "description": "Detects large delegators vote balance change in PancakeSwap Cake token",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-Delegators-Vote-Change",
   "chainIds": [
     56
