@@ -48,6 +48,7 @@ describe("delegate votes change bot", () => {
 
     it("returns a finding if there is a DelegateVotesChanged event emitted that triggers an alert", async () => {
       const newBalance: ethers.BigNumber = BN.from(10).mul(DECIMALS).add(HIGH_THRESHOLD);
+      const normalizedDelta: ethers.BigNumber = newBalance.div(DECIMALS);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -64,7 +65,7 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      expect(findings).toStrictEqual([createFinding("DelegateVotesChanged", metadata, FindingSeverity.High)]);
+      expect(findings).toStrictEqual([createFinding(normalizedDelta.toString(), metadata, FindingSeverity.High)]);
     });
 
     it("returns empty findings if the event doesn't exceed the threshold", async () => {
@@ -86,10 +87,15 @@ describe("delegate votes change bot", () => {
     it("returns multiple findings if there are  multiple DelegateVotesChanged events emitted", async () => {
       const previousBalance_1: ethers.BigNumber = BN.from(5).mul(DECIMALS);
       const newBalance_1: ethers.BigNumber = BN.from(5).mul(DECIMALS).add(HIGH_THRESHOLD);
+      const normalizedDelta_1: ethers.BigNumber = newBalance_1.sub(previousBalance_1).div(DECIMALS);
+
       const previousBalance_2: ethers.BigNumber = BN.from(1).mul(DECIMALS);
       const newBalance_2: ethers.BigNumber = BN.from(2).mul(DECIMALS).add(MEDIUM_THRESHOLD);
+      const normalizedDelta_2: ethers.BigNumber = newBalance_2.sub(previousBalance_2).div(DECIMALS);
+
       const previousBalance_3: ethers.BigNumber = BN.from(0);
       const newBalance_3: ethers.BigNumber = BN.from(1).mul(DECIMALS).add(LOW_THRESHOLD);
+      const normalizedDelta_3: ethers.BigNumber = newBalance_3.sub(previousBalance_3).div(DECIMALS);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x0347"),
@@ -132,9 +138,9 @@ describe("delegate votes change bot", () => {
       };
 
       expect(findings).toStrictEqual([
-        createFinding("DelegateVotesChanged", metadata_1, FindingSeverity.High),
-        createFinding("DelegateVotesChanged", metadata_2, FindingSeverity.Medium),
-        createFinding("DelegateVotesChanged", metadata_3, FindingSeverity.Low),
+        createFinding(normalizedDelta_1.toString(), metadata_1, FindingSeverity.High),
+        createFinding(normalizedDelta_2.toString(), metadata_2, FindingSeverity.Medium),
+        createFinding(normalizedDelta_3.toString(), metadata_3, FindingSeverity.Low),
       ]);
     });
 
@@ -166,6 +172,7 @@ describe("delegate votes change bot", () => {
     it("returns findings only for the correct event", async () => {
       const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
       const newBalance: ethers.BigNumber = BN.from(6).mul(DECIMALS).add(MEDIUM_THRESHOLD);
+      const normalizedDelta: ethers.BigNumber = newBalance.sub(previousBalance).div(DECIMALS);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [999]);
       let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
@@ -185,7 +192,7 @@ describe("delegate votes change bot", () => {
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([createFinding("DelegateVotesChanged", metadata, FindingSeverity.Medium)]);
+      expect(findings).toStrictEqual([createFinding(normalizedDelta.toString(), metadata, FindingSeverity.Medium)]);
     });
   });
 });

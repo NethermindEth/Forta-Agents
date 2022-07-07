@@ -10,7 +10,7 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 
-import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN } from "./thresholds";
+import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN, DECIMALS } from "./thresholds";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { createFinding } from "./findings";
 import { NetworkData, DATA } from "./config";
@@ -47,13 +47,15 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
 
       let delta: ethers.BigNumber = BN.from(newBalance).sub(BN.from(previousBalance)); // difference between balances
 
+      let normalizedDelta = delta.div(DECIMALS);
+
       // if delta is over the threshold create finding accordingly
       if (BN.from(delta).gte(HIGH_THRESHOLD)) {
-        findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.High));
+        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.High));
       } else if (BN.from(delta).gte(MEDIUM_THRESHOLD)) {
-        findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Medium));
+        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.Medium));
       } else if (BN.from(delta).gte(LOW_THRESHOLD)) {
-        findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Low));
+        findings.push(createFinding(normalizedDelta.toString(), metadata, FindingSeverity.Low));
       }
     });
 
