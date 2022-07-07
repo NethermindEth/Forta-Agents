@@ -13,8 +13,8 @@ This bot detects the following Cake Token events:
   The `THRESHOLDS` can be configured in the `thresholds.ts` file.
 - CAKE-10-1
   - Triggered when a `DelegateVotesChanged` event is detected and the difference between `newBalance` and `previousBalance` is above `LOW_THRESHOLD`.
-  - Severity is set to "Low".
-  - Type is set to "Info".
+  - Severity is always set to "Low".
+  - Type is always set to "Info".
   - Metadata contains:
     - `delegate`: The address of the delegate.
     - `previousBalance`: The previous vote balance of the delegate.
@@ -22,8 +22,8 @@ This bot detects the following Cake Token events:
 
 - CAKE-10-2
   - Triggered when a `DelegateVotesChanged` event is detected and the difference between `newBalance` and `previousBalance` is above `MEDIUM_THRESHOLD`.
-  - Severity is set to "Medium".
-  - Type is set to "Info".
+  - Severity is always set to "Medium".
+  - Type is always set to "Info".
   - Metadata contains:
     - `delegate`: The address of the delegate.
     - `previousBalance`: The previous vote balance of the delegate.
@@ -31,8 +31,8 @@ This bot detects the following Cake Token events:
 
 - CAKE-10-3
 - Triggered when a `DelegateVotesChanged` event is detected and the difference between `newBalance` and `previousBalance` is above `HIGH_THRESHOLD`.
-  - Severity is set to "High".
-  - Type is set to "Suspicious".
+  - Severity is always set to "High".
+  - Type is always set to "Suspicious".
   - Metadata contains:
     - `delegate`: The address of the delegate.
     - `previousBalance`: The previous vote balance of the delegate.
