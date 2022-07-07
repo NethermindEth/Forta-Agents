@@ -13,7 +13,7 @@ export function createFinding(description: string, metadata: {}, severity: Findi
     alertId: ALERTS[severity]!,
     protocol: "PancakeSwap",
     severity: severity,
-    type: FindingType.Info,
+    type: (severity === FindingSeverity.High ? FindingType.Suspicious:FindingType.Info),
     metadata,
   });
 }
