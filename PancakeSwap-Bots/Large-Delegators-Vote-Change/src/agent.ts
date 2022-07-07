@@ -6,22 +6,22 @@ import {
   Initialize,
   ethers,
   getEthersProvider,
+  LogDescription,
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 
-import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD } from "./constants";
+import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN } from "./thresholds";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { createFinding } from "./findings";
 import { NetworkData, DATA } from "./config";
 
-const networkManager = new NetworkManager(DATA);
+const networkManager:NetworkManager<NetworkData> = new NetworkManager(DATA);
 
 const provideInitialize = (
-  networkManager: NetworkManager<NetworkData>,
-  provider: ethers.providers.Provider
+  networkManager: NetworkManager<NetworkData>
 ): Initialize => {
   return async () => {
-    await networkManager.init(provider);
+    await networkManager.init(getEthersProvider());
   };
 };
 
@@ -29,10 +29,10 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const contractAddress = await networkManager.get("cakeAddress");
+    const contractAddress:string = networkManager.get("cakeAddress");
 
     // filter the transaction logs for events
-    const delegateVotesChangedEvents = txEvent.filterLog(DELEGATE_VOTES_CHANGED_EVENT, contractAddress);
+    const delegateVotesChangedEvents:LogDescription[] = txEvent.filterLog(DELEGATE_VOTES_CHANGED_EVENT, contractAddress);
 
     delegateVotesChangedEvents.forEach((delegateVotesChangedEvent) => {
       // extract event arguments
@@ -44,18 +44,17 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
         newBalance: newBalance.toString(),
       };
 
-      let delta = newBalance - previousBalance; // difference between balances
-
-      let deltaPercentage = (delta / previousBalance) * 100; //delta percentage
-
-      // if delta percentage is over the threshold create finding accordingly
-      if (deltaPercentage >= HIGH_THRESHOLD) {
+      let delta:ethers.BigNumber = BN.from(newBalance).sub(BN.from(previousBalance)); // difference between balances
+      
+      // if delta is over the threshold create finding accordingly
+      if (BN.from(delta).gte(HIGH_THRESHOLD)) {
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.High));
-      } else if (deltaPercentage >= MEDIUM_THRESHOLD) {
+      } else if (BN.from(delta).gte(MEDIUM_THRESHOLD)) {
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Medium));
-      } else if (deltaPercentage >= LOW_THRESHOLD) {
+      } else if (BN.from(delta).gte(LOW_THRESHOLD)) {
         findings.push(createFinding(delegateVotesChangedEvent.name, metadata, FindingSeverity.Low));
-      }
+      } 
+
     });
 
     return findings;
@@ -63,7 +62,7 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
 };
 
 export default {
-  initialize: provideInitialize(networkManager, getEthersProvider()),
+  initialize: provideInitialize(networkManager),
   handleTransaction: provideHandleTransaction(networkManager),
   provideHandleTransaction,
 };
