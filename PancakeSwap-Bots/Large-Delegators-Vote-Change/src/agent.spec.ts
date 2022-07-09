@@ -70,8 +70,10 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
+      let description:string = (deltaPercentage * 100).toString() + " %";
+
       expect(findings).toStrictEqual([
-        createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.High),
+        createFinding(description, metadata, FindingSeverity.High),
       ]);
     });
 
@@ -144,10 +146,14 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance_3.toString(),
       };
 
+      let description_1:string = (deltaPercentage_1 * 100).toString() + " %";
+      let description_2:string = (deltaPercentage_2 * 100).toString() + " %";
+      let description_3:string = (deltaPercentage_3 * 100).toString() + " %";
+
       expect(findings).toStrictEqual([
-        createFinding((deltaPercentage_1 * 100).toString(), metadata_1, FindingSeverity.High),
-        createFinding((deltaPercentage_2 * 100).toString(), metadata_2, FindingSeverity.Medium),
-        createFinding((deltaPercentage_3 * 100).toString(), metadata_3, FindingSeverity.Low),
+        createFinding(description_1, metadata_1, FindingSeverity.High),
+        createFinding(description_2, metadata_2, FindingSeverity.Medium),
+        createFinding(description_3, metadata_3, FindingSeverity.Low),
       ]);
     });
 
@@ -197,11 +203,41 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
+      let description:string = (deltaPercentage * 100).toString() + " %";
+
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.Medium),
+        createFinding(description, metadata, FindingSeverity.Medium),
       ]);
     });
+
+
+    it("returns a finding if there is a DelegateVotesChanged event emitted and the previous vote balance is 0", async () => {
+      const previousBalance: ethers.BigNumber = BN.from(0);
+      const newBalance: ethers.BigNumber =BN.from(11).mul(DECIMALS);
+      const deltaPercentage: number = getPercentage(previousBalance, newBalance);
+
+      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
+        createAddress("0x2345"),
+        previousBalance,
+        newBalance,
+      ]);
+      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      let metadata = {
+        delegate: createAddress("0x2345"),
+        previousBalance: previousBalance.toString(),
+        newBalance: newBalance.toString(),
+      };
+
+      expect(findings).toStrictEqual([
+        createFinding(newBalance.toString(), metadata, FindingSeverity.Info),
+      ]);
+    });
+
+
   });
 });
