@@ -10,7 +10,15 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 
-import { LOW_THRESHOLD, MEDIUM_THRESHOLD, HIGH_THRESHOLD, BN, DECIMALS, MIN_PREVIOUS_BALANCE } from "./thresholds";
+import {
+  LOW_THRESHOLD,
+  MEDIUM_THRESHOLD,
+  HIGH_THRESHOLD,
+  BN,
+  DECIMALS,
+  MIN_PREVIOUS_BALANCE,
+  ABSOLUTE_THRESHOLD,
+} from "./thresholds";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { createFinding } from "./findings";
 import { NetworkData, DATA } from "./config";
@@ -53,13 +61,17 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
       if (MIN_PREVIOUS_BALANCE.lte(previousBalance)) {
         let deltaPercentage: number = delta.toNumber() / previousBalance.div(DECIMALS).toNumber(); //percentage of vote increase
 
+        let description: string = (deltaPercentage * 100).toString() + " %";
+
         if (deltaPercentage >= HIGH_THRESHOLD) {
-          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.High));
+          findings.push(createFinding(description, metadata, FindingSeverity.High));
         } else if (deltaPercentage >= MEDIUM_THRESHOLD) {
-          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.Medium));
+          findings.push(createFinding(description, metadata, FindingSeverity.Medium));
         } else if (deltaPercentage >= LOW_THRESHOLD) {
-          findings.push(createFinding((deltaPercentage * 100).toString(), metadata, FindingSeverity.Low));
+          findings.push(createFinding(description, metadata, FindingSeverity.Low));
         }
+      } else if (previousBalance.eq(0) && newBalance.gte(ABSOLUTE_THRESHOLD)) {
+        findings.push(createFinding(newBalance, metadata, FindingSeverity.Info));
       }
     });
 
