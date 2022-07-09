@@ -25,8 +25,9 @@ import {
 //DONE Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
 //DONE Make caching system
 
-//TODO: Write tests
+
 //TODO: Write Mock chainlink datafeed
+//TODO: Write tests
 //TODO: Check if cache is working
 //TODO: Make it work for avalanche
 //TODO: Clean up & apply PR changes
@@ -49,7 +50,7 @@ const aggregatorV3InterfaceABI = [{ "inputs": [], "name": "decimals", "outputs":
 let tradeHistory = new Map<string, [number, number, number]>([]);
 
 let priceFeedCache = new Map<[string, number], number>([]);
-const priceFeedData1 = {
+const priceFeedData = {
 wethPriceFeed: new ethers.Contract("0x639fe6ab55c921f74e7fac1ee960c0b6293ba612", aggregatorV3InterfaceABI, provider),
 wbtcPriceFeed: new ethers.Contract("0x6ce185860a4963106506c203335a2910413708e9", aggregatorV3InterfaceABI, provider),
 linkPriceFeed: new ethers.Contract("0x86e53cf1b870786351da77a57575e79cb55812cb", aggregatorV3InterfaceABI, provider),
@@ -76,7 +77,7 @@ priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",priceFeedData.mimPri
 let unusualTrades = 0; //REMOVE
 
 export const provideHandleTx =
-  (router: string, swapEvent: string, theProvider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
+  (router: string, swapEvent: string, theProvider: ethers.providers.Provider, priceFeeds: any) => async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
     console.log(unusualTrades.toString()); //REMOVE
@@ -172,6 +173,6 @@ export const provideHandleTx =
 // }
 
 export default {
-  initialize: initialize(priceFeedData1),
-  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, provider),
+  initialize: initialize(priceFeedData),
+  handleTransaction: provideHandleTx(GMX_ROUTER_ADDRESS, SWAP_EVENT, provider, priceFeeds),
 };
