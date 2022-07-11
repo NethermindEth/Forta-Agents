@@ -31,8 +31,10 @@ const isValidPancakePair = async (
   init: string
 ): Promise<[boolean, string, string]> => {
   const pairContract = createContract(pairAddress, PANCAKE_PAIR_ABI, provider);
-  const token0Address: string = await pairContract.token0({ blockTag: block });
-  const token1Address: string = await pairContract.token1({ blockTag: block });
+  const [token0Address, token1Address] = await Promise.all([
+    pairContract.token0({ blockTag: block }),
+    pairContract.token1({ blockTag: block })
+  ]);
   const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
   const isValid =
     tokenPair !== createAddress("0x0") && tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
