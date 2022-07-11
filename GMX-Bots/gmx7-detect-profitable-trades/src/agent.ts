@@ -25,9 +25,8 @@ import {
 //DONE Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
 //DONE Make caching system
 //DONE Write Mock chainlink datafeed
+//DONE Write tests
 
-//TODO: Write tests
-//TODO: Check if cache is working
 //TODO: Make it work for avalanche
 //TODO: Clean up & apply PR changes
 
