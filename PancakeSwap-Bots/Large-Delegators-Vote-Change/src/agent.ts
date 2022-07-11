@@ -1,27 +1,15 @@
 import {
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  Initialize,
-  ethers,
-  getEthersProvider,
-  LogDescription,
+  ethers, Finding, FindingSeverity, getEthersProvider, HandleTransaction, Initialize, LogDescription, TransactionEvent
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-
-import {
-  LOW_THRESHOLD,
-  MEDIUM_THRESHOLD,
-  HIGH_THRESHOLD,
-  BN,
-  DECIMALS,
-  MIN_PREVIOUS_BALANCE,
-  ABSOLUTE_THRESHOLD,
-} from "./thresholds";
+import BN from "bignumber.js";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
+import { DATA, NetworkData } from "./config";
 import { createFinding } from "./findings";
-import { NetworkData, DATA } from "./config";
+import {
+  ABSOLUTE_THRESHOLD, DECIMALS, HIGH_THRESHOLD, LOW_THRESHOLD,
+  MEDIUM_THRESHOLD, MIN_PREVIOUS_BALANCE
+} from "./thresholds";
 
 const networkManager: NetworkManager<NetworkData> = new NetworkManager(DATA);
 
@@ -30,6 +18,7 @@ const provideInitialize = (
   provider: ethers.providers.Provider
 ): Initialize => {
   return async () => {
+    BN.set({DECIMAL_PLACES: 5});
     await networkManager.init(provider);
   };
 };
@@ -56,21 +45,21 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
         newBalance: newBalance.toString(),
       };
 
-      let delta: ethers.BigNumber = newBalance.sub(previousBalance).div(DECIMALS); // difference between balances
+      let delta:BN = new BN(newBalance.toString()).minus(previousBalance.toString()); // difference between balances
 
-      if (MIN_PREVIOUS_BALANCE.lte(previousBalance)) {
-        let deltaPercentage: number = delta.toNumber() / previousBalance.div(DECIMALS).toNumber(); //percentage of vote increase
+      if (MIN_PREVIOUS_BALANCE.lt(previousBalance.toString())) {
+        let deltaPercentage:BN = delta.dividedBy(new BN(previousBalance.toString())) // previousBalance.div(DECIMALS).toNumber(); //percentage of vote increase
 
-        let description: string = (deltaPercentage * 100).toString() + " %";
+        let description: string = deltaPercentage.multipliedBy(100).toString() + " %";
 
-        if (deltaPercentage >= HIGH_THRESHOLD) {
+        if (deltaPercentage.gte(HIGH_THRESHOLD)) {
           findings.push(createFinding(description, metadata, FindingSeverity.High));
-        } else if (deltaPercentage >= MEDIUM_THRESHOLD) {
+        } else if (deltaPercentage.gte(MEDIUM_THRESHOLD)) {
           findings.push(createFinding(description, metadata, FindingSeverity.Medium));
-        } else if (deltaPercentage >= LOW_THRESHOLD) {
+        } else if (deltaPercentage.gte(LOW_THRESHOLD)) {
           findings.push(createFinding(description, metadata, FindingSeverity.Low));
         }
-      } else if (previousBalance.eq(0) && newBalance.gte(ABSOLUTE_THRESHOLD)) {
+      } else if (previousBalance.eq(0) && ABSOLUTE_THRESHOLD.lte(newBalance.toString())) {
         findings.push(createFinding(newBalance, metadata, FindingSeverity.Info));
       }
     });

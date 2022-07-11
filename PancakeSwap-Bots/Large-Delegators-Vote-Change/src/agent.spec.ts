@@ -5,10 +5,16 @@ import { NetworkManager } from "forta-agent-tools";
 import { NetworkData } from "./config";
 import bot from "./agent";
 import { createFinding } from "./findings";
-import { BN, DECIMALS, HIGH_THRESHOLD, LOW_THRESHOLD, MEDIUM_THRESHOLD } from "./thresholds";
+import { DECIMALS } from "./thresholds";
+import {BigNumber} from "ethers";
+import BN from "bignumber.js";
 
-function getPercentage(previousBalance: ethers.BigNumber, newBalance: ethers.BigNumber): number {
-  return newBalance.sub(previousBalance).div(DECIMALS).toNumber() / previousBalance.div(DECIMALS).toNumber();
+
+function getPercentage(previousBalance: BigNumber, newBalance: BigNumber): string {
+  let pbalance_BN = new BN(previousBalance.toString());
+  let nbalance_BN = new BN(newBalance.toString());
+
+  return nbalance_BN.minus(pbalance_BN).dividedBy(pbalance_BN).multipliedBy(100).toString() + " %";
 }
 
 describe("delegate votes change bot", () => {
@@ -27,6 +33,8 @@ describe("delegate votes change bot", () => {
   });
 
   beforeAll(() => {
+    
+    BN.set({DECIMAL_PLACES: 5});
     const mockData: Record<number, NetworkData> = {
       1111: {
         cakeAddress: MOCK_CONTRACT_ADDRESS,
@@ -51,9 +59,9 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns a finding if there is a DelegateVotesChanged event emitted that triggers an alert", async () => {
-      const previousBalance: ethers.BigNumber = BN.from(8).mul(DECIMALS);
-      const newBalance: ethers.BigNumber = previousBalance.add(BN.from(10).mul(DECIMALS));
-      const deltaPercentage: number = getPercentage(previousBalance, newBalance);
+      const previousBalance: BigNumber = BigNumber.from(8).mul(DECIMALS);
+      const newBalance: BigNumber = previousBalance.add(BigNumber.from(10).mul(DECIMALS));
+      const deltaPercentage: string = getPercentage(previousBalance, newBalance);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -70,14 +78,14 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      let description: string = (deltaPercentage * 100).toString() + " %";
+      let description: string = deltaPercentage;
 
       expect(findings).toStrictEqual([createFinding(description, metadata, FindingSeverity.High)]);
     });
 
     it("returns empty findings if the event doesn't exceed the threshold", async () => {
-      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance: ethers.BigNumber = previousBalance.add(BN.from(1).mul(DECIMALS));
+      const previousBalance: BigNumber = BigNumber.from(5).mul(DECIMALS);
+      const newBalance: BigNumber = previousBalance.add(BigNumber.from(1).mul(DECIMALS));
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -92,17 +100,17 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns multiple findings if there are  multiple DelegateVotesChanged events emitted", async () => {
-      const previousBalance_1: ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance_1: ethers.BigNumber = previousBalance_1.mul(2);
-      const deltaPercentage_1: number = getPercentage(previousBalance_1, newBalance_1);
+      const previousBalance_1: BigNumber = BigNumber.from(5).mul(DECIMALS);
+      const newBalance_1: BigNumber = previousBalance_1.mul(2);
+      const deltaPercentage_1: string = getPercentage(previousBalance_1, newBalance_1);
 
-      const previousBalance_2: ethers.BigNumber = BN.from(2).mul(DECIMALS);
-      const newBalance_2: ethers.BigNumber = previousBalance_2.add(BN.from(1).mul(DECIMALS));
-      const deltaPercentage_2: number = getPercentage(previousBalance_2, newBalance_2);
+      const previousBalance_2: BigNumber = BigNumber.from(2).mul(DECIMALS);
+      const newBalance_2: BigNumber = previousBalance_2.add(BigNumber.from(1).mul(DECIMALS));
+      const deltaPercentage_2: string = getPercentage(previousBalance_2, newBalance_2);
 
-      const previousBalance_3: ethers.BigNumber = BN.from(10).mul(DECIMALS);
-      const newBalance_3: ethers.BigNumber = previousBalance_3.add(BN.from(3).mul(DECIMALS));
-      const deltaPercentage_3: number = getPercentage(previousBalance_3, newBalance_3);
+      const previousBalance_3: BigNumber = BigNumber.from(10).mul(DECIMALS);
+      const newBalance_3: BigNumber = previousBalance_3.add(BigNumber.from(3).mul(DECIMALS));
+      const deltaPercentage_3: string = getPercentage(previousBalance_3, newBalance_3);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x0347"),
@@ -144,9 +152,9 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance_3.toString(),
       };
 
-      let description_1: string = (deltaPercentage_1 * 100).toString() + " %";
-      let description_2: string = (deltaPercentage_2 * 100).toString() + " %";
-      let description_3: string = (deltaPercentage_3 * 100).toString() + " %";
+      let description_1: string = deltaPercentage_1;
+      let description_2: string = deltaPercentage_2;
+      let description_3: string = deltaPercentage_3;
 
       expect(findings).toStrictEqual([
         createFinding(description_1, metadata_1, FindingSeverity.High),
@@ -156,8 +164,8 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns empty findings if the event is emitted from an incorrect contract address", async () => {
-      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance: ethers.BigNumber = previousBalance.mul(2);
+      const previousBalance: BigNumber = BigNumber.from(5).mul(DECIMALS);
+      const newBalance: BigNumber = previousBalance.mul(2);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
@@ -181,9 +189,9 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns findings only for the correct event", async () => {
-      const previousBalance: ethers.BigNumber = BN.from(5).mul(DECIMALS);
-      const newBalance: ethers.BigNumber = previousBalance.add(BN.from(3).mul(DECIMALS));
-      const deltaPercentage: number = getPercentage(previousBalance, newBalance);
+      const previousBalance: BigNumber = BigNumber.from(5).mul(DECIMALS);
+      const newBalance: BigNumber = previousBalance.add(BigNumber.from(3).mul(DECIMALS));
+      const deltaPercentage: string = getPercentage(previousBalance, newBalance);
 
       let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [999]);
       let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
@@ -201,7 +209,7 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      let description: string = (deltaPercentage * 100).toString() + " %";
+      let description: string = deltaPercentage;
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -209,9 +217,8 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns a finding if there is a DelegateVotesChanged event emitted and the previous vote balance is 0", async () => {
-      const previousBalance: ethers.BigNumber = BN.from(0);
-      const newBalance: ethers.BigNumber = BN.from(11).mul(DECIMALS);
-      const deltaPercentage: number = getPercentage(previousBalance, newBalance);
+      const previousBalance: BigNumber = BigNumber.from(0);
+      const newBalance: BigNumber = BigNumber.from(11).mul(DECIMALS);
 
       let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
         createAddress("0x2345"),
