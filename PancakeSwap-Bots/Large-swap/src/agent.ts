@@ -8,6 +8,7 @@ import {
   createFinding,
   toBn,
   PANCAKE_FACTORY_ADDRESS,
+  INIT_CODE_PAIR_HASH,
 } from "./utils";
 import BigNumber from "bignumber.js";
 BigNumber.set({ DECIMAL_PLACES: 18 });
@@ -15,7 +16,8 @@ BigNumber.set({ DECIMAL_PLACES: 18 });
 export const provideBotHandler = (
   largePercentage: string,
   pancakeFactory: string,
-  provider: ethers.providers.Provider
+  provider: ethers.providers.Provider,
+  initCode: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -30,7 +32,8 @@ export const provideBotHandler = (
             pairAddress,
             provider,
             txEvent.blockNumber,
-            pancakeFactory
+            pancakeFactory,
+            initCode
           );
           if (isValid) {
             const token0Balance = await getERC20Balance(token0Address, pairAddress, provider, txEvent.blockNumber - 1);
@@ -89,5 +92,10 @@ export const provideBotHandler = (
 };
 
 export default {
-  handleTransaction: provideBotHandler(LARGE_THRESHOLD, PANCAKE_FACTORY_ADDRESS, getEthersProvider()),
+  handleTransaction: provideBotHandler(
+    LARGE_THRESHOLD,
+    PANCAKE_FACTORY_ADDRESS,
+    getEthersProvider(),
+    INIT_CODE_PAIR_HASH
+  ),
 };

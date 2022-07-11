@@ -1,6 +1,8 @@
 import { ethers, Finding, FindingType, FindingSeverity } from "forta-agent";
 import { createAddress } from "forta-agent-tools/lib/tests.utils";
 import BigNumber from "bignumber.js";
+import { getCreate2Address } from "@ethersproject/address";
+
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const SWAP_EVENT =
@@ -14,6 +16,7 @@ const PANCAKE_PAIR_ABI = [
 ];
 const PANCAKE_FACTORY_ABI = ["function getPair(address tokenA, address tokenB) external view returns (address pair)"];
 const PANCAKE_FACTORY_ADDRESS = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
+const INIT_CODE_PAIR_HASH = "0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5";
 
 const toBn = (ethersBn: ethers.BigNumberish) => new BigNumber(ethersBn.toString());
 
@@ -24,13 +27,13 @@ const isValidPancakePair = async (
   pairAddress: string,
   provider: ethers.providers.Provider,
   block: number,
-  pancakeFactoryAddr: string
+  pancakeFactoryAddr: string,
+  init: string
 ): Promise<[boolean, string, string]> => {
   const pairContract = createContract(pairAddress, PANCAKE_PAIR_ABI, provider);
   const token0Address: string = await pairContract.token0({ blockTag: block });
   const token1Address: string = await pairContract.token1({ blockTag: block });
-  const pancakeFactory = createContract(pancakeFactoryAddr, PANCAKE_FACTORY_ABI, provider);
-  const tokenPair: string = await pancakeFactory.getPair(token0Address, token1Address, { blockTag: block });
+  const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
   const isValid =
     tokenPair !== createAddress("0x0") && tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
   return [isValid, token0Address, token1Address];
@@ -44,6 +47,16 @@ const getERC20Balance = async (
 ): Promise<BigNumber> => {
   const tokenContract = createContract(tokenAddress, ERC20ABI, provider);
   return toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
+};
+
+const getPancakePairCreate2Address = (
+  pancakeFactoryAddr: string,
+  token0: string,
+  token1: string,
+  initCode: string
+): string => {
+  const salt = ethers.utils.solidityKeccak256(["address", "address"], [token0, token1]);
+  return getCreate2Address(pancakeFactoryAddr, salt, initCode);
 };
 
 const createFinding = (
@@ -87,4 +100,6 @@ export {
   toBn,
   PANCAKE_FACTORY_ABI,
   PANCAKE_FACTORY_ADDRESS,
+  INIT_CODE_PAIR_HASH,
+  getPancakePairCreate2Address,
 };
