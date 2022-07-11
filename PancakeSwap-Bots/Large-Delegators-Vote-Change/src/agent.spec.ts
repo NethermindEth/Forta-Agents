@@ -6,9 +6,8 @@ import { NetworkData } from "./config";
 import bot from "./agent";
 import { createFinding } from "./findings";
 import { DECIMALS } from "./thresholds";
-import {BigNumber} from "ethers";
+import { BigNumber } from "ethers";
 import BN from "bignumber.js";
-
 
 function getPercentage(previousBalance: BigNumber, newBalance: BigNumber): string {
   let pbalance_BN = new BN(previousBalance.toString());
@@ -33,8 +32,7 @@ describe("delegate votes change bot", () => {
   });
 
   beforeAll(() => {
-    
-    BN.set({DECIMAL_PLACES: 5});
+    BN.set({ DECIMAL_PLACES: 5 });
     const mockData: Record<number, NetworkData> = {
       1111: {
         cakeAddress: MOCK_CONTRACT_ADDRESS,
