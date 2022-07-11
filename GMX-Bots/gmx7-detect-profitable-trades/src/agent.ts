@@ -24,9 +24,8 @@ import {
 //DONE Multiply times number of tokens, taking into account decimals
 //DONE Replace hardcoded profit with calls to chainlink oracle (Remember to check for errors or non existant tokens, also cache datafeed addresses)
 //DONE Make caching system
+//DONE Write Mock chainlink datafeed
 
-
-//TODO: Write Mock chainlink datafeed
 //TODO: Write tests
 //TODO: Check if cache is working
 //TODO: Make it work for avalanche
@@ -126,7 +125,6 @@ export const provideHandleTx =
           }
           totalTrades++;
           totalProfit += (priceOut - priceIn);
-
           tradeHistory.set(account, [profitableTrades, totalTrades, totalProfit]);
           
           //if an account using gmx has an unusual amount of profitable trades, report it
@@ -158,7 +156,7 @@ export const provideHandleTx =
           if(priceOut > priceIn){
             profitableTrades++;
           }
-          tradeHistory.set(account, [profitableTrades, 1, (priceOut - priceIn) / 10**8]);
+          tradeHistory.set(account, [profitableTrades, 1, (priceOut - priceIn)]);
         }
 
       }

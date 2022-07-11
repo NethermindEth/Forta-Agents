@@ -28,21 +28,21 @@ const mockProvider: MockEthersProvider = new MockEthersProvider();
 const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
 const MOCK_SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
-let MOCK_FEED_DATA = {
-    roundId: jest.fn().mockReturnValue(0),
-    answer: jest.fn().mockReturnValue(1),
-    startedAt: jest.fn().mockReturnValue(2),
-    updatedAt: jest.fn().mockReturnValue(3),
-    answeredInRound: jest.fn().mockReturnValue(4),
-}
 let mockPriceFeed = {
-  get: ()=> jest.fn().mockReturnValue({latestRoundData: ()=> jest.fn().mockReturnValue(MOCK_FEED_DATA)})
+  get: jest.fn().mockReturnValue({latestRoundData: jest.fn().mockReturnValue({
+    roundId: 0,
+    answer: 1,
+    startedAt: 2,
+    updatedAt: 3,
+    answeredInRound: 4,
+  })})
   }
+  
 const handler = provideHandleTx(
   MOCK_GMX_ROUTER_ADDRESS,
   MOCK_SWAP_EVENT,
   mockProvider as unknown as ethers.providers.Provider,
-  mockPriceFeed
+  mockPriceFeed as unknown as Map<string, ethers.Contract>
 );
 const provider = getEthersProvider();
 const aggregatorV3InterfaceABI = [{ "inputs": [], "name": "decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "description", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "uint80", "name": "_roundId", "type": "uint80" }], "name": "getRoundData", "outputs": [{ "internalType": "uint80", "name": "roundId", "type": "uint80" }, { "internalType": "int256", "name": "answer", "type": "int256" }, { "internalType": "uint256", "name": "startedAt", "type": "uint256" }, { "internalType": "uint256", "name": "updatedAt", "type": "uint256" }, { "internalType": "uint80", "name": "answeredInRound", "type": "uint80" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "latestRoundData", "outputs": [{ "internalType": "uint80", "name": "roundId", "type": "uint80" }, { "internalType": "int256", "name": "answer", "type": "int256" }, { "internalType": "uint256", "name": "startedAt", "type": "uint256" }, { "internalType": "uint256", "name": "updatedAt", "type": "uint256" }, { "internalType": "uint80", "name": "answeredInRound", "type": "uint80" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "version", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }];
@@ -123,10 +123,79 @@ describe("sandwich attack frontrun agent", () => {
       .setBlock(1)
       .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
 
-      MOCK_FEED_DATA.answer.mockReturnValueOnce(1000000000000000000).mockReturnValueOnce(20000000000000000000000);
-      mockPriceFeed = {
-        get: ()=> jest.fn().mockReturnValue({latestRoundData: ()=> jest.fn().mockReturnValue(MOCK_FEED_DATA)})
-      }
+      mockPriceFeed.get().latestRoundData.mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 100000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      }).mockReturnValueOnce({
+        roundId: 0,
+        answer: 2000000000000,
+        startedAt: 2,
+        updatedAt: 3,
+        answeredInRound: 4,
+      });
     let findings = await handler(transaction); //for 5 grace trades
     findings = await handler(transaction);
     findings = await handler(transaction);
@@ -146,7 +215,7 @@ describe("sandwich attack frontrun agent", () => {
           account: createAddress("0xf0").toLowerCase(),
           profitableTrades: "6",
           totalTrades: "6",
-          totalProfit: "10000000" //in USD
+          totalProfit: "119994" //in USD
         },
       }),
     ]);
