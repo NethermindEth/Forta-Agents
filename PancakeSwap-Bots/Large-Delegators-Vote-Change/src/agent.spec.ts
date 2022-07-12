@@ -76,9 +76,7 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      let description: string = deltaPercentage;
-
-      expect(findings).toStrictEqual([createFinding(description, metadata, FindingSeverity.High)]);
+      expect(findings).toStrictEqual([createFinding(deltaPercentage, metadata, FindingSeverity.High)]);
     });
 
     it("returns empty findings if the event doesn't exceed the threshold", async () => {
@@ -150,14 +148,10 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance_3.toString(),
       };
 
-      let description_1: string = deltaPercentage_1;
-      let description_2: string = deltaPercentage_2;
-      let description_3: string = deltaPercentage_3;
-
       expect(findings).toStrictEqual([
-        createFinding(description_1, metadata_1, FindingSeverity.High),
-        createFinding(description_2, metadata_2, FindingSeverity.Medium),
-        createFinding(description_3, metadata_3, FindingSeverity.Low),
+        createFinding(deltaPercentage_1, metadata_1, FindingSeverity.High),
+        createFinding(deltaPercentage_2, metadata_2, FindingSeverity.Medium),
+        createFinding(deltaPercentage_3, metadata_3, FindingSeverity.Low),
       ]);
     });
 
