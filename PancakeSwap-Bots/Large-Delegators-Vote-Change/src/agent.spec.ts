@@ -201,11 +201,9 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      let description: string = deltaPercentage;
-
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([createFinding(description, metadata, FindingSeverity.Medium)]);
+      expect(findings).toStrictEqual([createFinding(deltaPercentage, metadata, FindingSeverity.Medium)]);
     });
 
     it("returns a finding if there is a DelegateVotesChanged event emitted and the previous vote balance is 0", async () => {
