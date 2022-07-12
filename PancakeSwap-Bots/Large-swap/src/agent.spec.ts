@@ -3,14 +3,10 @@ import { provideBotHandler } from "./agent";
 import { encodeParameter } from "forta-agent-tools/lib/utils";
 import BigNumber from "bignumber.js";
 import { TestTransactionEvent, createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import {
-  LARGE_THRESHOLD,
-  ERC20ABI,
-  PANCAKE_PAIR_ABI,
-  PANCAKE_FACTORY_ABI,
-  toBn,
-  getPancakePairCreate2Address,
-} from "./utils";
+import { toBn, getPancakePairCreate2Address } from "./utils";
+
+import { ERC20ABI, PANCAKE_PAIR_ABI } from "./constants";
+
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
 const createFinding = (
@@ -43,7 +39,6 @@ const createFinding = (
   });
 };
 
-const FACTORY_IFACE = new ethers.utils.Interface(PANCAKE_FACTORY_ABI);
 const PAIR_IFACE = new ethers.utils.Interface(PANCAKE_PAIR_ABI);
 const TOKEN_IFACE = new ethers.utils.Interface(ERC20ABI);
 const TEST_PANCAKE_FACTORY = createAddress("0x32");
@@ -56,7 +51,6 @@ const [token0, token1, token2, token3] = [
 const INIT_CODE = ethers.utils.keccak256("0x");
 const TEST_PAIR_ADDRESS = getPancakePairCreate2Address(TEST_PANCAKE_FACTORY, token0, token1, INIT_CODE).toLowerCase();
 const TEST_PAIR_ADDRESS2 = getPancakePairCreate2Address(TEST_PANCAKE_FACTORY, token2, token3, INIT_CODE).toLowerCase();
-console.log(TEST_PAIR_ADDRESS, TEST_PAIR_ADDRESS2);
 const TEST_LARGE_THRESHOLD = "10"; // percent
 export const SWAP_EVENT =
   "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out,uint amount1Out,address indexed to)";
