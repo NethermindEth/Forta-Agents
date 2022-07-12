@@ -1,10 +1,12 @@
 {
-  "name": "forta-agent-starter",
+  "name": "gmx-7",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects when an account has a suspicious amount of profitable GMX swap transactions",
   "chainIds": [
-    1
+    42161,
+    43114
   ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/gmx7-detect-profitable-trades",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -24,7 +26,7 @@
   },
   "dependencies": {
     "forta-agent": "^0.1.6",
-    "forta-agent-tools": "^2.0.7"
+    "forta-agent-tools": "^2.1.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

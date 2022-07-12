@@ -9,7 +9,7 @@ import {
   getEthersProvider,
   TransactionEvent,
 } from "forta-agent";
-import agent, { GMX_ROUTER_ADDRESS } from "./agent";
+import agent from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTx, initialize } from "./agent";
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
@@ -19,13 +19,12 @@ const ABI: string[] = [
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)",
 ];
 
-const TEST_IFACE: Interface = new Interface([
-  ...ABI,
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)",
-]);
+const TEST_IFACE: Interface = new Interface(ABI);
 
-const mockProvider: MockEthersProvider = new MockEthersProvider();
 const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
+const MOCK_NETWORK_MANAGER = {
+  get: jest.fn().mockReturnValue(MOCK_GMX_ROUTER_ADDRESS),
+};
 const MOCK_SWAP_EVENT =
   "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
 let mockPriceFeed = {
@@ -39,9 +38,8 @@ let mockPriceFeed = {
   }
   
 const handler = provideHandleTx(
-  MOCK_GMX_ROUTER_ADDRESS,
+  MOCK_NETWORK_MANAGER,
   MOCK_SWAP_EVENT,
-  mockProvider as unknown as ethers.providers.Provider,
   mockPriceFeed as unknown as Map<string, ethers.Contract>
 );
 const provider = getEthersProvider();
@@ -57,7 +55,7 @@ const priceFeedData1 = {
   fraxPriceFeed: new ethers.Contract("0x0809e3d38d1b4214958faf06d8b1b1a2b73f2ab8", aggregatorV3InterfaceABI, provider),
   mimPriceFeed: new ethers.Contract("0x87121f6c9a9f6e90e59591e4cf4804873f54a95b", aggregatorV3InterfaceABI, provider)
   };
-const init = initialize(priceFeedData1);
+const init = initialize(getEthersProvider(), priceFeedData1);
 
 describe("sandwich attack frontrun agent", () => {
   let handleTransaction: HandleTransaction;

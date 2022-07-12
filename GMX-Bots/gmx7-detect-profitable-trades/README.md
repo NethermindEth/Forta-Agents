@@ -2,7 +2,8 @@
 
 ## Description
 
-This bot detects accounts using GMX that have an unusual amount of profitable trades. By default this is 90% but it can be changed.
+This bot detects accounts using GMX that have an unusual amount of profitable swaps. By default this is 90% but it can be changed.
+
 ## Supported Chains
 
 - Arbitrum
@@ -10,27 +11,21 @@ This bot detects accounts using GMX that have an unusual amount of profitable tr
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
 - GMX-07
   - Fired when an account using GMX has an unusual amount of profitable trades
   - Severity is always set to "Suspicious"
   - Type is always set to "Medium"
   - Metadata included:
-    - `account`: Address pf the account with the unusual amount of profitable trades
+    - `account`: Address of the account with the unusual amount of profitable trades
     - `profitableTrades`: Number of profitable trades
     - `totalTrades`: Number of total trades
     - `totalProfit`: Total profit of the account, calculated from previous trades (in USD).
 
-## Changing Network
-By default this bot uses the Arbitrum network, but it can be changed to Avalanche by setting "jsonRpcUrl" and "traceRpcUrl" to
-https://api.avax.network/ext/bc/C/rpc in the forta.config.json file. The GMX_ROUTER_ADDRESS in agent.ts must be changed to "0x5F719c2F1095F7B9fc68a68e35B51194f4b6abe8".
-
-## Changing Profitable Trades Ratio
-By default this ratio is set to trigger the bot when an account has more than 90% of profitable trades. This ratio can be changed by
+## Changing Profitable Trades Ratio & Grace Period
+By default this ratio is set to trigger the bot when an account has more than 90% of profitable trades. This ratio can be changed in the `utils.ts` file. Similarly, the grace period is set by default to 5 trades, but can be changed in the `utils.ts` file.
 
 ## Test Data
 
 The bot behaviour can be verified with the following transactions:
 
-- ?????????????????????????????
+- Currently no transactions have been found
