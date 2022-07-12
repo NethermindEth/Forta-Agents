@@ -15,7 +15,6 @@ import { DATA, NetworkData } from "./config";
 import { createFinding } from "./findings";
 import {
   ABSOLUTE_THRESHOLD,
-  DECIMALS,
   HIGH_THRESHOLD,
   LOW_THRESHOLD,
   MEDIUM_THRESHOLD,
