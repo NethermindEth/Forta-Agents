@@ -131,12 +131,10 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
       createAddress("0x1")
     );
     const txEvent = new TestTransactionEvent().setBlock(10).addEventLog(...swapEventLog);
-    expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(1);
     setTokenPair(10, createAddress("0x89"), token0, "token0");
     setTokenPair(10, createAddress("0x89"), token1, "token1");
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(3);
+    expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
 
   it("should return empty findings for swaps that are not large", async () => {

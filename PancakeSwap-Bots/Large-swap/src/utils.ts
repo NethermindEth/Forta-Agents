@@ -31,10 +31,15 @@ const isValidPancakePair = async (
   init: string
 ): Promise<[boolean, string, string]> => {
   const pairContract = createContract(pairAddress, PANCAKE_PAIR_ABI, provider);
-  const [token0Address, token1Address] = await Promise.all([
-    pairContract.token0({ blockTag: block }),
-    pairContract.token1({ blockTag: block })
-  ]);
+  let token0Address: string, token1Address: string;
+  try {
+      [token0Address, token1Address] = await Promise.all([
+      pairContract.token0({ blockTag: block }),
+      pairContract.token1({ blockTag: block })
+    ]);
+  } catch (error) {
+    return [false, "", ""];
+  }
   const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
   const isValid =
     tokenPair !== createAddress("0x0") && tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
@@ -48,7 +53,11 @@ const getERC20Balance = async (
   blockNumber: number
 ): Promise<BigNumber> => {
   const tokenContract = createContract(tokenAddress, ERC20ABI, provider);
-  return toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
+  try {
+    return toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
+  } catch (error) {
+    return toBn("0");
+  }
 };
 
 const getPancakePairCreate2Address = (

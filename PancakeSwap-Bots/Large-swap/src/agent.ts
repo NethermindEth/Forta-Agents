@@ -24,7 +24,6 @@ export const provideBotHandler = (
 
     // filter the transaction logs for swap events
     const swapEvents = txEvent.filterLog(SWAP_EVENT);
-    try {
       await Promise.all(
         swapEvents.map(async (event) => {
           const pairAddress = event.address;
@@ -36,8 +35,10 @@ export const provideBotHandler = (
             initCode
           );
           if (isValid) {
-            const token0Balance = await getERC20Balance(token0Address, pairAddress, provider, txEvent.blockNumber - 1);
-            const token1Balance = await getERC20Balance(token1Address, pairAddress, provider, txEvent.blockNumber - 1);
+            const [token0Balance, token1Balance] = await Promise.all([
+              getERC20Balance(token0Address, pairAddress, provider, txEvent.blockNumber - 1),
+              getERC20Balance(token1Address, pairAddress, provider, txEvent.blockNumber - 1)
+            ]);
             const amount0Out: BigNumber = toBn(event.args.amount0Out);
             const amount1Out: BigNumber = toBn(event.args.amount1Out);
             const amount0In: BigNumber = toBn(event.args.amount0In);
@@ -82,10 +83,6 @@ export const provideBotHandler = (
           }
         })
       );
-    } catch (error) {
-      console.log(error);
-      return findings;
-    }
 
     return findings;
   };
