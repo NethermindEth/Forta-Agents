@@ -11,7 +11,7 @@ const pause: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "Pause event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.High,
         type: FindingType.Info,
         alertId: "CAKE-9-1",
         metadata: {
@@ -23,7 +23,7 @@ const unpause: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "Unpause event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.High,
         type: FindingType.Info,
         alertId: "CAKE-9-2",
         metadata: {
@@ -35,7 +35,7 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewOperatorAddress event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.Medium,
         type: FindingType.Info,
         alertId: "CAKE-9-3",
         metadata: {
@@ -47,7 +47,7 @@ const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewAdminAddress event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.Medium,
         type: FindingType.Info,
         alertId: "CAKE-9-4",
         metadata: {
@@ -59,7 +59,7 @@ const newOracle: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewOracle event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.Medium,
         type: FindingType.Info,
         alertId: "CAKE-9-5",
         metadata: {
@@ -71,7 +71,7 @@ const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewTreasuryFee event emitted",
-        severity: FindingSeverity.Info,
+        severity: FindingSeverity.Medium,
         type: FindingType.Info,
         alertId: "CAKE-9-6",
         metadata: {
