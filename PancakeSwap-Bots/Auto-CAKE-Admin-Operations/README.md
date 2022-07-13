@@ -1,26 +1,99 @@
-# Large Tether Transfer Agent
+
+# CAKE Admin Operations Agent
+
+  
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+  
+
+This agent detects the following PancakeSwap Admin/Operator event emissions:
+
+- `Pause` event
+- `Unpause` event 
+- `NewOperatorAddress` event
+- `NewAdminAddress` event
+- `NewOracle` event 
+- `NewTreasuryFee` event 
 
 ## Supported Chains
 
-- Ethereum
-- List any other chains this agent can support e.g. BSC
+- BSC
 
+ 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- CAKE-9-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+	- Fired when a transaction contains a `Pause` event is detected.
 
+	- Severity is always set to "high" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `time`:  epoch containing this transaction 
+		
+- CAKE-9-2
+
+	- Fired when a transaction contains a `Unpause` event is detected.
+
+	- Severity is always set to "high" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `time`:  uint256 epoch 
+		
+- CAKE-9-3
+
+	- Fired when a transaction contains a `NewOperatorAddress` event is detected.
+
+	- Severity is always set to "medium" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `address`:  address of new operator  
+	
+- CAKE-9-4
+
+	- Fired when a transaction contains a `NewAdminAddress` event is detected.
+
+	- Severity is always set to "medium" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `address`:  address of new admin
+		
+  - CAKE-9-5
+
+	- Fired when a transaction contains a `NewOracle` event is detected.
+
+	- Severity is always set to "medium" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `address`:  address of new admin
+		
+  - CAKE-9-6
+
+	- Fired when a transaction contains a `NewTreasuryFee` event is detected.
+
+	- Severity is always set to "medium" 
+
+	- Type is always set to "info"
+
+	- Metadata contains:
+		- `time`:  epoch containing this transaction 
+		- `fee`: new treasury fee
+		
 ## Test Data
+
+  
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- 0x06e89e74da68cb92338ba18d15504922530d391b34ac11271d2d5cd280129d58 (expect 1 finding: `pause`)
