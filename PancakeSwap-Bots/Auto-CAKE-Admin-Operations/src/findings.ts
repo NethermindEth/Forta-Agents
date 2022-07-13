@@ -80,8 +80,6 @@ const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
         }
     });
 
-
-
 const functions: Record<string, FindingGenerator> = {
     "Pause": pause,
     "Unpause": unpause,
