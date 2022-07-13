@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Forta Agent Typescript starter project",
   "chainIds": [
-    1
+    56
   ],
   "scripts": {
     "build": "tsc",
