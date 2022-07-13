@@ -43,7 +43,7 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
         }
     });
 
-    const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
+const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewAdminAddress event emitted",
@@ -55,7 +55,7 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
         }
     });
 
-    const newOracle: FindingGenerator = (log: LogDescription): Finding =>
+const newOracle: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewOracle event emitted",
@@ -67,8 +67,8 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
         }
     });
 
-    
-    const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
+
+const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
         name: "CAKE Operations",
         description: "NewTreasuryFee event emitted",
@@ -88,8 +88,8 @@ const functions: Record<string, FindingGenerator> = {
     "Unpause": unpause,
     "NewOperatorAddress": newOperatorAddress,
     "NewAdminAddress": newAdminAddress,
-    "NewOracle":newOracle,
-    "NewTreasuryFee":newTreasuryFee,
+    "NewOracle": newOracle,
+    "NewTreasuryFee": newTreasuryFee,
 }
 
 const resolver: FindingGenerator = (log: LogDescription) => functions[log.name](log);
