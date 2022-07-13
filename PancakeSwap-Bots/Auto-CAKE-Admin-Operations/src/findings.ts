@@ -13,7 +13,7 @@ const pause: FindingGenerator = (log: LogDescription): Finding =>
         description: "Pause event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-1",
+        alertId: "CAKE-9-1",
         metadata: {
             time: `${log.args["epoch"]}`,
         }
@@ -25,7 +25,7 @@ const unpause: FindingGenerator = (log: LogDescription): Finding =>
         description: "Unpause event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-2",
+        alertId: "CAKE-9-2",
         metadata: {
             time: `${log.args["epoch"]}`,
         }
@@ -37,7 +37,7 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
         description: "NewOperatorAddress event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-3",
+        alertId: "CAKE-9-3",
         metadata: {
             address: log.args["operator"].toLowerCase(),
         }
@@ -49,7 +49,7 @@ const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
         description: "NewAdminAddress event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-4",
+        alertId: "CAKE-9-4",
         metadata: {
             address: log.args["admin"].toLowerCase(),
         }
@@ -61,12 +61,11 @@ const newOracle: FindingGenerator = (log: LogDescription): Finding =>
         description: "NewOracle event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-5",
+        alertId: "CAKE-9-5",
         metadata: {
             address: log.args["oracle"].toLowerCase(),
         }
     });
-
 
 const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
     Finding.fromObject({
@@ -74,7 +73,7 @@ const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
         description: "NewTreasuryFee event emitted",
         severity: FindingSeverity.Info,
         type: FindingType.Info,
-        alertId: "CAKE-OP-6",
+        alertId: "CAKE-9-6",
         metadata: {
             time: `${log.args["epoch"]}`,
             fee: `${log.args["treasuryFee"]}`,
