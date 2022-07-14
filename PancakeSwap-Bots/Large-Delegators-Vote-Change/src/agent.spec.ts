@@ -1,4 +1,4 @@
-import { FindingSeverity, Finding, HandleTransaction, ethers } from "forta-agent";
+import { FindingSeverity, Finding, HandleTransaction, ethers, getEthersProvider } from "forta-agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { DELEGATE_VOTES_CHANGED_EVENT } from "./abi";
 import { NetworkManager } from "forta-agent-tools";
@@ -10,8 +10,8 @@ import { BigNumber } from "ethers";
 import BN from "bignumber.js";
 
 function getPercentage(previousBalance: BigNumber, newBalance: BigNumber): string {
-  let pbalance_BN = new BN(previousBalance.toString());
-  let nbalance_BN = new BN(newBalance.toString());
+  const pbalance_BN = new BN(previousBalance.toString());
+  const nbalance_BN = new BN(newBalance.toString());
 
   return nbalance_BN.minus(pbalance_BN).dividedBy(pbalance_BN).multipliedBy(100).toString() + " %";
 }
@@ -20,11 +20,13 @@ describe("delegate votes change bot", () => {
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
 
   let handleTransaction: HandleTransaction;
-  let eventInterface: ethers.utils.Interface;
 
   let mockTxEvent: TestTransactionEvent;
 
   let networkManager: NetworkManager<NetworkData>;
+
+  let eventFragment: ethers.utils.EventFragment;
+  let mockEventFragment: ethers.utils.EventFragment;
 
   beforeEach(() => {
     //create test transaction before each test
@@ -44,7 +46,8 @@ describe("delegate votes change bot", () => {
 
     handleTransaction = bot.provideHandleTransaction(networkManager);
 
-    eventInterface = new ethers.utils.Interface([DELEGATE_VOTES_CHANGED_EVENT, "event MockEvent(uint)"]);
+    eventFragment = ethers.utils.EventFragment.from(DELEGATE_VOTES_CHANGED_EVENT.slice("event ".length));
+    mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
   describe("handleTransaction", () => {
@@ -61,16 +64,12 @@ describe("delegate votes change bot", () => {
       const newBalance: BigNumber = previousBalance.add(BigNumber.from(10).mul(DECIMALS));
       const deltaPercentage: string = getPercentage(previousBalance, newBalance);
 
-      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2345"),
-        previousBalance,
-        newBalance,
-      ]);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      const data = [createAddress("0x2345"), previousBalance, newBalance];
 
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      let metadata = {
+      const metadata = {
         delegate: createAddress("0x2345"),
         previousBalance: previousBalance.toString(),
         newBalance: newBalance.toString(),
@@ -83,19 +82,16 @@ describe("delegate votes change bot", () => {
       const previousBalance: BigNumber = BigNumber.from(5).mul(DECIMALS);
       const newBalance: BigNumber = previousBalance.add(BigNumber.from(1).mul(DECIMALS));
 
-      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2345"),
-        previousBalance,
-        newBalance,
-      ]);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      const data = [createAddress("0x2345"), previousBalance, newBalance];
+
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns multiple findings if there are  multiple DelegateVotesChanged events emitted", async () => {
+    it("returns multiple findings if there are multiple DelegateVotesChanged events emitted", async () => {
       const previousBalance_1: BigNumber = BigNumber.from(5).mul(DECIMALS);
       const newBalance_1: BigNumber = previousBalance_1.mul(2);
       const deltaPercentage_1: string = getPercentage(previousBalance_1, newBalance_1);
@@ -108,46 +104,33 @@ describe("delegate votes change bot", () => {
       const newBalance_3: BigNumber = previousBalance_3.add(BigNumber.from(3).mul(DECIMALS));
       const deltaPercentage_3: string = getPercentage(previousBalance_3, newBalance_3);
 
-      let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x0347"),
-        previousBalance_1,
-        newBalance_1,
-      ]);
+      const data_1 = [createAddress("0x0347"), previousBalance_1, newBalance_1];
 
-      let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2045"),
-        previousBalance_2,
-        newBalance_2,
-      ]);
+      const data_2 = [createAddress("0x2045"), previousBalance_2, newBalance_2];
 
-      let eventLog_3 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x0345"),
-        previousBalance_3,
-        newBalance_3,
-      ]);
+      const data_3 = [createAddress("0x0345"), previousBalance_3, newBalance_3];
 
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_3.data, ...eventLog_3.topics);
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data_1);
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data_2);
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data_3);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      let metadata_1 = {
+      const metadata_1 = {
         delegate: createAddress("0x0347"),
         previousBalance: previousBalance_1.toString(),
         newBalance: newBalance_1.toString(),
       };
-      let metadata_2 = {
+      const metadata_2 = {
         delegate: createAddress("0x2045"),
         previousBalance: previousBalance_2.toString(),
         newBalance: newBalance_2.toString(),
       };
-      let metadata_3 = {
+      const metadata_3 = {
         delegate: createAddress("0x0345"),
         previousBalance: previousBalance_3.toString(),
         newBalance: newBalance_3.toString(),
       };
-
       expect(findings).toStrictEqual([
         createFinding(deltaPercentage_1, metadata_1, FindingSeverity.High),
         createFinding(deltaPercentage_2, metadata_2, FindingSeverity.Medium),
@@ -159,12 +142,8 @@ describe("delegate votes change bot", () => {
       const previousBalance: BigNumber = BigNumber.from(5).mul(DECIMALS);
       const newBalance: BigNumber = previousBalance.mul(2);
 
-      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2345"),
-        previousBalance,
-        newBalance,
-      ]);
-      mockTxEvent.addAnonymousEventLog(createAddress("0x0012"), eventLog.data, ...eventLog.topics);
+      const data = [createAddress("0x2345"), previousBalance, newBalance];
+      mockTxEvent.addInterfaceEventLog(eventFragment, createAddress("0x0239"), data);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -172,8 +151,9 @@ describe("delegate votes change bot", () => {
     });
 
     it("returns empty findings if the wrong event is emitted", async () => {
-      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [999]);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      const data = [999];
+
+      mockTxEvent.addInterfaceEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, data);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -185,17 +165,13 @@ describe("delegate votes change bot", () => {
       const newBalance: BigNumber = previousBalance.add(BigNumber.from(3).mul(DECIMALS));
       const deltaPercentage: string = getPercentage(previousBalance, newBalance);
 
-      let eventLog_1 = eventInterface.encodeEventLog(eventInterface.getEvent("MockEvent"), [999]);
-      let eventLog_2 = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2045"),
-        previousBalance,
-        newBalance,
-      ]);
+      const data_1 = [999];
+      const data_2 = [createAddress("0x2045"), previousBalance, newBalance];
 
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_1.data, ...eventLog_1.topics);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog_2.data, ...eventLog_2.topics);
+      mockTxEvent.addInterfaceEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, data_1);
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data_2);
 
-      let metadata = {
+      const metadata = {
         delegate: createAddress("0x2045"),
         previousBalance: previousBalance.toString(),
         newBalance: newBalance.toString(),
@@ -210,16 +186,13 @@ describe("delegate votes change bot", () => {
       const previousBalance: BigNumber = BigNumber.from(0);
       const newBalance: BigNumber = BigNumber.from(11).mul(DECIMALS);
 
-      let eventLog = eventInterface.encodeEventLog(eventInterface.getEvent("DelegateVotesChanged"), [
-        createAddress("0x2345"),
-        previousBalance,
-        newBalance,
-      ]);
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, eventLog.data, ...eventLog.topics);
+      const data = [createAddress("0x2345"), previousBalance, newBalance];
+
+      mockTxEvent.addInterfaceEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      let metadata = {
+      const metadata = {
         delegate: createAddress("0x2345"),
         previousBalance: previousBalance.toString(),
         newBalance: newBalance.toString(),
