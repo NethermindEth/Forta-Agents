@@ -5,7 +5,7 @@ import { NetworkManager } from "forta-agent-tools";
 import { NetworkData } from "./config";
 import bot from "./agent";
 import { createFinding } from "./findings";
-import { DECIMALS } from "./thresholds";
+import { ABSOLUTE_THRESHOLD, DECIMALS } from "./thresholds";
 import { BigNumber } from "ethers";
 import BN from "bignumber.js";
 
@@ -182,9 +182,10 @@ describe("delegate votes change bot", () => {
       expect(findings).toStrictEqual([createFinding(deltaPercentage, metadata, FindingSeverity.Medium)]);
     });
 
-    it("returns a finding if there is a DelegateVotesChanged event emitted and the previous vote balance is 0", async () => {
-      const previousBalance: BigNumber = BigNumber.from(0);
-      const newBalance: BigNumber = BigNumber.from(11).mul(DECIMALS);
+    it("returns a finding if there is a DelegateVotesChanged event emitted and the new balance reaches absolute threshold", async () => {
+      const previousBalance: BigNumber = BigNumber.from(33).mul(DECIMALS);
+      const newBalance: BigNumber = BigNumber.from(ABSOLUTE_THRESHOLD.toString());
+      const delta: BigNumber = newBalance.sub(previousBalance);
 
       const data = [createAddress("0x2345"), previousBalance, newBalance];
 
@@ -198,7 +199,7 @@ describe("delegate votes change bot", () => {
         newBalance: newBalance.toString(),
       };
 
-      expect(findings).toStrictEqual([createFinding(newBalance.toString(), metadata, FindingSeverity.Info)]);
+      expect(findings).toStrictEqual([createFinding(delta.toString(), metadata, FindingSeverity.Critical)]);
     });
   });
 });
