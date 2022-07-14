@@ -53,6 +53,18 @@ const newAdminAddress = (address: string): Finding =>
     },
   });
 
+const newOracle = (address: string): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "NewOracle event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-5",
+    metadata: {
+      address,
+    },
+  });
+
 describe("CAKE-Operations agent tests suite", () => {
   const iface = new Interface(abi.CAKE);
 
@@ -132,6 +144,21 @@ describe("CAKE-Operations agent tests suite", () => {
     expect(findings).toStrictEqual([newAdminAddress(createAddress("0x1")), newAdminAddress(createAddress("0x3"))]);
   });
 
+  it("should detect NewOracle events", async () => {
+    const cake: string = createAddress("0xcake5");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("NewOracle"), cake, [createAddress("0x1")])
+      .addInterfaceEventLog(iface.getEvent("NewOracle"), createAddress("0xNotCake"), [
+        // 0xNotCake should be ignored
+        createAddress("0x2"),
+      ])
+      .addInterfaceEventLog(iface.getEvent("NewOracle"), cake, [createAddress("0x3")]);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([newOracle(createAddress("0x1")), newOracle(createAddress("0x3"))]);
+  });
 
 
 
