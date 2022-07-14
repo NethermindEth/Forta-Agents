@@ -59,3 +59,8 @@ The bot behaviour can be verified with the following transactions on BSC testnet
   - 0x89730559140a4d60b11fe17a0bb0212293606fdce41e23c8437f4e95ed5d5cae: (expect 1 finding:`DelegateVotesChanged and DelegateChanged`)
   - 0x90d87e1046ea151a8757f24abd4465b2808ea00a6634f5b04798f5d16397bd32: (expect 0 findings:`Not over threshold`)
   - 0xf4db74e36a091df9855842f8bb08a53bc614ed7005a7b1b638171bf9055894c4: (expect 1 finding:`1 DelegateVotesChanged event over absolute threshold`)
+
+The bot behaviour can be verified with the following transactions on BSC mainnet (https://bscscan.com/address/0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82):
+
+- 0x853051a8113229b84d1956f616d6d70f82fd5083ba094bed081948e7555754eb: (expect 1 finding: `1 DelegateVotesChanged event`)
+- 0x0392a3550613b82be63fea576e1c4353d4521abb1d6d7f72dc66ed42bfa4c40f: (expect 1 finding: `1 DelegateVotesChanged event`)
