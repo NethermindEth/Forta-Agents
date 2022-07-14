@@ -1,53 +1,87 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction } from "forta-agent";
-import { provideHandleTransaction } from "./agent";
-import { encodeParameter } from "forta-agent-tools";
-import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import {
+  FindingType,
+  FindingSeverity,
+  Finding,
+  HandleTransaction,
+  TransactionEvent
+} from "forta-agent"
 import { BigNumber } from "ethers";
+import { provideHandleTransaction } from "./agent"
+import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
+import { Interface } from "@ethersproject/abi";
+import abi from "./abi";
 
-const cake: string = createAddress("0x0");
+const pause = (
+  time: BigNumber,
+): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "Pause event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-1",
+    metadata: {
+      time: `${time}`,
+    }
+  });
 
-const createFinding = (time: BigNumber) =>
-    Finding.fromObject({
-        name: "CAKE Operations",
-        description: "Pause event emitted",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
-        alertId: "CAKE-9-1",
-        metadata: {
-            time: `${time}`
-        }
-    });
 
 describe("CAKE-Operations agent tests suite", () => {
-    let handleTransaction: HandleTransaction;
+  const iface = new Interface(abi.CAKE);
 
-    beforeAll(() => {
-        handleTransaction = provideHandleTransaction(cake);
-    });
+  it("should ignore empty txns", async () => {
+    const cake: string = createAddress("0xcake");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+    const tx: TransactionEvent = new TestTransactionEvent();
 
-    it("should return no finding due to empty transaction", async () => {
-        const tx = new TestTransactionEvent();
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]);
+  });
 
-        const findings = await handleTransaction(tx);
+  it("should detect Pause events", async () => {
+    const cake: string = createAddress("0xcake");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
 
-        expect(findings).toStrictEqual([]);
-    });
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(
+        iface.getEvent('Pause').format('sighash'),
+        cake,
+        iface.encodeEventLog(
+          iface.getEvent('Pause'),
+          [
+            10,
+          ],
+        ).data,
+      )
+      .addEventLog(
+        iface.getEvent('Pause').format('sighash'),
+        createAddress('0xnotcake'), // should be ignored
+        iface.encodeEventLog(
+          iface.getEvent('Pause'),
+          [
+            11,
+          ],
+        ).data,
+      )
+      .addEventLog(
+        iface.getEvent('Pause').format('sighash'),
+        cake,
+        iface.encodeEventLog(
+          iface.getEvent('Pause'),
+          [
+            12,
+          ],
+        ).data,
+      );
 
-
-    it("should return finding due to pause event emission", async () => {
-        const tx = new TestTransactionEvent().addEventLog(
-            "event Pause(uint256 indexed epoch)",
-            cake,
-            "0x",
-            encodeParameter("time", 10)
-        )
-
-        const findings = await handleTransaction(tx);
-        console.log("hi");
-        console.log(findings)
-
-        expect(findings).toStrictEqual([createFinding(BigNumber.from(10))]);
-    });
-
-
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      pause(
+        BigNumber.from(10),
+      ),
+      pause(
+        BigNumber.from(12),
+      ),
+    ]);
+  });
 });
