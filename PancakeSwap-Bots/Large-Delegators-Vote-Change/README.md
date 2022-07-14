@@ -31,7 +31,7 @@ The `THRESHOLDS` can be configured in the `thresholds.ts` file.
     - `newBalance`: The new vote balance of the delegate.
 
 - CAKE-10-3
-- Triggered when a `DelegateVotesChanged` event is detected and the difference between `newBalance` and `previousBalance` is above `HIGH_THRESHOLD`.
+  - Triggered when a `DelegateVotesChanged` event is detected and the difference between `newBalance` and `previousBalance` is above `HIGH_THRESHOLD`.
   - Severity is always set to "High".
   - Type is always set to "Suspicious".
   - Metadata contains:
@@ -40,7 +40,7 @@ The `THRESHOLDS` can be configured in the `thresholds.ts` file.
     - `newBalance`: The new vote balance of the delegate.
 
 - CAKE-10-4
-  - Triggered when a `DelegateVotesChanged` event is detected, the `previousBalance` is `0` and `newBalance` is is equal or greater then `ABSOLUTE_THRESHOLD`.
+  - Triggered when a `DelegateVotesChanged` event is detected, the `previousBalance` is `0` and `newBalance` is equal or greater than `ABSOLUTE_THRESHOLD`.
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
