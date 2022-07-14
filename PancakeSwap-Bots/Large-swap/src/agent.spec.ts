@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { TestTransactionEvent, createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
 import { toBn, getPancakePairCreate2Address } from "./utils";
 
-import { ERC20ABI, PANCAKE_PAIR_ABI } from "./constants";
+import { ERC20ABI, PANCAKE_PAIR_ABI, cache } from "./constants";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
@@ -103,6 +103,7 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
     handleTransaction = provideBotHandler(TEST_LARGE_THRESHOLD, TEST_PANCAKE_FACTORY, provider, INIT_CODE);
+    cache.clear();
   });
 
   it("should return empty findings with empty logs", async () => {

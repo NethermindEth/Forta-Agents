@@ -2,7 +2,7 @@ import { ethers, Finding, FindingType, FindingSeverity } from "forta-agent";
 import { createAddress } from "forta-agent-tools/lib/tests.utils";
 import BigNumber from "bignumber.js";
 import { getCreate2Address } from "@ethersproject/address";
-import { ERC20ABI, PANCAKE_PAIR_ABI } from "./constants";
+import { ERC20ABI, PANCAKE_PAIR_ABI, cache } from "./constants";
 
 BigNumber.set({ DECIMAL_PLACES: 18 });
 
@@ -18,6 +18,8 @@ const isValidPancakePair = async (
   pancakeFactoryAddr: string,
   init: string
 ): Promise<[boolean, string, string]> => {
+  const key: string = `pool-${pairAddress}-${block}`;
+  if (cache.has(key)) return cache.get(key) as [boolean, string, string];
   const pairContract = createContract(pairAddress, PANCAKE_PAIR_ABI, provider);
   let token0Address: string, token1Address: string;
   try {
@@ -31,6 +33,7 @@ const isValidPancakePair = async (
   const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
   const isValid =
     tokenPair !== createAddress("0x0") && tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
+  cache.set(key, [isValid, token0Address, token1Address]);
   return [isValid, token0Address, token1Address];
 };
 
@@ -40,12 +43,17 @@ const getERC20Balance = async (
   provider: ethers.providers.Provider,
   blockNumber: number
 ): Promise<BigNumber> => {
+  const key: string = `poolBalance-${pairAddress}-${tokenAddress}-${blockNumber}`;
+  if (cache.has(key)) return cache.get(key) as BigNumber;
   const tokenContract = createContract(tokenAddress, ERC20ABI, provider);
+  let balance: BigNumber;
   try {
-    return toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
+    balance = toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
   } catch (error) {
     return toBn("0");
   }
+  cache.set(key, balance);
+  return balance;
 };
 
 const getPancakePairCreate2Address = (
