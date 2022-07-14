@@ -15,6 +15,7 @@ import { DATA, NetworkData } from "./config";
 import { createFinding } from "./findings";
 import {
   ABSOLUTE_THRESHOLD,
+  DECIMALS,
   HIGH_THRESHOLD,
   LOW_THRESHOLD,
   MEDIUM_THRESHOLD,
@@ -59,7 +60,6 @@ const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): 
 
       if (MIN_PREVIOUS_BALANCE.lt(previousBalance.toString())) {
         let deltaPercentage: BN = delta.dividedBy(new BN(previousBalance.toString())); // previousBalance.div(DECIMALS).toNumber(); //percentage of vote increase
-
         let description: string = deltaPercentage.multipliedBy(100).toString() + " %";
 
         if (deltaPercentage.gte(HIGH_THRESHOLD)) {
