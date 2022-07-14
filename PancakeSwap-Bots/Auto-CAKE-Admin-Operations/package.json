@@ -25,7 +25,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.8"
+    "forta-agent": "^0.1.8",
+    "forta-agent-tools": "^2.3.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
