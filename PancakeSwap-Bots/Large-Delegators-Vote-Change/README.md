@@ -40,9 +40,9 @@ The `THRESHOLDS` can be configured in the `thresholds.ts` file.
     - `newBalance`: The new vote balance of the delegate.
 
 - CAKE-10-4
-  - Triggered when a `DelegateVotesChanged` event is detected, the `previousBalance` is `0` and `newBalance` is equal or greater than `ABSOLUTE_THRESHOLD`.
-  - Severity is always set to "Info".
-  - Type is always set to "Info".
+  - Triggered when a `DelegateVotesChanged` event is detected, and `newBalance` is equal or greater than `ABSOLUTE_THRESHOLD`.
+  - Severity is always set to "Critical".
+  - Type is always set to "Suspicious".
   - Metadata contains:
     - `delegate`: The address of the delegate.
     - `previousBalance`: The previous vote balance of the delegate.
@@ -50,12 +50,12 @@ The `THRESHOLDS` can be configured in the `thresholds.ts` file.
 
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0xF773FC72DD607535D599D83Ce3Be6dFAE4fc3F32)):
+The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0xecd485df69906De0684Ecc71c4eB08d96337c468)):
 
-  - 0x50e35fa0fff1290a363ac8f38227e8aa6f71c5174f46b0294b81970da73bb9a6: (expect 1 finding:`1 DelegateVotesChanged event`) 
-  - 0x6c40371dee347be93be3e9298b878eedf817c1266eb993e2bbe8a509ce8b8464: (expect 2 findings:`2 DelegateVotesChanged events`)
-  - 0x538187df59fe03cec92e504fed0417f183fe6906eaa40c02e7e701f76f83eeca: (expect 3 findings:`3 DelegateVotesChanged events`)
-  - 0x9a998b4c9e6b361d70355d61680b6503834853485df77572ead1aec90ce7056d: (expect 0 findings:`DelegateChanged`)
-  - 0xb47cf0179a1564e298b20215a7c001001cdfcc33f28675ff82b650cd15b7cf82: (expect 1 finding:`DelegateVotesChanged and DelegateChanged`)
-  - 0xbe19f175ae0c7d8d35d2c7457ccb06ee700f7dbb3af82f91ae91cc856122e293: (expect 0 findings:`Not over threshold`)
-  - 0x9b038f0c88618ecf5c75c78738aeefed0e07c7f696cf87be18bda9e7be1ff730: (expect 1 finding:`1 DelegateVotesChanged event with previousBalance = 0`)
+  - 0x8ef40312b7f5852c725141e1271164067a1518220722def0bc89e587279542ab: (expect 1 finding:`1 DelegateVotesChanged event`) 
+  - 0x11fabeb64ffd9a9269c8a594f1469add7f2d0289678dcb4b83f0e329cfcf5c04: (expect 2 findings:`2 DelegateVotesChanged events`)
+  - 0x900191db983a29bc3edc519c444bb93ad756c0b60db2a131b71212112dee6dcb: (expect 3 findings:`3 DelegateVotesChanged events`)
+  - 0xfc5bc52aae2e3280bca2c419556b3399b50b240aab32cdf163462f01d7bc4223: (expect 0 findings:`DelegateChanged event`)
+  - 0x89730559140a4d60b11fe17a0bb0212293606fdce41e23c8437f4e95ed5d5cae: (expect 1 finding:`DelegateVotesChanged and DelegateChanged`)
+  - 0x90d87e1046ea151a8757f24abd4465b2808ea00a6634f5b04798f5d16397bd32: (expect 0 findings:`Not over threshold`)
+  - 0xf4db74e36a091df9855842f8bb08a53bc614ed7005a7b1b638171bf9055894c4: (expect 1 finding:`1 DelegateVotesChanged event over absolute threshold`)
