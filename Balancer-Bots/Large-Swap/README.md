@@ -5,7 +5,7 @@
 This bot detects large swaps (i.e. the amount of tokens swapped for any of the tokens is a significant fraction of the
 token's pool reserves) in the Balancer protocol.
 
-The bot behavior can be customized in the `src/agent.config.ts` file.
+The bot behavior can be customized in the `src/agent.config.ts` file. Minimum swapped token amount relative to the Vault TVL percentage that leads to a finding emission (in %)set to tvlPercentageThreshold: "50.5" // 50.5%
 
 ## Supported Chains
 

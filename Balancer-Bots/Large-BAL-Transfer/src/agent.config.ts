@@ -7,7 +7,7 @@ const CONFIG: AgentConfig = {
     balToken: "0xba100000625a3754423978a60c9317c58a424e3d",
     // Minimum percentage token transfer amount relative to BAL total supply in that network that leads to a finding
     // (in %)
-    threshold: "0",
+    threshold: "5",
   },
 
   [Network.POLYGON]: {
