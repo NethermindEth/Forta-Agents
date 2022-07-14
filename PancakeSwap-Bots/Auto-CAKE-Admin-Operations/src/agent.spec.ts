@@ -2,7 +2,7 @@ import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEv
 import { BigNumber } from "ethers";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { Interface, Fragment, EventFragment } from "@ethersproject/abi";
+import { Interface } from "@ethersproject/abi";
 import abi from "./abi";
 
 const pause = (time: BigNumber): Finding =>
@@ -65,7 +65,7 @@ const newOracle = (address: string): Finding =>
     },
   });
 
-  const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
+const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
   Finding.fromObject({
     name: "CAKE Operations",
     description: "NewTreasuryFee event emitted",
@@ -179,16 +179,20 @@ describe("CAKE-Operations agent tests suite", () => {
 
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20])
-      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), createAddress("0xNotCake"), [
-        // 0xNotCake should be ignored
-        30, 40,
-      ])
+      .addInterfaceEventLog(
+        iface.getEvent("NewTreasuryFee"),
+        createAddress("0xNotCake"),
+        [
+          // 0xNotCake should be ignored
+          30, 40,
+        ]
+      )
       .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [50, 60]);
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
-      newTreasuryFee(BigNumber.from(10),BigNumber.from(20)), 
-      newTreasuryFee(BigNumber.from(50),BigNumber.from(60))
+      newTreasuryFee(BigNumber.from(10), BigNumber.from(20)),
+      newTreasuryFee(BigNumber.from(50), BigNumber.from(60)),
     ]);
   });
 
@@ -202,8 +206,7 @@ describe("CAKE-Operations agent tests suite", () => {
       .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), cake, [createAddress("0x1")])
       .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), cake, [createAddress("0x1")])
       .addInterfaceEventLog(iface.getEvent("NewOracle"), cake, [createAddress("0x1")])
-      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20])
-
+      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20]);
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
@@ -212,10 +215,7 @@ describe("CAKE-Operations agent tests suite", () => {
       newOperatorAddress(createAddress("0x1")),
       newAdminAddress(createAddress("0x1")),
       newOracle(createAddress("0x1")),
-      newTreasuryFee(BigNumber.from(10),BigNumber.from(20)), 
-      
+      newTreasuryFee(BigNumber.from(10), BigNumber.from(20)),
     ]);
-
   });
-  
 });
