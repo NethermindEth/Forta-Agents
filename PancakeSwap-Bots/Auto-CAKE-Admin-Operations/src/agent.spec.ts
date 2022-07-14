@@ -188,8 +188,34 @@ describe("CAKE-Operations agent tests suite", () => {
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
       newTreasuryFee(BigNumber.from(10),BigNumber.from(20)), 
-      newTreasuryFee(BigNumber.from(50),BigNumber.from(60))]);
+      newTreasuryFee(BigNumber.from(50),BigNumber.from(60))
+    ]);
   });
 
+  it("should detect all of the events", async () => {
+    const cake: string = createAddress("0xcake7");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("Pause"), cake, [10])
+      .addInterfaceEventLog(iface.getEvent("Unpause"), cake, [10])
+      .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), cake, [createAddress("0x1")])
+      .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), cake, [createAddress("0x1")])
+      .addInterfaceEventLog(iface.getEvent("NewOracle"), cake, [createAddress("0x1")])
+      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20])
+
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      pause(BigNumber.from(10)),
+      unpause(BigNumber.from(10)),
+      newOperatorAddress(createAddress("0x1")),
+      newAdminAddress(createAddress("0x1")),
+      newOracle(createAddress("0x1")),
+      newTreasuryFee(BigNumber.from(10),BigNumber.from(20)), 
+      
+    ]);
+
+  });
   
 });
