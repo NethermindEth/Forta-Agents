@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with large BAL transfers.
+This bot detects transactions with large BAL transfers. Minimum percentage token transfer amount relative to BAL total supply in that network that leads to a finding. Threshold currently set to 0% as test. 
 
 The thresholds can be set inside `src/agent.config.ts` file.
 
