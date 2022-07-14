@@ -8,7 +8,7 @@ import {
 import { BigNumber } from "ethers";
 import { provideHandleTransaction } from "./agent"
 import { createAddress, TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { Interface } from "@ethersproject/abi";
+import { Interface, Fragment, EventFragment } from "@ethersproject/abi";
 import abi from "./abi";
 
 const pause = (
@@ -25,6 +25,47 @@ const pause = (
     }
   });
 
+const unpause = (
+  time: BigNumber,
+): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "Unpause event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-2",
+    metadata: {
+      time: `${time}`,
+    }
+  });
+
+const newOperatorAddress = (
+  address: string,
+): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "NewOperatorAddress event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-3",
+    metadata: {
+      address,
+    }
+  });
+
+const newAdminAddress = (
+  address: string,
+): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "NewAdminAddress event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-4",
+    metadata: {
+      address,
+    }
+  });
 
 describe("CAKE-Operations agent tests suite", () => {
   const iface = new Interface(abi.CAKE);
@@ -39,40 +80,20 @@ describe("CAKE-Operations agent tests suite", () => {
   });
 
   it("should detect Pause events", async () => {
-    const cake: string = createAddress("0xcake");
+    const cake: string = createAddress("0xcake1");
     const handler: HandleTransaction = provideHandleTransaction(cake);
 
     const tx: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(
-        iface.getEvent('Pause').format('sighash'),
-        cake,
-        iface.encodeEventLog(
-          iface.getEvent('Pause'),
-          [
-            10,
-          ],
-        ).data,
-      )
-      .addEventLog(
-        iface.getEvent('Pause').format('sighash'),
-        createAddress('0xnotcake'), // should be ignored
-        iface.encodeEventLog(
-          iface.getEvent('Pause'),
-          [
-            11,
-          ],
-        ).data,
-      )
-      .addEventLog(
-        iface.getEvent('Pause').format('sighash'),
-        cake,
-        iface.encodeEventLog(
-          iface.getEvent('Pause'),
-          [
-            12,
-          ],
-        ).data,
-      );
+      .addInterfaceEventLog(iface.getEvent("Pause"), cake, [
+        10,
+      ])
+      // 0xNotCake should be ignored 
+      .addInterfaceEventLog(iface.getEvent("Pause"), createAddress("0xNotCake"), [
+        11,
+      ])
+      .addInterfaceEventLog(iface.getEvent("Pause"), cake, [
+        12,
+      ])
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([
@@ -84,4 +105,90 @@ describe("CAKE-Operations agent tests suite", () => {
       ),
     ]);
   });
+
+  it("should detect Unpause events", async () => {
+    const cake: string = createAddress("0xcake2");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("Unpause"), cake, [
+        10,
+      ])
+      // 0xNotCake should be ignored 
+      .addInterfaceEventLog(iface.getEvent("Unpause"), createAddress("0xNotCake"), [
+        11,
+      ])
+      .addInterfaceEventLog(iface.getEvent("Unpause"), cake, [
+        12,
+      ])
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      unpause(
+        BigNumber.from(10),
+      ),
+      unpause(
+        BigNumber.from(12),
+      ),
+    ]);
+  });
+
+  it("should detect NewOperatorAddress events", async () => {
+    const cake: string = createAddress("0xcake3");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), cake, [
+        createAddress("0x1"),
+      ])
+      // 0xNotCake should be ignored 
+      .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), createAddress("0xNotCake"), [
+        createAddress("0x2"),
+      ])
+      .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), cake, [
+        createAddress("0x3"),
+      ])
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      newOperatorAddress(
+        createAddress("0x1"),
+      ),
+      newOperatorAddress(
+        createAddress("0x3"),
+      ),
+    ]);
+  });
+
+  it("should detect NewAdminAddress events", async () => {
+    const cake: string = createAddress("0xcake4");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
+
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), cake, [
+        createAddress("0x1"),
+      ])
+      // 0xNotCake should be ignored 
+      .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), createAddress("0xNotCake"), [
+        createAddress("0x2"),
+      ])
+      .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), cake, [
+        createAddress("0x3"),
+      ])
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      newAdminAddress(
+        createAddress("0x1"),
+      ),
+      newAdminAddress(
+        createAddress("0x3"),
+      ),
+    ]);
+  });
+
+
+
+
+
 });
