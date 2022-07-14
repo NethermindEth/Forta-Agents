@@ -7,4 +7,4 @@ export const HIGH_THRESHOLD = 1; //100%
 export const MEDIUM_THRESHOLD = 0.5; //50%
 export const LOW_THRESHOLD = 0.25; //25%
 
-export const ABSOLUTE_THRESHOLD = new BN(10).multipliedBy(DECIMALS); //threshold for when previous balance is 0
+export const ABSOLUTE_THRESHOLD = new BN(100).multipliedBy(DECIMALS); //threshold for when previous balance is 0
