@@ -65,6 +65,19 @@ const newOracle = (address: string): Finding =>
     },
   });
 
+  const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
+  Finding.fromObject({
+    name: "CAKE Operations",
+    description: "NewTreasuryFee event emitted",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    alertId: "CAKE-9-6",
+    metadata: {
+      time: `${time}`,
+      fee: `${fee}`,
+    },
+  });
+
 describe("CAKE-Operations agent tests suite", () => {
   const iface = new Interface(abi.CAKE);
 
@@ -160,7 +173,23 @@ describe("CAKE-Operations agent tests suite", () => {
     expect(findings).toStrictEqual([newOracle(createAddress("0x1")), newOracle(createAddress("0x3"))]);
   });
 
+  it("should detect NewTreasuryFee events", async () => {
+    const cake: string = createAddress("0xcake6");
+    const handler: HandleTransaction = provideHandleTransaction(cake);
 
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20])
+      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), createAddress("0xNotCake"), [
+        // 0xNotCake should be ignored
+        30, 40,
+      ])
+      .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [50, 60]);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([
+      newTreasuryFee(BigNumber.from(10),BigNumber.from(20)), 
+      newTreasuryFee(BigNumber.from(50),BigNumber.from(60))]);
+  });
 
   
 });
