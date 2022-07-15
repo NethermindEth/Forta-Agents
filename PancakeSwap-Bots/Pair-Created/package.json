@@ -1,8 +1,8 @@
 {
-  "name": "pancakeswap-3",
+  "name": "pancakeswap-1",
   "version": "0.0.1",
-  "description": "Detects large LP deposits/withdrawals to/from a Pancakeswap pool",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-LP-Deposit-Withdrawal",
+  "description": "Detects new pair creation on Pancakeswap DEX",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Pair-Created",
   "chainIds": [
     56
   ],
@@ -16,6 +16,8 @@
     "range": "npm run build && forta-agent run --range",
     "file": "npm run build && forta-agent run --file",
     "publish": "forta-agent publish",
+    "info": "forta-agent info",
+    "logs": "forta-agent logs",
     "push": "forta-agent push",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
@@ -24,8 +26,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.8",
-    "lru-cache": "^7.10.2"
+    "forta-agent": "^0.1.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
