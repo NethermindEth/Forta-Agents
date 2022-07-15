@@ -1,7 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "auto-cake-admin-operations-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Detects Admin and Operator Operations in PancakePredictionV2 ",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-CAKE-Admin-Operations",
   "chainIds": [
     56
   ],
