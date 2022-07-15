@@ -1,5 +1,5 @@
 
-# CAKE Admin Operations Agent
+# Prediction Admin Operations Agent
 
 ## Description
 
