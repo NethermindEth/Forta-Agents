@@ -4,7 +4,7 @@ type FindingGenerator = (log: LogDescription) => Finding;
 
 const pause: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "Pause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -16,7 +16,7 @@ const pause: FindingGenerator = (log: LogDescription): Finding =>
 
 const unpause: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "Unpause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -28,7 +28,7 @@ const unpause: FindingGenerator = (log: LogDescription): Finding =>
 
 const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewOperatorAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -40,7 +40,7 @@ const newOperatorAddress: FindingGenerator = (log: LogDescription): Finding =>
 
 const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewAdminAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -52,7 +52,7 @@ const newAdminAddress: FindingGenerator = (log: LogDescription): Finding =>
 
 const newOracle: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewOracle event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -64,7 +64,7 @@ const newOracle: FindingGenerator = (log: LogDescription): Finding =>
 
 const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewTreasuryFee event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

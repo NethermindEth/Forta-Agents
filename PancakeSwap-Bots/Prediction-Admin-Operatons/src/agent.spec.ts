@@ -7,7 +7,7 @@ import abi from "./abi";
 
 const pause = (time: BigNumber): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "Pause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -19,7 +19,7 @@ const pause = (time: BigNumber): Finding =>
 
 const unpause = (time: BigNumber): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "Unpause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -31,7 +31,7 @@ const unpause = (time: BigNumber): Finding =>
 
 const newOperatorAddress = (address: string): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewOperatorAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -43,7 +43,7 @@ const newOperatorAddress = (address: string): Finding =>
 
 const newAdminAddress = (address: string): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewAdminAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -55,7 +55,7 @@ const newAdminAddress = (address: string): Finding =>
 
 const newOracle = (address: string): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewOracle event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -67,7 +67,7 @@ const newOracle = (address: string): Finding =>
 
 const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
   Finding.fromObject({
-    name: "CAKE Operations",
+    name: "PancakePredictionV2 Operations",
     description: "NewTreasuryFee event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -78,7 +78,7 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     },
   });
 
-describe("CAKE-Operations agent tests suite", () => {
+describe("PancakePredictionV2-Operations agent tests suite", () => {
   const iface = new Interface(abi.CAKE);
 
   it("should ignore empty txns", async () => {
