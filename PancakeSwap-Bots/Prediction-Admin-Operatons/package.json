@@ -1,5 +1,5 @@
 {
-  "name": "auto-cake-admin-operations-bot",
+  "name": "prediction-admin-operations-bot",
   "version": "0.0.1",
   "description": "Detects Admin and Operator Operations in PancakePredictionV2 ",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-CAKE-Admin-Operations",
