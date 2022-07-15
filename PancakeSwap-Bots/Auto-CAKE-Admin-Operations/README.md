@@ -3,7 +3,7 @@
 
 ## Description
 
-This agent detects the following PancakeSwap Admin/Operator event emissions:
+This agent detects the following PancakePredictionV2 Admin/Operator event emissions:
 
 - `Pause` event
 - `Unpause` event 
