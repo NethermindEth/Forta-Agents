@@ -62,7 +62,7 @@ This agent detects the following PancakePredictionV2 Admin/Operator event emissi
 	- Metadata contains:
 		- `address`:  address of new admin
 		
-  - CAKE-9-5
+- CAKE-9-5
 
 	- Fired when a transaction contains a `NewOracle` event is detected.
 
@@ -73,7 +73,7 @@ This agent detects the following PancakePredictionV2 Admin/Operator event emissi
 	- Metadata contains:
 		- `address`:  address of new admin
 		
-  - CAKE-9-6
+- CAKE-9-6
 
 	- Fired when a transaction contains a `NewTreasuryFee` event is detected.
 
