@@ -11,10 +11,13 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
     functionCalls.forEach((functionCall) => {
       let metadata:{[key:string]:string} = {};
 
+      //get all args keys
       const allKeys:string[] = Object.keys(functionCall.args);
 
+      //slice index keys and keep string keys
       const keys:string[] = allKeys.slice(allKeys.length/2);
 
+      //populate metadata with args
       keys.forEach((key) => {
 
         metadata[key] = functionCall.args[key].toString();
