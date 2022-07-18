@@ -11,6 +11,7 @@ const pause = (time: BigNumber): Finding =>
     description: "Pause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-1",
     metadata: {
       time: `${time}`,
@@ -23,6 +24,7 @@ const unpause = (time: BigNumber): Finding =>
     description: "Unpause event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-2",
     metadata: {
       time: `${time}`,
@@ -35,6 +37,7 @@ const newOperatorAddress = (address: string): Finding =>
     description: "NewOperatorAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-3",
     metadata: {
       address,
@@ -47,6 +50,7 @@ const newAdminAddress = (address: string): Finding =>
     description: "NewAdminAddress event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-4",
     metadata: {
       address,
@@ -59,6 +63,7 @@ const newOracle = (address: string): Finding =>
     description: "NewOracle event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-5",
     metadata: {
       address,
@@ -71,6 +76,7 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     description: "NewTreasuryFee event emitted",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
+    protocol: "PancakeSwap",
     alertId: "CAKE-9-6",
     metadata: {
       time: `${time}`,
