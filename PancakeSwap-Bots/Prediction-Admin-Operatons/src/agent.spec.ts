@@ -86,10 +86,11 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
 
 describe("PancakePredictionV2-Operations agent tests suite", () => {
   const iface = new Interface(abi.CAKE);
+  const cake: string = createAddress("0x01");
+  const handler: HandleTransaction = provideHandleTransaction(cake);
+
 
   it("should ignore empty txns", async () => {
-    const cake: string = createAddress("0x01");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
     const tx: TransactionEvent = new TestTransactionEvent();
 
     const findings: Finding[] = await handler(tx);
@@ -97,9 +98,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect Pause events", async () => {
-    const cake: string = createAddress("0x0A");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("Pause"), cake, [10])
       .addInterfaceEventLog(iface.getEvent("Pause"), createAddress("0x111"), [
@@ -113,9 +111,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect Unpause events", async () => {
-    const cake: string = createAddress("0x0B");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("Unpause"), cake, [10])
       .addInterfaceEventLog(iface.getEvent("Unpause"), createAddress("0x111"), [
@@ -129,9 +124,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect NewOperatorAddress events", async () => {
-    const cake: string = createAddress("0x0C");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), cake, [createAddress("0x1")])
       .addInterfaceEventLog(iface.getEvent("NewOperatorAddress"), createAddress("0x111"), [
@@ -148,9 +140,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect NewAdminAddress events", async () => {
-    const cake: string = createAddress("0x0D");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), cake, [createAddress("0x1")])
       .addInterfaceEventLog(iface.getEvent("NewAdminAddress"), createAddress("0x111"), [
@@ -164,9 +153,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect NewOracle events", async () => {
-    const cake: string = createAddress("0x0E");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("NewOracle"), cake, [createAddress("0x1")])
       .addInterfaceEventLog(iface.getEvent("NewOracle"), createAddress("0x111"), [
@@ -180,9 +166,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect NewTreasuryFee events", async () => {
-    const cake: string = createAddress("0x0F");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("NewTreasuryFee"), cake, [10, 20])
       .addInterfaceEventLog(
@@ -203,9 +186,6 @@ describe("PancakePredictionV2-Operations agent tests suite", () => {
   });
 
   it("should detect all of the events", async () => {
-    const cake: string = createAddress("0x0F1");
-    const handler: HandleTransaction = provideHandleTransaction(cake);
-
     const tx: TransactionEvent = new TestTransactionEvent()
       .addInterfaceEventLog(iface.getEvent("Pause"), cake, [10])
       .addInterfaceEventLog(iface.getEvent("Unpause"), cake, [10])
