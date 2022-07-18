@@ -1,7 +1,7 @@
-export const EVENTS = {
-  Pause: "event Pause()",
-  Unpause: "event Unpause()",
-};
+export const EVENTS = [
+  "event Pause()",
+  "event Unpause()"
+];
 
 export const ABI = [
   "function setAdmin(address _admin)",
@@ -18,5 +18,5 @@ export const ALERTS: {[key:string]:string} = {
   setTreasury: "CAKE-VAULT-6-5",
   setPerformanceFee: "CAKE-VAULT-6-6",
   setCallFee: "CAKE-VAULT-6-7",
-  setWithdrawFee: "CAKE-VAULT-6-8",
+  setWithdrawFee: "CAKE-VAULT-6-8"
 };
