@@ -152,5 +152,32 @@ describe("CakeVault", () => {
 
     });
 
+    it("returns finding only for the correct function", async() =>{
+
+      const data_1:string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x3456")]);
+
+      const mockFunctionInterface = new ethers.utils.Interface(["function mockFunction(uint256 x)"]);
+      const data_2:string = mockFunctionInterface.encodeFunctionData("mockFunction", [123456]);
+
+      const traces: TraceProps[] = [
+        { to: MOCK_CONTRACT_ADDRESS, input: data_1 },
+        { to: MOCK_CONTRACT_ADDRESS, input: data_2 }
+      ];
+
+      mockTxEvent.addTraces(...traces);
+
+
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      expect(findings).toStrictEqual
+      ([
+        createFunctionFinding(functionFragments[0].name, functionFragments[0].name, {_admin: createAddress("0x3456") })
+      ]);
+
+
+    });
+
+
+
   });
 });
