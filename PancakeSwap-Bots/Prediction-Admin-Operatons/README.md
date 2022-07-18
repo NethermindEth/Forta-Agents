@@ -1,9 +1,9 @@
 
-# Prediction Admin Operations Agent
+# Prediction Admin Operations Bot
 
 ## Description
 
-This agent detects the following PancakePredictionV2 Admin/Operator event emissions:
+This bot detects the following PancakePredictionV2 Admin/Operator event emissions:
 
 - `Pause` event
 - `Unpause` event 
