@@ -9,9 +9,16 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
     const functionCalls = txEvent.filterFunction(ABI, contractAddress);
 
     functionCalls.forEach((functionCall) => {
-      let metadata = {};
+      let metadata:{[key:string]:string} = {};
 
-      
+      const keys:string[] = Object.keys(functionCall.args);
+
+      keys.forEach((key) => {
+
+        metadata[key] = functionCall.args[key];
+
+      });
+
 
       findings.push(createFunctionFinding(functionCall.name, functionCall.name, metadata));
     });
