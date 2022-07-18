@@ -8,5 +8,5 @@ export const provideHandleTransaction = (cakeAddress: string) => async (txEvent:
   txEvent.filterLog(abi.CAKE, cakeAddress).map(findings.resolver);
 
 export default {
-  handleTransaction: provideHandleTransaction(CAKE_ADDRESS),
+  handleTransaction: provideHandleTransaction(PANCAKE_PREDICTION_V2_ADDRESS),
 };
