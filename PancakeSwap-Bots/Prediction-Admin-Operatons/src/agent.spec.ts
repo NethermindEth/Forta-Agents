@@ -14,7 +14,7 @@ const pause = (time: BigNumber): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-1",
     metadata: {
-      time: `${time}`,
+      time: time.toString(),
     },
   });
 
@@ -27,7 +27,7 @@ const unpause = (time: BigNumber): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-2",
     metadata: {
-      time: `${time}`,
+      time: time.toString(),
     },
   });
 
@@ -79,8 +79,8 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-6",
     metadata: {
-      time: `${time}`,
-      fee: `${fee}`,
+      time: time.toString(),
+      fee: fee.toString(),
     },
   });
 

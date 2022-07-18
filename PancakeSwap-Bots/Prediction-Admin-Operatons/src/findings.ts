@@ -11,7 +11,7 @@ const pause: FindingGenerator = (log: LogDescription): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-1",
     metadata: {
-      time: `${log.args["epoch"]}`,
+      time: log.args["epoch"].toString(),
     },
   });
 
@@ -24,7 +24,7 @@ const unpause: FindingGenerator = (log: LogDescription): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-2",
     metadata: {
-      time: `${log.args["epoch"]}`,
+      time: log.args["epoch"].toString(),
     },
   });
 
@@ -76,8 +76,8 @@ const newTreasuryFee: FindingGenerator = (log: LogDescription): Finding =>
     protocol: "PancakeSwap",
     alertId: "CAKE-9-6",
     metadata: {
-      time: `${log.args["epoch"]}`,
-      fee: `${log.args["treasuryFee"]}`,
+      time: log.args["epoch"].toString(),
+      fee: log.args["treasuryFee"].toString(),
     },
   });
 
