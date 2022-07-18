@@ -84,7 +84,7 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     },
   });
 
-describe("PancakePredictionV2-Operations agent tests suite", () => {
+describe("PancakePredictionV2-Operations bot tests suite", () => {
   const iface = new Interface(abi.CAKE);
   const cake: string = createAddress("0x01");
   const handler: HandleTransaction = provideHandleTransaction(cake);
