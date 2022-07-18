@@ -87,11 +87,11 @@ const functions: Record<string, FindingGenerator> = {
 const resolver: FindingGenerator = (log: LogDescription) => functions[log.name](log);
 
 export default {
-  pause,
-  unpause,
-  newOperatorAddress,
-  newAdminAddress,
-  newOracle,
-  newTreasuryFee,
+  // pause,
+  // unpause,
+  // newOperatorAddress,
+  // newAdminAddress,
+  // newOracle,
+  // newTreasuryFee,
   resolver,
 };
