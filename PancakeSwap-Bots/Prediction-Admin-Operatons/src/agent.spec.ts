@@ -84,7 +84,7 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     },
   });
 
-describe("PancakePredictionV2-Operations agent tests suite", () => {
+describe("PancakePredictionV2-Operations bot tests suite", () => {
   const iface = new Interface(abi.CAKE);
 
   it("should ignore empty txns", async () => {
