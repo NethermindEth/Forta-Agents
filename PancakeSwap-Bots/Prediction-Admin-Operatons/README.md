@@ -38,7 +38,7 @@ This bot detects the following PancakePredictionV2 Admin/Operator event emission
 	- Type is always set to "info"
 
 	- Metadata contains:
-		- `time`:  uint256 epoch 
+		- `time`:  epoch containing this transaction 
 		
 - CAKE-9-3
 
