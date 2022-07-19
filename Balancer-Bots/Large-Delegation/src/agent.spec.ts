@@ -37,11 +37,12 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
     ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("Event"), []),
   } as ethers.providers.Log;
 };
-
-function createAbsoluteThresholdFinding(delegator: string, delegate: string, amount: string): Finding {
+function createAbsoluteThresholdFinding(delegator: string, delegate: string, amount: ethers.BigNumber): Finding {
   return Finding.from({
-    name: "Large Delegation",
-    description: "A large delegation (in absolute terms) was detected",
+    name: "Large veBAL Delegation",
+    description: `A large delegation (in absolute terms) of ${toBn(amount)
+      .shiftedBy(-18)
+      .toString(10)} veBAL was detected`,
     alertId: "BAL-8-1",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -57,12 +58,14 @@ function createAbsoluteThresholdFinding(delegator: string, delegate: string, amo
 function createPercentageThresholdFinding(
   delegator: string,
   delegate: string,
-  amount: string,
+  amount: ethers.BigNumber,
   supplyPercentage: string
 ): Finding {
   return Finding.from({
-    name: "Large Delegation",
-    description: "A large delegation (relative to veBAL total supply) was detected",
+    name: "Large veBAL Delegation",
+    description: `A large delegation (${supplyPercentage}% of veBAL total supply) of ${toBn(amount)
+      .shiftedBy(-18)
+      .toString(10)} veBAL was detected`,
     alertId: "BAL-8-2",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -70,7 +73,7 @@ function createPercentageThresholdFinding(
     metadata: {
       delegator,
       delegate,
-      amount: amount,
+      amount: amount.toString(),
       supplyPercentage: supplyPercentage,
     },
   });
@@ -167,8 +170,8 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
 
     mockProvider.addLogs([getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 0, ADDRESSES[0], "balancer.eth", ADDRESSES[1])]);
 
-    expect(await handleBlock(blockEvent)).toStrictEqual([
-      createAbsoluteThresholdFinding(ADDRESSES[0], ADDRESSES[1], "100"),
+    expect(await handleTransaction(transactionEvent)).toStrictEqual([
+      createAbsoluteThresholdFinding(ADDRESSES[0], ADDRESSES[1], ethers.BigNumber.from("100")),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(1);
   });
@@ -206,8 +209,8 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
 
     mockProvider.addLogs([getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 0, ADDRESSES[0], "balancer.eth", ADDRESSES[1])]);
 
-    expect(await handleBlock(blockEvent)).toStrictEqual([
-      createPercentageThresholdFinding(ADDRESSES[0], ADDRESSES[1], "505", "50.5"),
+    expect(await handleTransaction(transactionEvent)).toStrictEqual([
+      createPercentageThresholdFinding(ADDRESSES[0], ADDRESSES[1], ethers.BigNumber.from("505"), "50.5"),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
@@ -247,9 +250,9 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
 
     mockProvider.addLogs([getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 0, ADDRESSES[0], "balancer.eth", ADDRESSES[1])]);
 
-    expect(await handleBlock(blockEvent)).toStrictEqual([
-      createAbsoluteThresholdFinding(ADDRESSES[0], ADDRESSES[1], "505"),
-      createPercentageThresholdFinding(ADDRESSES[0], ADDRESSES[1], "505", "50.5"),
+    expect(await handleTransaction(transactionEvent)).toStrictEqual([
+      createAbsoluteThresholdFinding(ADDRESSES[0], ADDRESSES[1], ethers.BigNumber.from("505")),
+      createPercentageThresholdFinding(ADDRESSES[0], ADDRESSES[1], ethers.BigNumber.from("505"), "50.5"),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
@@ -280,12 +283,12 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
       getSetDelegateLog(DELEGATE_REGISTRY_ADDRESS, 0, ADDRESSES[4], "balancer.eth", ADDRESSES[9]),
     ]);
 
-    expect(await handleBlock(blockEvent)).toStrictEqual([
-      createAbsoluteThresholdFinding(ADDRESSES[2], ADDRESSES[9], "300"),
-      createAbsoluteThresholdFinding(ADDRESSES[3], ADDRESSES[9], "600"),
-      createAbsoluteThresholdFinding(ADDRESSES[4], ADDRESSES[9], "900"),
-      createPercentageThresholdFinding(ADDRESSES[3], ADDRESSES[9], "600", "60"),
-      createPercentageThresholdFinding(ADDRESSES[4], ADDRESSES[9], "900", "90"),
+    expect(await handleTransaction(transactionEvent)).toStrictEqual([
+      createAbsoluteThresholdFinding(ADDRESSES[2], ADDRESSES[9], ethers.BigNumber.from("300")),
+      createAbsoluteThresholdFinding(ADDRESSES[3], ADDRESSES[9], ethers.BigNumber.from("600")),
+      createAbsoluteThresholdFinding(ADDRESSES[4], ADDRESSES[9], ethers.BigNumber.from("900")),
+      createPercentageThresholdFinding(ADDRESSES[3], ADDRESSES[9], ethers.BigNumber.from("600"), "60"),
+      createPercentageThresholdFinding(ADDRESSES[4], ADDRESSES[9], ethers.BigNumber.from("900"), "90"),
     ]);
     expect(mockProvider.call).toHaveBeenCalledTimes(6);
   });
