@@ -11,6 +11,20 @@ These changes can be analyzed using three independent thresholds associated to d
  * A decrease threshold: Related to the difference between the start and the end value of the change.
  * A decrease percentage threshold: Related to the decrease percentage between the start and end values of the change.
 
+agent.config.ts thresholds:
+
+// Absolute amplification parameter value at and below which a finding will be emitted (decimal places are not
+    // considered) (optional).
+    valueThreshold: "10000",
+
+    // Minimum amplification parameter drop from the previous value at and above which a finding will be emitted
+    // (decimal places are not considered) (optional).
+    decreaseThreshold: "10000",
+
+    // Minimum amplification parameter drop percentage from the previous value at and above which a finding will be
+    // emitted (in %) (optional).
+    decreasePercentageThreshold: "40.5"
+
 ## Supported Chains
 
 - Ethereum

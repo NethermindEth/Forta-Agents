@@ -6,7 +6,7 @@ This bot detects "large" veBAL delegations by monitoring delegations through the
 
 > "Large" is defined in terms of an absolute token amount threshold or a total supply percentage threshold.
 
-The bot behavior can be configured in the `src/agent.config.ts` file. Minimum percentage of veBAL total supply that, when delegated, leads to a finding (optional) (in % set to supplyPercentageThreshold: "50.5", // 50.5%)
+The bot behavior can be configured in the `src/agent.config.ts` file. Minimum percentage of veBAL total supply that, when delegated, leads to a finding (optional) (in % set to supplyPercentageThreshold: "50.5", // 50.5%
 
 ## Supported Chains
 
