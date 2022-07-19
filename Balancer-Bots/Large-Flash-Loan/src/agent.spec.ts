@@ -66,7 +66,7 @@ describe("Balancer Large Flash Loan Test Suite", () => {
     handleTransaction = provideHandleTransaction(networkManager, provider);
   });
 
-  it("should return empty findings with an empty logs list", async () => {
+  it("should return empty findings when no event is emitted", async () => {
     const txEvent = new TestTransactionEvent().setBlock(0);
 
     expect(await handleTransaction(txEvent));
