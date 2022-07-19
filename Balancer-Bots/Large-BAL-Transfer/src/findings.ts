@@ -4,7 +4,9 @@ import { BigNumber } from "bignumber.js";
 export const createFinding = (from: string, to: string, value: BigNumber, percentage: BigNumber): Finding => {
   return Finding.from({
     name: "Large BAL Transfer",
-    description: "Large amount of BAL transferred",
+    description: `${value.shiftedBy(-18).decimalPlaces(5)} BAL (${percentage.decimalPlaces(
+      5
+    )}% of the total supply) transferred from ${from} to ${to}`,
     alertId: "BAL-7",
     protocol: "Balancer",
     severity: FindingSeverity.Low,

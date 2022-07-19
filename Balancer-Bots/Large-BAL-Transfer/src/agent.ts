@@ -1,6 +1,6 @@
-import { Finding, HandleBlock, BlockEvent, getEthersProvider, Initialize } from "forta-agent";
+import { Finding, getEthersProvider, Initialize, HandleTransaction, TransactionEvent } from "forta-agent";
 import { BigNumber } from "bignumber.js";
-import { providers, utils, Contract } from "ethers";
+import { providers, Contract } from "ethers";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, SmartCaller, toBn } from "./utils";
 import { EVENT, TOKEN_ABI } from "./constants";
@@ -17,26 +17,12 @@ const provideInitialize = (networkManager: NetworkManager<NetworkData>, provider
   };
 };
 
-export const provideHandleBlock = (
-  networkManager: NetworkManager<NetworkData>,
-  provider: providers.Provider
-): HandleBlock => {
-  const balIface = new utils.Interface(EVENT);
-
-  const topics = [balIface.getEventTopic("Transfer")];
-
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+export const provideHandleTransaction =
+  (networkManager: NetworkManager<NetworkData>, provider: providers.Provider): HandleTransaction =>
+  async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("balToken"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((el) => balIface.parseLog(el));
-
+    const logs = txEvent.filterLog(EVENT, networkManager.get("balToken"));
     const balToken = SmartCaller.from(new Contract(networkManager.get("balToken"), TOKEN_ABI, provider));
 
     await Promise.all(
@@ -47,7 +33,7 @@ export const provideHandleBlock = (
 
         const totalSupply = toBn(
           await balToken.totalSupply({
-            blockTag: blockEvent.blockNumber,
+            blockTag: txEvent.blockNumber,
           })
         );
 
@@ -63,9 +49,8 @@ export const provideHandleBlock = (
 
     return findings;
   };
-};
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
 };
