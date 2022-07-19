@@ -57,7 +57,7 @@ This bot detects the following CakeVault Admin Operations:
   - Metadata contains: 
     - `_callFee`: The call fee.
 
-- CAKE-6-6
+- CAKE-6-7
   - Triggered when a `setWithdrawFee` function call is detected.
   - Severity is always set to "Info".
   - Type is always set to "Info".
