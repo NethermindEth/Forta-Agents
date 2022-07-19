@@ -84,8 +84,14 @@ const newTreasuryFee = (time: BigNumber, fee: BigNumber): Finding =>
     },
   });
 
+
+const mockEvent: string[] = [
+  "event StartRound(uint256 indexed epoch)",
+];
+
 describe("PancakePredictionV2-Operations bot tests suite", () => {
   const iface = new Interface(abi.CAKE);
+  const mockInterface = new Interface(mockEvent); 
   const cake: string = createAddress("0x01");
   const handler: HandleTransaction = provideHandleTransaction(cake);
 
@@ -95,6 +101,14 @@ describe("PancakePredictionV2-Operations bot tests suite", () => {
 
     const findings: Finding[] = await handler(tx);
     expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore other events on same contract", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addInterfaceEventLog(mockInterface.getEvent("StartRound"), cake, [10]);
+
+    const findings: Finding[] = await handler(tx);
+    expect(findings).toStrictEqual([]); 
   });
 
   it("should detect Pause events", async () => {
