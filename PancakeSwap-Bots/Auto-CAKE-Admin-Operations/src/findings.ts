@@ -4,7 +4,7 @@ import { ALERTS } from "./abi";
 export const createEventFinding = (_name: string, _metadata: {}) => {
   return Finding.fromObject({
     name: "CakeVault Event Emitted",
-    description: `CakeVault contract is ${_name}d`,
+    description: `CakeVault contract is ${_name}`,
     alertId: ALERTS[_name],
     protocol: "PancakeSwap",
     severity: FindingSeverity.Info,
