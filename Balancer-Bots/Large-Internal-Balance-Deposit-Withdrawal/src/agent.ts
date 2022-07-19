@@ -55,9 +55,11 @@ export const provideHandleBlock = (
         const _threshold = totalBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
         if (delta.abs().gte(_threshold)) {
+          const symbol: string = await balanceFetcher.getSymbol(blockEvent.blockNumber - 1, log.args.token);
+
           const percentage = delta.abs().multipliedBy(100).dividedBy(totalBalance);
 
-          findings.push(createFinding(log.args, percentage));
+          findings.push(createFinding(log.args, percentage, symbol));
         }
       })
     );
