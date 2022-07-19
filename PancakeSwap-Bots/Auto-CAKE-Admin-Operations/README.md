@@ -66,10 +66,13 @@ This bot detects the following CakeVault Admin Operations:
   
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0x1a79f536EB9E93570C30fd23Debf2a068Ea33d33)):
+The bot behaviour can be verified with the following transactions on BSC testnet (PoC [contract address](https://testnet.bscscan.com/address/0x5af4cDEDe5650513d666fe1a9F57d78F84aEBEe9)):
 
-  - 0x0653b663d16f09c1dda3df427f836fe72ba2acbb722bb3748b324e390c8b252b: (expect 1 finding: `for setMinAndMaxTicketPriceInCake`) 
-  - 0x8dbc3f96e49e667328032cbd28aeb1c277af496dae5d3920a19f07908377a567: (expect 1 finding: `setMaxNumberTicketsPerBuy`)
-  - 0x121955f6cb89d37ffad2245ebdbddb0ab9ec1e14de18c6ea710cc9a2d1338e75: (expect 1 finding: `one event` )
-  - 0xfccc69304202688ff76b6304ecd135e5d7893dbe39910ebac3b011d146934f22: (expect 2 findings: `two events`)
-  - 0x91ce161468cb3d8f5d4d781c2895ad3cc2bd6f5c69f856b512c24145738b73d2: (expect 0 findings: `wrong event` )
+  - 0xaf9ade636a6ee034aa2ff51d3c0df23149de99bfc3c2082662d14ee5e9b698eb: (expect 1 finding: `for Pause event`) 
+  - 0x735e31541195be12f0787022a530f4a609d380db63cee5a4640a002f0df139a7: (expect 2 findings: `for Pause and Unpause event`)
+  - 0x92c42f87145f78dcf99f738a04a5b213a3f49db7c868f2c9804ee03f5ec1a162: (expect 1 finding: `for Unpause and Withdraw event` )
+  - 0xccddf511db319ecf6dd19ae4f1da581bc0d82845baa1f61b2363f250e5561d4c: (expect 1 finding: `for setAdmin()`)
+  - 0xe2e397cdbe829fee3d89750c93358b677fbb427d429f8c647b6d2fb735baa197: (expect 1 finding: `for setTreasury()`)
+  - 0x0020999c941c6596e3df7465ebb35c5131a5f673f133738cad5e0d9ccf0928c2: (expect 1 finding: `for setPerformanceFee()`)
+  - 0x2e31fb99e0ca7020625e7dccc20ff911e2dc487dae5114d91fc7220a728f1e52: (expect 1 finding: `for setCallFee()`)
+  - 0x63091dee6e2f8981bce7ea8797845d59d09f22dc1f567f3cb5735181910e87ef: (expect 1 finding: `for setWithdrawFee()`)
