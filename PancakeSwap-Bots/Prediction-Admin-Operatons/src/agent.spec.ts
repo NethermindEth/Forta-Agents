@@ -95,7 +95,6 @@ describe("PancakePredictionV2-Operations bot tests suite", () => {
   const cake: string = createAddress("0x01");
   const handler: HandleTransaction = provideHandleTransaction(cake);
 
-
   it("should ignore empty txns", async () => {
     const tx: TransactionEvent = new TestTransactionEvent();
 
