@@ -1,4 +1,4 @@
-import { BlockEvent, ethers, HandleBlock, Initialize, Finding, getEthersProvider } from "forta-agent";
+import { ethers, Initialize, Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
@@ -19,25 +19,16 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
-): HandleBlock => {
-  const vaultIface = new ethers.utils.Interface([SWAP_ABI]);
+): HandleTransaction => {
   const tokenIface = new ethers.utils.Interface([BALANCE_OF_ABI]);
-  const topics = [vaultIface.getEventTopic("Swap")];
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("vaultAddress"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((el) => vaultIface.parseLog(el));
+    const logs = txEvent.filterLog(SWAP_ABI, networkManager.get("vaultAddress"));
 
     await Promise.all(
       logs.map(async (log) => {
@@ -45,10 +36,10 @@ export const provideHandleBlock = (
         const tokenOut = SmartCaller.from(new ethers.Contract(log.args.tokenOut, tokenIface, provider));
 
         const balanceTokenIn = toBn(
-          await tokenIn.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
+          await tokenIn.balanceOf(networkManager.get("vaultAddress"), { blockTag: txEvent.blockNumber - 1 })
         );
         const balanceTokenOut = toBn(
-          await tokenOut.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
+          await tokenOut.balanceOf(networkManager.get("vaultAddress"), { blockTag: txEvent.blockNumber - 1 })
         );
 
         const percentageTokenIn = toBn(log.args.amountIn).dividedBy(balanceTokenIn).shiftedBy(2);
@@ -67,5 +58,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
 };

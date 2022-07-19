@@ -10,7 +10,11 @@ export function createFinding(
 
   return Finding.from({
     name: "Large swap",
-    description: "A swap that involved a significant percentage of a token's balance was detected",
+    description: `A swap of ${amountIn} tokens, of token address ${tokenIn} (${percentageIn.decimalPlaces(
+      3
+    )}% of token's balance) for ${amountOut} tokens, of token address ${tokenOut} (${percentageOut.decimalPlaces(
+      3
+    )}% of token's balance) was detected. The poolId is ${poolId}.`,
     alertId: "BAL-3",
     protocol: "Balancer",
     type: FindingType.Info,
