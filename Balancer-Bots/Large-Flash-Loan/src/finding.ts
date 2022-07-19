@@ -8,7 +8,7 @@ export function createFinding(flashLoanLog: ethers.utils.LogDescription, tvlPerc
     name: "Large flash loan",
     description: `A flash loan to ${recipient} of ${amount} tokens, of token address ${token}, was detected. The amount made up ${tvlPercentage.decimalPlaces(
       3
-    )}% of the TVL`,
+    )}% of the TVL.`,
     alertId: "BAL-4",
     protocol: "Balancer",
     type: FindingType.Info,

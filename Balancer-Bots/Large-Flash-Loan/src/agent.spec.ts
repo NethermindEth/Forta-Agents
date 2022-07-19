@@ -21,7 +21,7 @@ const createFinding = (
 ): Finding => {
   return Finding.from({
     name: "Large flash loan",
-    description: `A flash loan to ${recipient} of ${amount} tokens, of token address ${token}, was detected. The amount made up ${tvlPercentage}% of the TVL`,
+    description: `A flash loan to ${recipient} of ${amount} tokens, of token address ${token}, was detected. The amount made up ${tvlPercentage}% of the TVL.`,
     alertId: "BAL-4",
     protocol: "Balancer",
     type: FindingType.Info,
