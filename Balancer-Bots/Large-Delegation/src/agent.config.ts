@@ -8,7 +8,7 @@ const CONFIG: AgentConfig = {
   veBalTokenAddress: "0xC128a9954e6c874eA3d62ce62B468bA073093F25",
 
   // Minimum amount of veBAL that, when delegated, leads to a finding (optional)
-  absoluteThreshold: "100000000000000000000", // Token decimal places are not considered
+  absoluteThreshold: "100000000000000000000000", // Token decimal places are not considered
 
   // Minimum percentage of veBAL total supply that, when delegated, leads to a finding (optional) (in %)
   supplyPercentageThreshold: "50.5", // 50.5%
@@ -19,8 +19,8 @@ const CONFIG: AgentConfig = {
 // CONFIG.supplyPercentageThreshold = "1.5";
 
 // Uncomment these lines for the testnet test:
-// CONFIG.delegateRegistryAddress = "0x53e585e0a55a49bcA7fD63f77bBB3b573C6B4f54";
-// CONFIG.veBalTokenAddress = "0x2024E471c5CeBCb8f4631265583ebaCC772B6dc6";
+// CONFIG.delegateRegistryAddress = "0xA768d20A305BC3980FC8Fbe0A848454162c1b7b1";
+// CONFIG.veBalTokenAddress = "0x3D669B6DBce3f3225C1CfaE36D209E81eF4BfABF";
 // CONFIG.absoluteThreshold = "100";
 // CONFIG.supplyPercentageThreshold = "20";
 
