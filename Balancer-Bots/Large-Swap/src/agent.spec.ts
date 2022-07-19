@@ -13,36 +13,6 @@ const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
 const TOKEN_IFACE = new ethers.utils.Interface([BALANCE_OF_ABI]);
 const VAULT_ADDRESS = createAddress("0xdef1");
 
-const getSwapLog = (
-  emitter: string,
-  block: number,
-  poolId: string,
-  tokenIn: string,
-  tokenOut: string,
-  amountIn: ethers.BigNumberish,
-  amountOut: ethers.BigNumberish
-): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("Swap"), [
-      ethers.utils.hexZeroPad(poolId, 32),
-      tokenIn,
-      tokenOut,
-      ethers.BigNumber.from(amountIn),
-      ethers.BigNumber.from(amountOut),
-    ]),
-  } as ethers.providers.Log;
-};
-
-const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("Event"), []),
-  } as ethers.providers.Log;
-};
-
 const createFinding = (
   poolId: string,
   tokenIn: string,
@@ -244,13 +214,6 @@ describe("Balancer Large Swap Bot Test Suite", () => {
 
     setBalanceOf(0, createAddress("0xa4"), VAULT_ADDRESS, "10000");
     setBalanceOf(0, createAddress("0xb4"), VAULT_ADDRESS, "10000");
-
-    mockProvider.addLogs([
-      getSwapLog(VAULT_ADDRESS, 1, "0x1", createAddress("0xa1"), createAddress("0xb1"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "0x2", createAddress("0xa2"), createAddress("0xb2"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "0x3", createAddress("0xa3"), createAddress("0xb3"), "5", "6"),
-      getSwapLog(VAULT_ADDRESS, 1, "0x4", createAddress("0xa4"), createAddress("0xb4"), "5", "6"),
-    ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createFinding(
