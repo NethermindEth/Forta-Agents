@@ -42,19 +42,23 @@ const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Lo
 };
 
 const createFinding = (data: any) => {
-  let action, alertId;
+  let action, alertId, text;
 
   if (data.delta.isNegative()) {
     action = "exit";
     alertId = "BAL-5-1";
+    text = "decreased";
   } else {
     action = "join";
     alertId = "BAL-5-2";
+    text = "increased";
   }
 
   return Finding.fromObject({
     name: `Large pool ${action}`,
-    description: `PoolBalanceChanged event detected with large ${action}`,
+    description: `Pool's(${formatBytes32String(data.poolId)}) balance has ${text} by ${data.percentage
+      .decimalPlaces(1)
+      .toString(10)}% with large ${action} of ${data.tokenSymbol}`,
     alertId,
     protocol: "Balancer",
     severity: FindingSeverity.Info,
@@ -90,6 +94,8 @@ describe("Large pool balance changes", () => {
 
   const TEST_POOLID = "0x2";
 
+  const TEST_POOL_TOKEN_SYMBOLS: string[] = ["NETH", "MIND"];
+
   beforeEach(() => {
     SmartCaller.clearCache();
     mockProvider = new MockEthersProvider();
@@ -98,6 +104,16 @@ describe("Large pool balance changes", () => {
     mockProvider.addCallTo(VAULT_ADDRESS, 1, new Interface(TOKEN_ABI), "getPoolTokens", {
       inputs: [formatBytes32String(TEST_POOLID)],
       outputs: TEST_POOL_TOKEN_INFO,
+    });
+
+    mockProvider.addCallTo(createAddress("0x1"), 1, new Interface(TOKEN_ABI), "symbol", {
+      inputs: [],
+      outputs: [TEST_POOL_TOKEN_SYMBOLS[0]],
+    });
+
+    mockProvider.addCallTo(createAddress("0x2"), 1, new Interface(TOKEN_ABI), "symbol", {
+      inputs: [],
+      outputs: [TEST_POOL_TOKEN_SYMBOLS[1]],
     });
 
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
@@ -231,7 +247,8 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance1,
       token: TEST_POOL_TOKEN_INFO[0][0],
       delta: delta1,
-      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[0],
+      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1).decimalPlaces(1),
     };
 
     const data2 = {
@@ -239,13 +256,14 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance2,
       token: TEST_POOL_TOKEN_INFO[0][1],
       delta: delta2,
-      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[1],
+      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2).decimalPlaces(1),
     };
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(1);
+    expect(mockProvider.call).toHaveBeenCalledTimes(3);
   });
 
   it("returns findings if there are pool exits with a large amount", async () => {
@@ -282,7 +300,8 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance1,
       token: TEST_POOL_TOKEN_INFO[0][0],
       delta: delta1,
-      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[0],
+      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1).decimalPlaces(1),
     };
 
     const data2 = {
@@ -290,13 +309,14 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance2,
       token: TEST_POOL_TOKEN_INFO[0][1],
       delta: delta2,
-      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[1],
+      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2).decimalPlaces(1),
     };
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(1);
+    expect(mockProvider.call).toHaveBeenCalledTimes(3);
   });
 
   it("returns findings if there are pool joins and exits with large amounts", async () => {
@@ -333,7 +353,8 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance1,
       token: TEST_POOL_TOKEN_INFO[0][0],
       delta: delta1,
-      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[0],
+      percentage: delta1.abs().multipliedBy(100).dividedBy(previousBalance1).decimalPlaces(1),
     };
 
     const data2 = {
@@ -341,12 +362,13 @@ describe("Large pool balance changes", () => {
       previousBalance: previousBalance2,
       token: TEST_POOL_TOKEN_INFO[0][1],
       delta: delta2,
-      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2),
+      tokenSymbol: TEST_POOL_TOKEN_SYMBOLS[1],
+      percentage: delta2.abs().multipliedBy(100).dividedBy(previousBalance2).decimalPlaces(1),
     };
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([createFinding(data1), createFinding(data2)]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(1);
+    expect(mockProvider.call).toHaveBeenCalledTimes(3);
   });
 });

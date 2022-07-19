@@ -56,12 +56,18 @@ export const provideHandleBlock = (
           const _threshold = previousBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
           if (!previousBalance.lte(0.1) && delta.abs().gte(_threshold)) {
+            const tokenContract = new Contract(tokens[i], new utils.Interface(TOKEN_ABI), provider);
+
+            const token = SmartCaller.from(tokenContract);
+            const tokenSymbol = await token.symbol({ blockTag: blockEvent.blockNumber });
+
             const data = {
               poolId,
               previousBalance,
               token: tokens[i],
               delta,
-              percentage: delta.abs().multipliedBy(100).dividedBy(previousBalance),
+              tokenSymbol,
+              percentage: delta.abs().multipliedBy(100).dividedBy(previousBalance).decimalPlaces(1),
             };
 
             findings.push(createFinding(data));

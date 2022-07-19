@@ -4,4 +4,5 @@ export const EVENT = [
 ];
 export const TOKEN_ABI = [
   "function getPoolTokens(bytes32 poolId) external view returns (address[] memory, uint256[] memory, uint256)",
+  "function symbol() external view returns (string)",
 ];
