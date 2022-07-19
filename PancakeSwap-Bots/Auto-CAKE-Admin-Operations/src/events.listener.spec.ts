@@ -2,7 +2,6 @@ import { HandleTransaction, ethers, Finding } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { NetworkManager } from "forta-agent-tools";
 
-
 import bot from "./events.listener";
 
 import { EVENTS } from "./abi";
@@ -22,19 +21,15 @@ describe("CakeVault", () => {
     mockTxEvent = new TestTransactionEvent();
   });
 
-
   beforeAll(() => {
-   
     handleTransaction = bot.provideHandleTransaction(MOCK_CONTRACT_ADDRESS);
 
     EVENTS.forEach((event) => {
-      eventFragments.push(ethers.utils.EventFragment.fromString(event.slice("event ".length)))
+      eventFragments.push(ethers.utils.EventFragment.fromString(event.slice("event ".length)));
     });
 
     mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
-  
   });
-
 
   describe("Events handleTransaction", () => {
     it("returns empty findings if no event is emitted", async () => {
@@ -46,7 +41,6 @@ describe("CakeVault", () => {
     });
 
     it("returns empty findings if the event emitted does not come from the correct contract address", async () => {
-
       mockTxEvent.addInterfaceEventLog(eventFragments[0], createAddress("0x1044"), []);
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -54,58 +48,40 @@ describe("CakeVault", () => {
     });
 
     it("returns finding if Pause event is emitted", async () => {
-
       mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual
-      ([
-        createEventFinding(eventFragments[0].name, {})
-      ]);
-
+      expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name, {})]);
     });
 
     it("returns finding if Unpause event is emitted", async () => {
-
       mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual
-      ([
-        createEventFinding(eventFragments[1].name, {})
-      ]);
-
+      expect(findings).toStrictEqual([createEventFinding(eventFragments[1].name, {})]);
     });
 
-     it("returns findings if both events are emitted", async () => {
+    it("returns findings if both events are emitted", async () => {
       mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
       mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual
-      ([
+      expect(findings).toStrictEqual([
         createEventFinding(eventFragments[0].name, {}),
-        createEventFinding(eventFragments[1].name, {})
+        createEventFinding(eventFragments[1].name, {}),
       ]);
- 
-
     });
 
-    it("returns finding only for the correct event", async() =>{
-
+    it("returns finding only for the correct event", async () => {
       mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
       mockTxEvent.addInterfaceEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [678]);
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name, {})]);
-
-
     });
-
-
   });
 });

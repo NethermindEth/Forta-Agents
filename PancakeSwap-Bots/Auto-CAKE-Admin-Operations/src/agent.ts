@@ -17,15 +17,12 @@ const provideInitialize = (
 const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const cakeVaultAddress = networkManager.get("cakeVaultAddress");
-    
-    const eventsBotHandleTransaction = eventsBot.providerHandleTransaction(cakeVaultAddress);
-    const functionCallBotHandleTransaction = functionCallBot.providerHandleTransaction(cakeVaultAddress);
+
+    const eventsBotHandleTransaction = eventsBot.provideHandleTransaction(cakeVaultAddress);
+    const functionCallBotHandleTransaction = functionCallBot.provideHandleTransaction(cakeVaultAddress);
 
     const findings = (
-      await Promise.all([
-        eventsBotHandleTransaction(txEvent),
-        functionCallBotHandleTransaction(txEvent),
-      ])
+      await Promise.all([eventsBotHandleTransaction(txEvent), functionCallBotHandleTransaction(txEvent)])
     ).flat();
     return findings;
   };

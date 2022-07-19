@@ -3,7 +3,7 @@ import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { EVENTS } from "./abi";
 import { createEventFinding } from "./findings";
 
-function providerHandleTransaction(contractAddress: string): HandleTransaction {
+function provideHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -11,10 +11,7 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
     const events = txEvent.filterLog(EVENTS, contractAddress);
 
     events.forEach((event) => {
-
-      findings.push(
-        createEventFinding(event.name, {})
-      );
+      findings.push(createEventFinding(event.name, {}));
     });
 
     return findings;
@@ -22,5 +19,5 @@ function providerHandleTransaction(contractAddress: string): HandleTransaction {
 }
 
 export default {
-  providerHandleTransaction,
+  provideHandleTransaction,
 };
