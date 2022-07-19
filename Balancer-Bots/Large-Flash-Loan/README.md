@@ -3,7 +3,7 @@
 ## Description
 
 This bot detects large flash loans (i.e. the amount of tokens borrowed is a significant fraction of the Vault's balance
-for that token) in the Balancer protocol.
+for that token) in the Balancer protocol. Minimum percentage of the Vault balance that, when borrowed, leads to a finding set to tvlPercentageThreshold: "50.5%"
 
 ## Supported Chains
 

@@ -3,7 +3,7 @@
 ## Description
 
 This bot detects large pool balance changes (i.e. any of the tokens' pool balance relative to the amount in the
-previous block is above a set threshold) in the Balancer protocol.
+previous block is above a set threshold) in the Balancer protocol. Minimum percentage token amount relative to the Vault's token balance set to threshold: "40" // 40%
 
 The thresholds can be set inside `src/agent.config.ts` file.
 
@@ -12,7 +12,7 @@ The thresholds can be set inside `src/agent.config.ts` file.
 - Ethereum
 - Polygon
 - Arbitrum
-
+s
 ## Alerts
 
 - BAL-5-1
