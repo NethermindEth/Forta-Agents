@@ -1,4 +1,4 @@
-import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers, utils } from "ethers";
 import { BigNumber } from "bignumber.js";
 import BalanceFetcher from "./balance.fetcher";
@@ -18,26 +18,19 @@ export const initialize = (networkManager: NetworkManager<NetworkData>, provider
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   provider: providers.Provider,
   networkManager: NetworkManager<NetworkData>,
   balanceFetcher: BalanceFetcher
-): HandleBlock => {
+): HandleTransaction => {
   const vaultIface = new utils.Interface(EVENT);
 
   const topics = [vaultIface.getEventTopic("InternalBalanceChanged")];
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("vaultAddress"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((log) => vaultIface.parseLog(log));
+    const logs = txEvent.filterLog(EVENT, networkManager.get("vaultAddress"));
 
     await Promise.all(
       logs.map(async (log) => {
@@ -45,17 +38,13 @@ export const provideHandleBlock = (
 
         // fetch token balance of the contract then set threshold.
         const totalBalance: BigNumber = toBn(
-          await balanceFetcher.getBalance(
-            blockEvent.blockNumber - 1,
-            networkManager.get("vaultAddress"),
-            log.args.token
-          )
+          await balanceFetcher.getBalance(txEvent.blockNumber - 1, networkManager.get("vaultAddress"), log.args.token)
         );
 
         const _threshold = totalBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
         if (delta.abs().gte(_threshold)) {
-          const symbol: string = await balanceFetcher.getSymbol(blockEvent.blockNumber - 1, log.args.token);
+          const symbol: string = await balanceFetcher.getSymbol(txEvent.blockNumber - 1, log.args.token);
 
           const percentage = delta.abs().multipliedBy(100).dividedBy(totalBalance);
 
@@ -70,5 +59,9 @@ export const provideHandleBlock = (
 
 export default {
   initialize: initialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(getEthersProvider(), networkManager, new BalanceFetcher(getEthersProvider())),
+  handleTransaction: provideHandleTransaction(
+    getEthersProvider(),
+    networkManager,
+    new BalanceFetcher(getEthersProvider())
+  ),
 };
