@@ -59,7 +59,7 @@ describe("Large BAL Token Transfer Bot Test Suite", () => {
     handleTransaction = provideHandleTransaction(networkManager, provider);
   });
 
-  it("should return empty findings with an empty logs list", async () => {
+  it("should return empty findings when no event is emitted", async () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
