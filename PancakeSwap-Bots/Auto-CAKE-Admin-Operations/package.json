@@ -2,6 +2,7 @@
   "name": "auto-cake-admin-operations-bot",
   "version": "0.0.1",
   "description": "Bot to detect admin operations on CakeVault contract from PancakeSwap",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-Cake-Admin-Operations",
   "chainIds": [
     56
   ],
@@ -19,12 +20,13 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.8",
-    "forta-agent-tools": "^2.3.1"
+    "forta-agent-tools": "^2.3.1",
+    "prettier": "^2.7.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
