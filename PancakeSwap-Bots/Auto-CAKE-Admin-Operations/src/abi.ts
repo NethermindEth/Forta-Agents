@@ -9,11 +9,11 @@ export const ABI = [
 ];
 
 export const ALERTS: { [key: string]: string } = {
-  Pause: "CAKE-VAULT-6-1",
-  Unpause: "CAKE-VAULT-6-2",
-  setAdmin: "CAKE-VAULT-6-3",
-  setTreasury: "CAKE-VAULT-6-5",
-  setPerformanceFee: "CAKE-VAULT-6-6",
-  setCallFee: "CAKE-VAULT-6-7",
-  setWithdrawFee: "CAKE-VAULT-6-8",
+  Pause: "CAKE-6-1",
+  Unpause: "CAKE-6-2",
+  setAdmin: "CAKE-6-3",
+  setTreasury: "CAKE-6-4",
+  setPerformanceFee: "CAKE-6-5",
+  setCallFee: "CAKE-6-6",
+  setWithdrawFee: "CAKE-6-7",
 };
