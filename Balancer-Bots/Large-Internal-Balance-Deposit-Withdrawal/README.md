@@ -5,7 +5,8 @@
 This bot detects large internal balance changes (i.e. any of the tokens' Vault balance relative to the balance in the
 previous block is above a set threshold) in the Balancer protocol.
 
-The thresholds can be set inside `src/agent.config.ts` file.
+The thresholds can be set inside `src/agent.config.ts` file. Minimum percentage token amount relative to the Vault's token balance
+set to threshold: "5" // 5%
 
 ## Supported Chains
 
