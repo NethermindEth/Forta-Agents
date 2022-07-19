@@ -24,23 +24,23 @@ This bot detects pool registrations in the Balancer protocol by listening to `Po
 
 ## Test Data
 
-These tests can be run using `npm run block <BLOCK_NUMBER>` after setting `jsonRpcUrl` in `forta.config.json` to an
+These tests can be run using `npm run tx <TX_HASH>` after setting `jsonRpcUrl` in `forta.config.json` to an
 `RPC` of the network in question.
 
 ### Ethereum Mainnet
 
-- `15008557` (1 finding - `PoolRegistered` was emitted)
+- `0x7511b813ce248e94c6f785a8cc0fd15cfaf465b6710a76ea2242dc3424d30f0e` (1 finding - `PoolRegistered` was emitted)
 
 ### Polygon
 
-- `29858567` (1 finding - `PoolRegistered` was emitted)
+- `0xd1c936d6aac05de39ae0185ac2da92fd253accf54827f7e72e8b3ed617d606a7` (1 finding - `PoolRegistered` was emitted)
 
 ### Arbitrum
 
-- `15409034` (1 finding - `PoolRegistered` was emitted)
+- `0xad36063c130dbbb95bafbedd24a4eb0bc80bfb738a390f878c23df8210f1ef2a` (1 finding - `PoolRegistered` was emitted)
 
 ### Kovan Testnet (PoC)
 
 > The PoC files are available at `PoC/`.
 
-- `32320180` (3 findings - `PoolRegistered` was emitted 3 times with different parameters)
+- `0x0fe99dce954be9e0a7b69cdfa8add5a7ccec86ec345a6f50fdd71e79867a1f74` (3 findings - `PoolRegistered` was emitted 3 times with different parameters)
