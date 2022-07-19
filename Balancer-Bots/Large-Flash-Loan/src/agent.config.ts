@@ -20,10 +20,10 @@ const CONFIG: AgentConfig = {
   },
 };
 
-// Uncomment these lines for the mainnet test:
+// Uncomment this line for the mainnet test:
 // CONFIG[Network.MAINNET].tvlPercentageThreshold = "2.5";
 
-// Uncomment these lines for the polygon test:
+// Uncomment this line for the polygon test:
 // CONFIG[Network.POLYGON].tvlPercentageThreshold = "0.1";
 
 // Uncomment these lines for the arbitrum test:
