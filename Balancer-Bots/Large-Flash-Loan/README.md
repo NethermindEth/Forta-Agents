@@ -20,6 +20,7 @@ for that token) in the Balancer protocol. Minimum percentage of the Vault balanc
   - Metadata:
     - `recipient`: The flash loan recipient
     - `token`: The borrowed token address
+    - `symbol`: The borrowed token symbol
     - `amount`: The amount borrowed
     - `tvlPercentage`: The percentage of the Vault's token balance that was borrowed
 
