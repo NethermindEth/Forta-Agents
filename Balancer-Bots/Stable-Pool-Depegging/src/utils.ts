@@ -22,11 +22,7 @@ export function provideGetAmpUpdateStartedLogs(networkManager: NetworkManager<Ne
   return async (txEvent: TransactionEvent) => {
     const encodedLogs = txEvent.filterLog([AMP_UPDATE_STARTED_ABI], networkManager.get("stablePoolAddresses"));
 
-    const stablePoolAddresses = networkManager.get("stablePoolAddresses");
-
-    return encodedLogs
-      .filter((log) => stablePoolAddresses.some((address) => address.toLowerCase() === log.address.toLowerCase()))
-      .map((log) => ({ ...log, emitter: log.address }));
+    return encodedLogs.map((log) => ({ ...log, emitter: log.address }));
   };
 }
 
