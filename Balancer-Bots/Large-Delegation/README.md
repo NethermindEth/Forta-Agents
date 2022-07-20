@@ -53,11 +53,11 @@ This test configuration has the absolute threshold set to `10000e18` and the tot
 > in your `forta.config.json` file.
 
 ```
-npm run block 32811322,32811327,32811334
+npm run tx 0x39928e6b16ed5a47d23e481f0d8a338ced7a79b145767796ffa296bbb510a71e,0xa78cc4d5dcb81f53e4b45b95bf7eb7733f72d1a50612e1416da2fd75e97ac312, 0xfaf24d423e40625e0574da90fe0b12f4d194107a69a561b01189f781b0bc12dc
 ```
 
 This test configuration has the absolute threshold set to `100` and the total supply percentage threshold set to `20%`. As noted in the PoC at `PoC/MockDelegation.sol`, there should be:
 
-- No findings in the block `MockDelegation.test0()` is called (`32811322`).
-- One `BAL-8-1` finding in the block `MockDelegation.test1()` is called (`32811327`), since the delegation amount is equal to the absolute threshold.
-- One `BAL-8-1` and one `BAL-8-2` finding in the block `MockDelegation.test2()` is called (`32811334`), since the delegation amount is greater than the absolute threshold and its percentage in relation to the total supply is equal to the total supply percentage threshold.
+- No findings in the transaction `MockDelegation.test0()` is called (`0x39928e6b16ed5a47d23e481f0d8a338ced7a79b145767796ffa296bbb510a71e`).
+- One `BAL-8-1` finding in the transaction `MockDelegation.test1()` is called (`0xa78cc4d5dcb81f53e4b45b95bf7eb7733f72d1a50612e1416da2fd75e97ac312`), since the delegation amount is equal to the absolute threshold.
+- One `BAL-8-1` and one `BAL-8-2` finding in the transaction `MockDelegation.test2()` is called (`0xfaf24d423e40625e0574da90fe0b12f4d194107a69a561b01189f781b0bc12dc`), since the delegation amount is greater than the absolute threshold and its percentage in relation to the total supply is equal to the total supply percentage threshold.
