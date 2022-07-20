@@ -10,32 +10,6 @@ const createChecksumAddress = (address: string) => ethers.utils.getAddress(creat
 const STABLE_POOL_IFACE = new ethers.utils.Interface([AMP_UPDATE_STARTED_ABI]);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
 
-const getAmpUpdateStartedLog = (
-  emitter: string,
-  block: number,
-  startValue: ethers.BigNumberish,
-  endValue: ethers.BigNumberish,
-  startTime: ethers.BigNumberish,
-  endTime: ethers.BigNumberish
-): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...STABLE_POOL_IFACE.encodeEventLog(
-      STABLE_POOL_IFACE.getEvent("AmpUpdateStarted"),
-      [startValue, endValue, startTime, endTime].map((el) => ethers.BigNumber.from(el))
-    ),
-  } as ethers.providers.Log;
-};
-
-const getIrrelevantLog = (emitter: string, block: number): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("Event"), []),
-  } as ethers.providers.Log;
-};
-
 function createValueThresholdFinding(pool: string, startValue: string, endValue: string): Finding {
   return Finding.from({
     name: "Low Stable Pool Amplification Parameter",
