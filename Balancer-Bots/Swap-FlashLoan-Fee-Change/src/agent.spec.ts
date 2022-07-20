@@ -1,5 +1,5 @@
 import { AgentConfig } from "./utils";
-import { TestTransactionEvent, MockEthersProvider, createAddress } from "forta-agent-tools/lib/tests";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
 import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction, Network } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
@@ -52,13 +52,8 @@ export function createSwapFeeFinding(newFee: string): Finding {
 
 describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
   let handleTransaction: HandleTransaction;
-  let provider: ethers.providers.Provider;
-  let mockProvider: MockEthersProvider;
 
   beforeEach(() => {
-    mockProvider = new MockEthersProvider();
-    provider = mockProvider as unknown as ethers.providers.Provider;
-
     const networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
     handleTransaction = provideHandleTransaction(networkManager);
