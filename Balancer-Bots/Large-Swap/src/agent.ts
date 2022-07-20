@@ -48,9 +48,9 @@ export const provideHandleTransaction = (
         const tvlPercentageThreshold = networkManager.get("tvlPercentageThreshold");
         if (percentageTokenIn.gte(tvlPercentageThreshold) || percentageTokenOut.gte(tvlPercentageThreshold)) {
           const tokenInSymbol: string = await tokenIn.symbol({ blockTag: txEvent.blockNumber });
-          const tokenInDecimals: number = (await tokenIn.decimals({ blockTag: txEvent.blockNumber })) * 1;
+          const tokenInDecimals: number = await tokenIn.decimals({ blockTag: txEvent.blockNumber });
           const tokenOutSymbol: string = await tokenOut.symbol({ blockTag: txEvent.blockNumber });
-          const tokenOutDecimals: number = (await tokenOut.decimals({ blockTag: txEvent.blockNumber })) * 1;
+          const tokenOutDecimals: number = await tokenOut.decimals({ blockTag: txEvent.blockNumber });
           findings.push(
             createFinding(
               log,
