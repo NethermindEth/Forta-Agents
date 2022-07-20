@@ -12,7 +12,6 @@ The thresholds can be set inside `src/agent.config.ts` file.
 - Ethereum
 - Polygon
 - Arbitrum
-  s
 
 ## Alerts
 
