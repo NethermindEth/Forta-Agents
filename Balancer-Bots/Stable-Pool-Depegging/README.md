@@ -86,7 +86,7 @@ The test configuration is adjusted so all findings are emitted for this amplific
 > in your `forta.config.json` file.
 
 ```
-npm run tx 0xb359efbc866e379653ed5b53c2ff36e3a9c819c68662b1b115e5a1a1c423416d
+npm run tx 0x7de61b51b57cd99477afad954271f122e3e641f2456471998da107b0667f291b
 ```
 
 As noted in the PoC at `PoC/MockStablePoolGroup.sol`, this should emit 6 findings, in sequence: BAL-9-1, BAL-9-2,
