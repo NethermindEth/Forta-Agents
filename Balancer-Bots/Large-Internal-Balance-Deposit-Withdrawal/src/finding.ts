@@ -15,7 +15,7 @@ export const createFinding = (args: Result, percentage: BigNumber, symbol: strin
 
   return Finding.from({
     name: `Large ${symbol} internal balance ${action}`,
-    description: `User's(${
+    description: `User's (${
       args.user
     }) internal balance of ${symbol} has changed with large ${symbol} ${action} (${percentage
       .decimalPlaces(3)

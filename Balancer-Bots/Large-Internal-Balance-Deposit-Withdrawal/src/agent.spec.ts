@@ -31,7 +31,7 @@ const createFinding = (
 
   return Finding.fromObject({
     name: `Large ${symbol} internal balance ${action}`,
-    description: `User's(${user}) internal balance of ${symbol} has changed with large ${symbol} ${action} (${percentage
+    description: `User's (${user}) internal balance of ${symbol} has changed with large ${symbol} ${action} (${percentage
       .decimalPlaces(3)
       .toString(10)}% of Vault's ${symbol} balance)`,
     alertId,
