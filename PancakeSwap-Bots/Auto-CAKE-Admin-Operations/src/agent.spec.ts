@@ -2,12 +2,12 @@ import { HandleTransaction, ethers, Finding } from "forta-agent";
 import { TestTransactionEvent, createAddress, TraceProps } from "forta-agent-tools/lib/tests";
 import { NetworkManager } from "forta-agent-tools";
 
-import bot from "./agent";
+import { provideHandleTransaction } from "./agent";
 
-import { EVENTS, ABI } from "./abi";
+import { EVENT_ABI, FUNC_ABI } from "./abi";
 import { createEventFinding, createFunctionFinding } from "./findings";
 
-describe("CakeVault", () => {
+describe("CakeVault Test Suite", () => {
   let handleTransaction: HandleTransaction;
 
   let functionInterface: ethers.utils.Interface;
@@ -38,15 +38,15 @@ describe("CakeVault", () => {
     };
 
     networkManager = new NetworkManager(mockData, 111);
-    handleTransaction = bot.provideHandleTransaction(networkManager);
+    handleTransaction = provideHandleTransaction(networkManager);
 
-    functionInterface = new ethers.utils.Interface(ABI);
+    functionInterface = new ethers.utils.Interface(FUNC_ABI);
 
-    EVENTS.forEach((event) => {
+    EVENT_ABI.forEach((event) => {
       eventFragments.push(ethers.utils.EventFragment.fromString(event.slice("event ".length)));
     });
 
-    ABI.forEach((func) => {
+    FUNC_ABI.forEach((func) => {
       functionFragments.push(ethers.utils.FunctionFragment.fromString(func.slice("function ".length)));
     });
 
@@ -55,8 +55,6 @@ describe("CakeVault", () => {
 
   describe("handleTransaction", () => {
     it("returns empty findings if no event is emitted or function called", async () => {
-      mockTxEvent.addAnonymousEventLog(MOCK_CONTRACT_ADDRESS, "", ...[]);
-
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([]);
@@ -79,8 +77,8 @@ describe("CakeVault", () => {
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        createFunctionFinding(functionFragments[0].name, functionFragments[0].name, {
-          _admin: createAddress("0x1234"),
+        createFunctionFinding(functionFragments[0].name, {
+          admin: createAddress("0x1234"),
         }),
       ]);
     });
@@ -92,8 +90,8 @@ describe("CakeVault", () => {
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        createEventFinding(eventFragments[0].name, {}),
-        createEventFinding(eventFragments[1].name, {}),
+        createEventFinding(eventFragments[0].name),
+        createEventFinding(eventFragments[1].name),
       ]);
     });
 
@@ -101,18 +99,22 @@ describe("CakeVault", () => {
       mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
       mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
 
-      const data_1: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x1234")]);
-      const data_2: string = functionInterface.encodeFunctionData(functionFragments[1].name, [createAddress("0x9843")]);
-      const data_3: string = functionInterface.encodeFunctionData(functionFragments[2].name, [100000]);
-      const data_4: string = functionInterface.encodeFunctionData(functionFragments[3].name, [200000]);
-      const data_5: string = functionInterface.encodeFunctionData(functionFragments[4].name, [300000]);
+      const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [
+        createAddress("0x1234"),
+      ]);
+      const dataTwo: string = functionInterface.encodeFunctionData(functionFragments[1].name, [
+        createAddress("0x9843"),
+      ]);
+      const dataThree: string = functionInterface.encodeFunctionData(functionFragments[2].name, [100000]);
+      const dataFour: string = functionInterface.encodeFunctionData(functionFragments[3].name, [200000]);
+      const dataFive: string = functionInterface.encodeFunctionData(functionFragments[4].name, [300000]);
 
       const traces: TraceProps[] = [
-        { to: MOCK_CONTRACT_ADDRESS, input: data_1 },
-        { to: MOCK_CONTRACT_ADDRESS, input: data_2 },
-        { to: MOCK_CONTRACT_ADDRESS, input: data_3 },
-        { to: MOCK_CONTRACT_ADDRESS, input: data_4 },
-        { to: MOCK_CONTRACT_ADDRESS, input: data_5 },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataThree },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataFour },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataFive },
       ];
 
       mockTxEvent.addTraces(...traces);
@@ -120,17 +122,17 @@ describe("CakeVault", () => {
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        createEventFinding(eventFragments[0].name, {}),
-        createEventFinding(eventFragments[1].name, {}),
-        createFunctionFinding(functionFragments[0].name, functionFragments[0].name, {
-          _admin: createAddress("0x1234"),
+        createEventFinding(eventFragments[0].name),
+        createEventFinding(eventFragments[1].name),
+        createFunctionFinding(functionFragments[0].name, {
+          admin: createAddress("0x1234"),
         }),
-        createFunctionFinding(functionFragments[1].name, functionFragments[1].name, {
-          _treasury: createAddress("0x9843"),
+        createFunctionFinding(functionFragments[1].name, {
+          treasury: createAddress("0x9843"),
         }),
-        createFunctionFinding(functionFragments[2].name, functionFragments[2].name, { _performanceFee: "100000" }),
-        createFunctionFinding(functionFragments[3].name, functionFragments[3].name, { _callFee: "200000" }),
-        createFunctionFinding(functionFragments[4].name, functionFragments[4].name, { _withdrawFee: "300000" }),
+        createFunctionFinding(functionFragments[2].name, { performanceFee: "100000" }),
+        createFunctionFinding(functionFragments[3].name, { callFee: "200000" }),
+        createFunctionFinding(functionFragments[4].name, { withdrawFee: "300000" }),
       ]);
     });
 
@@ -140,18 +142,20 @@ describe("CakeVault", () => {
 
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name, {})]);
+      expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name)]);
     });
 
     it("returns finding only for the correct function", async () => {
-      const data_1: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x3456")]);
+      const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [
+        createAddress("0x3456"),
+      ]);
 
       const mockFunctionInterface = new ethers.utils.Interface(["function mockFunction(uint256 x)"]);
-      const data_2: string = mockFunctionInterface.encodeFunctionData("mockFunction", [123456]);
+      const dataTwo: string = mockFunctionInterface.encodeFunctionData("mockFunction", [123456]);
 
       const traces: TraceProps[] = [
-        { to: MOCK_CONTRACT_ADDRESS, input: data_1 },
-        { to: MOCK_CONTRACT_ADDRESS, input: data_2 },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
+        { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
       ];
 
       mockTxEvent.addTraces(...traces);
@@ -159,8 +163,8 @@ describe("CakeVault", () => {
       const findings: Finding[] = await handleTransaction(mockTxEvent);
 
       expect(findings).toStrictEqual([
-        createFunctionFinding(functionFragments[0].name, functionFragments[0].name, {
-          _admin: createAddress("0x3456"),
+        createFunctionFinding(functionFragments[0].name, {
+          admin: createAddress("0x3456"),
         }),
       ]);
     });
