@@ -1,4 +1,4 @@
-import { ethers, Finding, getEthersProvider, Initialize, HandleBlock, BlockEvent } from "forta-agent";
+import { ethers, Finding, getEthersProvider, Initialize, HandleTransaction, TransactionEvent } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import {
   createValueThresholdFinding,
@@ -22,14 +22,14 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
-): HandleBlock => {
-  const getAmpUpdateStartedLogs = provideGetAmpUpdateStartedLogs(networkManager, provider);
+): HandleTransaction => {
+  const getAmpUpdateStartedLogs = provideGetAmpUpdateStartedLogs(networkManager);
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const logs = await getAmpUpdateStartedLogs(blockEvent.blockNumber);
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const logs = await getAmpUpdateStartedLogs(txEvent);
 
     const valueThreshold = networkManager.get("valueThreshold");
     const decreaseThreshold = networkManager.get("decreaseThreshold");
@@ -69,5 +69,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
 };
