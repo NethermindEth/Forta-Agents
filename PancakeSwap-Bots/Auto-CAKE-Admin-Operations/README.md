@@ -76,7 +76,7 @@ address: [0x5af4cDEDe5650513d666fe1a9F57d78F84aEBEe9]
 (expect 2 findings: for `Pause` and `Unpause` event)
   - [0x92c42f87145f78dcf99f738a04a5b213a3f49db7c868f2c9804ee03f5ec1a162]
 (https://testnet.bscscan.com/tx/0x92c42f87145f78dcf99f738a04a5b213a3f49db7c868f2c9804ee03f5ec1a162)
-(expect 1 finding: for `Unpause and `Withdraw event)
+(expect 1 finding: for `Unpause` and `Withdraw` event)
   - [0xccddf511db319ecf6dd19ae4f1da581bc0d82845baa1f61b2363f250e5561d4c]
 (https://testnet.bscscan.com/tx/0xccddf511db319ecf6dd19ae4f1da581bc0d82845baa1f61b2363f250e5561d4c)
 (expect 1 finding: for `setAdmin()`)
