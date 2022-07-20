@@ -1,12 +1,12 @@
 import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
-import { ABI } from "./abi";
+import { FUNC_ABI } from "./abi";
 import { createFunctionFinding } from "./findings";
 
-function provideHandleTransaction(contractAddress: string): HandleTransaction {
+export function provideHandleTransaction(contractAddress: string): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     // filter the transaction logs for function calls
-    const functionCalls = txEvent.filterFunction(ABI, contractAddress);
+    const functionCalls = txEvent.filterFunction(FUNC_ABI, contractAddress);
 
     functionCalls.forEach((functionCall) => {
       let metadata: { [key: string]: string } = {};
@@ -19,16 +19,12 @@ function provideHandleTransaction(contractAddress: string): HandleTransaction {
 
       //populate metadata with args
       keys.forEach((key) => {
-        metadata[key] = functionCall.args[key].toString();
+        metadata[key.slice(1)] = functionCall.args[key].toString(); //slice to remove leading "_" from property name
       });
 
-      findings.push(createFunctionFinding(functionCall.name, functionCall.name, metadata));
+      findings.push(createFunctionFinding(functionCall.name, metadata));
     });
 
     return findings;
   };
 }
-
-export default {
-  provideHandleTransaction,
-};
