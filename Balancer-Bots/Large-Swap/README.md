@@ -21,8 +21,10 @@ The bot behavior can be customized in the `src/agent.config.ts` file. Minimum sw
   - Type is always set to "Info"
   - Metadata:
     - `poolId`: The swap's `poolId`
-    - `tokenIn`: The swap's `tokenIn`
-    - `tokenOut`: The swap's `tokenOut`
+    - `tokenIn`: The swap's `tokenIn` address
+    - `tokenInSymbol`: The swap's `tokenIn` symbol
+    - `tokenOut`: The swap's `tokenOut` address
+    - `tokenOutSymbol`: The swap's `tokenOut` symbol'
     - `amountIn`: The swap's `amountIn`
     - `amountOut`: The swap's `amountOut`
     - `percentageIn`: The percentage of `amountIn` relative to the previous block's Vault `tokenIn` balance
