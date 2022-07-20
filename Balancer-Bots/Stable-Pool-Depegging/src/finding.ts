@@ -9,7 +9,7 @@ export function createValueThresholdFinding(
 ): Finding {
   return Finding.from({
     name: `Low Stable Pool Amplification Parameter in ${poolName}`,
-    description: `A low amplification parameter endValue(${endValue}) was detected in ${poolName}`,
+    description: `A low amplification parameter endValue (${endValue}) was detected in ${poolName}`,
     alertId: "BAL-9-1",
     protocol: "Balancer",
     type: FindingType.Info,

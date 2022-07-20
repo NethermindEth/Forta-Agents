@@ -14,7 +14,7 @@ const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
 function createValueThresholdFinding(pool: string, startValue: string, endValue: string, poolName: string): Finding {
   return Finding.from({
     name: `Low Stable Pool Amplification Parameter in ${poolName}`,
-    description: `A low amplification parameter endValue(${endValue}) was detected in ${poolName}`,
+    description: `A low amplification parameter endValue (${endValue}) was detected in ${poolName}`,
     alertId: "BAL-9-1",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -130,7 +130,7 @@ describe("Bot Test Suite", () => {
       expect(await getAmpUpdateStartedLogs(txEvent)).toStrictEqual([]);
     });
 
-    it("should get target events emitted from a target contract in the same block", async () => {
+    it("should get target events emitted from a target contract in the same transaction", async () => {
       const txEvent = new TestTransactionEvent()
         .setBlock(0)
         .addInterfaceEventLog(STABLE_POOL_IFACE.getEvent("AmpUpdateStarted"), STABLE_POOL_ADDRESSES[0], [1, 2, 3, 4])
@@ -255,7 +255,7 @@ describe("Bot Test Suite", () => {
         createDecreasePercentageThresholdFinding(STABLE_POOL_ADDRESSES[0], "1000", "899", "10.1", TEST_POOL_NAME[0]),
       ]);
     });
-    it("should multiple findings for multiple updates that satisfy one or more thresholds", async () => {
+    it("should return multiple findings for multiple updates that satisfy one or more thresholds", async () => {
       const txEvent = new TestTransactionEvent()
         .setBlock(0)
         .addInterfaceEventLog(
