@@ -22,10 +22,10 @@ const CONFIG: AgentConfig = {
 };
 
 // Uncomment these lines for the Kovan testnet test:
-CONFIG[42] = {
-  balToken: "0xdba73aCEa7BC780f4c3f565732c10fDcAC5b28D6",
-  threshold: "10",
-};
+// CONFIG[42] = {
+//   balToken: "0xdba73aCEa7BC780f4c3f565732c10fDcAC5b28D6",
+//   threshold: "10",
+// };
 
 // Uncomment these lines for the mainnet, Polygon or Arbitrum tests:
 // CONFIG[Network.MAINNET].threshold = "0";
