@@ -156,8 +156,13 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
         20,
         BigNumber.from("3000000000000000000"), // 3
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the withdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
@@ -195,15 +200,20 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("Withdraw"), [
         testSpender,
         20,
         BigNumber.from("500000000000000000"), // 0.5
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the withdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
@@ -233,8 +243,13 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
         20,
         BigNumber.from("3000000000000000000"), // 3
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the EmegencyWithdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
@@ -272,15 +287,20 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
 
-      // Add Deposit event
+      // Add EmergencyWithdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("EmergencyWithdraw"), [
         testSpender,
         20,
         BigNumber.from("500000000000000000"), // 0.5
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the EmergencyWithdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
@@ -491,15 +511,20 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("Withdraw"), [
         testSpender,
         20,
         BigNumber.from("3000000000000000000"), // 3
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the withdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
@@ -537,15 +562,20 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
       handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
 
-      // Add Deposit event
+      // Add Withdraw event
       const testSpender: string = createAddress("0x9");
       const withdrawLog = MASTERCHEF_INTERFACE.encodeEventLog(MASTERCHEF_INTERFACE.getEvent("Withdraw"), [
         testSpender,
         20,
         BigNumber.from("2400000000000000000"), // 2.4
       ]);
+<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
+=======
+      // Create test transaction with the withdraw event
+      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
+>>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");

@@ -1,7 +1,7 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const createFinding = (eventName: string, tokenName: string, args: any) => {
-  var alertId: string;
+  let alertId: string;
   if (eventName === "Deposit") {
     alertId = "CAKE-4-1";
   } else if (eventName === "Withdraw") {
