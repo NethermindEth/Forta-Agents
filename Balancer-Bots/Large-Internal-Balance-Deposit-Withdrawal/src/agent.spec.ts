@@ -85,7 +85,7 @@ describe("Large internal balance deposits/withdrawals", () => {
 
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
 
-    handleTransaction = provideHandleTransaction(provider, networkManager, mockBalanceFetcher);
+    handleTransaction = provideHandleTransaction(networkManager, mockBalanceFetcher);
   });
 
   it("returns empty findings for empty transactions", async () => {

@@ -19,14 +19,9 @@ export const initialize = (networkManager: NetworkManager<NetworkData>, provider
 };
 
 export const provideHandleTransaction = (
-  provider: providers.Provider,
   networkManager: NetworkManager<NetworkData>,
   balanceFetcher: BalanceFetcher
 ): HandleTransaction => {
-  const vaultIface = new utils.Interface(EVENT);
-
-  const topics = [vaultIface.getEventTopic("InternalBalanceChanged")];
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -59,9 +54,5 @@ export const provideHandleTransaction = (
 
 export default {
   initialize: initialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(
-    getEthersProvider(),
-    networkManager,
-    new BalanceFetcher(getEthersProvider())
-  ),
+  handleTransaction: provideHandleTransaction(networkManager, new BalanceFetcher(getEthersProvider())),
 };
