@@ -1,6 +1,5 @@
 import { HandleTransaction, ethers, Finding } from "forta-agent";
 import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
-import { NetworkManager } from "forta-agent-tools";
 
 import bot from "./events.listener";
 
