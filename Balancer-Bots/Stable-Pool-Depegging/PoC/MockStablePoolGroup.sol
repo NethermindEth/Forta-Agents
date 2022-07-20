@@ -1,6 +1,12 @@
 pragma solidity ^0.7.0;
 
 contract MockStablePool {
+    string public name;
+
+    constructor(string memory _name) {
+        name = _name;
+    }
+
     event AmpUpdateStarted(uint256 startValue, uint256 endValue, uint256 startTime, uint256 endTime);
 
     function updateAmp(uint256 startValue, uint256 endValue) public {
@@ -13,7 +19,7 @@ contract MockStablePoolGroup {
 
     constructor() {
         for (uint256 i = 0; i < 3; i++) {
-            _pools.push(new MockStablePool());
+            _pools.push(new MockStablePool("MockStablePool"));
         }
     }
 
