@@ -25,6 +25,7 @@ set to threshold: "5" // 5%
     - `user`: The account that withdraws the tokens
     - `token`: The withdrawn token address
     - `delta`: The amount the balance decreased
+    - `percentage`: Token amount percentage relative to the Vault's token balance
 
 - BAL-2-2
   - Fired when there is a large deposit to a user's internal balance
@@ -34,6 +35,7 @@ set to threshold: "5" // 5%
     - `user`: The account that deposits the tokens
     - `token`: The deposited token address
     - `delta`: The amount the balance increased
+    - `percentage`: Token amount percentage relative to the Vault's token balance
 
 ## Test Data
 
