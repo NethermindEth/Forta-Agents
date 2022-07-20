@@ -58,5 +58,4 @@ These tests can be run using `npm run tx <TRANSACTION_HASH>` after setting the j
 
 ### Kovan Testnet (PoC)
 
-- `0x64237e15f186e593374d2364d81b9612d72d391fe3d8d701afcbd104fd1224c8` (1 finding - Deposit)
-- `0x9c19a3c42d1af7ba8db87f0106641d94d2f7eaf9f28388b45add43c0cab3cda6` (1 finding - Withdrawal)
+- `0x220e215f2aeb9a2a3ee73226b5a0e053f7fe51d640d66a58a12a7593cff21101` (2 findings - Deposit-Withdrawal)
