@@ -2,7 +2,7 @@ import { ethers, Initialize, Finding, getEthersProvider, HandleTransaction, Tran
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { BALANCE_OF_ABI, SWAP_ABI } from "./constants";
+import { TOKEN_ABI, SWAP_ABI } from "./constants";
 import { NetworkData, SmartCaller, toBn } from "./utils";
 import { createFinding } from "./finding";
 
@@ -23,7 +23,7 @@ export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): HandleTransaction => {
-  const tokenIface = new ethers.utils.Interface([BALANCE_OF_ABI]);
+  const tokenIface = new ethers.utils.Interface(TOKEN_ABI);
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -47,7 +47,21 @@ export const provideHandleTransaction = (
 
         const tvlPercentageThreshold = networkManager.get("tvlPercentageThreshold");
         if (percentageTokenIn.gte(tvlPercentageThreshold) || percentageTokenOut.gte(tvlPercentageThreshold)) {
-          findings.push(createFinding(log, percentageTokenIn, percentageTokenOut));
+          const tokenInSymbol: string = await tokenIn.symbol({ blockTag: txEvent.blockNumber });
+          const tokenInDecimals: number = (await tokenIn.decimals({ blockTag: txEvent.blockNumber })) * 1;
+          const tokenOutSymbol: string = await tokenOut.symbol({ blockTag: txEvent.blockNumber });
+          const tokenOutDecimals: number = (await tokenOut.decimals({ blockTag: txEvent.blockNumber })) * 1;
+          findings.push(
+            createFinding(
+              log,
+              percentageTokenIn,
+              percentageTokenOut,
+              tokenInSymbol,
+              tokenOutSymbol,
+              tokenInDecimals,
+              tokenOutDecimals
+            )
+          );
         }
       })
     );

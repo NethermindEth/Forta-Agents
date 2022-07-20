@@ -3,28 +3,38 @@ import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import { createAddress as padAddress, MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTransaction } from "./agent";
-import { BALANCE_OF_ABI, SWAP_ABI } from "./constants";
+import { TOKEN_ABI, SWAP_ABI } from "./constants";
 import { AgentConfig, NetworkData, SmartCaller } from "./utils";
 
 const createAddress = (address: string): string => ethers.utils.getAddress(padAddress(address.toLowerCase()));
 
 const VAULT_IFACE = new ethers.utils.Interface([SWAP_ABI]);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
-const TOKEN_IFACE = new ethers.utils.Interface([BALANCE_OF_ABI]);
+const TOKEN_IFACE = new ethers.utils.Interface(TOKEN_ABI);
 const VAULT_ADDRESS = createAddress("0xdef1");
 
 const createFinding = (
   poolId: string,
   tokenIn: string,
+  tokenInSymbol: string,
+  tokenInDecimals: number,
   tokenOut: string,
-  amountIn: ethers.BigNumberish,
-  amountOut: ethers.BigNumberish,
+  tokenOutSymbol: string,
+  tokenOutDecimals: number,
+  amountIn: BigNumber,
+  amountOut: BigNumber,
   percentageIn: BigNumber | string,
   percentageOut: BigNumber | string
 ): Finding => {
   return Finding.from({
     name: "Large swap",
-    description: `A swap of ${amountIn} tokens, of token address ${tokenIn} (${percentageIn}% of token's balance) for ${amountOut} tokens, of token address ${tokenOut} (${percentageOut}% of token's balance) was detected. The poolId is ${poolId}.`,
+    description: `A swap of ${amountIn
+      .shiftedBy(-tokenInDecimals)
+      .decimalPlaces(3)} ${tokenInSymbol}, (${percentageIn}% of ${tokenInSymbol}'s balance) for ${amountOut
+      .shiftedBy(-tokenOutDecimals)
+      .decimalPlaces(
+        3
+      )} ${tokenOutSymbol} (${percentageOut}% of ${tokenOutSymbol}'s balance) was detected. The poolId is ${poolId}.`,
     alertId: "BAL-3",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -32,9 +42,11 @@ const createFinding = (
     metadata: {
       poolId,
       tokenIn,
+      tokenInSymbol,
       tokenOut,
-      amountIn: ethers.BigNumber.from(amountIn).toString(),
-      amountOut: ethers.BigNumber.from(amountOut).toString(),
+      tokenOutSymbol,
+      amountIn: amountIn.toString(),
+      amountOut: amountOut.toString(),
       percentageIn: new BigNumber(percentageIn).toString(10),
       percentageOut: new BigNumber(percentageOut).toString(10),
     },
@@ -61,6 +73,20 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     });
   };
 
+  const setSymbol = (block: number, tokenAddress: string, symbol: string) => {
+    mockProvider.addCallTo(tokenAddress, block, TOKEN_IFACE, "symbol", {
+      inputs: [],
+      outputs: [symbol],
+    });
+  };
+
+  const setDecimals = (block: number, tokenAddress: string, decimals: ethers.BigNumberish) => {
+    mockProvider.addCallTo(tokenAddress, block, TOKEN_IFACE, "decimals", {
+      inputs: [],
+      outputs: [decimals],
+    });
+  };
+
   beforeEach(() => {
     SmartCaller.clearCache();
     mockProvider = new MockEthersProvider();
@@ -80,7 +106,13 @@ describe("Balancer Large Swap Bot Test Suite", () => {
     const txEvent = new TestTransactionEvent().addInterfaceEventLog(
       VAULT_IFACE.getEvent("Swap"),
       createAddress("0x1"),
-      [ethers.utils.hexZeroPad("0x2", 32), createAddress("0x3"), createAddress("0x4"), "5", "6"]
+      [
+        ethers.utils.hexZeroPad("0x2", 32),
+        createAddress("0x3"),
+        createAddress("0x4"),
+        "5000000000000000000",
+        "6000000000000000000",
+      ]
     );
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
@@ -100,12 +132,12 @@ describe("Balancer Large Swap Bot Test Suite", () => {
         ethers.utils.hexZeroPad("0x2", 32),
         createAddress("0x3"),
         createAddress("0x4"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .setBlock(1);
-    setBalanceOf(0, createAddress("0x3"), VAULT_ADDRESS, "10000");
-    setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "10000");
+    setBalanceOf(0, createAddress("0x3"), VAULT_ADDRESS, "10000000000000000000000");
+    setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "10000000000000000000000");
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
     expect(mockProvider.call).toHaveBeenCalledTimes(2);
@@ -117,7 +149,7 @@ describe("Balancer Large Swap Bot Test Suite", () => {
         ethers.utils.hexZeroPad("0x1", 32),
         createAddress("0x3"),
         createAddress("0x4"),
-        "5",
+        "5000000000000000000",
         "0",
       ])
       .addInterfaceEventLog(VAULT_IFACE.getEvent("Swap"), VAULT_ADDRESS, [
@@ -125,50 +157,68 @@ describe("Balancer Large Swap Bot Test Suite", () => {
         createAddress("0x3"),
         createAddress("0x4"),
         "0",
-        "6",
+        "6000000000000000000",
       ])
       .addInterfaceEventLog(VAULT_IFACE.getEvent("Swap"), VAULT_ADDRESS, [
         ethers.utils.hexZeroPad("0x3", 32),
         createAddress("0x3"),
         createAddress("0x4"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .setBlock(1);
 
-    setBalanceOf(0, createAddress("0x3"), VAULT_ADDRESS, "5");
-    setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "6");
+    setBalanceOf(0, createAddress("0x3"), VAULT_ADDRESS, "5000000000000000000");
+    setBalanceOf(0, createAddress("0x4"), VAULT_ADDRESS, "6000000000000000000");
+
+    setSymbol(1, createAddress("0x3"), "TOKEN1");
+    setSymbol(1, createAddress("0x4"), "TOKEN2");
+
+    setDecimals(1, createAddress("0x3"), ethers.BigNumber.from("18"));
+    setDecimals(1, createAddress("0x4"), ethers.BigNumber.from("18"));
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createFinding(
         ethers.utils.hexZeroPad("0x1", 32),
         createAddress("0x3"),
+        "TOKEN1",
+        18,
         createAddress("0x4"),
-        "5",
-        "0",
+        "TOKEN2",
+        18,
+        new BigNumber("5000000000000000000"),
+        new BigNumber(0),
         "100",
         "0"
       ),
       createFinding(
         ethers.utils.hexZeroPad("0x2", 32),
         createAddress("0x3"),
+        "TOKEN1",
+        18,
         createAddress("0x4"),
-        "0",
-        "6",
+        "TOKEN2",
+        18,
+        new BigNumber("0"),
+        new BigNumber("6000000000000000000"),
         "0",
         "100"
       ),
       createFinding(
         ethers.utils.hexZeroPad("0x3", 32),
         createAddress("0x3"),
+        "TOKEN1",
+        18,
         createAddress("0x4"),
-        "5",
-        "6",
+        "TOKEN2",
+        18,
+        new BigNumber("5000000000000000000"),
+        new BigNumber("6000000000000000000"),
         "100",
         "100"
       ),
     ]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(2);
+    expect(mockProvider.call).toHaveBeenCalledTimes(6);
   });
 
   it("should return one finding for each large swap", async () => {
@@ -177,73 +227,97 @@ describe("Balancer Large Swap Bot Test Suite", () => {
         ethers.utils.hexZeroPad("0x1", 32),
         createAddress("0xa1"),
         createAddress("0xb1"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .addInterfaceEventLog(VAULT_IFACE.getEvent("Swap"), VAULT_ADDRESS, [
         ethers.utils.hexZeroPad("0x2", 32),
         createAddress("0xa2"),
         createAddress("0xb2"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .addInterfaceEventLog(VAULT_IFACE.getEvent("Swap"), VAULT_ADDRESS, [
         ethers.utils.hexZeroPad("0x3", 32),
         createAddress("0xa3"),
         createAddress("0xb3"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .addInterfaceEventLog(VAULT_IFACE.getEvent("Swap"), VAULT_ADDRESS, [
         ethers.utils.hexZeroPad("0x4", 32),
         createAddress("0xa4"),
         createAddress("0xb4"),
-        "5",
-        "6",
+        "5000000000000000000",
+        "6000000000000000000",
       ])
       .setBlock(1);
 
-    setBalanceOf(0, createAddress("0xa1"), VAULT_ADDRESS, "5");
-    setBalanceOf(0, createAddress("0xb1"), VAULT_ADDRESS, "6");
+    setBalanceOf(0, createAddress("0xa1"), VAULT_ADDRESS, "5000000000000000000");
+    setBalanceOf(0, createAddress("0xb1"), VAULT_ADDRESS, "6000000000000000000");
+    setSymbol(1, createAddress("0xa1"), "TOKENA1");
+    setSymbol(1, createAddress("0xb1"), "TOKENB1");
+    setDecimals(1, createAddress("0xa1"), ethers.BigNumber.from("18"));
+    setDecimals(1, createAddress("0xb1"), ethers.BigNumber.from("18"));
 
-    setBalanceOf(0, createAddress("0xa2"), VAULT_ADDRESS, "5");
-    setBalanceOf(0, createAddress("0xb2"), VAULT_ADDRESS, "6");
+    setBalanceOf(0, createAddress("0xa2"), VAULT_ADDRESS, "5000000000000000000");
+    setBalanceOf(0, createAddress("0xb2"), VAULT_ADDRESS, "6000000000000000000");
+    setSymbol(1, createAddress("0xa2"), "TOKENA2");
+    setSymbol(1, createAddress("0xb2"), "TOKENB2");
+    setDecimals(1, createAddress("0xa2"), ethers.BigNumber.from("18"));
+    setDecimals(1, createAddress("0xb2"), ethers.BigNumber.from("18"));
 
-    setBalanceOf(0, createAddress("0xa3"), VAULT_ADDRESS, "5");
-    setBalanceOf(0, createAddress("0xb3"), VAULT_ADDRESS, "6");
+    setBalanceOf(0, createAddress("0xa3"), VAULT_ADDRESS, "5000000000000000000");
+    setBalanceOf(0, createAddress("0xb3"), VAULT_ADDRESS, "6000000000000000000");
+    setSymbol(1, createAddress("0xa3"), "TOKENA3");
+    setSymbol(1, createAddress("0xb3"), "TOKENB3");
+    setDecimals(1, createAddress("0xa3"), ethers.BigNumber.from("18"));
+    setDecimals(1, createAddress("0xb3"), ethers.BigNumber.from("18"));
 
-    setBalanceOf(0, createAddress("0xa4"), VAULT_ADDRESS, "10000");
-    setBalanceOf(0, createAddress("0xb4"), VAULT_ADDRESS, "10000");
+    setBalanceOf(0, createAddress("0xa4"), VAULT_ADDRESS, "10000000000000000000000");
+    setBalanceOf(0, createAddress("0xb4"), VAULT_ADDRESS, "10000000000000000000000");
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createFinding(
         ethers.utils.hexZeroPad("0x1", 32),
         createAddress("0xa1"),
+        "TOKENA1",
+        18,
         createAddress("0xb1"),
-        "5",
-        "6",
+        "TOKENB1",
+        18,
+        new BigNumber("5000000000000000000"),
+        new BigNumber("6000000000000000000"),
         "100",
         "100"
       ),
       createFinding(
         ethers.utils.hexZeroPad("0x2", 32),
         createAddress("0xa2"),
+        "TOKENA2",
+        18,
         createAddress("0xb2"),
-        "5",
-        "6",
+        "TOKENB2",
+        18,
+        new BigNumber("5000000000000000000"),
+        new BigNumber("6000000000000000000"),
         "100",
         "100"
       ),
       createFinding(
         ethers.utils.hexZeroPad("0x3", 32),
         createAddress("0xa3"),
+        "TOKENA3",
+        18,
         createAddress("0xb3"),
-        "5",
-        "6",
+        "TOKENB3",
+        18,
+        new BigNumber("5000000000000000000"),
+        new BigNumber("6000000000000000000"),
         "100",
         "100"
       ),
     ]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(8);
+    expect(mockProvider.call).toHaveBeenCalledTimes(20);
   });
 });

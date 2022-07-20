@@ -42,13 +42,13 @@ npm run tx 0x285e41709fdf7407de514dbd6e4d65d321b9a8fdee3b0267089a8c758d6002a3
 This test configuration has `tvlPercentageThreshold` set to `0`, so every swap is considered a large swap and thus has
 an associated finding.
 
-### Kovan Testnet (PoC)
+### Görli Testnet (PoC)
 
-> For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Kovan Testnet RPC url as `jsonRpcUrl`
+> For this test, uncomment the lines indicated in `src/agent.config.ts` and set a Görli Testnet RPC url as `jsonRpcUrl`
 > in your `forta.config.json` file.
 
 ```
-npm run tx 0x0eb152b263e658e4c1176510d3b57f319ade18b865b2aa88715d774e72b5e867
+npm run tx 0x3521bb710189621158b7234a3623fbf1ff4004a20dc1bcfd864bfc22e6d476bf
 ```
 
 As noted in the PoC at `PoC/MockVault.sol`, there should be findings from pool IDs `0`, `1`, `3`, `4` and `6` (as `bytes32`).
