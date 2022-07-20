@@ -15,9 +15,9 @@ export const createFinding = (data: any): Finding => {
 
   return Finding.from({
     name: `Large pool ${action}`,
-    description: `Pool's(${data.poolId}) balance has ${text} by ${data.percentage.toString(
+    description: `Pool's (${data.poolId}) ${data.tokenSymbol} balance has ${text} by ${data.percentage.toString(
       10
-    )}% with large ${action} of ${data.tokenSymbol}`,
+    )}% after a large ${action}`,
     alertId,
     protocol: "Balancer",
     severity: FindingSeverity.Info,

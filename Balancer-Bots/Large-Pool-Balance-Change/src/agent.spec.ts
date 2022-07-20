@@ -56,9 +56,9 @@ const createFinding = (data: any) => {
 
   return Finding.fromObject({
     name: `Large pool ${action}`,
-    description: `Pool's(${formatBytes32String(data.poolId)}) balance has ${text} by ${data.percentage
-      .decimalPlaces(1)
-      .toString(10)}% with large ${action} of ${data.tokenSymbol}`,
+    description: `Pool's (${formatBytes32String(data.poolId)}) ${
+      data.tokenSymbol
+    } balance has ${text} by ${data.percentage.decimalPlaces(1).toString(10)}% after a large ${action}`,
     alertId,
     protocol: "Balancer",
     severity: FindingSeverity.Info,
