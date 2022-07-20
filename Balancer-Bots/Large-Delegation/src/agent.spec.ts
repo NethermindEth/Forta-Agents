@@ -17,7 +17,7 @@ function createAbsoluteThresholdFinding(delegator: string, delegate: string, amo
     name: "Large veBAL Delegation",
     description: `A large delegation (in absolute terms) of ${toBn(amount)
       .shiftedBy(-18)
-      .toString(10)} veBAL was detected`,
+      .toString(10)} veBAL from ${delegator} to ${delegate} was detected`,
     alertId: "BAL-8-1",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -40,7 +40,7 @@ function createPercentageThresholdFinding(
     name: "Large veBAL Delegation",
     description: `A large delegation (${supplyPercentage}% of veBAL total supply) of ${toBn(amount)
       .shiftedBy(-18)
-      .toString(10)} veBAL was detected`,
+      .toString(10)} veBAL from ${delegator} to ${delegate} was detected`,
     alertId: "BAL-8-2",
     protocol: "Balancer",
     type: FindingType.Info,
