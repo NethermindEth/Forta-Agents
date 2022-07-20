@@ -24,8 +24,8 @@ const IRRELEVANT_IFACE = new ethers.utils.Interface(["event IrrelevantEvent()"])
 
 export function createFlashLoanFeeFinding(newFee: string): Finding {
   return Finding.from({
-    name: `FlashLoan fee changed`,
-    description: `A FlashLoan fee percentage change was detected`,
+    name: "FlashLoan fee changed from the Balancer 'ProtocolFeesCollector' contract",
+    description: `FlashLoan fee percentage has changed to ${newFee}`,
     alertId: "BAL-1-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -38,8 +38,8 @@ export function createFlashLoanFeeFinding(newFee: string): Finding {
 
 export function createSwapFeeFinding(newFee: string): Finding {
   return Finding.from({
-    name: `Swap fee changed`,
-    description: `A Swap fee percentage change was detected`,
+    name: "Swap fee changed from the Balancer 'ProtocolFeesCollector' contract",
+    description: `Swap fee percentage has changed to ${newFee}`,
     alertId: "BAL-1-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
