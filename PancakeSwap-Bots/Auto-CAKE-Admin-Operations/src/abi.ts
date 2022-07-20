@@ -1,6 +1,6 @@
-export const EVENTS = ["event Pause()", "event Unpause()"];
+export const EVENT_ABI = ["event Pause()", "event Unpause()"];
 
-export const ABI = [
+export const FUNC_ABI = [
   "function setAdmin(address _admin)",
   "function setTreasury(address _treasury)",
   "function setPerformanceFee(uint256 _performanceFee)",
