@@ -54,9 +54,9 @@ const CONFIG: AgentConfig = {
 
 // CONFIG[42] = {
 //   stablePoolAddresses: [
-//     "0x17Ba6D4f873A7E3197B21A5475562b284d415476",
-//     "0x83e1bA0Fe48aB7c513039885956ec8492BF58E7b",
-//     "0x542B13a5d5f81Ba47157691Db5323002CD942a9d",
+//     "0xe49198A65727eE211e9e3eB82f1449A8994dF5F3",
+//     "0x532bCD75eED5d25Bb4Ba1238048aCDaB5483658F",
+//     "0x5734195B861eAA722b06Fa9053557c0F44beB6AC",
 //   ],
 //   valueThreshold: "200",
 //   decreaseThreshold: "100",
