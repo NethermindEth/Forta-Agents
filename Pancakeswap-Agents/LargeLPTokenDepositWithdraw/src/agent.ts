@@ -4,17 +4,19 @@ import { BigNumber, ethers } from "ethers";
 import { MASTERCHEF_ADDRESS, MASTERCHEF_ABI, IBEP20_ABI } from "./constants";
 
 import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
+import MasterchefFetcher from "./masterchef.fetcher";
+import TokenFetcher from "./token.fetcher";
 import { createFinding } from "./findings";
+
 
 export function provideHandleTransaction(
   config: BotConfig,
   provider: ethers.providers.Provider,
+  masterchefFetcher: MasterchefFetcher,
   masterchefAddress: string
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
-
-    const masterchefContract = new ethers.Contract(masterchefAddress, MASTERCHEF_ABI, provider);
 
     await Promise.all(
       // filter the transaction logs for Deposit and withdraw events
@@ -24,11 +26,10 @@ export function provideHandleTransaction(
           // extract event arguments
           const { pid, amount } = log.args;
 
-          // Get the address of the LP token
-          const tokenAddress = await masterchefContract.lpToken(pid, { blockTag: txEvent.blockNumber });
-
-          const tokenContract = new ethers.Contract(tokenAddress, IBEP20_ABI, provider);
-          const tokenName = await tokenContract.name({ blockTag: txEvent.blockNumber });
+          // Get the address of the LP token, instantiate Fetcher and get token name
+          const tokenAddress = await masterchefFetcher.getLPToken(pid, txEvent.blockNumber);
+          const tokenFetcher = new TokenFetcher(provider, tokenAddress);
+          const tokenName = await tokenFetcher.getName(txEvent.blockNumber);
 
           // Get threshold (check config for whether static or dynamic mode)
           let thresholdAmount: BigNumber;
@@ -36,7 +37,7 @@ export function provideHandleTransaction(
           if (config.mode === "STATIC") thresholdAmount = config.thresholdData;
           else {
             // Fetch balance of the token in the Masterchef contract
-            const balance = await tokenContract.balanceOf(MASTERCHEF_ADDRESS, { blockTag: txEvent.blockNumber - 1 });
+            const balance = await tokenFetcher.getBalanceOf(masterchefAddress, txEvent.blockNumber - 1)
             // Set threshold
             thresholdAmount = BigNumber.from(balance).mul(config.thresholdData).div(100);
           }
@@ -51,5 +52,10 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(DYNAMIC_CONFIG, getEthersProvider(), MASTERCHEF_ADDRESS),
+  handleTransaction: provideHandleTransaction(
+    DYNAMIC_CONFIG, 
+    getEthersProvider(), 
+    new MasterchefFetcher(getEthersProvider(), MASTERCHEF_ADDRESS),
+    MASTERCHEF_ADDRESS
+  )
 };

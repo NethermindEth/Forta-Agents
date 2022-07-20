@@ -31,7 +31,7 @@ Describe each of the type of alerts fired by this bot
     - pid: the affected pool ID
     - amount: amount withdrew
 - CAKE-4-3
-  - Fired when a transaction contaisn an EmergencyWithdraw above the threshold
+  - Fired when a transaction contains an EmergencyWithdraw above the threshold
   - Security is always set to "info"
   - Type is always set to "info"
   - Metadata includes:
