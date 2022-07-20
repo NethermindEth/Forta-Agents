@@ -98,7 +98,7 @@ describe("Balancer Large Delegation Bot Test Suite", () => {
   it("should ignore target events emitted from another contract", async () => {
     const transactionEvent: TransactionEvent = new TestTransactionEvent().addInterfaceEventLog(
       DELEGATE_REGISTRY_IFACE.getEvent("SetDelegate"),
-      createAddress("0x1"),
+      ADDRESSES[0],
       [ADDRESSES[1], ethers.utils.formatBytes32String("balancer.eth"), ADDRESSES[2]]
     );
 
