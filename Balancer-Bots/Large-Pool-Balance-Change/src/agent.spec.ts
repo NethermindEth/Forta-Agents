@@ -11,36 +11,6 @@ const VAULT_IFACE = new Interface(EVENT);
 const IRRELEVANT_IFACE = new ethers.utils.Interface(["event Event()"]);
 const VAULT_ADDRESS = createAddress("0x1");
 
-const getPoolBalanceChangeLog = (
-  emitter: string,
-  block: number,
-  poolId: string,
-  liquidityProvider: string,
-  tokens: string[],
-  deltas: ethers.BigNumberish[],
-  protocolFeeAmounts: ethers.BigNumberish[]
-): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...VAULT_IFACE.encodeEventLog(VAULT_IFACE.getEvent("PoolBalanceChanged"), [
-      formatBytes32String(poolId),
-      liquidityProvider,
-      tokens,
-      deltas,
-      protocolFeeAmounts,
-    ]),
-  } as ethers.providers.Log;
-};
-
-const getIrrelevantEvent = (emitter: string, block: number): ethers.providers.Log => {
-  return {
-    address: emitter,
-    blockNumber: block,
-    ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("Event"), []),
-  } as ethers.providers.Log;
-};
-
 const createFinding = (data: any) => {
   let action, alertId, text;
 
@@ -147,8 +117,6 @@ describe("Large pool balance changes", () => {
     const txEvent = new TestTransactionEvent()
       .setBlock(1)
       .addInterfaceEventLog(IRRELEVANT_IFACE.getEvent("Event"), VAULT_ADDRESS, []);
-
-    mockProvider.addLogs([getIrrelevantEvent(VAULT_ADDRESS, 1)]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
     expect(mockProvider.call).toHaveBeenCalledTimes(0);
