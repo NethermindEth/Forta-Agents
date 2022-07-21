@@ -294,13 +294,8 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
         20,
         BigNumber.from("500000000000000000"), // 0.5
       ]);
-<<<<<<< HEAD
       // Create test transaction with the deposit event
       txEvent.addAnonymousEventLog(mockMasterchefAddress, withdrawLog.data, ...withdrawLog.topics);
-=======
-      // Create test transaction with the EmergencyWithdraw event
-      txEvent.addAnonymousEventLog(MASTERCHEF_ADDRESS, withdrawLog.data, ...withdrawLog.topics);
->>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
 
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");

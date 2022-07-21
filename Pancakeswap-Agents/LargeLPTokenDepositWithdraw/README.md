@@ -31,15 +31,9 @@ This bot detects large LP Token Deposit/Withdraw on Pancakeswap.
     - `amount`: Amount withdrew
 
 - CAKE-4-3
-<<<<<<< HEAD
-  - Fired when a transaction contains an EmergencyWithdraw above the threshold
-  - Security is always set to "info"
-  - Type is always set to "info"
-=======
   - Fired when a transaction contains an `EmergencyWithdraw` above the threshold
   - Security is always set to "Info"
   - Type is always set to "Info"
->>>>>>> d45940d618277be5d828517747ba1f3f333c3c98
   - Metadata includes:
     - `user`: User who withdrew
     - `token`: Name of the LP token
