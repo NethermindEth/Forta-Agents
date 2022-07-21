@@ -1,4 +1,4 @@
-import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock, Initialize } from "forta-agent";
+import { TransactionEvent, ethers, Finding, getEthersProvider, HandleTransaction, Initialize } from "forta-agent";
 import CONFIG from "./agent.config";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
 import { NetworkManager } from "forta-agent-tools";
@@ -16,29 +16,14 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
-  provider: ethers.providers.Provider,
-  networkManager: NetworkManager<NetworkData>
-): HandleBlock => {
-  const protocolFeesCollectorIface = new ethers.utils.Interface([
-    SWAP_FEE_PERCENTAGE_CHANGED_ABI,
-    FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI,
-  ]);
+export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const logs = txEvent.filterLog(
+      [SWAP_FEE_PERCENTAGE_CHANGED_ABI, FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI],
+      networkManager.get("protocolFeesCollectorAddress")
+    );
 
-  const sighashes = [
-    protocolFeesCollectorIface.getEventTopic("SwapFeePercentageChanged"),
-    protocolFeesCollectorIface.getEventTopic("FlashLoanFeePercentageChanged"),
-  ];
-
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("protocolFeesCollectorAddress"),
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-        topics: [sighashes],
-      })
-    ).map((log) => protocolFeesCollectorIface.parseLog(log));
+    if (!logs.length) return [];
 
     return logs.map((log) => {
       const feeFrom = log.name.replace("FeePercentageChanged", "");
@@ -50,5 +35,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(getEthersProvider(), networkManager),
+  handleTransaction: provideHandleTransaction(networkManager),
 };

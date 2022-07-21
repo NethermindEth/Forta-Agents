@@ -1,7 +1,7 @@
 import { AgentConfig } from "./utils";
-import { TestBlockEvent, MockEthersProvider, createAddress } from "forta-agent-tools/lib/tests";
-import { ethers, Finding, FindingSeverity, FindingType, HandleBlock, Network } from "forta-agent";
-import { provideHandleBlock } from "./agent";
+import { TestTransactionEvent, createAddress } from "forta-agent-tools/lib/tests";
+import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction, Network } from "forta-agent";
+import { provideHandleTransaction } from "./agent";
 import { FLASH_LOAN_FEE_PERCENTAGE_CHANGED_ABI, SWAP_FEE_PERCENTAGE_CHANGED_ABI } from "./constants";
 import { NetworkManager } from "forta-agent-tools";
 
@@ -24,8 +24,8 @@ const IRRELEVANT_IFACE = new ethers.utils.Interface(["event IrrelevantEvent()"])
 
 export function createFlashLoanFeeFinding(newFee: string): Finding {
   return Finding.from({
-    name: `FlashLoan fee changed`,
-    description: `A FlashLoan fee percentage change was detected`,
+    name: "FlashLoan fee changed on Balancer 'ProtocolFeesCollector' contract",
+    description: `FlashLoan protocol fee percentage has changed to ${newFee}`,
     alertId: "BAL-1-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -38,8 +38,8 @@ export function createFlashLoanFeeFinding(newFee: string): Finding {
 
 export function createSwapFeeFinding(newFee: string): Finding {
   return Finding.from({
-    name: `Swap fee changed`,
-    description: `A Swap fee percentage change was detected`,
+    name: "Swap fee changed on Balancer 'ProtocolFeesCollector' contract",
+    description: `Swap protocol fee percentage has changed to ${newFee}`,
     alertId: "BAL-1-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -51,109 +51,103 @@ export function createSwapFeeFinding(newFee: string): Finding {
 }
 
 describe("Balancer Swap Fee & Flash Loan Fee Change Bot", () => {
-  let handleBlock: HandleBlock;
-  let provider: ethers.providers.Provider;
-  let mockProvider: MockEthersProvider;
-
-  const getLog = (block: number, emitter: string, feeFrom: "FlashLoan" | "Swap", newFee: ethers.BigNumber) => {
-    return {
-      address: emitter,
-      blockNumber: block,
-      ...PROTOCOL_FEES_COLLECTOR_IFACE.encodeEventLog(
-        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent(`${feeFrom}FeePercentageChanged`),
-        [newFee]
-      ),
-    } as ethers.providers.Log;
-  };
-
-  const getIrrelevantLog = (block: number, emitter: string) => {
-    return {
-      address: emitter,
-      blockNumber: block,
-      ...IRRELEVANT_IFACE.encodeEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), []),
-    } as ethers.providers.Log;
-  };
+  let handleTransaction: HandleTransaction;
 
   beforeEach(() => {
-    mockProvider = new MockEthersProvider();
-    provider = mockProvider as unknown as ethers.providers.Provider;
-
     const networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
 
-    handleBlock = provideHandleBlock(provider, networkManager);
+    handleTransaction = provideHandleTransaction(networkManager);
   });
 
   it("should return empty findings on an empty block", async () => {
-    const blockEvent = new TestBlockEvent();
+    const txEvent = new TestTransactionEvent();
 
-    expect(await handleBlock(blockEvent)).toStrictEqual([]);
-  });
-
-  it("should ignore target events from other blocks", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(1);
-
-    mockProvider.addLogs([
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("1")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1")),
-    ]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
   it("should ignore other events from the target address", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(0);
+    const txEvent = new TestTransactionEvent()
+      .setBlock(0)
+      .addInterfaceEventLog(IRRELEVANT_IFACE.getEvent("IrrelevantEvent"), PROTOCOL_FEES_COLLECTOR_ADDRESS, []);
 
-    mockProvider.addLogs([getIrrelevantLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS)]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
   it("should ignore target events emitted from other addresses", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(0);
-
     const irrelevantAddress = createChecksumAddress("0x1");
+    const txEvent = new TestTransactionEvent()
+      .setBlock(0)
+      .addInterfaceEventLog(PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("SwapFeePercentageChanged"), irrelevantAddress, [
+        ethers.BigNumber.from("1"),
+      ])
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("FlashLoanFeePercentageChanged"),
+        irrelevantAddress,
+        [ethers.BigNumber.from("1")]
+      );
 
-    mockProvider.addLogs([
-      getLog(0, irrelevantAddress, "Swap", ethers.BigNumber.from("1")),
-      getLog(0, irrelevantAddress, "FlashLoan", ethers.BigNumber.from("1")),
-    ]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([]);
+    expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
   it("should generate a finding when a SwapFeePercentageChanged event is detected", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(0);
+    const txEvent = new TestTransactionEvent()
+      .setBlock(0)
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("SwapFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("100000000000000")]
+      );
 
-    mockProvider.addLogs([
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("100000000000000")),
-    ]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([createSwapFeeFinding("0.01")]);
+    expect(await handleTransaction(txEvent)).toStrictEqual([createSwapFeeFinding("0.01")]);
   });
 
   it("should generate a finding when a FlashLoanFeePercentageChanged event is detected", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(0);
+    const txEvent = new TestTransactionEvent()
+      .setBlock(0)
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("FlashLoanFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("1000000000000000")]
+      );
 
-    mockProvider.addLogs([
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1000000000000000")),
-    ]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([createFlashLoanFeeFinding("0.1")]);
+    expect(await handleTransaction(txEvent)).toStrictEqual([createFlashLoanFeeFinding("0.1")]);
   });
 
   it("should return multiple findings for multiple events", async () => {
-    const blockEvent = new TestBlockEvent().setNumber(0);
+    const txEvent = new TestTransactionEvent()
+      .setBlock(0)
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("SwapFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("1000000000000000")]
+      )
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("FlashLoanFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("1000000000000000")]
+      )
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("SwapFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("20000000000000000")]
+      )
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("FlashLoanFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("20000000000000000")]
+      )
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("SwapFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("300000000000000000")]
+      )
+      .addInterfaceEventLog(
+        PROTOCOL_FEES_COLLECTOR_IFACE.getEvent("FlashLoanFeePercentageChanged"),
+        PROTOCOL_FEES_COLLECTOR_ADDRESS,
+        [ethers.BigNumber.from("300000000000000000")]
+      );
 
-    mockProvider.addLogs([
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("1000000000000000")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("1000000000000000")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("20000000000000000")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("20000000000000000")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "Swap", ethers.BigNumber.from("300000000000000000")),
-      getLog(0, PROTOCOL_FEES_COLLECTOR_ADDRESS, "FlashLoan", ethers.BigNumber.from("300000000000000000")),
-    ]);
-
-    expect(await handleBlock(blockEvent)).toStrictEqual([
+    expect(await handleTransaction(txEvent)).toStrictEqual([
       createSwapFeeFinding("0.1"),
       createFlashLoanFeeFinding("0.1"),
       createSwapFeeFinding("2.0"),
