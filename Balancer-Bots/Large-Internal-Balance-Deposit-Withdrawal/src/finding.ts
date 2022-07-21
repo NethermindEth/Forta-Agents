@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import { Result } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (args: Result, percentage: BigNumber): Finding => {
+export const createFinding = (args: Result, percentage: BigNumber, symbol: string): Finding => {
   let action, alertId;
 
   if (args.delta.isNegative()) {
@@ -14,8 +14,12 @@ export const createFinding = (args: Result, percentage: BigNumber): Finding => {
   }
 
   return Finding.from({
-    name: `Large internal balance ${action}`,
-    description: `InternalBalanceChanged event detected with large ${action}`,
+    name: `Large ${symbol} internal balance ${action}`,
+    description: `User's (${
+      args.user
+    }) internal balance of ${symbol} has changed with large ${symbol} ${action} (${percentage
+      .decimalPlaces(3)
+      .toString(10)}% of Vault's ${symbol} balance)`,
     alertId,
     protocol: "Balancer",
     severity: FindingSeverity.Info,

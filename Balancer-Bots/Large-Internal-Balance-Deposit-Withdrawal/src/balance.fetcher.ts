@@ -5,12 +5,12 @@ import { TOKEN_ABI } from "./constants";
 
 export default class BalanceFetcher {
   provider: providers.Provider;
-  private cache: LRU<string, BigNumber>;
+  private cache: LRU<string, BigNumber | string>;
   private tokenContract: Contract;
 
   constructor(provider: providers.Provider) {
     this.provider = provider;
-    this.cache = new LRU<string, BigNumber>({
+    this.cache = new LRU<string, BigNumber | string>({
       max: 10000,
     });
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
@@ -30,5 +30,20 @@ export default class BalanceFetcher {
     this.cache.set(key, balance);
 
     return balance;
+  }
+
+  public async getSymbol(block: number | string, tokenAddress: string): Promise<string> {
+    const token = this.tokenContract.attach(tokenAddress);
+
+    const key: string = `symbol-${tokenAddress}-${block}`;
+    if (this.cache.has(key)) return this.cache.get(key) as string;
+
+    const symbol: string = await token.symbol({
+      blockTag: block,
+    });
+
+    this.cache.set(key, symbol);
+
+    return symbol;
   }
 }
