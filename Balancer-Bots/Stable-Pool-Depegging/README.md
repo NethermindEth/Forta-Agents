@@ -14,9 +14,9 @@ These changes can be analyzed using three independent thresholds associated to d
 
 agent.config.ts thresholds:
 
-// Absolute amplification parameter value at and below which a finding will be emitted (decimal places are not
-// considered) (optional).
-valueThreshold: "10000",
+    // Absolute amplification parameter value at and below which a finding will be emitted (decimal places are not
+    // considered) (optional).
+    valueThreshold: "10000",
 
     // Minimum amplification parameter drop from the previous value at and above which a finding will be emitted
     // (decimal places are not considered) (optional).
