@@ -1,11 +1,11 @@
-import { ethers, Finding, getEthersProvider, Initialize, HandleBlock, BlockEvent } from "forta-agent";
+import { ethers, Finding, getEthersProvider, Initialize, HandleTransaction, TransactionEvent } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import {
   createValueThresholdFinding,
   createDecreasePercentageThresholdFinding,
   createDecreaseThresholdFinding,
 } from "./finding";
-import { NetworkData, provideGetAmpUpdateStartedLogs, toBn } from "./utils";
+import { NetworkData, provideGetAmpUpdateStartedLogs, toBn, getPoolName } from "./utils";
 import CONFIG from "./agent.config";
 import BigNumber from "bignumber.js";
 
@@ -22,14 +22,15 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
-  provider: ethers.providers.Provider
-): HandleBlock => {
-  const getAmpUpdateStartedLogs = provideGetAmpUpdateStartedLogs(networkManager, provider);
+  provider: ethers.providers.Provider,
+  getPoolName: any
+): HandleTransaction => {
+  const getAmpUpdateStartedLogs = provideGetAmpUpdateStartedLogs(networkManager);
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const logs = await getAmpUpdateStartedLogs(blockEvent.blockNumber);
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const logs = await getAmpUpdateStartedLogs(txEvent);
 
     const valueThreshold = networkManager.get("valueThreshold");
     const decreaseThreshold = networkManager.get("decreaseThreshold");
@@ -37,31 +38,41 @@ export const provideHandleBlock = (
 
     const findings: Finding[] = [];
 
-    logs.forEach((log) => {
-      const startValue: ethers.BigNumber = log.args.startValue;
-      const endValue: ethers.BigNumber = log.args.endValue;
+    await Promise.all(
+      logs.map(async (log) => {
+        const startValue: ethers.BigNumber = log.args.startValue;
+        const endValue: ethers.BigNumber = log.args.endValue;
 
-      if (valueThreshold !== undefined && endValue.lte(valueThreshold)) {
-        findings.push(createValueThresholdFinding(log.emitter, startValue, endValue));
-      }
+        if (valueThreshold !== undefined && endValue.lte(valueThreshold)) {
+          const poolName = await getPoolName(log.emitter, provider);
 
-      if (decreaseThreshold !== undefined && startValue.sub(endValue).gte(decreaseThreshold)) {
-        findings.push(createDecreaseThresholdFinding(log.emitter, startValue, endValue, startValue.sub(endValue)));
-      }
+          findings.push(createValueThresholdFinding(log.emitter, startValue, endValue, poolName));
+        }
 
-      if (decreasePercentageThreshold !== undefined) {
-        const endValueBn = toBn(endValue);
-        const startValueBn = toBn(startValue);
+        if (decreaseThreshold !== undefined && startValue.sub(endValue).gte(decreaseThreshold)) {
+          const poolName = await getPoolName(log.emitter, provider);
 
-        const decreasePercentage = startValueBn.minus(endValueBn).div(startValueBn).shiftedBy(2);
-
-        if (decreasePercentage.gte(decreasePercentageThreshold)) {
           findings.push(
-            createDecreasePercentageThresholdFinding(log.emitter, startValue, endValue, decreasePercentage)
+            createDecreaseThresholdFinding(log.emitter, startValue, endValue, startValue.sub(endValue), poolName)
           );
         }
-      }
-    });
+
+        if (decreasePercentageThreshold !== undefined) {
+          const endValueBn = toBn(endValue);
+          const startValueBn = toBn(startValue);
+
+          const decreasePercentage = startValueBn.minus(endValueBn).div(startValueBn).shiftedBy(2);
+
+          if (decreasePercentage.gte(decreasePercentageThreshold)) {
+            const poolName = await getPoolName(log.emitter, provider);
+
+            findings.push(
+              createDecreasePercentageThresholdFinding(log.emitter, startValue, endValue, decreasePercentage, poolName)
+            );
+          }
+        }
+      })
+    );
 
     return findings;
   };
@@ -69,5 +80,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider(), getPoolName),
 };

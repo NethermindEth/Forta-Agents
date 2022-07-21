@@ -4,11 +4,12 @@ import BigNumber from "bignumber.js";
 export function createValueThresholdFinding(
   pool: string,
   startValue: ethers.BigNumber,
-  endValue: ethers.BigNumber
+  endValue: ethers.BigNumber,
+  poolName: string
 ): Finding {
   return Finding.from({
-    name: "Low Stable Pool Amplification Parameter",
-    description: "A low amplification parameter endValue was detected in a stable pool",
+    name: `Low Stable Pool Amplification Parameter in ${poolName}`,
+    description: `A low amplification parameter endValue (${endValue}) was detected in ${poolName}`,
     alertId: "BAL-9-1",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -25,11 +26,12 @@ export function createDecreaseThresholdFinding(
   pool: string,
   startValue: ethers.BigNumber,
   endValue: ethers.BigNumber,
-  decrease: ethers.BigNumber
+  decrease: ethers.BigNumber,
+  poolName: string
 ): Finding {
   return Finding.from({
-    name: "High Stable Pool Amplification Parameter Decrease",
-    description: "A stable pool amplification parameter will have a significant decrease",
+    name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
+    description: `${poolName}'s amplification parameter will have a decrease by ${decrease}. The end value will be ${endValue.toString()}`,
     alertId: "BAL-9-2",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -47,11 +49,14 @@ export function createDecreasePercentageThresholdFinding(
   pool: string,
   startValue: ethers.BigNumber,
   endValue: ethers.BigNumber,
-  decreasePercentage: BigNumber
+  decreasePercentage: BigNumber,
+  poolName: string
 ): Finding {
   return Finding.from({
-    name: "High Stable Pool Amplification Parameter Decrease",
-    description: "A stable pool amplification parameter will have a significant decrease in percentage",
+    name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
+    description: `${poolName}'s amplification parameter will have ${decreasePercentage
+      .decimalPlaces(1)
+      .toString(10)}% decrease. The end value will be ${endValue.toString()}`,
     alertId: "BAL-9-3",
     protocol: "Balancer",
     type: FindingType.Info,
