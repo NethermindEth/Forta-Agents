@@ -36,7 +36,7 @@ function createDecreaseThresholdFinding(
 ): Finding {
   return Finding.from({
     name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
-    description: `${poolName}'s amplification parameter will have a decrease by ${decrease}`,
+    description: `${poolName}'s amplification parameter will have a decrease by ${decrease}. The end value will be ${endValue}`,
     alertId: "BAL-9-2",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -59,7 +59,7 @@ function createDecreasePercentageThresholdFinding(
 ): Finding {
   return Finding.from({
     name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
-    description: `${poolName}'s amplification parameter will have ${decreasePercentage}% decrease.`,
+    description: `${poolName}'s amplification parameter will have ${decreasePercentage}% decrease. The end value will be ${endValue}`,
     alertId: "BAL-9-3",
     protocol: "Balancer",
     type: FindingType.Info,

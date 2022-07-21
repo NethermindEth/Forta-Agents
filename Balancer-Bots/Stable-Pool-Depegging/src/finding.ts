@@ -31,7 +31,7 @@ export function createDecreaseThresholdFinding(
 ): Finding {
   return Finding.from({
     name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
-    description: `${poolName}'s amplification parameter will have a decrease by ${decrease}`,
+    description: `${poolName}'s amplification parameter will have a decrease by ${decrease}. The end value will be ${endValue.toString()}`,
     alertId: "BAL-9-2",
     protocol: "Balancer",
     type: FindingType.Info,
@@ -56,7 +56,7 @@ export function createDecreasePercentageThresholdFinding(
     name: `High Stable Pool Amplification Parameter Decrease in ${poolName}`,
     description: `${poolName}'s amplification parameter will have ${decreasePercentage
       .decimalPlaces(1)
-      .toString(10)}% decrease.`,
+      .toString(10)}% decrease. The end value will be ${endValue.toString()}`,
     alertId: "BAL-9-3",
     protocol: "Balancer",
     type: FindingType.Info,
