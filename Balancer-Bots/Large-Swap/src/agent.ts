@@ -1,8 +1,8 @@
-import { BlockEvent, ethers, HandleBlock, Initialize, Finding, getEthersProvider } from "forta-agent";
+import { ethers, Initialize, Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { BALANCE_OF_ABI, SWAP_ABI } from "./constants";
+import { TOKEN_ABI, SWAP_ABI } from "./constants";
 import { NetworkData, SmartCaller, toBn } from "./utils";
 import { createFinding } from "./finding";
 
@@ -19,25 +19,16 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
-): HandleBlock => {
-  const vaultIface = new ethers.utils.Interface([SWAP_ABI]);
-  const tokenIface = new ethers.utils.Interface([BALANCE_OF_ABI]);
-  const topics = [vaultIface.getEventTopic("Swap")];
+): HandleTransaction => {
+  const tokenIface = new ethers.utils.Interface(TOKEN_ABI);
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("vaultAddress"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((el) => vaultIface.parseLog(el));
+    const logs = txEvent.filterLog(SWAP_ABI, networkManager.get("vaultAddress"));
 
     await Promise.all(
       logs.map(async (log) => {
@@ -45,10 +36,10 @@ export const provideHandleBlock = (
         const tokenOut = SmartCaller.from(new ethers.Contract(log.args.tokenOut, tokenIface, provider));
 
         const balanceTokenIn = toBn(
-          await tokenIn.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
+          await tokenIn.balanceOf(networkManager.get("vaultAddress"), { blockTag: txEvent.blockNumber - 1 })
         );
         const balanceTokenOut = toBn(
-          await tokenOut.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
+          await tokenOut.balanceOf(networkManager.get("vaultAddress"), { blockTag: txEvent.blockNumber - 1 })
         );
 
         const percentageTokenIn = toBn(log.args.amountIn).dividedBy(balanceTokenIn).shiftedBy(2);
@@ -56,7 +47,21 @@ export const provideHandleBlock = (
 
         const tvlPercentageThreshold = networkManager.get("tvlPercentageThreshold");
         if (percentageTokenIn.gte(tvlPercentageThreshold) || percentageTokenOut.gte(tvlPercentageThreshold)) {
-          findings.push(createFinding(log, percentageTokenIn, percentageTokenOut));
+          const tokenInSymbol: string = await tokenIn.symbol({ blockTag: txEvent.blockNumber });
+          const tokenInDecimals: number = await tokenIn.decimals({ blockTag: txEvent.blockNumber });
+          const tokenOutSymbol: string = await tokenOut.symbol({ blockTag: txEvent.blockNumber });
+          const tokenOutDecimals: number = await tokenOut.decimals({ blockTag: txEvent.blockNumber });
+          findings.push(
+            createFinding(
+              log,
+              percentageTokenIn,
+              percentageTokenOut,
+              tokenInSymbol,
+              tokenOutSymbol,
+              tokenInDecimals,
+              tokenOutDecimals
+            )
+          );
         }
       })
     );
@@ -67,5 +72,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
 };

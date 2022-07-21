@@ -20,10 +20,10 @@ const CONFIG: AgentConfig = {
   },
 };
 
-// Uncomment these lines for the mainnet test:
+// Uncomment this line for the mainnet test:
 // CONFIG[Network.MAINNET].tvlPercentageThreshold = "0";
 
-// Uncomment these lines for the testnet test:
-// CONFIG[42] = { vaultAddress: "0xC965F77387C6035B41aa08fBb7A4F997F05a1A15", tvlPercentageThreshold: "50" };
+// Uncomment this line for the testnet test:
+// CONFIG[5] = { vaultAddress: "0x1398ddbc64f9e8a844da6c025a3a46c47e22f376", tvlPercentageThreshold: "50" };
 
 export default CONFIG;
