@@ -19,7 +19,7 @@ export function provideHandleTransaction(contractAddress: string): HandleTransac
 
       //populate metadata with args
       keys.forEach((key) => {
-        metadata[key.slice(1)] = functionCall.args[key].toString(); //slice to remove leading "_" from property name
+        metadata[key.slice(0,1) === "_" ? key.slice(1): key] = functionCall.args[key].toString(); //slice to remove leading "_" from property name if there is any
       });
 
       findings.push(createFunctionFinding(functionCall.name, metadata));
