@@ -1,4 +1,4 @@
-import { Finding, HandleBlock, BlockEvent, getEthersProvider, Initialize } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, Initialize } from "forta-agent";
 import { providers, utils, Contract } from "ethers";
 import { BigNumber } from "bignumber.js";
 import { NetworkManager } from "forta-agent-tools";
@@ -20,22 +20,11 @@ const provideInitialize = (networkManager: NetworkManager<NetworkData>, provider
 export const provideHandleBlock = (
   networkManager: NetworkManager<NetworkData>,
   provider: providers.Provider
-): HandleBlock => {
-  const vaultIface = new utils.Interface(EVENT);
-
-  const topics = [vaultIface.getEventTopic("PoolBalanceChanged")];
-
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("vaultAddress"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((el) => vaultIface.parseLog(el));
+    const logs = txEvent.filterLog(EVENT, networkManager.get("vaultAddress"));
 
     const vaultContract = new Contract(networkManager.get("vaultAddress"), new utils.Interface(TOKEN_ABI), provider);
 
@@ -46,7 +35,7 @@ export const provideHandleBlock = (
         const poolTokens = SmartCaller.from(vaultContract);
 
         const poolTokensInfo = await poolTokens.getPoolTokens(poolId, {
-          blockTag: blockEvent.blockNumber,
+          blockTag: txEvent.blockNumber,
         });
 
         for (let i = 0; i < tokens.length; i++) {
@@ -56,12 +45,17 @@ export const provideHandleBlock = (
           const _threshold = previousBalance.multipliedBy(networkManager.get("threshold")).dividedBy(100);
 
           if (!previousBalance.lte(0.1) && delta.abs().gte(_threshold)) {
+            const tokenContract = new Contract(tokens[i], new utils.Interface(TOKEN_ABI), provider);
+            const token = SmartCaller.from(tokenContract);
+            const tokenSymbol = await token.symbol({ blockTag: txEvent.blockNumber });
+
             const data = {
               poolId,
               previousBalance,
               token: tokens[i],
               delta,
-              percentage: delta.abs().multipliedBy(100).dividedBy(previousBalance),
+              tokenSymbol,
+              percentage: delta.abs().multipliedBy(100).dividedBy(previousBalance).decimalPlaces(1),
             };
 
             findings.push(createFinding(data));
@@ -76,5 +70,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleBlock(networkManager, getEthersProvider()),
 };

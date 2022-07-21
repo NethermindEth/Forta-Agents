@@ -12,7 +12,7 @@ The thresholds can be set inside `src/agent.config.ts` file.
 - Ethereum
 - Polygon
 - Arbitrum
-s
+
 ## Alerts
 
 - BAL-5-1
@@ -43,22 +43,22 @@ s
 
 For the tests, uncomment the lines indicated in `src/agent.config.ts`.
 
-These tests can be run using `npm run block <BLOCK_NUMBER>` after setting the jsonRpcUrl in forta.config.json to an RPC of the network in question.
+These tests can be run using `npm run tx <TRANSACTION_HASH>` after setting the jsonRpcUrl in forta.config.json to an RPC of the network in question.
 
 ### Ethereum Mainnet
 
-- `15001362` (1 finding - Join)
-- `15003789` (2 findings - Exit)
+- `0x7dd832377f97f3d3988c308b056c036d2637feedd449ac6a115917b6692e0453` (1 finding - Join)
+- `0xcb526222a151f1b9327a7b14c25ced17a8125186ff695307b024c02b9442f622` (2 findings - Exit)
 
 ### Polygon
 
-- `29896975` (2 findings - Exit)
+- `0xfeb5abaf453ae024a8f102a4646c599c54c3066990e590985817356bdbadb27e` (2 findings - Exit)
 
 ### Arbitrum
 
-- `15453346` (2 findings - Join-Exit)
+- `0xe0f46f4384c850be7149b1cdd509e8a8417e0dc1412cd56341b33e7e119b469c` (2 findings - Join-Exit)
 
 ### Kovan Testnet (PoC)
 
-- `32322862` (1 finding - Join)
-- `32322874` (1 finding - Exit)
+- `0x496bb4aee9120eaab67a8a637fc984a67c46ae9ade2ecb523dcab17e4c67d74a` (1 finding - Join)
+- `0x0d5b3b6c51b9d21205f7127352a9fb924fbf67b3046cc46f3d21f40e85781b22` (1 finding - Exit)
