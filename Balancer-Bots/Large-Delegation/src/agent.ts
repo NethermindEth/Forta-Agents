@@ -1,37 +1,35 @@
 import BigNumber from "bignumber.js";
-import { ethers, Finding, getEthersProvider, HandleBlock, BlockEvent } from "forta-agent";
+import { ethers, Finding, getEthersProvider, HandleTransaction, TransactionEvent } from "forta-agent";
 import CONFIG from "./agent.config";
 import { BALANCE_OF_ABI, SET_DELEGATE_ABI, TOTAL_SUPPLY_ABI } from "./constants";
 import { createAbsoluteThresholdFinding, createPercentageThresholdFinding } from "./finding";
 import { AgentConfig, SmartCaller, toBn } from "./utils";
 
-BigNumber.set({ DECIMAL_PLACES: 18 });
+BigNumber.set({ DECIMAL_PLACES: 3 });
 
-export const provideHandleBlock = (config: AgentConfig, provider: ethers.providers.Provider): HandleBlock => {
-  const delegateRegistryIface = new ethers.utils.Interface([SET_DELEGATE_ABI]);
+export const provideHandleTransaction = (
+  config: AgentConfig,
+  provider: ethers.providers.Provider
+): HandleTransaction => {
   const veBal = SmartCaller.from(
     new ethers.Contract(config.veBalTokenAddress, [BALANCE_OF_ABI, TOTAL_SUPPLY_ABI], provider)
   );
 
   const balancerId = ethers.utils.formatBytes32String("balancer.eth");
-  const topics = [delegateRegistryIface.getEventTopic("SetDelegate"), null, balancerId];
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const logs = (
-      await provider.getLogs({
-        address: config.delegateRegistryAddress,
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((log) => delegateRegistryIface.parseLog(log));
+    const logs = txEvent
+      .filterLog([SET_DELEGATE_ABI], config.delegateRegistryAddress)
+      .filter((log) => log.args.id == balancerId);
+
+    if (!logs.length) return [];
 
     await Promise.all(
       logs.map(async (log) => {
         const delegatedAmount: ethers.BigNumber = await veBal.balanceOf(log.args.delegator, {
-          blockTag: blockEvent.blockNumber,
+          blockTag: txEvent.blockNumber,
         });
 
         if (config.absoluteThreshold !== undefined && delegatedAmount.gte(config.absoluteThreshold)) {
@@ -40,7 +38,7 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
 
         if (config.supplyPercentageThreshold !== undefined) {
           const totalSupply: ethers.BigNumber = await veBal.totalSupply({
-            blockTag: blockEvent.blockNumber,
+            blockTag: txEvent.blockNumber,
           });
           const supplyPercentage = toBn(delegatedAmount).shiftedBy(2).div(toBn(totalSupply));
 
@@ -56,5 +54,5 @@ export const provideHandleBlock = (config: AgentConfig, provider: ethers.provide
 };
 
 export default {
-  handleBlock: provideHandleBlock(CONFIG, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(CONFIG, getEthersProvider()),
 };
