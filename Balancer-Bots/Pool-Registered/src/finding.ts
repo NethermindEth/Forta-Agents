@@ -6,7 +6,7 @@ export function createFinding(poolRegisteredLog: ethers.utils.LogDescription): F
 
   return Finding.from({
     name: "Pool registered",
-    description: "A pool register was detected",
+    description: `A pool was registered with ID: ${poolId}, address: ${poolAddress}, and specialization: ${PoolSpecialization[specialization]}`,
     alertId: "BAL-6",
     protocol: "Balancer",
     type: FindingType.Info,
