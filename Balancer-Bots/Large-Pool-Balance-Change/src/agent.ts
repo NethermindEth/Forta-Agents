@@ -21,10 +21,6 @@ export const provideHandleBlock = (
   networkManager: NetworkManager<NetworkData>,
   provider: providers.Provider
 ): HandleTransaction => {
-  const vaultIface = new utils.Interface(EVENT);
-
-  const topics = [vaultIface.getEventTopic("PoolBalanceChanged")];
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
