@@ -1,8 +1,8 @@
 import BigNumber from "bignumber.js";
-import { BlockEvent, ethers, Finding, getEthersProvider, HandleBlock, Initialize } from "forta-agent";
+import { ethers, Finding, getEthersProvider, HandleTransaction, Initialize, TransactionEvent } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { BALANCE_OF_ABI, FLASH_LOAN_ABI } from "./constants";
+import { TOKEN_ABI, FLASH_LOAN_ABI } from "./constants";
 import { createFinding } from "./finding";
 import { NetworkData, SmartCaller, toBn } from "./utils";
 
@@ -19,38 +19,30 @@ const provideInitialize = (
   };
 };
 
-export const provideHandleBlock = (
+export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
-): HandleBlock => {
-  const vaultIface = new ethers.utils.Interface([FLASH_LOAN_ABI]);
-  const tokenIface = new ethers.utils.Interface([BALANCE_OF_ABI]);
-  const topics = [vaultIface.getEventTopic("FlashLoan")];
+): HandleTransaction => {
+  const tokenIface = new ethers.utils.Interface(TOKEN_ABI);
 
-  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
-    const logs = (
-      await provider.getLogs({
-        address: networkManager.get("vaultAddress"),
-        topics,
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((el) => vaultIface.parseLog(el));
+    const logs = txEvent.filterLog(FLASH_LOAN_ABI, networkManager.get("vaultAddress"));
 
     await Promise.all(
       logs.map(async (log) => {
         const token = SmartCaller.from(new ethers.Contract(log.args.token, tokenIface, provider));
 
         const vaultBalance = toBn(
-          await token.balanceOf(networkManager.get("vaultAddress"), { blockTag: blockEvent.blockNumber - 1 })
+          await token.balanceOf(networkManager.get("vaultAddress"), { blockTag: txEvent.blockNumber - 1 })
         );
 
         const tvlPercentage = toBn(log.args.amount).dividedBy(vaultBalance).shiftedBy(2);
 
         if (tvlPercentage.gte(networkManager.get("tvlPercentageThreshold"))) {
-          findings.push(createFinding(log, tvlPercentage));
+          const symbol: string = await token.symbol({ blockTag: txEvent.blockNumber });
+          const decimals: number = await token.decimals({ blockTag: txEvent.blockNumber });
+          findings.push(createFinding(log, tvlPercentage, symbol, decimals));
         }
       })
     );
@@ -61,5 +53,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
 };

@@ -20,16 +20,16 @@ const CONFIG: AgentConfig = {
   },
 };
 
-// Uncomment these lines for the mainnet test:
+// Uncomment this line for the mainnet test:
 // CONFIG[Network.MAINNET].tvlPercentageThreshold = "2.5";
 
-// Uncomment these lines for the polygon test:
+// Uncomment this line for the polygon test:
 // CONFIG[Network.POLYGON].tvlPercentageThreshold = "0.1";
 
-// Uncomment these lines for the arbitrum test:
+// Uncomment this line for the arbitrum test:
 // CONFIG[Network.ARBITRUM].tvlPercentageThreshold = "0.015";
 
-// Uncomment these lines for the testnet test:
-// CONFIG[42] = { vaultAddress: "0xce8e87f63132c573268fc58FC9a249178bb7a97f", tvlPercentageThreshold: "50.5" };
+// Uncomment this line for the testnet test:
+// CONFIG[5] = { vaultAddress: "0xd11e6e37acc7e5f4063ecace780a2b789528159c", tvlPercentageThreshold: "50.5" };
 
 export default CONFIG;
