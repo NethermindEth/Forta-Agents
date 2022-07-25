@@ -1,7 +1,7 @@
 import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 
 import { BigNumber, ethers } from "ethers";
-import { MASTERCHEF_ADDRESS, MASTERCHEF_ABI, IBEP20_ABI } from "./constants";
+import { MASTERCHEF_ADDRESS, MASTERCHEF_ABI } from "./constants";
 
 import { BotConfig, STATIC_CONFIG, DYNAMIC_CONFIG } from "./config";
 import MasterchefFetcher from "./masterchef.fetcher";
