@@ -53,120 +53,112 @@ describe("CakeVault Test Suite", () => {
     mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if no event is emitted or function called", async () => {
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+  it("returns empty findings if no event is emitted or function called", async () => {
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([]);
-    });
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns empty findings if the event emitted does not come from the correct contract address", async () => {
-      mockTxEvent.addInterfaceEventLog(eventFragments[0], createAddress("0x3344"), []);
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+  it("returns empty findings if the event emitted does not come from the correct contract address", async () => {
+    mockTxEvent.addInterfaceEventLog(eventFragments[0], createAddress("0x3344"), []);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([]);
-    });
+    expect(findings).toStrictEqual([]);
+  });
 
-    it("returns finding if function is called", async () => {
-      const data: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x1234")]);
+  it("returns finding if function is called", async () => {
+    const data: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x1234")]);
 
-      const traces: TraceProps[] = [{ to: MOCK_CONTRACT_ADDRESS, input: data }];
+    const traces: TraceProps[] = [{ to: MOCK_CONTRACT_ADDRESS, input: data }];
 
-      mockTxEvent.addTraces(...traces);
+    mockTxEvent.addTraces(...traces);
 
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        createFunctionFinding(functionFragments[0].name, {
-          admin: createAddress("0x1234"),
-        }),
-      ]);
-    });
+    expect(findings).toStrictEqual([
+      createFunctionFinding(functionFragments[0].name, {
+        admin: createAddress("0x1234"),
+      }),
+    ]);
+  });
 
-    it("returns findings with events emitted", async () => {
-      mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
-      mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
+  it("returns findings with events emitted", async () => {
+    mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
+    mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
 
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        createEventFinding(eventFragments[0].name),
-        createEventFinding(eventFragments[1].name),
-      ]);
-    });
+    expect(findings).toStrictEqual([
+      createEventFinding(eventFragments[0].name),
+      createEventFinding(eventFragments[1].name),
+    ]);
+  });
 
-    it("returns findings with Event and Function call alerts", async () => {
-      mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
-      mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
+  it("returns findings with Event and Function call alerts", async () => {
+    mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
+    mockTxEvent.addInterfaceEventLog(eventFragments[1], MOCK_CONTRACT_ADDRESS, []);
 
-      const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [
-        createAddress("0x1234"),
-      ]);
-      const dataTwo: string = functionInterface.encodeFunctionData(functionFragments[1].name, [
-        createAddress("0x9843"),
-      ]);
-      const dataThree: string = functionInterface.encodeFunctionData(functionFragments[2].name, [100000]);
-      const dataFour: string = functionInterface.encodeFunctionData(functionFragments[3].name, [200000]);
-      const dataFive: string = functionInterface.encodeFunctionData(functionFragments[4].name, [300000]);
+    const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x1234")]);
+    const dataTwo: string = functionInterface.encodeFunctionData(functionFragments[1].name, [createAddress("0x9843")]);
+    const dataThree: string = functionInterface.encodeFunctionData(functionFragments[2].name, [100000]);
+    const dataFour: string = functionInterface.encodeFunctionData(functionFragments[3].name, [200000]);
+    const dataFive: string = functionInterface.encodeFunctionData(functionFragments[4].name, [300000]);
 
-      const traces: TraceProps[] = [
-        { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
-        { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
-        { to: MOCK_CONTRACT_ADDRESS, input: dataThree },
-        { to: MOCK_CONTRACT_ADDRESS, input: dataFour },
-        { to: MOCK_CONTRACT_ADDRESS, input: dataFive },
-      ];
+    const traces: TraceProps[] = [
+      { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
+      { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
+      { to: MOCK_CONTRACT_ADDRESS, input: dataThree },
+      { to: MOCK_CONTRACT_ADDRESS, input: dataFour },
+      { to: MOCK_CONTRACT_ADDRESS, input: dataFive },
+    ];
 
-      mockTxEvent.addTraces(...traces);
+    mockTxEvent.addTraces(...traces);
 
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        createEventFinding(eventFragments[0].name),
-        createEventFinding(eventFragments[1].name),
-        createFunctionFinding(functionFragments[0].name, {
-          admin: createAddress("0x1234"),
-        }),
-        createFunctionFinding(functionFragments[1].name, {
-          treasury: createAddress("0x9843"),
-        }),
-        createFunctionFinding(functionFragments[2].name, { performanceFee: "100000" }),
-        createFunctionFinding(functionFragments[3].name, { callFee: "200000" }),
-        createFunctionFinding(functionFragments[4].name, { withdrawFee: "300000" }),
-      ]);
-    });
+    expect(findings).toStrictEqual([
+      createEventFinding(eventFragments[0].name),
+      createEventFinding(eventFragments[1].name),
+      createFunctionFinding(functionFragments[0].name, {
+        admin: createAddress("0x1234"),
+      }),
+      createFunctionFinding(functionFragments[1].name, {
+        treasury: createAddress("0x9843"),
+      }),
+      createFunctionFinding(functionFragments[2].name, { performanceFee: "100000" }),
+      createFunctionFinding(functionFragments[3].name, { callFee: "200000" }),
+      createFunctionFinding(functionFragments[4].name, { withdrawFee: "300000" }),
+    ]);
+  });
 
-    it("returns finding only for the correct event", async () => {
-      mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
-      mockTxEvent.addInterfaceEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [678]);
+  it("returns finding only for the correct event", async () => {
+    mockTxEvent.addInterfaceEventLog(eventFragments[0], MOCK_CONTRACT_ADDRESS, []);
+    mockTxEvent.addInterfaceEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [678]);
 
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name)]);
-    });
+    expect(findings).toStrictEqual([createEventFinding(eventFragments[0].name)]);
+  });
 
-    it("returns finding only for the correct function", async () => {
-      const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [
-        createAddress("0x3456"),
-      ]);
+  it("returns finding only for the correct function", async () => {
+    const dataOne: string = functionInterface.encodeFunctionData(functionFragments[0].name, [createAddress("0x3456")]);
 
-      const mockFunctionInterface = new ethers.utils.Interface(["function mockFunction(uint256 x)"]);
-      const dataTwo: string = mockFunctionInterface.encodeFunctionData("mockFunction", [123456]);
+    const mockFunctionInterface = new ethers.utils.Interface(["function mockFunction(uint256 x)"]);
+    const dataTwo: string = mockFunctionInterface.encodeFunctionData("mockFunction", [123456]);
 
-      const traces: TraceProps[] = [
-        { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
-        { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
-      ];
+    const traces: TraceProps[] = [
+      { to: MOCK_CONTRACT_ADDRESS, input: dataOne },
+      { to: MOCK_CONTRACT_ADDRESS, input: dataTwo },
+    ];
 
-      mockTxEvent.addTraces(...traces);
+    mockTxEvent.addTraces(...traces);
 
-      const findings: Finding[] = await handleTransaction(mockTxEvent);
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        createFunctionFinding(functionFragments[0].name, {
-          admin: createAddress("0x3456"),
-        }),
-      ]);
-    });
+    expect(findings).toStrictEqual([
+      createFunctionFinding(functionFragments[0].name, {
+        admin: createAddress("0x3456"),
+      }),
+    ]);
   });
 });
