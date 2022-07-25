@@ -12,17 +12,6 @@ describe("Token Fetcher test suite", () => {
 
   const fetcher: TokenFetcher = new TokenFetcher(mockProvider as any, mockLPTokenAddress);
 
-  function createNameCall(
-    lpTokenAddress: string,
-    name: string,
-    block: string | number
-  ) {
-    return mockProvider.addCallTo(lpTokenAddress, block, IBEP20_INTERFACE, "name", {
-      inputs: [],
-      outputs: [name]
-    })
-  }
-
   function createBalanceOfCall(
     masterchefAddress: string, 
     lpTokenAddress: string,
@@ -33,21 +22,6 @@ describe("Token Fetcher test suite", () => {
         outputs: [balance]
     })
   }
-
-  it("should return the correct LP Token Name", async () => {
-
-    const mockLPTokenName = 'Test Token 1';
-    createNameCall(mockLPTokenAddress, mockLPTokenName, 100);
-    const fetchedLPTokenName: string = await fetcher.getName(100);
-    expect(fetchedLPTokenName).toStrictEqual(mockLPTokenName);
-
-    // clear mock to use cache
-    mockProvider.clear();
-    createNameCall(mockLPTokenAddress, mockLPTokenName, 100);
-    const fetchedLPTokenName2: string = await fetcher.getName(100);
-    expect(fetchedLPTokenName2).toStrictEqual(mockLPTokenName);
-    
-  });
 
   it("should return the correct balance of the Masterchef address", async () => {
 

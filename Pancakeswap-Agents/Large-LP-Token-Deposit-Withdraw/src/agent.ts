@@ -29,7 +29,6 @@ export function provideHandleTransaction(
           // Get the address of the LP token, instantiate Fetcher and get token name
           const tokenAddress = await masterchefFetcher.getLPToken(pid, txEvent.blockNumber);
           const tokenFetcher = new TokenFetcher(provider, tokenAddress);
-          const tokenName = await tokenFetcher.getName(txEvent.blockNumber);
 
           // Get threshold (check config for whether static or dynamic mode)
           let thresholdAmount: BigNumber;
@@ -43,7 +42,7 @@ export function provideHandleTransaction(
           }
           // If amount is greater than threshold, create finding
           if (amount.gte(thresholdAmount)) {
-            findings.push(createFinding(log.name, tokenName, log.args));
+            findings.push(createFinding(log.name, log.args));
           }
         })
     );

@@ -1,4 +1,4 @@
-import { providers, Contract, BigNumber } from "ethers";
+import { providers, Contract } from "ethers";
 import LRU from "lru-cache";
 import { MASTERCHEF_ABI } from "./constants";
 

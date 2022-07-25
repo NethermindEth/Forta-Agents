@@ -24,16 +24,6 @@ function addLPTokenAddress(
   });
 }
 
-// Function to set the name of a token
-function addLPTokenName(
-  mockProvider: MockEthersProvider,
-  tokenAddress: string,
-  tokenName: string,
-  block: number
-) {
-  mockProvider.addCallTo(tokenAddress, block, IBEP20_INTERFACE, "name", { inputs: [], outputs: [tokenName] });
-}
-
 // Function to set the Masterchef's balance of a certain LP Token
 function addLPTokenBalance(
   mockProvider: MockEthersProvider,
@@ -93,26 +83,18 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 1",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 10 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 1",
             pid: "10",
             amount: "2000000000000000000",
           },
@@ -137,13 +119,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 1",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -166,26 +141,18 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Withdraw",
-          description: `Withdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `Withdraw event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-2",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 2",
             pid: "20",
             amount: "3000000000000000000",
           },
@@ -230,59 +197,39 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add first token address to Masterchef contract
       const mockTokenAddress1: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress1, 100);
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress1,
-        "Test Token 1",
-        100
-      );
 
       // Add second token address to Masterchef contract
       const mockTokenAddress2: string = createAddress("0x5678");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress2, 100);
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress2,
-        "Test Token 2",
-        100
-      );
 
       // Add third token address to Masterchef contract
       const mockTokenAddress3: string = createAddress("0x6543");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 30, mockTokenAddress3, 100);
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress3,
-        "Test Token 3",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 10 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender1,
-            token: "Test Token 1",
             pid: "10",
             amount: "1100000000000000000",
           },
         }),
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender2,
-            token: "Test Token 2",
             pid: "20",
             amount: "1200000000000000000",
           },
@@ -307,13 +254,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -336,26 +276,18 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token EmergencyWithdraw",
-          description: `EmergencyWithdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `EmergencyWithdraw event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-3",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 2",
             pid: "20",
             amount: "3000000000000000000",
           },
@@ -380,13 +312,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -437,13 +362,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 1",
-        100
-      );
+
       // Add balance to the token contract (token address above) (balance of 4)
       addLPTokenBalance(
         mockProvider,
@@ -457,14 +376,13 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 10 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 1",
             pid: "10",
             amount: "2100000000000000000",
           },
@@ -509,13 +427,7 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add first token address to Masterchef contract
       const mockTokenAddress1: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress1, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress1,
-        "Test Token 1",
-        100
-      );
+
       // Add balance to the token contract (token address above) (balance of 4)
       addLPTokenBalance(
         mockProvider,
@@ -528,13 +440,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add second token address to Masterchef contract
       const mockTokenAddress2: string = createAddress("0x5678");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress2, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress2,
-        "Test Token 2",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 4)
       addLPTokenBalance(
         mockProvider,
@@ -547,13 +452,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add third token address to Masterchef contract
       const mockTokenAddress3: string = createAddress("0x6543");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 30, mockTokenAddress3, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress3,
-        "Test Token 3",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 4)
       addLPTokenBalance(
         mockProvider,
@@ -567,28 +465,26 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 10, Test Token 1 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 10 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender1,
-            token: "Test Token 1",
             pid: "10",
             amount: "2100000000000000000",
           },
         }),
         Finding.fromObject({
           name: "Large LP Token Deposit",
-          description: `Deposit event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `Deposit event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-1",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender2,
-            token: "Test Token 2",
             pid: "20",
             amount: "2100000000000000000",
           },
@@ -613,13 +509,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 10, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 1",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 5)
       addLPTokenBalance(
         mockProvider,
@@ -650,13 +539,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 5)
       addLPTokenBalance(
         mockProvider,
@@ -670,14 +552,13 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token Withdraw",
-          description: `Withdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `Withdraw event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-2",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 2",
             pid: "20",
             amount: "3000000000000000000",
           },
@@ -702,13 +583,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 5)
       addLPTokenBalance(
         mockProvider,
@@ -739,13 +613,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 5)
       addLPTokenBalance(
         mockProvider,
@@ -759,14 +626,13 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Large LP Token EmergencyWithdraw",
-          description: `EmergencyWithdraw event emitted in Masterchef contract for pool 20, Test Token 2 token with a large amount`,
+          description: `EmergencyWithdraw event emitted in Masterchef contract for pool 20 with a large amount`,
           alertId: "CAKE-4-3",
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           protocol: "PancakeSwap",
           metadata: {
             user: testSpender,
-            token: "Test Token 2",
             pid: "20",
             amount: "3000000000000000000",
           },
@@ -791,13 +657,6 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
       // Add token address to Masterchef contract
       const mockTokenAddress: string = createAddress("0x1234");
       addLPTokenAddress(mockProvider, mockMasterchefAddress, 20, mockTokenAddress, 100);
-      // Add name of token
-      addLPTokenName(
-        mockProvider,
-        mockTokenAddress,
-        "Test Token 2",
-        100
-      );
       // Add balance to the token contract (token address above) (balance of 6)
       addLPTokenBalance(
         mockProvider,

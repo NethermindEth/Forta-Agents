@@ -1,6 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export const createFinding = (eventName: string, tokenName: string, args: any) => {
+export const createFinding = (eventName: string, args: any) => {
   let alertId: string;
   if (eventName === "Deposit") {
     alertId = "CAKE-4-1";
@@ -13,14 +13,13 @@ export const createFinding = (eventName: string, tokenName: string, args: any) =
 
   return Finding.fromObject({
     name: `Large LP Token ${eventName}`,
-    description: `${eventName} event emitted in Masterchef contract for pool ${args.pid.toString()}, ${tokenName} token with a large amount`,
+    description: `${eventName} event emitted in Masterchef contract for pool ${args.pid.toString()} with a large amount`,
     alertId: alertId,
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "PancakeSwap",
     metadata: {
       user: args.user,
-      token: tokenName,
       pid: args.pid.toString(),
       amount: args.amount.toString(),
     },
