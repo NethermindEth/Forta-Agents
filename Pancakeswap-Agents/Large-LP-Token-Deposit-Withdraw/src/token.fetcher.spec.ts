@@ -1,5 +1,5 @@
 import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import TokenFetcher from "./token.fetcher";
 import { IBEP20_ABI } from "./constants";
 
@@ -26,7 +26,7 @@ describe("Token Fetcher test suite", () => {
   function createBalanceOfCall(
     masterchefAddress: string, 
     lpTokenAddress: string,
-    balance: number,
+    balance: BigNumber,
     block: string | number) {
     return mockProvider.addCallTo(lpTokenAddress, block, IBEP20_INTERFACE, "balanceOf", {
         inputs: [masterchefAddress],
@@ -51,7 +51,7 @@ describe("Token Fetcher test suite", () => {
 
   it("should return the correct balance of the Masterchef address", async () => {
 
-    const mockMasterchefBalance = 12345;
+    const mockMasterchefBalance = BigNumber.from("12345");
     createBalanceOfCall(mockMasterchefAddress, mockLPTokenAddress, mockMasterchefBalance, 100);
     const fetchedMasterchefBalance: string = await fetcher.getBalanceOf(mockMasterchefAddress, 100);
     expect(fetchedMasterchefBalance).toStrictEqual(mockMasterchefBalance);
