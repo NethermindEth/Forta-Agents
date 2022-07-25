@@ -11,7 +11,7 @@ export default class MasterchefFetcher {
         this.masterchefContract = new Contract(masterchefAddress, MASTERCHEF_ABI, provider);
     }
 
-    public async getLPToken(pid: string | number, block: string | number) {
+    public async getLPToken(pid: BigNumber, block: string | number) {
         const lpToken = await this.masterchefContract.lpToken(pid, { blockTag: block });
         return lpToken;
     }
