@@ -31,7 +31,7 @@ This bot detects the following CakeVault Admin Operations:
   - Triggered when a `setAdmin` function call is detected.
   - Severity is always set to "Info".
   - Type is always set to "Info".
-   - Metadata contains:
+  - Metadata contains:
     - `admin`: The new admin address
  
 - CAKE-6-4
