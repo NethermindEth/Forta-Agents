@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
 interface IMigratorChef {
@@ -9,30 +10,29 @@ interface IBEP20 {
 }
 
 contract TestMasterChef {
-    event setMigrator(IMigratorChef _migrator);
-    event dev(address _devaddr);
-    event add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate);
-    event set(uint256 _pid, uint256 _allocPoint, bool _withUpdate);
-    event updateMultiplier(uint256 multiplierNumber);
 
-    bool public paused;
-    address public operatorAddress;
-    address public adminAddress;
-    address public oracleAddress;
-    uint256 public treasuryFee;
+    uint256 public x = 0; 
 
-    constructor(
-        address _operatorAddress,
-        address _adminAddress,
-        address _oracleAddress,
-        uint256 _treasuryFee
-    ) public {
-        paused = false;
-        operatorAddress = _operatorAddress;
-        adminAddress = _adminAddress;
-        oracleAddress = _oracleAddress;
-        treasuryFee = _treasuryFee;
+    IMigratorChef public migrator; 
+    address public devaddr; 
+    uint256 public BONUS_MULTIPLIER = 0; 
+    
+    function setMigrator(IMigratorChef _migrator) public {
+        migrator = _migrator;
     }
 
+    function dev(address _devaddr) public {
+        devaddr = _devaddr;
+    }   
 
+    function add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate) public {
+        x = x+_allocPoint; 
+    }
+
+    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public {
+        x = _pid;
+    }
+    function updateMultiplier(uint256 multiplierNumber) public {
+        BONUS_MULTIPLIER = multiplierNumber;
+    }
 }
