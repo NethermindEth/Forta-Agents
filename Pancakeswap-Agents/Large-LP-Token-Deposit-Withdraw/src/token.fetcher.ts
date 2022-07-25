@@ -1,4 +1,4 @@
-import { providers, Contract, BigNumber } from "ethers";
+import { providers, Contract } from "ethers";
 import { IBEP20_ABI } from "./constants";
 
 export default class TokenFetcher {
