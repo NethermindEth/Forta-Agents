@@ -1,5 +1,4 @@
 import { ethers, Finding, FindingType, FindingSeverity } from "forta-agent";
-import { createAddress } from "forta-agent-tools/lib/tests.utils";
 import BigNumber from "bignumber.js";
 import { getCreate2Address } from "@ethersproject/address";
 import { ERC20ABI, PANCAKE_PAIR_ABI, cache } from "./constants";
@@ -31,8 +30,7 @@ const isValidPancakePair = async (
     return [false, "", ""];
   }
   const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
-  const isValid =
-    tokenPair !== createAddress("0x0") && tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
+  const isValid = tokenPair.toLowerCase() === pairAddress.toLowerCase() ? true : false;
   cache.set(key, [isValid, token0Address, token1Address]);
   return [isValid, token0Address, token1Address];
 };
