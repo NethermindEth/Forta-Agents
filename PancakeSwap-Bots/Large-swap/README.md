@@ -5,12 +5,11 @@
 This bot detects large swaps (i.e. the amount of tokens swapped in any pancake pair contract is a significant fraction of the
 pair's pool reserves) in the the pancakeswap protocol.
 
-> The threshold `LARGE_THRESHOLD` of what is considered large can be adjusted in **src/utils.ts**.
+> The threshold `LARGE_THRESHOLD` of what is considered large can be adjusted in **src/constants.ts**.
 
 ## Supported Chains
 
 - BSC
-
 
 ## Alerts
 
@@ -26,7 +25,7 @@ pair's pool reserves) in the the pancakeswap protocol.
     - `amountOut`: The swap's `amountOut` of `tokenOut`
     - `percentageIn`: The percentage of `amountIn` relative to the previous block's pair `tokenIn` balance
     - `percentageOut`: The percentage of `amountOut` relative to the previous block's pair `tokenOut` balance
-    - `Swap Recipient`: The swap's `to` address 
+    - `Swap Recipient`: The swap's `to` address
 
 ## Test Data
 
@@ -39,4 +38,4 @@ The bot behaviour can be verified with the following transaction:
   > `LARGE_THRESHOLD` should be set to <= 2.5 for this test transaction.
 
 - [0xbfd8af2d95ffef4b42086240cec1d5d681a19a31174c08e3210883e5e4561e60](https://bscscan.com/tx/0xbfd8af2d95ffef4b42086240cec1d5d681a19a31174c08e3210883e5e4561e60)
-   > `LARGE_THRESHOLD` should be set to <= 3 for this test transaction.
+  > `LARGE_THRESHOLD` should be set to <= 3 for this test transaction.
