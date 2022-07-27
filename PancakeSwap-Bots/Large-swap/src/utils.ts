@@ -27,7 +27,7 @@ const isValidPancakePair = async (
       pairContract.token0({ blockTag: block }),
       pairContract.token1({ blockTag: block }),
     ]);
-  } catch (error) {
+  } catch {
     return [false, "", ""];
   }
   const tokenPair = getPancakePairCreate2Address(pancakeFactoryAddr, token0Address, token1Address, init);
@@ -49,7 +49,7 @@ const getERC20Balance = async (
   let balance: BigNumber;
   try {
     balance = toBn(await tokenContract.balanceOf(pairAddress, { blockTag: blockNumber }));
-  } catch (error) {
+  } catch {
     return toBn("0");
   }
   cache.set(key, balance);
