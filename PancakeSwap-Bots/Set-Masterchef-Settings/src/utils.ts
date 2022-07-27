@@ -4,9 +4,9 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import NetWorkData from "./network";
 
 const FUNCTIONS_ABI: string[] = [
-  "function setMigrator(IMigratorChef _migrator)",
+  "function setMigrator(address _migrator)",
   "function dev(address _devaddr)",
-  "function add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate)",
+  "function add(uint256 _allocPoint, address _lpToken, bool _withUpdate)",
   "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)",
   "function updateMultiplier(uint256 multiplierNumber)",
 ];
