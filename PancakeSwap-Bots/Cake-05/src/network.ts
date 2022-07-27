@@ -8,7 +8,7 @@ interface NetworkData {
   
   //PoC
   const BSC_TESTNET_DATA: NetworkData = {
-    factory: "0xE115b296916E63C74E01506d37c6CF2C9fBaa9E0",
+    factory: "0xbD315DA028B586f7cD93903498e671fA3efeF506",
   };
   
   const NETWORK_MAP: Record<number, NetworkData> = {
