@@ -1,26 +1,65 @@
-# Large Tether Transfer Agent
+# Set Masterchef Settings bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects the following Masterchef function calls: 
+
+- `function setMigrator(IMigratorChef _migrator)`
+- `function dev(address _devaddr)`
+- `function add(uint256 _allocPoint, IBEP20 _lpToken, bool _withUpdate)`
+- `function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)`
+- `function updateMultiplier(uint256 multiplierNumber)`
 
 ## Supported Chains
 
-- Ethereum
-- List any other chains this agent can support e.g. BSC
-
+- BSC
+ 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- CAKE-5-1
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+	- Fired when a transaction contains a `setMigrator` function call.
+	- Severity is always set to "Info".
+	- Type is always set to "Info".
+	- Metadata contains:
+		- `placeholder`:  placeholder 
+		
+- CAKE-5-2
 
+	- Fired when a transaction contains a `dev` function call.
+	- Severity is always set to "Info".
+	- Type is always set to "Info".
+	- Metadata contains:
+		- `placeholder`:  placeholder
+		
+- CAKE-5-3
+
+	- Fired when a transaction contains a `add` function call.
+	- Severity is always set to "Info".
+	- Type is always set to "Info".
+	- Metadata contains:
+		- `placeholder`:  placeholder 
+	
+- CAKE-5-4
+
+	- Fired when a transaction contains a `set` function call.
+	- Severity is always set to "Info". 
+	- Type is always set to "Info".
+	- Metadata contains:
+		- `placeholder`:  placeholder
+		
+- CAKE-5-5
+
+	- Fired when a transaction contains a `updateMultiplier` function call.
+	- Severity is always set to "Info".
+	- Type is always set to "Info".
+	- Metadata contains:
+		- `placeholder`:  placeholder
+		
+		
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+(adding specific tx's later) 
+https://testnet.bscscan.com/address/0xbD315DA028B586f7cD93903498e671fA3efeF506
