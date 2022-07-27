@@ -1,8 +1,8 @@
 {
-  "name": "pancakeswap-3",
+  "name": "pancakeswap-delegators-vote-change-bot",
   "version": "0.0.1",
-  "description": "Detects large LP deposits/withdrawals to/from a Pancakeswap pool",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-LP-Deposit-Withdrawal",
+  "description": "Detects large delegators vote balance change in PancakeSwap Cake token",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-Delegators-Vote-Change",
   "chainIds": [
     56
   ],
@@ -24,13 +24,13 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bignumber.js": "^9.0.2",
     "forta-agent": "^0.1.8",
-    "lru-cache": "^7.10.2"
+    "forta-agent-tools": "^2.2.2"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.2.2",
     "jest": "^27.0.6",
     "nodemon": "^2.0.19",
     "prettier": "^2.7.1",
