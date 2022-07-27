@@ -17,27 +17,63 @@ const createFinding = (
   call: utils.TransactionDescription,
   contract: NetWorkData
 ): Finding => {
-  if (call.name == "updateMultiplier") {
+  if (call.name == "setMigrator") {
     return Finding.fromObject({
       name: "MasterChef Settings",
       description: `${call.name} function called in MasterChef contract.`,
-      alertId: "APESWAP-6-1",
+      alertId: "CAKE-5-1",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
       metadata: {
       },
     });
-  } else
+  } 
+  if (call.name == "dev") {
+    return Finding.fromObject({
+      name: "MasterChef Settings",
+      description: `${call.name} function called in MasterChef contract.`,
+      alertId: "CAKE-5-2",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "MasterChef",
+      metadata: {
+      },
+    });
+  }
+  if (call.name == "add") {
+    return Finding.fromObject({
+      name: "MasterChef Settings",
+      description: `${call.name} function called in MasterChef contract.`,
+      alertId: "CAKE-5-3",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "MasterChef",
+      metadata: {
+      },
+    });
+  }
+  if (call.name == "set") {
+    return Finding.fromObject({
+      name: "MasterChef Settings",
+      description: `${call.name} function called in MasterChef contract.`,
+      alertId: "CAKE-5-4",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      protocol: "MasterChef",
+      metadata: {
+      },
+    });
+  }
+  else 
     return Finding.fromObject({
       name: "ApeFactory FeeTo setter address changed",
       description: `${call.name} function called in ApeFactory contract.`,
-      alertId: "APESWAP-6-2",
+      alertId: "CAKE-5-5",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "Apeswap",
+      protocol: "MasterChef",
       metadata: {
-        feeToSetter: call.args._feeToSetter.toLowerCase(),
       },
     });
 };
