@@ -12,7 +12,7 @@ This bot detects the following Masterchef function calls:
 
 ## Supported Chains
 
-- BSC
+- BNB Smart Chain
  
 ## Alerts
 
@@ -61,5 +61,8 @@ This bot detects the following Masterchef function calls:
 
 The bot behaviour can be verified with the following transactions:
 
-(adding specific tx's later) 
-https://testnet.bscscan.com/address/0xbD315DA028B586f7cD93903498e671fA3efeF506
+[0xd111537a2d8ab1f5c13f14e5ef55bdbeb3711d745b4518653e73b8ca05593100](https://testnet.bscscan.com/tx/0xd111537a2d8ab1f5c13f14e5ef55bdbeb3711d745b4518653e73b8ca05593100)(1 finding for setMigrator)
+[0xf58dadc470052f0852b5487d28c999f5206943ee313d339a4223bc371ac284e5](https://testnet.bscscan.com/tx/0xf58dadc470052f0852b5487d28c999f5206943ee313d339a4223bc371ac284e5)(1 finding for dev)
+[0x2eb9b72b659954ffd45c832163b3bfa31fe806bb673d9c99e79d68ca33b8a002](https://testnet.bscscan.com/tx/0x2eb9b72b659954ffd45c832163b3bfa31fe806bb673d9c99e79d68ca33b8a002)(1 finding for add)
+[0x75c7611b71466ff55c5bcbc8835def7250e04b0285eed27b9b43b68f2acfd444](https://testnet.bscscan.com/tx/0x75c7611b71466ff55c5bcbc8835def7250e04b0285eed27b9b43b68f2acfd444)(1 finding for set)
+[0xfd5d3cd1d53eb1486429780395fe14774a3487b9aeee8fbdafba0623c3931cf1](https://testnet.bscscan.com/tx/0xfd5d3cd1d53eb1486429780395fe14774a3487b9aeee8fbdafba0623c3931cf1)(1 finding for updateMultiplier)
