@@ -1,8 +1,8 @@
 {
-  "name": "pancakeswap-3",
+  "name": "cake-6",
   "version": "0.0.1",
-  "description": "Detects large LP deposits/withdrawals to/from a Pancakeswap pool",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-LP-Deposit-Withdrawal",
+  "description": "Bot to detect admin operations on CakeVault contract from PancakeSwap",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-Cake-Admin-Operations",
   "chainIds": [
     56
   ],
@@ -25,16 +25,15 @@
   },
   "dependencies": {
     "forta-agent": "^0.1.8",
-    "lru-cache": "^7.10.2"
+    "forta-agent-tools": "^2.3.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.2.2",
     "jest": "^27.0.6",
-    "nodemon": "^2.0.19",
-    "prettier": "^2.7.1",
+    "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "prettier": "^2.7.1"
   }
 }
