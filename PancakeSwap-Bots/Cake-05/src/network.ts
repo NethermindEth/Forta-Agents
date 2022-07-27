@@ -1,9 +1,6 @@
 interface NetworkData {
     factory: string;
   }
-  const POLYGON_MAINNET_DATA: NetworkData = {
-    factory: "0xCf083Be4164828f00cAE704EC15a36D711491284",
-  };
   
   const BSC_MAINNET_DATA: NetworkData = {
     factory: "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6",
@@ -16,7 +13,6 @@ interface NetworkData {
   
   const NETWORK_MAP: Record<number, NetworkData> = {
     56: BSC_MAINNET_DATA,
-    137: POLYGON_MAINNET_DATA,
     97: BSC_TESTNET_DATA,
   };
   
