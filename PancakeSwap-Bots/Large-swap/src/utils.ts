@@ -77,8 +77,8 @@ const createFinding = (
   return Finding.from({
     name: "Large swap",
     description: "A swap that involved a significant percentage of a pool's liquidity was detected",
-    alertId: "CAKE02",
-    protocol: "PANCAKESWAP",
+    alertId: "CAKE-2",
+    protocol: "PancakeSwap",
     type: FindingType.Info,
     severity: FindingSeverity.Unknown,
     metadata: {
