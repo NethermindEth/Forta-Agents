@@ -22,7 +22,9 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
-      metadata: {},
+      metadata: {
+        _migrator: call.args["_migrator"].toLowerCase(),
+      },
     });
   }
   if (call.name == "dev") {
@@ -33,7 +35,9 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
-      metadata: {},
+      metadata: {
+        _devaddr: call.args["_devaddr"].toLowerCase(), 
+      },
     });
   }
   if (call.name == "add") {
@@ -44,7 +48,11 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
-      metadata: {},
+      metadata: {
+        _allocPoint: call.args["_allocPoint"].toString(),
+        _lpToken: call.args["_lpToken"].toLowerCase(), 
+        _withUpdate: call.args["_withUpdate"],
+      },
     });
   }
   if (call.name == "set") {
@@ -55,7 +63,11 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
-      metadata: {},
+      metadata: {
+        _pid: call.args["_pid"].toString(),
+        _allocPoint: call.args["_allocPoint"].toString(),
+        _withUpdate: call.args["_withUpdate"],
+      },
     });
   } else
     return Finding.fromObject({
@@ -65,7 +77,9 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       severity: FindingSeverity.Info,
       type: FindingType.Info,
       protocol: "MasterChef",
-      metadata: {},
+      metadata: {
+        multiplierNumber: call.args["multiplierNumber"].toString(), 
+      },
     });
 };
 
