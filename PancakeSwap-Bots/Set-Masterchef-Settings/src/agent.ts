@@ -1,9 +1,4 @@
-import {
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
 import NetworkData from "./network";
 import NetworkManager from "./network";
@@ -20,10 +15,7 @@ export const handleTransaction =
   (contractAddress: NetworkData): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const functionCalls = txEvent.filterFunction(
-      utils.FUNCTIONS_ABI,
-      contractAddress.factory
-    );
+    const functionCalls = txEvent.filterFunction(utils.FUNCTIONS_ABI, contractAddress.factory);
 
     functionCalls.forEach((functionCall) => {
       findings.push(utils.createFinding(functionCall, contractAddress));
