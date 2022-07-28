@@ -39,41 +39,41 @@ const dev = (_devaddr: string): Finding =>
     },
   })
 
-const add = (_allocpoint: BigNumber, _lpToken: string, _withUpdate: boolean): Finding =>
+const add = (_allocpoint: BigNumber, _lpToken: string, _withUpdate: string): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `dev function called in MasterChef contract.`,
-    alertId: "CAKE-5-2",
+    description: `add function called in MasterChef contract.`,
+    alertId: "CAKE-5-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "MasterChef",
     metadata: {
       _allocpoint: _allocpoint.toString(),
       _lpToken: _lpToken.toLowerCase(),
-      _withUpdate: _withUpdate.toString(),
+      _withUpdate: _withUpdate.toLowerCase(),
     },
   })
 
-const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Finding =>
+const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: string): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `dev function called in MasterChef contract.`,
-    alertId: "CAKE-5-2",
+    description: `set function called in MasterChef contract.`,
+    alertId: "CAKE-5-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "MasterChef",
     metadata: {
       _pid: _pid.toString(),
       _allocPoint: _allocPoint.toString(),
-      _withUpdate: _withUpdate.toString(),
+      _withUpdate: _withUpdate.toLowerCase(),
     },
   })
 
 const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `dev function called in MasterChef contract.`,
-    alertId: "CAKE-5-2",
+    description: `updateMultiplier function called in MasterChef contract.`,
+    alertId: "CAKE-5-5",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "MasterChef",
@@ -109,6 +109,7 @@ describe("Set Masterchef Settings bot test suite", () => {
         function: mockInterface.getFunction("mockFunction"),
         arguments: [createAddress("0x12345")]
       })
+
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([])
   });
@@ -121,6 +122,7 @@ describe("Set Masterchef Settings bot test suite", () => {
       function: iface.getFunction("setMigrator"),
       arguments: [createAddress("0x12345")],
     })
+
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([])
   })
@@ -133,6 +135,7 @@ describe("Set Masterchef Settings bot test suite", () => {
         function: iface.getFunction("setMigrator"),
         arguments: [createAddress("0x12345")]
       })
+
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([setMigrator(createAddress("0x12345"))])
   });
@@ -145,10 +148,48 @@ describe("Set Masterchef Settings bot test suite", () => {
         function: iface.getFunction("dev"),
         arguments: [createAddress("0x12345")]
       })
+
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([dev(createAddress("0x12345"))])
   });
 
+  it("should detect add function calls", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        from: mockNetworkManager.factory,
+        to: testMasterchef,
+        function: iface.getFunction("add"),
+        arguments: [5, createAddress("0x10"), "true"]
+      })
 
+    const findings: Finding[] = await handleTx(tx);
+    expect(findings).toStrictEqual([add(BigNumber.from(5), createAddress("0x10"), "true")])
+  });
+
+  it("should detect set function calls", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        from: mockNetworkManager.factory,
+        to: testMasterchef,
+        function: iface.getFunction("set"),
+        arguments: [10, 11, "true"],
+      })
+
+    const findings: Finding[] = await handleTx(tx);
+    expect(findings).toStrictEqual([set(BigNumber.from(10), BigNumber.from(11), "true")])
+  });
+
+  it("should detect updateMultiplier function calls", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        from: mockNetworkManager.factory,
+        to: testMasterchef,
+        function: iface.getFunction("updateMultiplier"),
+        arguments: [20]
+      })
+
+    const findings: Finding[] = await handleTx(tx);
+    expect(findings).toStrictEqual([updateMultiplier(BigNumber.from(20))])
+  });
 
 });
