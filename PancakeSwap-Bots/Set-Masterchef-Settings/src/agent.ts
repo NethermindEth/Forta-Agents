@@ -3,7 +3,7 @@ import { providers } from "ethers";
 import NetworkData from "./network";
 import NetworkManager from "./network";
 import utils from "./utils";
-import abi from "./abi"; 
+import abi from "./abi";
 
 const networkManager = new NetworkManager();
 

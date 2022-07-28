@@ -2,7 +2,7 @@ import { Interface } from "@ethersproject/abi";
 import { utils } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import NetWorkData from "./network";
-import abi from "./abi"; 
+import abi from "./abi";
 
 const FUNCTIONS_IFACE: Interface = new Interface(abi.CAKE_ABI);
 
@@ -29,7 +29,7 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       type: FindingType.Info,
       protocol: "MasterChef",
       metadata: {
-        _devaddr: call.args["_devaddr"].toLowerCase(), 
+        _devaddr: call.args["_devaddr"].toLowerCase(),
       },
     });
   }
@@ -43,7 +43,7 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       protocol: "MasterChef",
       metadata: {
         _allocPoint: call.args["_allocPoint"].toString(),
-        _lpToken: call.args["_lpToken"].toLowerCase(), 
+        _lpToken: call.args["_lpToken"].toLowerCase(),
         _withUpdate: call.args["_withUpdate"],
       },
     });
@@ -71,7 +71,7 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
       type: FindingType.Info,
       protocol: "MasterChef",
       metadata: {
-        multiplierNumber: call.args["multiplierNumber"].toString(), 
+        multiplierNumber: call.args["multiplierNumber"].toString(),
       },
     });
 };
