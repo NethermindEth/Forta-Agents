@@ -71,6 +71,7 @@ const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Fin
       _withUpdate: _withUpdate.toString(),
     },
   })
+  
 const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
@@ -103,6 +104,18 @@ describe("Set Masterchef Settings bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("should ignore other calls on same contract", async () => {
+    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        from: mockNetworkManager.factory,
+        to: testMasterchef,
+        function: mockInterface.getFunction("mockFunction"),
+        arguments: [createAddress("0x12345")]
+      })
+    const findings: Finding[] = await handleTx(txEvent);
+    expect(findings).toStrictEqual([])
+  });
+
   it("should detect setMigrator function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addTraces({
@@ -111,10 +124,8 @@ describe("Set Masterchef Settings bot test suite", () => {
         function: iface.getFunction("setMigrator"),
         arguments: [createAddress("0x12345")]
       })
-
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([setMigrator(createAddress("0x12345"))])
-
   });
 
 
