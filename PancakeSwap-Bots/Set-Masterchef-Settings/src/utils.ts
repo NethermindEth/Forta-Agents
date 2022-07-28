@@ -2,6 +2,7 @@ import { Interface } from "@ethersproject/abi";
 import { utils } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import NetWorkData from "./network";
+import abi from "./abi"; 
 
 const FUNCTIONS_ABI: string[] = [
   "function setMigrator(address _migrator)",
@@ -11,7 +12,7 @@ const FUNCTIONS_ABI: string[] = [
   "function updateMultiplier(uint256 multiplierNumber)",
 ];
 
-const FUNCTIONS_IFACE: Interface = new Interface(FUNCTIONS_ABI);
+const FUNCTIONS_IFACE: Interface = new Interface(abi.CAKE_ABI);
 
 const createFinding = (call: utils.TransactionDescription, contract: NetWorkData): Finding => {
   if (call.name == "setMigrator") {
