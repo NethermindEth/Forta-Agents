@@ -3,7 +3,9 @@ import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEv
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
 import { handleTransaction } from "./agent";
+import { BigNumber } from "ethers";
 import NetworkManager from "./network";
+
 import abi from "./abi";
 
 
@@ -14,7 +16,7 @@ const MOCK_ABI: string[] = [
 const testFrom = createAddress("0x0");
 const testMasterchef: string = createAddress("0x01");
 
-const setMigrator = (address: string): Finding =>
+const setMigrator = (_migrator: string): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
     description: `setMigrator function called in MasterChef contract.`,
@@ -23,9 +25,64 @@ const setMigrator = (address: string): Finding =>
     type: FindingType.Info,
     protocol: "MasterChef",
     metadata: {
-      _migrator: address.toLowerCase(),
+      _migrator: _migrator.toLowerCase(),
     },
   });
+
+const dev = (_devaddr: string): Finding =>
+  Finding.fromObject({
+    name: "MasterChef Settings",
+    description: `dev function called in MasterChef contract.`,
+    alertId: "CAKE-5-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "MasterChef",
+    metadata: {
+      _devaddr: _devaddr.toLowerCase(),
+    },
+  })
+
+const add = (_allocpoint: BigNumber, _lpToken: string, _withUpdate: boolean): Finding =>
+  Finding.fromObject({
+    name: "MasterChef Settings",
+    description: `dev function called in MasterChef contract.`,
+    alertId: "CAKE-5-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "MasterChef",
+    metadata: {
+      _allocpoint: _allocpoint.toString(),
+      _lpToken: _lpToken.toLowerCase(),
+      _withUpdate: _withUpdate.toString(),
+    },
+  })
+
+const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Finding =>
+  Finding.fromObject({
+    name: "MasterChef Settings",
+    description: `dev function called in MasterChef contract.`,
+    alertId: "CAKE-5-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "MasterChef",
+    metadata: {
+      _pid: _pid.toString(),
+      _allocPoint: _allocPoint.toString(),
+      _withUpdate: _withUpdate.toString(),
+    },
+  })
+const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
+  Finding.fromObject({
+    name: "MasterChef Settings",
+    description: `dev function called in MasterChef contract.`,
+    alertId: "CAKE-5-2",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    protocol: "MasterChef",
+    metadata: {
+      multiplierNumber: multiplierNumber.toString(),
+    },
+  })
 
 describe("Set Masterchef Settings bot test suite", () => {
   const iface = new Interface(abi.CAKE_ABI);
@@ -46,22 +103,10 @@ describe("Set Masterchef Settings bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  // it("should detect setMigrator function calls", async () => {
-  //   const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-  //     to: mockNetworkManager.factory,
-  //     from: createAddress("0x123"),
-  //     // function: utils.FunctionFragment.from("setMigrator"),
-  //     function: iface.encodeFunctionData("setMigrator", [createAddress("0x1234")]),
-  //   })
-  //   const findings: Finding[] = await handleTx(tx);
-  //   expect(findings).toStrictEqual(setMigrator(createAddress("0x123")))
-
-  // });
-
   it("should detect setMigrator function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addTraces({
-        from: testFrom,
+        from: mockNetworkManager.factory,
         to: testMasterchef,
         function: iface.getFunction("setMigrator"),
         arguments: [createAddress("0x12345")]
