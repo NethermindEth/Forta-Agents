@@ -1,26 +1,45 @@
 import { Finding, TransactionEvent, FindingSeverity, FindingType, ethers, getEthersProvider } from "forta-agent";
-import util from "./utils";
+import { NetworkData, SWAP_EVENT, aggregatorV3InterfaceABI } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
+import { CONFIG, GRACE_TRADES, PROFIT_RATIO } from "./agent.config";
 
-const networkManager = new NetworkManager(util.data);
+const networkManager = new NetworkManager(CONFIG);
 
 //Maps addresses to their trade history [numberOfProfitableTrades, numberOfTrades, profitSoFar]
-let tradeHistory = new Map<string, [number, number, number]>([]);
+const tradeHistory = new Map<string, [number, number, number]>([]);
 
-let priceFeedCache = new Map<[string, number], number>([]);
+const priceFeedCache = new Map<[string, number], number>([]);
 
-let priceFeeds = new Map<string, ethers.Contract>([]);
+const priceFeeds = new Map<string, ethers.Contract>([]);
+
+const priceFeedData = {};
+
 export const initialize = (provider: ethers.providers.Provider, priceFeedData: any) => async () => {
   await networkManager.init(provider);
-  priceFeeds.set("0x82af49447d8a07e3bd95bd0d56f35241523fbab1", priceFeedData.wethPriceFeed); //WETH
-  priceFeeds.set("0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", priceFeedData.wbtcPriceFeed); //WBTC
-  priceFeeds.set("0xf97f4df75117a78c1a5a0dbb814af92458539fb4", priceFeedData.linkPriceFeed); //LINK
-  priceFeeds.set("0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0", priceFeedData.uniPriceFeed); //UNI
-  priceFeeds.set("0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", priceFeedData.usdcPriceFeed); //USDC
-  priceFeeds.set("0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9", priceFeedData.usdtPriceFeed); //USDT
-  priceFeeds.set("0xda10009cbd5d07dd0cecc66161fc93d7c9000da1", priceFeedData.daiPriceFeed); //DAI
-  priceFeeds.set("0x17fc002b466eec40dae837fc4be5c67993ddbd6f", priceFeedData.fraxPriceFeed); //FRAX
-  priceFeeds.set("0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a", priceFeedData.mimPriceFeed); //MIM
+  const tokens = networkManager.get("tokens");
+  const priceFeed = networkManager.get("priceFeed");
+
+  priceFeedData = {
+    wethPriceFeed: new ethers.Contract(priceFeed.WETH, aggregatorV3InterfaceABI, provider),
+    wbtcPriceFeed: new ethers.Contract(priceFeed.WBTC, aggregatorV3InterfaceABI, provider),
+    linkPriceFeed: new ethers.Contract(priceFeed.LINK, aggregatorV3InterfaceABI, provider),
+    uniPriceFeed: new ethers.Contract(priceFeed.UNI, aggregatorV3InterfaceABI, provider),
+    usdcPriceFeed: new ethers.Contract(priceFeed.USDC, aggregatorV3InterfaceABI, provider),
+    usdtPriceFeed: new ethers.Contract(priceFeed.USDT, aggregatorV3InterfaceABI, provider),
+    daiPriceFeed: new ethers.Contract(priceFeed.DAI, aggregatorV3InterfaceABI, provider),
+    fraxPriceFeed: new ethers.Contract(priceFeed.FRAX, aggregatorV3InterfaceABI, provider),
+    mimPriceFeed: new ethers.Contract(priceFeed.MIM, aggregatorV3InterfaceABI, provider),
+  };
+
+  priceFeeds.set(tokens.WETH, priceFeedData.wethPriceFeed);
+  priceFeeds.set(tokens.WBTC, priceFeedData.wbtcPriceFeed);
+  priceFeeds.set(tokens.LINK, priceFeedData.linkPriceFeed);
+  priceFeeds.set(tokens.UNI, priceFeedData.uniPriceFeed);
+  priceFeeds.set(tokens.USDC, priceFeedData.usdcPriceFeed);
+  priceFeeds.set(tokens.USDT, priceFeedData.usdtPriceFeed);
+  priceFeeds.set(tokens.DAI, priceFeedData.daiPriceFeed);
+  priceFeeds.set(tokens.FRAX, priceFeedData.fraxPriceFeed);
+  priceFeeds.set(tokens.MIM, priceFeedData.mimPriceFeed);
 };
 
 export const provideHandleTx =
@@ -38,26 +57,14 @@ export const provideHandleTx =
         if (priceFeedCache.has([tokenIn.toLowerCase(), txEvent.blockNumber])) {
           unitPriceIn = priceFeedCache.get([tokenIn.toLowerCase(), txEvent.blockNumber])!;
         } else {
-          const {
-            roundId: roundIdIn,
-            answer: answerIn,
-            startedAt: startedAtIn,
-            updatedAt: updatedAtIn,
-            answeredInRound: answeredInRoundIn,
-          } = await priceFeeds.get(tokenIn.toLowerCase())!.latestRoundData();
+          const { answer: answerIn } = await priceFeeds.get(tokenIn.toLowerCase())!.latestRoundData();
           priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerIn);
           unitPriceIn = answerIn;
         }
         if (priceFeedCache.has([tokenOut.toLowerCase(), txEvent.blockNumber])) {
           unitPriceOut = priceFeedCache.get([tokenOut.toLowerCase(), txEvent.blockNumber])!;
         } else {
-          const {
-            roundId: roundIdOut,
-            answer: answerOut,
-            startedAt: startedAtOut,
-            updatedAt: updatedAtOut,
-            answeredInRound: answeredInRoundOut,
-          } = await priceFeeds.get(tokenOut.toLowerCase())!.latestRoundData();
+          const { answer: answerOut } = await priceFeeds.get(tokenOut.toLowerCase())!.latestRoundData();
           priceFeedCache.set([tokenIn.toLowerCase(), txEvent.blockNumber], answerOut);
           unitPriceOut = answerOut;
         }
@@ -79,7 +86,7 @@ export const provideHandleTx =
           tradeHistory.set(account, [profitableTrades, totalTrades, totalProfit]);
 
           //if an account using gmx has an unusual amount of profitable trades, report it
-          if (profitableTrades / totalTrades >= util.PROFIT_RATIO && totalTrades > util.GRACE_TRADES) {
+          if (profitableTrades / totalTrades >= PROFIT_RATIO && totalTrades > GRACE_TRADES) {
             findings.push(
               Finding.fromObject({
                 name: "Unusual amount of profitable trades",
@@ -114,6 +121,6 @@ export const provideHandleTx =
   };
 
 export default {
-  initialize: initialize(util.provider, util.priceFeedData),
-  handleTransaction: provideHandleTx(networkManager, util.SWAP_EVENT, priceFeeds),
+  initialize: initialize(getEthersProvider(), priceFeedData),
+  handleTransaction: provideHandleTx(networkManager, SWAP_EVENT, priceFeeds),
 };
