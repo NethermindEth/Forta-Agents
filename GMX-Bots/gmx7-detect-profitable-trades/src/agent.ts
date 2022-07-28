@@ -1,5 +1,13 @@
-import { Finding, TransactionEvent, FindingSeverity, FindingType, ethers, getEthersProvider } from "forta-agent";
-import { NetworkData, SWAP_EVENT, aggregatorV3InterfaceABI } from "./utils";
+import {
+  Finding,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+  ethers,
+  getEthersProvider,
+  HandleTransaction,
+} from "forta-agent";
+import { SWAP_EVENT, aggregatorV3InterfaceABI } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { CONFIG, GRACE_TRADES, PROFIT_RATIO } from "./agent.config";
 
@@ -42,8 +50,8 @@ export const initialize = (provider: ethers.providers.Provider, priceFeedData: a
   priceFeeds.set(tokens.MIM, priceFeedData.mimPriceFeed);
 };
 
-export const provideHandleTx =
-  (networkManager: any, swapEvent: string, priceFeeds: any) => async (txEvent: TransactionEvent) => {
+export const provideHandleTx = (networkManager: any, swapEvent: string, priceFeeds: any): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
 
@@ -119,6 +127,7 @@ export const provideHandleTx =
     }
     return findings;
   };
+};
 
 export default {
   initialize: initialize(getEthersProvider(), priceFeedData),
