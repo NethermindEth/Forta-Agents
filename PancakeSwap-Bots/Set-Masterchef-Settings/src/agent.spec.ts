@@ -71,7 +71,7 @@ const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Fin
       _withUpdate: _withUpdate.toString(),
     },
   })
-  
+
 const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
@@ -99,22 +99,34 @@ describe("Set Masterchef Settings bot test suite", () => {
   );
 
   it("should ignore empty transactions", async () => {
-    const txEvent: TestTransactionEvent = new TestTransactionEvent()
-    const findings: Finding[] = await handleTx(txEvent);
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+    const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([]);
   });
 
   it("should ignore other calls on same contract", async () => {
-    const txEvent: TestTransactionEvent = new TestTransactionEvent()
+    const tx: TestTransactionEvent = new TestTransactionEvent()
       .addTraces({
         from: mockNetworkManager.factory,
         to: testMasterchef,
         function: mockInterface.getFunction("mockFunction"),
         arguments: [createAddress("0x12345")]
       })
-    const findings: Finding[] = await handleTx(txEvent);
+    const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([])
   });
+
+  it("should ignore setMigrator calls on other contracts", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+    .addTraces({
+      from:mockNetworkManager.factory,
+      to: createAddress("0x99"),
+      function: iface.getFunction("setMigrator"),
+      arguments: [createAddress("0x12345")],
+    })
+    const findings: Finding[] = await handleTx(tx);
+    expect(findings).toStrictEqual([])
+  })
 
   it("should detect setMigrator function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
