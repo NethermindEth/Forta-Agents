@@ -34,7 +34,7 @@ const handler = provideHandleTx(
   mockPriceFeed as unknown as Map<string, ethers.Contract>
 );
 
-describe("sandwich attack frontrun agent", () => {
+describe("Unusual amount of profitable account detection test suite", () => {
   const eventGain = TEST_IFACE.getEvent("Swap");
   const logGain = TEST_IFACE.encodeEventLog(eventGain, [
     createAddress("0xf0"),
