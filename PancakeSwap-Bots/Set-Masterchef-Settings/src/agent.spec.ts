@@ -150,7 +150,7 @@ describe("Set Masterchef Settings bot test suite", () => {
       from: mockNetworkManager.factory,
       to: testMasterchef,
       function: iface.getFunction("add"),
-      arguments: [5, createAddress("0x10"), "true"],
+      arguments: [5, createAddress("0x10"), true],
     });
 
     const findings: Finding[] = await handleTx(tx);
@@ -162,7 +162,7 @@ describe("Set Masterchef Settings bot test suite", () => {
       from: mockNetworkManager.factory,
       to: testMasterchef,
       function: iface.getFunction("set"),
-      arguments: [10, 11, "true"],
+      arguments: [10, 11, true],
     });
 
     const findings: Finding[] = await handleTx(tx);
@@ -199,13 +199,13 @@ describe("Set Masterchef Settings bot test suite", () => {
         from: mockNetworkManager.factory,
         to: testMasterchef,
         function: iface.getFunction("add"),
-        arguments: [5, createAddress("0x10"), "true"],
+        arguments: [5, createAddress("0x10"), true],
       })
       .addTraces({
         from: mockNetworkManager.factory,
         to: testMasterchef,
         function: iface.getFunction("set"),
-        arguments: [10, 11, "true"],
+        arguments: [10, 11, true],
       })
       .addTraces({
         from: mockNetworkManager.factory,

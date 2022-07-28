@@ -64,7 +64,7 @@ This bot detects the following Masterchef function calls:
 		
 ## Test Data
 
-The bot behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following testnet transactions:
 
 [0xd111537a2d8ab1f5c13f14e5ef55bdbeb3711d745b4518653e73b8ca05593100](https://testnet.bscscan.com/tx/0xd111537a2d8ab1f5c13f14e5ef55bdbeb3711d745b4518653e73b8ca05593100)(expect 1 finding: setMigrator)
 [0xf58dadc470052f0852b5487d28c999f5206943ee313d339a4223bc371ac284e5](https://testnet.bscscan.com/tx/0xf58dadc470052f0852b5487d28c999f5206943ee313d339a4223bc371ac284e5)(expect 1 finding: dev)
