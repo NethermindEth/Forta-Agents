@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects accounts using GMX that have an unusual amount of profitable swaps. By default this is 90% but it can be changed.
+This bot detects accounts using GMX that have an unusual amount of profitable swaps. By default this is 90% but it can be set by `PROFIT_RATIO` variable in `src/agent.config.ts`.
 
 ## Supported Chains
 
