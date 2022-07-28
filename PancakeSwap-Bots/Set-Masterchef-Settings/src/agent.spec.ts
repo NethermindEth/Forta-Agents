@@ -5,15 +5,12 @@ import { createAddress } from "forta-agent-tools";
 import { handleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import NetworkManager from "./network";
-
 import abi from "./abi";
-
 
 const MOCK_ABI: string[] = [
   "function mockFunction(address mockAddress)",
 ];
 
-const testFrom = createAddress("0x0");
 const testMasterchef: string = createAddress("0x01");
 
 const setMigrator = (_migrator: string): Finding =>
@@ -139,6 +136,19 @@ describe("Set Masterchef Settings bot test suite", () => {
     const findings: Finding[] = await handleTx(tx);
     expect(findings).toStrictEqual([setMigrator(createAddress("0x12345"))])
   });
+
+  it("should detect dev function calls", async () => {
+    const tx: TransactionEvent = new TestTransactionEvent()
+      .addTraces({
+        from: mockNetworkManager.factory,
+        to: testMasterchef,
+        function: iface.getFunction("dev"),
+        arguments: [createAddress("0x12345")]
+      })
+    const findings: Finding[] = await handleTx(tx);
+    expect(findings).toStrictEqual([dev(createAddress("0x12345"))])
+  });
+
 
 
 });
