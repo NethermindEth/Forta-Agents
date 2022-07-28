@@ -1,6 +1,6 @@
 import { FindingType, FindingSeverity, Finding, ethers, getEthersProvider, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
-import { provideHandleTx, initialize } from "./agent";
+import { provideHandleTx } from "./agent";
 import { createAddress } from "forta-agent-tools/lib/tests";
 import { Interface } from "@ethersproject/abi";
 
