@@ -72,8 +72,8 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
     });
   } else
     return Finding.fromObject({
-      name: "ApeFactory FeeTo setter address changed",
-      description: `${call.name} function called in ApeFactory contract.`,
+      name: "MasterChef Settings",
+      description: `${call.name} function called in MasterChef contract.`,
       alertId: "CAKE-5-5",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
