@@ -3,6 +3,7 @@ import { providers } from "ethers";
 import NetworkData from "./network";
 import NetworkManager from "./network";
 import utils from "./utils";
+import abi from "./abi"; 
 
 const networkManager = new NetworkManager();
 
@@ -15,7 +16,7 @@ export const handleTransaction =
   (contractAddress: NetworkData): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const functionCalls = txEvent.filterFunction(utils.FUNCTIONS_ABI, contractAddress.factory);
+    const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, contractAddress.factory);
 
     functionCalls.forEach((functionCall) => {
       findings.push(utils.createFinding(functionCall, contractAddress));

@@ -4,14 +4,6 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 import NetWorkData from "./network";
 import abi from "./abi"; 
 
-const FUNCTIONS_ABI: string[] = [
-  "function setMigrator(address _migrator)",
-  "function dev(address _devaddr)",
-  "function add(uint256 _allocPoint, address _lpToken, bool _withUpdate)",
-  "function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate)",
-  "function updateMultiplier(uint256 multiplierNumber)",
-];
-
 const FUNCTIONS_IFACE: Interface = new Interface(abi.CAKE_ABI);
 
 const createFinding = (call: utils.TransactionDescription, contract: NetWorkData): Finding => {
@@ -85,7 +77,6 @@ const createFinding = (call: utils.TransactionDescription, contract: NetWorkData
 };
 
 export default {
-  FUNCTIONS_ABI,
   FUNCTIONS_IFACE,
   createFinding,
 };
