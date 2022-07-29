@@ -39,7 +39,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       metadata: {
         _allocPoint: call.args["_allocPoint"].toString(),
         _lpToken: call.args["_lpToken"].toLowerCase(),
-        _withUpdate: call.args["_withUpdate"],
+        _withUpdate: call.args["_withUpdate"].toString(),
       },
     });
   }
@@ -54,7 +54,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       metadata: {
         _pid: call.args["_pid"].toString(),
         _allocPoint: call.args["_allocPoint"].toString(),
-        _withUpdate: call.args["_withUpdate"],
+        _withUpdate: call.args["_withUpdate"].toString(),
       },
     });
   } else
