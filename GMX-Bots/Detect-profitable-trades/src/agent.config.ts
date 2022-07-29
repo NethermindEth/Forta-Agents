@@ -3,8 +3,9 @@ import { AgentConfig } from "./utils";
 
 export const CONFIG: AgentConfig = {
   [Network.ARBITRUM]: {
-    address: "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064",
-    // Token addresses in Arbitrum network
+    // GMX Vault address
+    address: "0x489ee077994B6658eAfA855C308275EAd8097C4A",
+    // Token addresses
     tokens: {
       WETH: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
       WBTC: "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f",
@@ -16,7 +17,7 @@ export const CONFIG: AgentConfig = {
       FRAX: "0x17fc002b466eec40dae837fc4be5c67993ddbd6f",
       MIM: "0xfea7a6a0b346362bf88a9e4a88416b77a57d6c2a",
     },
-    // Chainlink Arbitrum USD data feed
+    // Chainlink USD data feed
     priceFeed: {
       WETH: "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
       WBTC: "0x6ce185860a4963106506c203335a2910413708e9",
@@ -30,8 +31,9 @@ export const CONFIG: AgentConfig = {
     },
   },
   [Network.AVALANCHE]: {
-    address: "0x5f719c2f1095f7b9fc68a68e35b51194f4b6abe8",
-    // Token addresses in Avalanche network
+    // GMX Vault address
+    address: "0x9ab2De34A33fB459b538c43f251eB825645e8595",
+    // Token addresses
     tokens: {
       WETH: "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB",
       WBTC: "0x408d4cd0adb7cebd1f1a1c33a0ba2098e1295bab",
@@ -43,7 +45,7 @@ export const CONFIG: AgentConfig = {
       FRAX: "0xdc42728b0ea910349ed3c6e1c9dc06b5fb591f98",
       MIM: "0x130966628846bfd36ff31a822705796e8cb8c18d",
     },
-    // Chainlink Avalanche USD data feed
+    // Chainlink USD data feed
     priceFeed: {
       WETH: "0x976b3d034e162d8bd72d6b9c989d545b839003b0",
       WBTC: "0x2779d32d5166baaa2b2b658333ba7e6ec0c65743",
