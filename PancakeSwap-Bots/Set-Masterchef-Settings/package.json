@@ -1,7 +1,7 @@
 {
   "name": "set-masterchef-settings-bot",
   "version": "0.0.1",
-  "description": "Detects function calls that modify settings in the Masterchef contract",
+  "description": "Detects function calls that modify settings in the PancakeSwap Masterchef contract",
   "chainIds": [
     56,
     97
