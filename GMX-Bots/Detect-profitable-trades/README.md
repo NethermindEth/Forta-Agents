@@ -1,8 +1,8 @@
-# Frontrun
+# High Percentage of Profitable Trade Detection Bot
 
 ## Description
 
-This bot detects accounts using GMX that have an unusual amount of profitable swaps. By default this is 90% but it can be set by `PROFIT_RATIO` variable in `src/agent.config.ts`.
+This bot detects accounts using GMX that have an unusual amount of profitable swaps.
 
 ## Supported Chains
 
@@ -22,10 +22,9 @@ This bot detects accounts using GMX that have an unusual amount of profitable sw
     - `totalProfit`: Total profit of the account, calculated from previous trades (in USD).
 
 ## Changing Profitable Trades Ratio & Grace Period
-By default this ratio is set to trigger the bot when an account has more than 90% of profitable trades. This ratio can be changed in the `utils.ts` file. Similarly, the grace period is set by default to 5 trades, but can be changed in the `utils.ts` file.
+
+By default this ratio is set to trigger the bot when an account has more than 90% of profitable trades. This ratio can be changed in the `src/agent.config.ts` file. Similarly, the grace period is set by default to 5 trades, but can be changed in the `src/agent.config.ts` file.
 
 ## Test Data
 
-The bot behaviour can be verified with the following transactions:
-
-- Currently no transactions have been found
+Currently no transactions have been found
