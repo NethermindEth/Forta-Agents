@@ -28,7 +28,7 @@ let mockPriceFeed = {
   }),
 };
 
-describe("Unusual amount of profitable account detection test suite", () => {
+describe("Unusual amount of profitable account detection bot test suite", () => {
   let handler: HandleTransaction;
   const tradeHistory = new Map<string, [number, number, number]>([]);
 
