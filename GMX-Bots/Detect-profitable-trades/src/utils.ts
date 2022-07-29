@@ -7,7 +7,7 @@ export interface NetworkData {
 export type AgentConfig = Record<number, NetworkData>;
 
 export const SWAP_EVENT =
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
+  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, uint256 amountOutAfterFees, uint256 feeBasisPoints)";
 
 export const aggregatorV3InterfaceABI = [
   {
