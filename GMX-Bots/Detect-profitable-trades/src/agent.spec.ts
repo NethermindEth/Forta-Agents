@@ -1,4 +1,4 @@
-import { FindingType, FindingSeverity, Finding, ethers, getEthersProvider, TransactionEvent } from "forta-agent";
+import { FindingType, FindingSeverity, Finding, ethers, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/tests";
 import { provideHandleTx } from "./agent";
 import { createAddress } from "forta-agent-tools/lib/tests";
@@ -28,13 +28,10 @@ let mockPriceFeed = {
   }),
 };
 
-const handler = provideHandleTx(
-  MOCK_NETWORK_MANAGER,
-  MOCK_SWAP_EVENT,
-  mockPriceFeed as unknown as Map<string, ethers.Contract>
-);
-
 describe("Unusual amount of profitable account detection test suite", () => {
+  let handler: HandleTransaction;
+  const tradeHistory = new Map<string, [number, number, number]>([]);
+
   const eventGain = TEST_IFACE.getEvent("Swap");
   const logGain = TEST_IFACE.encodeEventLog(eventGain, [
     createAddress("0xf0"),
@@ -44,37 +41,44 @@ describe("Unusual amount of profitable account detection test suite", () => {
     1,
   ]);
 
-  describe("handleTransaction", () => {
-    //empty findings
+  beforeEach(() => {
+    tradeHistory.clear();
 
-    it("returns empty findings if there are no swap events to a non-router address", async () => {
-      const transaction: TransactionEvent = new TestTransactionEvent()
-        .setFrom(createAddress("0x0f"))
-        .setTo(createAddress("0x0f"));
-      const findings = await handler(transaction);
+    handler = provideHandleTx(
+      MOCK_NETWORK_MANAGER,
+      MOCK_SWAP_EVENT,
+      mockPriceFeed as unknown as Map<string, ethers.Contract>,
+      tradeHistory
+    );
+  });
 
-      expect(findings).toStrictEqual([]);
-    });
+  it("returns empty findings if there are no swap events to a non-vault address", async () => {
+    const transaction: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(createAddress("0x0f"));
+    const findings = await handler(transaction);
 
-    it("returns empty findings if there are no swap events to a router address", async () => {
-      const transaction: TransactionEvent = new TestTransactionEvent()
-        .setFrom(createAddress("0x0f"))
-        .setTo(MOCK_GMX_ROUTER_ADDRESS);
-      const findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-    });
+  it("returns empty findings if there are no swap events to the vault address", async () => {
+    const transaction: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(MOCK_GMX_ROUTER_ADDRESS);
+    const findings = await handler(transaction);
 
-    it("returns empty findings if there are swap events to a non-router address", async () => {
-      const transaction1: TransactionEvent = new TestTransactionEvent()
-        .setFrom(createAddress("0xf0"))
-        .setTo(createAddress("0x0f"))
-        .setBlock(1)
-        .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
-      const findings = await handler(transaction1);
+    expect(findings).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-    });
+  it("returns empty findings if there are swap events to a non-vault address", async () => {
+    const transaction1: TransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0xf0"))
+      .setTo(createAddress("0x0f"))
+      .setBlock(1)
+      .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
+    const findings = await handler(transaction1);
+
+    expect(findings).toStrictEqual([]);
   });
 
   it("returns empty findings if there is an account with a suspicious amount of profitable trades but not above the grace period", async () => {
@@ -129,9 +133,12 @@ describe("Unusual amount of profitable account detection test suite", () => {
         answeredInRound: 4,
       });
     let findings = await handler(transaction);
-    findings = await handler(transaction);
-    findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
 
+    findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
+    findings = await handler(transaction);
     expect(findings).toStrictEqual([]);
   });
 
@@ -187,13 +194,12 @@ describe("Unusual amount of profitable account detection test suite", () => {
         answeredInRound: 4,
       });
     let findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
     findings = await handler(transaction);
-
     expect(findings).toStrictEqual([]);
   });
-
-  //Transaction found
 
   it("returns findings if there is an account with a suspicious amount of profitable trades", async () => {
     const transaction: TransactionEvent = new TestTransactionEvent()
@@ -206,14 +212,14 @@ describe("Unusual amount of profitable account detection test suite", () => {
       .get()
       .latestRoundData.mockReturnValueOnce({
         roundId: 0,
-        answer: 100000000,
+        answer: 2000000000000,
         startedAt: 2,
         updatedAt: 3,
         answeredInRound: 4,
       })
       .mockReturnValueOnce({
         roundId: 0,
-        answer: 2000000000000,
+        answer: 100000000,
         startedAt: 2,
         updatedAt: 3,
         answeredInRound: 4,
@@ -345,78 +351,51 @@ describe("Unusual amount of profitable account detection test suite", () => {
         answeredInRound: 4,
       });
     let findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
+    expect(findings).toStrictEqual([]);
+
     findings = await handler(transaction);
 
     expect(findings).toStrictEqual([
       Finding.fromObject({
         name: "Unusual amount of profitable trades",
-        description: `User ${createAddress("0xf0").toLowerCase()} has a ${(15 / 16) * 100}% profitable trade ratio`,
+        description: `User ${createAddress("0xf0").toLowerCase()} has a ${(9 / 10) * 100}% profitable trade ratio`,
         alertId: "GMX-07",
         protocol: "GMX",
         severity: FindingSeverity.Medium,
         type: FindingType.Suspicious,
         metadata: {
           account: createAddress("0xf0").toLowerCase(),
-          profitableTrades: "15",
-          totalTrades: "16",
-          totalProfit: "298985", //in USD
+          profitableTrades: "9",
+          totalTrades: "10",
+          totalProfit: "159992", //in USD
         },
       }),
     ]);
   });
-
-  it("returns findings if there is still a suspicious amount of profitable trades", async () => {
-    const transaction: TransactionEvent = new TestTransactionEvent()
-      .setFrom(createAddress("0xf0"))
-      .setTo(MOCK_GMX_ROUTER_ADDRESS)
-      .setBlock(1)
-      .addEventLog(eventGain.format("sighash"), createAddress("0x0"), logGain.data, ...logGain.topics.slice(1));
-
-    mockPriceFeed
-      .get()
-      .latestRoundData.mockReturnValueOnce({
-        roundId: 0,
-        answer: 100000000,
-        startedAt: 2,
-        updatedAt: 3,
-        answeredInRound: 4,
-      })
-      .mockReturnValueOnce({
-        roundId: 0,
-        answer: 2000000000000,
-        startedAt: 2,
-        updatedAt: 3,
-        answeredInRound: 4,
-      });
-    let findings = await handler(transaction);
-
-    expect(findings).toStrictEqual([
-      Finding.fromObject({
-        name: "Unusual amount of profitable trades",
-        description: `User ${createAddress("0xf0").toLowerCase()} has a ${(16 / 17) * 100}% profitable trade ratio`,
-        alertId: "GMX-07",
-        protocol: "GMX",
-        severity: FindingSeverity.Medium,
-        type: FindingType.Suspicious,
-        metadata: {
-          account: createAddress("0xf0").toLowerCase(),
-          profitableTrades: "16",
-          totalTrades: "17",
-          totalProfit: "318984", //in USD
-        },
-      }),
-    ]);
-  });
-
-  //empty findings (again)
 
   it("returns empty findings if the amount of profitable trades is no longer suspicious", async () => {
     const transaction: TransactionEvent = new TestTransactionEvent()

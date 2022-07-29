@@ -50,13 +50,18 @@ export const initialize = (provider: ethers.providers.Provider, priceFeedData: a
   priceFeeds.set(tokens.MIM, priceFeedData.mimPriceFeed);
 };
 
-export const provideHandleTx = (networkManager: any, swapEvent: string, priceFeeds: any): HandleTransaction => {
+export const provideHandleTx = (
+  networkManager: any,
+  swapEvent: string,
+  priceFeeds: any,
+  tradeHistory: Map<string, [number, number, number]>
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const swapEvents = txEvent.filterLog(swapEvent);
 
-    //detect calls to the GMX router
-    if (txEvent.to == networkManager.get("address")) {
+    //detect calls to the GMX Vault
+    if (txEvent.to === networkManager.get("address")) {
       for (let i = 0; i < swapEvents.length; i++) {
         const { account, tokenIn, tokenOut, amountIn, amountOut } = swapEvents[i].args;
 
@@ -131,5 +136,5 @@ export const provideHandleTx = (networkManager: any, swapEvent: string, priceFee
 
 export default {
   initialize: initialize(getEthersProvider(), priceFeedData),
-  handleTransaction: provideHandleTx(networkManager, SWAP_EVENT, priceFeeds),
+  handleTransaction: provideHandleTx(networkManager, SWAP_EVENT, priceFeeds, tradeHistory),
 };
