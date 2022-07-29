@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects the following Masterchef function calls: 
+This bot detects the following PancakeSwap Masterchef function calls: 
 
 - `function setMigrator(IMigratorChef _migrator)`
 - `function dev(address _devaddr)`
