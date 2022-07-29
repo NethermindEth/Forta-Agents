@@ -10,7 +10,7 @@ const ABI: string[] = [
 
 const TEST_IFACE: Interface = new Interface(ABI);
 
-const MOCK_GMX_ROUTER_ADDRESS = "0xabbc5f99639c9b6bcb58544ddf04efa6802f4064";
+const MOCK_GMX_ROUTER_ADDRESS = createAddress("0x1");
 const MOCK_NETWORK_MANAGER = {
   get: jest.fn().mockReturnValue(MOCK_GMX_ROUTER_ADDRESS),
 };
@@ -35,8 +35,8 @@ describe("Unusual amount of profitable account detection test suite", () => {
   const eventGain = TEST_IFACE.getEvent("Swap");
   const logGain = TEST_IFACE.encodeEventLog(eventGain, [
     createAddress("0xf0"),
-    "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8", //USDC
-    "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", //WBTC
+    createAddress("0x2"), //USDC
+    createAddress("0x3"), //WBTC
     1,
     1,
   ]);
