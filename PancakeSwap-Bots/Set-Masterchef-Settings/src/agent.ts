@@ -16,7 +16,7 @@ export const handleTransaction =
   (contractAddress: NetworkData): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, contractAddress.factory);
+    const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, contractAddress.masterChef);
 
     functionCalls.forEach((functionCall) => {
       findings.push(utils.createFinding(functionCall));

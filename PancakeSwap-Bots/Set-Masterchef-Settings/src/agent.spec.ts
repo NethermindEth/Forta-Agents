@@ -85,7 +85,7 @@ describe("Set Masterchef Settings bot test suite", () => {
   const mockInterface = new Interface(MOCK_ABI);
 
   const mockNetworkManager: NetworkManager = {
-    factory: testMasterchef,
+    masterChef: testMasterchef,
     setNetwork: jest.fn(),
   };
 
@@ -99,7 +99,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should ignore other calls on same contract", async () => {
     const tx: TestTransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: mockInterface.getFunction("mockFunction"),
       arguments: [createAddress("0x12345")],
@@ -111,7 +111,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should ignore setMigrator calls on other contracts", async () => {
     const tx: TestTransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: createAddress("0x99"),
       function: iface.getFunction("setMigrator"),
       arguments: [createAddress("0x12345")],
@@ -123,7 +123,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should detect setMigrator function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: iface.getFunction("setMigrator"),
       arguments: [createAddress("0x12345")],
@@ -135,7 +135,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should detect dev function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: iface.getFunction("dev"),
       arguments: [createAddress("0x12345")],
@@ -147,7 +147,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should detect add function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: iface.getFunction("add"),
       arguments: [5, createAddress("0x10"), true],
@@ -159,7 +159,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should detect set function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: iface.getFunction("set"),
       arguments: [10, 11, true],
@@ -171,7 +171,7 @@ describe("Set Masterchef Settings bot test suite", () => {
 
   it("should detect updateMultiplier function calls", async () => {
     const tx: TransactionEvent = new TestTransactionEvent().addTraces({
-      from: mockNetworkManager.factory,
+      from: mockNetworkManager.masterChef,
       to: testMasterchef,
       function: iface.getFunction("updateMultiplier"),
       arguments: [20],
@@ -184,31 +184,31 @@ describe("Set Masterchef Settings bot test suite", () => {
   it("should detect every function call", async () => {
     const tx: TransactionEvent = new TestTransactionEvent()
       .addTraces({
-        from: mockNetworkManager.factory,
+        from: mockNetworkManager.masterChef,
         to: testMasterchef,
         function: iface.getFunction("setMigrator"),
         arguments: [createAddress("0x12345")],
       })
       .addTraces({
-        from: mockNetworkManager.factory,
+        from: mockNetworkManager.masterChef,
         to: testMasterchef,
         function: iface.getFunction("dev"),
         arguments: [createAddress("0x12345")],
       })
       .addTraces({
-        from: mockNetworkManager.factory,
+        from: mockNetworkManager.masterChef,
         to: testMasterchef,
         function: iface.getFunction("add"),
         arguments: [5, createAddress("0x10"), true],
       })
       .addTraces({
-        from: mockNetworkManager.factory,
+        from: mockNetworkManager.masterChef,
         to: testMasterchef,
         function: iface.getFunction("set"),
         arguments: [10, 11, true],
       })
       .addTraces({
-        from: mockNetworkManager.factory,
+        from: mockNetworkManager.masterChef,
         to: testMasterchef,
         function: iface.getFunction("updateMultiplier"),
         arguments: [20],

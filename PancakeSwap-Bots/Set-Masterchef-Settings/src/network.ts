@@ -1,14 +1,14 @@
 interface NetworkData {
-  factory: string;
+  masterChef: string;
 }
 
 const BSC_MAINNET_DATA: NetworkData = {
-  factory: "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
+  masterChef: "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
 };
 
 //PoC
 const BSC_TESTNET_DATA: NetworkData = {
-  factory: "0xbD315DA028B586f7cD93903498e671fA3efeF506",
+  masterChef: "0xbD315DA028B586f7cD93903498e671fA3efeF506",
 };
 
 const NETWORK_MAP: Record<number, NetworkData> = {
@@ -17,14 +17,14 @@ const NETWORK_MAP: Record<number, NetworkData> = {
 };
 
 export default class NetworkManager implements NetworkData {
-  public factory: string;
+  public masterChef: string;
 
   constructor() {
-    this.factory = "";
+    this.masterChef = "";
   }
 
   public setNetwork(networkId: number) {
-    const { factory } = NETWORK_MAP[networkId];
-    this.factory = factory;
+    const { masterChef } = NETWORK_MAP[networkId];
+    this.masterChef = masterChef;
   }
 }
