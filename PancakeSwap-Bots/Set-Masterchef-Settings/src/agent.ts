@@ -19,7 +19,7 @@ export const handleTransaction =
     const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, contractAddress.factory);
 
     functionCalls.forEach((functionCall) => {
-      findings.push(utils.createFinding(functionCall, contractAddress));
+      findings.push(utils.createFinding(functionCall));
     });
 
     return findings;
