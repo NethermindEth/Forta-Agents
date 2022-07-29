@@ -1,9 +1,5 @@
-import { Interface } from "@ethersproject/abi";
 import { utils } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import abi from "./abi";
-
-const FUNCTIONS_IFACE: Interface = new Interface(abi.CAKE_ABI);
 
 const createFinding = (call: utils.TransactionDescription): Finding => {
   if (call.name == "setMigrator") {
@@ -76,6 +72,5 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
 };
 
 export default {
-  FUNCTIONS_IFACE,
   createFinding,
 };
