@@ -3,7 +3,7 @@ interface NetworkData {
 }
 
 const BSC_MAINNET_DATA: NetworkData = {
-  factory: "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6",
+  factory: "0x73feaa1eE314F8c655E354234017bE2193C9E24E",
 };
 
 //PoC
