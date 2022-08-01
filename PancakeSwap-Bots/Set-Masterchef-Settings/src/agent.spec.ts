@@ -18,7 +18,7 @@ const setMigrator = (_migrator: string): Finding =>
     alertId: "CAKE-5-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "MasterChef",
+    protocol: "PancakeSwap",
     metadata: {
       _migrator: _migrator.toLowerCase(),
     },
@@ -31,7 +31,7 @@ const dev = (_devaddr: string): Finding =>
     alertId: "CAKE-5-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "MasterChef",
+    protocol: "PancakeSwap",
     metadata: {
       _devaddr: _devaddr.toLowerCase(),
     },
@@ -44,7 +44,7 @@ const add = (_allocPoint: BigNumber, _lpToken: string, _withUpdate: boolean): Fi
     alertId: "CAKE-5-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "MasterChef",
+    protocol: "PancakeSwap",
     metadata: {
       _allocPoint: _allocPoint.toString(),
       _lpToken: _lpToken.toLowerCase(),
@@ -59,7 +59,7 @@ const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Fin
     alertId: "CAKE-5-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "MasterChef",
+    protocol: "PancakeSwap",
     metadata: {
       _pid: _pid.toString(),
       _allocPoint: _allocPoint.toString(),
@@ -74,7 +74,7 @@ const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
     alertId: "CAKE-5-5",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    protocol: "MasterChef",
+    protocol: "PancakeSwap",
     metadata: {
       multiplierNumber: multiplierNumber.toString(),
     },

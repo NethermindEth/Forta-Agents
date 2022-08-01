@@ -9,7 +9,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       alertId: "CAKE-5-1",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "MasterChef",
+      protocol: "PancakeSwap",
       metadata: {
         _migrator: call.args["_migrator"].toLowerCase(),
       },
@@ -22,7 +22,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       alertId: "CAKE-5-2",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "MasterChef",
+      protocol: "PancakeSwap",
       metadata: {
         _devaddr: call.args["_devaddr"].toLowerCase(),
       },
@@ -35,7 +35,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       alertId: "CAKE-5-3",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "MasterChef",
+      protocol: "PancakeSwap",
       metadata: {
         _allocPoint: call.args["_allocPoint"].toString(),
         _lpToken: call.args["_lpToken"].toLowerCase(),
@@ -50,7 +50,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       alertId: "CAKE-5-4",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "MasterChef",
+      protocol: "PancakeSwap",
       metadata: {
         _pid: call.args["_pid"].toString(),
         _allocPoint: call.args["_allocPoint"].toString(),
@@ -64,7 +64,7 @@ const createFinding = (call: utils.TransactionDescription): Finding => {
       alertId: "CAKE-5-5",
       severity: FindingSeverity.Info,
       type: FindingType.Info,
-      protocol: "MasterChef",
+      protocol: "PancakeSwap",
       metadata: {
         multiplierNumber: call.args["multiplierNumber"].toString(),
       },
