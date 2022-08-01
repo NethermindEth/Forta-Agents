@@ -2,7 +2,7 @@ import { Interface } from "ethers/lib/utils";
 import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
-import { handleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { BigNumber } from "ethers";
 import NetworkManager from "./network";
 import abi from "./abi";
@@ -89,7 +89,7 @@ describe("Set Masterchef Settings bot test suite", () => {
     setNetwork: jest.fn(),
   };
 
-  const handleTx: HandleTransaction = handleTransaction(mockNetworkManager as any);
+  const handleTx: HandleTransaction = provideHandleTransaction(mockNetworkManager as any);
 
   it("should ignore empty transactions", async () => {
     const tx: TestTransactionEvent = new TestTransactionEvent();

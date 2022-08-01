@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Detects function calls that modify settings in the PancakeSwap Masterchef contract",
   "chainIds": [
-    56,
+    56
   ],
   "scripts": {
     "build": "tsc",

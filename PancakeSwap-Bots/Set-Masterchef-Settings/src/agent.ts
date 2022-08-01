@@ -12,7 +12,7 @@ export const initialize = (provider: providers.Provider) => async () => {
   networkManager.setNetwork(chainId);
 };
 
-export const handleTransaction =
+export const provideHandleTransaction =
   (contractAddress: NetworkData): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -27,5 +27,5 @@ export const handleTransaction =
 
 export default {
   initialize: initialize(getEthersProvider()),
-  handleTransaction: handleTransaction(networkManager),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
