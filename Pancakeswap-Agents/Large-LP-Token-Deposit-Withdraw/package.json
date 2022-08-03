@@ -28,7 +28,6 @@
     "lru-cache": "^7.13.1"
   },
   "devDependencies": {
-    "@types/lru-cache": "^7.10.10",
     "@types/nodemon": "^1.19.0",
     "bignumber.js": "^9.0.1",
     "forta-agent-tools": "^2.2.1",
