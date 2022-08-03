@@ -9,7 +9,7 @@ The bot can operate in two different modes, used to determine the threshold of a
 - `STATIC` mode refers to the bot using a static predefined threshold in number of tokens.
 - `PERCENTAGE` mode refers to setting the threshold as a percentage of the total balance of tokens in the LP pool.
 
-In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CONFIG` in agent.ts, L55.
+In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CONFIG` in agent.ts, L54.
 
 ## Supported Chains
 
