@@ -1,22 +1,26 @@
-import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
-import { providers } from "ethers";
-import NetworkData from "./network";
-import NetworkManager from "./network";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, Initialize, ethers} from "forta-agent";
 import utils from "./utils";
 import abi from "./abi";
+import { NetworkManager } from "forta-agent-tools";
+import CONFIG  from "./network";
+import { NetworkData } from "./network";
 
-const networkManager = new NetworkManager();
+const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-export const initialize = (provider: providers.Provider) => async () => {
-  const { chainId } = await provider.getNetwork();
-  networkManager.setNetwork(chainId);
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
 export const provideHandleTransaction =
-  (contractAddress: NetworkData): HandleTransaction =>
+  (networkManager: NetworkManager<NetworkData>): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, contractAddress.masterChef);
+    const functionCalls = txEvent.filterFunction(abi.CAKE_ABI, networkManager.get("masterChef"));
 
     functionCalls.forEach((functionCall) => {
       findings.push(utils.createFinding(functionCall));
@@ -26,6 +30,6 @@ export const provideHandleTransaction =
   };
 
 export default {
-  initialize: initialize(getEthersProvider()),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager),
 };
