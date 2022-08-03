@@ -3,7 +3,7 @@
 ## Description
 
 This bot detects large swaps (i.e. the amount of tokens swapped in any Pancake pair contract is a significant fraction of the
-pair's pool reserves) in the the PancakeSwap protocol.
+pair's pool reserves) in the PancakeSwap protocol.
 
 > The threshold `LARGE_THRESHOLD` of what is considered large can be adjusted in **src/constants.ts, L3**.
 
