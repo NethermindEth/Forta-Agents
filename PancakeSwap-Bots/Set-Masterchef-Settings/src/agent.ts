@@ -1,9 +1,9 @@
-import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, Initialize, ethers} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider, Initialize, ethers } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkData } from "./network";
+import CONFIG from "./network";
 import utils from "./utils";
 import abi from "./abi";
-import { NetworkManager } from "forta-agent-tools";
-import CONFIG  from "./network";
-import { NetworkData } from "./network";
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 

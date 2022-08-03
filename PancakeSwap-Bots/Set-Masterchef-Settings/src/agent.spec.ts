@@ -1,5 +1,5 @@
 import { Interface } from "ethers/lib/utils";
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, Network} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, Network } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
 import { provideHandleTransaction } from "./agent";
@@ -55,7 +55,7 @@ const add = (_allocPoint: BigNumber, _lpToken: string, _withUpdate: boolean): Fi
     metadata: {
       _allocPoint: _allocPoint.toString(),
       _lpToken: _lpToken.toLowerCase(),
-      _withUpdate: _withUpdate.toString(), 
+      _withUpdate: _withUpdate.toString(),
     },
   });
 
@@ -70,7 +70,7 @@ const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Fin
     metadata: {
       _pid: _pid.toString(),
       _allocPoint: _allocPoint.toString(),
-      _withUpdate: _withUpdate.toString(), 
+      _withUpdate: _withUpdate.toString(),
     },
   });
 
