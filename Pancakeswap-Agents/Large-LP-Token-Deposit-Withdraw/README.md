@@ -24,7 +24,6 @@ In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CON
   - Type is always set to "Info"
   - Metadata includes:
     - `user`: User who deposited
-    - `token`: Name of the LP token
     - `pid`: The affected pool ID
     - `amount`: Amount deposited
 
@@ -35,7 +34,6 @@ In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CON
   - Type is always set to "Info"
   - Metadata includes:
     - `user`: User who withdrew
-    - `token`: Name of the LP token
     - `pid`: The affected pool ID
     - `amount`: Amount withdrawn
 
@@ -45,7 +43,6 @@ In order to switch between the two modes, change `DYNAMIC_CONFIG` to `STATIC_CON
   - Type is always set to "Info"
   - Metadata includes:
     - `user`: User who withdrew
-    - `token`: Name of the LP token
     - `pid`: The affected pool ID
     - `amount`: Amount withdrawn
 
