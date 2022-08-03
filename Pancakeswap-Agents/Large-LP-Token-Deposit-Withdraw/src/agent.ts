@@ -8,7 +8,6 @@ import MasterchefFetcher from "./masterchef.fetcher";
 import TokenFetcher from "./token.fetcher";
 import { createFinding } from "./findings";
 
-
 export function provideHandleTransaction(
   config: BotConfig,
   provider: ethers.providers.Provider,
@@ -36,7 +35,7 @@ export function provideHandleTransaction(
           if (config.mode === "STATIC") thresholdAmount = config.thresholdData;
           else {
             // Fetch balance of the token in the Masterchef contract
-            const balance = await tokenFetcher.getBalanceOf(masterchefAddress, txEvent.blockNumber - 1)
+            const balance = await tokenFetcher.getBalanceOf(masterchefAddress, txEvent.blockNumber - 1);
             // Set threshold
             thresholdAmount = BigNumber.from(balance).mul(config.thresholdData).div(100);
           }
@@ -52,9 +51,9 @@ export function provideHandleTransaction(
 
 export default {
   handleTransaction: provideHandleTransaction(
-    DYNAMIC_CONFIG, 
-    getEthersProvider(), 
+    DYNAMIC_CONFIG,
+    getEthersProvider(),
     new MasterchefFetcher(getEthersProvider(), MASTERCHEF_ADDRESS),
     MASTERCHEF_ADDRESS
-  )
+  ),
 };

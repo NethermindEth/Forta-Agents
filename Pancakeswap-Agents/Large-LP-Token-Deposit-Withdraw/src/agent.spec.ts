@@ -13,11 +13,12 @@ const IBEP20_INTERFACE = new ethers.utils.Interface(IBEP20_ABI);
 
 // Function to set the token address of a certain token in the masterchef account
 function addLPTokenAddress(
-  mockProvider: MockEthersProvider, 
+  mockProvider: MockEthersProvider,
   mockMasterchefAddress: string,
-  pid: number, 
-  tokenAddress: string, 
-  block: number) {
+  pid: number,
+  tokenAddress: string,
+  block: number
+) {
   mockProvider.addCallTo(mockMasterchefAddress, block, MASTERCHEF_INTERFACE, "lpToken", {
     inputs: [pid],
     outputs: [tokenAddress],
@@ -60,7 +61,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     });
 
     it("Should return 0 findings in empty transactions", async () => {
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
       const txEvent: TestTransactionEvent = new TestTransactionEvent();
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -68,7 +74,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large deposit event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -104,7 +115,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should ignore a deposit event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -126,7 +142,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large withdraw event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Withdraw event
       const testSpender: string = createAddress("0x9");
@@ -162,7 +183,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect multiple large deposit events but not not a third deposit event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event 1
       const testSpender1: string = createAddress("0x1");
@@ -239,7 +265,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should ignore a withdraw event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Withdraw event
       const testSpender: string = createAddress("0x9");
@@ -261,7 +292,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large EmergencyWithdraw event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add EmergencyWithdraw event
       const testSpender: string = createAddress("0x9");
@@ -297,7 +333,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should ignore a EmergencyWithdraw event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testStaticConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testStaticConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add EmergencyWithdraw event
       const testSpender: string = createAddress("0x9");
@@ -339,7 +380,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
     });
 
     it("Should return 0 findings in empty transactions", async () => {
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
       const txEvent: TestTransactionEvent = new TestTransactionEvent();
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -347,7 +393,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large deposit event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -392,7 +443,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect multiple large deposit events but not not a third deposit event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event 1
       const testSpender1: string = createAddress("0x1");
@@ -494,7 +550,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should ignore a deposit event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Deposit event
       const testSpender: string = createAddress("0x1");
@@ -524,7 +585,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large withdraw event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Withdraw event
       const testSpender: string = createAddress("0x9");
@@ -568,7 +634,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should ignore a withdraw event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add Withdraw event
       const testSpender: string = createAddress("0x9");
@@ -598,7 +669,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect a large EmergencyWithdraw event", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add EmergencyWithdraw event
       const testSpender: string = createAddress("0x9");
@@ -642,7 +718,12 @@ describe("Large Pancakeswap LP Token Deposit/Withdraw test suite", () => {
 
     it("Should detect an EmergencyWithdraw event under the threshold", async () => {
       const txEvent: TestTransactionEvent = new TestTransactionEvent().setBlock(100);
-      handleTransaction = provideHandleTransaction(testDynamicConfig, provider, mockMasterchefFetcher, mockMasterchefAddress);
+      handleTransaction = provideHandleTransaction(
+        testDynamicConfig,
+        provider,
+        mockMasterchefFetcher,
+        mockMasterchefAddress
+      );
 
       // Add EmergencyWithdraw event
       const testSpender: string = createAddress("0x9");
