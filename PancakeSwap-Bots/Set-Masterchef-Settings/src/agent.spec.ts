@@ -13,7 +13,7 @@ const MOCK_ABI: string[] = ["function mockFunction(address mockAddress)"];
 const testMasterchef: string = createAddress("0x01");
 
 const DEFAULT_CONFIG: Record<number, NetworkData> = {
-  [Network.MAINNET]: {
+  [Network.BSC]: {
     masterChef: testMasterchef,
   },
 };
@@ -91,7 +91,7 @@ describe("Set Masterchef Settings bot test suite", () => {
   const iface = new Interface(abi.CAKE_ABI);
   const mockInterface = new Interface(MOCK_ABI);
 
-  const mockNetworkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
+  const mockNetworkManager = new NetworkManager(DEFAULT_CONFIG, Network.BSC);
 
   const handleTx: HandleTransaction = provideHandleTransaction(mockNetworkManager as any);
 
