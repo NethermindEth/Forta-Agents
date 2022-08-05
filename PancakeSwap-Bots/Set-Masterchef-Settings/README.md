@@ -63,6 +63,16 @@ This bot detects the following PancakeSwap Masterchef function calls:
 		
 		
 ## Test Data
+Instructions for running testnet transactions: 
+* uncomment lines 10-12 in [`network.ts`](https://github.com/thomaspanf/Forta-Agents/blob/thomascake05/PancakeSwap-Bots/Set-Masterchef-Settings/src/network.ts#L10)
+* include this code block in your `forta.config.json`:
+
+```
+{
+    "agentId":"0x7a858a1e02ed20e8d388d1ec3cfd1082e30d1f599bdfcd41f588c0fee80ba4e9",
+    "jsonRpcUrl": "https://data-seed-prebsc-1-s1.binance.org:8545/"
+  }
+```
 
 The bot behaviour can be verified with the following testnet transactions:
 
