@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects the following PancakeSwap Masterchef function calls: 
+This bot detects the following PancakeSwap Masterchef function calls:
 
 - `function setMigrator(IMigratorChef _migrator)`
 - `function dev(address _devaddr)`
@@ -13,66 +13,58 @@ This bot detects the following PancakeSwap Masterchef function calls:
 ## Supported Chains
 
 - BNB Smart Chain
- 
+
 ## Alerts
 
 - CAKE-5-1
 
-	- Fired when a transaction contains a `setMigrator` function call.
-	- Severity is always set to "Info".
-	- Type is always set to "Info".
-	- Metadata contains:
-		- `_migrator`:  new migrator address
-		
+  - Fired when a transaction contains a `setMigrator` function call.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `_migrator`: new migrator address
+
 - CAKE-5-2
 
-	- Fired when a transaction contains a `dev` function call.
-	- Severity is always set to "Info".
-	- Type is always set to "Info".
-	- Metadata contains:
-		- `_devaddr`:  new dev address 
-		
+  - Fired when a transaction contains a `dev` function call.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `_devaddr`: new dev address
+
 - CAKE-5-3
 
-	- Fired when a transaction contains a `add` function call.
-	- Severity is always set to "Info".
-	- Type is always set to "Info".
-	- Metadata contains:
-		- `_allocPoint`:  value to increment by 
-		- `_lpToken`:  new lpToken address
-		- `_withUpdate`:  function withUpdate invoked if true
+  - Fired when a transaction contains a `add` function call.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `_allocPoint`: value to increment by
+    - `_lpToken`: new lpToken address
+    - `_withUpdate`: function withUpdate invoked if true
 
-	
 - CAKE-5-4
 
-	- Fired when a transaction contains a `set` function call.
-	- Severity is always set to "Info". 
-	- Type is always set to "Info".
-	- Metadata contains:
-		- `_pid`:  pool id 
-		- `_allocPoint`: value to increment by
-		- `_withUpdate`: function withUpdate invoked if true 
-		
+  - Fired when a transaction contains a `set` function call.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `_pid`: pool id
+    - `_allocPoint`: value to increment by
+    - `_withUpdate`: function withUpdate invoked if true
+
 - CAKE-5-5
 
-	- Fired when a transaction contains a `updateMultiplier` function call.
-	- Severity is always set to "Info".
-	- Type is always set to "Info".
-	- Metadata contains:
-		- `multiplierNumber`:  new multiplier number
-		
-		
-## Test Data
-Instructions for running testnet transactions: 
-* uncomment lines 10-12 in [`network.ts`](https://github.com/thomaspanf/Forta-Agents/blob/thomascake05/PancakeSwap-Bots/Set-Masterchef-Settings/src/network.ts#L10)
-* include this code block in your `forta.config.json`:
+  - Fired when a transaction contains a `updateMultiplier` function call.
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata contains:
+    - `multiplierNumber`: new multiplier number
 
-```
-{
-    "agentId":"0x7a858a1e02ed20e8d388d1ec3cfd1082e30d1f599bdfcd41f588c0fee80ba4e9",
-    "jsonRpcUrl": "https://data-seed-prebsc-1-s1.binance.org:8545/"
-  }
-```
+## Test Data
+
+Instructions for running testnet transactions:
+
+- Uncomment lines 10-12 in [`src/network.ts`](https://github.com/thomaspanf/Forta-Agents/blob/thomascake05/PancakeSwap-Bots/Set-Masterchef-Settings/src/network.ts#L10) and set a BSC Testnet RPC url as jsonRpcUrl in your forta.config.json file.
 
 The bot behaviour can be verified with the following testnet transactions:
 
