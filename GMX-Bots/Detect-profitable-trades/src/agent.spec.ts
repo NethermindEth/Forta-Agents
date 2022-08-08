@@ -4,18 +4,15 @@ import { provideHandleTx } from "./agent";
 import { createAddress } from "forta-agent-tools/lib/tests";
 import { Interface } from "@ethersproject/abi";
 
-const ABI: string[] = [
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)",
-];
-
-const TEST_IFACE: Interface = new Interface(ABI);
+const ABI: string =
+  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, uint256 amountOutAfterFees, uint256 feeBasisPoints)";
+const TEST_IFACE: Interface = new Interface([ABI]);
 
 const MOCK_GMX_ROUTER_ADDRESS = createAddress("0x1");
 const MOCK_NETWORK_MANAGER = {
   get: jest.fn().mockReturnValue(MOCK_GMX_ROUTER_ADDRESS),
 };
-const MOCK_SWAP_EVENT =
-  "event Swap(address account, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)";
+
 let mockPriceFeed = {
   get: jest.fn().mockReturnValue({
     latestRoundData: jest.fn().mockReturnValue({
@@ -39,6 +36,8 @@ describe("Unusual amount of profitable account detection bot test suite", () => 
     createAddress("0x3"), //WBTC
     1,
     1,
+    1,
+    1,
   ]);
 
   beforeEach(() => {
@@ -46,7 +45,7 @@ describe("Unusual amount of profitable account detection bot test suite", () => 
 
     handler = provideHandleTx(
       MOCK_NETWORK_MANAGER,
-      MOCK_SWAP_EVENT,
+      ABI,
       mockPriceFeed as unknown as Map<string, ethers.Contract>,
       tradeHistory
     );
