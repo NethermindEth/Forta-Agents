@@ -13,9 +13,9 @@ This bot detects accounts using GMX that have an unusual amount of profitable sw
 
 - GMX-07
   - Fired when an account using GMX has an unusual amount of profitable trades
-  - Severity is always set to "Suspicious"
-  - Type is always set to "Medium"
-  - Metadata included:
+  - Severity is always set to "Medium"
+  - Type is always set to "Suspicious"
+  - Metadata contains:
     - `account`: Address of the account with the unusual amount of profitable trades
     - `profitableTrades`: Number of profitable trades
     - `totalTrades`: Number of total trades
