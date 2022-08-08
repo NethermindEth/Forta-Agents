@@ -61,7 +61,7 @@ export const CONFIG: AgentConfig = {
 };
 
 //Represents the ratio at which an account becomes suspicious of having too many profitable trades
-export const PROFIT_RATIO = 0.9; //0 to 1, 0.5
+export const PROFIT_RATIO = 0.9; //0 to 1
 
 //Represents the number of trades an account can make before the bot will monitor its ratio
 export const GRACE_TRADES = 5; //1+
