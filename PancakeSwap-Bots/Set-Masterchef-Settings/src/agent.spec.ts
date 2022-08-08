@@ -21,7 +21,7 @@ const DEFAULT_CONFIG: Record<number, NetworkData> = {
 const setMigrator = (_migrator: string): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `setMigrator function called in MasterChef contract.`,
+    description: "setMigrator function called in MasterChef contract.",
     alertId: "CAKE-5-1",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -34,7 +34,7 @@ const setMigrator = (_migrator: string): Finding =>
 const dev = (_devaddr: string): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `dev function called in MasterChef contract.`,
+    description: "dev function called in MasterChef contract.",
     alertId: "CAKE-5-2",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -47,7 +47,7 @@ const dev = (_devaddr: string): Finding =>
 const add = (_allocPoint: BigNumber, _lpToken: string, _withUpdate: boolean): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `add function called in MasterChef contract.`,
+    description: "add function called in MasterChef contract.",
     alertId: "CAKE-5-3",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -62,7 +62,7 @@ const add = (_allocPoint: BigNumber, _lpToken: string, _withUpdate: boolean): Fi
 const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `set function called in MasterChef contract.`,
+    description: "set function called in MasterChef contract.",
     alertId: "CAKE-5-4",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -77,7 +77,7 @@ const set = (_pid: BigNumber, _allocPoint: BigNumber, _withUpdate: boolean): Fin
 const updateMultiplier = (multiplierNumber: BigNumber): Finding =>
   Finding.fromObject({
     name: "MasterChef Settings",
-    description: `updateMultiplier function called in MasterChef contract.`,
+    description: "updateMultiplier function called in MasterChef contract.",
     alertId: "CAKE-5-5",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
