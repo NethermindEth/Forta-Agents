@@ -1,68 +1,55 @@
 import {
-  BlockEvent,
   Finding,
-  HandleBlock,
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
+  ethers,
+  Initialize,
+  getEthersProvider
 } from "forta-agent";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+import {FUNDS_DEPOSITED_EVENT} from "./ABI";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkData, DATA } from "./config";
+import { createFinding } from "./findings";
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
+const networkManager = new NetworkManager(DATA);
+
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
+};
+
+export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const spokePoolAddress = networkManager.get("spokePoolAddress");
   const findings: Finding[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
+  // filter the transaction logs for funds deposited events
+  const fundsDepositedEvents = txEvent.filterLog(
+    FUNDS_DEPOSITED_EVENT,
+    spokePoolAddress
   );
 
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
+  fundsDepositedEvents.forEach((fundsDepositedEvent) => {
 
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
+
       findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
+          createFinding()
       );
-      findingsCount++;
     }
-  });
+  )
 
   return findings;
 };
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+}
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
