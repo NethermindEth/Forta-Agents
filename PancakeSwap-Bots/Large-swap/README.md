@@ -13,7 +13,7 @@ pair's pool reserves) in the PancakeSwap protocol.
 
 ## Alerts
 
-- CAKE02
+- CAKE-2
   - Fired when a swap is considered "large"
   - Severity is always set to "Unknown"
   - Type is always set to "Info"
