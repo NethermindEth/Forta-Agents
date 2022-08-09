@@ -9,7 +9,7 @@ pair's pool reserves) in the PancakeSwap protocol.
 
 ## Supported Chains
 
-- BNB Smart Chain
+- Binance Smart Chain
 
 ## Alerts
 

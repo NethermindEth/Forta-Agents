@@ -39,7 +39,7 @@ const BALANCES: any[][] = [
   [createAddress("0xd84a"), createAddress("0x271b"), BigNumber.from(62432423423), 9870659999],
 ];
 
-describe("PancakeSwap pair fetcher test suite", () => {
+describe("PancakeSwap Data Fetcher Test Suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const testFetcher: DataFetcher = new DataFetcher(mockProvider as any);
 

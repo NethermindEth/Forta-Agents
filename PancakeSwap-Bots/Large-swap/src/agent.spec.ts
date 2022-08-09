@@ -81,8 +81,12 @@ const createSomeOtherEvent = (contractAddress: string, arg1: string): [string, s
 describe("PancakeSwap Large Swap Bot Test Suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   const mockFetcher: DataFetcher = new DataFetcher(mockProvider as any);
-  let handleTransaction: HandleTransaction;
-  handleTransaction = provideBotHandler(TEST_LARGE_THRESHOLD, TEST_PANCAKE_FACTORY, mockFetcher, INIT_CODE);
+  const handleTransaction: HandleTransaction = provideBotHandler(
+    TEST_LARGE_THRESHOLD,
+    TEST_PANCAKE_FACTORY,
+    mockFetcher,
+    INIT_CODE
+  );
 
   const setBalanceOf = (block: number, tokenAddress: string, account: string, balance: ethers.BigNumber) => {
     mockProvider.addCallTo(tokenAddress, block, TOKEN_IFACE, "balanceOf", {
