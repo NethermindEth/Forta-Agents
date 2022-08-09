@@ -1,13 +1,11 @@
-import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction } from "forta-agent";
 import { provideBotHandler } from "./agent";
 import { encodeParameter } from "forta-agent-tools/lib/utils";
-import BigNumber from "bignumber.js";
 import { TestTransactionEvent, createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
-import { toBn, getPancakePairCreate2Address } from "./utils";
-
-import { ERC20ABI, PANCAKE_PAIR_ABI, cache } from "./constants";
-
-BigNumber.set({ DECIMAL_PLACES: 18 });
+import { getPancakePairCreate2Address } from "./utils";
+import { ERC20ABI, PANCAKE_PAIR_ABI } from "./constants";
+import { BigNumber } from "ethers";
+import DataFetcher from "./data.fetcher";
 
 const createFinding = (
   pairAddress: string,
@@ -32,8 +30,8 @@ const createFinding = (
       tokenOut: swapTokenOut,
       amountIn: swapAmountIn.toString(),
       amountOut: swapAmountOut.toString(),
-      percentageIn: percentageTokenIn.toFixed(2),
-      percentageOut: percentageTokenOut.toFixed(2),
+      percentageIn: percentageTokenIn.toString(),
+      percentageOut: percentageTokenOut.toString(),
       swapRecipient: swap_recipient,
     },
   });
@@ -51,7 +49,7 @@ const [token0, token1, token2, token3] = [
 const INIT_CODE = ethers.utils.keccak256("0x");
 const TEST_PAIR_ADDRESS = getPancakePairCreate2Address(TEST_PANCAKE_FACTORY, token0, token1, INIT_CODE).toLowerCase();
 const TEST_PAIR_ADDRESS2 = getPancakePairCreate2Address(TEST_PANCAKE_FACTORY, token2, token3, INIT_CODE).toLowerCase();
-const TEST_LARGE_THRESHOLD = "10"; // percent
+const TEST_LARGE_THRESHOLD = BigNumber.from("10"); // percent
 export const SWAP_EVENT =
   "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out,uint amount1Out,address indexed to)";
 const SENDER = createAddress("0x12");
@@ -81,9 +79,10 @@ const createSomeOtherEvent = (contractAddress: string, arg1: string): [string, s
 };
 
 describe("PancakeSwap Large Swap Bot Test Suite", () => {
-  let provider: ethers.providers.Provider;
-  let mockProvider: MockEthersProvider;
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
+  const mockFetcher: DataFetcher = new DataFetcher(mockProvider as any);
   let handleTransaction: HandleTransaction;
+  handleTransaction = provideBotHandler(TEST_LARGE_THRESHOLD, TEST_PANCAKE_FACTORY, mockFetcher, INIT_CODE);
 
   const setBalanceOf = (block: number, tokenAddress: string, account: string, balance: ethers.BigNumber) => {
     mockProvider.addCallTo(tokenAddress, block, TOKEN_IFACE, "balanceOf", {
@@ -100,10 +99,7 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
   };
 
   beforeEach(() => {
-    mockProvider = new MockEthersProvider();
-    provider = mockProvider as unknown as ethers.providers.Provider;
-    handleTransaction = provideBotHandler(TEST_LARGE_THRESHOLD, TEST_PANCAKE_FACTORY, provider, INIT_CODE);
-    cache.clear();
+    mockProvider.clear();
   });
 
   it("should return empty findings with empty transaction", async () => {
@@ -125,11 +121,10 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
       toEbn("0"),
       createAddress("0x1")
     );
-    const txEvent = new TestTransactionEvent().setBlock(10).addEventLog(...swapEventLog);
-    setTokenPair(10, createAddress("0x89"), token0, "token0");
-    setTokenPair(10, createAddress("0x89"), token1, "token1");
+    const txEvent = new TestTransactionEvent().setBlock(1000).addEventLog(...swapEventLog);
+    setTokenPair(1000, createAddress("0x89"), token0, "token0");
+    setTokenPair(1000, createAddress("0x89"), token1, "token1");
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(2);
   });
 
   it("should return empty findings for swaps that are not large", async () => {
@@ -141,13 +136,12 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
       toEbn("0"),
       createAddress("0x1")
     );
-    const txEvent = new TestTransactionEvent().setBlock(10).addEventLog(...swapEventLog);
-    setTokenPair(10, TEST_PAIR_ADDRESS, token0, "token0");
-    setTokenPair(10, TEST_PAIR_ADDRESS, token1, "token1");
-    setBalanceOf(9, token0, TEST_PAIR_ADDRESS, toEbn("2000")); // swap not large
-    setBalanceOf(9, token1, TEST_PAIR_ADDRESS, toEbn("4000")); // swap not large
+    const txEvent = new TestTransactionEvent().setBlock(101).addEventLog(...swapEventLog);
+    setTokenPair(101, TEST_PAIR_ADDRESS, token0, "token0");
+    setTokenPair(101, TEST_PAIR_ADDRESS, token1, "token1");
+    setBalanceOf(100, token0, TEST_PAIR_ADDRESS, toEbn("2000")); // swap not large
+    setBalanceOf(100, token1, TEST_PAIR_ADDRESS, toEbn("4000")); // swap not large
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(4);
   });
 
   it("should return findings for swaps that are large and from a valid pancake pair", async () => {
@@ -159,24 +153,23 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
       toEbn("0"),
       createAddress("0x9")
     );
-    const txEvent = new TestTransactionEvent().setBlock(10).addEventLog(...swapEventLog);
-    setTokenPair(10, TEST_PAIR_ADDRESS, token0, "token0");
-    setTokenPair(10, TEST_PAIR_ADDRESS, token1, "token1");
-    setBalanceOf(9, token0, TEST_PAIR_ADDRESS, toEbn("900")); // swap is large relative to pair's token balance
-    setBalanceOf(9, token1, TEST_PAIR_ADDRESS, toEbn("1800"));
+    const txEvent = new TestTransactionEvent().setBlock(210).addEventLog(...swapEventLog);
+    setTokenPair(210, TEST_PAIR_ADDRESS, token0, "token0");
+    setTokenPair(210, TEST_PAIR_ADDRESS, token1, "token1");
+    setBalanceOf(209, token0, TEST_PAIR_ADDRESS, toEbn("900")); // swap is large relative to pair's token balance
+    setBalanceOf(209, token1, TEST_PAIR_ADDRESS, toEbn("1800"));
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createFinding(
         TEST_PAIR_ADDRESS,
         token1,
         token0,
-        toBn(200),
-        toBn(100),
-        toBn(200).dividedBy(1800).multipliedBy(100),
-        toBn(100).dividedBy(900).multipliedBy(100),
+        toEbn("200"),
+        toEbn("100"),
+        toEbn("200").mul(100).div(1800),
+        toEbn("100").mul(100).div(900),
         createAddress("0x9")
       ),
     ]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(4);
   });
 
   it("should return multiple findings when both amount0 and amount1 are large.", async () => {
@@ -197,22 +190,22 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
       createAddress("0x9")
     ); // should ignore
     const txEvent = new TestTransactionEvent()
-      .setBlock(10)
+      .setBlock(310)
       .addEventLog(...swapEventLog)
       .addEventLog(...notLargeSwapEventLog);
-    setTokenPair(10, TEST_PAIR_ADDRESS, token0, "token0");
-    setTokenPair(10, TEST_PAIR_ADDRESS, token1, "token1");
-    setBalanceOf(9, token0, TEST_PAIR_ADDRESS, toEbn("25000")); // swap is large relative to pair's token balance
-    setBalanceOf(9, token1, TEST_PAIR_ADDRESS, toEbn("12500"));
+    setTokenPair(310, TEST_PAIR_ADDRESS, token0, "token0");
+    setTokenPair(310, TEST_PAIR_ADDRESS, token1, "token1");
+    setBalanceOf(309, token0, TEST_PAIR_ADDRESS, toEbn("25000")); // swap is large relative to pair's token balance
+    setBalanceOf(309, token1, TEST_PAIR_ADDRESS, toEbn("12500"));
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createFinding(
         TEST_PAIR_ADDRESS,
         token1,
         token0,
-        toBn(1500),
-        toBn(3000),
-        toBn(1500).dividedBy(12500).multipliedBy(100),
-        toBn(3000).dividedBy(25000).multipliedBy(100),
+        toEbn("1500"),
+        toEbn("3000"),
+        toEbn("1500").mul(100).div(12500),
+        toEbn("3000").mul(100).div(25000),
         createAddress("0x9")
       ),
 
@@ -220,14 +213,13 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
         TEST_PAIR_ADDRESS,
         token0,
         token1,
-        toBn(4000),
-        toBn(2000),
-        toBn(4000).dividedBy(25000).multipliedBy(100),
-        toBn(2000).dividedBy(12500).multipliedBy(100),
+        toEbn("4000"),
+        toEbn("2000"),
+        toEbn("4000").mul(100).div(25000),
+        toEbn("2000").mul(100).div(12500),
         createAddress("0x9")
       ),
     ]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(8);
   });
 
   it("should return multiple findings correctly when there are multiple events with large swaps.", async () => {
@@ -275,10 +267,10 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
         TEST_PAIR_ADDRESS,
         token1,
         token0,
-        toBn(1500),
-        toBn(3000),
-        toBn(1500).dividedBy(12500).multipliedBy(100),
-        toBn(3000).dividedBy(25000).multipliedBy(100),
+        toEbn("1500"),
+        toEbn("3000"),
+        toEbn("1500").mul(100).div(12500),
+        toEbn("3000").mul(100).div(25000),
         createAddress("0x9")
       ),
 
@@ -286,13 +278,12 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
         TEST_PAIR_ADDRESS2,
         token2,
         token3,
-        toBn(2000),
-        toBn(5050),
-        toBn(2000).dividedBy(20000).multipliedBy(100),
-        toBn(5050).dividedBy(50000).multipliedBy(100),
+        toEbn("2000"),
+        toEbn("5050"),
+        toEbn("2000").mul(100).div(20000),
+        toEbn("5050").mul(100).div(50000),
         createAddress("0x8")
       ),
     ]);
-    expect(mockProvider.call).toHaveBeenCalledTimes(10);
   });
 });

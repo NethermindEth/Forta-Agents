@@ -1,15 +1,13 @@
-import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
-
-import { isValidPancakePair, getERC20Balance, createFinding, toBn } from "./utils";
+import { Finding, HandleTransaction, TransactionEvent, getEthersProvider } from "forta-agent";
+import { BigNumber } from "ethers";
+import DataFetcher from "./data.fetcher";
+import { createFinding } from "./utils";
 import { SWAP_EVENT, LARGE_THRESHOLD, PANCAKE_FACTORY_ADDRESS, INIT_CODE_PAIR_HASH } from "./constants";
 
-import BigNumber from "bignumber.js";
-BigNumber.set({ DECIMAL_PLACES: 18 });
-
 export const provideBotHandler = (
-  largePercentage: string,
+  largePercentage: BigNumber,
   pancakeFactory: string,
-  provider: ethers.providers.Provider,
+  fetcher: DataFetcher,
   initCode: string
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
@@ -20,26 +18,25 @@ export const provideBotHandler = (
     await Promise.all(
       swapEvents.map(async (event) => {
         const pairAddress = event.address;
-        const [isValid, token0Address, token1Address] = await isValidPancakePair(
+        const [isValid, token0Address, token1Address] = await fetcher.isValidPancakePair(
           pairAddress,
-          provider,
           txEvent.blockNumber,
           pancakeFactory,
           initCode
         );
         if (isValid) {
           const [token0Balance, token1Balance] = await Promise.all([
-            getERC20Balance(token0Address, pairAddress, provider, txEvent.blockNumber - 1),
-            getERC20Balance(token1Address, pairAddress, provider, txEvent.blockNumber - 1),
+            fetcher.getERC20Balance(token0Address, pairAddress, txEvent.blockNumber - 1),
+            fetcher.getERC20Balance(token1Address, pairAddress, txEvent.blockNumber - 1),
           ]);
-          const amount0Out: BigNumber = toBn(event.args.amount0Out);
-          const amount1Out: BigNumber = toBn(event.args.amount1Out);
-          const amount0In: BigNumber = toBn(event.args.amount0In);
-          const amount1In: BigNumber = toBn(event.args.amount1In);
+          const amount0Out: BigNumber = BigNumber.from(event.args.amount0Out);
+          const amount1Out: BigNumber = BigNumber.from(event.args.amount1Out);
+          const amount0In: BigNumber = BigNumber.from(event.args.amount0In);
+          const amount1In: BigNumber = BigNumber.from(event.args.amount1In);
           const to: string = event.args.to;
           if (amount0Out.gt(0)) {
-            const percentageToken0Out = amount0Out.multipliedBy(100).dividedBy(token0Balance);
-            const percentageToken1In = amount1In.multipliedBy(100).dividedBy(token1Balance);
+            const percentageToken0Out = amount0Out.mul(100).div(token0Balance);
+            const percentageToken1In = amount1In.mul(100).div(token1Balance);
             if (percentageToken0Out.gte(largePercentage) || percentageToken1In.gte(largePercentage)) {
               findings.push(
                 createFinding(
@@ -56,8 +53,8 @@ export const provideBotHandler = (
             }
           }
           if (amount1Out.gt(0)) {
-            const percentageToken1Out = amount1Out.multipliedBy(100).dividedBy(token1Balance);
-            const percentageToken0In = amount0In.multipliedBy(100).dividedBy(token0Balance);
+            const percentageToken1Out = amount1Out.mul(100).div(token1Balance);
+            const percentageToken0In = amount0In.mul(100).div(token0Balance);
             if (percentageToken1Out.gte(largePercentage) || percentageToken0In.gte(largePercentage)) {
               findings.push(
                 createFinding(
@@ -85,7 +82,7 @@ export default {
   handleTransaction: provideBotHandler(
     LARGE_THRESHOLD,
     PANCAKE_FACTORY_ADDRESS,
-    getEthersProvider(),
+    new DataFetcher(getEthersProvider()),
     INIT_CODE_PAIR_HASH
   ),
 };
