@@ -6,7 +6,7 @@
     42161,
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-Many-Opening",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-many-opening",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
