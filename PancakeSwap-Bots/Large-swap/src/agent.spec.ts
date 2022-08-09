@@ -106,12 +106,12 @@ describe("PancakeSwap Large Swap Bot Test Suite", () => {
     cache.clear();
   });
 
-  it("should return empty findings with empty logs", async () => {
+  it("should return empty findings with empty transaction", async () => {
     const txEvent = new TestTransactionEvent();
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
-  it(" should return empty findings when other events are emitted from the contract", async () => {
+  it("should return empty findings when other events are emitted from the contract", async () => {
     const txEvent = new TestTransactionEvent().addEventLog(...createSomeOtherEvent(TEST_PAIR_ADDRESS, "10"));
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
