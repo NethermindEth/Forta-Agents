@@ -25,16 +25,16 @@ const createFinding = (
     alertId: "CAKE-2",
     protocol: "PancakeSwap",
     type: FindingType.Info,
-    severity: FindingSeverity.Unknown,
+    severity: FindingSeverity.Info,
     metadata: {
-      "Pancake Pair": pairAddress,
-      "Token In": swapTokenIn,
-      "Token Out": swapTokenOut,
+      pancakePair: pairAddress,
+      tokenIn: swapTokenIn,
+      tokenOut: swapTokenOut,
       amountIn: swapAmountIn.toString(),
       amountOut: swapAmountOut.toString(),
       percentageIn: percentageTokenIn.toFixed(2),
       percentageOut: percentageTokenOut.toFixed(2),
-      "Swap Recipient": swap_recipient,
+      swapRecipient: swap_recipient,
     },
   });
 };

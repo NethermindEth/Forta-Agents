@@ -1,4 +1,4 @@
-# Pancakeswap Large Swap Bot
+# Large Swap Bot
 
 ## Description
 
@@ -9,23 +9,23 @@ pair's pool reserves) in the PancakeSwap protocol.
 
 ## Supported Chains
 
-- BSC
+- BNB Smart Chain
 
 ## Alerts
 
 - CAKE-2
   - Fired when a swap is considered "large"
-  - Severity is always set to "Unknown"
+  - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata:
-    - `Pancake Pair`: The address of the swap's Pancake pair contract
-    - `Token In`: The address of the swap's `tokenIn`
-    - `Token Out`: The address of the swap's `tokenOut`
+    - `pancakePair`: The address of the swap's Pancake pair contract
+    - `tokenIn`: The address of the swap's `tokenIn`
+    - `tokenOut`: The address of the swap's `tokenOut`
     - `amountIn`: The swap's `amountIn` of `tokenIn`
     - `amountOut`: The swap's `amountOut` of `tokenOut`
     - `percentageIn`: The percentage of `amountIn` relative to the previous block's pair `tokenIn` balance
     - `percentageOut`: The percentage of `amountOut` relative to the previous block's pair `tokenOut` balance
-    - `Swap Recipient`: The swap's `to` address
+    - `swapRecipient`: The swap's `to` address
 
 ## Test Data
 
