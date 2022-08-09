@@ -1,5 +1,5 @@
 {
-  "name": "pancakeswap-large-swap-bot",
+  "name": "cake-2",
   "version": "0.0.1",
   "description": "Forta bot that detects large swaps in PancakeSwap",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-swap/",
