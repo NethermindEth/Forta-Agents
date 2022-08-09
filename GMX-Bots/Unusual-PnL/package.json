@@ -37,5 +37,5 @@
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   },
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Unusual_PnL"
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Unusual-PnL"
 }

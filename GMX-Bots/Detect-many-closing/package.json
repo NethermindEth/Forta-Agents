@@ -6,7 +6,7 @@
     42161,
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-many-closing",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-Many-Closing",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

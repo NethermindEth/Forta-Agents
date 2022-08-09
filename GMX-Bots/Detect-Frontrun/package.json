@@ -6,7 +6,7 @@
     42161,
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/gmx5-detect-frontruns",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-Frontrun",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",

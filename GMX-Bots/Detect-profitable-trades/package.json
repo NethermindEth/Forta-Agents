@@ -6,7 +6,7 @@
     42161,
     43114
   ],
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/gmx7-detect-profitable-trades",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/GMX-Bots/Detect-Profitable-Trades",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
