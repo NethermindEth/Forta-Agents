@@ -2,7 +2,7 @@
   "name": "cake-6",
   "version": "0.0.1",
   "description": "Bot to detect admin operations on CakeVault contract from PancakeSwap",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-Cake-Admin-Operations",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Auto-CAKE-Admin-Operations",
   "chainIds": [
     56
   ],
