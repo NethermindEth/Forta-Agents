@@ -16,6 +16,18 @@ import { createFinding } from "./findings";
 
 const networkManager = new NetworkManager(DATA);
 
+async function getTokenInfo(address:string){
+
+  let funcAbi = [
+    "function name() external view returns(string)",
+    "function decimals() external view returns(uint256)"
+  ]
+
+  let token = new ethers.Contract(address, funcAbi, getEthersProvider());
+
+  return { name: token.name(), decimals: token.decimals()} ;
+}
+
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
@@ -36,11 +48,25 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     spokePoolAddress
   );
 
-  fundsDepositedEvents.forEach((fundsDepositedEvent) => {
+  fundsDepositedEvents.forEach(async (fundsDepositedEvent) => {
+
+
+    let {amount, originChainId, destinationChainId, originToken} = fundsDepositedEvent.args;
+
+    let tokenInfo = await getTokenInfo(originToken)
+
+    let normalizedValue = 
+    
+    let metadata = {
+      amount: amount.toString(),
+      originChainId: originChainId.toString(),
+      destinationChainId: destinationChainId.toString(),
+      token: tokenInfo.name
+    }
 
 
       findings.push(
-          createFinding()
+          createFinding(metadata)
       );
     }
   )
