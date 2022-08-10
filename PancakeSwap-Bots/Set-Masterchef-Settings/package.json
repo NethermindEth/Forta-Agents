@@ -1,5 +1,5 @@
 {
-  "name": "set-masterchef-settings-bot",
+  "name": "cake-5",
   "version": "0.0.1",
   "description": "Detects function calls that modify settings in the PancakeSwap Masterchef contract",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Set-Masterchef-Settings",
