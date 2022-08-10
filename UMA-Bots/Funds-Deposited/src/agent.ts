@@ -16,16 +16,15 @@ import { createFinding } from "./findings";
 
 const networkManager = new NetworkManager(DATA);
 
-async function getTokenInfo(address:string){
+async function getToken(address:string){
 
   let funcAbi = [
-    "function name() external view returns(string)",
-    "function decimals() external view returns(uint256)"
+    "function name() external view returns(string)"
   ]
 
   let token = new ethers.Contract(address, funcAbi, getEthersProvider());
 
-  return { name: token.name(), decimals: token.decimals()} ;
+  return await token.name() ;
 }
 
 export const provideInitialize = (
@@ -39,29 +38,26 @@ export const provideInitialize = (
 
 export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    const spokePoolAddress = networkManager.get("spokePoolAddress");
+  const spokePoolAddress = networkManager.get("spokePoolAddress");
   const findings: Finding[] = [];
-
   // filter the transaction logs for funds deposited events
   const fundsDepositedEvents = txEvent.filterLog(
     FUNDS_DEPOSITED_EVENT,
     spokePoolAddress
   );
 
-  fundsDepositedEvents.forEach(async (fundsDepositedEvent) => {
 
+  for(const fundsDepositedEvent of fundsDepositedEvents) {
 
     let {amount, originChainId, destinationChainId, originToken} = fundsDepositedEvent.args;
 
-    let tokenInfo = await getTokenInfo(originToken)
-
-    let normalizedValue = 
+    let token = await getToken(originToken)
     
     let metadata = {
       amount: amount.toString(),
       originChainId: originChainId.toString(),
       destinationChainId: destinationChainId.toString(),
-      token: tokenInfo.name
+      token
     }
 
 
@@ -69,8 +65,7 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
           createFinding(metadata)
       );
     }
-  )
-
+  
   return findings;
 };
 }
