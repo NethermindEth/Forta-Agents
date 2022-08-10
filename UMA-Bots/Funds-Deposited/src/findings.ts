@@ -1,17 +1,16 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 
-export function createFinding(){
+export function createFinding(_metadata: {amount:string, originChainId:string, destinationChainId:string, token:string}){
 
 
    return Finding.fromObject({
-        name: "SpokePool Event Emitted",
-        description: `High amount of funds: ${5}`,
-        alertId: "FORTA-1",
+        name: "SpokePool Funds Deposited Event Emitted",
+        description: `Deposited ${_metadata.amount} ${_metadata.token}`,
+        alertId: "UMA-1-1",
         protocol: "UMA",
-        severity: FindingSeverity.Low,
+        severity: FindingSeverity.Info,
         type: FindingType.Info,
-        metadata: {
-        },
+        metadata: _metadata
       })
 }
