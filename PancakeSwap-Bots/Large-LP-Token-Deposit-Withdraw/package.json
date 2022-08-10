@@ -1,5 +1,5 @@
 {
-  "name": "pancakeswap-large-lptoken-deposit-withdraw",
+  "name": "cake-4",
   "version": "0.0.1",
   "description": "Detects Large LP Token Deposits or Withdrawals on Pancakeswap",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Large-LP-Token-Deposit-Withdraw",
