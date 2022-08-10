@@ -1,5 +1,5 @@
 {
-  "name": "pancakeswap-1",
+  "name": "cake-1",
   "version": "0.0.1",
   "description": "Detects new pair creation on Pancakeswap DEX",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/PancakeSwap-Bots/Pair-Created",
