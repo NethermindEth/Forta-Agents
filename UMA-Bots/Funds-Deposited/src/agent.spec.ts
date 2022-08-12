@@ -74,4 +74,26 @@ describe("funds deposited bot", () => {
       expect(findings).toStrictEqual([createFinding(metadata)]);
     });
 
+    it("returns a finding for FundsDeposited if FundsDeposited event and MockEvent are emitted", async () => {
+
+      const amount = BigNumber.from("10000000");
+      const originChainId = 1111;
+      const destinationChainId = 1000;
+
+      const data = [amount, originChainId, destinationChainId, 123, 1, 1234567, createAddress("0x1234"), createAddress("0x6473"), createAddress("0x0021")];
+
+      mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
+      mockTxEvent.addEventLog(mockEventFragment ,MOCK_CONTRACT_ADDRESS, [123])
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      const metadata = {
+        amount: amount.toString(), 
+        originChainId: originChainId.toString(),
+        destinationChainId: destinationChainId.toString(),
+        token: "Test Token"
+      };
+
+      expect(findings).toStrictEqual([createFinding(metadata)]);
+    });
+
 });
