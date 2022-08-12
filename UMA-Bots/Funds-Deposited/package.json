@@ -20,7 +20,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.8",
@@ -32,6 +33,7 @@
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "prettier": "^2.7.1"
   }
 }
