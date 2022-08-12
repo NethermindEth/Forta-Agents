@@ -15,7 +15,7 @@ async function getToken(address: string) {
   try {
     return await token.name();
   } catch (e) {
-    return "Test Token";
+    console.error(e);
   }
 }
 
@@ -31,6 +31,7 @@ export const provideInitialize = (
 export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const spokePoolAddress = networkManager.get("spokePoolAddress");
+
     const findings: Finding[] = [];
     // filter the transaction logs for funds deposited events
     const fundsDepositedEvents = txEvent.filterLog(FUNDS_DEPOSITED_EVENT, spokePoolAddress);
@@ -38,7 +39,11 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     for (const fundsDepositedEvent of fundsDepositedEvents) {
       let { amount, originChainId, destinationChainId, originToken } = fundsDepositedEvent.args;
 
-      let token = await getToken(originToken);
+      let token = "Test Token";
+
+      if (networkManager.getNetwork() === 1) {
+        token = await getToken(originToken);
+      }
 
       let metadata = {
         amount: amount.toString(),
