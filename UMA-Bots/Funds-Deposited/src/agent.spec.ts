@@ -96,4 +96,38 @@ describe("funds deposited bot", () => {
       expect(findings).toStrictEqual([createFinding(metadata)]);
     });
 
+    it("returns multiple findings for FundsDeposited event emissions", async () => {
+
+      const amount = BigNumber.from("10000000");
+      const originChainId = 1111;
+      const destinationChainId = 1000;
+
+      const amount2 = BigNumber.from("10000000");
+      const originChainId2 = 1111;
+      const destinationChainId2 = 1000;
+
+      const data = [amount, originChainId, destinationChainId, 123, 1, 1234567, createAddress("0x1234"), createAddress("0x6473"), createAddress("0x0021")];
+      const data2 = [amount2, originChainId2, destinationChainId2, 8754, 432, 198097, createAddress("0x4434"), createAddress("0x1173"), createAddress("0x8821")];
+
+      mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
+      mockTxEvent.addEventLog(eventFragment ,MOCK_CONTRACT_ADDRESS, data2)
+      const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+      const metadata = {
+        amount: amount.toString(), 
+        originChainId: originChainId.toString(),
+        destinationChainId: destinationChainId.toString(),
+        token: "Test Token"
+      };
+
+      const metadata2 = {
+        amount: amount2.toString(), 
+        originChainId: originChainId2.toString(),
+        destinationChainId: destinationChainId2.toString(),
+        token: "Test Token"
+      };
+
+      expect(findings).toStrictEqual([createFinding(metadata), createFinding(metadata2)]);
+    });
+
 });
