@@ -1,7 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "uma-funds-deposited-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Bot to detect UMA FundsDeposited event emissions",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40uma-bots/UMA-Bots",
   "chainIds": [
     1
   ],
@@ -19,10 +20,11 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "forta-agent": "^0.1.6"
+    "forta-agent": "^0.1.8",
+    "forta-agent-tools": "^3.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
