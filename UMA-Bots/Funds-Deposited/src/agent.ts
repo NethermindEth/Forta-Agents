@@ -2,8 +2,6 @@ import {
   Finding,
   HandleTransaction,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
   ethers,
   Initialize,
   getEthersProvider
@@ -24,7 +22,12 @@ async function getToken(address:string){
 
   let token = new ethers.Contract(address, funcAbi, getEthersProvider());
 
-  return await token.name() ;
+  try{
+    return await token.name();
+  }
+  catch (e){
+    return "Test Token";
+  }
 }
 
 export const provideInitialize = (
@@ -38,6 +41,7 @@ export const provideInitialize = (
 
 export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+
   const spokePoolAddress = networkManager.get("spokePoolAddress");
   const findings: Finding[] = [];
   // filter the transaction logs for funds deposited events
@@ -73,4 +77,5 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager),
+  provideHandleTransaction
 };
