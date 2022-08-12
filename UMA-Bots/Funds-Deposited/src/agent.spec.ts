@@ -10,7 +10,6 @@ import { BigNumber } from "ethers";
 
 describe("funds deposited bot", () => {
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
-  jest.setTimeout(200000);
 
   let handleTransaction: HandleTransaction;
 
