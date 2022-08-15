@@ -10,7 +10,7 @@ This bot detects the following Cake Token events:
 - ETH (Ethereum Mainnet)
 
 ## Alerts
-- UMA-1-1
+- UMA-1
   - Triggered when a `FundsDeposited` event is detected.
   - Severity is always set to "Info".
   - Type is always set to "Info".
