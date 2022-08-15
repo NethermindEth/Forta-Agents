@@ -3,7 +3,7 @@ import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
 import { FUNDS_DEPOSITED_EVENT } from "./ABI";
 import { NetworkManager } from "forta-agent-tools";
-import { NetworkData } from "./config";
+import { MOCK_NETWORK_ID, NetworkData } from "./config";
 import bot from "./agent";
 import { createFinding } from "./findings";
 import { BigNumber } from "ethers";
@@ -33,7 +33,7 @@ describe("funds deposited bot", () => {
     };
 
     //initialize network manager with mock network
-    networkManager = new NetworkManager(mockData, 1111);
+    networkManager = new NetworkManager(mockData, MOCK_NETWORK_ID);
 
     handleTransaction = bot.provideHandleTransaction(networkManager);
 
@@ -41,8 +41,38 @@ describe("funds deposited bot", () => {
     mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
-  it("returns empty findings if no events are emitted,", async () => {
+  it("returns empty findings if no events are emitted", async () => {
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore other events from target contract", async () => {
     mockTxEvent.addEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [123]);
+
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should ignore events from another contract,", async () => {
+    const amount = BigNumber.from("10000000");
+    const originChainId = MOCK_NETWORK_ID;
+    const destinationChainId = 1000;
+
+    const data = [
+      amount,
+      originChainId,
+      destinationChainId,
+      123,
+      1,
+      1234567,
+      createAddress("0x1234"),
+      createAddress("0x6473"),
+      createAddress("0x0021"),
+    ];
+
+    mockTxEvent.addEventLog(eventFragment, createAddress("0x7777"), data);
 
     const findings: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -51,7 +81,7 @@ describe("funds deposited bot", () => {
 
   it("returns a finding if there is a FundsDeposited event emitted", async () => {
     const amount = BigNumber.from("10000000");
-    const originChainId = 1111;
+    const originChainId = MOCK_NETWORK_ID;
     const destinationChainId = 1000;
 
     const data = [
@@ -81,7 +111,7 @@ describe("funds deposited bot", () => {
 
   it("returns a finding for FundsDeposited if FundsDeposited event and MockEvent are emitted", async () => {
     const amount = BigNumber.from("10000000");
-    const originChainId = 1111;
+    const originChainId = MOCK_NETWORK_ID;
     const destinationChainId = 1000;
 
     const data = [
@@ -112,11 +142,11 @@ describe("funds deposited bot", () => {
 
   it("returns multiple findings for FundsDeposited event emissions", async () => {
     const amount = BigNumber.from("10000000");
-    const originChainId = 1111;
+    const originChainId = MOCK_NETWORK_ID;
     const destinationChainId = 1000;
 
     const amount2 = BigNumber.from("10000000");
-    const originChainId2 = 1111;
+    const originChainId2 = MOCK_NETWORK_ID;
     const destinationChainId2 = 1000;
 
     const data = [
