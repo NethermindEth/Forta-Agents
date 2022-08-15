@@ -1,5 +1,5 @@
 {
-  "name": "uma-funds-deposited-bot",
+  "name": "uma-1",
   "version": "0.0.1",
   "description": "Bot to detect UMA FundsDeposited event emissions",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40uma-bots/UMA-Bots",
@@ -24,16 +24,18 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bignumber.js": "^9.0.2",
     "forta-agent": "^0.1.8",
-    "forta-agent-tools": "^3.0.0"
+    "forta-agent-tools": "^3.0.0",
+    "lru-cache": "^7.13.2"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.7.1",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4",
-    "prettier": "^2.7.1"
+    "typescript": "^4.3.4"
   }
 }
