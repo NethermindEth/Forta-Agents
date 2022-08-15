@@ -12,7 +12,7 @@ contract SpokePool {
 
     function twoFindings() external {
         emit FundsDeposited(1000000, 1, 123, 555, 2, 123456789, token, address(0x5546), address(0x6453) );
-        emit FundsDeposited(3000000, 2, 444, 77, 8, 18794, address(0x1118), address(0x9a46), address(0x1053) );
+        emit FundsDeposited(3000000, 2, 444, 77, 8, 18794, token, address(0x9a46), address(0x1053) );
 
     }
 
