@@ -2,12 +2,12 @@
 
 ## Description
 
-This bot detects the following Cake Token events:
+This bot detects the following SpokePool events:
 - `FundsDeposited` event
 
 ## Supported Chains
 
-- ETH (Ethereum Mainnet)
+- Ethereum (Ethereum Mainnet)
 
 ## Alerts
 - UMA-1
@@ -22,16 +22,16 @@ This bot detects the following Cake Token events:
 
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on Goerli testnet (PoC contract address is:[0x49bbe549f0db98d0240c98fa170959e70b561757](https://goerli.etherscan.io/address/0x49bbe549f0db98d0240c98fa170959e70b561757)):
+The bot behaviour can be verified with the following transactions on Goerli testnet (PoC contract address is:[0xEF08753Ae5f00c3Ce017736580184Aa570c461aC](https://goerli.etherscan.io/address/0xEF08753Ae5f00c3Ce017736580184Aa570c461aC)):
 
-- [0xc1ef045a10c696658af7b49ebbb812eb06d49285673abd204192662625197ead]
-(https://goerli.etherscan.io/tx/0xc1ef045a10c696658af7b49ebbb812eb06d49285673abd204192662625197ead): (expect 1 finding: 1 `FundsDeposited` event)
+- [0x55c364cf730792634e7f19a43a24668cb601c739a1e60e606bed293c9c0a5334]
+(https://goerli.etherscan.io/tx/0x55c364cf730792634e7f19a43a24668cb601c739a1e60e606bed293c9c0a5334): (expect 1 finding: 1 `FundsDeposited` event)
 
-- [0xbaddf68ca66cb0eda1d24c143389b1c40c31da0d2333476f55ecdfcda73f3394]
-(https://goerli.etherscan.io/tx/0xbaddf68ca66cb0eda1d24c143389b1c40c31da0d2333476f55ecdfcda73f3394): (expect 2 findings: 2 `FundsDeposited` events)
+- [0x67b84b18ce19f77d286089fc2fb4909d4268f91d50c9fd9fbc21a10b862cc478]
+(https://goerli.etherscan.io/tx/0x67b84b18ce19f77d286089fc2fb4909d4268f91d50c9fd9fbc21a10b862cc478): (expect 2 findings: 2 `FundsDeposited` events)
 
-- [0xdefaa858728351df5aba25af86e1b15966d71c5d7f694552d5ff9a4b0740c8a6]
-(https://goerli.etherscan.io/tx/0xdefaa858728351df5aba25af86e1b15966d71c5d7f694552d5ff9a4b0740c8a6): (expect 1 finding: 1 `FundsDeposited` event and 0 `SetDepositQuoteTimeBuffer` event)
+- [0x9a106069354a5becc95907413a591f91ce715cafc71b433fa2174ba6f670a9f1]
+(https://goerli.etherscan.io/tx/0x9a106069354a5becc95907413a591f91ce715cafc71b433fa2174ba6f670a9f1): (expect 1 finding: 1 `FundsDeposited` event and 0 `SetDepositQuoteTimeBuffer` event)
 
 
 The bot behaviour can be verified with the following transactions on Ethereum mainnet ( Contract address is:[0x4D9079Bb4165aeb4084c526a32695dCfd2F77381](https://etherscan.io/address/0x4D9079Bb4165aeb4084c526a32695dCfd2F77381)):
