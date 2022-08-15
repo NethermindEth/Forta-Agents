@@ -11,3 +11,5 @@ export const DATA: Record<number, NetworkData> = {
     spokePoolAddress: "0x49bBE549F0Db98d0240c98fA170959e70B561757", //Goerli Testnet test contract address
   },
 };
+
+export const MOCK_NETWORK_ID = 1111;
