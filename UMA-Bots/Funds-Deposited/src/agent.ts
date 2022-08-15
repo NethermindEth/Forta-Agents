@@ -7,19 +7,19 @@ import BN from "bignumber.js";
 import LRU from "lru-cache";
 
 const networkManager = new NetworkManager(DATA);
-let cache = new LRU<string, {tokenName:string, tokenDecimals:number}>({ max: 500 });
+let cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 })
 
-async function getTokenInfo(address: string):Promise<{tokenName:string, tokenDecimals:number}> {
-  
-  let token = new ethers.Contract(address, FUNC_ABI, getEthersProvider());
-  try {
-    let tokenName:string = await token.name();
-    let tokenDecimals:number = await token.decimals();
-    return {tokenName, tokenDecimals}
-
-  } catch (e) {}
-
-  return {tokenName:"Test Token", tokenDecimals: 1}
+async function getTokenInfo(
+  address: string,
+  provider: ethers.providers.Provider,
+  blockNumber: number
+): Promise<{ tokenName: string; tokenDecimals: number }> {
+  let token = new ethers.Contract(address, FUNC_ABI, provider);
+  let [tokenName, tokenDecimals] = await Promise.all([
+    token.name({ blockTag: blockNumber }),
+    token.decimals({ blockTag: blockNumber }),
+  ]);
+  return { tokenName, tokenDecimals };
 }
 
 export const provideInitialize = (
@@ -31,7 +31,10 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const spokePoolAddress = networkManager.get("spokePoolAddress");
 
@@ -42,17 +45,17 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     for (const fundsDepositedEvent of fundsDepositedEvents) {
       let { amount, originChainId, destinationChainId, originToken } = fundsDepositedEvent.args;
 
-      let tokenInfo:{tokenName:string, tokenDecimals:number};
-
-      if(!cache.has(originToken)){
-        tokenInfo = await getTokenInfo(originToken);
-        cache.set(originToken, tokenInfo)
+      let tokenInfo: { tokenName: string; tokenDecimals: number};
+      
+      if (!cache.has(originToken)) {
+        tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
+        cache.set(originToken, tokenInfo);
+        
+      } else {
+        tokenInfo = cache.get(originToken)!;
       }
-      else{
-        tokenInfo = cache.get(originToken)!
-      }
 
-      let normalizedAmount = BN(amount.toString()).dividedBy(10 ** tokenInfo.tokenDecimals)
+      let normalizedAmount = BN(amount.toString()).dividedBy(10 ** tokenInfo.tokenDecimals);
 
       let metadata = {
         amount: normalizedAmount.toString(),
@@ -70,6 +73,6 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(networkManager),
-  provideHandleTransaction,
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
+  provideHandleTransaction
 };
