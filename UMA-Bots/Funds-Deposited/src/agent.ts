@@ -2,7 +2,7 @@ import { Finding, HandleTransaction, TransactionEvent, ethers, Initialize, getEt
 
 import { FUNDS_DEPOSITED_EVENT } from "./ABI";
 import { NetworkManager } from "forta-agent-tools";
-import { NetworkData, DATA } from "./config";
+import { NetworkData, DATA, MOCK_NETWORK_ID } from "./config";
 import { createFinding } from "./findings";
 
 const networkManager = new NetworkManager(DATA);
@@ -41,7 +41,7 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
 
       let token = "Test Token";
 
-      if (networkManager.getNetwork() === 1) {
+      if (networkManager.getNetwork() != MOCK_NETWORK_ID) {
         token = await getToken(originToken);
       }
 
