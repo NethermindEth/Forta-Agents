@@ -1,22 +1,25 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, Initialize, getEthersProvider } from "forta-agent";
-
-import { FUNDS_DEPOSITED_EVENT } from "./ABI";
+import { FUNC_ABI, FUNDS_DEPOSITED_EVENT } from "./ABI";
 import { NetworkManager } from "forta-agent-tools";
-import { NetworkData, DATA, MOCK_NETWORK_ID } from "./config";
+import { NetworkData, DATA } from "./config";
 import { createFinding } from "./findings";
+import BN from "bignumber.js";
+import LRU from "lru-cache";
 
 const networkManager = new NetworkManager(DATA);
+let cache = new LRU<string, {tokenName:string, tokenDecimals:number}>({ max: 500 });
 
-async function getToken(address: string) {
-  let funcAbi = ["function name() external view returns(string)"];
-
-  let token = new ethers.Contract(address, funcAbi, getEthersProvider());
-
+async function getTokenInfo(address: string):Promise<{tokenName:string, tokenDecimals:number}> {
+  
+  let token = new ethers.Contract(address, FUNC_ABI, getEthersProvider());
   try {
-    return await token.name();
-  } catch (e) {
-    console.error(e);
-  }
+    let tokenName:string = await token.name();
+    let tokenDecimals:number = await token.decimals();
+    return {tokenName, tokenDecimals}
+
+  } catch (e) {}
+
+  return {tokenName:"Test Token", tokenDecimals: 1}
 }
 
 export const provideInitialize = (
@@ -39,17 +42,23 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     for (const fundsDepositedEvent of fundsDepositedEvents) {
       let { amount, originChainId, destinationChainId, originToken } = fundsDepositedEvent.args;
 
-      let token = "Test Token";
+      let tokenInfo:{tokenName:string, tokenDecimals:number};
 
-      if (networkManager.getNetwork() != MOCK_NETWORK_ID) {
-        token = await getToken(originToken);
+      if(!cache.has(originToken)){
+        tokenInfo = await getTokenInfo(originToken);
+        cache.set(originToken, tokenInfo)
+      }
+      else{
+        tokenInfo = cache.get(originToken)!
       }
 
+      let normalizedAmount = BN(amount.toString()).dividedBy(10 ** tokenInfo.tokenDecimals)
+
       let metadata = {
-        amount: amount.toString(),
+        amount: normalizedAmount.toString(),
         originChainId: originChainId.toString(),
         destinationChainId: destinationChainId.toString(),
-        token,
+        tokenName: tokenInfo.tokenName,
       };
 
       findings.push(createFinding(metadata));
