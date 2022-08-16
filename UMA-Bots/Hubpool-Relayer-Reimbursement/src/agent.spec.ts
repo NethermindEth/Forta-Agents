@@ -111,7 +111,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
-  it("returns N (N > 1) finidings for N (N > 1) reimbursements in a single txn", async () => {
+  it("returns N (N > 1) findings for N (N > 1) reimbursements in a single txn", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
         RANDOM_ADDRESSES[0],
