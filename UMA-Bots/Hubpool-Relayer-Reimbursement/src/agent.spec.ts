@@ -15,6 +15,25 @@ import agent from "./agent";
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x68"), createAddress("0x419")];
 const NEW_EVENT = "event Paused(bool indexed isPaused)";
 
+function thisBotFinding(findingChainName:string, findingAmount : string, findingL1TokenAddr: string, findingl2TokenAddr: string ,findingToAddr: string,) 
+{
+  return  Finding.from({
+    name: "Relayer Reimbursement",
+    description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
+    alertId: "UMA-REIMB",
+    severity: FindingSeverity.Low,
+    type: FindingType.Info,
+    protocol: "Across v2",
+    metadata: {
+      l1Token: findingL1TokenAddr,
+      l2Token: findingl2TokenAddr,
+      amount: findingAmount,
+      to: findingToAddr,
+      chainName: findingChainName,
+    },
+  });
+}
+
 describe("Relayer reimbursement detection bot", () => {
   let handleTransaction: HandleTransaction;
 
