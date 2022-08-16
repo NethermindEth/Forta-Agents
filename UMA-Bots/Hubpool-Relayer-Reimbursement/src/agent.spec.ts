@@ -11,33 +11,10 @@ import {
 } from "./constants";
 import { createAddress } from "forta-agent-tools";
 import agent from "./agent";
+import { createBotFinding } from "./helpers";
 
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x68"), createAddress("0x419")];
 const NEW_EVENT = "event Paused(bool indexed isPaused)";
-
-function thisBotFinding(
-  findingL1TokenAddr: string,
-  findingl2TokenAddr: string,
-  findingAmount: string,
-  findingToAddr: string,
-  findingChainName: string
-): Finding {
-  return Finding.from({
-    name: "Relayer Reimbursement",
-    description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-    alertId: "UMA-REIMB",
-    severity: FindingSeverity.Low,
-    type: FindingType.Info,
-    protocol: "Across v2",
-    metadata: {
-      l1Token: findingL1TokenAddr,
-      l2Token: findingl2TokenAddr,
-      amount: findingAmount,
-      to: findingToAddr,
-      chainName: findingChainName,
-    },
-  });
-}
 
 describe("Relayer reimbursement detection bot", () => {
   let handleTransaction: HandleTransaction;
@@ -73,7 +50,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", ARBITRUM_SPOKE_POOL, "Arbitrum"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", ARBITRUM_SPOKE_POOL, "Arbitrum"),
     ]);
   });
 
@@ -91,7 +68,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", OPTIMISM_SPOKE_POOL, "Optimism"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", OPTIMISM_SPOKE_POOL, "Optimism"),
     ]);
   });
 
@@ -104,7 +81,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", BOBA_SPOKE_POOL, "Boba"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", BOBA_SPOKE_POOL, "Boba"),
     ]);
   });
 
@@ -117,7 +94,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -130,7 +107,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
     ]);
   });
 
@@ -150,8 +127,8 @@ describe("Relayer reimbursement detection bot", () => {
       ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -172,8 +149,8 @@ describe("Relayer reimbursement detection bot", () => {
       .addEventLog(NEW_EVENT, HUBPOOL_ADDRESS, [true]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
-      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 });
