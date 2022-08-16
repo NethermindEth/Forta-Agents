@@ -4,9 +4,7 @@ import { createBotFinding } from "./helpers";
 import { NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 
-
 const networkManagerCurr = new NetworkManager(NM_DATA);
-
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkDataInterface>,
@@ -35,7 +33,7 @@ export function provideHandleTransaction(
           l2Token.toString(),
           amount.toString(),
           to.toString(),
-          adapterToChainName[to as keyof typeof adapterToChainName],
+          adapterToChainName[to as keyof typeof adapterToChainName]
         )
       );
     });
@@ -45,5 +43,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(networkManagerCurr, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(REIMBURSEMENT_EVENT, ADAPTER_TO_CHAIN_NAME, networkManagerCurr)
+  handleTransaction: provideHandleTransaction(REIMBURSEMENT_EVENT, ADAPTER_TO_CHAIN_NAME, networkManagerCurr),
 };

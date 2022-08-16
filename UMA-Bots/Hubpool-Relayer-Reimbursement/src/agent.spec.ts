@@ -10,18 +10,17 @@ import {
   ADAPTER_TO_CHAIN_NAME,
 } from "./constants";
 import { createAddress, NetworkManager } from "forta-agent-tools";
-import  { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { createBotFinding } from "./helpers";
 import { NetworkDataInterface } from "./network";
 
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x68"), createAddress("0x419")];
 const NEW_EVENT = "event Paused(bool indexed isPaused)";
 
-
 const TEST_HUBPOOL_ADDR: string = createAddress("0x01");
 
 const TEST_NM_DATA: Record<number, NetworkDataInterface> = {
-  0 : {
+  0: {
     hubPoolAddr: TEST_HUBPOOL_ADDR,
   },
 };
@@ -29,7 +28,11 @@ const TEST_NM_DATA: Record<number, NetworkDataInterface> = {
 describe("Relayer reimbursement detection bot", () => {
   const networkManager = new NetworkManager(TEST_NM_DATA);
   networkManager.setNetwork(0);
-  let handleTransaction: HandleTransaction = provideHandleTransaction(REIMBURSEMENT_EVENT, ADAPTER_TO_CHAIN_NAME, networkManager);
+  let handleTransaction: HandleTransaction = provideHandleTransaction(
+    REIMBURSEMENT_EVENT,
+    ADAPTER_TO_CHAIN_NAME,
+    networkManager
+  );
 
   it("returns empty findings if there is no reimbursement", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_HUBPOOL_ADDR);
