@@ -10,7 +10,7 @@ This bot detects transfers of funds from the HubPool, which is the L1 liquidity 
   
 ## Alerts
 
-- UMA-REIMB
+- UMA-4
   - Fired when a transfer of funds for relayer reimbursement takes place
   - Severity is always set to "low" 
   - Type is always set to "info"
