@@ -15,9 +15,14 @@ import agent from "./agent";
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x68"), createAddress("0x419")];
 const NEW_EVENT = "event Paused(bool indexed isPaused)";
 
-function thisBotFinding(findingChainName:string, findingAmount : string, findingL1TokenAddr: string, findingl2TokenAddr: string ,findingToAddr: string,) 
-{
-  return  Finding.from({
+function thisBotFinding(
+  findingL1TokenAddr: string,
+  findingl2TokenAddr: string,
+  findingAmount: string,
+  findingToAddr: string,
+  findingChainName: string
+): Finding {
+  return Finding.from({
     name: "Relayer Reimbursement",
     description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
     alertId: "UMA-REIMB",
@@ -68,21 +73,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: ARBITRUM_SPOKE_POOL,
-          chainName: "Arbitrum",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", ARBITRUM_SPOKE_POOL, "Arbitrum"),
     ]);
   });
 
@@ -100,21 +91,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: OPTIMISM_SPOKE_POOL,
-          chainName: "Optimism",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", OPTIMISM_SPOKE_POOL, "Optimism"),
     ]);
   });
 
@@ -127,21 +104,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: BOBA_SPOKE_POOL,
-          chainName: "Boba",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", BOBA_SPOKE_POOL, "Boba"),
     ]);
   });
 
@@ -154,21 +117,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: MAINNET_SPOKE_POOL,
-          chainName: "Mainnet",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -181,21 +130,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: POLYGON_SPOKE_POOL,
-          chainName: "Polygon",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
     ]);
   });
 
@@ -215,36 +150,8 @@ describe("Relayer reimbursement detection bot", () => {
       ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: POLYGON_SPOKE_POOL,
-          chainName: "Polygon",
-        },
-      }),
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: MAINNET_SPOKE_POOL,
-          chainName: "Mainnet",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -265,36 +172,8 @@ describe("Relayer reimbursement detection bot", () => {
       .addEventLog(NEW_EVENT, HUBPOOL_ADDRESS, [true]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: POLYGON_SPOKE_POOL,
-          chainName: "Polygon",
-        },
-      }),
-      Finding.from({
-        name: "Relayer Reimbursement",
-        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
-        alertId: "UMA-REIMB",
-        severity: FindingSeverity.Low,
-        type: FindingType.Info,
-        protocol: "Across v2",
-        metadata: {
-          l1Token: RANDOM_ADDRESSES[0],
-          l2Token: RANDOM_ADDRESSES[1],
-          amount: "420",
-          to: MAINNET_SPOKE_POOL,
-          chainName: "Mainnet",
-        },
-      }),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      thisBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 });
