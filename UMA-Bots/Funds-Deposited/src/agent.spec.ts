@@ -23,9 +23,9 @@ describe("funds deposited bot", () => {
 
   let mockEventFragment: ethers.utils.EventFragment;
 
-  let provider: ethers.providers.Provider;
-
   let mockProvider: MockEthersProvider;
+
+  const MOCK_TOKEN_ADDRESS = createAddress("0x1234");
 
   beforeEach(() => {
     const mockData: Record<number, NetworkData> = {
@@ -42,19 +42,18 @@ describe("funds deposited bot", () => {
     mockTxEvent.setBlock(1234);
 
     mockProvider = new MockEthersProvider();
-    provider = mockProvider as unknown as ethers.providers.Provider;
 
-    mockProvider.addCallTo(MOCK_CONTRACT_ADDRESS, mockTxEvent.blockNumber, TOKEN_IFACE, "name", {
+    mockProvider.addCallTo(MOCK_TOKEN_ADDRESS, mockTxEvent.blockNumber, TOKEN_IFACE, "name", {
       inputs: [],
       outputs: ["Test Token"],
     });
 
-    mockProvider.addCallTo(MOCK_CONTRACT_ADDRESS, mockTxEvent.blockNumber, TOKEN_IFACE, "decimals", {
+    mockProvider.addCallTo(MOCK_TOKEN_ADDRESS, mockTxEvent.blockNumber, TOKEN_IFACE, "decimals", {
       inputs: [],
       outputs: [0],
     });
 
-    handleTransaction = bot.provideHandleTransaction(networkManager, provider);
+    handleTransaction = bot.provideHandleTransaction(networkManager, mockProvider as any);
   });
 
   beforeAll(() => {
@@ -88,7 +87,7 @@ describe("funds deposited bot", () => {
       123,
       1,
       1234567,
-      createAddress("0x1234"),
+      MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
       createAddress("0x0021"),
     ];
@@ -112,7 +111,7 @@ describe("funds deposited bot", () => {
       123,
       1,
       1234567,
-      createAddress("0x1234"),
+      MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
       createAddress("0x0021"),
     ];
@@ -142,7 +141,7 @@ describe("funds deposited bot", () => {
       123,
       1,
       1234567,
-      createAddress("0x1234"),
+      MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
       createAddress("0x0021"),
     ];
@@ -177,7 +176,7 @@ describe("funds deposited bot", () => {
       123,
       1,
       1234567,
-      createAddress("0x1234"),
+      MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
       createAddress("0x0021"),
     ];
@@ -188,7 +187,7 @@ describe("funds deposited bot", () => {
       8754,
       432,
       198097,
-      createAddress("0x4434"),
+      MOCK_TOKEN_ADDRESS,
       createAddress("0x1173"),
       createAddress("0x8821"),
     ];
