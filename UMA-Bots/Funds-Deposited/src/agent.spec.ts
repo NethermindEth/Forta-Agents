@@ -39,7 +39,7 @@ describe("funds deposited bot", () => {
 
     //create test transaction before each test
     mockTxEvent = new TestTransactionEvent();
-    mockTxEvent.setBlock(1234)
+    mockTxEvent.setBlock(1234);
 
     mockProvider = new MockEthersProvider();
     provider = mockProvider as unknown as ethers.providers.Provider;
