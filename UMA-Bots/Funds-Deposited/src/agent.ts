@@ -15,14 +15,12 @@ async function getTokenInfo(
   blockNumber: number
 ): Promise<{ tokenName: string; tokenDecimals: number }> {
   let token = new ethers.Contract(address, FUNC_ABI, provider);
-  try {
-    let [tokenName, tokenDecimals] = await Promise.all([
-      token.name({ blockTag: blockNumber }),
-      token.decimals({ blockTag: blockNumber }),
-    ]);
-    return { tokenName, tokenDecimals };
-  } catch {}
-  return { tokenName: "", tokenDecimals: 0 };
+
+  let [tokenName, tokenDecimals] = await Promise.all([
+    token.name({ blockTag: blockNumber }),
+    token.decimals({ blockTag: blockNumber }),
+  ]);
+  return { tokenName, tokenDecimals };
 }
 
 export const provideInitialize = (
