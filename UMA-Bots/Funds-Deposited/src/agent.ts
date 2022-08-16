@@ -7,7 +7,7 @@ import BN from "bignumber.js";
 import LRU from "lru-cache";
 
 const networkManager = new NetworkManager(DATA);
-let cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 })
+let cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
 
 async function getTokenInfo(
   address: string,
@@ -15,11 +15,14 @@ async function getTokenInfo(
   blockNumber: number
 ): Promise<{ tokenName: string; tokenDecimals: number }> {
   let token = new ethers.Contract(address, FUNC_ABI, provider);
-  let [tokenName, tokenDecimals] = await Promise.all([
-    token.name({ blockTag: blockNumber }),
-    token.decimals({ blockTag: blockNumber }),
-  ]);
-  return { tokenName, tokenDecimals };
+  try {
+    let [tokenName, tokenDecimals] = await Promise.all([
+      token.name({ blockTag: blockNumber }),
+      token.decimals({ blockTag: blockNumber }),
+    ]);
+    return { tokenName, tokenDecimals };
+  } catch {}
+  return { tokenName: "", tokenDecimals: 0 };
 }
 
 export const provideInitialize = (
@@ -45,12 +48,11 @@ export const provideHandleTransaction = (
     for (const fundsDepositedEvent of fundsDepositedEvents) {
       let { amount, originChainId, destinationChainId, originToken } = fundsDepositedEvent.args;
 
-      let tokenInfo: { tokenName: string; tokenDecimals: number};
-      
+      let tokenInfo: { tokenName: string; tokenDecimals: number };
+
       if (!cache.has(originToken)) {
         tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
         cache.set(originToken, tokenInfo);
-        
       } else {
         tokenInfo = cache.get(originToken)!;
       }
@@ -74,5 +76,5 @@ export const provideHandleTransaction = (
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
-  provideHandleTransaction
+  provideHandleTransaction,
 };
