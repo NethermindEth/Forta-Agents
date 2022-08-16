@@ -2,12 +2,6 @@ import { HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import {
   REIMBURSEMENT_EVENT,
-  MAINNET_SPOKE_POOL,
-  BOBA_SPOKE_POOL,
-  POLYGON_SPOKE_POOL,
-  ARBITRUM_SPOKE_POOL,
-  OPTIMISM_SPOKE_POOL,
-  ADAPTER_TO_CHAIN_NAME,
 } from "./constants";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideHandleTransaction } from "./agent";
@@ -16,6 +10,18 @@ import { NetworkDataInterface } from "./network";
 
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x68"), createAddress("0x419")];
 const NEW_EVENT = "event Paused(bool indexed isPaused)";
+const MOCK_MAINNET_SPOKE_POOL : string = createAddress("0x91");
+const MOCK_OPTIMISM_SPOKE_POOL : string = createAddress("0x92");
+const MOCK_POLYGON_SPOKE_POOL = createAddress("0x93");
+const MOCK_BOBA_SPOKE_POOL = createAddress("0x94");
+const MOCK_ARBITRUM_SPOKE_POOL = createAddress("0x95");
+const MOCK_ADAPTER_TO_CHAIN_NAME : {[key: string]: string} = {
+  [MOCK_MAINNET_SPOKE_POOL] : "Mainnet",
+  [MOCK_OPTIMISM_SPOKE_POOL] : "Optimism",
+  [MOCK_POLYGON_SPOKE_POOL] : "Polygon",
+  [MOCK_BOBA_SPOKE_POOL] : "Boba",
+  [MOCK_ARBITRUM_SPOKE_POOL] : "Arbitrum",
+};
 
 const TEST_HUBPOOL_ADDR: string = createAddress("0x01");
 
@@ -30,7 +36,7 @@ describe("Relayer reimbursement detection bot", () => {
   networkManager.setNetwork(0);
   let handleTransaction: HandleTransaction = provideHandleTransaction(
     REIMBURSEMENT_EVENT,
-    ADAPTER_TO_CHAIN_NAME,
+    MOCK_ADAPTER_TO_CHAIN_NAME,
     networkManager
   );
 
@@ -57,11 +63,11 @@ describe("Relayer reimbursement detection bot", () => {
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
       "0x1A4",
-      ARBITRUM_SPOKE_POOL,
+      MOCK_ARBITRUM_SPOKE_POOL,
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", ARBITRUM_SPOKE_POOL, "Arbitrum"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_ARBITRUM_SPOKE_POOL, "Arbitrum"),
     ]);
   });
 
@@ -75,11 +81,11 @@ describe("Relayer reimbursement detection bot", () => {
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
       "0x1A4",
-      OPTIMISM_SPOKE_POOL,
+      MOCK_OPTIMISM_SPOKE_POOL,
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", OPTIMISM_SPOKE_POOL, "Optimism"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_OPTIMISM_SPOKE_POOL, "Optimism"),
     ]);
   });
 
@@ -88,11 +94,11 @@ describe("Relayer reimbursement detection bot", () => {
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
       "0x1A4",
-      BOBA_SPOKE_POOL,
+      MOCK_BOBA_SPOKE_POOL,
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", BOBA_SPOKE_POOL, "Boba"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_BOBA_SPOKE_POOL, "Boba"),
     ]);
   });
 
@@ -101,11 +107,11 @@ describe("Relayer reimbursement detection bot", () => {
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
       "0x1A4",
-      MAINNET_SPOKE_POOL,
+      MOCK_MAINNET_SPOKE_POOL,
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -114,11 +120,11 @@ describe("Relayer reimbursement detection bot", () => {
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
       "0x1A4",
-      POLYGON_SPOKE_POOL,
+      MOCK_POLYGON_SPOKE_POOL,
     ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_POLYGON_SPOKE_POOL, "Polygon"),
     ]);
   });
 
@@ -128,18 +134,18 @@ describe("Relayer reimbursement detection bot", () => {
         RANDOM_ADDRESSES[0],
         RANDOM_ADDRESSES[1],
         "0x1A4",
-        POLYGON_SPOKE_POOL,
+        MOCK_POLYGON_SPOKE_POOL,
       ])
       .addEventLog(REIMBURSEMENT_EVENT, TEST_HUBPOOL_ADDR, [
         RANDOM_ADDRESSES[0],
         RANDOM_ADDRESSES[1],
         "0x1A4",
-        MAINNET_SPOKE_POOL,
+        MOCK_MAINNET_SPOKE_POOL,
       ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 
@@ -149,19 +155,19 @@ describe("Relayer reimbursement detection bot", () => {
         RANDOM_ADDRESSES[0],
         RANDOM_ADDRESSES[1],
         "0x1A4",
-        POLYGON_SPOKE_POOL,
+        MOCK_POLYGON_SPOKE_POOL,
       ])
       .addEventLog(REIMBURSEMENT_EVENT, TEST_HUBPOOL_ADDR, [
         RANDOM_ADDRESSES[0],
         RANDOM_ADDRESSES[1],
         "0x1A4",
-        MAINNET_SPOKE_POOL,
+        MOCK_MAINNET_SPOKE_POOL,
       ])
       .addEventLog(NEW_EVENT, TEST_HUBPOOL_ADDR, [true]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", POLYGON_SPOKE_POOL, "Polygon"),
-      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MAINNET_SPOKE_POOL, "Mainnet"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_POLYGON_SPOKE_POOL, "Polygon"),
+      createBotFinding(RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], "420", MOCK_MAINNET_SPOKE_POOL, "Mainnet"),
     ]);
   });
 });
