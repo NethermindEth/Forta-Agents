@@ -16,7 +16,7 @@ This bot detects transfers of funds from the HubPool, which is the L1 liquidity 
   - Type is always set to "info"
   - Metadata :
       - `l1Token`: address of the token on L1
-      - `l2Token` : address of the token on L2
+      - `receivingToken` : address of the receiving token
       - `amount`: amount of ERC20 tokens transferred
       - `to` : address to which the l2 tokens are transferred (generally owned by the relayer)
       - `chainName` : the funds are transferred to the `spokePool` on `chainName` chain
@@ -31,7 +31,7 @@ These tests can be run using npm run tx <TX_HASH> :
 
 ### Goerli Testnet (PoC)
 
-> The PoC files are available at `./POC/`
+> The PoC files are available at `./PoC/`
 
 In order to verify the Proof of Concept transactions on Goerli:
 1.  `HUBPOOL_ADDRESS` must be set to [`0x9F1CBa21257DA30A31d42EA53999CFcA179E849e`](https://goerli.etherscan.io/address/0x9F1CBa21257DA30A31d42EA53999CFcA179E849e)

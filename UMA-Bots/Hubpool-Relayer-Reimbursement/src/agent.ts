@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, ADAPTER_TO_CHAIN_NAME } from "./constants";
 import { createBotFinding } from "./helpers";
 
