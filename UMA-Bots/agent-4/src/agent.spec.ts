@@ -29,7 +29,7 @@ describe("Root Bundle Disputed agent", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns empty findings if there a reimbursement is made from the wrong address", async () => {
+  it("returns empty findings if there a reimbursement is made from another contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESS)
       .addEventLog(REIMBURSEMENT_EVENT, RANDOM_ADDRESS, [
