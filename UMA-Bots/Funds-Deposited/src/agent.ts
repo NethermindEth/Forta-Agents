@@ -14,6 +14,7 @@ async function getTokenInfo(
   provider: ethers.providers.Provider,
   blockNumber: number
 ): Promise<{ tokenName: string; tokenDecimals: number }> {
+  //check if token address is already cached
   if (!cache.has(address)) {
     let token = new ethers.Contract(address, FUNC_ABI, provider);
 
@@ -22,9 +23,11 @@ async function getTokenInfo(
       token.decimals({ blockTag: blockNumber }),
     ]);
     let info = { tokenName, tokenDecimals };
+    //cache address -> token info
     cache.set(address, info);
     return info;
   } else {
+    //return cached information
     return cache.get(address)!;
   }
 }
@@ -43,6 +46,7 @@ export const provideHandleTransaction = (
   provider: ethers.providers.Provider
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    //get the correct contract address for the network selected
     const spokePoolAddress = networkManager.get("spokePoolAddress");
 
     const findings: Finding[] = [];
