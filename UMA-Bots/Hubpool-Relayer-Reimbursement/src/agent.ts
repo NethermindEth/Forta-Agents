@@ -10,8 +10,8 @@ export function provideHandleTransaction(
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    const remibursementEventTxns = txEvent.filterLog(reimbursementEvent, hubpoolAddress);
-    remibursementEventTxns.forEach((singleReimbursementEvent) => {
+    const reimbursementEventTxns = txEvent.filterLog(reimbursementEvent, hubpoolAddress);
+    reimbursementEventTxns.forEach((singleReimbursementEvent) => {
       const { l1Token, l2Token, amount, to } = singleReimbursementEvent.args;
 
       findings.push(
