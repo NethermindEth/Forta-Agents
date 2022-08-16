@@ -63,7 +63,7 @@ describe("funds deposited bot", () => {
     mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
-  /* it("returns empty findings if no events are emitted", async () => {
+  it("returns empty findings if no events are emitted", async () => {
     const findings: Finding[] = await handleTransaction(mockTxEvent);
 
     expect(findings).toStrictEqual([]);
@@ -160,7 +160,7 @@ describe("funds deposited bot", () => {
     };
 
     expect(findings).toStrictEqual([createFinding(metadata)]);
-  }); */
+  });
 
   it("returns multiple findings for FundsDeposited event emissions", async () => {
     const amount = BigNumber.from("10000000");
