@@ -1,10 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS } from "./constants";
 import agent from "./agent";
@@ -22,9 +16,7 @@ describe("Root Bundle Disputed agent", () => {
   });
 
   it("returns empty findings if there is no reimbursement", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(
-      HUBPOOL_ADDRESS
-    );
+    const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(HUBPOOL_ADDRESS);
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -32,23 +24,19 @@ describe("Root Bundle Disputed agent", () => {
   it("returns empty findings if there a reimbursement is made from another contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESS)
-      .addEventLog(REIMBURSEMENT_EVENT, RANDOM_ADDRESS, [
-        RANDOM_ADDRESS,
-        RANDOM_ADDRESS_2,
-        "0x123",
-        RANDOM_ADDRESS_3,
-      ]);
+      .addEventLog(REIMBURSEMENT_EVENT, RANDOM_ADDRESS, [RANDOM_ADDRESS, RANDOM_ADDRESS_2, "0x123", RANDOM_ADDRESS_3]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
   it("returns a finding if a reimbursement is made on a relevant contract address", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-      REIMBURSEMENT_EVENT,
-      HUBPOOL_ADDRESS,
-      [RANDOM_ADDRESS, RANDOM_ADDRESS_2, "0x1A4", ARBITRUM_SPOKE_POOL]
-    );
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+      RANDOM_ADDRESS,
+      RANDOM_ADDRESS_2,
+      "0x1A4",
+      ARBITRUM_SPOKE_POOL,
+    ]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([

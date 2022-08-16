@@ -1,6 +1,5 @@
 // @dev event hash is 0xd7e09655439c3932e55857df3220186e5a7f0980825f20691c2b35d941dee75b
-export const REIMBURSEMENT_EVENT =
-  "event TokensRelayed(address l1Token, address l2Token, uint256 amount, address to)";
+export const REIMBURSEMENT_EVENT = "event TokensRelayed(address l1Token, address l2Token, uint256 amount, address to)";
 
 export const ADAPTER_TO_CHAIN_NAME = {
   "0x4D9079Bb4165aeb4084c526a32695dCfd2F77381": "Mainnet",

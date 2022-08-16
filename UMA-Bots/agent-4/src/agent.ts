@@ -1,15 +1,5 @@
-import {
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
-import {
-  REIMBURSEMENT_EVENT,
-  HUBPOOL_ADDRESS,
-  ADAPTER_TO_CHAIN_NAME,
-} from "./constants";
+import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType } from "forta-agent";
+import { REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, ADAPTER_TO_CHAIN_NAME } from "./constants";
 
 export function provideHandleTransaction(
   reimbursementEvent: string,
@@ -18,10 +8,7 @@ export function provideHandleTransaction(
 ): HandleTransaction {
   const findings: Finding[] = [];
   return async (txEvent: TransactionEvent) => {
-    const remibursementEventTxns = txEvent.filterLog(
-      reimbursementEvent,
-      hubpoolAddress
-    );
+    const remibursementEventTxns = txEvent.filterLog(reimbursementEvent, hubpoolAddress);
     remibursementEventTxns.forEach((singleReimbursementEvent) => {
       const { l1Token, l2Token, amount, to } = singleReimbursementEvent.args;
 
@@ -38,8 +25,7 @@ export function provideHandleTransaction(
             l2Token: l2Token.toString(),
             amount: amount.toString(),
             to: to.toString(),
-            chainName:
-              adapterToChainName[to as keyof typeof adapterToChainName],
+            chainName: adapterToChainName[to as keyof typeof adapterToChainName],
           },
         })
       );
@@ -49,10 +35,6 @@ export function provideHandleTransaction(
 }
 
 export default {
-  handleTransaction: provideHandleTransaction(
-    REIMBURSEMENT_EVENT,
-    HUBPOOL_ADDRESS,
-    ADAPTER_TO_CHAIN_NAME
-  ),
+  handleTransaction: provideHandleTransaction(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, ADAPTER_TO_CHAIN_NAME),
   // handleBlock
 };
