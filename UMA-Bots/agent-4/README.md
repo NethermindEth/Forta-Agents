@@ -22,6 +22,9 @@ This bot detects transfers of funds from the HubPool, which is the L1 liquidity 
       - `chainName` : the funds are transferred to the `spokePool` on `chainName` chain
   
 ## Test Data
-Txn:
-- 0x43828aac2fdcc17445bafc75992a4eb5c856b0babe87b69b08f4e53bb6c0db9c
-- 0x2a65c46484b7e7ef3a2d96852dee5db14e580ba074eeaa52718d1eaa572af621
+
+The bot behavior can be verified with the following transactions on Ethereum mainnet
+- [0x43828aac2fdcc17445bafc75992a4eb5c856b0babe87b69b08f4e53bb6c0db9c]
+(https://etherscan.io/tx/0x43828aac2fdcc17445bafc75992a4eb5c856b0babe87b69b08f4e53bb6c0db9c)
+- [0x2a65c46484b7e7ef3a2d96852dee5db14e580ba074eeaa52718d1eaa572af621]
+(https://etherscan.io/tx/0x2a65c46484b7e7ef3a2d96852dee5db14e580ba074eeaa52718d1eaa572af621)
