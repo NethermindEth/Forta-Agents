@@ -22,16 +22,16 @@ This bot detects the following SpokePool events:
 
 ## Test Data
 
-The bot behaviour can be verified with the following transactions on Goerli testnet (PoC contract address is:[0xEF08753Ae5f00c3Ce017736580184Aa570c461aC](https://goerli.etherscan.io/address/0xEF08753Ae5f00c3Ce017736580184Aa570c461aC)):
+The bot behaviour can be verified with the following transactions on Goerli testnet (PoC contract address is:[0xBC760257763b77aeEa256c129e09DB41bD2c1450](https://goerli.etherscan.io/address/0xBC760257763b77aeEa256c129e09DB41bD2c1450)):
 
-- [0x55c364cf730792634e7f19a43a24668cb601c739a1e60e606bed293c9c0a5334]
-(https://goerli.etherscan.io/tx/0x55c364cf730792634e7f19a43a24668cb601c739a1e60e606bed293c9c0a5334): (expect 1 finding: 1 `FundsDeposited` event)
+- [0xe346b3c417ac1ec06034d381d70f5b9d87fa92d60a0fa9df452241c4e313bbe1]
+(https://goerli.etherscan.io/tx/0xe346b3c417ac1ec06034d381d70f5b9d87fa92d60a0fa9df452241c4e313bbe1): (expect 1 finding: 1 `FundsDeposited` event)
 
-- [0x67b84b18ce19f77d286089fc2fb4909d4268f91d50c9fd9fbc21a10b862cc478]
-(https://goerli.etherscan.io/tx/0x67b84b18ce19f77d286089fc2fb4909d4268f91d50c9fd9fbc21a10b862cc478): (expect 2 findings: 2 `FundsDeposited` events)
+- [0x0d3f92a6c0c93f69a8d2e430960bc10ac54b60ced2a81daf92efec1eebfbf38c]
+(https://goerli.etherscan.io/tx/0x0d3f92a6c0c93f69a8d2e430960bc10ac54b60ced2a81daf92efec1eebfbf38c): (expect 2 findings: 2 `FundsDeposited` events)
 
-- [0x9a106069354a5becc95907413a591f91ce715cafc71b433fa2174ba6f670a9f1]
-(https://goerli.etherscan.io/tx/0x9a106069354a5becc95907413a591f91ce715cafc71b433fa2174ba6f670a9f1): (expect 1 finding: 1 `FundsDeposited` event and 0 `SetDepositQuoteTimeBuffer` event)
+- [0x1838018ab012bf5d76ec48c64ddabdb65679478ea93ac45b654052a90d6e8fb9]
+(https://goerli.etherscan.io/tx/0x1838018ab012bf5d76ec48c64ddabdb65679478ea93ac45b654052a90d6e8fb9): (expect 1 finding: 1 `FundsDeposited` event and 0 `SetDepositQuoteTimeBuffer` event)
 
 
 The bot behaviour can be verified with the following transactions on Ethereum mainnet ( Contract address is:[0x4D9079Bb4165aeb4084c526a32695dCfd2F77381](https://etherscan.io/address/0x4D9079Bb4165aeb4084c526a32695dCfd2F77381)):
