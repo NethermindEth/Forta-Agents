@@ -14,13 +14,22 @@ async function getTokenInfo(
   provider: ethers.providers.Provider,
   blockNumber: number
 ): Promise<{ tokenName: string; tokenDecimals: number }> {
-  let token = new ethers.Contract(address, FUNC_ABI, provider);
+  
+  if (!cache.has(address)) {
+      let token = new ethers.Contract(address, FUNC_ABI, provider);
 
-  let [tokenName, tokenDecimals] = await Promise.all([
-    token.name({ blockTag: blockNumber }),
-    token.decimals({ blockTag: blockNumber }),
-  ]);
-  return { tokenName, tokenDecimals };
+      let [tokenName, tokenDecimals] = await Promise.all([
+        token.name({ blockTag: blockNumber }),
+        token.decimals({ blockTag: blockNumber }),
+      ]);
+      let info = {tokenName, tokenDecimals}
+      cache.set(address, info);
+      return info;
+  }
+  else{
+    return cache.get(address)!;
+  }
+
 }
 
 export const provideInitialize = (
@@ -48,12 +57,7 @@ export const provideHandleTransaction = (
 
       let tokenInfo: { tokenName: string; tokenDecimals: number };
 
-      if (!cache.has(originToken)) {
-        tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
-        cache.set(originToken, tokenInfo);
-      } else {
-        tokenInfo = cache.get(originToken)!;
-      }
+      tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
 
       let normalizedAmount = BN(amount.toString()).dividedBy(10 ** tokenInfo.tokenDecimals);
 
