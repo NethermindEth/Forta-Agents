@@ -51,14 +51,13 @@ describe("funds deposited bot", () => {
 
     mockProvider.addCallTo(MOCK_CONTRACT_ADDRESS, mockTxEvent.blockNumber, TOKEN_IFACE, "decimals", {
       inputs: [],
-      outputs: [6],
+      outputs: [0],
     });
 
     handleTransaction = bot.provideHandleTransaction(networkManager, provider);
   });
 
   beforeAll(() => {
-    jest.setTimeout(2000000);
     eventFragment = ethers.utils.EventFragment.from(FUNDS_DEPOSITED_EVENT.slice("event ".length));
     mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
