@@ -41,15 +41,12 @@ describe("Relayer reimbursement detection bot", () => {
   });
 
   it("returns a finding if a reimbursement is made on a relevant contract address to Arbitrum spoke pool", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(RANDOM_ADDRESSES[1])
-      .setFrom(HUBPOOL_ADDRESS)
-      .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
-        RANDOM_ADDRESSES[0],
-        RANDOM_ADDRESSES[1],
-        "0x1A4",
-        ARBITRUM_SPOKE_POOL,
-      ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+      RANDOM_ADDRESSES[0],
+      RANDOM_ADDRESSES[1],
+      "0x1A4",
+      ARBITRUM_SPOKE_POOL,
+    ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       Finding.from({
@@ -71,10 +68,7 @@ describe("Relayer reimbursement detection bot", () => {
   });
 
   it("returns empty findings for other events emitted from target contract", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setTo(RANDOM_ADDRESSES[1])
-      .setFrom(HUBPOOL_ADDRESS)
-      .addEventLog(NEW_EVENT, HUBPOOL_ADDRESS, [true]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(NEW_EVENT, HUBPOOL_ADDRESS, [true]);
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
@@ -105,7 +99,6 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
-
   it("returns a finding if a reimbursement is made on a relevant contract address to Boba's spoke pool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
       RANDOM_ADDRESSES[0],
@@ -133,8 +126,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
-  
-  it("returns a finding if a reimbursement is made on a relevant contract address to Optimism's spoke pool", async () => {
+  it("returns a finding if a reimbursement is made on a relevant contract address to Mainnet's spoke pool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
@@ -161,8 +153,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
-
-  it("returns a finding if a reimbursement is made on a relevant contract address to Optimism's spoke pool", async () => {
+  it("returns a finding if a reimbursement is made on a relevant contract address to Polygon's spoke pool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
@@ -189,6 +180,102 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
+  it("returns N (N > 1) finidings for N (N > 1) reimbursements in a single txn", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+        RANDOM_ADDRESSES[0],
+        RANDOM_ADDRESSES[1],
+        "0x1A4",
+        POLYGON_SPOKE_POOL,
+      ])
+      .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+        RANDOM_ADDRESSES[0],
+        RANDOM_ADDRESSES[1],
+        "0x1A4",
+        MAINNET_SPOKE_POOL,
+      ]);
 
+    expect(await handleTransaction(txEvent)).toStrictEqual([
+      Finding.from({
+        name: "Relayer Reimbursement",
+        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
+        alertId: "UMA-REIMB",
+        severity: FindingSeverity.Low,
+        type: FindingType.Info,
+        protocol: "Across v2",
+        metadata: {
+          l1Token: RANDOM_ADDRESSES[0],
+          l2Token: RANDOM_ADDRESSES[1],
+          amount: "420",
+          to: POLYGON_SPOKE_POOL,
+          chainName: "Polygon",
+        },
+      }),
+      Finding.from({
+        name: "Relayer Reimbursement",
+        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
+        alertId: "UMA-REIMB",
+        severity: FindingSeverity.Low,
+        type: FindingType.Info,
+        protocol: "Across v2",
+        metadata: {
+          l1Token: RANDOM_ADDRESSES[0],
+          l2Token: RANDOM_ADDRESSES[1],
+          amount: "420",
+          to: MAINNET_SPOKE_POOL,
+          chainName: "Mainnet",
+        },
+      }),
+    ]);
+  });
 
+  it("returns only relevant findings when one transaction includes a couple of relevant events and an irrelevant events together", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+        RANDOM_ADDRESSES[0],
+        RANDOM_ADDRESSES[1],
+        "0x1A4",
+        POLYGON_SPOKE_POOL,
+      ])
+      .addEventLog(REIMBURSEMENT_EVENT, HUBPOOL_ADDRESS, [
+        RANDOM_ADDRESSES[0],
+        RANDOM_ADDRESSES[1],
+        "0x1A4",
+        MAINNET_SPOKE_POOL,
+      ])
+      .addEventLog(NEW_EVENT, HUBPOOL_ADDRESS, [true]);
+
+    expect(await handleTransaction(txEvent)).toStrictEqual([
+      Finding.from({
+        name: "Relayer Reimbursement",
+        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
+        alertId: "UMA-REIMB",
+        severity: FindingSeverity.Low,
+        type: FindingType.Info,
+        protocol: "Across v2",
+        metadata: {
+          l1Token: RANDOM_ADDRESSES[0],
+          l2Token: RANDOM_ADDRESSES[1],
+          amount: "420",
+          to: POLYGON_SPOKE_POOL,
+          chainName: "Polygon",
+        },
+      }),
+      Finding.from({
+        name: "Relayer Reimbursement",
+        description: `A token transfer took place from the l1 HubPool for Relayer reimbursement to a spokePool`,
+        alertId: "UMA-REIMB",
+        severity: FindingSeverity.Low,
+        type: FindingType.Info,
+        protocol: "Across v2",
+        metadata: {
+          l1Token: RANDOM_ADDRESSES[0],
+          l2Token: RANDOM_ADDRESSES[1],
+          amount: "420",
+          to: MAINNET_SPOKE_POOL,
+          chainName: "Mainnet",
+        },
+      }),
+    ]);
+  });
 });
