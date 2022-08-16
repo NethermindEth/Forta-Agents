@@ -14,5 +14,3 @@ export const ADAPTER_TO_CHAIN_NAME = {
   "0xBbc6009fEfFc27ce705322832Cb2068F8C1e0A58": "Boba",
   "0xB88690461dDbaB6f04Dfad7df66B7725942FEb9C": "Arbitrum",
 };
-
-// export const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";

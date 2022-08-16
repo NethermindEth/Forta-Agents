@@ -1,5 +1,5 @@
-import { HandleTransaction, Network, TransactionEvent } from "forta-agent";
-import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
+import { HandleTransaction, TransactionEvent } from "forta-agent";
+import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import {
   REIMBURSEMENT_EVENT,
   MAINNET_SPOKE_POOL,
@@ -10,7 +10,7 @@ import {
   ADAPTER_TO_CHAIN_NAME,
 } from "./constants";
 import { createAddress, NetworkManager } from "forta-agent-tools";
-import agent, { provideHandleTransaction } from "./agent";
+import  { provideHandleTransaction } from "./agent";
 import { createBotFinding } from "./helpers";
 import { NetworkDataInterface } from "./network";
 
@@ -25,8 +25,6 @@ const TEST_NM_DATA: Record<number, NetworkDataInterface> = {
     hubPoolAddr: TEST_HUBPOOL_ADDR,
   },
 };
-
-// const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";
 
 describe("Relayer reimbursement detection bot", () => {
   const networkManager = new NetworkManager(TEST_NM_DATA);
