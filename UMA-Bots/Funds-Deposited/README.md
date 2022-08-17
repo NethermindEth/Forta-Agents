@@ -7,7 +7,10 @@ This bot detects the following SpokePool events:
 
 ## Supported Chains
 
-- Ethereum (Ethereum Mainnet)
+- Ethereum
+- Arbitrum
+- Polygon
+- Optimism
 
 ## Alerts
 - UMA-1
