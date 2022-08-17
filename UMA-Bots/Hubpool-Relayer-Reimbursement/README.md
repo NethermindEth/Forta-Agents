@@ -35,5 +35,5 @@ These tests can be run using npm run tx <TX_HASH> :
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0x5e3f0862a2e797ae39cb10d42bdc49682ced1e48aa3de21712aa0fa6d06f5f77](https://goerli.etherscan.io/tx/0x5e3f0862a2e797ae39cb10d42bdc49682ced1e48aa3de21712aa0fa6d06f5f77) (1 findings - `TokensRelayed` was emitted)
+- [0x5e3f0862a2e797ae39cb10d42bdc49682ced1e48aa3de21712aa0fa6d06f5f77](https://goerli.etherscan.io/tx/0x5e3f0862a2e797ae39cb10d42bdc49682ced1e48aa3de21712aa0fa6d06f5f77) (1 finding - `TokensRelayed` was emitted)
 - [0x6747094c78269b9e587ff486b583d889baf2e22f1b14fc7596b9efefb504fe45](https://goerli.etherscan.io/tx/0x6747094c78269b9e587ff486b583d889baf2e22f1b14fc7596b9efefb504fe45) (2 findings - `TokensRelayed` was emitted 2 times with different parameters)
