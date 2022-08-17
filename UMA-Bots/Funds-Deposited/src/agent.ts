@@ -28,7 +28,7 @@ async function getTokenInfo(
     return info;
   } else {
     //return cached information
-    return cache.get(address)  as { tokenName: string; tokenDecimals: number };
+    return cache.get(address) as { tokenName: string; tokenDecimals: number };
   }
 }
 
@@ -68,7 +68,7 @@ export const provideHandleTransaction = (
         destinationChainId: destinationChainId.toString(),
         tokenName: tokenInfo.tokenName,
         depositor,
-        recipient
+        recipient,
       };
 
       findings.push(createFinding(metadata));

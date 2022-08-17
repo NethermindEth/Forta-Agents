@@ -9,7 +9,6 @@ import { createFinding } from "./findings";
 import { BigNumber } from "ethers";
 
 describe("funds deposited bot", () => {
-
   const TOKEN_IFACE = new ethers.utils.Interface(FUNC_ABI);
 
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
@@ -116,7 +115,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021")
+      createAddress("0x0021"),
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -128,7 +127,7 @@ describe("funds deposited bot", () => {
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
       recipient: createAddress("0x6473"),
-      depositor: createAddress("0x0021")
+      depositor: createAddress("0x0021"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata)]);
@@ -148,7 +147,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021")
+      createAddress("0x0021"),
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -161,7 +160,7 @@ describe("funds deposited bot", () => {
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
       recipient: createAddress("0x6473"),
-      depositor: createAddress("0x0021")
+      depositor: createAddress("0x0021"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata)]);
@@ -185,7 +184,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021"), 
+      createAddress("0x0021"),
     ];
     const data2 = [
       amount2,
@@ -196,7 +195,7 @@ describe("funds deposited bot", () => {
       198097,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x1173"),
-      createAddress("0x8821")
+      createAddress("0x8821"),
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -209,7 +208,7 @@ describe("funds deposited bot", () => {
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
       recipient: createAddress("0x6473"),
-      depositor: createAddress("0x0021")
+      depositor: createAddress("0x0021"),
     };
 
     const metadata2 = {
@@ -218,7 +217,7 @@ describe("funds deposited bot", () => {
       destinationChainId: destinationChainId2.toString(),
       tokenName: "Test Token",
       recipient: createAddress("0x1173"),
-      depositor: createAddress("0x8821")
+      depositor: createAddress("0x8821"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata), createFinding(metadata2)]);
