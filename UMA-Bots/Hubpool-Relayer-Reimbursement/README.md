@@ -6,7 +6,7 @@ This bot detects transfers of funds from the HubPool, which is the L1 liquidity 
 
 
 ## Supported Chains
-- Mainnet
+- Ethereum
 
 ## Alerts
 
