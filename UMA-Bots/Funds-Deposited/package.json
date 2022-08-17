@@ -2,7 +2,7 @@
   "name": "uma-1",
   "version": "0.0.1",
   "description": "Bot to detect UMA FundsDeposited event emissions",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/%40uma-bots/UMA-Bots",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Funds-Deposited",
   "chainIds": [
     1,
     10,
