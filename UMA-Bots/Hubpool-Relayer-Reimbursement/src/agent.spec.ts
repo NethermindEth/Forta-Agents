@@ -32,8 +32,7 @@ const TEST_NM_DATA: Record<number, NetworkDataInterface> = {
 };
 
 describe("Relayer reimbursement detection bot", () => {
-  const networkManager = new NetworkManager(TEST_NM_DATA);
-  networkManager.setNetwork(0);
+  const networkManager = new NetworkManager(TEST_NM_DATA, 0);
   let handleTransaction: HandleTransaction = provideHandleTransaction(
     REIMBURSEMENT_EVENT,
     MOCK_ADAPTER_TO_CHAIN_NAME,
