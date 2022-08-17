@@ -148,7 +148,7 @@ describe("Relayer reimbursement detection bot", () => {
     ]);
   });
 
-  it("returns only relevant findings when one transaction includes a couple of relevant events and an irrelevant events together", async () => {
+  it("returns only relevant findings when one transaction includes a couple of relevant events and an irrelevant event together", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .addEventLog(REIMBURSEMENT_EVENT, TEST_HUBPOOL_ADDR, [
         RANDOM_ADDRESSES[0],
