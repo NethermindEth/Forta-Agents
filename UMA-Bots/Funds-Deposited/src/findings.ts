@@ -1,10 +1,13 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export function createFinding(_metadata: {
-  amount: string;
-  originChainId: string;
-  destinationChainId: string;
-  tokenName: string;
+  amount: string,
+  originChainId: string,
+  destinationChainId: string,
+  tokenName: string,
+  depositor: string,
+  recipient: string
+
 }) {
   return Finding.fromObject({
     name: "SpokePool Funds Deposited Event Emitted",
