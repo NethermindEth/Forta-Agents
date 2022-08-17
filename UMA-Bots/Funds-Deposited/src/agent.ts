@@ -28,7 +28,7 @@ async function getTokenInfo(
     return info;
   } else {
     //return cached information
-    return cache.get(address)!;
+    return cache.get(address)  as { tokenName: string; tokenDecimals: number };
   }
 }
 
@@ -54,19 +54,21 @@ export const provideHandleTransaction = (
     const fundsDepositedEvents = txEvent.filterLog(FUNDS_DEPOSITED_EVENT, spokePoolAddress);
 
     for (const fundsDepositedEvent of fundsDepositedEvents) {
-      let { amount, originChainId, destinationChainId, originToken } = fundsDepositedEvent.args;
+      let { amount, originChainId, destinationChainId, originToken, depositor, recipient } = fundsDepositedEvent.args;
 
       let tokenInfo: { tokenName: string; tokenDecimals: number };
 
       tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
 
-      let normalizedAmount = BN(amount.toString()).dividedBy(10 ** tokenInfo.tokenDecimals);
+      let normalizedAmount = BN(amount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
 
       let metadata = {
-        amount: normalizedAmount.toString(),
+        amount: normalizedAmount.toString(10),
         originChainId: originChainId.toString(),
         destinationChainId: destinationChainId.toString(),
         tokenName: tokenInfo.tokenName,
+        depositor,
+        recipient
       };
 
       findings.push(createFinding(metadata));
