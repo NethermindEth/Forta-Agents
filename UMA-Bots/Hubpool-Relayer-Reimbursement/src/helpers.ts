@@ -10,7 +10,7 @@ export function createBotFinding(
   return Finding.from({
     name: "Relayer Reimbursement",
     description: "A token transfer took place from the l1 HubPool for Relayer reimbursement to a SpokePool",
-    alertId: "UMA-REIMB",
+    alertId: "UMA-4",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "Across v2",
