@@ -3,5 +3,5 @@ export const FUNDS_DEPOSITED_EVENT =
 
 export const FUNC_ABI = [
   "function name() external view returns(string)",
-  "function decimals() external view returns(uint256)",
+  "function decimals() external view returns(uint8)",
 ];
