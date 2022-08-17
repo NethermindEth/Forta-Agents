@@ -3,15 +3,18 @@ import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/
 import { createAddress } from "forta-agent-tools";
 import { FUNC_ABI, FUNDS_DEPOSITED_EVENT } from "./ABI";
 import { NetworkManager } from "forta-agent-tools";
-import { MOCK_NETWORK_ID, NetworkData } from "./config";
+import { NetworkData } from "./config";
 import bot from "./agent";
 import { createFinding } from "./findings";
 import { BigNumber } from "ethers";
 
 describe("funds deposited bot", () => {
+
   const TOKEN_IFACE = new ethers.utils.Interface(FUNC_ABI);
 
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
+
+  const MOCK_NETWORK_ID = 1111;
 
   let handleTransaction: HandleTransaction;
 
@@ -29,7 +32,7 @@ describe("funds deposited bot", () => {
 
   beforeEach(() => {
     const mockData: Record<number, NetworkData> = {
-      1111: {
+      [MOCK_NETWORK_ID]: {
         spokePoolAddress: MOCK_CONTRACT_ADDRESS,
       },
     };
@@ -113,7 +116,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021"),
+      createAddress("0x0021")
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -124,6 +127,8 @@ describe("funds deposited bot", () => {
       originChainId: originChainId.toString(),
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
+      recipient: createAddress("0x6473"),
+      depositor: createAddress("0x0021")
     };
 
     expect(findings).toStrictEqual([createFinding(metadata)]);
@@ -143,7 +148,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021"),
+      createAddress("0x0021")
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -155,6 +160,8 @@ describe("funds deposited bot", () => {
       originChainId: originChainId.toString(),
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
+      recipient: createAddress("0x6473"),
+      depositor: createAddress("0x0021")
     };
 
     expect(findings).toStrictEqual([createFinding(metadata)]);
@@ -178,7 +185,7 @@ describe("funds deposited bot", () => {
       1234567,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x6473"),
-      createAddress("0x0021"),
+      createAddress("0x0021"), 
     ];
     const data2 = [
       amount2,
@@ -189,7 +196,7 @@ describe("funds deposited bot", () => {
       198097,
       MOCK_TOKEN_ADDRESS,
       createAddress("0x1173"),
-      createAddress("0x8821"),
+      createAddress("0x8821")
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -201,6 +208,8 @@ describe("funds deposited bot", () => {
       originChainId: originChainId.toString(),
       destinationChainId: destinationChainId.toString(),
       tokenName: "Test Token",
+      recipient: createAddress("0x6473"),
+      depositor: createAddress("0x0021")
     };
 
     const metadata2 = {
@@ -208,6 +217,8 @@ describe("funds deposited bot", () => {
       originChainId: originChainId2.toString(),
       destinationChainId: destinationChainId2.toString(),
       tokenName: "Test Token",
+      recipient: createAddress("0x1173"),
+      depositor: createAddress("0x8821")
     };
 
     expect(findings).toStrictEqual([createFinding(metadata), createFinding(metadata2)]);
