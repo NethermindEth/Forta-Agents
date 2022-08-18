@@ -9,8 +9,10 @@ import {
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import util from "./utils";
+
 const provider = getEthersProvider();
 const networkManager = new NetworkManager(util.data);
+
 export const initialize = (provider: ethers.providers.Provider) => async () => {
   await networkManager.init(provider);
 };
@@ -25,7 +27,7 @@ export const provideHandleTx = (networkManager: any, swapEvent: string) => async
   const swapEvents = txEvent.filterLog(swapEvent);
 
   //detect calls to the GMX router
-  if (txEvent.to == networkManager.get("address")) {
+  if (txEvent.to === networkManager.get("address")) {
     swapEvents.forEach((swapEvent) => {
       const {
         account: accountBack,
@@ -84,17 +86,35 @@ export const provideHandleTx = (networkManager: any, swapEvent: string) => async
             } = event[0].args;
             //check if victim was inside the sandwich
             if (
+              // ******************************************
+              // R-NOTE: THIS MAY BE WHERE THE ISSUE LIES.
+              // THEY DON'T HAVE TO BE SEQUENTIAL, THEY
+              // JUST HAVE TO FIT THIS CRITERIA. IN THEORY,
+              // THE callHistoryIndex OF EACH TXN SHOULD BE
+              // MUCH TIGHTER, IF NOT EACH RIGHT AFTER THE
+              // NEXT. (BY TIGHTER, MEAN WE SHOULD BE MINDFUL
+              // OF HOW MANY TRANSACTIONS WE ARE ALLOWING
+              // TO BE IN BETWEEN THE FRONT, VICTIM, AND
+              // BACK TRANSACTION. WOULD NEED TO WRITE TESTS 
+              // FOR THIS, PLUS SOME Poc TRANSACTIONS.
+              // *******************************************
               (event[1] > potentialSandwhichFront[1] &&
                 event[1] < callHistoryIndex &&
                 callHistoryIndex > potentialSandwhichFront[1]) ||
+              // R-NOTE: THIS NEXT CHECK WOULD PUT THE `victim` IN FRONT
+              // OF BOTH SANDWICH TRANSACTIONS
               (event[1] < potentialSandwhichFront[1] &&
                 event[1] < callHistoryIndex &&
                 callHistoryIndex < potentialSandwhichFront[1]) ||
+              // R-NOTE: THIS NEXT CHECK WOULD PUT THE `victim`
+              // BEHIND BOTH SANDWICH TRANSACTIONS
               (event[1] > potentialSandwhichFront[1] &&
                 event[1] > callHistoryIndex &&
                 callHistoryIndex < potentialSandwhichFront[1])
             ) {
               //check if the victim transaction trades the same tokens in the same direction as the front transaction
+              // R-NOTE: SHOULD ALSO CHECK IF `amountOutBack` IS GREATER THAN `amountInFront`
+              // OTHERWISE IT IS NOT PROFITABLE.
               if (tokenInVictim == tokenInFront && tokenOutVictim == tokenOutFront) {
                 sandwichAttack = true;
                 victimAddress = accountVictim;
@@ -123,6 +143,17 @@ export const provideHandleTx = (networkManager: any, swapEvent: string) => async
 
       //callHistory cleaning
       if (callHistoryIndex == util.CALL_HISTORY_SIZE) {
+        // R-NOTE: IF WE SET TO ZERO IN THE MIDDLE OF AN
+        // ATTACK, IT WON'T BE DETECTED BECAUSE IT'LL
+        // BE RESET TO ZERO. COULD IT BE SET HIGHER THAN
+        // THE HIGHEST callHistoryIndex THAT IS STILL
+        // INSIDE OF callHistory. THEREFORE, WE COULD
+        // LOOP THROUGH THE callHistory AND SET THIS
+        // INDEX TO ONE ABOVE THE HIGHEST ONE. THAT WAY
+        // WE CAN STILL CATCH AN ATTACK THAT IS CURRENTLY
+        // TAKING PLACE. SHOULD BE FINE SINCE WE ARE
+        // .deleteING THE VALUES IN callHistory WHEN
+        // THERE IS A SANDWICH ATTACK. L177-178
         callHistoryIndex = 0;
 
         if (mapCleanerCounter > 50000) {
