@@ -29,5 +29,5 @@ These tests can be run using npm run tx <TX_HASH> :
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0x6c0dd94fcdf6b6febfbe6f71b55a2857d923feae6c3d29cfa2bf70e50dedd8f1](https://goerli.etherscan.io/tx/0x6c0dd94fcdf6b6febfbe6f71b55a2857d923feae6c3d29cfa2bf70e50dedd8f1) (1 finding - `RootBundleDisputed` was emitted)
-- [0x9a16ab7be7465fdf71f3ae190409ac146db13fbfe6554ce38819fcfae14ac384](https://goerli.etherscan.io/tx/0x9a16ab7be7465fdf71f3ae190409ac146db13fbfe6554ce38819fcfae14ac384) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
+- [0x775ba67916f31d3548d5d058ee5d452b6fad5d613fbd043829aa30a5e377e47d](https://goerli.etherscan.io/tx/0x775ba67916f31d3548d5d058ee5d452b6fad5d613fbd043829aa30a5e377e47d) (1 finding - `RootBundleDisputed` was emitted)
+- [0xa67afdcf26ad16e1f37a2849bc561263d3b83ea1b6ca86b1500784a56c8a4246](https://goerli.etherscan.io/tx/0xa67afdcf26ad16e1f37a2849bc561263d3b83ea1b6ca86b1500784a56c8a4246) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
