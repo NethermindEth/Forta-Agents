@@ -1,11 +1,4 @@
-import {
-  Finding,
-  HandleTransaction,
-  ethers,
-  Initialize,
-  TransactionEvent,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
 import { DISPUTE_EVENT, HUBPOOL_ADDRESS } from "./constants";
 import { getFindingInstance } from "./helpers";
 import { NetworkManager } from "forta-agent-tools";
