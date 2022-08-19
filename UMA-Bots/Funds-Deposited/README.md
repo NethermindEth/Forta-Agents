@@ -22,6 +22,8 @@ This bot detects the following SpokePool events:
   - `originChainId`: token origin chain Id
   - `destinationChainId`: token destination chain Id
   - `token`: token name
+  - `depositor`: depositor address
+  - `recipient`: recipient address
 
 ## Test Data
 
