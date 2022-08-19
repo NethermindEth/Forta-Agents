@@ -4,8 +4,7 @@
   "description": "Forta bot that detects disputes raised for proposed RootBundles on Across v2's HubPool address",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Receiving-Chain-Relay-Dispute",
   "chainIds": [
-    1,
-    5
+    1
   ],
   "scripts": {
     "build": "tsc",
