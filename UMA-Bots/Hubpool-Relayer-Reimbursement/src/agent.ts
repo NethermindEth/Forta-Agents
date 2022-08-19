@@ -25,12 +25,12 @@ export function provideHandleTransaction(
 
     const reimbursementEventTxns = txEvent.filterLog(reimbursementEvent, networkManager.get("hubPoolAddr"));
     reimbursementEventTxns.forEach((singleReimbursementEvent) => {
-      const { l1Token, receivingToken, amount, to } = singleReimbursementEvent.args;
+      const { l1Token, l2Token, amount, to } = singleReimbursementEvent.args;
 
       findings.push(
         createBotFinding(
           l1Token.toString(),
-          receivingToken.toString(),
+          l2Token.toString(),
           amount.toString(),
           to.toString(),
           adapterToChainName[to as keyof typeof adapterToChainName]
