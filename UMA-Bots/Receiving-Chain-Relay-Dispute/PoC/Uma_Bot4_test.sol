@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 // @Review 
 // Deployment address: 0x6068670bFF0135433e646F8adfF42DC6618e157b
 
-contract Uma_Agent4_test{
+contract Uma_Bot4_test{
     event RootBundleDisputed(address disputer, uint256 requestTime);
 
     function emitSingleEvent() public

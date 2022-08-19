@@ -18,7 +18,7 @@ const NM_DATA: Record<number, NetworkDataInterface> = {
 
 const networkManagerTest = new NetworkManager(NM_DATA, 0);
 
-describe("Root Bundle Disputed agent", () => {
+describe("Root Bundle Disputed bot", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(DISPUTE_EVENT, networkManagerTest);
 
   it("returns empty findings if there is no dispute", async () => {
