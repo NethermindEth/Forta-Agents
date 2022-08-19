@@ -13,7 +13,7 @@ export function createBotFinding(
     alertId: "UMA-4",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
-    protocol: "Across v2",
+    protocol: "UMA",
     metadata: {
       l1Token: findingL1TokenAddr,
       receivingToken: findingReceivingTokenAddr,
