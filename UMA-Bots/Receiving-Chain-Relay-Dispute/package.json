@@ -1,8 +1,8 @@
 {
-  "name": "uma-4",
+  "name": "across-dispute-bot",
   "version": "0.0.1",
-  "description": "Forta bot that detects transfer of funds for relayer reimbursement on Across v2's HubPool address",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Hubpool-Relayer-Reimbursement",
+  "description": "Forta bot that detects disputes raised for proposed RootBundles on Across v2's HubPool address",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Receiving-Chain-Relay-Dispute",
   "chainIds": [
     1
   ],
@@ -34,7 +34,6 @@
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
-    "prettier": "^2.7.1",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
