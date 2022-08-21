@@ -4,8 +4,7 @@ import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, DATA } from "./config";
 import { createFinding } from "./findings";
 import BN from "bignumber.js";
-import { checkThreshold, getTokenInfo } from "./utils";
-
+import { getThreshold, getTokenInfo } from "./utils";
 
 const networkManager = new NetworkManager(DATA);
 
@@ -31,16 +30,22 @@ export const provideHandleTransaction = (
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
-
-      let { amount, totalFilledAmount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } = filledRelayEvent.args;
+      let { amount, totalFilledAmount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } =
+        filledRelayEvent.args;
 
       let tokenInfo: { tokenName: string; tokenDecimals: number };
 
       tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
 
-      
-      
-      findings.push();
+      let normalizedAmount = BN(totalFilledAmount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
+
+      if (getThreshold(tokenInfo.tokenName)) {
+        if (normalizedAmount.gte(getThreshold(tokenInfo.tokenName))) {
+          findings.push(); //push high finding
+        }
+      } else {
+        findings.push(); //push info finding
+      }
     }
 
     return findings;
