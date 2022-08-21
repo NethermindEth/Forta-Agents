@@ -4,33 +4,10 @@ import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, DATA } from "./config";
 import { createFinding } from "./findings";
 import BN from "bignumber.js";
-import LRU from "lru-cache";
+import { checkThreshold, getTokenInfo } from "./utils";
+
 
 const networkManager = new NetworkManager(DATA);
-let cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
-
-async function getTokenInfo(
-  address: string,
-  provider: ethers.providers.Provider,
-  blockNumber: number
-): Promise<{ tokenName: string; tokenDecimals: number }> {
-  //check if token address is already cached
-  if (!cache.has(address)) {
-    let token = new ethers.Contract(address, FUNC_ABI, provider);
-
-    let [tokenName, tokenDecimals] = await Promise.all([
-      token.name({ blockTag: blockNumber }),
-      token.decimals({ blockTag: blockNumber }),
-    ]);
-    let info = { tokenName, tokenDecimals };
-    //cache address -> token info
-    cache.set(address, info);
-    return info;
-  } else {
-    //return cached information
-    return cache.get(address) as { tokenName: string; tokenDecimals: number };
-  }
-}
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -55,11 +32,13 @@ export const provideHandleTransaction = (
 
     for (const filledRelayEvent of filledRelayEvents) {
 
-      let { amount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } = filledRelayEvent.args;
+      let { amount, totalFilledAmount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } = filledRelayEvent.args;
 
       let tokenInfo: { tokenName: string; tokenDecimals: number };
 
       tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
+
+      
       
       findings.push();
     }
