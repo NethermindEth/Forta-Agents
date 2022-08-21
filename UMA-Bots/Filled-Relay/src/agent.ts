@@ -1,68 +1,75 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleTransaction, TransactionEvent, ethers, Initialize, getEthersProvider } from "forta-agent";
+import { FUNC_ABI, FILLED_RELAY_EVENT } from "./ABI";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkData, DATA } from "./config";
+import { createFinding } from "./findings";
+import BN from "bignumber.js";
+import LRU from "lru-cache";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager(DATA);
+let cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+async function getTokenInfo(
+  address: string,
+  provider: ethers.providers.Provider,
+  blockNumber: number
+): Promise<{ tokenName: string; tokenDecimals: number }> {
+  //check if token address is already cached
+  if (!cache.has(address)) {
+    let token = new ethers.Contract(address, FUNC_ABI, provider);
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
+    let [tokenName, tokenDecimals] = await Promise.all([
+      token.name({ blockTag: blockNumber }),
+      token.decimals({ blockTag: blockNumber }),
+    ]);
+    let info = { tokenName, tokenDecimals };
+    //cache address -> token info
+    cache.set(address, info);
+    return info;
+  } else {
+    //return cached information
+    return cache.get(address) as { tokenName: string; tokenDecimals: number };
+  }
+}
 
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    //get the correct contract address for the network selected
+    const spokePoolAddress = networkManager.get("spokePoolAddress");
+
+    const findings: Finding[] = [];
+    // filter the transaction logs for funds deposited events
+    const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
+
+    for (const filledRelayEvent of filledRelayEvents) {
+
+      let { amount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } = filledRelayEvent.args;
+
+      let tokenInfo: { tokenName: string; tokenDecimals: number };
+
+      tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
+      
+      findings.push();
+    }
+
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersProvider()),
+  provideHandleTransaction,
 };
