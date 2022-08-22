@@ -1,68 +1,122 @@
+import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+  getNumberOfDays,
+  getAverageBlockTime,
+  getEstimatedNumberOfBlocksUntilMerge,
+  getAvgBlockDifficulty,
+} from "./utils";
+import { TERMINAL_TOTAL_DIFFICULTY, MILESTONES, ETH_BLOCK_DATA } from "./eth.config";
+import { createFinding, createFinalFinding } from "./findings";
+import BigNumber from "bignumber.js";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+let blockCounter: number = 0;
+let firstTimestamp: number = 0;
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+const avgBlockDifficulties: BigNumber[] = [];
 
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+let isEmitted: { [key: string]: any } = {
+  low: false,
+  medium: false,
+  high: false,
+  critical: {
+    5: false,
+    4: false,
+    3: false,
+    2: false,
+    1: false,
+  },
 };
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+let isMerged: boolean = false;
+
+export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCounter: number): HandleBlock => {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    const totalDifficulty = new BigNumber(blockEvent.block.totalDifficulty);
+
+    if (totalDifficulty.lt(ttd)) {
+      blockCounter++;
+
+      const blockDifficulty = new BigNumber(blockEvent.block.difficulty);
+
+      avgBlockDifficulties.push(blockDifficulty);
+
+      // Save the first timestamp to be used for calculation of average block time.
+      if (!firstTimestamp) {
+        firstTimestamp = blockEvent.block.timestamp;
+      }
+
+      const currentBlockTimestamp = blockEvent.block.timestamp;
+
+      /*
+        In order to avoid false positives for the average block time, `avgBlockTime` includes
+        the count of total blocks and average block time in a week.
+        Then it continues to calculate `avgBlockTime` along with the new data feed.
+      */
+      const avgBlockTime = getAverageBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
+
+      const avgBlockDifficulty = getAvgBlockDifficulty(avgBlockDifficulties);
+
+      const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
+        ttd,
+        totalDifficulty,
+        avgBlockDifficulty
+      );
+
+      const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
+        avgBlockTime,
+        estimatedNumberOfBlocksUntilMerge
+      );
+
+      const mergeInfo = {
+        estimatedNumberOfDaysUntilMerge,
+        estimatedMergeDate,
+        latestTotalDifficulty: totalDifficulty.toString(10),
+        remainingDifficulty: ttd.minus(totalDifficulty).toString(10),
+      };
+
+      /*
+        Check if number of days until merge is between 20-15, 15-10, 10-5.
+        Create one time alert for each gap. But if it's between 5-0, create one time alert for each day.
+      */
+      if (
+        estimatedNumberOfDaysUntilMerge <= MILESTONES.CRITICAL &&
+        estimatedNumberOfDaysUntilMerge > 0 &&
+        !isEmitted.critical[estimatedNumberOfDaysUntilMerge]
+      ) {
+        findings.push(createFinding(mergeInfo));
+        isEmitted.critical[estimatedNumberOfDaysUntilMerge] = true;
+      } else if (
+        estimatedNumberOfDaysUntilMerge <= MILESTONES.HIGH &&
+        estimatedNumberOfDaysUntilMerge > MILESTONES.CRITICAL &&
+        !isEmitted.high
+      ) {
+        findings.push(createFinding(mergeInfo));
+        isEmitted.high = true;
+      } else if (
+        estimatedNumberOfDaysUntilMerge <= MILESTONES.MEDIUM &&
+        estimatedNumberOfDaysUntilMerge > MILESTONES.HIGH &&
+        !isEmitted.medium
+      ) {
+        findings.push(createFinding(mergeInfo));
+        isEmitted.medium = true;
+      } else if (
+        estimatedNumberOfDaysUntilMerge <= MILESTONES.LOW &&
+        estimatedNumberOfDaysUntilMerge > MILESTONES.MEDIUM &&
+        !isEmitted.low
+      ) {
+        findings.push(createFinding(mergeInfo));
+        isEmitted.low = true;
+      }
+    } else if (totalDifficulty.gte(ttd) && !isMerged) {
+      findings.push(createFinalFinding(totalDifficulty.toString(10)));
+      isMerged = true;
+    }
+    return findings;
+  };
+};
 
 export default {
-  handleTransaction,
-  // handleBlock
+  handleBlock: provideHandleBlock(TERMINAL_TOTAL_DIFFICULTY, ETH_BLOCK_DATA, blockCounter),
 };
