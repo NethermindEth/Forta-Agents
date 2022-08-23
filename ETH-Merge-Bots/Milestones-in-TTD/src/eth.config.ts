@@ -15,5 +15,5 @@ export const ETH_BLOCK_DATA = {
   blockNumberAWeek: 44236, // total number of blocks mined in between Aug 13th - Aug 19th
 };
 
-// For testing purposes, uncomment the line below and comment out the line above and uncomment the line below
+// For testing purposes, uncomment the line below and comment out the 3rd line
 // export const TERMINAL_TOTAL_DIFFICULTY: BigNumber = new BigNumber("56479908913672045394140");
