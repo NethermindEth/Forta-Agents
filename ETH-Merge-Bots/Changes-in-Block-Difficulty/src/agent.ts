@@ -36,10 +36,10 @@ export const provideHandleBlock = (
     const currentDifficulty: BigNumber = new BigNumber(blockEvent.block.difficulty);
     blockDifficulties.push(currentDifficulty);
     //calculate the new moving average
-    let blockDifficultiesSum: BigNumber = blockDifficulties.reduce((acc: BigNumber, curr: BigNumber) => acc.plus(curr));
+    const blockDifficultiesSum: BigNumber = blockDifficulties.reduce((acc: BigNumber, curr: BigNumber) =>
+      acc.plus(curr)
+    );
     const blockDifficultyMovingAverage: BigNumber = blockDifficultiesSum.dividedBy(blockDifficulties.length);
-    //clear the sum
-    blockDifficultiesSum = new BigNumber(0);
 
     const changePercentage = currentDifficulty
       .minus(blockDifficultyMovingAverage)
