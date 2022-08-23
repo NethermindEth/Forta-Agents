@@ -33,9 +33,9 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const totalDifficulty = new BigNumber(blockEvent.block.totalDifficulty);
+    const latestTotalDifficulty = new BigNumber(blockEvent.block.totalDifficulty);
 
-    if (totalDifficulty.lt(ttd)) {
+    if (latestTotalDifficulty.lt(ttd)) {
       const blockDifficulty = new BigNumber(blockEvent.block.difficulty);
 
       blockDifficulties.push(blockDifficulty);
@@ -58,7 +58,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
 
       const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
         ttd,
-        totalDifficulty,
+        latestTotalDifficulty,
         avgBlockDifficulty
       );
 
@@ -70,8 +70,8 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
       const mergeInfo = {
         estimatedNumberOfDaysUntilMerge,
         estimatedMergeDate,
-        latestTotalDifficulty: totalDifficulty.toString(10),
-        remainingDifficulty: ttd.minus(totalDifficulty).toString(10),
+        latestTotalDifficulty: latestTotalDifficulty.toString(10),
+        remainingDifficulty: ttd.minus(latestTotalDifficulty).toString(10),
       };
 
       /*
@@ -110,7 +110,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
 
       blockCounter++;
     } else if (!isMerged) {
-      findings.push(createFinalFinding(totalDifficulty.toString(10)));
+      findings.push(createFinalFinding(latestTotalDifficulty.toString(10)));
       isMerged = true;
     }
     return findings;
