@@ -11,7 +11,7 @@ export const MILESTONES = {
 };
 
 export const ETH_BLOCK_DATA = {
-  avgBlockTime: 13.46, // average block time between Aug 13th - Aug 19th
+  avgBlockTimeFromRecentPast: 13.46, // average block time between Aug 13th - Aug 19th
   blockNumberAWeek: 44236, // total number of blocks mined in between Aug 13th - Aug 19th
 };
 

@@ -23,12 +23,12 @@ export const getAverageBlockTime = (
   firstTimestamp: number,
   blockCounter: number
 ) => {
-  const avgTimeSpentInAWeek = ethBlockData.avgBlockTime * ethBlockData.blockNumberAWeek;
+  const avgTimeSpentInAWeek = ethBlockData.avgBlockTimeFromRecentPast * ethBlockData.blockNumberAWeek;
 
-  const avgBlockTime =
+  const updatedBlockTime =
     (avgTimeSpentInAWeek + currentBlockTimestamp - firstTimestamp) / (ethBlockData.blockNumberAWeek + blockCounter);
 
-  return avgBlockTime;
+  return updatedBlockTime;
 };
 
 export const getEstimatedNumberOfBlocksUntilMerge = (

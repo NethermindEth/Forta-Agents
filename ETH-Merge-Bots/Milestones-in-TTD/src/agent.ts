@@ -52,7 +52,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
         the count of total blocks and average block time in a week.
         Then it continues to calculate `avgBlockTime` along with the new data feed.
       */
-      const avgBlockTime = getAverageBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
+      const updatedBlockTime = getAverageBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
 
       const avgBlockDifficulty = getAvgBlockDifficulty(blockDifficulties);
 
@@ -63,7 +63,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
       );
 
       const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
-        avgBlockTime,
+        updatedBlockTime,
         estimatedNumberOfBlocksUntilMerge
       );
 
