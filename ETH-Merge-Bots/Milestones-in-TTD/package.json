@@ -2,7 +2,7 @@
   "name": "eth-merge-1",
   "version": "0.0.1",
   "description": "Forta bot that monitors total difficulty in Ethereum blocks and estimates the merge date.",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ETH-Merge-Bots/Milestones-In-TTD/",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ETH-Merge-Bots/Milestones-in-TTD/",
   "chainIds": [
     1
   ],
