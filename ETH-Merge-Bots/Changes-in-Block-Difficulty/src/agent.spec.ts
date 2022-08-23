@@ -1,8 +1,7 @@
 import { provideHandleBlock } from "./agent";
-import { BlockEvent, Finding, HandleBlock } from "forta-agent";
+import { BlockEvent, Finding, FindingSeverity, FindingType, HandleBlock } from "forta-agent";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
-import { createFinding } from "./utils";
 import BigNumber from "bignumber.js";
 
 class TestBlockEventExtended extends TestBlockEvent {
@@ -16,6 +15,42 @@ class TestBlockEventExtended extends TestBlockEvent {
     return this;
   }
 }
+
+export const testCreateFinding = (
+  blockDifficulty: string,
+  movingAverage: string,
+  changePercentage: string,
+  threshold: string
+): Finding => {
+  if (blockDifficulty > movingAverage) {
+    return Finding.fromObject({
+      name: "Unusual Block Difficulty Increase Detection",
+      description: `Block difficulty increased more than ${threshold}% compared to the moving average`,
+      alertId: "ETH-2-1",
+      protocol: "Ethereum",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      metadata: {
+        blockDifficulty,
+        movingAverage,
+        increasePercentage: `${changePercentage}%`,
+      },
+    });
+  } else
+    return Finding.fromObject({
+      name: "Unusual Block Difficulty Decrease Detection",
+      description: `Block difficulty decreased more than ${threshold}% compared to the moving average`,
+      alertId: "ETH-2-2",
+      protocol: "Ethereum",
+      severity: FindingSeverity.Info,
+      type: FindingType.Info,
+      metadata: {
+        blockDifficulty,
+        movingAverage,
+        decreasePercentage: `-${changePercentage}%`,
+      },
+    });
+};
 
 const TEST_BLOCK_DIFFICULTIES: BigNumber[] = [
   new BigNumber(1000),
@@ -63,7 +98,7 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([createFinding("100000000", "20000794", "399.98", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([testCreateFinding("100000000", "20000794", "399.98", MOCK_THRESHOLD.toString(10))]);
   });
 
   it("should return a finding if there is an unusual decrease in block difficulty on the first run", async () => {
@@ -78,7 +113,7 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([createFinding("10", "796", "98.74", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([testCreateFinding("10", "796", "98.74", MOCK_THRESHOLD.toString(10))]);
   });
 
   it("should return no findings if the TTD has been reached on the first run", async () => {
@@ -137,7 +172,7 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      createFinding("6856876867001", "1371375374196.2", "400", MOCK_THRESHOLD.toString(10)),
+      testCreateFinding("6856876867001", "1371375374196.2", "400", MOCK_THRESHOLD.toString(10)),
     ]);
   });
 
@@ -158,7 +193,7 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
     blockEvent = new TestBlockEventExtended().setDifficulty("1").setNumber(blockNumber);
 
     findings = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([createFinding("1", "796.2", "99.87", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([testCreateFinding("1", "796.2", "99.87", MOCK_THRESHOLD.toString(10))]);
   });
 
   it("should return no findings if the TTD has been reached", async () => {
