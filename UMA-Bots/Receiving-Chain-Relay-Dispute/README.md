@@ -11,7 +11,7 @@ This bot detects relay disputes on the receiving chains for the  [Across v2 Prot
 
 - UMA-3
   - Fired when a dispute occurs on the receiving chain
-  - Severity is always set to "medium" 
+  - Severity is always set to "low" 
   - Type is always set to "suspicious"
   - Metadata :
       - `disputer`: the disputer - address which raised a dispute
