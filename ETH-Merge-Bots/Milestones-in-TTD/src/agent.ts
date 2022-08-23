@@ -36,8 +36,6 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
     const totalDifficulty = new BigNumber(blockEvent.block.totalDifficulty);
 
     if (totalDifficulty.lt(ttd)) {
-      blockCounter++;
-
       const blockDifficulty = new BigNumber(blockEvent.block.difficulty);
 
       blockDifficulties.push(blockDifficulty);
@@ -109,6 +107,8 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
         findings.push(createFinding(mergeInfo));
         isEmitted.low = true;
       }
+
+      blockCounter++;
     } else if (!isMerged) {
       findings.push(createFinalFinding(totalDifficulty.toString(10)));
       isMerged = true;

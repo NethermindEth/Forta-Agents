@@ -6,7 +6,7 @@ import { createFinding, createFinalFinding } from "./findings";
 import { getNumberOfDays, getAverageBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
 
 const TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
-const blockCounter = 0;
+const blockCounter = 1;
 
 export const ETH_BLOCK_DATA = {
   avgBlockTime: 10,
