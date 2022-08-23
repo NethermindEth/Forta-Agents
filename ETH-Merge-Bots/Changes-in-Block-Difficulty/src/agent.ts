@@ -33,20 +33,17 @@ export const provideHandleBlock = (
     }
 
     //remove the oldest block difficulty
-    const newBlockDifficulties: BigNumber[] = blockDifficulties.slice(1);
+    blockDifficulties.shift();
     //add new block difficulty
     const currentDifficulty: BigNumber = new BigNumber(blockEvent.block.difficulty);
-    newBlockDifficulties.push(currentDifficulty);
-
+    blockDifficulties.push(currentDifficulty);
     //calculate the new moving average
-    for (let i = 0; i <= newBlockDifficulties.length - 1; i++) {
-      blockDifficultiesSum = blockDifficultiesSum.plus(newBlockDifficulties[i]);
+    for (let i = 0; i <= blockDifficulties.length - 1; i++) {
+      blockDifficultiesSum = blockDifficultiesSum.plus(blockDifficulties[i]);
     }
-    blockDifficultyMovingAverage = blockDifficultiesSum.dividedBy(newBlockDifficulties.length);
-
+    blockDifficultyMovingAverage = blockDifficultiesSum.dividedBy(blockDifficulties.length);
     //clear the sum
     blockDifficultiesSum = new BigNumber(0);
-    blockDifficulties = newBlockDifficulties;
 
     const changePercentage = currentDifficulty
       .minus(blockDifficultyMovingAverage)
