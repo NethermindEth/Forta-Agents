@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "eth-merge-1",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors total difficulty in Ethereum blocks and estimates the merge date.",
   "chainIds": [
     1
   ],
@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^3.0.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.7.1",
