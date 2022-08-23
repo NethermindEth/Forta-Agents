@@ -17,7 +17,7 @@ export const getNumberOfDays = (avgBlockTime: number, estimatedNumberOfBlocksUnt
   return { diffInDays, estimatedMergeDate };
 };
 
-export const getAverageBlockTime = (
+export const getUpdatedBlockTime = (
   ethBlockData: any,
   currentBlockTimestamp: number,
   firstTimestamp: number,

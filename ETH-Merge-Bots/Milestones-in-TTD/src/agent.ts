@@ -1,7 +1,7 @@
 import { BlockEvent, Finding, HandleBlock } from "forta-agent";
 import {
   getNumberOfDays,
-  getAverageBlockTime,
+  getUpdatedBlockTime,
   getEstimatedNumberOfBlocksUntilMerge,
   getAvgBlockDifficulty,
 } from "./utils";
@@ -52,7 +52,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
         the count of total blocks and average block time in a week.
         Then it continues to calculate `avgBlockTime` along with the new data feed.
       */
-      const updatedBlockTime = getAverageBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
+      const updatedBlockTime = getUpdatedBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
 
       const avgBlockDifficulty = getAvgBlockDifficulty(blockDifficulties);
 

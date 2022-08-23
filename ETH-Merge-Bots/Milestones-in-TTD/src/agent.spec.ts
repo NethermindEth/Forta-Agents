@@ -3,13 +3,13 @@ import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { provideHandleBlock } from "./agent";
 import BigNumber from "bignumber.js";
 import { createFinding, createFinalFinding } from "./findings";
-import { getNumberOfDays, getAverageBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
+import { getNumberOfDays, getUpdatedBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
 
 const TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
 const blockCounter = 1;
 
 export const ETH_BLOCK_DATA = {
-  avgBlockTime: 10,
+  avgBlockTimeFromRecentPast: 10,
   blockNumberAWeek: 10000,
 };
 
@@ -29,13 +29,13 @@ const createMergeInfo = (
 describe("Milestones in Terminal Total Difficulty Bot", () => {
   let handleBlock: HandleBlock;
   let blockEvent: BlockEvent;
-  let avgBlockTime: number;
+  let updatedBlockTime: number;
 
   beforeEach(async () => {
     handleBlock = provideHandleBlock(TERMINAL_TOTAL_DIFFICULTY, ETH_BLOCK_DATA, blockCounter);
     blockEvent = new TestBlockEvent().setTimestamp(0);
     blockEvent.block.difficulty = new BigNumber("10").toString();
-    avgBlockTime = getAverageBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 1);
+    updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 1);
   });
 
   it("it should not emit findings when there are more than 20 days until merge", async () => {
@@ -58,7 +58,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     );
 
     const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -88,7 +88,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     );
 
     const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -118,7 +118,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     );
 
     const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -149,7 +149,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     );
 
     const { diffInDays: numberOfDaysUntilMerge1, estimatedMergeDate: mergeDate1 } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -168,10 +168,10 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
       new BigNumber(blockEvent.block.difficulty)
     );
 
-    avgBlockTime = getAverageBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 2);
+    updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 2);
 
     const { diffInDays: numberOfDaysUntilMerge2, estimatedMergeDate: mergeDate2 } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -190,10 +190,10 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
       new BigNumber(blockEvent.block.difficulty)
     );
 
-    avgBlockTime = getAverageBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 3);
+    updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 3);
 
     const { diffInDays: numberOfDaysUntilMerge3, estimatedMergeDate: mergeDate3 } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -212,10 +212,10 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
       new BigNumber(blockEvent.block.difficulty)
     );
 
-    avgBlockTime = getAverageBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 4);
+    updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 4);
 
     const { diffInDays: numberOfDaysUntilMerge4, estimatedMergeDate: mergeDate4 } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
@@ -234,10 +234,10 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
       new BigNumber(blockEvent.block.difficulty)
     );
 
-    avgBlockTime = getAverageBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 5);
+    updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 5);
 
     const { diffInDays: numberOfDaysUntilMerge5, estimatedMergeDate: mergeDate5 } = getNumberOfDays(
-      avgBlockTime,
+      updatedBlockTime,
       estimatedNumberOfBlocksUntilMerge
     );
 
