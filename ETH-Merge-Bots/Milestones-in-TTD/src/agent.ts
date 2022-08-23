@@ -109,7 +109,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
         findings.push(createFinding(mergeInfo));
         isEmitted.low = true;
       }
-    } else if (totalDifficulty.gte(ttd) && !isMerged) {
+    } else if (!isMerged) {
       findings.push(createFinalFinding(totalDifficulty.toString(10)));
       isMerged = true;
     }
