@@ -1,7 +1,7 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent } from "forta-agent";
+import { HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { DISPUTE_EVENT } from "./constants";
-import agent, { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";

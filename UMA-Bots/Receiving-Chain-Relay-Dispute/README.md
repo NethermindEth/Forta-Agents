@@ -23,7 +23,7 @@ The bot behaviour can be verified with the following transactions by running `np
 
 ### Ethereum Mainnet
 - [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
-- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
+- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (1 findings - `RootBundleDisputed` was emitted 1 times with different parameters) 
 
  ### Goerli Testnet (PoC)
 
