@@ -4,12 +4,12 @@ export const getNumberOfDays = (avgBlockTime: number, estimatedNumberOfBlocksUnt
   // One day in milliseconds
   const oneDay = 1000 * 60 * 60 * 24;
 
-  const date = new Date();
-  date.setSeconds(estimatedNumberOfBlocksUntilMerge.multipliedBy(avgBlockTime).plus(date.getSeconds()).toNumber());
+  const estimatedMergeDate = new Date();
+  estimatedMergeDate.setSeconds(
+    estimatedNumberOfBlocksUntilMerge.multipliedBy(avgBlockTime).plus(estimatedMergeDate.getSeconds()).toNumber()
+  );
 
-  const estimatedMergeDate = new Date(date);
-
-  const now = new Date(Date.now());
+  const now = new Date();
 
   const diffInTime = estimatedMergeDate.getTime() - now.getTime();
   const diffInDays = Math.ceil(diffInTime / oneDay);
