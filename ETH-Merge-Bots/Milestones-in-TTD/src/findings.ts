@@ -28,7 +28,7 @@ export const createFinding = (mergeInfo: MergeInfo): Finding => {
 export const createFinalFinding = (totalDifficulty: string): Finding => {
   return Finding.from({
     name: "ETH 2.0",
-    description: `The merge has happened!`,
+    description: "The merge has happened!",
     alertId: "ETH-1-2",
     protocol: "Ethereum",
     type: FindingType.Info,
