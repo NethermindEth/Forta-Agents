@@ -1,5 +1,5 @@
 import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
-import { DISPUTE_EVENT, HUBPOOL_ADDRESS, MONITORED_EVENTS } from "./constants";
+import { getEventMetadata, HUBPOOL_ADDRESS, MONITORED_EVENTS } from "./utils";
 import { getFindingInstance } from "./helpers";
 import { NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
@@ -23,8 +23,8 @@ export function provideHandleTransaction(
     const findings: Finding[] = [];
     const relevantEventTxns = txEvent.filterLog(monitoredEvents, networkManager.get("hubPoolAddr"));
     relevantEventTxns.forEach((actualEventTxn) => {
-      const { disputer, requestTime } = actualEventTxn.args;
-      findings.push(getFindingInstance(disputer.toString(), requestTime.toString()));
+      let thisFindingMetadata = getEventMetadata(actualEventTxn.eventFragment.name, actualEventTxn.args);
+      findings.push(getFindingInstance(thisFindingMetadata));
     });
     return findings;
   };

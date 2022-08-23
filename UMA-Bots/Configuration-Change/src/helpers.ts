@@ -1,16 +1,13 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export function getFindingInstance(disputerStr: string, reqTimeStr: string) {
+export function getFindingInstance(eventArgs: {}) {
   return Finding.fromObject({
-    name: "Relayer Dispute",
-    description: `The current proposed root bundle was disputed on Hubpool`,
+    name: "Configuration Changed",
+    description: `HubPool configuration changed`,
     alertId: "UMA-3",
-    severity: FindingSeverity.Medium,
-    type: FindingType.Suspicious,
+    severity: FindingSeverity.Low,
+    type: FindingType.Info,
     protocol: "UMA",
-    metadata: {
-      disputer: disputerStr,
-      requestTime: reqTimeStr,
-    },
+    metadata: eventArgs,
   });
 }
