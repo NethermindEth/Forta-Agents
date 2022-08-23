@@ -19,12 +19,9 @@ This bot detects relay disputes on the receiving chains for the  [Across v2 Prot
   
 ## Test Data
 
-These tests can be run using npm run tx <TX_HASH> :
-
+The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-
-The agent behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 - [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
 - [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
 
