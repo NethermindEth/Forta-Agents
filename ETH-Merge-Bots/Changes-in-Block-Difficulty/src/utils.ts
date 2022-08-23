@@ -29,7 +29,7 @@ export const createFinding = (
   } else
     return Finding.fromObject({
       name: "Unusual Block Difficulty Decrease Detection",
-      description: `Block difficulty decreased more than ${FINDING_THRESHOLD.toString()}% compared to the moving average`,
+      description: `Block difficulty decreased more than ${threshold}% compared to the moving average`,
       alertId: "ETH-2-2",
       protocol: "Ethereum",
       severity: FindingSeverity.Info,
