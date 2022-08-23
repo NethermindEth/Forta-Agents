@@ -11,7 +11,6 @@ export const provideHandleBlock = (
   threshold: BigNumber
 ): HandleBlock => {
   let blockDifficulties: BigNumber[] = new Array<BigNumber>();
-  let blockDifficultyMovingAverage: BigNumber;
 
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
@@ -38,7 +37,7 @@ export const provideHandleBlock = (
     blockDifficulties.push(currentDifficulty);
     //calculate the new moving average
     let blockDifficultiesSum: BigNumber = blockDifficulties.reduce((acc: BigNumber, curr: BigNumber) => acc.plus(curr));
-    blockDifficultyMovingAverage = blockDifficultiesSum.dividedBy(blockDifficulties.length);
+    const blockDifficultyMovingAverage: BigNumber = blockDifficultiesSum.dividedBy(blockDifficulties.length);
     //clear the sum
     blockDifficultiesSum = new BigNumber(0);
 
