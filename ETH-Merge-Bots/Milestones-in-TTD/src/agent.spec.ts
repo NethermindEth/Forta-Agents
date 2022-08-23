@@ -71,6 +71,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(estimatedNumberOfDaysUntilMerge).toStrictEqual(20);
     expect(findings).toStrictEqual([createFinding(mergeInfo)]);
 
+    blockEvent.block.totalDifficulty = new BigNumber("8310000").toString();
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -100,6 +101,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(estimatedNumberOfDaysUntilMerge).toStrictEqual(15);
     expect(findings).toStrictEqual([createFinding(mergeInfo)]);
 
+    blockEvent.block.totalDifficulty = new BigNumber("8760000").toString();
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -129,6 +131,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(estimatedNumberOfDaysUntilMerge).toStrictEqual(10);
     expect(findings).toStrictEqual([createFinding(mergeInfo)]);
 
+    blockEvent.block.totalDifficulty = new BigNumber("9160000").toString();
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
