@@ -12,7 +12,7 @@ import BigNumber from "bignumber.js";
 let blockCounter: number = 0;
 let firstTimestamp: number = 0;
 
-const avgBlockDifficulties: BigNumber[] = [];
+const blockDifficulties: BigNumber[] = [];
 
 let isEmitted: { [key: string]: any } = {
   low: false,
@@ -40,7 +40,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
 
       const blockDifficulty = new BigNumber(blockEvent.block.difficulty);
 
-      avgBlockDifficulties.push(blockDifficulty);
+      blockDifficulties.push(blockDifficulty);
 
       // Save the first timestamp to be used for calculation of average block time.
       if (!firstTimestamp) {
@@ -56,7 +56,7 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
       */
       const avgBlockTime = getAverageBlockTime(ethBlockData, currentBlockTimestamp, firstTimestamp, blockCounter);
 
-      const avgBlockDifficulty = getAvgBlockDifficulty(avgBlockDifficulties);
+      const avgBlockDifficulty = getAvgBlockDifficulty(blockDifficulties);
 
       const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
         ttd,
