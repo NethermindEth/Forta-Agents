@@ -12,11 +12,11 @@ const RANDOM_HEX_ARR_DECIMAL = ["291", "66"];
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54")];
 const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
-const NM_DATA: Record<number, NetworkDataInterface> = {
+const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { hubPoolAddr: TEST_HUBPOOL_ADDR },
 };
 
-const networkManagerTest = new NetworkManager(NM_DATA, 0);
+const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
 describe("Root Bundle Disputed bot", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(DISPUTE_EVENT, networkManagerTest);
