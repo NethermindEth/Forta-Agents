@@ -32,18 +32,44 @@ This bot monitors `totalDifficulty` of Ethereum blocks and calculates the estima
 
 ## Test Data
 
-- ETH-1-1
+In order to test the bot, comment out the variable `TERMINAL_TOTAL_DIFFICULTY` at the 3rd line in `src/eth.config.ts` and uncomment the 19th line.
 
-  In order to test the bot, uncomment the lines between 21-24 in `src/eth.config.ts` and run:
+For 20 days alert, run:
 
-  `npm run range 15386000..15386002`
+```
+npm run range 15228000..15228002
+```
 
-  Block 15386000 will emit a finding, but 15386001 and 15386002 will not emit a finding.
+Block 15228000 will emit a finding, but 15228001 and 15228002 will not emit a finding.
 
-- ETH-1-2
+For 15 days alert, run:
 
-  In order to test the bot, comment out the 3rd line in `src/eth.config.ts` and uncomment the 5th line and run:
+```
+npm run range 15258000..15258002
+```
 
-  `npm run range 15351000..15351002`
+Block 15258000 will emit a finding, but 15258001 and 15258002 will not emit a finding.
 
-  Block 15351000 will emit a finding, but 15351001 and 15351002 will not emit a finding.
+For 10 days alert, run:
+
+```
+npm run range 15290000..15290002
+```
+
+Block 15290000 will emit a finding, but 15290001 and 15290002 will not emit a finding.
+
+For 5 days alert, run:
+
+```
+npm run range 15320000..15320002
+```
+
+Block 15320000 will emit a finding, but 15320001 and 15320002 will not emit a finding.
+
+For merge alert, run:
+
+```
+npm run range 15351000..15351002
+```
+
+Block 15351000 will emit a finding, but 15351001 and 15351002 will not emit a finding.
