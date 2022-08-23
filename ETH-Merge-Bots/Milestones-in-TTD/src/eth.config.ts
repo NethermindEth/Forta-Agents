@@ -17,3 +17,7 @@ export const ETH_BLOCK_DATA = {
 
 // For testing purposes, uncomment the line below and comment out the 3rd line
 // export const TERMINAL_TOTAL_DIFFICULTY: BigNumber = new BigNumber("56479908913672045394140");
+/*
+The above variable is the total difficulty of block 15351000. In order to test the code with the real blocks
+and with these `MILESTONES`, this block was chosen as if its total difficulty is `Terminal Total Difficulty`.
+*/
