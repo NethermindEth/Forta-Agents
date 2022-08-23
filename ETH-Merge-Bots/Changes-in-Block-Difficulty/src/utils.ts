@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 export const NUMBER_OF_BLOCKS_TO_CHECK: number = 100;
 export const FINDING_THRESHOLD: BigNumber = new BigNumber(1.5);
 
-export const TERMINAL_TOTAL_DIFFICULTY: string = "58750000000000000000000";
+export const TERMINAL_TOTAL_DIFFICULTY: BigNumber = new BigNumber("58750000000000000000000");
 
 export const createFinding = (
   blockDifficulty: string,

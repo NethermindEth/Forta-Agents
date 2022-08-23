@@ -18,7 +18,7 @@ export const provideHandleBlock = (
     const findings: Finding[] = [];
 
     // check if TTD has been reached
-    if (blockEvent.block.totalDifficulty >= TERMINAL_TOTAL_DIFFICULTY) return findings;
+    if (new BigNumber(blockEvent.block.totalDifficulty).gte(TERMINAL_TOTAL_DIFFICULTY)) return findings;
 
     // executed on the first run
     if (!init) {
