@@ -27,7 +27,7 @@ describe("Root Bundle Disputed bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if there a dispute is made from the wrong address", async () => {
+  it("doesn't return a finding if a dispute is made from the wrong address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(DISPUTE_EVENT, RANDOM_ADDRESSES[0], [RANDOM_ADDRESSES[0], RANDOM_HEX_ARR[0]]);
@@ -36,7 +36,7 @@ describe("Root Bundle Disputed bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns a finding if there a dispute is made on a relevant contract address", async () => {
+  it("returns a finding if a dispute is made on a relevant contract address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
       .addEventLog(DISPUTE_EVENT, TEST_HUBPOOL_ADDR, [RANDOM_ADDRESSES[0], RANDOM_HEX_ARR[0]]);
@@ -45,7 +45,7 @@ describe("Root Bundle Disputed bot", () => {
     expect(findings).toStrictEqual([getFindingInstance(RANDOM_ADDRESSES[0],  RANDOM_HEX_ARR_DECIMAL[0])]);
   });
 
-  it("doesn't return a finding if there a non-dispute event is emitted from the HubPool", async () => {
+  it("doesn't return a finding if a non-dispute event is emitted from the HubPool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
       .addEventLog(RANDOM_EVENT_ABI, TEST_HUBPOOL_ADDR, [RANDOM_ADDRESSES[0], RANDOM_HEX_ARR[0]]);
@@ -53,7 +53,7 @@ describe("Root Bundle Disputed bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns N findings for N events (N>=1)", async () => {
+  it("returns N findings for N dispute events (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
       .addEventLog(DISPUTE_EVENT, TEST_HUBPOOL_ADDR, [RANDOM_ADDRESSES[0], RANDOM_HEX_ARR[0]])

@@ -24,7 +24,7 @@ export function provideHandleTransaction(
     const disputeEventTxns = txEvent.filterLog(disputeEvent, networkManager.get("hubPoolAddr"));
     disputeEventTxns.forEach((disputeActualEvent) => {
       const { disputer, requestTime } = disputeActualEvent.args;
-      findings.push(getFindingInstance(disputer.toString(), requestTime.toString()));
+      findings.push(getFindingInstance(disputer, requestTime.toString()));
     });
     return findings;
   };
