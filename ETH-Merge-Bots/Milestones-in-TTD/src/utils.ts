@@ -42,8 +42,8 @@ export const getEstimatedNumberOfBlocksUntilMerge = (
 };
 
 export const getAvgBlockDifficulty = (blockDifficulties: BigNumber[]): BigNumber => {
-  // Keep the last 50 blocks' difficulties
-  if (blockDifficulties.length === 51) {
+  // Keep the last 100 blocks' difficulties
+  if (blockDifficulties.length === 101) {
     blockDifficulties.shift();
   }
 
