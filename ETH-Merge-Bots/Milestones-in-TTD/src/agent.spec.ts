@@ -5,7 +5,7 @@ import BigNumber from "bignumber.js";
 import { createFinding, createFinalFinding } from "./findings";
 import { getNumberOfDays, getUpdatedBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
 
-const TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
+const MOCK_TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
 const blockCounter = 1;
 
 export const ETH_BLOCK_DATA = {
@@ -22,7 +22,7 @@ const createMergeInfo = (
     estimatedNumberOfDaysUntilMerge,
     estimatedMergeDate,
     latestTotalDifficulty,
-    remainingDifficulty: TERMINAL_TOTAL_DIFFICULTY.minus(latestTotalDifficulty).toString(10),
+    remainingDifficulty: MOCK_TERMINAL_TOTAL_DIFFICULTY.minus(latestTotalDifficulty).toString(10),
   };
 };
 
@@ -32,7 +32,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
   let updatedBlockTime: number;
 
   beforeEach(async () => {
-    handleBlock = provideHandleBlock(TERMINAL_TOTAL_DIFFICULTY, ETH_BLOCK_DATA, blockCounter);
+    handleBlock = provideHandleBlock(MOCK_TERMINAL_TOTAL_DIFFICULTY, ETH_BLOCK_DATA, blockCounter);
     blockEvent = new TestBlockEvent().setTimestamp(0);
     blockEvent.block.difficulty = new BigNumber("10").toString();
     updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 1);
@@ -52,7 +52,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     let findings = await handleBlock(blockEvent);
 
     const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -82,7 +82,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     let findings = await handleBlock(blockEvent);
 
     const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -112,7 +112,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     let findings = await handleBlock(blockEvent);
 
     const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -143,7 +143,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     let findings = await handleBlock(blockEvent);
 
     let estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -163,7 +163,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     findings = await handleBlock(blockEvent);
 
     estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -185,7 +185,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     findings = await handleBlock(blockEvent);
 
     estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -207,7 +207,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     findings = await handleBlock(blockEvent);
 
     estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -229,7 +229,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     findings = await handleBlock(blockEvent);
 
     estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
-      TERMINAL_TOTAL_DIFFICULTY,
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
       new BigNumber(blockEvent.block.totalDifficulty),
       new BigNumber(blockEvent.block.difficulty)
     );
@@ -248,7 +248,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
   });
 
   it("should emit 1 finding when totalDifficulty reaches TTD", async () => {
-    blockEvent.block.totalDifficulty = TERMINAL_TOTAL_DIFFICULTY.toString(10);
+    blockEvent.block.totalDifficulty = MOCK_TERMINAL_TOTAL_DIFFICULTY.toString(10);
 
     let findings = await handleBlock(blockEvent);
 
