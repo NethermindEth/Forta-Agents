@@ -54,8 +54,8 @@ export const provideHandleBlock = (
     if (changePercentage.gte(threshold)) {
       findings.push(
         createFinding(
-          currentDifficulty.toString(),
-          blockDifficultyMovingAverage.toString(),
+          currentDifficulty.toString(10),
+          blockDifficultyMovingAverage.toString(10),
           changePercentage.toString(10),
           threshold.toString(10)
         )
