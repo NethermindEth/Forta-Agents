@@ -31,7 +31,17 @@ In order to find the estimated merge date, the difference between `Terminal Tota
 
 ## Test Data
 
-In order to test the bot, comment out the variable `TERMINAL_TOTAL_DIFFICULTY` at L3 in `src/eth.config.ts` and uncomment L19.
+In order to test the bot with the real `TERMINAL_TOTAL_DIFFICULTY`, run:
+
+```
+npm start
+```
+
+This will give you an immediate result with the actual `estimatedMergeDate` and `estimatedNumberOfDaysUntilMerge` depending on the date when the command is run.
+
+---
+
+In order to test the bot with the past blocks, comment out the variable `TERMINAL_TOTAL_DIFFICULTY` at L3 in `src/eth.config.ts` and uncomment L19.
 
 For 20 days alert, run:
 
