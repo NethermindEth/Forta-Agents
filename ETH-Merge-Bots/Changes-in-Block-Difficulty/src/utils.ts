@@ -10,12 +10,13 @@ export const createFinding = (
   blockDifficulty: string,
   movingAverage: string,
   changePercentage: string,
-  threshold: string
+  threshold: string,
+  numberOfBlocks: string
 ): Finding => {
   if (blockDifficulty > movingAverage) {
     return Finding.fromObject({
       name: "Unusual Block Difficulty Increase Detection",
-      description: `Block difficulty increased more than ${threshold}% compared to the moving average`,
+      description: `Block difficulty increased more than ${threshold}% compared to the moving average of the last ${numberOfBlocks} blocks`,
       alertId: "ETH-2-1",
       protocol: "Ethereum",
       severity: FindingSeverity.Info,
@@ -29,7 +30,7 @@ export const createFinding = (
   } else
     return Finding.fromObject({
       name: "Unusual Block Difficulty Decrease Detection",
-      description: `Block difficulty decreased more than ${threshold}% compared to the moving average`,
+      description: `Block difficulty decreased more than ${threshold}% compared to the moving average of the last ${numberOfBlocks} blocks`,
       alertId: "ETH-2-2",
       protocol: "Ethereum",
       severity: FindingSeverity.Info,

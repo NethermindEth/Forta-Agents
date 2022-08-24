@@ -20,12 +20,13 @@ export const testCreateFinding = (
   blockDifficulty: string,
   movingAverage: string,
   changePercentage: string,
-  threshold: string
+  threshold: string,
+  numberOfBlocks: string
 ): Finding => {
   if (blockDifficulty > movingAverage) {
     return Finding.fromObject({
       name: "Unusual Block Difficulty Increase Detection",
-      description: `Block difficulty increased more than ${threshold}% compared to the moving average`,
+      description: `Block difficulty increased more than ${threshold}% compared to the moving average of the last ${numberOfBlocks} blocks`,
       alertId: "ETH-2-1",
       protocol: "Ethereum",
       severity: FindingSeverity.Info,
@@ -39,7 +40,7 @@ export const testCreateFinding = (
   } else
     return Finding.fromObject({
       name: "Unusual Block Difficulty Decrease Detection",
-      description: `Block difficulty decreased more than ${threshold}% compared to the moving average`,
+      description: `Block difficulty decreased more than ${threshold}% compared to the moving average of the last ${numberOfBlocks} blocks`,
       alertId: "ETH-2-2",
       protocol: "Ethereum",
       severity: FindingSeverity.Info,
@@ -98,7 +99,15 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([testCreateFinding("100000000", "20000794", "399.98", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([
+      testCreateFinding(
+        "100000000",
+        "20000794",
+        "399.98",
+        MOCK_THRESHOLD.toString(10),
+        MOCK_NUMBER_OF_BLOCKS_TO_CHECK.toString()
+      ),
+    ]);
   });
 
   it("should return a finding if there is an unusual decrease in block difficulty on the first run", async () => {
@@ -113,7 +122,9 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     const findings: Finding[] = await handleBlock(blockEvent);
 
-    expect(findings).toStrictEqual([testCreateFinding("10", "796", "98.74", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([
+      testCreateFinding("10", "796", "98.74", MOCK_THRESHOLD.toString(10), MOCK_NUMBER_OF_BLOCKS_TO_CHECK.toString()),
+    ]);
   });
 
   it("should return no findings if the TTD has been reached on the first run", async () => {
@@ -172,7 +183,13 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([
-      testCreateFinding("6856876867001", "1371375374196.2", "400", MOCK_THRESHOLD.toString(10)),
+      testCreateFinding(
+        "6856876867001",
+        "1371375374196.2",
+        "400",
+        MOCK_THRESHOLD.toString(10),
+        MOCK_NUMBER_OF_BLOCKS_TO_CHECK.toString()
+      ),
     ]);
   });
 
@@ -193,7 +210,9 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
     blockEvent = new TestBlockEventExtended().setDifficulty("1").setNumber(blockNumber);
 
     findings = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([testCreateFinding("1", "796.2", "99.87", MOCK_THRESHOLD.toString(10))]);
+    expect(findings).toStrictEqual([
+      testCreateFinding("1", "796.2", "99.87", MOCK_THRESHOLD.toString(10), MOCK_NUMBER_OF_BLOCKS_TO_CHECK.toString()),
+    ]);
   });
 
   it("should return no findings if the TTD has been reached", async () => {

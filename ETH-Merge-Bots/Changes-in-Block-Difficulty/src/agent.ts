@@ -53,7 +53,8 @@ export const provideHandleBlock = (
           currentDifficulty.toString(10),
           blockDifficultyMovingAverage.toString(10),
           changePercentage.toString(10),
-          threshold.toString(10)
+          threshold.toString(10),
+          numberOfBlocksToCheck.toString()
         )
       );
     }
