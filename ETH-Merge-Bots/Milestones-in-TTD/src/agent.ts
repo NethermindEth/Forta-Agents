@@ -15,6 +15,7 @@ let firstTimestamp: number = 0;
 const blockDifficulties: BigNumber[] = [];
 
 let isEmitted: { [key: string]: any } = {
+  past: false,
   low: false,
   medium: false,
   high: false,
@@ -106,6 +107,13 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
       ) {
         findings.push(createFinding(mergeInfo));
         isEmitted.low = true;
+      } else if (
+        estimatedNumberOfDaysUntilMerge <= MILESTONES.PAST &&
+        estimatedNumberOfDaysUntilMerge > MILESTONES.LOW &&
+        !isEmitted.past
+      ) {
+        findings.push(createFinding(mergeInfo));
+        isEmitted.past = true;
       }
 
       blockCounter++;

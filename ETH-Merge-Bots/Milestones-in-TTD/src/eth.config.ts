@@ -4,6 +4,7 @@ export const TERMINAL_TOTAL_DIFFICULTY: BigNumber = new BigNumber("5875000000000
 
 // Days left for the merge
 export const MILESTONES = {
+  PAST: 25,
   LOW: 20,
   MEDIUM: 15,
   HIGH: 10,
@@ -11,8 +12,8 @@ export const MILESTONES = {
 };
 
 export const ETH_BLOCK_DATA = {
-  avgBlockTimeFromRecentPast: 13.46, // average block time between Aug 13th - Aug 19th
-  blockNumberAWeek: 44236, // total number of blocks mined in between Aug 13th - Aug 19th
+  avgBlockTimeFromRecentPast: 13.46, // average block time between Aug 17th - Aug 23rd
+  blockNumberAWeek: 44220, // total number of blocks mined in between Aug 17th - Aug 23rd
 };
 
 // For testing purposes, uncomment the line below and comment out the 3rd line

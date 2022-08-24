@@ -38,11 +38,41 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 1);
   });
 
-  it("it should not emit findings when there are more than 20 days until merge", async () => {
-    blockEvent.block.totalDifficulty = new BigNumber("8200000").toString();
+  it("it should not emit findings when there are more than 25 days until merge", async () => {
+    blockEvent.block.totalDifficulty = new BigNumber("7800000").toString();
 
     const findings = await handleBlock(blockEvent);
 
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should emit 1 finding when there are less than 25 days but more than 20 days until merge", async () => {
+    blockEvent.block.totalDifficulty = new BigNumber("7900000").toString();
+
+    let findings = await handleBlock(blockEvent);
+
+    const estimatedNumberOfBlocksUntilMerge = getEstimatedNumberOfBlocksUntilMerge(
+      MOCK_TERMINAL_TOTAL_DIFFICULTY,
+      new BigNumber(blockEvent.block.totalDifficulty),
+      new BigNumber(blockEvent.block.difficulty)
+    );
+
+    const { diffInDays: estimatedNumberOfDaysUntilMerge, estimatedMergeDate } = getNumberOfDays(
+      updatedBlockTime,
+      estimatedNumberOfBlocksUntilMerge
+    );
+
+    const mergeInfo = createMergeInfo(
+      estimatedNumberOfDaysUntilMerge,
+      estimatedMergeDate,
+      blockEvent.block.totalDifficulty
+    );
+
+    expect(estimatedNumberOfDaysUntilMerge).toStrictEqual(25);
+    expect(findings).toStrictEqual([createFinding(mergeInfo)]);
+
+    blockEvent.block.totalDifficulty = new BigNumber("8010000").toString();
+    findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
