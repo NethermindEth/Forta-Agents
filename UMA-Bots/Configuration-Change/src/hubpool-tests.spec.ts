@@ -1,6 +1,6 @@
 import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { getEventMetadataFromAbi, HUBPOOL_MONITORED_EVENTS } from "./utils";
+import { getEventMetadataFromAbi, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
@@ -9,22 +9,27 @@ import { NetworkDataInterface } from "./network";
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54")];
 const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
+const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: TEST_HUBPOOL_ADDR },
+  0: { hubPoolAddr: TEST_HUBPOOL_ADDR, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
 };
 
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-describe("Root Bundle Disputed bot", () => {
-  let handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+describe("HubPool configuration changes detection bot", () => {
+  let handleTransaction: HandleTransaction = provideHandleTransaction(
+    HUBPOOL_MONITORED_EVENTS,
+    networkManagerTest,
+    SPOKEPOOL_MONITORED_EVENTS
+  );
 
-  it("returns empty findings if there is no dispute", async () => {
+  it("returns empty findings if there is no relevant event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_HUBPOOL_ADDR);
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if there a dispute is made from the wrong address", async () => {
+  it("doesn't return a finding if a relevant event is emitted from a non-HubPool address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       HUBPOOL_MONITORED_EVENTS[0],
       RANDOM_ADDRESSES[0],

@@ -20,9 +20,9 @@ export const SPOKEPOOL_MONITORED_EVENTS = [
 ];
 
 /*
-  * @desc Generates a dictionary from event name to the complete ABI of the event
-  * @dev For e.g. {"LivenessSet" : "event LivenessSet(uint256 newLiveness)"}
-*/
+ * @desc Generates a dictionary from event name to the complete ABI of the event
+ * @dev For e.g. {"LivenessSet" : "event LivenessSet(uint256 newLiveness)"}
+ */
 export function generateDictNameToAbi(monitoredEvents: string[]) {
   let res: Dictionary<string> = {};
   for (let i = 0; i < monitoredEvents.length; i++) {
@@ -33,10 +33,10 @@ export function generateDictNameToAbi(monitoredEvents: string[]) {
 }
 
 /*
-  * @desc Returns the list of parameters for an event if provided the event ABI
-  * @dev For e.g. if input is ""event BondSet(address indexed newBondToken, uint256 newBondAmount)"
-  * @dev The output will be ["newBondToken","newBondAmount"]
-*/
+ * @desc Returns the list of parameters for an event if provided the event ABI
+ * @dev For e.g. if input is ""event BondSet(address indexed newBondToken, uint256 newBondAmount)"
+ * @dev The output will be ["newBondToken","newBondAmount"]
+ */
 function eventToParamNames(eventAbi: string) {
   eventAbi = eventAbi.substring(6).split(")")[0];
   eventAbi = eventAbi.substring(6).split("(")[1];
@@ -60,11 +60,11 @@ export function getEventMetadata(eventName: string, paramValues: any, eventNameT
 }
 
 /*
-  * @desc Returns the metadata to be returned in a finding
-  * @param eventAbi - ABI for the event
-  * @param paramValues - values for each of the parameters in the event
-  * @return the metadata dictionary with parameter names as keys and the passed values as values
-*/
+ * @desc Returns the metadata to be returned in a finding
+ * @param eventAbi - ABI for the event
+ * @param paramValues - values for each of the parameters in the event
+ * @return the metadata dictionary with parameter names as keys and the passed values as values
+ */
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   let paramNames: string[] = eventToParamNames(eventAbi);
   let metadataDict: Dictionary<string> = {};
