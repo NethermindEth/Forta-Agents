@@ -46,7 +46,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should emit 1 finding when there are less than 20 days and more than 15 days until merge", async () => {
+  it("should emit 1 finding when there are less than 20 days but more than 15 days until merge", async () => {
     blockEvent.block.totalDifficulty = new BigNumber("8300000").toString();
 
     let findings = await handleBlock(blockEvent);
@@ -76,7 +76,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should emit 1 finding when there are less than 15 days and more than 10 days until merge", async () => {
+  it("should emit 1 finding when there are less than 15 days but more than 10 days until merge", async () => {
     blockEvent.block.totalDifficulty = new BigNumber("8750000").toString();
 
     let findings = await handleBlock(blockEvent);
@@ -106,7 +106,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should emit 1 finding when there are less than 10 days and more than 5 days until merge", async () => {
+  it("should emit 1 finding when there are less than 10 days but more than 5 days until merge", async () => {
     blockEvent.block.totalDifficulty = new BigNumber("9150000").toString();
 
     let findings = await handleBlock(blockEvent);
