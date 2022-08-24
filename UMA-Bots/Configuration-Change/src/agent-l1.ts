@@ -15,7 +15,7 @@ export function provideInitiallize(
   };
 }
 
-export function provideHandleTransaction(
+export function provideHandleTransactionL1(
   monitoredHubPoolEvents: string[],
   networkManager: NetworkManager<NetworkDataInterface>
 ): HandleTransaction {
@@ -38,5 +38,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitiallize(networkManagerCurr, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerCurr),
+  handleTransaction: provideHandleTransactionL1(HUBPOOL_MONITORED_EVENTS, networkManagerCurr),
 };

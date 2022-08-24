@@ -1,6 +1,6 @@
 import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import {  getEventMetadataFromAbi, MONITORED_EVENTS } from "./utils";
+import { getEventMetadataFromAbi, HUBPOOL_MONITORED_EVENTS } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
@@ -16,7 +16,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
 describe("Root Bundle Disputed bot", () => {
-  let handleTransaction: HandleTransaction = provideHandleTransaction(MONITORED_EVENTS, networkManagerTest);
+  let handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
 
   it("returns empty findings if there is no dispute", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_HUBPOOL_ADDR);
@@ -25,9 +25,11 @@ describe("Root Bundle Disputed bot", () => {
   });
 
   it("doesn't return a finding if there a dispute is made from the wrong address", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(MONITORED_EVENTS[0], RANDOM_ADDRESSES[0], [
-      "123",
-    ]);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      HUBPOOL_MONITORED_EVENTS[0],
+      RANDOM_ADDRESSES[0],
+      ["123"]
+    );
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -46,10 +48,10 @@ describe("Root Bundle Disputed bot", () => {
   it("returns a finding for emitted monitored event from HubPool : Event LivenessSet", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[0], ["123"]);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -57,10 +59,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [RANDOM_ADDRESSES[0], "123"];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[1], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[1], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[1], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[1], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -68,10 +70,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [RANDOM_ADDRESSES[0], "123"];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[2], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[2], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[2], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[2], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -79,10 +81,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [RANDOM_ADDRESSES[0], "123"];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[3], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[3], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[3], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[3], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -90,10 +92,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [keccak256("hello world")];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[4], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[4], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[4], [passedParams[0].toString()]);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[4], [passedParams[0].toString()]);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -101,10 +103,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = ["123", RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[5], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[5], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[5], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[5], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -112,10 +114,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[6], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -123,10 +125,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[6], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -134,10 +136,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = ["123", RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[8], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[8], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[8], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[8], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -145,10 +147,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = ["123", "456", RANDOM_ADDRESSES[1], true];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[9], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[9], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[9], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[9], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -156,10 +158,10 @@ describe("Root Bundle Disputed bot", () => {
     const passedParams = ["123", "0x12ab"];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(MONITORED_EVENTS[10], passedParams);
+    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
@@ -168,11 +170,11 @@ describe("Root Bundle Disputed bot", () => {
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(TEST_HUBPOOL_ADDR)
-      .addEventLog(MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams)
-      .addEventLog(MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams)
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(MONITORED_EVENTS[10], passedParams);
-    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(MONITORED_EVENTS[0], ["123"]);
+    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], passedParams);
+    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([

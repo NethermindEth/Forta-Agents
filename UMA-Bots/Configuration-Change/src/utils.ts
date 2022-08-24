@@ -1,4 +1,4 @@
-export const MONITORED_EVENTS = [
+export const HUBPOOL_MONITORED_EVENTS = [
   "event LivenessSet(uint256 newLiveness)",
   "event ProtocolFeeCaptureSet(address indexed newProtocolFeeCaptureAddress, uint256 indexed newProtocolFeeCapturePct)",
   "event ProtocolFeesCapturedClaimed(address indexed l1Token, uint256 indexed accumulatedFees)", // probably irrelevant
@@ -12,6 +12,17 @@ export const MONITORED_EVENTS = [
   "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
 ];
 
+export const SPOKEPOOL_MONITORED_EVENTS = [
+  "event SetXDomainAdmin(address indexed newAdmin)",
+  "event SetHubPool(address indexed newHubPool)",
+  "event EnabledDepositRoute(address indexed originToken, uint256 indexed destinationChainId, bool enabled)",
+  "event SetDepositQuoteTimeBuffer(uint32 newBuffer)",
+];
+
+/*
+  * @desc Generates a dictionary from event name to the complete ABI of the event
+  * @dev For e.g. {"LivenessSet" : "event LivenessSet(uint256 newLiveness)"}
+*/
 export function generateDictNameToAbi(monitoredEvents: string[]) {
   let res: Dictionary<string> = {};
   for (let i = 0; i < monitoredEvents.length; i++) {
@@ -21,6 +32,11 @@ export function generateDictNameToAbi(monitoredEvents: string[]) {
   return res;
 }
 
+/*
+  * @desc Returns the list of parameters for an event if provided the event ABI
+  * @dev For e.g. if input is ""event BondSet(address indexed newBondToken, uint256 newBondAmount)"
+  * @dev The output will be ["newBondToken","newBondAmount"]
+*/
 function eventToParamNames(eventAbi: string) {
   eventAbi = eventAbi.substring(6).split(")")[0];
   eventAbi = eventAbi.substring(6).split("(")[1];
@@ -43,6 +59,12 @@ export function getEventMetadata(eventName: string, paramValues: any, eventNameT
   return getEventMetadataFromAbi(eventAbi, paramValues);
 }
 
+/*
+  * @desc Returns the metadata to be returned in a finding
+  * @param eventAbi - ABI for the event
+  * @param paramValues - values for each of the parameters in the event
+  * @return the metadata dictionary with parameter names as keys and the passed values as values
+*/
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   let paramNames: string[] = eventToParamNames(eventAbi);
   let metadataDict: Dictionary<string> = {};

@@ -2,7 +2,7 @@ import { Network } from "forta-agent";
 const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";
 
 export interface NetworkDataInterface {
-  hubPoolAddr: string;
+  hubPoolAddr: string
 }
 
 export const NM_DATA: Record<number, NetworkDataInterface> = {
