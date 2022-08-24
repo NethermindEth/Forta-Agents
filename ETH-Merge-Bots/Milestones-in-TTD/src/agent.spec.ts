@@ -3,7 +3,6 @@ import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { provideHandleBlock } from "./agent";
 import BigNumber from "bignumber.js";
 import { MergeInfo } from "./findings";
-import { getNumberOfDays, getUpdatedBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
 
 const MOCK_TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
 const blockCounter = 1;
@@ -38,6 +37,47 @@ const createFinalFinding = (totalDifficulty: string): Finding => {
       totalDifficulty,
     },
   });
+};
+
+const getNumberOfDays = (avgBlockTime: number, estimatedNumberOfBlocksUntilMerge: BigNumber) => {
+  // One day in milliseconds
+  const oneDay = 1000 * 60 * 60 * 24;
+
+  const estimatedMergeDate = new Date();
+  estimatedMergeDate.setSeconds(
+    estimatedNumberOfBlocksUntilMerge.multipliedBy(avgBlockTime).plus(estimatedMergeDate.getSeconds()).toNumber()
+  );
+
+  const now = new Date();
+
+  const diffInTime = estimatedMergeDate.getTime() - now.getTime();
+  const diffInDays = Math.ceil(diffInTime / oneDay);
+
+  return { diffInDays, estimatedMergeDate };
+};
+
+const getUpdatedBlockTime = (
+  ethBlockData: any,
+  currentBlockTimestamp: number,
+  firstTimestamp: number,
+  blockCounter: number
+) => {
+  const avgTimeSpentInAWeek = ethBlockData.avgBlockTimeFromRecentPast * ethBlockData.blockNumberAWeek;
+
+  const updatedBlockTime =
+    (avgTimeSpentInAWeek + currentBlockTimestamp - firstTimestamp) / (ethBlockData.blockNumberAWeek + blockCounter);
+
+  return updatedBlockTime;
+};
+
+const getEstimatedNumberOfBlocksUntilMerge = (
+  ttd: BigNumber,
+  totalDifficulty: BigNumber,
+  avgBlockDifficulty: BigNumber
+) => {
+  const estimatedNumberOfBlocksUntilMerge = ttd.minus(totalDifficulty).dividedBy(avgBlockDifficulty).decimalPlaces(0);
+
+  return estimatedNumberOfBlocksUntilMerge;
 };
 
 export const ETH_BLOCK_DATA = {
