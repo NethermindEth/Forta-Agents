@@ -2,7 +2,7 @@
   "name": "eth-2",
   "version": "0.0.1",
   "description": "Forta Bot that detects unusual changes in block difficulty",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ETH-Merge-Bots/Changes-in-Block-Difficulty/",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ETH-Merge-Bots/Changes-in-Block-Difficulty",
   "chainIds": [
     1
   ],
