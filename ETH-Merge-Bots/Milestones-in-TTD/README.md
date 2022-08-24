@@ -3,6 +3,7 @@
 ## Description
 
 This bot monitors `totalDifficulty` of Ethereum blocks and calculates the estimated merge date by checking how close `totalDifficulty` is to `Terminal Total Difficulty`.
+
 In order to find the estimated merge date, the difference between `Terminal Total Difficulty` and `totalDifficulty` is divided by the `average block difficulty` which is calculated by the last 100 blocks. This returns the estimated number of blocks left to be mined. This value is multiplied by the `average block time` which is calculated by the most recent week's number of blocks and their average block time. To make this value dynamic, new block times are used to change `average block time` accordingly.
 
 ## Supported Chains
@@ -18,7 +19,7 @@ In order to find the estimated merge date, the difference between `Terminal Tota
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - metadata:
-    - `estimatedMergeDate`: Estimated merge date in UTC format.
+    - `estimatedMergeDate`: Estimated merge date in GMT.
     - `latestTotalDifficulty`: The latest total block difficulty in which the alert is emitted.
     - `remainingDifficulty`: Difference between `Terminal Total Difficulty` and `latestTotalDifficulty`.
 
@@ -41,7 +42,7 @@ This will give you an immediate result with the actual `estimatedMergeDate` and 
 
 ---
 
-In order to test the bot with the past blocks, comment out the variable `TERMINAL_TOTAL_DIFFICULTY` at L3 in `src/eth.config.ts` and uncomment L19.
+In order to test the bot with the past blocks, comment out the variable `TERMINAL_TOTAL_DIFFICULTY` at L3 in `src/eth.config.ts` and uncomment L20.
 
 For 20 days alert, run:
 

@@ -110,7 +110,7 @@ describe("Milestones in Terminal Total Difficulty Bot", () => {
     updatedBlockTime = getUpdatedBlockTime(ETH_BLOCK_DATA, blockEvent.block.timestamp, 0, 1);
   });
 
-  it("it should not emit findings when there are more than 25 days until merge", async () => {
+  it("should not emit findings when there are more than 25 days until merge", async () => {
     blockEvent.block.totalDifficulty = new BigNumber("7800000").toString();
 
     const findings = await handleBlock(blockEvent);
