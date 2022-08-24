@@ -1,7 +1,7 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
+import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { EVENT_NAME_TO_ABI, getEventMetadata, getEventMetadataFromAbi, MONITORED_EVENTS } from "./utils";
-import agent, { provideHandleTransaction } from "./agent";
+import {  getEventMetadataFromAbi, MONITORED_EVENTS } from "./utils";
+import { provideHandleTransaction } from "./agent";
 import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";

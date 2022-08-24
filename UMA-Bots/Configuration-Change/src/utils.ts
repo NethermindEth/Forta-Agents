@@ -12,24 +12,6 @@ export const MONITORED_EVENTS = [
   "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
 ];
 
-export const EVENT_NAME_TO_ABI = {
-  LivenessSet: "event LivenessSet(uint256 newLiveness)",
-  ProtocolFeeCaptureSet:
-    "event ProtocolFeeCaptureSet(address indexed newProtocolFeeCaptureAddress, uint256 indexed newProtocolFeeCapturePct)",
-  ProtocolFeesCapturedClaimed:
-    "event ProtocolFeesCapturedClaimed(address indexed l1Token, uint256 indexed accumulatedFees)", // probably irrelevant
-  BondSet: "event BondSet(address indexed newBondToken, uint256 newBondAmount)",
-  IdentifierSet: "event IdentifierSet(bytes32 newIdentifier)",
-  CrossChainContractsSet: "event CrossChainContractsSet(uint256 l2ChainId, address adapter, address spokePool)",
-  L1TokenEnabledForLiquidityProvision: "event L1TokenEnabledForLiquidityProvision(address l1Token, address lpToken)",
-  L2TokenDisabledForLiquidityProvision: "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
-  SetPoolRebalanceRoute:
-    "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
-  SetEnableDepositRoute:
-    "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
-  SpokePoolAdminFunctionTriggered: "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
-};
-
 export function generateDictNameToAbi(monitoredEvents: string[]) {
   let res: Dictionary<string> = {};
   for (let i = 0; i < monitoredEvents.length; i++) {
@@ -38,8 +20,6 @@ export function generateDictNameToAbi(monitoredEvents: string[]) {
   }
   return res;
 }
-
-export const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";
 
 function eventToParamNames(eventAbi: string) {
   eventAbi = eventAbi.substring(6).split(")")[0];
