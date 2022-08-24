@@ -12,7 +12,7 @@ export const MONITORED_EVENTS = [
   "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
 ];
 
-const EVENT_NAME_TO_ABI = {
+export const EVENT_NAME_TO_ABI = {
   LivenessSet: "event LivenessSet(uint256 newLiveness)",
   ProtocolFeeCaptureSet:
     "event ProtocolFeeCaptureSet(address indexed newProtocolFeeCaptureAddress, uint256 indexed newProtocolFeeCapturePct)",
@@ -29,6 +29,15 @@ const EVENT_NAME_TO_ABI = {
     "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
   SpokePoolAdminFunctionTriggered: "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
 };
+
+export function generateDictNameToAbi(monitoredEvents: string[]) {
+  let res: Dictionary<string> = {};
+  for (let i = 0; i < monitoredEvents.length; i++) {
+    let name: string = monitoredEvents[i].split("(")[0].split(" ")[1];
+    res[name] = monitoredEvents[i];
+  }
+  return res;
+}
 
 export const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";
 
@@ -49,9 +58,8 @@ interface Dictionary<T> {
   [Key: string]: T;
 }
 
-export function getEventMetadata(eventName: string, paramValues: any) {
-  let eventAbi = EVENT_NAME_TO_ABI[eventName as keyof typeof EVENT_NAME_TO_ABI];
-
+export function getEventMetadata(eventName: string, paramValues: any, eventNameToAbi: {}) {
+  let eventAbi = eventNameToAbi[eventName as keyof typeof eventNameToAbi];
   return getEventMetadataFromAbi(eventAbi, paramValues);
 }
 
