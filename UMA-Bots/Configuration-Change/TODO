@@ -1,3 +1,4 @@
 1. POC
-3. spokePool events listen 
 4. cross-check if all configurable parameteres have an associated event for HP
+5. See how can we simplify the logic that restricts the bot from looking for HubPool specific events on l2
+6. 
