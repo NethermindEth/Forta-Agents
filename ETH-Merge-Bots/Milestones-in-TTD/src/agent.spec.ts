@@ -1,12 +1,44 @@
-import { BlockEvent, HandleBlock } from "forta-agent";
+import { BlockEvent, Finding, FindingSeverity, FindingType, HandleBlock } from "forta-agent";
 import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { provideHandleBlock } from "./agent";
 import BigNumber from "bignumber.js";
-import { createFinding, createFinalFinding } from "./findings";
+import { MergeInfo } from "./findings";
 import { getNumberOfDays, getUpdatedBlockTime, getEstimatedNumberOfBlocksUntilMerge } from "./utils";
 
 const MOCK_TERMINAL_TOTAL_DIFFICULTY = new BigNumber("10000000");
 const blockCounter = 1;
+
+const createFinding = (mergeInfo: MergeInfo): Finding => {
+  const { estimatedNumberOfDaysUntilMerge, estimatedMergeDate, latestTotalDifficulty, remainingDifficulty } = mergeInfo;
+
+  return Finding.from({
+    name: "Milestone in Terminal Total Difficulty",
+    description: `Approximately ${estimatedNumberOfDaysUntilMerge} days until the merge.`,
+    alertId: "ETH-1-1",
+    protocol: "Ethereum",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    metadata: {
+      estimatedMergeDate: estimatedMergeDate.toUTCString(),
+      latestTotalDifficulty,
+      remainingDifficulty,
+    },
+  });
+};
+
+const createFinalFinding = (totalDifficulty: string): Finding => {
+  return Finding.from({
+    name: "Terminal Total Difficulty reached",
+    description: "Terminal Total Difficulty has been reached, ETH has merged!",
+    alertId: "ETH-1-2",
+    protocol: "Ethereum",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    metadata: {
+      totalDifficulty,
+    },
+  });
+};
 
 export const ETH_BLOCK_DATA = {
   avgBlockTimeFromRecentPast: 10,
