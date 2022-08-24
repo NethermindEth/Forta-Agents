@@ -52,19 +52,24 @@ describe("SpokePool configuration changes detection bot", () => {
 
   it("returns a finding for emitted monitored event from SpokePool : Event SetXDomainAdmin", async () => {
     const passedParams = [RANDOM_ADDRESSES[0]];
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, passedParams);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      SPOKEPOOL_MONITORED_EVENTS[0],
+      TEST_SPOKEPOOL_ADDR,
+      passedParams
+    );
 
     const findings = await handleTransaction(txEvent);
     let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 
-
   it("returns a finding for emitted monitored event from SpokePool : Event SetHubPool", async () => {
     const passedParams = [RANDOM_ADDRESSES[0]];
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[1], TEST_SPOKEPOOL_ADDR, passedParams);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      SPOKEPOOL_MONITORED_EVENTS[1],
+      TEST_SPOKEPOOL_ADDR,
+      passedParams
+    );
 
     const findings = await handleTransaction(txEvent);
     let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[1], passedParams);
@@ -73,8 +78,11 @@ describe("SpokePool configuration changes detection bot", () => {
 
   it("returns a finding for emitted monitored event from SpokePool : Event EnabledDepositRoute", async () => {
     const passedParams = [RANDOM_ADDRESSES[0], "123", true];
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[2], TEST_SPOKEPOOL_ADDR, passedParams);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      SPOKEPOOL_MONITORED_EVENTS[2],
+      TEST_SPOKEPOOL_ADDR,
+      passedParams
+    );
 
     const findings = await handleTransaction(txEvent);
     let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[2], passedParams);
@@ -83,15 +91,16 @@ describe("SpokePool configuration changes detection bot", () => {
 
   it("returns a finding for emitted monitored event from SpokePool : Event EnabledDepositRoute", async () => {
     const passedParams = ["123"];
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[3], TEST_SPOKEPOOL_ADDR, passedParams);
+    const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+      SPOKEPOOL_MONITORED_EVENTS[3],
+      TEST_SPOKEPOOL_ADDR,
+      passedParams
+    );
 
     const findings = await handleTransaction(txEvent);
     let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
-
-
 
   it("returns N findings for N events (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()

@@ -1,7 +1,7 @@
 import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
 import { generateDictNameToAbi, getEventMetadata, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS } from "./utils";
 import { getFindingInstance } from "./helpers";
-import { NetworkManager } from "forta-agent-tools";
+import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 
 const networkManagerCurr = new NetworkManager(NM_DATA);
@@ -25,15 +25,17 @@ export function provideHandleTransaction(
     let eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
     const findings: Finding[] = [];
     // HubPool configurations
-    const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
-    hubPoolEventTxns.forEach((actualEventTxn) => {
-      let thisFindingMetadata = getEventMetadata(
-        actualEventTxn.eventFragment.name,
-        actualEventTxn.args,
-        eventNameToAbiHubPool
-      );
-      findings.push(getFindingInstance(thisFindingMetadata));
-    });
+    if (networkManager.get("hubPoolAddr") != createAddress("0x00")) {
+      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
+      hubPoolEventTxns.forEach((actualEventTxn) => {
+        let thisFindingMetadata = getEventMetadata(
+          actualEventTxn.eventFragment.name,
+          actualEventTxn.args,
+          eventNameToAbiHubPool
+        );
+        findings.push(getFindingInstance(thisFindingMetadata));
+      });
+    }
     // SpokePool configurations
     const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
     spokePoolEventTxns.forEach((actualEventTxn) => {

@@ -10,13 +10,18 @@ const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54")];
 const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
+const EMPTY_ADDRESS = createAddress("0x00");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { hubPoolAddr: TEST_HUBPOOL_ADDR, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
 };
+const MOCK_L2_NM_DATA: Record<number, NetworkDataInterface> = {
+  0: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+};
 
-const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-describe("HubPool configuration changes detection bot", () => {
+describe("Detection of HubPool events on L1", () => {
+  const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
+
   let handleTransaction: HandleTransaction = provideHandleTransaction(
     HUBPOOL_MONITORED_EVENTS,
     networkManagerTest,
@@ -186,5 +191,41 @@ describe("HubPool configuration changes detection bot", () => {
       getFindingInstance(thisFindingMetadataEvent1),
       getFindingInstance(thisFindingMetadataEvent2),
     ]);
+  });
+});
+
+
+describe("(Non)Detection of HubPool events on L2", () => {
+  const networkManagerTest = new NetworkManager(MOCK_L2_NM_DATA, 0);
+
+  let handleTransaction: HandleTransaction = provideHandleTransaction(
+    HUBPOOL_MONITORED_EVENTS,
+    networkManagerTest,
+    SPOKEPOOL_MONITORED_EVENTS
+  );
+
+  it("doesn't return any findings for HubPool relevant events on L2's", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(EMPTY_ADDRESS)
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[0], EMPTY_ADDRESS, ["123"]);
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+
+  it("returns findings only related to SpokePools on L2's", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+    .setFrom(EMPTY_ADDRESS)
+    .addEventLog(HUBPOOL_MONITORED_EVENTS[0], EMPTY_ADDRESS, ["123"]) // no finding shall be generated for this event
+    .addEventLog(
+      SPOKEPOOL_MONITORED_EVENTS[0],
+      TEST_SPOKEPOOL_ADDR,
+      [RANDOM_ADDRESSES[0]]
+    );
+
+  const findings = await handleTransaction(txEvent);
+  let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
+  expect(findings).toStrictEqual([getFindingInstance(thisFindingMetadata)]);
   });
 });
