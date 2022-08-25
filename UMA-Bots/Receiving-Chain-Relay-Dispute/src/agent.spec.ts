@@ -22,14 +22,14 @@ describe("Root Bundle Disputed bot", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(DISPUTE_EVENT, networkManagerTest);
 
   it("returns empty findings if there is no dispute", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_HUBPOOL_ADDR);
+    const txEvent: TransactionEvent = new TestTransactionEvent();
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
   it("doesn't return a finding if a dispute is made on a non-HubPool contract address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(RANDOM_ADDRESSES[0])
+      .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(DISPUTE_EVENT, RANDOM_ADDRESSES[0], [RANDOM_ADDRESSES[0], RANDOM_HEX_ARR[0]]);
 
     const findings = await handleTransaction(txEvent);
