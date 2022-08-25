@@ -1,6 +1,8 @@
 import { Network } from "forta-agent";
 import { createAddress } from "forta-agent-tools";
 const EMPTY_ADDRESS = createAddress("0x00");
+const POC_HUBPOOL_ADDRESS = "0x68715254125884dE73391b6bBaf0776Cf634c24D";
+const POC_SPOKEPOOL_ADDRESS = "0x4972B5D2B9ac17784428701de1113d5A42970521";
 const HUBPOOL_ADDRESS = "0xc186fa914353c44b2e33ebe05f21846f1048beda";
 const MAINNET_SPOKEPOOL = "0x4D9079Bb4165aeb4084c526a32695dCfd2F77381";
 const OPTIMISM_SPOKEPOOL = "0xa420b2d1c0841415A695b81E5B867BCD07Dff8C9";
@@ -20,5 +22,5 @@ export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.ARBITRUM]: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: ARBITRUM_SPOKEPOOL },
   [Network.POLYGON]: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: POLYGON_SPOKEPOOL },
   [BOBA_CHAIN_ID]: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: BOBA_SPOKEPOOL },
-  // [Network.GOERLI]: { hubPoolAddr: "0xBc079C669989C432aBd026956f31CF82C8400faa" }, //PoC
+  [Network.GOERLI]: { hubPoolAddr: POC_HUBPOOL_ADDRESS, spokePoolAddr: POC_SPOKEPOOL_ADDRESS }, //PoC
 };
