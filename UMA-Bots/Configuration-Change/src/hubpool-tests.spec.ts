@@ -73,7 +73,7 @@ describe("Detection of HubPool events on L1", () => {
   });
 
   it("returns a finding for emitted monitored event from HubPool : Event ProtocolFeesCapturedClaimed", async () => {
-    const passedParams = [RANDOM_ADDRESSES[0], "123"];
+    const passedParams = [true];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(HUBPOOL_MONITORED_EVENTS[2], TEST_HUBPOOL_ADDR, passedParams);

@@ -1,7 +1,7 @@
 export const HUBPOOL_MONITORED_EVENTS = [
   "event LivenessSet(uint256 newLiveness)",
   "event ProtocolFeeCaptureSet(address indexed newProtocolFeeCaptureAddress, uint256 indexed newProtocolFeeCapturePct)",
-  "event ProtocolFeesCapturedClaimed(address indexed l1Token, uint256 indexed accumulatedFees)", // probably irrelevant
+  "event Paused(bool indexed isPaused)",
   "event BondSet(address indexed newBondToken, uint256 newBondAmount)",
   "event IdentifierSet(bytes32 newIdentifier)",
   "event CrossChainContractsSet(uint256 l2ChainId, address adapter, address spokePool)",
@@ -9,7 +9,7 @@ export const HUBPOOL_MONITORED_EVENTS = [
   "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
   "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
   "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
-  "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)",
+  "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)", // not exactly a configuration @Review 
 ];
 
 export const SPOKEPOOL_MONITORED_EVENTS = [
