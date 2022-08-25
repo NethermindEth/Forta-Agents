@@ -76,7 +76,7 @@ describe("Detection of HubPool events on L1", () => {
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
-  it("returns a finding for emitted monitored event from HubPool : Event ProtocolFeesCapturedClaimed", async () => {
+  it("returns a finding for emitted monitored event from HubPool : Event Paused", async () => {
     const passedParams = [true];
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
