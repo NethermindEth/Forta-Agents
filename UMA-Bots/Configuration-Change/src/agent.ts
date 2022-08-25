@@ -1,6 +1,11 @@
 import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
-import { generateDictNameToAbi, getEventMetadata, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS } from "./utils";
-import { getFindingInstance } from "./helpers";
+import {
+  getFindingInstance,
+  generateDictNameToAbi,
+  getEventMetadata,
+  HUBPOOL_MONITORED_EVENTS,
+  SPOKEPOOL_MONITORED_EVENTS,
+} from "./utils";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 

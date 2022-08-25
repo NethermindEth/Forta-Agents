@@ -1,8 +1,12 @@
 import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { getEventMetadataFromAbi, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS } from "./utils";
+import {
+  getFindingInstance,
+  getEventMetadataFromAbi,
+  HUBPOOL_MONITORED_EVENTS,
+  SPOKEPOOL_MONITORED_EVENTS,
+} from "./utils";
 import { provideHandleTransaction } from "./agent";
-import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 

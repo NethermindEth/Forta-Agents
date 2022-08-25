@@ -1,3 +1,5 @@
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
+
 export const HUBPOOL_MONITORED_EVENTS = [
   "event LivenessSet(uint256 newLiveness)",
   "event ProtocolFeeCaptureSet(address indexed newProtocolFeeCaptureAddress, uint256 indexed newProtocolFeeCapturePct)",
@@ -9,7 +11,7 @@ export const HUBPOOL_MONITORED_EVENTS = [
   "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
   "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
   "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
-  "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)", // not exactly a configuration @Review 
+  "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)", // not exactly a configuration @Review
 ];
 
 export const SPOKEPOOL_MONITORED_EVENTS = [
@@ -74,4 +76,16 @@ export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   }
 
   return metadataDict;
+}
+
+export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
+  return Finding.fromObject({
+    name: "Configuration Changed",
+    description: (hubPoolChange ? "HubPool" : "SpokePool") + " configuration changed",
+    alertId: "UMA-3",
+    severity: FindingSeverity.Low,
+    type: FindingType.Info,
+    protocol: "UMA",
+    metadata: eventArgs,
+  });
 }

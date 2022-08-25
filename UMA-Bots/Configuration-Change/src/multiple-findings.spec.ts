@@ -1,8 +1,12 @@
 import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { getEventMetadataFromAbi, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS } from "./utils";
+import {
+  getFindingInstance,
+  getEventMetadataFromAbi,
+  HUBPOOL_MONITORED_EVENTS,
+  SPOKEPOOL_MONITORED_EVENTS,
+} from "./utils";
 import { provideHandleTransaction } from "./agent";
-import { getFindingInstance } from "./helpers";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 
@@ -45,7 +49,6 @@ describe("Detection of HubPool events on L1", () => {
     ]);
   });
 
-
   it("returns N findings for N SpokePool related events (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
@@ -62,27 +65,24 @@ describe("Detection of HubPool events on L1", () => {
     ]);
   });
 
-
   it("returns findings when both HubPool and SpokePool configurations change in one transaction", async () => {
-
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0]])
       .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, ["123", "0x12ab"])
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-      let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], ["123", "0x12ab"]);
-      let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
-      let thisFindingMetadataEvent3 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
+    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], ["123", "0x12ab"]);
+    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
+    let thisFindingMetadataEvent3 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       getFindingInstance(true, thisFindingMetadataEvent1),
       getFindingInstance(true, thisFindingMetadataEvent2),
-      getFindingInstance(false, thisFindingMetadataEvent3)
+      getFindingInstance(false, thisFindingMetadataEvent3),
     ]);
   });
-
 });
 
 describe("(Non)Detection of HubPool events on L2", () => {
@@ -111,6 +111,6 @@ describe("(Non)Detection of HubPool events on L2", () => {
 
     const findings = await handleTransaction(txEvent);
     let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
-    expect(findings).toStrictEqual([getFindingInstance(false,thisFindingMetadata)]);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 });
