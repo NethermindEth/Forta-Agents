@@ -11,7 +11,7 @@ import { NM_DATA, NetworkDataInterface } from "./network";
 
 const networkManagerCurr = new NetworkManager(NM_DATA);
 
-export function provideInitiallize(
+export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider
 ): Initialize {
@@ -56,6 +56,6 @@ export function provideHandleTransaction(
 }
 
 export default {
-  initialize: provideInitiallize(networkManagerCurr, getEthersProvider()),
+  initialize: provideInitialize(networkManagerCurr, getEthersProvider()),
   handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerCurr, SPOKEPOOL_MONITORED_EVENTS),
 };
