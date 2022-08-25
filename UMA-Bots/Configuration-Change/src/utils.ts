@@ -70,6 +70,7 @@ export function getEventMetadata(eventName: string, paramValues: any, eventNameT
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   let paramNames: string[] = eventToParamNames(eventAbi);
   let metadataDict: Dictionary<string> = {};
+  metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
   for (let i = 0; i < paramNames.length; i++) {
     let paramName: string = paramNames[i];
     metadataDict[paramName] = paramValues[i].toString();
