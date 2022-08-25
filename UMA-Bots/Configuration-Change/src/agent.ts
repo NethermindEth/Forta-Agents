@@ -33,7 +33,7 @@ export function provideHandleTransaction(
           actualEventTxn.args,
           eventNameToAbiHubPool
         );
-        findings.push(getFindingInstance(thisFindingMetadata));
+        findings.push(getFindingInstance(true, thisFindingMetadata));
       });
     }
     // SpokePool configurations
@@ -44,7 +44,7 @@ export function provideHandleTransaction(
         actualEventTxn.args,
         eventNameToAbiSpokePool
       );
-      findings.push(getFindingInstance(thisFindingMetadata));
+      findings.push(getFindingInstance(false, thisFindingMetadata));
     });
     return findings;
   };
