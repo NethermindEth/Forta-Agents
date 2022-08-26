@@ -10,10 +10,6 @@ const BOBA_SPOKEPOOL = "0xBbc6009fEfFc27ce705322832Cb2068F8C1e0A58";
 const ARBITRUM_SPOKEPOOL = "0xB88690461dDbaB6f04Dfad7df66B7725942FEb9C";
 const BOBA_CHAIN_ID = 288;
 
-/*
- * @dev The first element in the "addresses" array is always the SpokePool contract address.
- * @dev In case a HubPool is deployed on the chain, its address will be the second element in the "addresses" array
- */
 export interface NetworkDataInterface {
   spokePoolAddr: string;
   hubPoolAddr?: string;
