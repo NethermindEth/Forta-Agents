@@ -20,45 +20,27 @@ export const SPOKEPOOL_MONITORED_EVENTS = [
   "event SetDepositQuoteTimeBuffer(uint32 newBuffer)",
 ];
 
-/*
- * @desc Returns the list of parameters for an event if provided the event ABI
- * @dev For e.g. if input is ""event BondSet(address indexed newBondToken, uint256 newBondAmount)"
- * @dev The output will be ["newBondToken","newBondAmount"]
- */
-function eventToParamNames(eventAbi: string) {
-  eventAbi = eventAbi.substring(6).split(")")[0];
-  eventAbi = eventAbi.substring(6).split("(")[1];
-  let params: string[] = eventAbi.split(",");
-  let paramNames: string[] = [];
-  for (let i = 0; i < params.length; i++) {
-    let param: string[] = params[i].split(" ");
-    let paramName = param[param.length - 1];
-    paramNames.push(paramName);
-  }
-  return paramNames;
-}
-
 interface Dictionary<T> {
   [Key: string]: T;
 }
 
 /*
- * @desc Returns the metadata to be returned in a finding
+ * @desc Returns the metadata to be returned in a finding when passed an event ABI (used in tests)
  * @param eventAbi - ABI for the event
  * @param paramValues - values for each of the parameters in the event
  * @return the metadata dictionary with parameter names as keys and the passed values as values
  */
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
-  let paramNames: string[] = eventToParamNames(eventAbi);
-  let metadataDict: Dictionary<any> = {};
-  let argsDict: Dictionary<string> = {};
-  for (let i = 0; i < paramNames.length; i++) {
-    let paramName: string = paramNames[i];
-    argsDict[paramName] = paramValues[i].toString();
-  }
+  const metadataDict: Dictionary<any> = {};
+  const argsDict: Dictionary<string> = {};
+  const params: string[] = eventAbi.substring(0,eventAbi.length-1).substring(6).split("(")[1].split(",");
+  let index = 0;
+  params.forEach((param)=>{
+    let paramName = param.split(" ")[param.split(" ").length - 1];
+    argsDict[paramName] = paramValues[index++].toString();
+  })
   metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
   metadataDict["args"] = argsDict;
-
   return metadataDict;
 }
 
