@@ -13,13 +13,13 @@ This bot detects configuration changes of the HubPool and SpokePool contracts fo
   
 ## Alerts
 
-- UMA-3
-  - Fired when a dispute occurs on the receiving chain
-  - Severity is always set to "medium" 
-  - Type is always set to "suspicious"
+- UMA-5
+  - Fired when a config changes on HubPool or SpokePool
+  - Severity is always set to "low" 
+  - Type is always set to "info"
   - Metadata :
-      - `disputer`: the disputer - address which raised a dispute
-      - `requestTime` : timestamp of the request made
+      - `event`: the name of the event fired by the contract
+      - `args` : values of the parameters passed to the emitted event
   
 ## Test Data
 

@@ -69,13 +69,15 @@ export function getEventMetadata(eventName: string, paramValues: any, eventNameT
  */
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   let paramNames: string[] = eventToParamNames(eventAbi);
-  let metadataDict: Dictionary<string> = {};
-  metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
+  let metadataDict: Dictionary<any> = {};
+  let argsDict: Dictionary<string> = {};
   for (let i = 0; i < paramNames.length; i++) {
     let paramName: string = paramNames[i];
-    metadataDict[paramName] = paramValues[i].toString();
+    argsDict[paramName] = paramValues[i].toString();
   }
-
+  metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
+  metadataDict["args"] = argsDict;
+  
   return metadataDict;
 }
 
@@ -83,7 +85,7 @@ export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
   return Finding.fromObject({
     name: "Configuration Changed",
     description: (hubPoolChange ? "HubPool" : "SpokePool") + " configuration changed",
-    alertId: "UMA-3",
+    alertId: "UMA-5",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "UMA",
