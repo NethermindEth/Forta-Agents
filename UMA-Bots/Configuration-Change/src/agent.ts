@@ -9,7 +9,7 @@ import {
 import { NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 
-const networkManagerCurr = new NetworkManager(NM_DATA);
+const networkManager = new NetworkManager(NM_DATA);
 
 export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
@@ -26,36 +26,40 @@ export function provideHandleTransaction(
   monitoredSpokePoolEvents: string[]
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
-    const eventNameToAbiHubPool = generateDictNameToAbi(monitoredHubPoolEvents);
-    const eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
     const findings: Finding[] = [];
     // HubPool configurations
     if (networkManager.get("hubPoolAddr")) {
       const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
-      hubPoolEventTxns.forEach((actualEventTxn) => {
-        let thisFindingMetadata = getEventMetadata(
-          actualEventTxn.eventFragment.name,
-          actualEventTxn.args,
-          eventNameToAbiHubPool
-        );
-        findings.push(getFindingInstance(true, thisFindingMetadata));
-      });
+      if (hubPoolEventTxns.length > 0) {
+        const eventNameToAbiHubPool = generateDictNameToAbi(monitoredHubPoolEvents);
+        hubPoolEventTxns.forEach((actualEventTxn) => {
+          let thisFindingMetadata = getEventMetadata(
+            actualEventTxn.eventFragment.name,
+            actualEventTxn.args,
+            eventNameToAbiHubPool
+          );
+          findings.push(getFindingInstance(true, thisFindingMetadata));
+        });
+      }
     }
     // SpokePool configurations
     const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
-    spokePoolEventTxns.forEach((actualEventTxn) => {
-      let thisFindingMetadata = getEventMetadata(
-        actualEventTxn.eventFragment.name,
-        actualEventTxn.args,
-        eventNameToAbiSpokePool
-      );
-      findings.push(getFindingInstance(false, thisFindingMetadata));
-    });
+    if (spokePoolEventTxns.length > 0) {
+      const eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
+      spokePoolEventTxns.forEach((actualEventTxn) => {
+        let thisFindingMetadata = getEventMetadata(
+          actualEventTxn.eventFragment.name,
+          actualEventTxn.args,
+          eventNameToAbiSpokePool
+        );
+        findings.push(getFindingInstance(false, thisFindingMetadata));
+      });
+    }
     return findings;
   };
 }
 
 export default {
-  initialize: provideInitialize(networkManagerCurr, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerCurr, SPOKEPOOL_MONITORED_EVENTS),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManager, SPOKEPOOL_MONITORED_EVENTS),
 };
