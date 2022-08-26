@@ -24,8 +24,8 @@ These tests can be run using npm run tx <TX_HASH> :
 ### Ethereum Mainnet
 
 The agent behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
-<!-- - [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
-- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters)  -->
+- [0xebff6f85c589c4fb493f24560b007a0c1a2c9be0e930c548ca8dd10adbbe504a](https://etherscan.io/tx/0xebff6f85c589c4fb493f24560b007a0c1a2c9be0e930c548ca8dd10adbbe504a) (1 finding - `BondSet` was emitted by the `HubPool` contract)
+- [0x35e9ebe1585c2ff4c10a91f2060ee7ec1bd6af5568ff16e45256c62904b27d17](https://etherscan.io/tx/0x35e9ebe1585c2ff4c10a91f2060ee7ec1bd6af5568ff16e45256c62904b27d17) (2 findings - `SetXDomainAdmin` and `SetHubPool` were emitted by the `SpokePool` contract) 
 
  ### Goerli Testnet (PoC)
 

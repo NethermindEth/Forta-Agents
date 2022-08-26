@@ -14,12 +14,8 @@ const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54")];
 const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
-const EMPTY_ADDRESS = createAddress("0x00");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: TEST_HUBPOOL_ADDR, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
-};
-const MOCK_L2_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+  0: { addresses: [TEST_SPOKEPOOL_ADDR, TEST_HUBPOOL_ADDR] },
 };
 
 describe("Detection of HubPool events on L1", () => {

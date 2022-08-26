@@ -16,10 +16,10 @@ const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
 const EMPTY_ADDRESS = createAddress("0x00");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: TEST_HUBPOOL_ADDR, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+  0: { addresses: [TEST_SPOKEPOOL_ADDR, TEST_HUBPOOL_ADDR] },
 };
 const MOCK_L2_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: EMPTY_ADDRESS, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+  0: { addresses: [TEST_SPOKEPOOL_ADDR] },
 };
 
 describe("Detection of HubPool events on L1", () => {
@@ -53,7 +53,8 @@ describe("Detection of HubPool events on L1", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0]])
-      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[3], TEST_SPOKEPOOL_ADDR, ["123"]);
+      .addEventLog(SPOKEPOOL_MONITORED_EVENTS[3], TEST_SPOKEPOOL_ADDR, ["123"])
+      .addEventLog(TRANSFER_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "123"]);
 
     let thisFindingMetadataEvent1 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
     let thisFindingMetadataEvent2 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], ["123"]);
