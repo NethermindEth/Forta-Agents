@@ -26,7 +26,7 @@ const EMPTY_ADDRESS = createAddress("0x00");
 describe("Detection of HubPool configuration events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
+  const handleTransaction: HandleTransaction = provideHandleTransaction(
     HUBPOOL_MONITORED_EVENTS,
     networkManagerTest,
     SPOKEPOOL_MONITORED_EVENTS
@@ -62,7 +62,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -73,7 +73,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[1], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[1], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[1], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -84,7 +84,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[2], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[2], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[2], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -95,7 +95,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[3], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[3], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[3], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -106,7 +106,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[4], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[4], [passedParams[0].toString()]);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[4], [passedParams[0].toString()]);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -117,7 +117,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[5], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[5], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[5], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -128,7 +128,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -139,7 +139,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[6], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[6], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -150,7 +150,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[8], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[8], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[8], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 
@@ -161,7 +161,7 @@ describe("Detection of HubPool configuration events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[9], TEST_HUBPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[9], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[9], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
 });
@@ -169,7 +169,7 @@ describe("Detection of HubPool configuration events on L1", () => {
 describe("Detection of HubPool events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
+  const handleTransaction: HandleTransaction = provideHandleTransaction(
     HUBPOOL_MONITORED_EVENTS,
     networkManagerTest,
     SPOKEPOOL_MONITORED_EVENTS
@@ -183,8 +183,8 @@ describe("Detection of HubPool events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[7], TEST_HUBPOOL_ADDR, passedParams)
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], passedParams);
-    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
+    const thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], passedParams);
+    const thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
@@ -200,8 +200,8 @@ describe("Detection of HubPool events on L1", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[3], TEST_SPOKEPOOL_ADDR, ["123"])
       .addEventLog(TRANSFER_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
-    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], ["123"]);
+    const thisFindingMetadataEvent1 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
+    const thisFindingMetadataEvent2 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], ["123"]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
@@ -217,12 +217,12 @@ describe("Detection of HubPool events on L1", () => {
       .addEventLog(HUBPOOL_MONITORED_EVENTS[7], TEST_HUBPOOL_ADDR, [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]])
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], [
+    const thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], [
       RANDOM_ADDRESSES[0],
       RANDOM_ADDRESSES[1],
     ]);
-    let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
-    let thisFindingMetadataEvent3 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
+    const thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
+    const thisFindingMetadataEvent3 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
@@ -236,7 +236,7 @@ describe("Detection of HubPool events on L1", () => {
 describe("(Non)Detection of HubPool events on L2", () => {
   const networkManagerTest = new NetworkManager(MOCK_L2_NM_DATA, 0);
 
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
+  const handleTransaction: HandleTransaction = provideHandleTransaction(
     HUBPOOL_MONITORED_EVENTS,
     networkManagerTest,
     SPOKEPOOL_MONITORED_EVENTS
@@ -258,7 +258,7 @@ describe("(Non)Detection of HubPool events on L2", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0]]);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
+    const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 });
@@ -266,7 +266,7 @@ describe("(Non)Detection of HubPool events on L2", () => {
 describe("SpokePool configuration changes detection bot", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
+  const handleTransaction: HandleTransaction = provideHandleTransaction(
     HUBPOOL_MONITORED_EVENTS,
     networkManagerTest,
     SPOKEPOOL_MONITORED_EVENTS
@@ -303,7 +303,7 @@ describe("SpokePool configuration changes detection bot", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 
@@ -314,7 +314,7 @@ describe("SpokePool configuration changes detection bot", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[1], TEST_SPOKEPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[1], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[1], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 
@@ -325,7 +325,7 @@ describe("SpokePool configuration changes detection bot", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[2], TEST_SPOKEPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[2], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[2], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 
@@ -336,7 +336,7 @@ describe("SpokePool configuration changes detection bot", () => {
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[3], TEST_SPOKEPOOL_ADDR, passedParams);
 
     const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], passedParams);
+    const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 });
