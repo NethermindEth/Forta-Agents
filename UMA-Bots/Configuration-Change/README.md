@@ -14,7 +14,7 @@ This bot detects configuration changes of the `HubPool` and `SpokePool` contract
 ## Alerts
 
 - UMA-5
-  - Fired when a config changes on HubPool or SpokePool
+  - Fired when a config changes on `HubPool` or `SpokePool`
   - Severity is always set to "low" 
   - Type is always set to "info"
   - Metadata :
