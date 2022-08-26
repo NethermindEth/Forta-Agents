@@ -1,11 +1,5 @@
 import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
-import {
-  getFindingInstance,
-  generateDictNameToAbi,
-  getEventMetadata,
-  HUBPOOL_MONITORED_EVENTS,
-  SPOKEPOOL_MONITORED_EVENTS,
-} from "./utils";
+import { getFindingInstance, HUBPOOL_MONITORED_EVENTS, SPOKEPOOL_MONITORED_EVENTS, getMetadata } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 
@@ -30,31 +24,26 @@ export function provideHandleTransaction(
     // HubPool configurations
     if (networkManager.get("hubPoolAddr")) {
       const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
-      if (hubPoolEventTxns.length > 0) {
-        const eventNameToAbiHubPool = generateDictNameToAbi(monitoredHubPoolEvents);
-        hubPoolEventTxns.forEach((actualEventTxn) => {
-          let thisFindingMetadata = getEventMetadata(
-            actualEventTxn.eventFragment.name,
-            actualEventTxn.args,
-            eventNameToAbiHubPool
-          );
-          findings.push(getFindingInstance(true, thisFindingMetadata));
-        });
-      }
-    }
-    // SpokePool configurations
-    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
-    if (spokePoolEventTxns.length > 0) {
-      const eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
-      spokePoolEventTxns.forEach((actualEventTxn) => {
-        let thisFindingMetadata = getEventMetadata(
-          actualEventTxn.eventFragment.name,
-          actualEventTxn.args,
-          eventNameToAbiSpokePool
-        );
-        findings.push(getFindingInstance(false, thisFindingMetadata));
+      hubPoolEventTxns.forEach((actualEventTxn) => {
+        const args = getMetadata(actualEventTxn.args);
+        const thisFindingMetadata = {
+          event: actualEventTxn.name,
+          args: args,
+        };
+        findings.push(getFindingInstance(true, thisFindingMetadata));
       });
     }
+
+    // SpokePool configurations
+    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
+    spokePoolEventTxns.forEach((actualEventTxn) => {
+      const args = getMetadata(actualEventTxn.args);
+      const thisFindingMetadata = {
+        event: actualEventTxn.name,
+        args: args,
+      };
+      findings.push(getFindingInstance(false, thisFindingMetadata));
+    });
     return findings;
   };
 }

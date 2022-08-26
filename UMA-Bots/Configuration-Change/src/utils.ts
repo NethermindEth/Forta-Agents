@@ -10,7 +10,7 @@ export const HUBPOOL_MONITORED_EVENTS = [
   "event L1TokenEnabledForLiquidityProvision(address l1Token, address lpToken)",
   "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
   "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
-  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)"
+  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
 ];
 
 export const SPOKEPOOL_MONITORED_EVENTS = [
@@ -19,66 +19,6 @@ export const SPOKEPOOL_MONITORED_EVENTS = [
   "event EnabledDepositRoute(address indexed originToken, uint256 indexed destinationChainId, bool enabled)",
   "event SetDepositQuoteTimeBuffer(uint32 newBuffer)",
 ];
-
-/*
- * @desc Generates a dictionary from event name to the complete ABI of the event
- * @dev For e.g. {"LivenessSet" : "event LivenessSet(uint256 newLiveness)"}
- */
-export function generateDictNameToAbi(monitoredEvents: string[]) {
-  let res: Dictionary<string> = {};
-  for (let i = 0; i < monitoredEvents.length; i++) {
-    let name: string = monitoredEvents[i].split("(")[0].split(" ")[1];
-    res[name] = monitoredEvents[i];
-  }
-  return res;
-}
-
-/*
- * @desc Returns the list of parameters for an event if provided the event ABI
- * @dev For e.g. if input is ""event BondSet(address indexed newBondToken, uint256 newBondAmount)"
- * @dev The output will be ["newBondToken","newBondAmount"]
- */
-function eventToParamNames(eventAbi: string) {
-  eventAbi = eventAbi.substring(6).split(")")[0];
-  eventAbi = eventAbi.substring(6).split("(")[1];
-  let params: string[] = eventAbi.split(",");
-  let paramNames: string[] = [];
-  for (let i = 0; i < params.length; i++) {
-    let param: string[] = params[i].split(" ");
-    let paramName = param[param.length - 1];
-    paramNames.push(paramName);
-  }
-  return paramNames;
-}
-
-interface Dictionary<T> {
-  [Key: string]: T;
-}
-
-export function getEventMetadata(eventName: string, paramValues: any, eventNameToAbi: Dictionary<string>) {
-  const eventAbi = eventNameToAbi[eventName];
-  return getEventMetadataFromAbi(eventAbi, paramValues);
-}
-
-/*
- * @desc Returns the metadata to be returned in a finding
- * @param eventAbi - ABI for the event
- * @param paramValues - values for each of the parameters in the event
- * @return the metadata dictionary with parameter names as keys and the passed values as values
- */
-export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
-  let paramNames: string[] = eventToParamNames(eventAbi);
-  let metadataDict: Dictionary<any> = {};
-  let argsDict: Dictionary<string> = {};
-  for (let i = 0; i < paramNames.length; i++) {
-    let paramName: string = paramNames[i];
-    argsDict[paramName] = paramValues[i].toString();
-  }
-  metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
-  metadataDict["args"] = argsDict;
-
-  return metadataDict;
-}
 
 export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
   return Finding.fromObject({
@@ -91,3 +31,20 @@ export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
     metadata: eventArgs,
   });
 }
+
+
+/*
+ * @desc Returns the metadata to be returned in a finding
+ * @param eventAbi - ABI for the event
+ * @param paramValues - values for each of the parameters in the event
+ * @return the metadata dictionary with parameter names as keys and the passed values as values
+ */
+export const getMetadata = (args: { [key: string]: string }) => {
+  const metadata: { [key: string]: string } = {};
+  const allKeys: string[] = Object.keys(args);
+  const keys: string[] = allKeys.slice(allKeys.length / 2);
+  keys.forEach((key) => {
+    metadata[key] = args[key].toString();
+  });
+  return metadata;
+};
