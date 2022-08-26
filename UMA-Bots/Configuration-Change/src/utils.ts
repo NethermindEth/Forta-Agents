@@ -40,7 +40,7 @@ export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
     .split(",");
   let index = 0;
   params.forEach((param) => {
-    let paramName = param.split(" ")[param.split(" ").length - 1];
+    const paramName = param.split(" ")[param.split(" ").length - 1];
     argsDict[paramName] = paramValues[index++].toString();
   });
   metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
