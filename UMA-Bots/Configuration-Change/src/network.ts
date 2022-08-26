@@ -8,7 +8,6 @@ const OPTIMISM_SPOKEPOOL = "0xa420b2d1c0841415A695b81E5B867BCD07Dff8C9";
 const POLYGON_SPOKEPOOL = "0x69B5c72837769eF1e7C164Abc6515DcFf217F920";
 const BOBA_SPOKEPOOL = "0xBbc6009fEfFc27ce705322832Cb2068F8C1e0A58";
 const ARBITRUM_SPOKEPOOL = "0xB88690461dDbaB6f04Dfad7df66B7725942FEb9C";
-const BOBA_CHAIN_ID = 288;
 
 export interface NetworkDataInterface {
   spokePoolAddr: string;
@@ -20,6 +19,5 @@ export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.OPTIMISM]: { spokePoolAddr: OPTIMISM_SPOKEPOOL },
   [Network.ARBITRUM]: { spokePoolAddr: ARBITRUM_SPOKEPOOL },
   [Network.POLYGON]: { spokePoolAddr: POLYGON_SPOKEPOOL },
-  [BOBA_CHAIN_ID]: { spokePoolAddr: BOBA_SPOKEPOOL },
   [Network.GOERLI]: { spokePoolAddr: POC_SPOKEPOOL_ADDRESS, hubPoolAddr: POC_HUBPOOL_ADDRESS }, //PoC
 };
