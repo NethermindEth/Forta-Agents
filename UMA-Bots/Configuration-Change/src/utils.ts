@@ -35,9 +35,7 @@ export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
 
 /*
  * @desc Returns the metadata to be returned in a finding
- * @param eventAbi - ABI for the event
- * @param paramValues - values for each of the parameters in the event
- * @return the metadata dictionary with parameter names as keys and the passed values as values
+ * @param args - the event args as passed by the LogDescription object in agent.ts
  */
 export const getMetadata = (args: { [key: string]: string }) => {
   const metadata: { [key: string]: string } = {};
