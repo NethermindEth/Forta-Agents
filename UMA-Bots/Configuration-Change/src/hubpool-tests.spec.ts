@@ -18,7 +18,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, hubPoolAddr: TEST_HUBPOOL_ADDR },
 };
 
-describe("Detection of HubPool events on L1", () => {
+describe("Detection of HubPool configuration events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
   let handleTransaction: HandleTransaction = provideHandleTransaction(
