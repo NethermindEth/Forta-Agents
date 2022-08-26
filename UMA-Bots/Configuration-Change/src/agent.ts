@@ -26,8 +26,8 @@ export function provideHandleTransaction(
   monitoredSpokePoolEvents: string[]
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
-    let eventNameToAbiHubPool = generateDictNameToAbi(monitoredHubPoolEvents);
-    let eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
+    const eventNameToAbiHubPool = generateDictNameToAbi(monitoredHubPoolEvents);
+    const eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
     const findings: Finding[] = [];
     // HubPool configurations
     if (networkManager.get("hubPoolAddr")) {
