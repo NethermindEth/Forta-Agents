@@ -27,7 +27,7 @@ describe("SpokePool configuration changes detection bot", () => {
   );
 
   it("returns empty findings if there is no relevant event", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_SPOKEPOOL_ADDR);
+    const txEvent: TransactionEvent = new TestTransactionEvent();
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
