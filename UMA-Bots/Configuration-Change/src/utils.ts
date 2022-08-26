@@ -10,7 +10,7 @@ export const HUBPOOL_MONITORED_EVENTS = [
   "event L1TokenEnabledForLiquidityProvision(address l1Token, address lpToken)",
   "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
   "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
-  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)"
+  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
 ];
 
 export const SPOKEPOOL_MONITORED_EVENTS = [
@@ -33,12 +33,16 @@ interface Dictionary<T> {
 export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   const metadataDict: Dictionary<any> = {};
   const argsDict: Dictionary<string> = {};
-  const params: string[] = eventAbi.substring(0,eventAbi.length-1).substring(6).split("(")[1].split(",");
+  const params: string[] = eventAbi
+    .substring(0, eventAbi.length - 1)
+    .substring(6)
+    .split("(")[1]
+    .split(",");
   let index = 0;
-  params.forEach((param)=>{
+  params.forEach((param) => {
     let paramName = param.split(" ")[param.split(" ").length - 1];
     argsDict[paramName] = paramValues[index++].toString();
-  })
+  });
   metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
   metadataDict["args"] = argsDict;
   return metadataDict;
@@ -55,7 +59,6 @@ export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
     metadata: eventArgs,
   });
 }
-
 
 export const getMetadata = (args: { [key: string]: string }) => {
   const metadata: { [key: string]: string } = {};
