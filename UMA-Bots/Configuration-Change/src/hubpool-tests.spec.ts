@@ -28,7 +28,7 @@ describe("Detection of HubPool configuration events on L1", () => {
   );
 
   it("returns empty findings if there is no relevant event", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent().setFrom(TEST_HUBPOOL_ADDR);
+    const txEvent: TransactionEvent = new TestTransactionEvent();
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
