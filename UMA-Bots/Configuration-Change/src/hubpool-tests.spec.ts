@@ -159,15 +159,4 @@ describe("Detection of HubPool configuration events on L1", () => {
     let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[9], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
   });
-
-  it("returns a finding for emitted monitored event from HubPool : Event SetEnableDepositRoute", async () => {
-    const passedParams = ["123", "0x12ab"];
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(RANDOM_ADDRESSES[1])
-      .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams);
-
-    const findings = await handleTransaction(txEvent);
-    let thisFindingMetadata = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], passedParams);
-    expect(findings).toStrictEqual([getFindingInstance(true, thisFindingMetadata)]);
-  });
 });

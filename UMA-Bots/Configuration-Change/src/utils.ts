@@ -10,8 +10,7 @@ export const HUBPOOL_MONITORED_EVENTS = [
   "event L1TokenEnabledForLiquidityProvision(address l1Token, address lpToken)",
   "event L2TokenDisabledForLiquidityProvision(address l1Token, address lpToken)",
   "event SetPoolRebalanceRoute(uint256 indexed destinationChainId, address indexed l1Token, address indexed destinationToken)",
-  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)",
-  "event SpokePoolAdminFunctionTriggered(uint256 indexed chainId, bytes message)", // not exactly a configuration @Review
+  "event SetEnableDepositRoute(uint256 indexed originChainId, uint256 indexed destinationChainId, address indexed originToken, bool depositsEnabled)"
 ];
 
 export const SPOKEPOOL_MONITORED_EVENTS = [

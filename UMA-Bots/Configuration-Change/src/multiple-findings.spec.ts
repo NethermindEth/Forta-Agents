@@ -32,14 +32,14 @@ describe("Detection of HubPool events on L1", () => {
   );
 
   it("returns N findings for N HubPool related events (N>=1)", async () => {
-    const passedParams = ["123", "0x12ab"];
+    const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];;
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
-      .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, passedParams)
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[7], TEST_HUBPOOL_ADDR, passedParams)
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], passedParams);
+    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], passedParams);
     let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
 
     const findings = await handleTransaction(txEvent);
@@ -70,10 +70,10 @@ describe("Detection of HubPool events on L1", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(SPOKEPOOL_MONITORED_EVENTS[0], TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0]])
-      .addEventLog(HUBPOOL_MONITORED_EVENTS[10], TEST_HUBPOOL_ADDR, ["123", "0x12ab"])
+      .addEventLog(HUBPOOL_MONITORED_EVENTS[7], TEST_HUBPOOL_ADDR, [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]])
       .addEventLog(HUBPOOL_MONITORED_EVENTS[0], TEST_HUBPOOL_ADDR, ["123"]);
 
-    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[10], ["123", "0x12ab"]);
+    let thisFindingMetadataEvent1 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[7], [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]]);
     let thisFindingMetadataEvent2 = getEventMetadataFromAbi(HUBPOOL_MONITORED_EVENTS[0], ["123"]);
     let thisFindingMetadataEvent3 = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[0], [RANDOM_ADDRESSES[0]]);
 
