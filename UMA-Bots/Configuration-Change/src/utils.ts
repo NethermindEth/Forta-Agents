@@ -56,8 +56,8 @@ interface Dictionary<T> {
   [Key: string]: T;
 }
 
-export function getEventMetadata(eventName: string, paramValues: any, eventNameToAbi: {}) {
-  let eventAbi = eventNameToAbi[eventName as keyof typeof eventNameToAbi];
+export function getEventMetadata(eventName: string, paramValues: any, eventNameToAbi: Dictionary<string>) {
+  const eventAbi = eventNameToAbi[eventName];
   return getEventMetadataFromAbi(eventAbi, paramValues);
 }
 
