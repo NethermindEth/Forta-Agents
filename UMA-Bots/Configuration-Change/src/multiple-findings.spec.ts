@@ -16,10 +16,10 @@ const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
 const EMPTY_ADDRESS = createAddress("0x00");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { addresses: [TEST_SPOKEPOOL_ADDR, TEST_HUBPOOL_ADDR] },
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, hubPoolAddr: TEST_HUBPOOL_ADDR },
 };
 const MOCK_L2_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { addresses: [TEST_SPOKEPOOL_ADDR] },
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR },
 };
 
 describe("Detection of HubPool events on L1", () => {

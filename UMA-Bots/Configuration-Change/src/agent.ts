@@ -30,8 +30,8 @@ export function provideHandleTransaction(
     let eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
     const findings: Finding[] = [];
     // HubPool configurations
-    if (networkManager.get("addresses").length == 2) {
-      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("addresses")[1]);
+    if (networkManager.get("hubPoolAddr")) {
+      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
       hubPoolEventTxns.forEach((actualEventTxn) => {
         let thisFindingMetadata = getEventMetadata(
           actualEventTxn.eventFragment.name,
@@ -42,7 +42,7 @@ export function provideHandleTransaction(
       });
     }
     // SpokePool configurations
-    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("addresses")[0]);
+    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
     spokePoolEventTxns.forEach((actualEventTxn) => {
       let thisFindingMetadata = getEventMetadata(
         actualEventTxn.eventFragment.name,

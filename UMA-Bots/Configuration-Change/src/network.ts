@@ -15,14 +15,15 @@ const BOBA_CHAIN_ID = 288;
  * @dev In case a HubPool is deployed on the chain, its address will be the second element in the "addresses" array
  */
 export interface NetworkDataInterface {
-  addresses: string[];
+  spokePoolAddr: string;
+  hubPoolAddr?: string;
 }
 
 export const NM_DATA: Record<number, NetworkDataInterface> = {
-  [Network.MAINNET]: { addresses: [MAINNET_SPOKEPOOL, MAINNET_HUBPOOL] },
-  [Network.OPTIMISM]: { addresses: [OPTIMISM_SPOKEPOOL] },
-  [Network.ARBITRUM]: { addresses: [ARBITRUM_SPOKEPOOL] },
-  [Network.POLYGON]: { addresses: [POLYGON_SPOKEPOOL] },
-  [BOBA_CHAIN_ID]: { addresses: [BOBA_SPOKEPOOL] },
-  [Network.GOERLI]: { addresses: [POC_SPOKEPOOL_ADDRESS, POC_HUBPOOL_ADDRESS] }, //PoC
+  [Network.MAINNET]: { spokePoolAddr: MAINNET_SPOKEPOOL, hubPoolAddr: MAINNET_HUBPOOL },
+  [Network.OPTIMISM]: { spokePoolAddr: OPTIMISM_SPOKEPOOL },
+  [Network.ARBITRUM]: { spokePoolAddr: ARBITRUM_SPOKEPOOL },
+  [Network.POLYGON]: { spokePoolAddr: POLYGON_SPOKEPOOL },
+  [BOBA_CHAIN_ID]: { spokePoolAddr: BOBA_SPOKEPOOL },
+  [Network.GOERLI]: { spokePoolAddr: POC_SPOKEPOOL_ADDRESS, hubPoolAddr: POC_HUBPOOL_ADDRESS }, //PoC
 };

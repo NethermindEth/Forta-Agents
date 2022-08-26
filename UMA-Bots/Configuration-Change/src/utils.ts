@@ -77,7 +77,7 @@ export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
   }
   metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
   metadataDict["args"] = argsDict;
-  
+
   return metadataDict;
 }
 
