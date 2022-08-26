@@ -27,7 +27,7 @@ These tests can be run using npm run tx <TX_HASH> :
 
 ### Ethereum Mainnet
 
-The agent behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
+The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 - [0xebff6f85c589c4fb493f24560b007a0c1a2c9be0e930c548ca8dd10adbbe504a](https://etherscan.io/tx/0xebff6f85c589c4fb493f24560b007a0c1a2c9be0e930c548ca8dd10adbbe504a) (1 finding - `BondSet` was emitted by the `HubPool` contract)
 - [0x35e9ebe1585c2ff4c10a91f2060ee7ec1bd6af5568ff16e45256c62904b27d17](https://etherscan.io/tx/0x35e9ebe1585c2ff4c10a91f2060ee7ec1bd6af5568ff16e45256c62904b27d17) (2 findings - `SetXDomainAdmin` and `SetHubPool` were emitted by the `SpokePool` contract) 
 
