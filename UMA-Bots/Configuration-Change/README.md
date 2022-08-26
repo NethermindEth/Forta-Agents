@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects configuration changes of the HubPool and SpokePool contracts for  [Across v2 Protocol](https://across.to/) - a multichain bridge which uses [UMA](https://umaproject.org/) as its source of on-chain data and validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
+This bot detects configuration changes of the `HubPool` and `SpokePool` contracts for  [Across v2 Protocol](https://across.to/) - a multichain bridge which uses [UMA](https://umaproject.org/) as its source of on-chain data and validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
 
 ## Supported Chains
 - Mainnet
