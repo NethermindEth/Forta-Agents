@@ -33,7 +33,7 @@ export function provideHandleTransaction(
     if (networkManager.get("hubPoolAddr")) {
       const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
       hubPoolEventTxns.forEach((actualEventTxn) => {
-        let thisFindingMetadata = getEventMetadata(
+        const thisFindingMetadata = getEventMetadata(
           actualEventTxn.eventFragment.name,
           actualEventTxn.args,
           eventNameToAbiHubPool
