@@ -44,7 +44,7 @@ export function provideHandleTransaction(
     // SpokePool configurations
     const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
     spokePoolEventTxns.forEach((actualEventTxn) => {
-      let thisFindingMetadata = getEventMetadata(
+      const thisFindingMetadata = getEventMetadata(
         actualEventTxn.eventFragment.name,
         actualEventTxn.args,
         eventNameToAbiSpokePool
