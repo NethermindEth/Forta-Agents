@@ -6,7 +6,7 @@ import {
   HUBPOOL_MONITORED_EVENTS,
   SPOKEPOOL_MONITORED_EVENTS,
 } from "./utils";
-import { createAddress, NetworkManager } from "forta-agent-tools";
+import { NetworkManager } from "forta-agent-tools";
 import { NM_DATA, NetworkDataInterface } from "./network";
 
 const networkManagerCurr = new NetworkManager(NM_DATA);
@@ -30,8 +30,8 @@ export function provideHandleTransaction(
     let eventNameToAbiSpokePool = generateDictNameToAbi(monitoredSpokePoolEvents);
     const findings: Finding[] = [];
     // HubPool configurations
-    if (networkManager.get("hubPoolAddr") != createAddress("0x00")) {
-      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
+    if (networkManager.get("addresses").length == 2) {
+      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("addresses")[1]);
       hubPoolEventTxns.forEach((actualEventTxn) => {
         let thisFindingMetadata = getEventMetadata(
           actualEventTxn.eventFragment.name,
@@ -42,7 +42,7 @@ export function provideHandleTransaction(
       });
     }
     // SpokePool configurations
-    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
+    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("addresses")[0]);
     spokePoolEventTxns.forEach((actualEventTxn) => {
       let thisFindingMetadata = getEventMetadata(
         actualEventTxn.eventFragment.name,

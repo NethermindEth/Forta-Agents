@@ -15,9 +15,8 @@ const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { hubPoolAddr: TEST_HUBPOOL_ADDR, spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+  0: { addresses: [TEST_SPOKEPOOL_ADDR, TEST_HUBPOOL_ADDR] },
 };
-
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
 describe("SpokePool configuration changes detection bot", () => {
