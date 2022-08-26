@@ -4,7 +4,11 @@
   "description": "Forta bot that monitors configuration changes of HubPool and SpokePool contracts",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Configuration-Change",
   "chainIds": [
-    1
+    1,
+    10, 
+    42161,
+    137,
+    288
   ],
   "scripts": {
     "build": "tsc",

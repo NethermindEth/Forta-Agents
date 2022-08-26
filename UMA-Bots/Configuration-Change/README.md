@@ -6,6 +6,10 @@ This bot detects configuration changes of the HubPool and SpokePool contracts fo
 
 ## Supported Chains
 - Mainnet
+- Optimism
+- Arbitrum
+- Polygon
+- Boba
   
 ## Alerts
 
