@@ -17,6 +17,7 @@ const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54")];
 const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
+const EMPTY_ADDRESS = createAddress("0x00");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     spokePoolAddr: TEST_SPOKEPOOL_ADDR,
@@ -24,11 +25,9 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
     monitoredSpokePoolEvents: SPOKEPOOL_MONITORED_EVENTS,
   },
 };
-
 const MOCK_MAINNET_SPOKEPOOL_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: SPOKEPOOL_MONITORED_EVENTS },
 };
-
 const MOCK_ARBITRUM_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: ARB_SPOKEPOOL_MONITORED_EVENTS },
 };
@@ -38,8 +37,6 @@ const MOCK_OPTIMISM_NM_DATA: Record<number, NetworkDataInterface> = {
 const MOCK_POLYGON_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: POLYGON_SPOKEPOOL_MONITORED_EVENTS },
 };
-
-const EMPTY_ADDRESS = createAddress("0x00");
 
 describe("Detection of single HubPool configuration change events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
