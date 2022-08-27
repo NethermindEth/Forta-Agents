@@ -5,6 +5,9 @@ import {
   getEventMetadataFromAbi,
   HUBPOOL_MONITORED_EVENTS,
   SPOKEPOOL_MONITORED_EVENTS,
+  ARB_SPOKEPOOL_MONITORED_EVENTS,
+  POLYGON_SPOKEPOOL_MONITORED_EVENTS,
+  OP_SPOKEPOOL_MONITORED_EVENTS,
 } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
@@ -15,22 +18,33 @@ const TRANSFER_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x46");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, hubPoolAddr: TEST_HUBPOOL_ADDR },
+  0: {
+    spokePoolAddr: TEST_SPOKEPOOL_ADDR,
+    hubPoolAddr: TEST_HUBPOOL_ADDR,
+    monitoredSpokePoolEvents: SPOKEPOOL_MONITORED_EVENTS,
+  },
 };
-const MOCK_L2_NM_DATA: Record<number, NetworkDataInterface> = {
-  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR },
+
+const MOCK_MAINNET_SPOKEPOOL_NM_DATA: Record<number, NetworkDataInterface> = {
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: SPOKEPOOL_MONITORED_EVENTS },
+};
+
+const MOCK_ARBITRUM_NM_DATA: Record<number, NetworkDataInterface> = {
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: ARB_SPOKEPOOL_MONITORED_EVENTS },
+};
+const MOCK_OPTIMISM_NM_DATA: Record<number, NetworkDataInterface> = {
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: OP_SPOKEPOOL_MONITORED_EVENTS },
+};
+const MOCK_POLYGON_NM_DATA: Record<number, NetworkDataInterface> = {
+  0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: POLYGON_SPOKEPOOL_MONITORED_EVENTS },
 };
 
 const EMPTY_ADDRESS = createAddress("0x00");
 
-describe("Detection of HubPool configuration events on L1", () => {
+describe("Detection of single HubPool configuration change events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    HUBPOOL_MONITORED_EVENTS,
-    networkManagerTest,
-    SPOKEPOOL_MONITORED_EVENTS
-  );
+  const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
 
   it("returns empty findings if there is no relevant event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -166,14 +180,10 @@ describe("Detection of HubPool configuration events on L1", () => {
   });
 });
 
-describe("Detection of HubPool events on L1", () => {
+describe("Detection of multiple HubPool configuration change events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    HUBPOOL_MONITORED_EVENTS,
-    networkManagerTest,
-    SPOKEPOOL_MONITORED_EVENTS
-  );
+  const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
 
   it("returns N findings for N HubPool related events (N>=1)", async () => {
     const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
@@ -234,13 +244,9 @@ describe("Detection of HubPool events on L1", () => {
 });
 
 describe("(Non)Detection of HubPool events on L2", () => {
-  const networkManagerTest = new NetworkManager(MOCK_L2_NM_DATA, 0);
+  const networkManagerTest = new NetworkManager(MOCK_MAINNET_SPOKEPOOL_NM_DATA, 0);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    HUBPOOL_MONITORED_EVENTS,
-    networkManagerTest,
-    SPOKEPOOL_MONITORED_EVENTS
-  );
+  const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
 
   it("doesn't return any findings for HubPool relevant events on L2's", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -263,14 +269,10 @@ describe("(Non)Detection of HubPool events on L2", () => {
   });
 });
 
-describe("SpokePool configuration changes detection bot", () => {
-  const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
+describe("Base SpokePool configuration changes detection bot", () => {
+  const networkManagerTest = new NetworkManager(MOCK_MAINNET_SPOKEPOOL_NM_DATA, 0);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(
-    HUBPOOL_MONITORED_EVENTS,
-    networkManagerTest,
-    SPOKEPOOL_MONITORED_EVENTS
-  );
+  const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
 
   it("returns empty findings if there is no relevant event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -337,6 +339,87 @@ describe("SpokePool configuration changes detection bot", () => {
 
     const findings = await handleTransaction(txEvent);
     const thisFindingMetadata = getEventMetadataFromAbi(SPOKEPOOL_MONITORED_EVENTS[3], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+});
+
+describe("Arbitrum SpokePool configuration changes detection bot", () => {
+  let networkManagerTest = new NetworkManager(MOCK_ARBITRUM_NM_DATA, 0);
+  let handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+
+  it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event SetL2GatewayRouter", async () => {
+    const passedParams = [RANDOM_ADDRESSES[0]];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(ARB_SPOKEPOOL_MONITORED_EVENTS[4], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(ARB_SPOKEPOOL_MONITORED_EVENTS[4], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+
+  it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event WhitelistedTokens", async () => {
+    const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(ARB_SPOKEPOOL_MONITORED_EVENTS[5], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(ARB_SPOKEPOOL_MONITORED_EVENTS[5], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+});
+
+describe("Optimism SpokePool configuration changes detection bot", () => {
+  let networkManagerTest = new NetworkManager(MOCK_OPTIMISM_NM_DATA, 0);
+  let handleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+
+  it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event SetL1Gas", async () => {
+    const passedParams = ["9"];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(OP_SPOKEPOOL_MONITORED_EVENTS[4], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(OP_SPOKEPOOL_MONITORED_EVENTS[4], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+
+  it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event WhitelistedTokens", async () => {
+    const passedParams = [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1]];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(OP_SPOKEPOOL_MONITORED_EVENTS[5], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(OP_SPOKEPOOL_MONITORED_EVENTS[5], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+});
+
+describe("Polygon SpokePool configuration changes detection bot", () => {
+  let networkManagerTest = new NetworkManager(MOCK_POLYGON_NM_DATA, 0);
+  let handleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+
+  it("returns a finding for emitted monitored event from Polygon SpokePool : Event SetFxChild", async () => {
+    const passedParams = [RANDOM_ADDRESSES[0]];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(POLYGON_SPOKEPOOL_MONITORED_EVENTS[4], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(POLYGON_SPOKEPOOL_MONITORED_EVENTS[4], passedParams);
+    expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
+  });
+
+  it("returns a finding for emitted monitored event from Polygon SpokePool : Event SetPolygonTokenBridger", async () => {
+    const passedParams = [RANDOM_ADDRESSES[0]];
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(POLYGON_SPOKEPOOL_MONITORED_EVENTS[5], TEST_SPOKEPOOL_ADDR, passedParams);
+
+    const findings = await handleTransaction(txEvent);
+    const thisFindingMetadata = getEventMetadataFromAbi(POLYGON_SPOKEPOOL_MONITORED_EVENTS[5], passedParams);
     expect(findings).toStrictEqual([getFindingInstance(false, thisFindingMetadata)]);
   });
 });

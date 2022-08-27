@@ -20,6 +20,20 @@ export const SPOKEPOOL_MONITORED_EVENTS = [
   "event SetDepositQuoteTimeBuffer(uint32 newBuffer)",
 ];
 
+export const ARB_SPOKEPOOL_MONITORED_EVENTS = SPOKEPOOL_MONITORED_EVENTS.concat([
+  "event SetL2GatewayRouter(address indexed newL2GatewayRouter)",
+  "event WhitelistedTokens(address indexed l2Token, address indexed l1Token)",
+]);
+export const OP_SPOKEPOOL_MONITORED_EVENTS = SPOKEPOOL_MONITORED_EVENTS.concat([
+  "event SetL1Gas(uint32 indexed newL1Gas)",
+  "event SetL2TokenBridge(address indexed l2Token, address indexed tokenBridge)",
+]);
+
+export const POLYGON_SPOKEPOOL_MONITORED_EVENTS = SPOKEPOOL_MONITORED_EVENTS.concat([
+  "event SetFxChild(address indexed newFxChild)",
+  "event SetPolygonTokenBridger(address indexed polygonTokenBridger)",
+]);
+
 interface Dictionary<T> {
   [Key: string]: T;
 }

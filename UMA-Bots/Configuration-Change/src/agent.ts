@@ -16,8 +16,7 @@ export function provideInitialize(
 
 export function provideHandleTransaction(
   monitoredHubPoolEvents: string[],
-  networkManager: NetworkManager<NetworkDataInterface>,
-  monitoredSpokePoolEvents: string[]
+  networkManager: NetworkManager<NetworkDataInterface>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -35,7 +34,10 @@ export function provideHandleTransaction(
     }
 
     // SpokePool configurations
-    const spokePoolEventTxns = txEvent.filterLog(monitoredSpokePoolEvents, networkManager.get("spokePoolAddr"));
+    const spokePoolEventTxns = txEvent.filterLog(
+      networkManager.get("monitoredSpokePoolEvents"),
+      networkManager.get("spokePoolAddr")
+    );
     spokePoolEventTxns.forEach((actualEventTxn) => {
       const args = getMetadata(actualEventTxn.args);
       const thisFindingMetadata = {
@@ -50,5 +52,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManager, SPOKEPOOL_MONITORED_EVENTS),
+  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManager),
 };
