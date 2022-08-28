@@ -86,32 +86,16 @@ export const provideHandleBlock = (ttd: BigNumber, ethBlockData: any, blockCount
       ) {
         findings.push(createFinding(mergeInfo));
         isEmitted.critical[estimatedNumberOfDaysUntilMerge] = true;
-      } else if (
-        estimatedNumberOfDaysUntilMerge <= MILESTONES.HIGH &&
-        estimatedNumberOfDaysUntilMerge > MILESTONES.CRITICAL &&
-        !isEmitted.high
-      ) {
+      } else if (estimatedNumberOfDaysUntilMerge === MILESTONES.HIGH && !isEmitted.high) {
         findings.push(createFinding(mergeInfo));
         isEmitted.high = true;
-      } else if (
-        estimatedNumberOfDaysUntilMerge <= MILESTONES.MEDIUM &&
-        estimatedNumberOfDaysUntilMerge > MILESTONES.HIGH &&
-        !isEmitted.medium
-      ) {
+      } else if (estimatedNumberOfDaysUntilMerge === MILESTONES.MEDIUM && !isEmitted.medium) {
         findings.push(createFinding(mergeInfo));
         isEmitted.medium = true;
-      } else if (
-        estimatedNumberOfDaysUntilMerge <= MILESTONES.LOW &&
-        estimatedNumberOfDaysUntilMerge > MILESTONES.MEDIUM &&
-        !isEmitted.low
-      ) {
+      } else if (estimatedNumberOfDaysUntilMerge === MILESTONES.LOW && !isEmitted.low) {
         findings.push(createFinding(mergeInfo));
         isEmitted.low = true;
-      } else if (
-        estimatedNumberOfDaysUntilMerge <= MILESTONES.PAST &&
-        estimatedNumberOfDaysUntilMerge > MILESTONES.LOW &&
-        !isEmitted.past
-      ) {
+      } else if (estimatedNumberOfDaysUntilMerge === MILESTONES.PAST && !isEmitted.past) {
         findings.push(createFinding(mergeInfo));
         isEmitted.past = true;
       }
