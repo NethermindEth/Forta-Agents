@@ -12,7 +12,7 @@ export const createFinding = (mergeInfo: MergeInfo): Finding => {
 
   return Finding.from({
     name: "Milestone in Terminal Total Difficulty",
-    description: `Approximately ${estimatedNumberOfDaysUntilMerge} days until the merge.`,
+    description: `Based on current difficulty averages, approximately ${estimatedNumberOfDaysUntilMerge} days until the merge.`,
     alertId: "ETH-1-1",
     protocol: "Ethereum",
     type: FindingType.Info,
