@@ -1,26 +1,34 @@
-# Large Tether Transfer Agent
+# Relay Dispute Detection bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot monitors for specific wallets (from a configurable list) that may use the [Across v2 bridge](https://across.to/). a multichain bridge which uses [UMA](https://umaproject.org/) as its source of on-chain data and validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
+
 
 ## Supported Chains
-
-- Ethereum
-- List any other chains this agent can support e.g. BSC
-
+- Mainnet
+  
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
-
+- UMA-10
+  - Fired when a dispute occurs on the receiving chain
+  - Severity is always set to "low" 
+  - Type is always set to "suspicious"
+  - Metadata :
+      - `disputer`: the disputer - address which raised a dispute
+      - `requestTime` : timestamp of the request made
+  
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+### Ethereum Mainnet
+- [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
+- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (1 finding - `RootBundleDisputed` was emitted) 
+
+ ### Goerli Testnet (PoC)
+
+In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
+
+- [0x92a256ea60afa3a0ef2d65ded22371e32b086f5960be69cf10bd7947cc23f8a2](https://goerli.etherscan.io/tx/0x92a256ea60afa3a0ef2d65ded22371e32b086f5960be69cf10bd7947cc23f8a2) (1 finding - `RootBundleDisputed` was emitted)
+- [0xf6ef52f33458eb7af470d589ccb63360cec86fc044401f3b4da0d6587a82d35d](https://goerli.etherscan.io/tx/0xf6ef52f33458eb7af470d589ccb63360cec86fc044401f3b4da0d6587a82d35d) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
