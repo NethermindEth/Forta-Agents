@@ -217,6 +217,47 @@ describe("funds deposited bot", () => {
     expect(findings).toStrictEqual([createFinding(metadata, false), createFinding(metadata2, true)]);
   });
 
+  it("returns a finding if there is a FilledRelay event emitted and ignores other events", async () => {
+    const amount = BigNumber.from("10000000");
+    const originChainId = MOCK_NETWORK_ID;
+    const destinationChainId = 1000;
+    const repaymentChainId = 9999;
+
+    const data = [
+      amount,
+      amount,
+      amount,
+      repaymentChainId,
+      originChainId,
+      destinationChainId,
+      555,
+      666,
+      777,
+      123,
+      MOCK_TOKEN_ADDRESS,
+      createAddress("0x6473"),
+      createAddress("0x0021"),
+      createAddress("0x0001"),
+      false
+    ];
+
+    mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
+    mockTxEvent.addEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [234])
+    const findings: Finding[] = await handleTransaction(mockTxEvent);
+
+    const metadata = {
+      amount: amount.toString(),
+      originChainId: originChainId.toString(),
+      destinationChainId: destinationChainId.toString(),
+      tokenName: "Test Token",
+      recipient: createAddress("0x0001"),
+      depositor: createAddress("0x0021"),
+      relayer:  createAddress("0x6473")
+    };
+
+    expect(findings).toStrictEqual([createFinding(metadata, false)]);
+  });
+
   
 
   
