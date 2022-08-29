@@ -6,10 +6,9 @@ import {
   TransactionEvent,
   getEthersProvider,
 } from "forta-agent";
-import { DISPUTE_EVENT } from "./constants";
-import { getFindingInstance } from "./helpers";
 import { NetworkManager } from "forta-agent-tools";
-import { NM_DATA, NetworkDataInterface } from "./network";
+import { FILLED_RELAY_EVENT, getFindingInstance } from "./utils";
+import { NetworkDataInterface, NM_DATA } from "./network";
 
 const networkManagerCurr = new NetworkManager(NM_DATA);
 
@@ -23,18 +22,42 @@ export function provideInitiallize(
 }
 
 export function provideHandleTransaction(
-  disputeEvent: string,
+  filledRelayEvent: string,
   networkManager: NetworkManager<NetworkDataInterface>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const disputeEventTxns = txEvent.filterLog(
-      disputeEvent,
+    const filledRelayEventTxns = txEvent.filterLog(
+      filledRelayEvent,
       networkManager.get("hubPoolAddr")
     );
-    disputeEventTxns.forEach((disputeActualEvent) => {
-      const { disputer, requestTime } = disputeActualEvent.args;
-      findings.push(getFindingInstance(disputer, requestTime.toString()));
+
+    filledRelayEventTxns.forEach((filledRelayEvent) => {
+      const {
+        amount,
+        totalFilledAmount,
+        fillAmount,
+        originChainId,
+        destinationChainId,
+        depositor,
+        recipient,
+        isSlowRelay,
+      } = filledRelayEvent.args;
+
+      if (networkManager.get("monitoredList").indexOf(depositor) > -1) {
+        findings.push(
+          getFindingInstance(
+            amount.toString(),
+            totalFilledAmount.toString(),
+            fillAmount.toString(),
+            originChainId.toString(),
+            destinationChainId.toString(),
+            depositor,
+            recipient,
+            isSlowRelay.toString()
+          )
+        );
+      }
     });
     return findings;
   };
@@ -43,7 +66,7 @@ export function provideHandleTransaction(
 export default {
   initialize: provideInitiallize(networkManagerCurr, getEthersProvider()),
   handleTransaction: provideHandleTransaction(
-    DISPUTE_EVENT,
+    FILLED_RELAY_EVENT,
     networkManagerCurr
   ),
 };
