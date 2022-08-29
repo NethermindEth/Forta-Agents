@@ -98,7 +98,7 @@ describe("funds deposited bot", () => {
       createAddress("0x6473"),
       createAddress("0x0021"),
       createAddress("0x0001"),
-      false
+      false,
     ];
 
     mockTxEvent.addEventLog(eventFragment, createAddress("0x7777"), data);
@@ -129,7 +129,7 @@ describe("funds deposited bot", () => {
       createAddress("0x6473"),
       createAddress("0x0021"),
       createAddress("0x0001"),
-      false
+      false,
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -142,7 +142,7 @@ describe("funds deposited bot", () => {
       tokenName: "Test Token",
       recipient: createAddress("0x0001"),
       depositor: createAddress("0x0021"),
-      relayer:  createAddress("0x6473")
+      relayer: createAddress("0x6473"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata, false)]);
@@ -169,7 +169,7 @@ describe("funds deposited bot", () => {
       createAddress("0x6473"),
       createAddress("0x0021"),
       createAddress("0x0001"),
-      false
+      false,
     ];
 
     const data2 = [
@@ -187,7 +187,7 @@ describe("funds deposited bot", () => {
       createAddress("0x1111"),
       createAddress("0x5432"),
       createAddress("0x2345"),
-      true
+      true,
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
@@ -201,7 +201,7 @@ describe("funds deposited bot", () => {
       tokenName: "Test Token",
       recipient: createAddress("0x0001"),
       depositor: createAddress("0x0021"),
-      relayer:  createAddress("0x6473")
+      relayer: createAddress("0x6473"),
     };
 
     const metadata2 = {
@@ -211,7 +211,7 @@ describe("funds deposited bot", () => {
       tokenName: "Test Token",
       recipient: createAddress("0x2345"),
       depositor: createAddress("0x5432"),
-      relayer:  createAddress("0x1111")
+      relayer: createAddress("0x1111"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata, false), createFinding(metadata2, true)]);
@@ -238,11 +238,11 @@ describe("funds deposited bot", () => {
       createAddress("0x6473"),
       createAddress("0x0021"),
       createAddress("0x0001"),
-      false
+      false,
     ];
 
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
-    mockTxEvent.addEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [234])
+    mockTxEvent.addEventLog(mockEventFragment, MOCK_CONTRACT_ADDRESS, [234]);
     const findings: Finding[] = await handleTransaction(mockTxEvent);
 
     const metadata = {
@@ -252,13 +252,9 @@ describe("funds deposited bot", () => {
       tokenName: "Test Token",
       recipient: createAddress("0x0001"),
       depositor: createAddress("0x0021"),
-      relayer:  createAddress("0x6473")
+      relayer: createAddress("0x6473"),
     };
 
     expect(findings).toStrictEqual([createFinding(metadata, false)]);
   });
-
-  
-
-  
 });
