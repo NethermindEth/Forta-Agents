@@ -4,6 +4,9 @@ import { defaultAbiCoder } from "@ethersproject/abi";
 import { getCreate2Address as create2 } from "@ethersproject/address";
 import { utils } from "ethers";
 
+export const ZERO_ADDRESS: string = "0x0000000000000000000000000000000000000000";
+export const DEAD_ADDRESS: string = "0x000000000000000000000000000000000000dead";
+
 type Desc = utils.TransactionDescription;
 
 const V2_FACTORY: string = "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f";
@@ -27,10 +30,11 @@ type Evaluator = (_: any) => number;
 const fixedValue = (value: number) => (_: Desc) => value;
 
 const V2_MAP: Record<string, Evaluator> = {
-  mint: fixedValue(1),    // One txn per token despositing funds
-  burn: fixedValue(1),    // One txn per token sending funds to the burner
-  skim: fixedValue(1),    // One txn per token forcing balances to match reserves
-  swap: (desc: Desc) => { // One txn per token if it is a regular swap, two txns if it is a flash loan
+  mint: fixedValue(1), // One txn per token despositing funds
+  burn: fixedValue(1), // One txn per token sending funds to the burner
+  skim: fixedValue(1), // One txn per token forcing balances to match reserves
+  swap: (desc: Desc) => {
+    // One txn per token if it is a regular swap, two txns if it is a flash loan
     if (desc.args.data === "0x" || BigNumber.from(desc.args.data).eq(0)) return 1;
     return 2;
   },
@@ -39,12 +43,12 @@ const V2_MAP: Record<string, Evaluator> = {
 const v2Transfers = (desc: Desc) => V2_MAP[desc.name](desc);
 
 const V3_MAP: Record<string, Evaluator> = {
-  mint: fixedValue(1),             // One txn per token despositing funds
-  burn: fixedValue(1),             // One txn per token sending funds to the burner
-  collect: fixedValue(1),          // One txn per token sending collected funds
-  collectProtocol: fixedValue(1),  // One txn per token sending collected funds
-  swap: fixedValue(1),             // One txn per token executing the swap
-  flash: fixedValue(2),            // Two txn per token executing the flashloan
+  mint: fixedValue(1), // One txn per token despositing funds
+  burn: fixedValue(1), // One txn per token sending funds to the burner
+  collect: fixedValue(1), // One txn per token sending collected funds
+  collectProtocol: fixedValue(1), // One txn per token sending collected funds
+  swap: fixedValue(1), // One txn per token executing the swap
+  flash: fixedValue(2), // Two txn per token executing the flashloan
 };
 
 const v3Transfers = (desc: Desc) => V3_MAP[desc.name](desc);
