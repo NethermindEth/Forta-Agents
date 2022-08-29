@@ -1,12 +1,14 @@
 import { Finding, HandleTransaction, TransactionEvent, ethers, Initialize, getEthersProvider } from "forta-agent";
-import { FUNC_ABI, FILLED_RELAY_EVENT } from "./ABI";
+import { FILLED_RELAY_EVENT } from "./ABI";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, DATA } from "./config";
 import { createFinding } from "./findings";
 import BN from "bignumber.js";
-import { getThreshold, getTokenInfo } from "./utils";
+import { getTokenInfo } from "./utils";
+import LRU from "lru-cache";
 
 const networkManager = new NetworkManager(DATA);
+let token_cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -30,22 +32,25 @@ export const provideHandleTransaction = (
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
-      let { amount, totalFilledAmount, originChainId, destinationChainId, originToken, depositor, relayer, recipient } =
+      let { amount, originChainId, destinationChainId, destinationToken, depositor, relayer, recipient, isSlowRelay } =
         filledRelayEvent.args;
 
       let tokenInfo: { tokenName: string; tokenDecimals: number };
+      tokenInfo = await getTokenInfo(destinationToken, provider, token_cache, txEvent.blockNumber);
 
-      tokenInfo = await getTokenInfo(originToken, provider, txEvent.blockNumber);
+      let normalizedAmount = BN(amount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
 
-      let normalizedAmount = BN(totalFilledAmount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
+      let metadata = {
+        amount: normalizedAmount.toString(10),
+        originChainId: originChainId.toString(),
+        destinationChainId: destinationChainId.toString(),
+        tokenName: tokenInfo.tokenName,
+        depositor,
+        recipient,
+        relayer,
+      };
 
-      if (getThreshold(tokenInfo.tokenName)) {
-        if (normalizedAmount.gte(getThreshold(tokenInfo.tokenName))) {
-          findings.push(); //push high finding
-        }
-      } else {
-        findings.push(); //push info finding
-      }
+      findings.push(createFinding(metadata, isSlowRelay));
     }
 
     return findings;
