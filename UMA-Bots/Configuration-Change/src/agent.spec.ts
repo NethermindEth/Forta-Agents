@@ -6,13 +6,11 @@ import {
   SPOKEPOOL_MONITORED_EVENTS,
   ARB_SPOKEPOOL_MONITORED_EVENTS,
   POLYGON_SPOKEPOOL_MONITORED_EVENTS,
-  OP_SPOKEPOOL_MONITORED_EVENTS,
-  Dictionary,
+  OP_SPOKEPOOL_MONITORED_EVENTS
 } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
-import { BigNumber } from "ethers";
 
 // @dev a helper function to verify results with the `getEventMetadata` function defined in ./utils.ts
 const getEventMetadata = (args: { [key: string]: string }) => {
