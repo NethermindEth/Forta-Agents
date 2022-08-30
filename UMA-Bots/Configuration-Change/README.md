@@ -9,7 +9,6 @@ This bot detects configuration changes of the `HubPool` and `SpokePool` contract
 - Optimism
 - Arbitrum
 - Polygon
-- Boba
   
 ## Alerts
 
