@@ -12,7 +12,7 @@ import { NetworkDataInterface, NM_DATA } from "./network";
 
 const networkManagerCurr = new NetworkManager(NM_DATA);
 
-export function provideInitiallize(
+export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider
 ): Initialize {
@@ -60,7 +60,7 @@ export function provideHandleTransaction(
 }
 
 export default {
-  initialize: provideInitiallize(networkManagerCurr, getEthersProvider()),
+  initialize: provideInitialize(networkManagerCurr, getEthersProvider()),
   handleTransaction: provideHandleTransaction(
     FILLED_RELAY_EVENT,
     networkManagerCurr
