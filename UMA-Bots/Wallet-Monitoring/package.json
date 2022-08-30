@@ -4,7 +4,10 @@
   "description": "Forta bot that monitors if a wallet from a configurable list uses the bridge",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Wallet-Monitoring",
   "chainIds": [
-    1
+    1,
+    10, 
+    42161,
+    137
   ],
   "scripts": {
     "build": "tsc",
