@@ -8,7 +8,7 @@ import bot from "./agent";
 import { createFinding } from "./findings";
 import { BigNumber } from "ethers";
 
-describe("funds deposited bot", () => {
+describe("filled relay bot", () => {
   const TOKEN_IFACE = new ethers.utils.Interface(FUNC_ABI);
 
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
