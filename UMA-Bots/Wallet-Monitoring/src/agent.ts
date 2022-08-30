@@ -29,7 +29,7 @@ export function provideHandleTransaction(
     const findings: Finding[] = [];
     const filledRelayEventTxns = txEvent.filterLog(
       filledRelayEvent,
-      networkManager.get("hubPoolAddr")
+      networkManager.get("spokePoolAddr")
     );
 
     filledRelayEventTxns.forEach((filledRelayEvent) => {

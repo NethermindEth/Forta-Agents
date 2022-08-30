@@ -13,29 +13,29 @@ import {
 } from "./utils";
 
 export interface NetworkDataInterface {
-  hubPoolAddr: string;
+  spokePoolAddr: string;
   monitoredList: string[];
 }
 
 export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.MAINNET]: {
-    hubPoolAddr: MAINNET_SPOKEPOOL,
+    spokePoolAddr: MAINNET_SPOKEPOOL,
     monitoredList: MAINNET_MONITORED_ADDRESSES,
   },
   [Network.ARBITRUM]: {
-    hubPoolAddr: ARBITRUM_SPOKEPOOL,
+    spokePoolAddr: ARBITRUM_SPOKEPOOL,
     monitoredList: ARBITRUM_MONITORED_ADDRESSES,
   },
   [Network.POLYGON]: {
-    hubPoolAddr: POLYGON_SPOKEPOOL,
+    spokePoolAddr: POLYGON_SPOKEPOOL,
     monitoredList: POLYGON_MONITORED_ADDRESSES,
   },
   [Network.OPTIMISM]: {
-    hubPoolAddr: OPTIMISM_SPOKEPOOL,
+    spokePoolAddr: OPTIMISM_SPOKEPOOL,
     monitoredList: OPTIMISM_MONITORED_ADDRESSES,
   },
   [Network.GOERLI]: {
-    hubPoolAddr: GOERLI_POC_SPOKEPOOL_ADDRESS,
+    spokePoolAddr: GOERLI_POC_SPOKEPOOL_ADDRESS,
     monitoredList: GOERLI_POC_MONITORED_ADDRESSES, //PoC
   },
 };
