@@ -35,8 +35,6 @@ export function provideHandleTransaction(
     filledRelayEventTxns.forEach((filledRelayEvent) => {
       const {
         amount,
-        totalFilledAmount,
-        fillAmount,
         originChainId,
         destinationChainId,
         depositor,
@@ -48,8 +46,6 @@ export function provideHandleTransaction(
         findings.push(
           getFindingInstance(
             amount.toString(),
-            totalFilledAmount.toString(),
-            fillAmount.toString(),
             originChainId.toString(),
             destinationChainId.toString(),
             depositor,

@@ -43,8 +43,6 @@ const passParams = (monitoredAddress: boolean) => {
 
 const expectedFinding = getFindingInstance(
   "120",
-  "100",
-  "100",
   "1",
   "1",
   TEST_MONITORED_ADDRESS,
