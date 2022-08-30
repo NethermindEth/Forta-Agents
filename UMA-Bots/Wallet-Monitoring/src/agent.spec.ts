@@ -16,7 +16,7 @@ const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
-    hubPoolAddr: TEST_HUBPOOL_ADDR,
+    spokePoolAddr: TEST_HUBPOOL_ADDR,
     monitoredList: [TEST_MONITORED_ADDRESS],
   },
 };
