@@ -23,12 +23,12 @@ This bot monitors for specific wallets (from a configurable list) that may use t
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-- [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
-- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (1 finding - `RootBundleDisputed` was emitted) 
+<!-- - [0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60](https://etherscan.io/tx/0x10e5c318414dccbc2172ce624afd0a4ae46fa538ef6b21522f2e87991f621e60) (1 finding - `RootBundleDisputed` was emitted)
+- [0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d](https://etherscan.io/tx/0x312985c7e8a363079c3ae416f8e30a3caa4d4ddee61ac9c2c07f2a637655916d) (1 finding - `RootBundleDisputed` was emitted)  -->
 
  ### Goerli Testnet (PoC)
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0x92a256ea60afa3a0ef2d65ded22371e32b086f5960be69cf10bd7947cc23f8a2](https://goerli.etherscan.io/tx/0x92a256ea60afa3a0ef2d65ded22371e32b086f5960be69cf10bd7947cc23f8a2) (1 finding - `RootBundleDisputed` was emitted)
-- [0xf6ef52f33458eb7af470d589ccb63360cec86fc044401f3b4da0d6587a82d35d](https://goerli.etherscan.io/tx/0xf6ef52f33458eb7af470d589ccb63360cec86fc044401f3b4da0d6587a82d35d) (2 findings - `RootBundleDisputed` was emitted 2 times with different parameters) 
+- [0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ](https://goerli.etherscan.io/tx/0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ) (1 finding - `FilledRelay` was emitted with a monitored wallet as depositor)
+- [0x56820f1d68fe262bb1a17e4fa40218a686357d2d495002a59557239f995cc341](https://goerli.etherscan.io/tx/0x56820f1d68fe262bb1a17e4fa40218a686357d2d495002a59557239f995cc341) (0 findings - `FilledRelay` was emitted with a non-monitored wallet as depositor) 
