@@ -34,32 +34,8 @@ export const POLYGON_SPOKEPOOL_MONITORED_EVENTS = SPOKEPOOL_MONITORED_EVENTS.con
   "event SetPolygonTokenBridger(address indexed polygonTokenBridger)",
 ]);
 
-interface Dictionary<T> {
+export interface Dictionary<T> {
   [Key: string]: T;
-}
-
-/*
- * @desc Returns the metadata to be returned in a finding when passed an event ABI (used in tests)
- * @param eventAbi - ABI for the event
- * @param paramValues - values for each of the parameters in the event
- * @return the metadata dictionary with parameter names as keys and the passed values as values
- */
-export function getEventMetadataFromAbi(eventAbi: string, paramValues: any[]) {
-  const metadataDict: Dictionary<any> = {};
-  const argsDict: Dictionary<string> = {};
-  const params: string[] = eventAbi
-    .substring(0, eventAbi.length - 1)
-    .substring(6)
-    .split("(")[1]
-    .split(",");
-  let index = 0;
-  params.forEach((param) => {
-    const paramName = param.split(" ")[param.split(" ").length - 1];
-    argsDict[paramName] = paramValues[index++].toString();
-  });
-  metadataDict["event"] = eventAbi.split("(")[0].split(" ")[1];
-  metadataDict["args"] = argsDict;
-  return metadataDict;
 }
 
 export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
