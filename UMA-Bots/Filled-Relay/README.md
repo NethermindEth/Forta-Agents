@@ -57,7 +57,7 @@ The bot behaviour can be verified with the following transactions on Goerli test
 The bot behaviour can be verified with the following transactions on Ethereum mainnet ( Contract address is:[0x4D9079Bb4165aeb4084c526a32695dCfd2F77381](https://etherscan.io/address/0x4D9079Bb4165aeb4084c526a32695dCfd2F77381)):
 
 - [0xeffb7de17fe9ba78a4ea11803b4a2fce964261d3ecb800b0cad1935acb51e400]
-(https://etherscan.io/tx/0xeffb7de17fe9ba78a4ea11803b4a2fce964261d3ecb800b0cad1935acb51e400): (expect 1 finding: 1 `FilledRelay` event)
+(https://etherscan.io/tx/0xeffb7de17fe9ba78a4ea11803b4a2fce964261d3ecb800b0cad1935acb51e400): (expect 2 findings: 2 `FilledRelay` events)
 
 - [0x6f9f83e5d731b5f2467cac9e025a1a92a177316a485f8578de16f381ccbb91f9]
 (https://etherscan.io/tx/0x6f9f83e5d731b5f2467cac9e025a1a92a177316a485f8578de16f381ccbb91f9): (expect 1 finding: 1 `FilledRelay` event)
@@ -69,8 +69,8 @@ The bot behaviour can be verified with the following transactions on Ethereum ma
 
 The bot behaviour can be verified with the following transactions on Arbitrum mainnet ( Contract address is:[0xb88690461ddbab6f04dfad7df66b7725942feb9c](https://arbiscan.io/address/0xb88690461ddbab6f04dfad7df66b7725942feb9c)):
 
-- [0xfcdb0e4614849710f2195d2eb2f9b3c9fa424b3e12066288c10b39bfa514b2ac]
-(https://arbiscan.io/tx/0xfcdb0e4614849710f2195d2eb2f9b3c9fa424b3e12066288c10b39bfa514b2ac): (expect 1 finding: 1 `FilledRelay` event)
+- [0xecc377c581a43280e3ae92d219265ace08558bcbcf621ff80ff47d6d5b02c937]
+(https://arbiscan.io/tx/0xecc377c581a43280e3ae92d219265ace08558bcbcf621ff80ff47d6d5b02c937): (expect 2 findings: 2 `FilledRelay` events)
 
 - [0xfcdb0e4614849710f2195d2eb2f9b3c9fa424b3e12066288c10b39bfa514b2ac]
 (https://arbiscan.io/tx/0xfcdb0e4614849710f2195d2eb2f9b3c9fa424b3e12066288c10b39bfa514b2ac): (expect 2 findings: 2 `FilledRelay` events)
