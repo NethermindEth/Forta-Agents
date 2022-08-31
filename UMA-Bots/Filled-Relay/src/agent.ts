@@ -32,10 +32,23 @@ export const provideHandleTransaction = (
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
-      const { amount, originChainId, destinationChainId, destinationToken, depositor, relayer, recipient, isSlowRelay } =
-        filledRelayEvent.args;
+      const {
+        amount,
+        originChainId,
+        destinationChainId,
+        destinationToken,
+        depositor,
+        relayer,
+        recipient,
+        isSlowRelay,
+      } = filledRelayEvent.args;
 
-      const tokenInfo: { tokenName: string; tokenDecimals: number } = await getTokenInfo(destinationToken, provider, token_cache, txEvent.blockNumber);
+      const tokenInfo: { tokenName: string; tokenDecimals: number } = await getTokenInfo(
+        destinationToken,
+        provider,
+        token_cache,
+        txEvent.blockNumber
+      );
 
       const normalizedAmount = BN(amount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
 
