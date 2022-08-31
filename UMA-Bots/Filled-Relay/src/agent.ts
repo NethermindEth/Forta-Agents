@@ -8,7 +8,7 @@ import { getTokenInfo } from "./utils";
 import LRU from "lru-cache";
 
 const networkManager = new NetworkManager(DATA);
-let token_cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
+const token_cache = new LRU<string, { tokenName: string; tokenDecimals: number }>({ max: 500 });
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -32,15 +32,14 @@ export const provideHandleTransaction = (
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
-      let { amount, originChainId, destinationChainId, destinationToken, depositor, relayer, recipient, isSlowRelay } =
+      const { amount, originChainId, destinationChainId, destinationToken, depositor, relayer, recipient, isSlowRelay } =
         filledRelayEvent.args;
 
-      let tokenInfo: { tokenName: string; tokenDecimals: number };
-      tokenInfo = await getTokenInfo(destinationToken, provider, token_cache, txEvent.blockNumber);
+      const tokenInfo: { tokenName: string; tokenDecimals: number } = await getTokenInfo(destinationToken, provider, token_cache, txEvent.blockNumber);
 
-      let normalizedAmount = BN(amount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
+      const normalizedAmount = BN(amount.toString()).shiftedBy(-tokenInfo.tokenDecimals);
 
-      let metadata = {
+      const metadata = {
         amount: normalizedAmount.toString(10),
         originChainId: originChainId.toString(),
         destinationChainId: destinationChainId.toString(),
