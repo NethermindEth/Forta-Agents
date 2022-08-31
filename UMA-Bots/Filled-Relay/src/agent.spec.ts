@@ -8,22 +8,24 @@ import bot from "./agent";
 import { createFinding } from "./findings";
 import { BigNumber } from "ethers";
 
-describe("filled relay bot", () => {
+describe("FilledRelay events detection bot test suite", () => {
   const TOKEN_IFACE = new ethers.utils.Interface(FUNC_ABI);
 
   const MOCK_CONTRACT_ADDRESS = createAddress("0x1234");
 
   const MOCK_NETWORK_ID = 1111;
 
+  const eventFragment: ethers.utils.EventFragment = ethers.utils.EventFragment.from(
+    FILLED_RELAY_EVENT.slice("event ".length)
+  );
+
+  const mockEventFragment: ethers.utils.EventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
+
   let handleTransaction: HandleTransaction;
 
   let mockTxEvent: TestTransactionEvent;
 
   let networkManager: NetworkManager<NetworkData>;
-
-  let eventFragment: ethers.utils.EventFragment;
-
-  let mockEventFragment: ethers.utils.EventFragment;
 
   let mockProvider: MockEthersProvider;
 
@@ -56,11 +58,6 @@ describe("filled relay bot", () => {
     });
 
     handleTransaction = bot.provideHandleTransaction(networkManager, mockProvider as any);
-  });
-
-  beforeAll(() => {
-    eventFragment = ethers.utils.EventFragment.from(FILLED_RELAY_EVENT.slice("event ".length));
-    mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
   it("returns empty findings if no events are emitted", async () => {
@@ -148,7 +145,7 @@ describe("filled relay bot", () => {
     expect(findings).toStrictEqual([createFinding(metadata, false)]);
   });
 
-  it("returns multiple finding if there are FilledRelay events emitted", async () => {
+  it("returns multiple findings if there are FilledRelay events emitted", async () => {
     const amount = BigNumber.from("10000000");
     const originChainId = MOCK_NETWORK_ID;
     const destinationChainId = 1000;
