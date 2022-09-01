@@ -99,7 +99,7 @@ describe("Monitored Wallet Usage detection bot", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns N findings for N events when monitorew wallets transacted (N>=1)", async () => {
+  it("returns N findings for N events when monitored wallets transacted (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(true))
