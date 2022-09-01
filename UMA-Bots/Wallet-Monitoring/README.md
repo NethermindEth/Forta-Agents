@@ -13,7 +13,7 @@ This bot monitors specific wallets (from a configurable list) that may use the [
 ## Alerts
 
 - UMA-10
-  - Fired whenever a monitored wallet uses the bridge
+  - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with a monitored wallet address as the depositor
   - Severity is always set to "low" 
   - Type is always set to "info"
   - Metadata :
