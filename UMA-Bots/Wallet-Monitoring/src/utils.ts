@@ -13,10 +13,6 @@ export const GOERLI_POC_MONITORED_ADDRESSES: string[] = [
   "0x496B53B037BC66Db6e7D34d101FA045e7Bf7D388",
 ]; // PoC addresses
 
-export const POLYGON_MONITORED_ADDRESSES: string[] = [];
-export const OPTIMISM_MONITORED_ADDRESSES: string[] = [];
-export const ARBITRUM_MONITORED_ADDRESSES: string[] = [];
-
 export function getFindingInstance(
   amountStr: string,
   originChainIdStr: string,
