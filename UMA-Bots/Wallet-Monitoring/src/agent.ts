@@ -42,7 +42,7 @@ export function provideHandleTransaction(
         isSlowRelay,
       } = filledRelayEvent.args;
 
-      if (networkManager.get("monitoredList").indexOf(depositor) > -1) {
+      if (networkManager.get("monitoredList").includes(depositor)) {
         findings.push(
           getFindingInstance(
             amount.toString(),
