@@ -1,7 +1,6 @@
-import { HandleTransaction, TransactionEvent, keccak256 } from "forta-agent";
+import { HandleTransaction, TransactionEvent, keccak256, Finding, FindingSeverity, FindingType } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import {
-  getFindingInstance,
   HUBPOOL_MONITORED_EVENTS,
   SPOKEPOOL_MONITORED_EVENTS,
   ARB_SPOKEPOOL_MONITORED_EVENTS,
@@ -46,6 +45,17 @@ const MOCK_OPTIMISM_NM_DATA: Record<number, NetworkDataInterface> = {
 const MOCK_POLYGON_NM_DATA: Record<number, NetworkDataInterface> = {
   0: { spokePoolAddr: TEST_SPOKEPOOL_ADDR, monitoredSpokePoolEvents: POLYGON_SPOKEPOOL_MONITORED_EVENTS },
 };
+function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
+  return Finding.fromObject({
+    name: "Configuration Changed",
+    description: (hubPoolChange ? "HubPool" : "SpokePool") + " configuration changed",
+    alertId: "UMA-5",
+    severity: FindingSeverity.Low,
+    type: FindingType.Info,
+    protocol: "UMA",
+    metadata: eventArgs,
+  });
+}
 
 describe("Detection of single HubPool configuration change events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
