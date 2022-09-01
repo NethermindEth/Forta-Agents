@@ -26,7 +26,7 @@ This bot monitors specific wallet addresses (from a configurable list) that may 
 
 ## Configuring the monitored wallet addresses list
 
-In order to change the list of monitored wallet addresses, please add/remove the addresses into the `./src/monitoredAddresses.ts` file. Please note that the currently added addresses in the `./src/monitoredAddresses.ts` file are tentative.
+In order to change the list of monitored wallet addresses, please add/remove the addresses in the `./src/monitoredAddresses.ts` file. Please note that the currently added addresses in the `./src/monitoredAddresses.ts` file are tentative.
   
 ## Test Data
 
