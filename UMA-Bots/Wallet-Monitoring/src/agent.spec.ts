@@ -91,7 +91,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a non-monitored address uses the bridge", async () => {
+  it("doesn't return a finding if a non-monitored address uses the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(false));
