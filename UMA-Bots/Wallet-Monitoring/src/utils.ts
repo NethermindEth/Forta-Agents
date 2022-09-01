@@ -37,7 +37,7 @@ export function getFindingInstance(
     description:
       "A monitored wallet was used to transfer funds across the bridge",
     alertId: "UMA-10",
-    severity: FindingSeverity.Low,
+    severity: FindingSeverity.Info,
     type: FindingType.Info,
     protocol: "UMA",
     metadata: {
