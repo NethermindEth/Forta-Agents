@@ -5,23 +5,18 @@ import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 
-const RANDOM_ADDRESSES = [
-  createAddress("0x12"),
-  createAddress("0x54"),
-  createAddress("0x43"),
-  createAddress("0x29"),
-];
-const TEST_MONITORED_ADDRESS = createAddress("0x59");
+const TEST_MONITORED_ADDRESSES = [createAddress("0x59"), createAddress("0x75")];
+const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54"), createAddress("0x43")];
 const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x23");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
-    spokePoolAddr: TEST_HUBPOOL_ADDR,
-    monitoredList: [TEST_MONITORED_ADDRESS],
+    spokePoolAddr: TEST_SPOKEPOOL_ADDR,
+    monitoredList: TEST_MONITORED_ADDRESSES,
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
-const passParams = (monitoredAddress: boolean) => {
+const passParams = (_monitoredAddress:string) => {
   return [
     "120",
     "100",
@@ -35,26 +30,16 @@ const passParams = (monitoredAddress: boolean) => {
     "3215",
     RANDOM_ADDRESSES[0],
     RANDOM_ADDRESSES[1],
-    monitoredAddress ? TEST_MONITORED_ADDRESS : RANDOM_ADDRESSES[2],
-    RANDOM_ADDRESSES[3],
+    _monitoredAddress,
+    RANDOM_ADDRESSES[2],
     false,
   ];
 };
 
-const expectedFinding = getFindingInstance(
-  "120",
-  "1",
-  "1",
-  TEST_MONITORED_ADDRESS,
-  RANDOM_ADDRESSES[3],
-  "false"
-);
+const expectedFinding = (_depositor:string) => { return getFindingInstance("120", "1", "1", _depositor, RANDOM_ADDRESSES[2], "false");}
 
 describe("Monitored Wallet Usage detection bot test suite", () => {
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
-    FILLED_RELAY_EVENT,
-    networkManagerTest
-  );
+  let handleTransaction: HandleTransaction = provideHandleTransaction(FILLED_RELAY_EVENT, networkManagerTest);
 
   it("returns empty findings if there is no event emitted", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -65,7 +50,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
   it("doesn't return a finding if a monitored wallet usage is detected on a contract address other than the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
-      .addEventLog(FILLED_RELAY_EVENT, RANDOM_ADDRESSES[0], passParams(true));
+      .addEventLog(FILLED_RELAY_EVENT, RANDOM_ADDRESSES[0], passParams(TEST_MONITORED_ADDRESSES[0]));
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -74,19 +59,16 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
   it("returns a finding if a monitored address uses the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(true));
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]));
 
     const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([expectedFinding]);
+    expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0])]);
   });
 
   it("doesn't return a finding if an irrelevant event is emitted from the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(RANDOM_EVENT_ABI, TEST_HUBPOOL_ADDR, [
-        RANDOM_ADDRESSES[0],
-        "120",
-      ]);
+      .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -94,22 +76,30 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
   it("doesn't return a finding if a non-monitored address uses the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(false));
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(RANDOM_ADDRESSES[0]));
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns N findings for N events when monitored wallets transacted (N>=1)", async () => {
+  it("returns N findings when the same monitored wallet uses the SpokePool N times for bridging funds (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(true))
-      .addEventLog(FILLED_RELAY_EVENT, TEST_HUBPOOL_ADDR, passParams(true))
-      .addEventLog(RANDOM_EVENT_ABI, TEST_HUBPOOL_ADDR, [
-        RANDOM_ADDRESSES[0],
-        "120",
-      ]);
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]))
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]))
+      .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
 
     const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([expectedFinding, expectedFinding]);
+    expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0]), expectedFinding(TEST_MONITORED_ADDRESSES[0])]);
+  });
+
+  it("returns N findings when different monitored addresses use the SpokePool N times for bridging funds (N>=1)", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]))
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[1]))
+      .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0]), expectedFinding(TEST_MONITORED_ADDRESSES[1])]);
   });
 });

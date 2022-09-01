@@ -2,8 +2,7 @@ import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const FILLED_RELAY_EVENT =
   "event FilledRelay(uint256 amount, uint256 totalFilledAmount, uint256 fillAmount, uint256 repaymentChainId, uint256 originChainId, uint256 destinationChainId, uint64 relayerFeePct, uint64 appliedRelayerFeePct, uint64 realizedLpFeePct, uint32 depositId, address destinationToken, address indexed relayer, address indexed depositor, address recipient, bool isSlowRelay)";
-export const GOERLI_POC_SPOKEPOOL_ADDRESS =
-  "0x8Ec948A7823745FE5e2591df63654C9d7e4809c4";
+export const GOERLI_POC_SPOKEPOOL_ADDRESS = "0x8Ec948A7823745FE5e2591df63654C9d7e4809c4";
 export const MAINNET_SPOKEPOOL = "0x4D9079Bb4165aeb4084c526a32695dCfd2F77381";
 export const OPTIMISM_SPOKEPOOL = "0xa420b2d1c0841415A695b81E5B867BCD07Dff8C9";
 export const POLYGON_SPOKEPOOL = "0x69B5c72837769eF1e7C164Abc6515DcFf217F920";
@@ -34,8 +33,7 @@ export function getFindingInstance(
 ) {
   return Finding.fromObject({
     name: "Monitored Wallet Used",
-    description:
-      "A monitored wallet was used to transfer funds across the bridge",
+    description: "A monitored wallet was used to transfer funds across the bridge",
     alertId: "UMA-10",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

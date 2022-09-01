@@ -1,11 +1,4 @@
-import {
-  Finding,
-  HandleTransaction,
-  ethers,
-  Initialize,
-  TransactionEvent,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import { FILLED_RELAY_EVENT, getFindingInstance } from "./utils";
 import { NetworkDataInterface, NM_DATA } from "./network";
@@ -27,20 +20,10 @@ export function provideHandleTransaction(
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    const filledRelayEventTxns = txEvent.filterLog(
-      filledRelayEvent,
-      networkManager.get("spokePoolAddr")
-    );
+    const filledRelayEventTxns = txEvent.filterLog(filledRelayEvent, networkManager.get("spokePoolAddr"));
 
     filledRelayEventTxns.forEach((filledRelayEvent) => {
-      const {
-        amount,
-        originChainId,
-        destinationChainId,
-        depositor,
-        recipient,
-        isSlowRelay,
-      } = filledRelayEvent.args;
+      const { amount, originChainId, destinationChainId, depositor, recipient, isSlowRelay } = filledRelayEvent.args;
 
       if (networkManager.get("monitoredList").includes(depositor)) {
         findings.push(
@@ -60,9 +43,6 @@ export function provideHandleTransaction(
 }
 
 export default {
-  initialize: provideInitialize(networkManagerCurr, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(
-    FILLED_RELAY_EVENT,
-    networkManagerCurr
-  ),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(FILLED_RELAY_EVENT, networkManager),
 };
