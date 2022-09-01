@@ -56,7 +56,7 @@ describe("Monitored Wallet Usage detection bot", () => {
     networkManagerTest
   );
 
-  it("returns empty findings if there is no even emitted", async () => {
+  it("returns empty findings if there is no event emitted", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
