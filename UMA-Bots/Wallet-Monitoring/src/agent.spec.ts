@@ -16,7 +16,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
-const passParams = (_monitoredAddress:string) => {
+const passParams = (_monitoredAddress: string) => {
   return [
     "120",
     "100",
@@ -36,7 +36,9 @@ const passParams = (_monitoredAddress:string) => {
   ];
 };
 
-const expectedFinding = (_depositor:string) => { return getFindingInstance("120", "1", "1", _depositor, RANDOM_ADDRESSES[2], "false");}
+const expectedFinding = (_depositor: string) => {
+  return getFindingInstance("120", "1", "1", _depositor, RANDOM_ADDRESSES[2], "false");
+};
 
 describe("Monitored Wallet Address Usage detection bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(FILLED_RELAY_EVENT, networkManagerTest);
@@ -89,7 +91,10 @@ describe("Monitored Wallet Address Usage detection bot test suite", () => {
       .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
 
     const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0]), expectedFinding(TEST_MONITORED_ADDRESSES[0])]);
+    expect(findings).toStrictEqual([
+      expectedFinding(TEST_MONITORED_ADDRESSES[0]),
+      expectedFinding(TEST_MONITORED_ADDRESSES[0]),
+    ]);
   });
 
   it("returns N findings when different monitored wallet addresses use the SpokePool N times for bridging funds (N>=1)", async () => {
@@ -100,6 +105,9 @@ describe("Monitored Wallet Address Usage detection bot test suite", () => {
       .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
 
     const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0]), expectedFinding(TEST_MONITORED_ADDRESSES[1])]);
+    expect(findings).toStrictEqual([
+      expectedFinding(TEST_MONITORED_ADDRESSES[0]),
+      expectedFinding(TEST_MONITORED_ADDRESSES[1]),
+    ]);
   });
 });

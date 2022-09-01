@@ -23,6 +23,10 @@ This bot monitors specific wallet addresses (from a configurable list) that may 
       - `depositor` : address that made the deposit on the origin chain
       - `recipient` : recipient address on the destination chain
       - `isSlowRelay` : boolean value indicating whether the relay was a slow relay
+
+## Configuring the monitored wallet addresses list
+
+In order to change the list of monitored wallet addresses, please add/remove the addresses into the `./src/monitoredAddresses.json` file. Please note that the currently added addresses in the `./src/monitoredAddresses.json` file are tentative.
   
 ## Test Data
 
