@@ -35,7 +35,7 @@ export function getFindingInstance(
   return Finding.fromObject({
     name: "Monitored Wallet Used",
     description:
-      "A monitored wallet was used to transfer money across the bridge",
+      "A monitored wallet was used to transfer funds across the bridge",
     alertId: "UMA-10",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
