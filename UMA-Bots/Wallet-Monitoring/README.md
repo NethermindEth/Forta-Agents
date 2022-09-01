@@ -19,7 +19,7 @@ This bot monitors for specific wallets (from a configurable list) that may use t
   - Metadata :
       - `amount`: amount that the depositor wished to relay
       - `originChainId` : relay origination chain ID
-      - `destinationChainId` : LP Fee percentage computed by the relayer based on the deposit's quote timestamp and the HubPool's utilization.
+      - `destinationChainId` : relay destination chain ID
       - `depositor` : address that made the deposit on the origin chain
       - `recipient` : recipient address on the destination chain
       - `isSlowRelay` : boolean value indicating whether the relay was a slow relay
