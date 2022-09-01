@@ -14,12 +14,12 @@ export const GOERLI_POC_MONITORED_ADDRESSES: string[] = [
 ]; // PoC addresses
 
 export function getFindingInstance(
-  amountStr: string,
-  originChainIdStr: string,
-  destinationChainIdStr: string,
-  depositorStr: string,
-  recipientStr: string,
-  isSlowRelayStr: string
+  amount: string,
+  originChainId: string,
+  destinationChainId: string,
+  depositor: string,
+  recipient: string,
+  isSlowRelay: string
 ) {
   return Finding.fromObject({
     name: "Monitored Wallet address Used",
@@ -29,12 +29,12 @@ export function getFindingInstance(
     type: FindingType.Info,
     protocol: "UMA",
     metadata: {
-      amount: amountStr,
-      originChainId: originChainIdStr,
-      destinationChainId: destinationChainIdStr,
-      depositor: depositorStr,
-      recipient: recipientStr,
-      isSlowRelay: isSlowRelayStr,
+      amount,
+      originChainId,
+      destinationChainId,
+      depositor,
+      recipient,
+      isSlowRelay,
     },
   });
 }
