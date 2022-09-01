@@ -62,7 +62,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a monitored wallet usage is detected on a non-Across contract address", async () => {
+  it("doesn't return a finding if a monitored wallet usage is detected on a contract address other than the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(FILLED_RELAY_EVENT, RANDOM_ADDRESSES[0], passParams(true));
