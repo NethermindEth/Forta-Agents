@@ -15,14 +15,13 @@ export function provideInitialize(
 }
 
 export function provideHandleTransaction(
-  monitoredHubPoolEvents: string[],
   networkManager: NetworkManager<NetworkDataInterface>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     // HubPool configurations
     if (networkManager.get("hubPoolAddr")) {
-      const hubPoolEventTxns = txEvent.filterLog(monitoredHubPoolEvents, networkManager.get("hubPoolAddr"));
+      const hubPoolEventTxns = txEvent.filterLog(networkManager.get("monitoredHubPoolEvents")!, networkManager.get("hubPoolAddr"));
       hubPoolEventTxns.forEach((actualEventTxn) => {
         const args = getMetadata(actualEventTxn.args);
         const thisFindingMetadata = {
@@ -52,5 +51,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManager),
+  handleTransaction: provideHandleTransaction(networkManager),
 };

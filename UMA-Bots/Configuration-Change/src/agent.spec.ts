@@ -16,7 +16,6 @@ import { NetworkDataInterface } from "./network";
 const getEventMetadata = (args: { [key: string]: string }) => {
   const metadata: { [key: string]: string } = {};
   const keys: string[] = Object.keys(args);
-  // const keys: string[] = allKeys.slice(allKeys.length / 2);
   keys.forEach((key) => {
     metadata[key] = args[key].toString();
   });
@@ -32,6 +31,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
     spokePoolAddr: TEST_SPOKEPOOL_ADDR,
     hubPoolAddr: TEST_HUBPOOL_ADDR,
     monitoredSpokePoolEvents: SPOKEPOOL_MONITORED_EVENTS,
+    monitoredHubPoolEvents: HUBPOOL_MONITORED_EVENTS
   },
 };
 const MOCK_MAINNET_SPOKEPOOL_NM_DATA: Record<number, NetworkDataInterface> = {
@@ -50,7 +50,7 @@ const MOCK_POLYGON_NM_DATA: Record<number, NetworkDataInterface> = {
 describe("Detection of single HubPool configuration change events on L1", () => {
   const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-  const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+  const handleTransaction: HandleTransaction = provideHandleTransaction(networkManagerTest);
 
   it("returns empty findings if there is no relevant event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -251,7 +251,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
   describe("Detection of multiple HubPool configuration change events on L1", () => {
     const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
 
-    const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    const handleTransaction: HandleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("returns N findings for N HubPool related events (N>=1)", async () => {
       const passedParamsDict_1 = {
@@ -356,7 +356,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
   describe("(Non)Detection of HubPool events on L2", () => {
     const networkManagerTest = new NetworkManager(MOCK_MAINNET_SPOKEPOOL_NM_DATA, 0);
 
-    const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    const handleTransaction: HandleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("doesn't return any findings for HubPool relevant events on L2's", async () => {
       const txEvent: TransactionEvent = new TestTransactionEvent()
@@ -388,7 +388,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
   describe("Base SpokePool configuration changes detection bot", () => {
     const networkManagerTest = new NetworkManager(MOCK_MAINNET_SPOKEPOOL_NM_DATA, 0);
 
-    const handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    const handleTransaction: HandleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("returns empty findings if there is no relevant event", async () => {
       const txEvent: TransactionEvent = new TestTransactionEvent();
@@ -484,7 +484,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
 
   describe("Arbitrum SpokePool configuration changes detection bot", () => {
     let networkManagerTest = new NetworkManager(MOCK_ARBITRUM_NM_DATA, 0);
-    let handleTransaction: HandleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    let handleTransaction: HandleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event SetL2GatewayRouter", async () => {
       const passedParamsDict = {
@@ -522,7 +522,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
 
   describe("Optimism SpokePool configuration changes detection bot", () => {
     let networkManagerTest = new NetworkManager(MOCK_OPTIMISM_NM_DATA, 0);
-    let handleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    let handleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("returns a finding for emitted monitored event from Arbitrum SpokePool : Event SetL1Gas", async () => {
       const passedParamsDict = {
@@ -560,7 +560,7 @@ describe("Detection of single HubPool configuration change events on L1", () => 
 
   describe("Polygon SpokePool configuration changes detection bot", () => {
     let networkManagerTest = new NetworkManager(MOCK_POLYGON_NM_DATA, 0);
-    let handleTransaction = provideHandleTransaction(HUBPOOL_MONITORED_EVENTS, networkManagerTest);
+    let handleTransaction = provideHandleTransaction(networkManagerTest);
 
     it("returns a finding for emitted monitored event from Polygon SpokePool : Event SetFxChild", async () => {
       const passedParamsDict = {

@@ -34,10 +34,6 @@ export const POLYGON_SPOKEPOOL_MONITORED_EVENTS = SPOKEPOOL_MONITORED_EVENTS.con
   "event SetPolygonTokenBridger(address indexed polygonTokenBridger)",
 ]);
 
-export interface Dictionary<T> {
-  [Key: string]: T;
-}
-
 export function getFindingInstance(hubPoolChange: boolean, eventArgs: {}) {
   return Finding.fromObject({
     name: "Configuration Changed",
