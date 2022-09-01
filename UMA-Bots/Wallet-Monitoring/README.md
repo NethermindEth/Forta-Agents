@@ -29,7 +29,7 @@ This bot monitors for specific wallets (from a configurable list) that may use t
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-- [0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd](https://etherscan.io/tx/0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd) (2 findings - `FilledRelay` was emitted 3 times, out which 2 had monitored wallets as depositors)
+- [0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd](https://etherscan.io/tx/0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd) (2 findings - `FilledRelay` was emitted 3 times, out of which 2 had monitored wallets as depositors)
 - [0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372](https://etherscan.io/tx/0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372) (2 findings - `FilledRelay` was emitted 2 times with the same monitored wallet acting as the depositor)
 
  ### Goerli Testnet (PoC)
