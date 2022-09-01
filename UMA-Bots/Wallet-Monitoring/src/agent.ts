@@ -10,7 +10,7 @@ import { NetworkManager } from "forta-agent-tools";
 import { FILLED_RELAY_EVENT, getFindingInstance } from "./utils";
 import { NetworkDataInterface, NM_DATA } from "./network";
 
-const networkManagerCurr = new NetworkManager(NM_DATA);
+const networkManager = new NetworkManager(NM_DATA);
 
 export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
