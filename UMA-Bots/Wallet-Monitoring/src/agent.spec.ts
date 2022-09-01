@@ -50,7 +50,7 @@ const expectedFinding = getFindingInstance(
   "false"
 );
 
-describe("Monitored Wallet Usage detection bot", () => {
+describe("Monitored Wallet Usage detection bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(
     FILLED_RELAY_EVENT,
     networkManagerTest
