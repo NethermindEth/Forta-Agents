@@ -38,7 +38,7 @@ const passParams = (_monitoredAddress:string) => {
 
 const expectedFinding = (_depositor:string) => { return getFindingInstance("120", "1", "1", _depositor, RANDOM_ADDRESSES[2], "false");}
 
-describe("Monitored Wallet Usage detection bot test suite", () => {
+describe("Monitored Wallet Address Usage detection bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(FILLED_RELAY_EVENT, networkManagerTest);
 
   it("returns empty findings if there is no event emitted", async () => {
@@ -47,7 +47,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a monitored wallet usage is detected on a contract address other than the SpokePool", async () => {
+  it("doesn't return a finding if a monitored wallet address usage is detected on a contract address other than the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(FILLED_RELAY_EVENT, RANDOM_ADDRESSES[0], passParams(TEST_MONITORED_ADDRESSES[0]));
@@ -56,7 +56,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns a finding if a monitored address uses the SpokePool", async () => {
+  it("returns a finding if a monitored wallet address uses the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]));
@@ -73,7 +73,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a non-monitored address uses the SpokePool", async () => {
+  it("doesn't return a finding if a non-monitored wallet address uses the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(RANDOM_ADDRESSES[0]));
@@ -81,7 +81,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns N findings when the same monitored wallet uses the SpokePool N times for bridging funds (N>=1)", async () => {
+  it("returns N findings when the same monitored wallet address uses the SpokePool N times for bridging funds (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]))
@@ -92,7 +92,7 @@ describe("Monitored Wallet Usage detection bot test suite", () => {
     expect(findings).toStrictEqual([expectedFinding(TEST_MONITORED_ADDRESSES[0]), expectedFinding(TEST_MONITORED_ADDRESSES[0])]);
   });
 
-  it("returns N findings when different monitored addresses use the SpokePool N times for bridging funds (N>=1)", async () => {
+  it("returns N findings when different monitored wallet addresses use the SpokePool N times for bridging funds (N>=1)", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams(TEST_MONITORED_ADDRESSES[0]))

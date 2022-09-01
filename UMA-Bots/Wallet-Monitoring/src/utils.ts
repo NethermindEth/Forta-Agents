@@ -32,8 +32,8 @@ export function getFindingInstance(
   isSlowRelayStr: string
 ) {
   return Finding.fromObject({
-    name: "Monitored Wallet Used",
-    description: "A monitored wallet was used to transfer funds across the bridge",
+    name: "Monitored Wallet address Used",
+    description: "A monitored wallet address was used to transfer funds across the bridge",
     alertId: "UMA-10",
     severity: FindingSeverity.Info,
     type: FindingType.Info,

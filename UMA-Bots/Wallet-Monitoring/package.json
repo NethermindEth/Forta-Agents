@@ -1,7 +1,7 @@
 {
   "name": "uma-10",
   "version": "0.0.1",
-  "description": "Forta bot that monitors if a wallet from a configurable list uses the bridge",
+  "description": "Forta bot that monitors if a wallet address from a configurable list uses the bridge",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Wallet-Monitoring",
   "chainIds": [
     1,
