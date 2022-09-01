@@ -13,7 +13,7 @@ const RANDOM_ADDRESSES = [
 ];
 const TEST_MONITORED_ADDRESS = createAddress("0x59");
 const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
-const TEST_HUBPOOL_ADDR: string = createAddress("0x23");
+const TEST_SPOKEPOOL_ADDR: string = createAddress("0x23");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     spokePoolAddr: TEST_HUBPOOL_ADDR,
