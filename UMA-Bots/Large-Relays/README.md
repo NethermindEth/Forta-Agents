@@ -1,26 +1,45 @@
-# Large Tether Transfer Agent
+# Large Relays detection bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 20 WBTC, and so on made with [Across v2 bridge](https://across.to/) - a multichain bridge built on the [UMA protocol](https://umaproject.org/) as its source of on-chain data validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
 
 ## Supported Chains
-
-- Ethereum
-- List any other chains this agent can support e.g. BSC
-
+- Mainnet
+- Optimism
+- Arbitrum
+- Polygon
+  
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- UMA-7
+  <!-- - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with a monitored wallet address as the depositor
+  - Severity is always set to "low" 
+  - Type is always set to "info"
+  - Metadata :
+      - `amount`: amount that the depositor wished to relay
+      - `originChainId` : relay origination chain ID
+      - `destinationChainId` : relay destination chain ID
+      - `depositor` : address that made the deposit on the origin chain
+      - `recipient` : recipient address on the destination chain
+      - `isSlowRelay` : boolean value indicating whether the relay was a slow relay -->
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+<!-- ## Configuring the monitored wallet addresses list
 
+In order to change the list of monitored wallet addresses, please add/remove the addresses in the `./src/monitoredAddresses.ts` file. Please note that the currently added addresses in the `./src/monitoredAddresses.ts` file are tentative.
+   -->
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+### Ethereum Mainnet
+<!-- - [0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd](https://etherscan.io/tx/0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd) (2 findings - `FilledRelay` was emitted 3 times, out of which 2 had monitored wallet addresses as depositors)
+- [0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372](https://etherscan.io/tx/0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372) (2 findings - `FilledRelay` was emitted 2 times with the same monitored wallet address acting as the depositor) -->
+
+ ### Goerli Testnet (PoC)
+
+In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
+
+<!-- - [0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ](https://goerli.etherscan.io/tx/0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ) (1 finding - `FilledRelay` was emitted with a monitored wallet address as depositor) -->
+
+TODO: How are native handles being handled
