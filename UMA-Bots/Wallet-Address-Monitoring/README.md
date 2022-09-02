@@ -40,4 +40,4 @@ The bot behaviour can be verified with the following transactions by running `np
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ](https://goerli.etherscan.io/tx/0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ) (1 finding - `FilledRelay` was emitted with a monitored wallet address as depositor)
+- [0x976294f82548a4b806cbee80f163984b14734f143217817fb2b86d0210741ec1](https://goerli.etherscan.io/tx/0x976294f82548a4b806cbee80f163984b14734f143217817fb2b86d0210741ec1) (1 finding - `FilledRelay` was emitted with a monitored wallet address as depositor)
