@@ -2,6 +2,7 @@ import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEt
 import { NetworkManager } from "forta-agent-tools";
 import { FILLED_RELAY_EVENT, getFindingInstance } from "./utils";
 import { NetworkDataInterface, NM_DATA } from "./network";
+import { BigNumber } from "ethers";
 
 const networkManager = new NetworkManager(NM_DATA);
 
@@ -21,12 +22,14 @@ export function provideHandleTransaction(
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const filledRelayEventTxns = txEvent.filterLog(filledRelayEvent, networkManager.get("spokePoolAddr"));
+
     filledRelayEventTxns.forEach((filledRelayEvent) => {
       const { amount, originChainId, destinationChainId, depositor, recipient, isSlowRelay, destinationToken } =
         filledRelayEvent.args;
+
       if (
         Object.keys(networkManager.get("tokenThresholds")).includes(destinationToken) &&
-        amount >= parseFloat(networkManager.get("tokenThresholds")[destinationToken])
+        BigNumber.from(amount.toString()).gte(BigNumber.from(networkManager.get("tokenThresholds")[destinationToken]))
       ) {
         findings.push(
           getFindingInstance(

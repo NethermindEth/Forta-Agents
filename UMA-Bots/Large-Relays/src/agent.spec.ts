@@ -4,16 +4,20 @@ import { FILLED_RELAY_EVENT } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
+import { BigNumber } from "ethers";
+// @Review I believe that here BigNumber is being imported from "ethers" that is exported from "forta-agent".
+// Since we dont have to install the ethers.js as a separate library here (not there in package.json), I assume this import is fine.
+// Not 100% sure though. In case we are actually using ethers.js as a separate library (which doesn't make sense since "forta-agent" includes it),
+// we can import ethers from "forta-agent" and then call `ethers.BigNumber.from()`
 
 // TEST DATA
-const TEST_MONITORED_ADDRESSES = [createAddress("0x59"), createAddress("0x75")];
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54"), createAddress("0x43"), createAddress("0x47")];
 const RANDOM_INTEGERS = ["120", "100", "100", "42161", "1", "1", "2", "2", "2", "3215"];
 const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
 const TEST_SPOKEPOOL_ADDR: string = createAddress("0x23");
 const MOCK_ERC20_ADDR = createAddress("0x39");
 const MOCK_ERC20_ADDR_2 = createAddress("0x39");
-const MOCK_THRESHOLD_ERC20 = 1000000000000000000;
+const MOCK_THRESHOLD_ERC20: BigNumber = BigNumber.from("1000000000000000000");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     spokePoolAddr: TEST_SPOKEPOOL_ADDR,
@@ -109,23 +113,18 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns a finding if a large amount of specified tokens are bridged via whitelisted SpokePool", async () => {
-    const txEvent: TransactionEvent = new TestTransactionEvent()
-      .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(
-        FILLED_RELAY_EVENT,
-        TEST_SPOKEPOOL_ADDR,
-        passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)
-      );
-
-    const findings = await handleTransaction(txEvent);
-    expect(findings).toStrictEqual([expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)]);
-  });
-
   it("doesn't return a finding if an irrelevant event is emitted from the SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("doesn't return a finding if a small (less than threshold) amount of non-specified tokens are bridged via whitelisted SpokePool", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams("21", RANDOM_ADDRESSES[2]));
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
   });
@@ -150,6 +149,19 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("returns a finding if a large amount of specified tokens are bridged via whitelisted SpokePool", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(
+        FILLED_RELAY_EVENT,
+        TEST_SPOKEPOOL_ADDR,
+        passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)
+      );
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)]);
+  });
+
   it("returns N findings when N large relays occurs from the whitelisted SpokePool address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
@@ -167,8 +179,8 @@ describe("Large relay detection bot test suite", () => {
       .addEventLog(
         FILLED_RELAY_EVENT,
         TEST_SPOKEPOOL_ADDR,
-        passParams((MOCK_THRESHOLD_ERC20 - 100).toString(), MOCK_ERC20_ADDR_2)
-      ); // Amounts of tokens less than threshold shall be ignored
+        passParams(MOCK_THRESHOLD_ERC20.sub(BigNumber.from("1")).toString(), MOCK_ERC20_ADDR_2)
+      ); // Amounts of tokens less than threshold shall not be in the findings
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([

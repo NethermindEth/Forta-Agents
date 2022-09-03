@@ -13,7 +13,7 @@ This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 
 ## Alerts
 
 - UMA-7
-  - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with an amount of tokens more than the thresholds given in `./chainThresholds.ts`
+  - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with an amount of tokens greater than or equal to the thresholds given in `./chainThresholds.ts`
   - Severity is always set to "info" 
   - Type is always set to "info"
   - Metadata :
@@ -27,7 +27,7 @@ This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 
 
 ## Configuring the token amount thresholds for specific chains
 
-In order to change the token amount thresholds for specific chains, please add/remove the addresses in the `./src/chainThresholds.ts` file or change the amount thresholds. Please note that the currently added tokens and corresponding amounts are tentative.
+In order to change the token amount thresholds, please add/remove the addresses in the `./src/chainThresholds.ts` file or change the amount thresholds for specific chains. Please note that the currently added tokens and corresponding amounts are tentative.
 
 ## Test Data
 
