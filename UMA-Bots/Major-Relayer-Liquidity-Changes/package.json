@@ -1,9 +1,12 @@
 {
-  "name": "forta-agent-starter",
+  "name": "uma-7",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors large changes in token balances of major relayers for the Across v2 bridge",
   "chainIds": [
-    1
+    1,
+    10,
+    42161,
+    137
   ],
   "scripts": {
     "build": "tsc",
@@ -21,7 +24,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.9",
@@ -32,6 +36,7 @@
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.7.1",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
