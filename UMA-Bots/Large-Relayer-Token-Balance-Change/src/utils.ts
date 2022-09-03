@@ -6,7 +6,10 @@ import LRU from "lru-cache";
 export const TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
 export const ERC20_ABI = ["function balanceOf(address account) external view returns (uint256)"];
 
-export const GOERLI_MONITORED_ADDRESSES = ["0x1Abf3a6C41035C1d2A3c74ec22405B54450f5e13"];
+export const GOERLI_MONITORED_ADDRESSES = [
+  "0x1Abf3a6C41035C1d2A3c74ec22405B54450f5e13",
+  "0x628bfE54739098012bDc282EFA2F74c226FF5d40",
+];
 
 export interface Dictionary<T> {
   [Key: string]: T;
@@ -19,10 +22,12 @@ export async function loadLruCacheData(
 ) {
   networkManager.get("monitoredTokens").forEach((token) => {
     let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
+    let tokenDict : Dictionary<string> =  {} ;
     networkManager.get("monitoredAddresses").forEach(async (address) => {
       let balance = await tokenContract.balanceOf(address);
-      lru.set(token, { [address]: balance.toString() });
+      tokenDict[address.toLowerCase()] = balance.toString();
     });
+    lru.set(token.toLowerCase(), tokenDict);
   });
 }
 
@@ -47,8 +52,6 @@ export function getFindingInstance(amount: string, addr: string, fundsIn: string
   });
 }
 
-// @Review Since the PoC addresses don't really need to be configurable by the client,
-// is it better to add the Goerli addresses here or in chainThresholds.ts ?
 export const GOERLI_MONITORED_TOKENS = [
-  "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6", // WETH
+  "0xb2Df4c3B89B71950399BD5B6b2fD71EDb0576E70", // USDT
 ];

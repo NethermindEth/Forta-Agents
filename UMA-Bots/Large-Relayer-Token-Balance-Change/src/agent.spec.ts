@@ -16,6 +16,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     monitoredTokens: [MONITORED_ERC20_ADDR, MONITORED_ERC20_ADDR_2],
     monitoredAddresses: [TEST_MONITORED_ADDRESS],
+    alertThreshold: 50
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
@@ -44,8 +45,7 @@ describe("Large relay detection bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(
     TRANSFER_EVENT,
     networkManagerTest,
-    testLru,
-    testAlertThreshold
+    testLru
   );
 
   it("returns empty findings if there is no event emitted", async () => {
@@ -88,7 +88,11 @@ describe("Large relay detection bot test suite", () => {
   it("doesn't return a finding if a transfer is detected from a non-monitored address for a monitored token", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
-      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], RANDOM_INTEGERS[0]]);
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [
+        RANDOM_ADDRESSES[0],
+        RANDOM_ADDRESSES[1],
+        RANDOM_INTEGERS[0],
+      ]);
 
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([]);
@@ -125,14 +129,14 @@ describe("Large relay detection bot test suite", () => {
     // current balance in testLru for MONITORED_ERC20_ADDR TEST_MONITORED_ADDRESS is 0
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
-      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"]) 
-      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR_2, [RANDOM_ADDRESSES[0], TEST_MONITORED_ADDRESS, "1000000"]) 
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR_2, [RANDOM_ADDRESSES[0], TEST_MONITORED_ADDRESS, "1000000"])
       .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "50000"]) // should not be returned in findings as it is less than 50% change
       .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"]); // should not be returned in findings since the token address is not monitored
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "false"),
-      testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "true")
+      testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "true"),
     ]);
   });
 });
