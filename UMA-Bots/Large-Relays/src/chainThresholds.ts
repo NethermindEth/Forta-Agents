@@ -26,9 +26,3 @@ export const ARBITRUM_TOKEN_THRESHOLDS = {
   "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9": "1000000", // 1 USDT
   "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1": "1000000000000000000", // 1 WETH
 };
-
-// @Review Since the PoC addresses don't really need to be configurable by the client,
-// is it better to add the Goerli addresses here or in utils.ts ?
-export const GOERLI_TOKEN_THRESHOLDS = {
-  "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6": "1000000000000000000", // 1 WETH
-};

@@ -39,3 +39,9 @@ export function getFindingInstance(
     },
   });
 }
+
+// @Review Since the PoC addresses don't really need to be configurable by the client,
+// is it better to add the Goerli addresses here or in utils.ts ?
+export const GOERLI_TOKEN_THRESHOLDS = {
+  "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6": "1000000000000000000", // 1 WETH
+};
