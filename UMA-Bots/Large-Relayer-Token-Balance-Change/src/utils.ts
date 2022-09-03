@@ -16,27 +16,30 @@ export interface Dictionary<T> {
   [Key: string]: T;
 }
 
-
 /*
  * @Note the token address is converted to lower case in the lru because the address returned transfer event in agent.ts is also in lower case
-*/
+ */
 export async function loadLruCacheData(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider,
   lru: LRU<string, Dictionary<string>>
 ) {
-  let monitoredTokens : string[] = networkManager.get("monitoredTokens");
-  let monitoredAddresses : string[] = networkManager.get("monitoredAddresses");
+  let monitoredTokens: string[] = networkManager.get("monitoredTokens");
+  let monitoredAddresses: string[] = networkManager.get("monitoredAddresses");
 
-  await Promise.all(monitoredTokens.map(async (token) => {
-    let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
-    const tokenDict: Dictionary<string> = {};
-    await Promise.all(monitoredAddresses.map(async (address) => {
-      let balance = BigNumber.from(await tokenContract.balanceOf(address));
-      tokenDict[address] = balance.toString();
-    }));
-    lru.set(token.toLowerCase(), tokenDict); 
-  }));
+  await Promise.all(
+    monitoredTokens.map(async (token) => {
+      let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
+      const tokenDict: Dictionary<string> = {};
+      await Promise.all(
+        monitoredAddresses.map(async (address) => {
+          let balance = BigNumber.from(await tokenContract.balanceOf(address));
+          tokenDict[address] = balance.toString();
+        })
+      );
+      lru.set(token.toLowerCase(), tokenDict);
+    })
+  );
 }
 
 /*

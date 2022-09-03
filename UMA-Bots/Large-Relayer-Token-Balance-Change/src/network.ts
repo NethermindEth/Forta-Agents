@@ -46,6 +46,6 @@ export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.GOERLI]: {
     monitoredTokens: GOERLI_MONITORED_TOKENS,
     monitoredAddresses: GOERLI_MONITORED_ADDRESSES,
-    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD,
   },
 };

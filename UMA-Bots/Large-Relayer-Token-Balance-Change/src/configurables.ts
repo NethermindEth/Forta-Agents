@@ -1,9 +1,9 @@
 // @dev the following information is tentative
 
 // minimum percentage (%) change in token balance for a monitored address to trigger an alert
-export const MAINET_PERCENTAGE_CHANGE_THRESHOLD = 1; 
+export const MAINET_PERCENTAGE_CHANGE_THRESHOLD = 1;
 export const OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD = 10;
-export const POLYGON_PERCENTAGE_CHANGE_THRESHOLD = 10; 
+export const POLYGON_PERCENTAGE_CHANGE_THRESHOLD = 10;
 export const ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD = 10;
 
 // List of token contract addresses that are monitored for transfers
@@ -32,7 +32,10 @@ export const ARBITRUM_MONITORED_TOKENS = [
 ];
 
 // List of wallet addresses that are monitored for transfers
-export const MAINNET_MONITORED_ADDRESSES = ["0x205de52B86343CecF979ED5589D5A21d6e1D9b8F", "0x45B522B0C2F7fEd988F10E0eb14BD935d8872B59"];
+export const MAINNET_MONITORED_ADDRESSES = [
+  "0x205de52B86343CecF979ED5589D5A21d6e1D9b8F",
+  "0x45B522B0C2F7fEd988F10E0eb14BD935d8872B59",
+];
 export const OPTIMISM_MONITORED_ADDRESSES = [];
 export const POLYGON_MONITORED_ADDRESSES = [];
 export const ARBITRUM_MONITORED_ADDRESSES = [];

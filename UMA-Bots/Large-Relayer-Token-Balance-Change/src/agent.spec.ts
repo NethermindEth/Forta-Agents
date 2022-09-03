@@ -16,7 +16,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     monitoredTokens: [MONITORED_ERC20_ADDR, MONITORED_ERC20_ADDR_2],
     monitoredAddresses: [TEST_MONITORED_ADDRESS],
-    alertThreshold: 50
+    alertThreshold: 50,
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
@@ -42,11 +42,7 @@ function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
 describe("Large relay detection bot test suite", () => {
   testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: "0" });
   testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: "0" });
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
-    TRANSFER_EVENT,
-    networkManagerTest,
-    testLru
-  );
+  let handleTransaction: HandleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru);
 
   it("returns empty findings if there is no event emitted", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent();
