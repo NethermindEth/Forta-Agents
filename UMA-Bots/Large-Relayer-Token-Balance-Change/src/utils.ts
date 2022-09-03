@@ -33,7 +33,7 @@ export async function loadLruCacheData(
  */
 export function getFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
-    name: "Large Change in Balance",
+    name: "Large relayer tokens balance change",
     description: "A large amount of funds was transferred from a specific relayer address",
     alertId: "UMA-7",
     severity: FindingSeverity.Low,

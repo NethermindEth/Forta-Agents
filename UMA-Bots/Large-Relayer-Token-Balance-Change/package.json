@@ -2,6 +2,7 @@
   "name": "uma-7",
   "version": "0.0.1",
   "description": "Forta bot that monitors large changes in token balances of major relayers for the Across v2 bridge",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Large-Relayer-Token-Balance-Change",
   "chainIds": [
     1,
     10,

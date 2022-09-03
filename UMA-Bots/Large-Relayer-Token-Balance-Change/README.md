@@ -1,4 +1,4 @@
-# Major Relayer Liquidity Change detection bot
+# Large relayer tokens balance change detection bot
 
 ## Description
 
