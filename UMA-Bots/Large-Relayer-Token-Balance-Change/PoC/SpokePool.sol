@@ -1,11 +1,22 @@
 //SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ERC20{
-    event Transfer(address indexed from, address indexed to, uint256 value);
+contract USDT is ERC20{
 
-    function emitEvent(address from, address to, uint value) public
-    {
-        emit Transfer(from, to, value);
+    address monitoredAddress = 0x1Abf3a6C41035C1d2A3c74ec22405B54450f5e13;
+
+    constructor() ERC20("Tether USD", "USDT"){
+        _mint(monitoredAddress, 1000000);
+    }
+
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        address owner = _msgSender();
+        _transfer(owner, to, amount);
+        return true;
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return 6;
     }
 }
