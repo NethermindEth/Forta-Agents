@@ -1,175 +1,138 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { TRANSFER_EVENT } from "./utils";
-import { provideHandleTransaction } from "./agent";
+import { Dictionary, loadLruCacheData, TRANSFER_EVENT } from "./utils";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
+import LRU from "lru-cache";
 
-TEST DATA
+const TEST_MONITORED_ADDRESS = createAddress("0x07");
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54"), createAddress("0x43"), createAddress("0x47")];
-const RANDOM_INTEGERS = ["120", "100", "100", "42161", "1", "1", "2", "2", "2", "3215"];
-const RANDOM_EVENT_ABI = "event Transfer(address,uint)";
-const TEST_SPOKEPOOL_ADDR: string = createAddress("0x23");
-const MOCK_ERC20_ADDR = createAddress("0x39");
-const MOCK_ERC20_ADDR_2 = createAddress("0x39");
-const MOCK_THRESHOLD_ERC20: BigNumber = BigNumber.from("1000000000000000000");
+const RANDOM_INTEGERS = ["120"];
+const RANDOM_EVENT_ABI = "event Send()";
+const MONITORED_ERC20_ADDR = createAddress("0x39");
+const MONITORED_ERC20_ADDR_2 = createAddress("0x55");
 const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
-    spokePoolAddr: TEST_SPOKEPOOL_ADDR,
-    tokenThresholds: {
-      [MOCK_ERC20_ADDR]: MOCK_THRESHOLD_ERC20.toString(), // 1e18
-      [MOCK_ERC20_ADDR_2]: MOCK_THRESHOLD_ERC20.toString(), // 1e18
-    },
+    monitoredTokens: [MONITORED_ERC20_ADDR, MONITORED_ERC20_ADDR_2],
+    monitoredAddresses: [TEST_MONITORED_ADDRESS],
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
-
-// Finding generating function and parameters
-const passParams = (_amount: string, _destinationToken: string) => {
-  return [
-    _amount,
-    RANDOM_INTEGERS[1],
-    RANDOM_INTEGERS[2],
-    RANDOM_INTEGERS[3],
-    RANDOM_INTEGERS[4],
-    RANDOM_INTEGERS[5],
-    RANDOM_INTEGERS[6],
-    RANDOM_INTEGERS[7],
-    RANDOM_INTEGERS[8],
-    RANDOM_INTEGERS[9],
-    _destinationToken,
-    RANDOM_ADDRESSES[1],
-    RANDOM_ADDRESSES[2],
-    RANDOM_ADDRESSES[3],
-    false,
-  ];
-};
-
-function testGetFindingInstance(
-  amount: string,
-  destinationToken: string,
-  originChainId: string,
-  destinationChainId: string,
-  depositor: string,
-  recipient: string,
-  isSlowRelay: string
-) {
+const testLru = new LRU<string, Dictionary<string>>({ max: 1000 }); // token address => { wallet address => balance }
+const testAlertThreshold = 50;
+function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
-    description: "A large amount of funds was transferred via the Across v2 SpokePool",
+    description: "A large amount of funds was transferred from a specific relayer address",
     alertId: "UMA-7",
-    severity: FindingSeverity.Info,
+    severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "UMA",
     metadata: {
       amount,
-      destinationToken,
-      originChainId,
-      destinationChainId,
-      depositor,
-      recipient,
-      isSlowRelay,
+      addr,
+      fundsIn,
     },
   });
 }
 
+// Test cases
+describe("Large relay detection bot test suite", () => {
+  testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: "0" });
+  testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: "0" });
+  let handleTransaction: HandleTransaction = provideHandleTransaction(
+    TRANSFER_EVENT,
+    networkManagerTest,
+    testLru,
+    testAlertThreshold
+  );
 
-// // Test cases
-// describe("Large relay detection bot test suite", () => {
-//   let handleTransaction: HandleTransaction = provideHandleTransaction(FILLED_RELAY_EVENT, networkManagerTest);
+  it("returns empty findings if there is no event emitted", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent();
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-//   it("returns empty findings if there is no event emitted", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent();
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+  it("doesn't return a finding if a transfer is detected from non-monitored address for a non-monitored token", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], RANDOM_INTEGERS[0]]);
 
-//   it("doesn't return a finding if a large amount of specified tokens are bridged via a contract other than the whitelisted SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[1])
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         RANDOM_ADDRESSES[0],
-//         passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)
-//       );
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+  it("doesn't return a finding for non-transfer events", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(RANDOM_EVENT_ABI, RANDOM_ADDRESSES[0], []);
 
-//   it("doesn't return a finding if an irrelevant event is emitted from the SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]);
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-//   it("doesn't return a finding if a small (less than threshold) amount of non-specified tokens are bridged via whitelisted SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams("21", RANDOM_ADDRESSES[2]));
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+  it("doesn't return a finding if a transfer is detected from a monitored address for a non-monitored token", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [
+        TEST_MONITORED_ADDRESS,
+        RANDOM_ADDRESSES[1],
+        RANDOM_INTEGERS[0],
+      ]);
 
-//   it("doesn't return a finding if a small (less than threshold) amount of specified tokens are bridged via whitelisted SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams("21", MOCK_ERC20_ADDR));
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-//   it("doesn't return a finding if a large amount of non-specified tokens are bridged via whitelisted SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         TEST_SPOKEPOOL_ADDR,
-//         passParams(MOCK_THRESHOLD_ERC20.toString(), RANDOM_ADDRESSES[0])
-//       );
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([]);
-//   });
+  it("doesn't return a finding if a transfer is detected from a non-monitored address for a monitored token", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[1])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], RANDOM_INTEGERS[0]]);
 
-//   it("returns a finding if a large amount of specified tokens are bridged via whitelisted SpokePool", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         TEST_SPOKEPOOL_ADDR,
-//         passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)
-//       );
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([]);
+  });
 
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)]);
-//   });
+  it("returns a finding if a monitored address acquires monitored tokens with initial zero balance", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [RANDOM_ADDRESSES[0], TEST_MONITORED_ADDRESS, "1000000"]);
 
-//   it("returns N findings when N large relays occurs from the whitelisted SpokePool address", async () => {
-//     const txEvent: TransactionEvent = new TestTransactionEvent()
-//       .setFrom(RANDOM_ADDRESSES[0])
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         TEST_SPOKEPOOL_ADDR,
-//         passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)
-//       )
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         TEST_SPOKEPOOL_ADDR,
-//         passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR_2)
-//       )
-//       .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]) // Non-whitelisted SpokePool events shall be ignored
-//       .addEventLog(
-//         FILLED_RELAY_EVENT,
-//         TEST_SPOKEPOOL_ADDR,
-//         passParams(MOCK_THRESHOLD_ERC20.sub(BigNumber.from("1")).toString(), MOCK_ERC20_ADDR_2)
-//       ); // Amounts of tokens less than threshold shall not be in the findings
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "true")]);
+  });
 
-//     const findings = await handleTransaction(txEvent);
-//     expect(findings).toStrictEqual([
-//       expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR),
-//       expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR_2),
-//     ]);
-//   });
-// });
+  it("returns a finding if a monitored address receives a large (more than 50% change) amount of tokens", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [RANDOM_ADDRESSES[0], TEST_MONITORED_ADDRESS, "500000"]);
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([testGetFindingInstance("500000", TEST_MONITORED_ADDRESS, "true")]);
+  });
+
+  it("returns a finding if a monitored address sends a large (more than 50% change) amount of tokens", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"]);
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "false")]);
+  });
+
+  it("returns N finding only for those transactions that cross the percentage threshold (for monitored address and monitored token) when N > 1", async () => {
+    // current balance in testLru for MONITORED_ERC20_ADDR TEST_MONITORED_ADDRESS is 1500000
+    // current balance in testLru for MONITORED_ERC20_ADDR TEST_MONITORED_ADDRESS is 0
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setFrom(RANDOM_ADDRESSES[0])
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"]) 
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR_2, [RANDOM_ADDRESSES[0], TEST_MONITORED_ADDRESS, "1000000"]) 
+      .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "50000"]) // should not be returned in findings as it is less than 50% change
+      .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [TEST_MONITORED_ADDRESS, RANDOM_ADDRESSES[0], "1000000"]); // should not be returned in findings since the token address is not monitored
+    const findings = await handleTransaction(txEvent);
+    expect(findings).toStrictEqual([
+      testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "false"),
+      testGetFindingInstance("1000000", TEST_MONITORED_ADDRESS, "true")
+    ]);
+  });
+});

@@ -1,5 +1,5 @@
 // @dev the following information is tentative
-export const PERCENTAGE_CHANGE_THRESHOLD = 0.1; // in decimals (max value of 1)
+export const PERCENTAGE_CHANGE_THRESHOLD = 10; // minimum percentage (%) change in token balance for a monitored address to trigger an alert
 
 export const MAINNET_MONITORED_TOKENS = [
   "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC

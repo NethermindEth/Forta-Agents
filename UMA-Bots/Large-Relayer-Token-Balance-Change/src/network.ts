@@ -8,7 +8,7 @@ import {
   POLYGON_MONITORED_ADDRESSES,
   OPTIMISM_MONITORED_ADDRESSES,
   MAINNET_MONITORED_ADDRESSES,
-} from "./configAddresses";
+} from "./configurables";
 
 import { GOERLI_MONITORED_ADDRESSES, GOERLI_MONITORED_TOKENS } from "./utils";
 
