@@ -40,4 +40,5 @@ The bot behaviour can be verified with the following transactions by running `np
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528](https://goerli.etherscan.io/tx/0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528) (1 finding - `Transfer` was emitted 1 time with change in balance of the monitored address that crosses the 50% threshold set for Goerli)
+- [0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528](https://goerli.etherscan.io/tx/0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528) (1 finding - the monitored address sent a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)
+- [0x63fa57b8f3bbb9105daebd444177dc60799da648634a1538bfc048e492ba8063](https://goerli.etherscan.io/tx/0x63fa57b8f3bbb9105daebd444177dc60799da648634a1538bfc048e492ba8063) (1 finding - the monitored address received a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)

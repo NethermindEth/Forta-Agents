@@ -2,6 +2,7 @@ import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 import LRU from "lru-cache";
+import { BigNumber } from "ethers";
 
 export const TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
 export const ERC20_ABI = ["function balanceOf(address account) external view returns (uint256)"];
@@ -15,20 +16,27 @@ export interface Dictionary<T> {
   [Key: string]: T;
 }
 
+
+/*
+ * @Note the token address is converted to lower case in the lru because the address returned transfer event in agent.ts is also in lower case
+*/
 export async function loadLruCacheData(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider,
   lru: LRU<string, Dictionary<string>>
 ) {
-  networkManager.get("monitoredTokens").forEach((token) => {
+  let monitoredTokens : string[] = networkManager.get("monitoredTokens");
+  let monitoredAddresses : string[] = networkManager.get("monitoredAddresses");
+
+  await Promise.all(monitoredTokens.map(async (token) => {
     let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
-    let tokenDict : Dictionary<string> =  {} ;
-    networkManager.get("monitoredAddresses").forEach(async (address) => {
-      let balance = await tokenContract.balanceOf(address);
-      tokenDict[address.toLowerCase()] = balance.toString();
-    });
-    lru.set(token.toLowerCase(), tokenDict);
-  });
+    const tokenDict: Dictionary<string> = {};
+    await Promise.all(monitoredAddresses.map(async (address) => {
+      let balance = BigNumber.from(await tokenContract.balanceOf(address));
+      tokenDict[address] = balance.toString();
+    }));
+    lru.set(token.toLowerCase(), tokenDict); 
+  }));
 }
 
 /*
