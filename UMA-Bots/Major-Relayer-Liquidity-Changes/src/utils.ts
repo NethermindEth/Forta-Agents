@@ -1,46 +1,54 @@
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkDataInterface } from "./network";
+import LRU from "lru-cache";
 
-export const TRANSFER_EVENT = "event Transfer(address,uint)";
-export const GOERLI_POC_SPOKEPOOL_ADDRESS = "0x36FC090AA5E827ad8AB14012804ff039A776D742";
-export const MAINNET_SPOKEPOOL = "0x4D9079Bb4165aeb4084c526a32695dCfd2F77381";
-export const OPTIMISM_SPOKEPOOL = "0xa420b2d1c0841415A695b81E5B867BCD07Dff8C9";
-export const POLYGON_SPOKEPOOL = "0x69B5c72837769eF1e7C164Abc6515DcFf217F920";
-export const ARBITRUM_SPOKEPOOL = "0xB88690461dDbaB6f04Dfad7df66B7725942FEb9C";
+export const TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
+export const ERC20_ABI = ["function balanceOf(address account) external view returns (uint256)"];
+
+export const GOERLI_MONITORED_ADDRESSES = ["0x1Abf3a6C41035C1d2A3c74ec22405B54450f5e13"];
 
 export interface Dictionary<T> {
   [Key: string]: T;
 }
 
-export function getFindingInstance(
-  amount: string,
-  destinationToken: string,
-  originChainId: string,
-  destinationChainId: string,
-  depositor: string,
-  recipient: string,
-  isSlowRelay: string
+export async function loadLruCacheData(
+  networkManager: NetworkManager<NetworkDataInterface>,
+  provider: ethers.providers.Provider,
+  lru: LRU<string, Dictionary<string>>
 ) {
+  networkManager.get("monitoredTokens").forEach((token) => {
+    let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
+    networkManager.get("monitoredAddresses").forEach(async (address) => {
+      let balance = await tokenContract.balanceOf(address);
+      lru.set(token, { [address]: balance.toString() });
+    });
+  });
+}
+
+/*
+ * @param amount: amount of tokens transferred
+ * @param token: monitored wallet address
+ * @param fundsIn: boolean value indicating whether the transfer was made in or out of monitored wallet address
+ */
+export function getFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
-    name: "Large Relay Filled",
-    description: "A large amount of funds was transferred via the Across v2 SpokePool",
+    name: "Large Change in Balance",
+    description: "A large amount of funds was transferred from a specific relayer address",
     alertId: "UMA-7",
-    severity: FindingSeverity.Info,
+    severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "UMA",
     metadata: {
       amount,
-      destinationToken,
-      originChainId,
-      destinationChainId,
-      depositor,
-      recipient,
-      isSlowRelay,
+      addr,
+      fundsIn,
     },
   });
 }
 
 // @Review Since the PoC addresses don't really need to be configurable by the client,
 // is it better to add the Goerli addresses here or in chainThresholds.ts ?
-export const GOERLI_TOKEN_THRESHOLDS = {
-  "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6": "1000000000000000000", // 1 WETH
-};
+export const GOERLI_MONITORED_TOKENS = [
+  "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6", // WETH
+];

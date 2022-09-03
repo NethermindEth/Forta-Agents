@@ -1,10 +1,12 @@
 import { Finding, HandleTransaction, ethers, Initialize, TransactionEvent, getEthersProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import { TRANSFER_EVENT, getFindingInstance } from "./utils";
+import { TRANSFER_EVENT, getFindingInstance, Dictionary, ERC20_ABI, loadLruCacheData } from "./utils";
 import { NetworkDataInterface, NM_DATA } from "./network";
-import { BigNumber } from "ethers";
+import LRU from "lru-cache";
+import { PERCENTAGE_CHANGE_THRESHOLD } from "./configAddresses";
 
 const networkManager = new NetworkManager(NM_DATA);
+const lru = new LRU<string, Dictionary<string>>({ max: 1000 }); // token address => { wallet address => balance }
 
 export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
@@ -12,6 +14,7 @@ export function provideInitialize(
 ): Initialize {
   return async () => {
     await networkManager.init(provider);
+    await loadLruCacheData(networkManager, provider, lru);
   };
 }
 
@@ -21,29 +24,23 @@ export function provideHandleTransaction(
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    // const filledRelayEventTxns = txEvent.filterLog(filledRelayEvent, networkManager.get("spokePoolAddr"));
+    const transferEventTxns = txEvent.filterLog(transferEvent, networkManager.get("monitoredTokens")); // Transfer event transactions for monitored addresses
 
-//     filledRelayEventTxns.forEach((filledRelayEvent) => {
-//       const { amount, originChainId, destinationChainId, depositor, recipient, isSlowRelay, destinationToken } =
-//         filledRelayEvent.args;
+    transferEventTxns.forEach((transferEvent) => {
+      const { from, to, amount } = transferEvent.args;
 
-//       if (
-//         Object.keys(networkManager.get("tokenThresholds")).includes(destinationToken) &&
-//         BigNumber.from(amount.toString()).gte(BigNumber.from(networkManager.get("tokenThresholds")[destinationToken]))
-//       ) {
-//         findings.push(
-//           getFindingInstance(
-//             amount.toString(),
-//             destinationToken,
-//             originChainId.toString(),
-//             destinationChainId.toString(),
-//             depositor,
-//             recipient,
-//             isSlowRelay.toString()
-//           )
-//         );
-//       }
-//     });
+      if (networkManager.get("monitoredAddresses").includes(from)) {
+        let prevBalance = parseFloat(lru.get(transferEvent.address)![from]);
+        if (amount > PERCENTAGE_CHANGE_THRESHOLD * prevBalance) {
+          findings.push(getFindingInstance(amount.toString(), from, "false"));
+        }
+      } else if (networkManager.get("monitoredAddresses").includes(to)) {
+        let prevBalance = parseFloat(lru.get(transferEvent.address)![to]);
+        if (amount > PERCENTAGE_CHANGE_THRESHOLD * prevBalance) {
+          findings.push(getFindingInstance(amount.toString(), to, "true"));
+        }
+      }
+    });
     return findings;
   };
 }

@@ -1,45 +1,41 @@
 import { Network } from "forta-agent";
 import {
-  MAINNET_TOKEN_THRESHOLDS,
-  ARBITRUM_TOKEN_THRESHOLDS,
-  OPTIMISM_TOKEN_THRESHOLDS,
-  POLYGON_TOKEN_THRESHOLDS,
-} from "./chainThresholds";
+  MAINNET_MONITORED_TOKENS,
+  ARBITRUM_MONITORED_TOKENS,
+  POLYGON_MONITORED_TOKENS,
+  OPTIMISM_MONITORED_TOKENS,
+  ARBITRUM_MONITORED_ADDRESSES,
+  POLYGON_MONITORED_ADDRESSES,
+  OPTIMISM_MONITORED_ADDRESSES,
+  MAINNET_MONITORED_ADDRESSES,
+} from "./configAddresses";
 
-import {
-  ARBITRUM_SPOKEPOOL,
-  Dictionary,
-  GOERLI_POC_SPOKEPOOL_ADDRESS,
-  GOERLI_TOKEN_THRESHOLDS,
-  MAINNET_SPOKEPOOL,
-  OPTIMISM_SPOKEPOOL,
-  POLYGON_SPOKEPOOL,
-} from "./utils";
+import { GOERLI_MONITORED_ADDRESSES, GOERLI_MONITORED_TOKENS } from "./utils";
 
 export interface NetworkDataInterface {
-  tokenThresholds: Dictionary<string>;
-  spokePoolAddr: string;
+  monitoredTokens: string[];
+  monitoredAddresses: string[];
 }
 
 export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.MAINNET]: {
-    tokenThresholds: MAINNET_TOKEN_THRESHOLDS,
-    spokePoolAddr: MAINNET_SPOKEPOOL,
+    monitoredTokens: MAINNET_MONITORED_TOKENS,
+    monitoredAddresses: MAINNET_MONITORED_ADDRESSES,
   },
   [Network.ARBITRUM]: {
-    tokenThresholds: ARBITRUM_TOKEN_THRESHOLDS,
-    spokePoolAddr: ARBITRUM_SPOKEPOOL,
+    monitoredTokens: ARBITRUM_MONITORED_TOKENS,
+    monitoredAddresses: ARBITRUM_MONITORED_ADDRESSES,
   },
   [Network.POLYGON]: {
-    tokenThresholds: POLYGON_TOKEN_THRESHOLDS,
-    spokePoolAddr: POLYGON_SPOKEPOOL,
+    monitoredTokens: POLYGON_MONITORED_TOKENS,
+    monitoredAddresses: POLYGON_MONITORED_ADDRESSES,
   },
   [Network.OPTIMISM]: {
-    tokenThresholds: OPTIMISM_TOKEN_THRESHOLDS,
-    spokePoolAddr: OPTIMISM_SPOKEPOOL,
+    monitoredTokens: OPTIMISM_MONITORED_TOKENS,
+    monitoredAddresses: OPTIMISM_MONITORED_ADDRESSES,
   },
   [Network.GOERLI]: {
-    tokenThresholds: GOERLI_TOKEN_THRESHOLDS,
-    spokePoolAddr: GOERLI_POC_SPOKEPOOL_ADDRESS,
+    monitoredTokens: GOERLI_MONITORED_TOKENS,
+    monitoredAddresses: GOERLI_MONITORED_ADDRESSES,
   },
 };
