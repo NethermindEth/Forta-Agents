@@ -30,12 +30,12 @@ The list of monitored wallet addresses/token contract addresses/chain specific t
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-<!-- - [0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd](https://etherscan.io/tx/0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd) (2 findings - `FilledRelay` was emitted 3 times, out of which 2 had monitored wallet addresses as depositors)
-- [0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372](https://etherscan.io/tx/0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372) (2 findings - `FilledRelay` was emitted 2 times with the same monitored wallet address acting as the depositor) -->
+- [0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde](http1:/etherscan.io/tx/0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde) (1 finding - the monitored address sent a large amount (more than threshold) of USDC and `Transfer` was emitted)
+- [0x33ad4130b4f9c9c18ba09672c9c7e64fe623c715b6b4d48b3fb8f2f690be3003](https://etherscan.io/tx/0x33ad4130b4f9c9c18ba09672c9c7e64fe623c715b6b4d48b3fb8f2f690be3003) (1 finding - the monitored address sent a large amount (more than threshold) of USDC and `Transfer` was emitted)
 
  ### Goerli Testnet (PoC)
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-- [0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528](https://goerli.etherscan.io/tx/0xff0508a95c612eba2e21771ff4332c821f238a71c31fdc47a7e857486222a528) (1 finding - the monitored address sent a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)
-- [0x63fa57b8f3bbb9105daebd444177dc60799da648634a1538bfc048e492ba8063](https://goerli.etherscan.io/tx/0x63fa57b8f3bbb9105daebd444177dc60799da648634a1538bfc048e492ba8063) (1 finding - the monitored address received a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)
+- [0x8fd340400e8182d4ba10b3f8b6eff1e9a7506e3d24fa34f130b42e0434d36ee5](https://goerli.etherscan.io/tx/0x8fd340400e8182d4ba10b3f8b6eff1e9a7506e3d24fa34f130b42e0434d36ee5) (1 finding - the monitored address sent a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)
+- [0x6eb8f040d27dae1c2e76f95637f4835d2cfbd81f71f786869fe184d42332254d](https://goerli.etherscan.io/tx/0x6eb8f040d27dae1c2e76f95637f4835d2cfbd81f71f786869fe184d42332254d) (1 finding - the monitored address received a large amount (more than threshold) of monitored tokens and `Transfer` was emitted)

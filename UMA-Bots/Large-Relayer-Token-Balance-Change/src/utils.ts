@@ -61,7 +61,7 @@ export function getFindingInstance(amount: string, addr: string, fundsIn: string
 }
 
 export const GOERLI_MONITORED_TOKENS = [
-  "0xb2Df4c3B89B71950399BD5B6b2fD71EDb0576E70", // USDT
+  "0x6b79C63a7d3ACF14272eB19B384046bAd9a3C6E2", // USDT
 ];
 
-export const GOERLI_PERCENTAGE_CHANGE_THRESHOLD = 50;
+export const GOERLI_PERCENTAGE_CHANGE_THRESHOLD = 10;
