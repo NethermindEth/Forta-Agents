@@ -48,7 +48,7 @@ export function getFindingInstance(amount: string, addr: string, fundsIn: string
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
     description: "A large amount of funds was transferred from a specific relayer address",
-    alertId: "UMA-7",
+    alertId: "UMA-9",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "UMA",
@@ -63,3 +63,5 @@ export function getFindingInstance(amount: string, addr: string, fundsIn: string
 export const GOERLI_MONITORED_TOKENS = [
   "0xb2Df4c3B89B71950399BD5B6b2fD71EDb0576E70", // USDT
 ];
+
+export const GOERLI_PERCENTAGE_CHANGE_THRESHOLD = 50;

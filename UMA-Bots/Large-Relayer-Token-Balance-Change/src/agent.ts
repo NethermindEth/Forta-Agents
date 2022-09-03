@@ -40,7 +40,8 @@ export function provideHandleTransaction(
         let pastDict = passedLru.get(transferEvent.address);
         pastDict![to] = prevBalance.sub(valueBN).toString();
         passedLru.set(transferEvent.address, pastDict!);
-      } else if (networkManager.get("monitoredAddresses").includes(to)) {
+      }
+      if (networkManager.get("monitoredAddresses").includes(to)) {
         let prevBalance = BigNumber.from(passedLru.get(transferEvent.address)![to]);
         if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
           findings.push(getFindingInstance(value.toString(), to, "true"));

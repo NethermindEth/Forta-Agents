@@ -1,7 +1,7 @@
 import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { Dictionary, loadLruCacheData, TRANSFER_EVENT } from "./utils";
-import { provideHandleTransaction, provideInitialize } from "./agent";
+import { Dictionary, TRANSFER_EVENT } from "./utils";
+import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 import LRU from "lru-cache";
@@ -26,7 +26,7 @@ function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
     description: "A large amount of funds was transferred from a specific relayer address",
-    alertId: "UMA-7",
+    alertId: "UMA-9",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
     protocol: "UMA",

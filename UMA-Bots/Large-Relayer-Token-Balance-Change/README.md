@@ -13,21 +13,18 @@ This bot monitors large changes in token balances of major relayers for the [Acr
 ## Alerts
 
 - UMA-9
-  <!-- - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with a monitored wallet address as the depositor
+  - Fired whenever a `Transfer` event is emitted with a large amount (more than the threshold) of moniotred token transfer from a monitored wallet address
   - Severity is always set to "low" 
   - Type is always set to "info"
   - Metadata :
-      - `amount`: amount that the depositor wished to relay
-      - `originChainId` : relay origination chain ID
-      - `destinationChainId` : relay destination chain ID
-      - `depositor` : address that made the deposit on the origin chain
-      - `recipient` : recipient address on the destination chain
-      - `isSlowRelay` : boolean value indicating whether the relay was a slow relay -->
+      - `amount`: amount of tokens transferred
+      - `addr` : the monitored address involved in the transfer
+      - `fundsIn` : boolean value indicating whether the funds from the transfer went in or out of the monitored wallet address
 
-<!-- ## Configuring the monitored wallet addresses list
+## Configuring the monitored wallet addresses list
 
-In order to change the list of monitored wallet addresses, please add/remove the addresses in the `./src/monitoredAddresses.ts` file. Please note that the currently added addresses in the `./src/monitoredAddresses.ts` file are tentative.
-   -->
+The list of monitored wallet addresses/token contract addresses/chain specific thresholds can be changed in `./src/configurables.ts`. 
+
 ## Test Data
 
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
