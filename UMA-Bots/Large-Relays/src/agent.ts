@@ -21,11 +21,9 @@ export function provideHandleTransaction(
   return async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
     const filledRelayEventTxns = txEvent.filterLog(filledRelayEvent, networkManager.get("spokePoolAddr"));
-
     filledRelayEventTxns.forEach((filledRelayEvent) => {
       const { amount, originChainId, destinationChainId, depositor, recipient, isSlowRelay, destinationToken } =
         filledRelayEvent.args;
-        
       if (
         Object.keys(networkManager.get("tokenThresholds")).includes(destinationToken) &&
         amount >= parseFloat(networkManager.get("tokenThresholds")[destinationToken])

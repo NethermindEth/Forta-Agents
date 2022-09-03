@@ -13,33 +13,32 @@ This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 
 ## Alerts
 
 - UMA-7
-  <!-- - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with a monitored wallet address as the depositor
-  - Severity is always set to "low" 
+  - Fired whenever a `FilledRelay` event is emitted from the `SpokePool` with an amount of tokens more than the thresholds given in `./chainThresholds.ts`
+  - Severity is always set to "info" 
   - Type is always set to "info"
   - Metadata :
       - `amount`: amount that the depositor wished to relay
-      - `originChainId` : relay origination chain ID
-      - `destinationChainId` : relay destination chain ID
-      - `depositor` : address that made the deposit on the origin chain
-      - `recipient` : recipient address on the destination chain
-      - `isSlowRelay` : boolean value indicating whether the relay was a slow relay -->
+      - `destinationToken`: relay destination chain token ID
+      - `originChainId`: relay origination chain ID
+      - `destinationChainId`: relay destination chain ID
+      - `depositor`: wallet address that made the deposit on the origin chain
+      - `recipient`: recipient address on the destination chain
+      - `isSlowRelay`: boolean value indicating whether the relay was a slow relay
 
-<!-- ## Configuring the monitored wallet addresses list
+## Configuring the token amount thresholds for specific chains
 
-In order to change the list of monitored wallet addresses, please add/remove the addresses in the `./src/monitoredAddresses.ts` file. Please note that the currently added addresses in the `./src/monitoredAddresses.ts` file are tentative.
-   -->
+In order to change the token amount thresholds for specific chains, please add/remove the addresses in the `./src/chainThresholds.ts` file or change the amount thresholds. Please note that the currently added tokens and corresponding amounts are tentative.
+
 ## Test Data
 
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-<!-- - [0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd](https://etherscan.io/tx/0xd04843daf4c52cac0e522fa3b2fd6cac3c14ced163c0576f31095d70b1756acd) (2 findings - `FilledRelay` was emitted 3 times, out of which 2 had monitored wallet addresses as depositors)
-- [0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372](https://etherscan.io/tx/0xf09b60c2f3dd17b9444cb266dc773839c85edb0fcf315ea273f2b2acec267372) (2 findings - `FilledRelay` was emitted 2 times with the same monitored wallet address acting as the depositor) -->
+- [0x51fa8f3cabfe44033bfd4729a60eb6d8c57c54a3097463207e33e218b9a91d35](https://etherscan.io/tx/0x51fa8f3cabfe44033bfd4729a60eb6d8c57c54a3097463207e33e218b9a91d35) (1 finding - `FilledRelay` was emitted 1 time with an amount of 3.87 WETH relayed)
+- [0x396c794b8a41e6e365a0fc52235739c6e82751b977d3f803d622c9463713e1d9](https://etherscan.io/tx/0x396c794b8a41e6e365a0fc52235739c6e82751b977d3f803d622c9463713e1d9) (1 findings - `FilledRelay` was emitted 1 time with an amount of 120 USDC relayed)
 
  ### Goerli Testnet (PoC)
 
 In order to verify the Proof of Concept transactions on Goerli the appropriate `jsonRpcUrl` shall be set in `./forta.config.json`
 
-<!-- - [0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ](https://goerli.etherscan.io/tx/0x60554718bc26a87654d02e731c4fa8a5cc5929f90fd40ae8e30cfad23fadfb36 ) (1 finding - `FilledRelay` was emitted with a monitored wallet address as depositor) -->
-
-TODO: How are native handles being handled
+- [0x303eb0de6ee501217858ed30b9d708101dfe0d4f19024adf7c0267c33f89ee4d](https://goerli.etherscan.io/tx/0x303eb0de6ee501217858ed30b9d708101dfe0d4f19024adf7c0267c33f89ee4d) (1 finding - `FilledRelay` was emitted 1 time with an amount of 2 Goerli WETH relayed)

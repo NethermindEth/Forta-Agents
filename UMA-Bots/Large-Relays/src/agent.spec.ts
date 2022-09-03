@@ -169,7 +169,7 @@ describe("Large relay detection bot test suite", () => {
         TEST_SPOKEPOOL_ADDR,
         passParams((MOCK_THRESHOLD_ERC20 - 100).toString(), MOCK_ERC20_ADDR_2)
       ); // Amounts of tokens less than threshold shall be ignored
-    
+
     const findings = await handleTransaction(txEvent);
     expect(findings).toStrictEqual([
       expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR),
