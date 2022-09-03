@@ -18,16 +18,16 @@ This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 
   - Type is always set to "info"
   - Metadata :
       - `amount`: amount that the depositor wished to relay
-      - `destinationToken`: relay destination chain token ID
+      - `destinationToken`: relay destination chain token address
       - `originChainId`: relay origination chain ID
       - `destinationChainId`: relay destination chain ID
       - `depositor`: wallet address that made the deposit on the origin chain
-      - `recipient`: recipient address on the destination chain
+      - `recipient`: recipient wallet address on the destination chain
       - `isSlowRelay`: boolean value indicating whether the relay was a slow relay
 
 ## Configuring the token amount thresholds for specific chains
 
-In order to change the token amount thresholds, please add/remove the addresses in the `./src/chainThresholds.ts` file or change the amount thresholds for specific chains. Please note that the currently added tokens and corresponding amounts are tentative.
+In order to change the token amount thresholds, please add/remove the token addresses in the `./src/chainThresholds.ts` file or change the thresholds amounts for specific chains. Please note that the currently added tokens and corresponding amounts are tentative.
 
 ## Test Data
 

@@ -1,7 +1,7 @@
 {
   "name": "uma-7",
   "version": "0.0.1",
-  "description": "Forta bot that monitors for large amount relays over the Across v2 bridge",
+  "description": "Forta bot that monitors for large token amount relays over the Across v2 bridge",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/UMA-Bots/Large-Relays",
   "chainIds": [
     1,
