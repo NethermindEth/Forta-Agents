@@ -13,7 +13,7 @@ This bot monitors large changes in token balances of major relayers for the [Acr
 ## Alerts
 
 - UMA-9
-  - Fired whenever a `Transfer` event is emitted with a large amount (more than the threshold) of moniotred token transfer from a monitored wallet address
+  - Fired whenever a `Transfer` event is emitted with a large amount (more than the threshold) of monitored token transfer from a monitored wallet address
   - Severity is always set to "low" 
   - Type is always set to "info"
   - Metadata :
