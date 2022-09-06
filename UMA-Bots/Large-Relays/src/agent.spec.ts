@@ -5,10 +5,6 @@ import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 import { BigNumber } from "ethers";
-// @Review I believe that here BigNumber is being imported from "ethers" that is exported from "forta-agent".
-// Since we dont have to install the ethers.js as a separate library here (not there in package.json), I assume this import is fine.
-// Not 100% sure though. In case we are actually using ethers.js as a separate library (which doesn't make sense since "forta-agent" includes it),
-// we can import ethers from "forta-agent" and then call `ethers.BigNumber.from()`
 
 // TEST DATA
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54"), createAddress("0x43"), createAddress("0x47")];
