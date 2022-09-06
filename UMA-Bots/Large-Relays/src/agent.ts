@@ -29,7 +29,7 @@ export function provideHandleTransaction(
 
       if (
         Object.keys(networkManager.get("tokenThresholds")).includes(destinationToken) &&
-        BigNumber.from(amount.toString()).gte(BigNumber.from(networkManager.get("tokenThresholds")[destinationToken]))
+        amount.gte(BigNumber.from(networkManager.get("tokenThresholds")[destinationToken]))
       ) {
         findings.push(
           getFindingInstance(
