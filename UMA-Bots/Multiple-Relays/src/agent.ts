@@ -29,7 +29,7 @@ export const provideHandleTransaction = (
     const spokePoolAddress = networkManager.get("spokePoolAddress");
 
     const findings: Finding[] = [];
-    // filter the transaction logs for funds deposited events
+    // filter the transaction logs for filled relay events
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
@@ -81,7 +81,7 @@ export default {
   handleTransaction: provideHandleTransaction(
     networkManager,
     getEthersProvider(),
-    new LRU<string, { counter: number; timeStamp: number }>({ max: 500 })
+    new LRU<string, { counter: number; timeStamp: number }>({ max: 10000 })
   ),
   provideHandleTransaction,
 };
