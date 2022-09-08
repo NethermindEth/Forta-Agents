@@ -28,7 +28,7 @@ export const provideHandleTransaction = (
     const spokePoolAddress = networkManager.get("spokePoolAddress");
 
     const findings: Finding[] = [];
-    // filter the transaction logs for funds deposited events
+    // filter the transaction logs for filled relay events
     const filledRelayEvents = txEvent.filterLog(FILLED_RELAY_EVENT, spokePoolAddress);
 
     for (const filledRelayEvent of filledRelayEvents) {
