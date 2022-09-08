@@ -322,16 +322,6 @@ describe("Multiple relays detection bot test suite", () => {
       relayer: createAddress("0x6473"),
     };
 
-    const metadata2 = {
-      amount: amount.mul(2).toString(),
-      originChainId: originChainId.toString(),
-      destinationChainId: destinationChainId.toString(),
-      tokenName: "Test Token",
-      recipient: createAddress("0x5878"),
-      depositor: createAddress("0x1256"),
-      relayer: createAddress("0x6788"),
-    };
-
     expect(findings).toStrictEqual([createFinding(metadata, 0)]);
   });
 
