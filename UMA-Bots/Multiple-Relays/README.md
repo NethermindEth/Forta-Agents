@@ -2,8 +2,7 @@
 
 ## Description
 
-This bot detects the following SpokePool events:
-- `FilledRelay` event
+This bot detects multiple relays (`FilledRelay` event emissions) in quick succession from the same wallet address on the SpokePool contract.
 
 ## Supported Chains
 
