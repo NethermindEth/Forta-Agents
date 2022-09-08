@@ -22,6 +22,6 @@ export const DATA: Record<number, NetworkData> = {
   },
 
   [Network.GOERLI]: {
-    spokePoolAddress: "", //Goerli Testnet test contract address
+    spokePoolAddress: "0xf80FA9f39075535c60b648A11f272f835Cc7ffDf", //Goerli Testnet test contract address
   },
 };
