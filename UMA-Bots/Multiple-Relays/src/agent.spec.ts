@@ -18,16 +18,18 @@ describe("Multiple relays detection bot test suite", () => {
 
   const INITIAL_TIMESTAMP = 1661818596;
 
+  const eventFragment: ethers.utils.EventFragment = ethers.utils.EventFragment.from(
+    FILLED_RELAY_EVENT.slice("event ".length)
+  );
+
+  const mockEventFragment: ethers.utils.EventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
+
   let handleTransaction: HandleTransaction;
 
   let mockTxEvent: TestTransactionEvent;
   let mockTxEvent2: TestTransactionEvent;
 
   let networkManager: NetworkManager<NetworkData>;
-
-  let eventFragment: ethers.utils.EventFragment;
-
-  let mockEventFragment: ethers.utils.EventFragment;
 
   let mockProvider: MockEthersProvider;
 
@@ -68,11 +70,6 @@ describe("Multiple relays detection bot test suite", () => {
       mockProvider as any,
       new LRU<string, { counter: number; timeStamp: number }>({ max: 500 })
     );
-  });
-
-  beforeAll(() => {
-    eventFragment = ethers.utils.EventFragment.from(FILLED_RELAY_EVENT.slice("event ".length));
-    mockEventFragment = ethers.utils.EventFragment.from("MockEvent(uint256)");
   });
 
   it("returns empty findings if no events are emitted", async () => {
