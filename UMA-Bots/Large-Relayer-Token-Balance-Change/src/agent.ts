@@ -34,7 +34,7 @@ export function provideHandleTransaction(
 
       if (networkManager.get("monitoredAddresses").includes(from)) {
         let prevBalance = BigNumber.from(passedLru.get(transferEvent.address)![from]);
-        if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
+        if (valueBN.mul(100).gte(prevBalance.mul(alertThreshold))) {
           findings.push(getFindingInstance(value.toString(), from, transferEvent.address, "false"));
         }
         let pastDict : Record<string, BigNumber> = passedLru.get(transferEvent.address)!;
@@ -43,11 +43,7 @@ export function provideHandleTransaction(
       }
       if (networkManager.get("monitoredAddresses").includes(to)) {
         let prevBalance = passedLru.get(transferEvent.address)![to];
-        if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
-          console.log("TO")
-          console.log("valueBN: ", valueBN.toString());
-          console.log("prevBalance.mul(alertThreshold).div(100): ", (prevBalance.mul(alertThreshold).div(100)).toString());
-
+        if (valueBN.mul(100).gte(prevBalance.mul(alertThreshold))) {
           findings.push(getFindingInstance(value.toString(), to,transferEvent.address, "true"));
         }
         let pastDict = passedLru.get(transferEvent.address)!;
