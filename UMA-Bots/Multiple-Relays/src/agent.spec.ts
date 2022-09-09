@@ -190,7 +190,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
-    let delta = FINDING_PARAMETERS.timeWindow - 1;
+    const delta = FINDING_PARAMETERS.timeWindow - 1;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta); //set the timestamp of the last tx to 1 second before the time window ends
     await handleTransaction(mockTxEvent);
     const findings: Finding[] = await handleTransaction(mockTxEvent2);
@@ -236,7 +236,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
-    let delta = FINDING_PARAMETERS.timeWindow + 1;
+    const delta = FINDING_PARAMETERS.timeWindow + 1;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta); //set the timestamp of the last tx to 1 second after the time window
     await handleTransaction(mockTxEvent);
     const findings: Finding[] = await handleTransaction(mockTxEvent2);
@@ -303,7 +303,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data2);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data2);
 
-    let delta = FINDING_PARAMETERS.timeWindow - 1;
+    const delta = FINDING_PARAMETERS.timeWindow - 1;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta);
     const f: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -372,7 +372,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data2);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data2);
 
-    let delta = FINDING_PARAMETERS.timeWindow;
+    const delta = FINDING_PARAMETERS.timeWindow;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta);
     const f: Finding[] = await handleTransaction(mockTxEvent);
 
@@ -451,7 +451,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
-    let delta = FINDING_PARAMETERS.timeWindow - 1;
+    const delta = FINDING_PARAMETERS.timeWindow - 1;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta);
     await handleTransaction(mockTxEvent);
 
@@ -511,7 +511,7 @@ describe("Multiple relays detection bot test suite", () => {
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
     mockTxEvent2.addEventLog(eventFragment, MOCK_CONTRACT_ADDRESS, data);
 
-    let delta = FINDING_PARAMETERS.timeWindow * 2;
+    const delta = FINDING_PARAMETERS.timeWindow * 2;
     mockTxEvent2.setTimestamp(INITIAL_TIMESTAMP + delta);
     await handleTransaction(mockTxEvent);
 

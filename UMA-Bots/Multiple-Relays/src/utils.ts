@@ -10,10 +10,10 @@ export async function getTokenInfo(
 ): Promise<{ tokenName: string; tokenDecimals: number }> {
   //check if token address is already cached
   if (!cache.has(address)) {
-    let token = new ethers.Contract(address, FUNC_ABI, provider);
+    const token = new ethers.Contract(address, FUNC_ABI, provider);
     let info: { tokenName: string; tokenDecimals: number };
     try {
-      let [tokenName, tokenDecimals] = await Promise.all([
+      const [tokenName, tokenDecimals] = await Promise.all([
         token.name({ blockTag: blockNumber }),
         token.decimals({ blockTag: blockNumber }),
       ]);
