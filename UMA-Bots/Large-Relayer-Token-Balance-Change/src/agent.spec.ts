@@ -5,6 +5,7 @@ import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { NetworkDataInterface } from "./network";
 import LRU from "lru-cache";
+import { BigNumber } from "ethers";
 
 const TEST_MONITORED_ADDRESS = createAddress("0x07");
 const RANDOM_ADDRESSES = [createAddress("0x12"), createAddress("0x54"), createAddress("0x43"), createAddress("0x47")];
@@ -20,7 +21,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
-const testLru = new LRU<string, Dictionary<string>>({ max: 10000 }); // token address => { wallet address => balance }
+const testLru = new LRU<string, Record<string, BigNumber>>({ max: 10000 }); // token address => { wallet address => balance }
 const testAlertThreshold = 50;
 function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
@@ -40,8 +41,8 @@ function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
 
 // Test cases
 describe("Large relay detection bot test suite", () => {
-  testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: "0" });
-  testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: "0" });
+  testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: BigNumber.from(0) });
+  testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: BigNumber.from(0) });
   let handleTransaction: HandleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru);
 
   it("returns empty findings if there is no event emitted", async () => {

@@ -22,7 +22,7 @@ export interface Dictionary<T> {
 export async function loadLruCacheData(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider,
-  lru: LRU<string, Dictionary<string>>
+  lru: LRU<string, Record<string, BigNumber>>
 ) {
   let monitoredTokens: string[] = networkManager.get("monitoredTokens");
   let monitoredAddresses: string[] = networkManager.get("monitoredAddresses");
@@ -30,14 +30,14 @@ export async function loadLruCacheData(
   await Promise.all(
     monitoredTokens.map(async (token) => {
       let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
-      const balances: Record<string, string> = {};
+      const balances: Record<string, BigNumber> = {};
       await Promise.all(
         monitoredAddresses.map(async (address) => {
           let balance = BigNumber.from(await tokenContract.balanceOf(address));
-          tokenDict[address] = balance.toString();
+          balances[address] = balance;
         })
       );
-      lru.set(token.toLowerCase(), tokenDict);
+      lru.set(token.toLowerCase(), balances);
     })
   );
 }

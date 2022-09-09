@@ -6,12 +6,12 @@ import LRU from "lru-cache";
 import { BigNumber } from "ethers";
 
 const networkManager = new NetworkManager(NM_DATA);
-const thisLru = new LRU<string, Dictionary<string>>({ max: 10000 }); // token address => { wallet address => balance }
+const thisLru = new LRU<string, Record<string, BigNumber>>({ max: 10000 }); // token address => { wallet address => balance }
 
 export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider,
-  passedLru: LRU<string, Dictionary<string>>
+  passedLru: LRU<string, Record<string, BigNumber>>
 ): Initialize {
   return async () => {
     await networkManager.init(provider);
@@ -22,7 +22,7 @@ export function provideInitialize(
 export function provideHandleTransaction(
   transferEvent: string,
   networkManager: NetworkManager<NetworkDataInterface>,
-  passedLru: LRU<string, Dictionary<string>>
+  passedLru: LRU<string, Record<string, BigNumber>>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
     let alertThreshold = networkManager.get("alertThreshold");
@@ -38,16 +38,16 @@ export function provideHandleTransaction(
           findings.push(getFindingInstance(value.toString(), from, "false"));
         }
         let pastDict = passedLru.get(transferEvent.address);
-        pastDict![to] = prevBalance.sub(valueBN).toString();
+        pastDict![to] = prevBalance.sub(valueBN);
         passedLru.set(transferEvent.address, pastDict!);
       }
       if (networkManager.get("monitoredAddresses").includes(to)) {
-        let prevBalance = BigNumber.from(passedLru.get(transferEvent.address)![to]);
+        let prevBalance = passedLru.get(transferEvent.address)![to];
         if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
           findings.push(getFindingInstance(value.toString(), to, "true"));
         }
         let pastDict = passedLru.get(transferEvent.address);
-        pastDict![to] = prevBalance.add(valueBN).toString();
+        pastDict![to] = prevBalance.add(valueBN);
         passedLru.set(transferEvent.address, pastDict!);
       }
     });
