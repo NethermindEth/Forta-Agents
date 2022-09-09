@@ -30,7 +30,7 @@ export async function loadLruCacheData(
   await Promise.all(
     monitoredTokens.map(async (token) => {
       let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
-      const tokenDict: Dictionary<string> = {};
+      const balances: Record<string, string> = {};
       await Promise.all(
         monitoredAddresses.map(async (address) => {
           let balance = BigNumber.from(await tokenContract.balanceOf(address));
