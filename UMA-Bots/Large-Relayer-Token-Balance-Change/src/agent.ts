@@ -6,7 +6,7 @@ import LRU from "lru-cache";
 import { BigNumber } from "ethers";
 
 const networkManager = new NetworkManager(NM_DATA);
-const thisLru = new LRU<string, Dictionary<string>>({ max: 1000 }); // token address => { wallet address => balance }
+const thisLru = new LRU<string, Dictionary<string>>({ max: 10000 }); // token address => { wallet address => balance }
 
 export function provideInitialize(
   networkManager: NetworkManager<NetworkDataInterface>,
