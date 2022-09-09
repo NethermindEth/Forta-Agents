@@ -41,7 +41,7 @@ export async function loadLruCacheData(
             // The default ethers provider will throw an error if the INIT_BLOCK_NO is more than 128 blocks old before the current block (unless the provider can retrieve data older than that)
             balance = BigNumber.from(await tokenContract.balanceOf(address, {blockTag: blockNumber}));
           }catch(e){
-            balance = BigNumber.from(0);
+            balance = BigNumber.from(await tokenContract.balanceOf(address));
           }
           balances[address] = balance;
         })
