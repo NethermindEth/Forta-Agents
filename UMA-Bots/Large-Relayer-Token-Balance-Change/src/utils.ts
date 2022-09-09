@@ -12,10 +12,6 @@ export const GOERLI_MONITORED_ADDRESSES = [
   "0x628bfE54739098012bDc282EFA2F74c226FF5d40",
 ];
 
-export interface Dictionary<T> {
-  [Key: string]: T;
-}
-
 /*
  * @Note the token address is converted to lower case in the lru because the address returned transfer event in agent.ts is also in lower case
  */
@@ -44,7 +40,7 @@ export async function loadLruCacheData(
 
 /*
  * @param amount: amount of tokens transferred
- * @param token: monitored wallet address
+ * @param addr: monitored wallet address
  * @param fundsIn: boolean value indicating whether the transfer was made in or out of monitored wallet address
  */
 export function getFindingInstance(amount: string, addr: string, fundsIn: string) {
