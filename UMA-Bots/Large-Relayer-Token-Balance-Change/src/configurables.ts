@@ -1,7 +1,7 @@
 // @dev the following information is tentative
 
 // minimum percentage (%) change in token balance for a monitored address to trigger an alert
-export const MAINET_PERCENTAGE_CHANGE_THRESHOLD = 1;
+export const MAINNET_PERCENTAGE_CHANGE_THRESHOLD = 1;
 export const OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD = 10;
 export const POLYGON_PERCENTAGE_CHANGE_THRESHOLD = 10;
 export const ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD = 10;
