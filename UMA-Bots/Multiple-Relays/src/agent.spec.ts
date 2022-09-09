@@ -241,16 +241,6 @@ describe("Multiple relays detection bot test suite", () => {
     await handleTransaction(mockTxEvent);
     const findings: Finding[] = await handleTransaction(mockTxEvent2);
 
-    const metadata = {
-      amount: amount.toString(),
-      originChainId: originChainId.toString(),
-      destinationChainId: destinationChainId.toString(),
-      tokenName: "Test Token",
-      recipient: createAddress("0x0001"),
-      depositor: createAddress("0x0021"),
-      relayer: createAddress("0x6473"),
-    };
-
     expect(findings).toStrictEqual([]);
   });
 
