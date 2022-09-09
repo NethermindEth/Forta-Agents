@@ -96,7 +96,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a large amount of specified tokens are bridged via a contract other than the whitelisted SpokePool", async () => {
+  it("doesn't return a finding if a large amount of specified tokens are bridged via a contract other than the official SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(
@@ -117,7 +117,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a small (less than threshold) amount of non-specified tokens are bridged via whitelisted SpokePool", async () => {
+  it("doesn't return a finding if a small (less than threshold) amount of non-specified tokens are bridged via official SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams("21", RANDOM_ADDRESSES[2]));
@@ -125,7 +125,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a small (less than threshold) amount of specified tokens are bridged via whitelisted SpokePool", async () => {
+  it("doesn't return a finding if a small (less than threshold) amount of specified tokens are bridged via official SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(FILLED_RELAY_EVENT, TEST_SPOKEPOOL_ADDR, passParams("21", MOCK_ERC20_ADDR));
@@ -133,7 +133,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("doesn't return a finding if a large amount of non-specified tokens are bridged via whitelisted SpokePool", async () => {
+  it("doesn't return a finding if a large amount of non-specified tokens are bridged via official SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(
@@ -145,7 +145,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("returns a finding if a large amount of specified tokens are bridged via whitelisted SpokePool", async () => {
+  it("returns a finding if a large amount of specified tokens are bridged via official SpokePool", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(
@@ -158,7 +158,7 @@ describe("Large relay detection bot test suite", () => {
     expect(findings).toStrictEqual([expectedFinding(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR)]);
   });
 
-  it("returns N findings when N large relays occurs from the whitelisted SpokePool address", async () => {
+  it("returns N findings when N large relays occurs from the official SpokePool address", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
       .addEventLog(
@@ -171,7 +171,7 @@ describe("Large relay detection bot test suite", () => {
         TEST_SPOKEPOOL_ADDR,
         passParams(MOCK_THRESHOLD_ERC20.toString(), MOCK_ERC20_ADDR_2)
       )
-      .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]) // Non-whitelisted SpokePool events shall be ignored
+      .addEventLog(RANDOM_EVENT_ABI, TEST_SPOKEPOOL_ADDR, [RANDOM_ADDRESSES[0], "120"]) // Irrelavant events emitted from the official SpokePool must be ignored
       .addEventLog(
         FILLED_RELAY_EVENT,
         TEST_SPOKEPOOL_ADDR,
