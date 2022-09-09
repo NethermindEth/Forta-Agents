@@ -17,7 +17,9 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   0: {
     monitoredTokens: [MONITORED_ERC20_ADDR, MONITORED_ERC20_ADDR_2],
     monitoredAddresses: [TEST_MONITORED_ADDRESS],
-    alertThreshold: 50
+    alertThreshold: 50,
+    initBlockNo: 0,
+  
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);

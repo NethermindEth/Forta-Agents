@@ -12,13 +12,20 @@ export const GOERLI_MONITORED_ADDRESSES = [
   "0x628bfE54739098012bDc282EFA2F74c226FF5d40",
 ];
 
+export const MAINNET_INIT_BLOCK_NO = 15465481;
+export const OPTIMISM_INIT_BLOCK_NO = 135467;
+export const ARBITRUM_INIT_BLOCK_NO = 23795044;
+export const POLYGON_INIT_BLOCK_NO = 32893018;
+export const GOERLI_INIT_BLOCK_NO = 7560211;
+
 /*
  * @Note the token address is converted to lower case in the lru because the address returned transfer event in agent.ts is also in lower case
  */
 export async function loadLruCacheData(
   networkManager: NetworkManager<NetworkDataInterface>,
   provider: ethers.providers.Provider,
-  lru: LRU<string, Record<string, BigNumber>>
+  lru: LRU<string, Record<string, BigNumber>>,
+  blockNumber: number
 ) {
   let monitoredTokens: string[] = networkManager.get("monitoredTokens");
   let monitoredAddresses: string[] = networkManager.get("monitoredAddresses");
@@ -29,7 +36,13 @@ export async function loadLruCacheData(
       const balances: Record<string, BigNumber> = {};
       await Promise.all(
         monitoredAddresses.map(async (address) => {
-          let balance = BigNumber.from(await tokenContract.balanceOf(address));
+          let balance:BigNumber;
+          try{
+            // The default ethers provider will throw an error if the INIT_BLOCK_NO is more than 128 blocks old before the current block (unless the provider can retrieve data older than that)
+            balance = BigNumber.from(await tokenContract.balanceOf(address, {blockTag: blockNumber}));
+          }catch(e){
+            balance = BigNumber.from(0);
+          }
           balances[address] = balance;
         })
       );

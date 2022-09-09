@@ -15,7 +15,7 @@ export function provideInitialize(
 ): Initialize {
   return async () => {
     await networkManager.init(provider);
-    await loadLruCacheData(networkManager, provider, passedLru);
+    await loadLruCacheData(networkManager, provider, passedLru, networkManager.get("initBlockNo"));
   };
 }
 
