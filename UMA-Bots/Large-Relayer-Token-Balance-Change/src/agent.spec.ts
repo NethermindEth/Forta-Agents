@@ -20,7 +20,7 @@ const MOCK_NM_DATA: Record<number, NetworkDataInterface> = {
   },
 };
 const networkManagerTest = new NetworkManager(MOCK_NM_DATA, 0);
-const testLru = new LRU<string, Dictionary<string>>({ max: 1000 }); // token address => { wallet address => balance }
+const testLru = new LRU<string, Dictionary<string>>({ max: 10000 }); // token address => { wallet address => balance }
 const testAlertThreshold = 50;
 function testGetFindingInstance(amount: string, addr: string, fundsIn: string) {
   return Finding.fromObject({
