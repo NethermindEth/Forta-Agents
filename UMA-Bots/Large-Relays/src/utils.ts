@@ -8,9 +8,9 @@ export const OPTIMISM_SPOKEPOOL = "0xa420b2d1c0841415A695b81E5B867BCD07Dff8C9";
 export const POLYGON_SPOKEPOOL = "0x69B5c72837769eF1e7C164Abc6515DcFf217F920";
 export const ARBITRUM_SPOKEPOOL = "0xB88690461dDbaB6f04Dfad7df66B7725942FEb9C";
 
-export interface Dictionary<T> {
-  [Key: string]: T;
-}
+// export interface Dictionary<T> {
+//   [Key: string]: T;
+// }
 
 export function getFindingInstance(
   amount: string,

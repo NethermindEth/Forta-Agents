@@ -9,7 +9,6 @@ import {
 
 import {
   ARBITRUM_SPOKEPOOL,
-  Dictionary,
   GOERLI_POC_SPOKEPOOL_ADDRESS,
   MAINNET_SPOKEPOOL,
   OPTIMISM_SPOKEPOOL,
@@ -17,7 +16,7 @@ import {
 } from "./utils";
 
 export interface NetworkDataInterface {
-  tokenThresholds: Dictionary<string>;
+  tokenThresholds: Record<string, string>;
   spokePoolAddr: string;
 }
 

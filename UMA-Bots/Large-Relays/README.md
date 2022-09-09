@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot monitors for large relays, such as those over 250 ETH, 1,000,000 USDC, 20 WBTC, and so on made with [Across v2 bridge](https://across.to/) - a multichain bridge built on the [UMA protocol](https://umaproject.org/) as its source of on-chain data validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
+This bot monitors for large relays (with configurable thresholds) made with [Across v2 bridge](https://across.to/) - a multichain bridge built on the [UMA protocol](https://umaproject.org/) as its source of on-chain data validation. For more details refer [here](https://discourse.umaproject.org/t/forta-monitors-across-v2-request-for-proposals/1569).
 
 ## Supported Chains
 - Mainnet
