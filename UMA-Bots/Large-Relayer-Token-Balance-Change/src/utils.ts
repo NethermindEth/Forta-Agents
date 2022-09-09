@@ -43,7 +43,7 @@ export async function loadLruCacheData(
  * @param addr: monitored wallet address
  * @param fundsIn: boolean value indicating whether the transfer was made in or out of monitored wallet address
  */
-export function getFindingInstance(amount: string, addr: string, fundsIn: string) {
+export function getFindingInstance(amount: string, walletAddr: string, tokenAddr:string, fundsIn: string) {
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
     description: "A large amount of funds was transferred from a monitored relayer address",
@@ -53,7 +53,8 @@ export function getFindingInstance(amount: string, addr: string, fundsIn: string
     protocol: "UMA",
     metadata: {
       amount,
-      addr,
+      walletAddr,
+      tokenAddr,
       fundsIn,
     },
   });

@@ -34,22 +34,25 @@ export function provideHandleTransaction(
 
       if (networkManager.get("monitoredAddresses").includes(from)) {
         let prevBalance = BigNumber.from(passedLru.get(transferEvent.address)![from]);
-        console.log(prevBalance);
         if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
-          findings.push(getFindingInstance(value.toString(), from, "false"));
+          findings.push(getFindingInstance(value.toString(), from, transferEvent.address, "false"));
         }
-        let pastDict = passedLru.get(transferEvent.address);
-        // pastDict![to] = prevBalance.sub(valueBN);
-        // passedLru.set(transferEvent.address, pastDict!);
+        let pastDict : Record<string, BigNumber> = passedLru.get(transferEvent.address)!;
+        pastDict[from] = prevBalance.sub(valueBN);
+        passedLru.set(transferEvent.address, pastDict);
       }
       if (networkManager.get("monitoredAddresses").includes(to)) {
         let prevBalance = passedLru.get(transferEvent.address)![to];
         if (valueBN.gte(prevBalance.mul(alertThreshold).div(100))) {
-          findings.push(getFindingInstance(value.toString(), to, "true"));
+          console.log("TO")
+          console.log("valueBN: ", valueBN.toString());
+          console.log("prevBalance.mul(alertThreshold).div(100): ", (prevBalance.mul(alertThreshold).div(100)).toString());
+
+          findings.push(getFindingInstance(value.toString(), to,transferEvent.address, "true"));
         }
-        let pastDict = passedLru.get(transferEvent.address);
-        pastDict![to] = prevBalance.add(valueBN);
-        passedLru.set(transferEvent.address, pastDict!);
+        let pastDict = passedLru.get(transferEvent.address)!;
+        pastDict[to] = prevBalance.add(valueBN);
+        passedLru.set(transferEvent.address, pastDict);
       }
     });
     return findings;
