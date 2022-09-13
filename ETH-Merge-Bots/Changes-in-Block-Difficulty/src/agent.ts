@@ -1,22 +1,29 @@
 import { Finding, HandleBlock, BlockEvent, getEthersProvider, ethers } from "forta-agent";
-import { NUMBER_OF_BLOCKS_TO_CHECK, FINDING_THRESHOLD, createFinding, TERMINAL_TOTAL_DIFFICULTY } from "./utils";
+import { NUMBER_OF_BLOCKS_TO_CHECK, FINDING_THRESHOLD, createFinding, createFinalFinding } from "./utils";
 import BigNumber from "bignumber.js";
 
 BigNumber.set({ DECIMAL_PLACES: 2 });
 
 export const provideHandleBlock = (
   init: boolean,
+  finalAlertFlag: boolean,
   provider: ethers.providers.Provider,
   numberOfBlocksToCheck: number,
   threshold: BigNumber
 ): HandleBlock => {
   let blockDifficulties: BigNumber[] = new Array<BigNumber>();
-
+  let previousBlockTD: BigNumber = new BigNumber(-1);
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    // check if TTD has been reached
-    if (new BigNumber(blockEvent.block.totalDifficulty).gte(TERMINAL_TOTAL_DIFFICULTY)) return findings;
+    // Raise an alert when the total difficulty stays constant
+    if (!finalAlertFlag && previousBlockTD.eq(new BigNumber(blockEvent.block.totalDifficulty))) {
+      finalAlertFlag = true;
+      findings.push(createFinalFinding(previousBlockTD.toString(), blockEvent.block.totalDifficulty.toString()));
+      return findings;
+    }
+
+    previousBlockTD = new BigNumber(blockEvent.block.totalDifficulty);
 
     // executed on the first run
     if (!init) {
@@ -64,5 +71,5 @@ export const provideHandleBlock = (
 };
 
 export default {
-  handleBlock: provideHandleBlock(false, getEthersProvider(), NUMBER_OF_BLOCKS_TO_CHECK, FINDING_THRESHOLD),
+  handleBlock: provideHandleBlock(false, false, getEthersProvider(), NUMBER_OF_BLOCKS_TO_CHECK, FINDING_THRESHOLD),
 };

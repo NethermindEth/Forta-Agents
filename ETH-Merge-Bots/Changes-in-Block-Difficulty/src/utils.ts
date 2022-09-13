@@ -4,8 +4,6 @@ import BigNumber from "bignumber.js";
 export const NUMBER_OF_BLOCKS_TO_CHECK: number = 100;
 export const FINDING_THRESHOLD: BigNumber = new BigNumber(1.5);
 
-export const TERMINAL_TOTAL_DIFFICULTY: BigNumber = new BigNumber("58750000000000000000000");
-
 export const createFinding = (
   blockDifficulty: string,
   movingAverage: string,
@@ -41,4 +39,19 @@ export const createFinding = (
         decreasePercentage: `-${changePercentage}%`,
       },
     });
+};
+
+export const createFinalFinding = (previousTD: string, currentTD: string): Finding => {
+  return Finding.fromObject({
+    name: "No Change in Total Difficulty Detection",
+    description: "Total difficulty remained constant between the previous and the latest block",
+    alertId: "ETH-2-3",
+    protocol: "Ethereum",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata: {
+      previousBlockTotalDifficulty: previousTD,
+      currentBlockTotalDifficulty: currentTD,
+    },
+  });
 };

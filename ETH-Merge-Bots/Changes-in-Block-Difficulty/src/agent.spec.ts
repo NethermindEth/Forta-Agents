@@ -53,6 +53,21 @@ export const testCreateFinding = (
     });
 };
 
+export const testCreateFinalFinding = (previousTD: string, currentTD: string): Finding => {
+  return Finding.fromObject({
+    name: "No Change in Total Difficulty Detection",
+    description: "Total difficulty remained constant between the previous and the latest block",
+    alertId: "ETH-2-3",
+    protocol: "Ethereum",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata: {
+      previousBlockTotalDifficulty: previousTD,
+      currentBlockTotalDifficulty: currentTD,
+    },
+  });
+};
+
 const TEST_BLOCK_DIFFICULTIES: BigNumber[] = [
   new BigNumber(1000),
   new BigNumber(990),
@@ -69,7 +84,13 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
 
   beforeEach(() => {
     mockProvider.clear(),
-      (handleBlock = provideHandleBlock(false, mockProvider as any, MOCK_NUMBER_OF_BLOCKS_TO_CHECK, MOCK_THRESHOLD));
+      (handleBlock = provideHandleBlock(
+        false,
+        false,
+        mockProvider as any,
+        MOCK_NUMBER_OF_BLOCKS_TO_CHECK,
+        MOCK_THRESHOLD
+      ));
   });
 
   it("should return no findings if there is no unusual change in block difficulty on the first run", async () => {
@@ -125,24 +146,6 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
     expect(findings).toStrictEqual([
       testCreateFinding("10", "796", "98.74", MOCK_THRESHOLD.toString(10), MOCK_NUMBER_OF_BLOCKS_TO_CHECK.toString()),
     ]);
-  });
-
-  it("should return no findings if the TTD has been reached on the first run", async () => {
-    const blockNumber = 21005;
-    const blockEvent: BlockEvent = new TestBlockEventExtended()
-      .setDifficulty("10")
-      .setTotalDifficulty("58750000000000000000000")
-      .setNumber(blockNumber);
-
-    for (let i = 0; i <= MOCK_NUMBER_OF_BLOCKS_TO_CHECK; i++) {
-      when(mockProvider.getBlock)
-        .calledWith(blockNumber - MOCK_NUMBER_OF_BLOCKS_TO_CHECK + i)
-        .mockReturnValue({ _difficulty: TEST_BLOCK_DIFFICULTIES[i] });
-    }
-
-    const findings: Finding[] = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([]);
   });
 
   it("should return no findings if there is no unusual change in block difficulty", async () => {
@@ -215,9 +218,9 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
     ]);
   });
 
-  it("should return no findings if the TTD has been reached", async () => {
-    let blockNumber = 405345;
-    let blockEvent: BlockEvent = new TestBlockEventExtended().setDifficulty("1000").setNumber(blockNumber);
+  it("should return no findings if the total block difficulty changed from the previous to the current block", async () => {
+    let blockNumber = 495345;
+    let blockEvent: BlockEvent = new TestBlockEventExtended().setTotalDifficulty("100000").setNumber(blockNumber);
 
     for (let i = 0; i <= MOCK_NUMBER_OF_BLOCKS_TO_CHECK; i++) {
       when(mockProvider.getBlock)
@@ -229,10 +232,34 @@ describe("Unusual changes in block difficulty detection bot test suite", () => {
     expect(findings).toStrictEqual([]);
 
     blockNumber = blockNumber++;
-    blockEvent = new TestBlockEventExtended()
-      .setDifficulty("1")
-      .setTotalDifficulty("58750000000000000000000")
-      .setNumber(blockNumber);
+    blockEvent = new TestBlockEventExtended().setTotalDifficulty("200000").setNumber(blockNumber);
+
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding if the total block difficulty remained constant between the previous and the current block", async () => {
+    let blockNumber = 1405345;
+    let blockEvent: BlockEvent = new TestBlockEventExtended().setTotalDifficulty("100000").setNumber(blockNumber);
+
+    for (let i = 0; i <= MOCK_NUMBER_OF_BLOCKS_TO_CHECK; i++) {
+      when(mockProvider.getBlock)
+        .calledWith(blockNumber - MOCK_NUMBER_OF_BLOCKS_TO_CHECK + i)
+        .mockReturnValue({ _difficulty: TEST_BLOCK_DIFFICULTIES[i] });
+    }
+
+    let findings: Finding[] = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+
+    blockNumber = blockNumber++;
+    blockEvent = new TestBlockEventExtended().setTotalDifficulty("100000").setNumber(blockNumber);
+
+    //Raise an alert once
+    findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([testCreateFinalFinding("100000", "100000")]);
+
+    blockNumber = blockNumber++;
+    blockEvent = new TestBlockEventExtended().setTotalDifficulty("100000").setNumber(blockNumber);
 
     findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
