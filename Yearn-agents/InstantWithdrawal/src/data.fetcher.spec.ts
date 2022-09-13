@@ -16,26 +16,25 @@ describe("DataFetcher tests suite", () => {
       data: {
         data: {
           accountVaultPositions: inv,
-        }
-      }
+        },
+      },
     });
     return inv;
-  }
+  };
 
   const buildInvestors = (size: number, vault: string) => {
     const inv: any[] = [];
-    for(let i = 0; i < size; ++i){
+    for (let i = 0; i < size; ++i) {
       inv.push({
         vault: { id: vault },
         account: { id: createAddress(`0xe0a${i}`) },
-      })
+      });
     }
     return inv;
-  }
+  };
 
-  const acum = (data: string[]) => data
-    .map(x => BigNumber.from(x))
-    .reduce((acum, cur) => acum.add(cur));
+  const acum = (data: string[]) =>
+    data.map(x => BigNumber.from(x)).reduce((acum, cur) => acum.add(cur));
 
   beforeAll(() => createFork.mockReturnValue(mockProvider));
 
@@ -47,7 +46,7 @@ describe("DataFetcher tests suite", () => {
   it("should return the correct block number", async () => {
     const CASES: number[] = [1, 10, 20, 9, 0, 201209];
 
-    for(let block of CASES) {
+    for (let block of CASES) {
       mockProvider.setLatestBlock(block);
       expect(await fetcher.getBlockNumber()).toStrictEqual(block);
     }
@@ -55,19 +54,17 @@ describe("DataFetcher tests suite", () => {
 
   it("should return the assets", async () => {
     const CASES: string[][] = [
-      [createAddress("0xdef1"), createAddress("0xda0"), createAddress('0xe0a')],
-      [createAddress("0xdef1"), createAddress('0xe0a')],
+      [createAddress("0xdef1"), createAddress("0xda0"), createAddress("0xe0a")],
+      [createAddress("0xdef1"), createAddress("0xe0a")],
       [createAddress("0xda0")],
     ];
 
-    for(let i = 0; i < CASES.length; ++i) {
+    for (let i = 0; i < CASES.length; ++i) {
       const [registry, ...assets] = CASES[i];
-      mockProvider.addCallTo(
-        registry, i, vaultRegistryInterface,
-        "assetsAddresses", {
-          inputs:[], outputs:[assets],
-        }
-      );
+      mockProvider.addCallTo(registry, i, vaultRegistryInterface, "assetsAddresses", {
+        inputs: [],
+        outputs: [assets],
+      });
 
       expect(await fetcher.getVaults(registry, i)).toStrictEqual(assets);
     }
@@ -78,10 +75,10 @@ describe("DataFetcher tests suite", () => {
     const CASES: [string, number][] = [
       [createAddress("0xdef1"), 3],
       [createAddress("0xdA0"), 10],
-      [createAddress("0xe0a"), 5,],
+      [createAddress("0xe0a"), 5],
     ];
 
-    for(let [vault, size] of CASES) {
+    for (let [vault, size] of CASES) {
       const inv = prepareAxios(size, vault);
 
       expect(await fetcher.getBiggerInvestors(vault)).toStrictEqual(inv);
@@ -99,37 +96,36 @@ describe("DataFetcher tests suite", () => {
       [createAddress("0xabc2"), createAddress("0xdef0"), 1000, 1000],
     ];
 
-    for(let [vault, investor, oldAmount, newAmount] of CASES) {
+    for (let [vault, investor, oldAmount, newAmount] of CASES) {
       mockProvider
-        .addCallFrom(
-          vault,
-          investor,
-          "latest",
-          vaultInterface,
-          "balanceOf",
-          {inputs:[investor], outputs:[newAmount]},
-        )
-        .addCallFrom(
-          vault,
-          investor,
-          "latest",
-          vaultInterface,
-          "balanceOf",
-          {inputs:[investor], outputs:[newAmount]},
-        )
+        .addCallFrom(vault, investor, "latest", vaultInterface, "balanceOf", {
+          inputs: [investor],
+          outputs: [newAmount],
+        })
+        .addCallFrom(vault, investor, "latest", vaultInterface, "balanceOf", {
+          inputs: [investor],
+          outputs: [newAmount],
+        })
         .addSigner(investor)
         .getSigner(investor)
         .allowTransaction(
-          investor, vault, vaultInterface,
-          "withdraw", [oldAmount], "wiiii",
+          investor,
+          vault,
+          vaultInterface,
+          "withdraw",
+          [oldAmount],
+          "wiiii"
         );
 
-      expect(await fetcher.withdrawForUser({
-          vault:{ id: vault },
-          account:{ id: investor },
-        },
-        BigNumber.from(oldAmount),
-        mockProvider as any)
+      expect(
+        await fetcher.withdrawForUser(
+          {
+            vault: { id: vault },
+            account: { id: investor },
+          },
+          BigNumber.from(oldAmount),
+          mockProvider as any
+        )
       ).toStrictEqual(BigNumber.from(oldAmount - newAmount));
     }
   });
@@ -138,49 +134,82 @@ describe("DataFetcher tests suite", () => {
     // num of investors, jsonRpcUrl, blockNumber, supply, vault, initial balance [], final balance []
     const CASES: [number, string, number, string, string, string[], string[]][] = [
       [1, "jsonRpcUrl-a", 2, "11111111", createAddress("0xda01"), ["50"], ["20"]],
-      [2, "jsonRpcUrl-b", 5, "11129111", createAddress("0xda02"), ["1111", "234"], ["1000", "234"]],
-      [3, "jsonRpcUrl-c", 9, "11138111", createAddress("0xda03"), ["11111110", "0", "1"], ["0", "0", "0"]],
-      [3, "jsonRpcUrl-d", 4, "11147111", createAddress("0xda04"), ["20", "30", "40"], ["10", "20", "30"]],
-      [2, "jsonRpcUrl-e", 1, "11156111", createAddress("0xda05"), ["50", "100"], ["50", "100"]],
+      [
+        2,
+        "jsonRpcUrl-b",
+        5,
+        "11129111",
+        createAddress("0xda02"),
+        ["1111", "234"],
+        ["1000", "234"],
+      ],
+      [
+        3,
+        "jsonRpcUrl-c",
+        9,
+        "11138111",
+        createAddress("0xda03"),
+        ["11111110", "0", "1"],
+        ["0", "0", "0"],
+      ],
+      [
+        3,
+        "jsonRpcUrl-d",
+        4,
+        "11147111",
+        createAddress("0xda04"),
+        ["20", "30", "40"],
+        ["10", "20", "30"],
+      ],
+      [
+        2,
+        "jsonRpcUrl-e",
+        1,
+        "11156111",
+        createAddress("0xda05"),
+        ["50", "100"],
+        ["50", "100"],
+      ],
     ];
 
-    for(let [numOfInvestors, jsonRpcURL, block, supply, vault, iBalance, fBalance] of CASES) {
+    for (let [
+      numOfInvestors,
+      jsonRpcURL,
+      block,
+      supply,
+      vault,
+      iBalance,
+      fBalance,
+    ] of CASES) {
       const inv = buildInvestors(numOfInvestors, vault);
 
-      mockProvider
-        .addCallTo(
-          vault,
-          "latest",
-          vaultInterface,
-          "totalSupply",
-          {inputs:[], outputs:[supply]},
-        );
+      mockProvider.addCallTo(vault, "latest", vaultInterface, "totalSupply", {
+        inputs: [],
+        outputs: [supply],
+      });
 
       const investors: string[] = [];
-      for(let i = 0; i < numOfInvestors; ++i){
+      for (let i = 0; i < numOfInvestors; ++i) {
         const investor: string = createAddress(`0xe0a${i}`);
         investors.push(investor);
         mockProvider
-          .addCallTo(
-            vault,
-            "latest",
-            vaultInterface,
-            "balanceOf",
-            {inputs:[investor], outputs:[iBalance[i]]},
-          )
-          .addCallFrom(
-            vault,
-            investor,
-            "latest",
-            vaultInterface,
-            "balanceOf",
-            {inputs:[investor], outputs:[fBalance[i]]},
-          )
+          .addCallTo(vault, "latest", vaultInterface, "balanceOf", {
+            inputs: [investor],
+            outputs: [iBalance[i]],
+          })
+          .addCallFrom(vault, investor, "latest", vaultInterface, "balanceOf", {
+            inputs: [investor],
+            outputs: [fBalance[i]],
+          })
           .addSigner(investor)
           .getSigner(investor)
           .allowTransaction(
-            investor, vault, vaultInterface,
-            "withdraw", [iBalance[i]], {},
+            investor,
+            vault,
+            vaultInterface,
+            "withdraw",
+            [iBalance[i]],
+            {}
           );
       }
 
@@ -209,12 +238,10 @@ describe("DataFetcher tests suite", () => {
 
     mockProvider
       .setLatestBlock(block)
-      .addCallTo(
-        registry, block, vaultRegistryInterface,
-        "assetsAddresses", {
-          inputs:[], outputs:[vaults],
-        }
-      );
+      .addCallTo(registry, block, vaultRegistryInterface, "assetsAddresses", {
+        inputs: [],
+        outputs: [vaults],
+      });
 
     // num of investors, supply, vault, initial balance [], final balance []
     const vaultsData: [number, string, string, string[], string[]][] = [
@@ -224,58 +251,49 @@ describe("DataFetcher tests suite", () => {
     ];
 
     const expectedData: [string, BigNumber, BigNumber, BigNumber][] = [];
-    for(let [numOfInvestors, supply, vault, iBalance, fBalance] of vaultsData) {
+    for (let [numOfInvestors, supply, vault, iBalance, fBalance] of vaultsData) {
       prepareAxios(numOfInvestors, vault);
 
-      if(numOfInvestors === 0) continue;
+      if (numOfInvestors === 0) continue;
 
-      mockProvider
-        .addCallTo(
-          vault,
-          "latest",
-          vaultInterface,
-          "totalSupply",
-          {inputs:[], outputs:[supply]},
-        );
+      mockProvider.addCallTo(vault, "latest", vaultInterface, "totalSupply", {
+        inputs: [],
+        outputs: [supply],
+      });
 
-      for(let i = 0; i < numOfInvestors; ++i){
+      for (let i = 0; i < numOfInvestors; ++i) {
         const investor: string = createAddress(`0xe0a${i}`);
         mockProvider
-          .addCallTo(
-            vault,
-            "latest",
-            vaultInterface,
-            "balanceOf",
-            {inputs:[investor], outputs:[iBalance[i]]},
-          )
-          .addCallFrom(
-            vault,
-            investor,
-            "latest",
-            vaultInterface,
-            "balanceOf",
-            {inputs:[investor], outputs:[fBalance[i]]},
-          )
+          .addCallTo(vault, "latest", vaultInterface, "balanceOf", {
+            inputs: [investor],
+            outputs: [iBalance[i]],
+          })
+          .addCallFrom(vault, investor, "latest", vaultInterface, "balanceOf", {
+            inputs: [investor],
+            outputs: [fBalance[i]],
+          })
           .addSigner(investor)
           .getSigner(investor)
           .allowTransaction(
-            investor, vault, vaultInterface,
-            "withdraw", [iBalance[i]], {},
+            investor,
+            vault,
+            vaultInterface,
+            "withdraw",
+            [iBalance[i]],
+            {}
           );
       }
 
       const initialAcum: BigNumber = acum(iBalance);
       const finalAcum: BigNumber = initialAcum.sub(acum(fBalance));
 
-      expectedData.push([
-        vault,
-        BigNumber.from(supply),
-        initialAcum,
-        finalAcum,
-      ]);
+      expectedData.push([vault, BigNumber.from(supply), initialAcum, finalAcum]);
     }
 
-    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(registry, createFork);
+    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(
+      registry,
+      createFork
+    );
     expect(data).toStrictEqual(expectedData);
   });
 });

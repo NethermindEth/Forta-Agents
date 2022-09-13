@@ -1,11 +1,8 @@
-import { providers, Contract, BigNumber } from "ethers"
+import { providers, Contract, BigNumber } from "ethers";
 import { vaultInterface, vaultRegistryInterface } from "./abi";
 import { getForkProvider, makeRequestOptions } from "./utils";
 
-type ForkFactory = (
-  block: number,
-  unlockedAccounts: string[]
-) => providers.Web3Provider;
+type ForkFactory = (block: number, unlockedAccounts: string[]) => providers.Web3Provider;
 
 type InvestorInfo = {
   vault: {
@@ -32,12 +29,12 @@ export default class DataFetcher {
 
   public async getVaults(
     vaultRegistryAddress: string,
-    blockNumber: number,
+    blockNumber: number
   ): Promise<string[]> {
     const vaultRegistryContract = new Contract(
       vaultRegistryAddress,
       vaultRegistryInterface,
-      this.provider,
+      this.provider
     );
     return vaultRegistryContract
       .assetsAddresses({ blockTag: blockNumber })
@@ -45,7 +42,7 @@ export default class DataFetcher {
   }
 
   public async getBiggerInvestors(vault: string): Promise<InvestorInfo[]> {
-    const data = (await this.axios(makeRequestOptions(vault.toLowerCase())));
+    const data = await this.axios(makeRequestOptions(vault.toLowerCase()));
     return data.data.data.accountVaultPositions;
   }
 
@@ -67,7 +64,7 @@ export default class DataFetcher {
       await vaultContract.withdraw(balanceBefore);
     } catch {}
 
-    const balanceAfter = await vaultContract.balanceOf(investor, {blockTag: "latest"});
+    const balanceAfter = await vaultContract.balanceOf(investor, { blockTag: "latest" });
 
     return balanceBefore.sub(balanceAfter);
   }
@@ -77,14 +74,14 @@ export default class DataFetcher {
     blockNumber: number,
     createFork: ForkFactory
   ): Promise<[string, BigNumber, BigNumber, BigNumber]> {
-    const investors = topInvestors.map((investor) => investor.account.id);
+    const investors = topInvestors.map(investor => investor.account.id);
     const forkProvider = createFork(blockNumber, investors);
 
     const vault = topInvestors[0].vault.id;
     const vaultContract = new Contract(vault, vaultInterface, forkProvider);
 
     const totalSupply = await vaultContract.totalSupply({ blockTag: "latest" });
-    const balancesPromises = investors.map((investor) =>
+    const balancesPromises = investors.map(investor =>
       vaultContract.balanceOf(investor, { blockTag: "latest" })
     );
     const balances = await Promise.all(balancesPromises);
@@ -106,24 +103,20 @@ export default class DataFetcher {
 
   public async getStats(
     registryAddress: string,
-    createFork: ForkFactory = getForkProvider,
+    createFork: ForkFactory = getForkProvider
   ): Promise<[string, BigNumber, BigNumber, BigNumber][]> {
     const blockNumber = await this.getBlockNumber();
     const vaults = await this.getVaults(registryAddress, blockNumber);
 
-    const investByVaultPromises = vaults.map((vault) =>
-      this.getBiggerInvestors(vault)
-    );
+    const investByVaultPromises = vaults.map(vault => this.getBiggerInvestors(vault));
     let investByVault = await Promise.all(investByVaultPromises);
 
-    investByVault = investByVault.filter(
-      (investorsInfo) => investorsInfo.length > 0
-    );
+    investByVault = investByVault.filter(investorsInfo => investorsInfo.length > 0);
 
-    const statsPromises = investByVault.map((investors) =>
+    const statsPromises = investByVault.map(investors =>
       this.getStatsForVault(investors, blockNumber, createFork)
     );
 
     return Promise.all(statsPromises);
   }
-};
+}
