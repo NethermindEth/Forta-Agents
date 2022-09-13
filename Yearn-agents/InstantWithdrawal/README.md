@@ -2,15 +2,13 @@
 
 ## Description
 
-This bot query the top 10 investors of every V2 Yearn Vault and check how much of their shares can be withdrawn instantly.
+This bot queries the top 10 investors of every V2 Yearn Vault and checks how much of their shares can be withdrawn instantly.
 
 ## Supported Chains
 
 - Ethereum
 
 ## Alerts
-
-Describe each of the type of alerts fired by this bot
 
 - YEARN-7
   - Fired at least every 6 hours.

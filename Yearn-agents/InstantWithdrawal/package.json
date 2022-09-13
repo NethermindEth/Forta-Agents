@@ -1,7 +1,7 @@
 {
   "name": "yearn-7",
   "version": "0.0.1",
-  "description": "This bot informs about the amount of assets that can be instantanly withdrawn from vaults",
+  "description": "This bot provides information about the amount of assets that can be instantly withdrawn from vaults",
   "chainIds": [
     1
   ],
