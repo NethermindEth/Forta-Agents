@@ -2,7 +2,6 @@ import {
   BlockEvent,
   Finding,
   getEthersProvider,
-  getJsonRpcUrl,
   HandleBlock,
 } from "forta-agent";
 import { BigNumber } from "ethers";
@@ -17,18 +16,17 @@ const REPORT_PERIOD = 6 * 60 * 60; // 6 hours
 
 const detectFindings = async (
   registryAddress: string,
-  jsonRpcURL: string,
   fetcher: DataFetcher,
   outFindingsPacks: Finding[][]
 ) => {
   while (true) {
     try {
       const stats: [
-        string, 
-        BigNumber, 
-        BigNumber, 
+        string,
+        BigNumber,
+        BigNumber,
         BigNumber
-      ][] = await fetcher.getStats(registryAddress, jsonRpcURL);
+      ][] = await fetcher.getStats(registryAddress);
 
       const findings = stats.map(
         ([vault, totalSupply, totalInvestorValues, ableToWithdrawn]) =>
@@ -48,17 +46,16 @@ const detectFindings = async (
 const initialize = () => {
   detectFindings(
     VAULTS_REGISTRY,
-    getJsonRpcUrl() as string,
     FETCHER,
     FINDINGS_PACKS
   );
 };
 
 export const provideHandleBlock = (
-  period: number, 
-  findings: Finding[][], 
+  period: number,
+  findings: Finding[][],
   lastReported: number
-): HandleBlock => 
+): HandleBlock =>
   async (blockEvent: BlockEvent): Promise<Finding[]> => {
     if (
       (blockEvent.block.timestamp - lastReported >= period) &&

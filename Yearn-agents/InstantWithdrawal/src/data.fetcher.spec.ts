@@ -20,7 +20,7 @@ describe("DataFetcher tests suite", () => {
       }
     });
     return inv;
-  } 
+  }
 
   const buildInvestors = (size: number, vault: string) => {
     const inv: any[] = [];
@@ -33,7 +33,7 @@ describe("DataFetcher tests suite", () => {
     return inv;
   }
 
-  const acum = (data: string[]) => data 
+  const acum = (data: string[]) => data
     .map(x => BigNumber.from(x))
     .reduce((acum, cur) => acum.add(cur));
 
@@ -102,17 +102,17 @@ describe("DataFetcher tests suite", () => {
     for(let [vault, investor, oldAmount, newAmount] of CASES) {
       mockProvider
         .addCallFrom(
-          vault, 
+          vault,
           investor,
-          "latest", 
+          "latest",
           vaultInterface,
           "balanceOf",
           {inputs:[investor], outputs:[newAmount]},
         )
         .addCallFrom(
-          vault, 
+          vault,
           investor,
-          "latest", 
+          "latest",
           vaultInterface,
           "balanceOf",
           {inputs:[investor], outputs:[newAmount]},
@@ -120,17 +120,17 @@ describe("DataFetcher tests suite", () => {
         .addSigner(investor)
         .getSigner(investor)
         .allowTransaction(
-          investor, vault, vaultInterface, 
+          investor, vault, vaultInterface,
           "withdraw", [oldAmount], "wiiii",
         );
-      
+
       expect(await fetcher.withdrawForUser({
           vault:{ id: vault },
           account:{ id: investor },
-        }, 
-        BigNumber.from(oldAmount), 
+        },
+        BigNumber.from(oldAmount),
         mockProvider as any)
-      ).toStrictEqual(BigNumber.from(oldAmount - newAmount));    
+      ).toStrictEqual(BigNumber.from(oldAmount - newAmount));
     }
   });
 
@@ -149,8 +149,8 @@ describe("DataFetcher tests suite", () => {
 
       mockProvider
         .addCallTo(
-          vault, 
-          "latest", 
+          vault,
+          "latest",
           vaultInterface,
           "totalSupply",
           {inputs:[], outputs:[supply]},
@@ -162,16 +162,16 @@ describe("DataFetcher tests suite", () => {
         investors.push(investor);
         mockProvider
           .addCallTo(
-            vault, 
-            "latest", 
+            vault,
+            "latest",
             vaultInterface,
             "balanceOf",
             {inputs:[investor], outputs:[iBalance[i]]},
           )
           .addCallFrom(
-            vault, 
+            vault,
             investor,
-            "latest", 
+            "latest",
             vaultInterface,
             "balanceOf",
             {inputs:[investor], outputs:[fBalance[i]]},
@@ -179,7 +179,7 @@ describe("DataFetcher tests suite", () => {
           .addSigner(investor)
           .getSigner(investor)
           .allowTransaction(
-            investor, vault, vaultInterface, 
+            investor, vault, vaultInterface,
             "withdraw", [iBalance[i]], {},
           );
       }
@@ -187,9 +187,9 @@ describe("DataFetcher tests suite", () => {
       const initialAcum: BigNumber = acum(iBalance);
       const finalAcum: BigNumber = initialAcum.sub(acum(fBalance));
       const [_vault, totalSupply, totalInvestorValues, ableToWithdrawn] =
-        await fetcher.getStatsForVault(inv, jsonRpcURL, block, createFork as any);
+        await fetcher.getStatsForVault(inv, block, createFork as any);
 
-      expect(createFork).lastCalledWith(jsonRpcURL, block, investors);
+      expect(createFork).lastCalledWith(block, investors);
       expect(_vault).toStrictEqual(vault);
       expect(totalSupply).toStrictEqual(BigNumber.from(supply));
       expect(totalInvestorValues).toStrictEqual(initialAcum);
@@ -206,7 +206,7 @@ describe("DataFetcher tests suite", () => {
       createAddress("0xdef1013214"),
       createAddress("0xbaddef1"),
     ];
-    
+
     mockProvider
       .setLatestBlock(block)
       .addCallTo(
@@ -231,8 +231,8 @@ describe("DataFetcher tests suite", () => {
 
       mockProvider
         .addCallTo(
-          vault, 
-          "latest", 
+          vault,
+          "latest",
           vaultInterface,
           "totalSupply",
           {inputs:[], outputs:[supply]},
@@ -242,16 +242,16 @@ describe("DataFetcher tests suite", () => {
         const investor: string = createAddress(`0xe0a${i}`);
         mockProvider
           .addCallTo(
-            vault, 
-            "latest", 
+            vault,
+            "latest",
             vaultInterface,
             "balanceOf",
             {inputs:[investor], outputs:[iBalance[i]]},
           )
           .addCallFrom(
-            vault, 
+            vault,
             investor,
-            "latest", 
+            "latest",
             vaultInterface,
             "balanceOf",
             {inputs:[investor], outputs:[fBalance[i]]},
@@ -259,7 +259,7 @@ describe("DataFetcher tests suite", () => {
           .addSigner(investor)
           .getSigner(investor)
           .allowTransaction(
-            investor, vault, vaultInterface, 
+            investor, vault, vaultInterface,
             "withdraw", [iBalance[i]], {},
           );
       }
@@ -268,14 +268,14 @@ describe("DataFetcher tests suite", () => {
       const finalAcum: BigNumber = initialAcum.sub(acum(fBalance));
 
       expectedData.push([
-        vault, 
+        vault,
         BigNumber.from(supply),
         initialAcum,
         finalAcum,
       ]);
     }
 
-    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(registry, jsonRpcURL, createFork);
+    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(registry, createFork);
     expect(data).toStrictEqual(expectedData);
   });
 });

@@ -57,13 +57,12 @@ export const createFinding = (
 };
 
 export const getForkProvider = (
-  jsonRpcURL: string,
   forkBlockNumber: number,
   unlockedAddresses: string[]
 ): providers.Web3Provider => {
   return new providers.Web3Provider(
     ganache.provider({
-      fork: { url: jsonRpcURL, blockNumber: forkBlockNumber },
+      fork: { network: "mainnet", blockNumber: forkBlockNumber },
       wallet: { unlockedAccounts: unlockedAddresses },
     }) as any
   );

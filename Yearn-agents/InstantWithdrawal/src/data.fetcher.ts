@@ -3,7 +3,6 @@ import { vaultInterface, vaultRegistryInterface } from "./abi";
 import { getForkProvider, makeRequestOptions } from "./utils";
 
 type ForkFactory = (
-  jsonRpcURL: string,
   block: number,
   unlockedAccounts: string[]
 ) => providers.Web3Provider;
@@ -57,42 +56,41 @@ export default class DataFetcher {
   ): Promise<BigNumber> {
     const vaultAddress = investorInfo.vault.id;
     const investor = investorInfo.account.id;
-  
+
     const vaultContract = new Contract(
       vaultAddress,
       vaultInterface,
       forkProvider.getSigner(investor)
     );
-  
+
     try {
       await vaultContract.withdraw(balanceBefore);
     } catch {}
-  
+
     const balanceAfter = await vaultContract.balanceOf(investor, {blockTag: "latest"});
-  
+
     return balanceBefore.sub(balanceAfter);
   }
 
   public async getStatsForVault(
     topInvestors: InvestorInfo[],
-    jsonRpcURL: string,
     blockNumber: number,
     createFork: ForkFactory
   ): Promise<[string, BigNumber, BigNumber, BigNumber]> {
     const investors = topInvestors.map((investor) => investor.account.id);
-    const forkProvider = createFork(jsonRpcURL, blockNumber, investors);
-  
+    const forkProvider = createFork(blockNumber, investors);
+
     const vault = topInvestors[0].vault.id;
     const vaultContract = new Contract(vault, vaultInterface, forkProvider);
-  
+
     const totalSupply = await vaultContract.totalSupply({ blockTag: "latest" });
     const balancesPromises = investors.map((investor) =>
       vaultContract.balanceOf(investor, { blockTag: "latest" })
     );
     const balances = await Promise.all(balancesPromises);
-  
+
     const totalInvestorValues = balances.reduce((acum, value) => acum.add(value));
-  
+
     let ableToWithdrawn = BigNumber.from(0);
     for (let i = 0; i < topInvestors.length; i++) {
       const withdrawnByInvestor = await this.withdrawForUser(
@@ -102,13 +100,12 @@ export default class DataFetcher {
       );
       ableToWithdrawn = ableToWithdrawn.add(withdrawnByInvestor);
     }
-  
+
     return [vault, totalSupply, totalInvestorValues, ableToWithdrawn];
   }
 
   public async getStats(
     registryAddress: string,
-    jsonRpcURL: string,
     createFork: ForkFactory = getForkProvider,
   ): Promise<[string, BigNumber, BigNumber, BigNumber][]> {
     const blockNumber = await this.getBlockNumber();
@@ -124,7 +121,7 @@ export default class DataFetcher {
     );
 
     const statsPromises = investByVault.map((investors) =>
-      this.getStatsForVault(investors, jsonRpcURL, blockNumber, createFork)
+      this.getStatsForVault(investors, blockNumber, createFork)
     );
 
     return Promise.all(statsPromises);
