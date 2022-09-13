@@ -64,6 +64,7 @@ export const getForkProvider = (
     ganache.provider({
       fork: { network: "mainnet", blockNumber: forkBlockNumber },
       wallet: { unlockedAccounts: unlockedAddresses },
+      logging: { quiet: true },
     }) as any
   );
 };
