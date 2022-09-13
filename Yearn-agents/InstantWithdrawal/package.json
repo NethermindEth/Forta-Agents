@@ -1,7 +1,11 @@
 {
   "name": "yearn-7",
   "version": "0.0.1",
-  "description": "This agent informs about the amount of assets that can be instantanly withdrawn from vaults",
+  "description": "This bot informs about the amount of assets that can be instantanly withdrawn from vaults",
+  "chainIds": [
+    1
+  ],
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/Yearn-agents/InstantWithdrawal",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -20,17 +24,16 @@
   },
   "dependencies": {
     "axios": "^0.21.4",
-    "forta-agent": "^0.0.39",
-    "ganache-core": "^2.13.2"
+    "forta-agent": "^0.1.9",
+    "ganache": "^7.4.3"
   },
   "devDependencies": {
-    "@types/ganache-core": "^2.7.0",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^2.0.3",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
-    "ts-jest": "^27.0.3",
+    "ts-jest": "^27.1.5",
     "typescript": "^4.3.4"
   }
 }
