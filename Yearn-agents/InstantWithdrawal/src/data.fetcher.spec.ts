@@ -102,10 +102,6 @@ describe("DataFetcher tests suite", () => {
           inputs: [investor],
           outputs: [newAmount],
         })
-        .addCallFrom(vault, investor, "latest", vaultInterface, "balanceOf", {
-          inputs: [investor],
-          outputs: [newAmount],
-        })
         .addSigner(investor)
         .getSigner(investor)
         .allowTransaction(
