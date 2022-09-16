@@ -127,56 +127,23 @@ describe("DataFetcher tests suite", () => {
   });
 
   it("should return the stats for a vault", async () => {
-    // num of investors, jsonRpcUrl, blockNumber, supply, vault, initial balance [], final balance []
-    const CASES: [number, string, number, string, string, string[], string[]][] = [
-      [1, "jsonRpcUrl-a", 2, "11111111", createAddress("0xda01"), ["50"], ["20"]],
-      [
-        2,
-        "jsonRpcUrl-b",
-        5,
-        "11129111",
-        createAddress("0xda02"),
-        ["1111", "234"],
-        ["1000", "234"],
-      ],
+    // num of investors, blockNumber, supply, vault, initial balance [], final balance []
+    const CASES: [number, number, string, string, string[], string[]][] = [
+      [1, 2, "11111111", createAddress("0xda01"), ["50"], ["20"]],
+      [2, 5, "11129111", createAddress("0xda02"), ["1111", "234"], ["1000", "234"]],
       [
         3,
-        "jsonRpcUrl-c",
         9,
         "11138111",
         createAddress("0xda03"),
         ["11111110", "0", "1"],
         ["0", "0", "0"],
       ],
-      [
-        3,
-        "jsonRpcUrl-d",
-        4,
-        "11147111",
-        createAddress("0xda04"),
-        ["20", "30", "40"],
-        ["10", "20", "30"],
-      ],
-      [
-        2,
-        "jsonRpcUrl-e",
-        1,
-        "11156111",
-        createAddress("0xda05"),
-        ["50", "100"],
-        ["50", "100"],
-      ],
+      [3, 4, "11147111", createAddress("0xda04"), ["20", "30", "40"], ["10", "20", "30"]],
+      [2, 1, "11156111", createAddress("0xda05"), ["50", "100"], ["50", "100"]],
     ];
 
-    for (let [
-      numOfInvestors,
-      jsonRpcURL,
-      block,
-      supply,
-      vault,
-      iBalance,
-      fBalance,
-    ] of CASES) {
+    for (let [numOfInvestors, block, supply, vault, iBalance, fBalance] of CASES) {
       const inv = buildInvestors(numOfInvestors, vault);
 
       mockProvider.addCallTo(vault, "latest", vaultInterface, "totalSupply", {
@@ -225,7 +192,6 @@ describe("DataFetcher tests suite", () => {
   it("should return stats for all the vaults", async () => {
     const block: number = 50;
     const registry: string = createAddress("0xdead");
-    const jsonRpcURL: string = "cool-endpoint";
     const vaults: string[] = [
       createAddress("0xdef10"),
       createAddress("0xdef1013214"),
