@@ -18,5 +18,5 @@ This bot queries the top 10 investors of every V2 Yearn Vault and checks how muc
     - `vault`: The vault analyzed.
     - `totalSupply`: Total supply of vault shares.
     - `sharesOwnedByTop10`: Amount of shares owned by the Top 10 investors.
-    - `shareAvailableToWithdrawByTop10`: Amount of shares the the Top 10 investors was able to withdrawn instantly.
+    - `shareAvailableToWithdrawByTop10`: Amount of shares the Top 10 investors were able to withdraw instantly.
     - `minPercentAvailableToWithdrawn`: A lower limit for the percent of the share's total supply that can be instantly withdrawn.

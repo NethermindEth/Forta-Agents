@@ -88,17 +88,17 @@ export default class DataFetcher {
 
     const totalInvestorValues = balances.reduce((acum, value) => acum.add(value));
 
-    let ableToWithdrawn = BigNumber.from(0);
+    let ableToWithdraw = BigNumber.from(0);
     for (let i = 0; i < topInvestors.length; i++) {
       const withdrawnByInvestor = await this.withdrawForUser(
         topInvestors[i],
         balances[i],
         forkProvider
       );
-      ableToWithdrawn = ableToWithdrawn.add(withdrawnByInvestor);
+      ableToWithdraw = ableToWithdraw.add(withdrawnByInvestor);
     }
 
-    return [vault, totalSupply, totalInvestorValues, ableToWithdrawn];
+    return [vault, totalSupply, totalInvestorValues, ableToWithdraw];
   }
 
   public async getStats(
@@ -108,12 +108,12 @@ export default class DataFetcher {
     const blockNumber = await this.getBlockNumber();
     const vaults = await this.getVaults(registryAddress, blockNumber);
 
-    const investByVaultPromises = vaults.map(vault => this.getBiggerInvestors(vault));
-    let investByVault = await Promise.all(investByVaultPromises);
+    const investorsByVaultPromises = vaults.map(vault => this.getBiggerInvestors(vault));
+    let investorsByVault = await Promise.all(investorsByVaultPromises);
 
-    investByVault = investByVault.filter(investorsInfo => investorsInfo.length > 0);
+    investorsByVault = investorsByVault.filter(investorsInfo => investorsInfo.length > 0);
 
-    const statsPromises = investByVault.map(investors =>
+    const statsPromises = investorsByVault.map(investors =>
       this.getStatsForVault(investors, blockNumber, createFork)
     );
 

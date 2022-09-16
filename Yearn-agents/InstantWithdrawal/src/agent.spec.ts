@@ -19,7 +19,7 @@ const updater = (findings: Finding[][]) => (n: number) => {
   return newFindings;
 };
 
-describe("Instant Withdraw agent tests suite", () => {
+describe("Instant Withdraw bot tests suite", () => {
   let findingsList: Finding[][] = [];
   let add: any;
   let handler: HandleBlock;
