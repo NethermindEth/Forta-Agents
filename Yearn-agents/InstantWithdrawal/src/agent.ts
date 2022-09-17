@@ -9,20 +9,13 @@ const VAULTS_REGISTRY = "0x437758D475F70249e03EDa6bE23684aD1FC375F0";
 const FINDINGS_PACKS: Finding[][] = [];
 const REPORT_PERIOD = 6 * 60 * 60; // 6 hours
 
-const detectFindings = async (
-  registryAddress: string,
-  fetcher: DataFetcher,
-  outFindingsPacks: Finding[][]
-) => {
+const detectFindings = async (registryAddress: string, fetcher: DataFetcher, outFindingsPacks: Finding[][]) => {
   while (true) {
     try {
-      const stats: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(
-        registryAddress
-      );
+      const stats: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(registryAddress);
 
-      const findings = stats.map(
-        ([vault, totalSupply, totalInvestorValues, ableToWithdrawn]) =>
-          createFinding(vault, totalSupply, totalInvestorValues, ableToWithdrawn)
+      const findings = stats.map(([vault, totalSupply, totalInvestorValues, ableToWithdrawn]) =>
+        createFinding(vault, totalSupply, totalInvestorValues, ableToWithdrawn)
       );
 
       outFindingsPacks.push(findings);

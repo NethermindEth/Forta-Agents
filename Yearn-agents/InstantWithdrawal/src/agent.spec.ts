@@ -40,9 +40,7 @@ describe("Instant Withdraw bot tests suite", () => {
       const lastBatch: Finding[] = findingsList[batches - 1];
       // increase the timestamp to always report findings
       timestamp += period;
-      const findings: Finding[] = await handler(
-        new TestBlockEvent().setTimestamp(timestamp)
-      );
+      const findings: Finding[] = await handler(new TestBlockEvent().setTimestamp(timestamp));
       expect(findings).toStrictEqual(lastBatch);
       expect(findingsList).toStrictEqual([]);
     }
@@ -64,9 +62,7 @@ describe("Instant Withdraw bot tests suite", () => {
       const last: Finding[] = add(i + 1);
       const [timestamp, report] = CASES[i];
 
-      const findings: Finding[] = await handler(
-        new TestBlockEvent().setTimestamp(timestamp)
-      );
+      const findings: Finding[] = await handler(new TestBlockEvent().setTimestamp(timestamp));
 
       if (report) expect(findings).toStrictEqual(last);
       else expect(findings).toStrictEqual([]);

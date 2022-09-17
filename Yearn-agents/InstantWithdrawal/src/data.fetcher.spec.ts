@@ -33,8 +33,7 @@ describe("DataFetcher tests suite", () => {
     return inv;
   };
 
-  const acum = (data: string[]) =>
-    data.map(x => BigNumber.from(x)).reduce((acum, cur) => acum.add(cur));
+  const acum = (data: string[]) => data.map((x) => BigNumber.from(x)).reduce((acum, cur) => acum.add(cur));
 
   beforeAll(() => createFork.mockReturnValue(mockProvider));
 
@@ -104,14 +103,7 @@ describe("DataFetcher tests suite", () => {
         })
         .addSigner(investor)
         .getSigner(investor)
-        .allowTransaction(
-          investor,
-          vault,
-          vaultInterface,
-          "withdraw",
-          [oldAmount],
-          "wiiii"
-        );
+        .allowTransaction(investor, vault, vaultInterface, "withdraw", [oldAmount], "wiiii");
 
       expect(
         await fetcher.withdrawForUser(
@@ -131,14 +123,7 @@ describe("DataFetcher tests suite", () => {
     const CASES: [number, number, string, string, string[], string[]][] = [
       [1, 2, "11111111", createAddress("0xda01"), ["50"], ["20"]],
       [2, 5, "11129111", createAddress("0xda02"), ["1111", "234"], ["1000", "234"]],
-      [
-        3,
-        9,
-        "11138111",
-        createAddress("0xda03"),
-        ["11111110", "0", "1"],
-        ["0", "0", "0"],
-      ],
+      [3, 9, "11138111", createAddress("0xda03"), ["11111110", "0", "1"], ["0", "0", "0"]],
       [3, 4, "11147111", createAddress("0xda04"), ["20", "30", "40"], ["10", "20", "30"]],
       [2, 1, "11156111", createAddress("0xda05"), ["50", "100"], ["50", "100"]],
     ];
@@ -166,20 +151,16 @@ describe("DataFetcher tests suite", () => {
           })
           .addSigner(investor)
           .getSigner(investor)
-          .allowTransaction(
-            investor,
-            vault,
-            vaultInterface,
-            "withdraw",
-            [iBalance[i]],
-            {}
-          );
+          .allowTransaction(investor, vault, vaultInterface, "withdraw", [iBalance[i]], {});
       }
 
       const initialAcum: BigNumber = acum(iBalance);
       const finalAcum: BigNumber = initialAcum.sub(acum(fBalance));
-      const [_vault, totalSupply, totalInvestorValues, ableToWithdrawn] =
-        await fetcher.getStatsForVault(inv, block, createFork as any);
+      const [_vault, totalSupply, totalInvestorValues, ableToWithdrawn] = await fetcher.getStatsForVault(
+        inv,
+        block,
+        createFork as any
+      );
 
       expect(createFork).lastCalledWith(block, investors);
       expect(_vault).toStrictEqual(vault);
@@ -192,18 +173,12 @@ describe("DataFetcher tests suite", () => {
   it("should return stats for all the vaults", async () => {
     const block: number = 50;
     const registry: string = createAddress("0xdead");
-    const vaults: string[] = [
-      createAddress("0xdef10"),
-      createAddress("0xdef1013214"),
-      createAddress("0xbaddef1"),
-    ];
+    const vaults: string[] = [createAddress("0xdef10"), createAddress("0xdef1013214"), createAddress("0xbaddef1")];
 
-    mockProvider
-      .setLatestBlock(block)
-      .addCallTo(registry, block, vaultRegistryInterface, "assetsAddresses", {
-        inputs: [],
-        outputs: [vaults],
-      });
+    mockProvider.setLatestBlock(block).addCallTo(registry, block, vaultRegistryInterface, "assetsAddresses", {
+      inputs: [],
+      outputs: [vaults],
+    });
 
     // num of investors, supply, vault, initial balance [], final balance []
     const vaultsData: [number, string, string, string[], string[]][] = [
@@ -236,14 +211,7 @@ describe("DataFetcher tests suite", () => {
           })
           .addSigner(investor)
           .getSigner(investor)
-          .allowTransaction(
-            investor,
-            vault,
-            vaultInterface,
-            "withdraw",
-            [iBalance[i]],
-            {}
-          );
+          .allowTransaction(investor, vault, vaultInterface, "withdraw", [iBalance[i]], {});
       }
 
       const initialAcum: BigNumber = acum(iBalance);
@@ -252,10 +220,7 @@ describe("DataFetcher tests suite", () => {
       expectedData.push([vault, BigNumber.from(supply), initialAcum, finalAcum]);
     }
 
-    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(
-      registry,
-      createFork
-    );
+    const data: [string, BigNumber, BigNumber, BigNumber][] = await fetcher.getStats(registry, createFork);
     expect(data).toStrictEqual(expectedData);
   });
 });
