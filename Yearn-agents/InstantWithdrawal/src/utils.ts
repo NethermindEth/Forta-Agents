@@ -1,7 +1,7 @@
 import { AxiosRequestConfig } from "axios";
 import { providers, BigNumber } from "ethers";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
-import ganache from "ganache-core";
+import ganache from "ganache";
 
 const getGraphQuery = (vault: string) => {
   return {
@@ -56,16 +56,12 @@ export const createFinding = (
   });
 };
 
-export const getForkProvider = (
-  jsonRpcURL: string,
-  forkBlockNumber: number,
-  unlockedAddresses: string[]
-): providers.Web3Provider => {
+export const getForkProvider = (forkBlockNumber: number, unlockedAddresses: string[]): providers.Web3Provider => {
   return new providers.Web3Provider(
     ganache.provider({
-      fork: jsonRpcURL,
-      fork_block_number: forkBlockNumber,
-      unlocked_accounts: unlockedAddresses,
+      fork: { network: "mainnet", blockNumber: forkBlockNumber },
+      wallet: { unlockedAccounts: unlockedAddresses },
+      logging: { quiet: true },
     }) as any
   );
 };
