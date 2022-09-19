@@ -14,44 +14,38 @@ import {
   OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD,
 } from "./configurables";
 
-import { ARBITRUM_INIT_BLOCK_NO, GOERLI_INIT_BLOCK_NO, GOERLI_MONITORED_ADDRESSES, GOERLI_MONITORED_TOKENS, GOERLI_PERCENTAGE_CHANGE_THRESHOLD, MAINNET_INIT_BLOCK_NO, OPTIMISM_INIT_BLOCK_NO, POLYGON_INIT_BLOCK_NO } from "./utils";
+import { GOERLI_MONITORED_ADDRESSES, GOERLI_MONITORED_TOKENS, GOERLI_PERCENTAGE_CHANGE_THRESHOLD } from "./utils";
 
 export interface NetworkDataInterface {
   monitoredTokens: string[];
   monitoredAddresses: string[];
   alertThreshold: number;
-  initBlockNo: number;
 }
 
 export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.MAINNET]: {
     monitoredTokens: MAINNET_MONITORED_TOKENS,
     monitoredAddresses: MAINNET_MONITORED_ADDRESSES,
-    alertThreshold: MAINNET_PERCENTAGE_CHANGE_THRESHOLD,
-    initBlockNo: MAINNET_INIT_BLOCK_NO
+    alertThreshold: MAINNET_PERCENTAGE_CHANGE_THRESHOLD
   },
   [Network.ARBITRUM]: {
     monitoredTokens: ARBITRUM_MONITORED_TOKENS,
     monitoredAddresses: ARBITRUM_MONITORED_ADDRESSES,
-    alertThreshold: ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD,
-    initBlockNo: ARBITRUM_INIT_BLOCK_NO
+    alertThreshold: ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD
   },
   [Network.POLYGON]: {
     monitoredTokens: POLYGON_MONITORED_TOKENS,
     monitoredAddresses: POLYGON_MONITORED_ADDRESSES,
-    alertThreshold: POLYGON_PERCENTAGE_CHANGE_THRESHOLD,
-    initBlockNo: POLYGON_INIT_BLOCK_NO
+    alertThreshold: POLYGON_PERCENTAGE_CHANGE_THRESHOLD
   },
   [Network.OPTIMISM]: {
     monitoredTokens: OPTIMISM_MONITORED_TOKENS,
     monitoredAddresses: OPTIMISM_MONITORED_ADDRESSES,
-    alertThreshold: OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD,
-    initBlockNo: OPTIMISM_INIT_BLOCK_NO
+    alertThreshold: OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD
   },
   [Network.GOERLI]: {
     monitoredTokens: GOERLI_MONITORED_TOKENS,
     monitoredAddresses: GOERLI_MONITORED_ADDRESSES,
-    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD,
-    initBlockNo: GOERLI_INIT_BLOCK_NO
+    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD
   },
 };
