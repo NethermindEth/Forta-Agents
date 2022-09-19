@@ -35,11 +35,11 @@ export async function loadLruCacheData(
       const balances: Record<string, BigNumber> = {};
       await Promise.all(
         monitoredAddresses.map(async (address) => {
-          let balance:BigNumber;
-          try{
+          let balance: BigNumber;
+          try {
             // The default ethers provider will throw an error if the INIT_BLOCK_NO is more than 128 blocks old before the current block (unless the provider can retrieve data older than that)
             balance = BigNumber.from(await tokenContract.balanceOf(address));
-          }catch(e){
+          } catch (e) {
             balance = BigNumber.from(await tokenContract.balanceOf(address));
           }
           balances[address] = balance;
@@ -55,7 +55,7 @@ export async function loadLruCacheData(
  * @param addr: monitored wallet address
  * @param fundsIn: boolean value indicating whether the transfer was made in or out of monitored wallet address
  */
-export function getFindingInstance(amount: string, walletAddr: string, tokenAddr:string, fundsIn: string) {
+export function getFindingInstance(amount: string, walletAddr: string, tokenAddr: string, fundsIn: string) {
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
     description: "A large amount of funds was transferred from a monitored relayer address",

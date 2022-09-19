@@ -26,26 +26,26 @@ export const NM_DATA: Record<number, NetworkDataInterface> = {
   [Network.MAINNET]: {
     monitoredTokens: MAINNET_MONITORED_TOKENS,
     monitoredAddresses: MAINNET_MONITORED_ADDRESSES,
-    alertThreshold: MAINNET_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: MAINNET_PERCENTAGE_CHANGE_THRESHOLD,
   },
   [Network.ARBITRUM]: {
     monitoredTokens: ARBITRUM_MONITORED_TOKENS,
     monitoredAddresses: ARBITRUM_MONITORED_ADDRESSES,
-    alertThreshold: ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: ARBITRUM_PERCENTAGE_CHANGE_THRESHOLD,
   },
   [Network.POLYGON]: {
     monitoredTokens: POLYGON_MONITORED_TOKENS,
     monitoredAddresses: POLYGON_MONITORED_ADDRESSES,
-    alertThreshold: POLYGON_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: POLYGON_PERCENTAGE_CHANGE_THRESHOLD,
   },
   [Network.OPTIMISM]: {
     monitoredTokens: OPTIMISM_MONITORED_TOKENS,
     monitoredAddresses: OPTIMISM_MONITORED_ADDRESSES,
-    alertThreshold: OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD,
   },
   [Network.GOERLI]: {
     monitoredTokens: GOERLI_MONITORED_TOKENS,
     monitoredAddresses: GOERLI_MONITORED_ADDRESSES,
-    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD
+    alertThreshold: GOERLI_PERCENTAGE_CHANGE_THRESHOLD,
   },
 };

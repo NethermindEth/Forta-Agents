@@ -37,14 +37,14 @@ export function provideHandleTransaction(
         if (valueBN.mul(100).gte(prevBalance.mul(alertThreshold))) {
           findings.push(getFindingInstance(value.toString(), from, transferEvent.address, "false"));
         }
-        let pastDict : Record<string, BigNumber> = passedLru.get(transferEvent.address)!;
+        let pastDict: Record<string, BigNumber> = passedLru.get(transferEvent.address)!;
         pastDict[from] = prevBalance.sub(valueBN);
         passedLru.set(transferEvent.address, pastDict);
       }
       if (networkManager.get("monitoredAddresses").includes(to)) {
         let prevBalance = passedLru.get(transferEvent.address)![to];
         if (valueBN.mul(100).gte(prevBalance.mul(alertThreshold))) {
-          findings.push(getFindingInstance(value.toString(), to,transferEvent.address, "true"));
+          findings.push(getFindingInstance(value.toString(), to, transferEvent.address, "true"));
         }
         let pastDict = passedLru.get(transferEvent.address)!;
         pastDict[to] = prevBalance.add(valueBN);
