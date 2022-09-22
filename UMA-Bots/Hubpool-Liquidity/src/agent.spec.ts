@@ -22,36 +22,41 @@ const MOCK_TIMESTAMP = [1, 2, 86410];
 
 const MOCK_NETWORK_DATA: Record<number, NetworkData> = {
   1: {
-    hubPoolAddress: mockHubPoolAddress
+    hubPoolAddress: mockHubPoolAddress,
   },
 };
 
 type mockBlockType = {
-  hash: string,
-  parentHash: string,
-  number: number,
-  timestamp: number,
-  nonce: string,
-  difficulty: number,
-  gasLimit: number,
-  gasUsed: number,
-  miner: string,
-  extraData: string,
-  transactions: [],
-  baseFeePerGas: number,
-  _difficulty: number
-}
-
+  hash: string;
+  parentHash: string;
+  number: number;
+  timestamp: number;
+  nonce: string;
+  difficulty: number;
+  gasLimit: number;
+  gasUsed: number;
+  miner: string;
+  extraData: string;
+  transactions: [];
+  baseFeePerGas: number;
+  _difficulty: number;
+};
 
 describe("UMA Liquidity Agent", () => {
   let findings: Finding[];
 
   const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const mockNetworkManager = new NetworkManager(MOCK_NETWORK_DATA, 1)
+  const mockNetworkManager = new NetworkManager(MOCK_NETWORK_DATA, 1);
   const mockLRUCache = new LRU<string, any>({ max: 10000 });
   const mockBalanceFetcher: TokenBalanceHelper = new TokenBalanceHelper(mockProvider as any, mockNetworkManager);
 
-  const createBalanceOfCall = (mockTokenAdd: string, mockHubPoolAddress: string, blockNumber: number, tokenAmount: number, timestamp: number) => {
+  const createBalanceOfCall = (
+    mockTokenAdd: string,
+    mockHubPoolAddress: string,
+    blockNumber: number,
+    tokenAmount: number,
+    timestamp: number
+  ) => {
     mockProvider.addCallTo(mockTokenAdd, blockNumber, TOKEN_IFACE, "balanceOf", {
       inputs: [mockHubPoolAddress],
       outputs: [tokenAmount],
@@ -61,19 +66,19 @@ describe("UMA Liquidity Agent", () => {
       _difficulty: 1,
       baseFeePerGas: 1,
       difficulty: 1,
-      extraData: '',
+      extraData: "",
       gasLimit: 1,
       gasUsed: 1,
-      hash: '123',
-      miner: '0x123455555',
-      nonce: '0x54321',
+      hash: "123",
+      miner: "0x123455555",
+      nonce: "0x54321",
       number: blockNumber,
-      parentHash: '0x1111111',
+      parentHash: "0x1111111",
       transactions: [],
-      timestamp: timestamp
-    }
+      timestamp: timestamp,
+    };
 
-    mockProvider.addBlock(blockNumber, mockBlock)
+    mockProvider.addBlock(blockNumber, mockBlock);
   };
 
   describe("handleTransaction", () => {
@@ -81,8 +86,8 @@ describe("UMA Liquidity Agent", () => {
 
     beforeEach(() => {
       mockLRUCache.set(mockTokenAddress, undefined);
-      mockLRUCache.set(mockTokenAddress2, undefined)
-      handleTransaction  = provideHandleTransaction(mockBalanceFetcher, mockNetworkManager, mockLRUCache);
+      mockLRUCache.set(mockTokenAddress2, undefined);
+      handleTransaction = provideHandleTransaction(mockBalanceFetcher, mockNetworkManager, mockLRUCache);
       mockProvider.clear();
     });
 
@@ -95,12 +100,8 @@ describe("UMA Liquidity Agent", () => {
 
     it("returns empty findings if other events are emitted", async () => {
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .addEventLog(
-        INCORRECT_EVENT,
-        mockHubPoolAddress,
-        [MOCK_ADDRESSES[0], MOCK_ADDRESSES[1]]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .addEventLog(INCORRECT_EVENT, mockHubPoolAddress, [MOCK_ADDRESSES[0], MOCK_ADDRESSES[1]]);
 
       findings = await handleTransaction(txEvent);
 
@@ -112,15 +113,16 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[3], MOCK_TIMESTAMP[1]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[0])
-      .setTimestamp(MOCK_TIMESTAMP[1])
-      .setTo(MOCK_ADDRESSES[1])
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        MOCK_ADDRESSES[1],
-        [mockTokenAddress, MOCK_AMOUNT[0], MOCK_AMOUNT[0], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[0])
+        .setTimestamp(MOCK_TIMESTAMP[1])
+        .setTo(MOCK_ADDRESSES[1])
+        .addEventLog(HUBPOOL_EVENTS, MOCK_ADDRESSES[1], [
+          mockTokenAddress,
+          MOCK_AMOUNT[0],
+          MOCK_AMOUNT[0],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -131,15 +133,16 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[5], MOCK_TIMESTAMP[1]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[1])
-      .setTimestamp(MOCK_TIMESTAMP[1])
-      .setTo(mockHubPoolAddress)
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[0], MOCK_AMOUNT[0], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[1])
+        .setTimestamp(MOCK_TIMESTAMP[1])
+        .setTo(mockHubPoolAddress)
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[0],
+          MOCK_AMOUNT[0],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -150,15 +153,16 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[2], MOCK_TIMESTAMP[1]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[1])
-      .setTimestamp(MOCK_TIMESTAMP[1])
-      .setTo(mockHubPoolAddress)
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[1], MOCK_AMOUNT[1], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[1])
+        .setTimestamp(MOCK_TIMESTAMP[1])
+        .setTo(mockHubPoolAddress)
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[1],
+          MOCK_AMOUNT[1],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
 
@@ -170,15 +174,16 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[2], MOCK_TIMESTAMP[2]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[1])
-      .setTimestamp(MOCK_TIMESTAMP[2])
-      .setTo(mockHubPoolAddress)
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[1], MOCK_AMOUNT[1], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[1])
+        .setTimestamp(MOCK_TIMESTAMP[2])
+        .setTo(mockHubPoolAddress)
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[1],
+          MOCK_AMOUNT[1],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
 
@@ -193,24 +198,29 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress2, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[2], MOCK_TIMESTAMP[1]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[1])
-      .setTimestamp(MOCK_TIMESTAMP[1])
-      .setTo(mockHubPoolAddress)
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[1], MOCK_AMOUNT[1], mockLPAddress]
-      )
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress2, MOCK_AMOUNT[1], MOCK_AMOUNT[1], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[1])
+        .setTimestamp(MOCK_TIMESTAMP[1])
+        .setTo(mockHubPoolAddress)
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[1],
+          MOCK_AMOUNT[1],
+          mockLPAddress,
+        ])
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress2,
+          MOCK_AMOUNT[1],
+          MOCK_AMOUNT[1],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2]), createFinding(mockTokenAddress2, MOCK_AMOUNT[4], MOCK_AMOUNT[2])]);
+      expect(findings).toStrictEqual([
+        createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2]),
+        createFinding(mockTokenAddress2, MOCK_AMOUNT[4], MOCK_AMOUNT[2]),
+      ]);
     });
 
     it("returns multitple findings from multiple event emissions of the same tokens", async () => {
@@ -218,24 +228,29 @@ describe("UMA Liquidity Agent", () => {
       createBalanceOfCall(mockTokenAddress, mockHubPoolAddress, MOCK_BLOCK[1], MOCK_AMOUNT[2], MOCK_TIMESTAMP[1]);
 
       const txEvent = new TestTransactionEvent()
-      .setFrom(MOCK_ADDRESSES[0])
-      .setBlock(MOCK_BLOCK[1])
-      .setTimestamp(MOCK_TIMESTAMP[1])
-      .setTo(mockHubPoolAddress)
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[1], MOCK_AMOUNT[1], mockLPAddress]
-      )
-      .addEventLog(
-        HUBPOOL_EVENTS,
-        mockHubPoolAddress,
-        [mockTokenAddress, MOCK_AMOUNT[2], MOCK_AMOUNT[2], mockLPAddress]
-      );
+        .setFrom(MOCK_ADDRESSES[0])
+        .setBlock(MOCK_BLOCK[1])
+        .setTimestamp(MOCK_TIMESTAMP[1])
+        .setTo(mockHubPoolAddress)
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[1],
+          MOCK_AMOUNT[1],
+          mockLPAddress,
+        ])
+        .addEventLog(HUBPOOL_EVENTS, mockHubPoolAddress, [
+          mockTokenAddress,
+          MOCK_AMOUNT[2],
+          MOCK_AMOUNT[2],
+          mockLPAddress,
+        ]);
 
       findings = await handleTransaction(txEvent);
 
-      expect(findings).toStrictEqual([createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2]), createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2])]);
+      expect(findings).toStrictEqual([
+        createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2]),
+        createFinding(mockTokenAddress, MOCK_AMOUNT[4], MOCK_AMOUNT[2]),
+      ]);
     });
   });
 });

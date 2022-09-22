@@ -1,10 +1,6 @@
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export function createFinding(
-  l1Token: string,
-  oldAmount: number,
-  currentAmount: number,
-): Finding {
+export function createFinding(l1Token: string, oldAmount: number, currentAmount: number): Finding {
   return Finding.from({
     name: "UMA (Accross-Protocol) HubPool LiquidityRemoved Event Emission",
     description: "Liquidity from the HubPool Contract has dropped by more than 10% over the last 24 hours",

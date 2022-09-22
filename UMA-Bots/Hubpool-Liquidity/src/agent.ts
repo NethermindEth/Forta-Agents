@@ -28,20 +28,20 @@ export function provideHandleTransaction(
 
     for (const liquidityEvent of hubPoolEvent) {
       let [l1Token] = liquidityEvent.args;
-      
-      if(liquidityEvent.name === "LiquidityAdded") continue;
-      
-      if(liquidityEvent.name === "LiquidityRemoved"){
+
+      if (liquidityEvent.name === "LiquidityAdded") continue;
+
+      if (liquidityEvent.name === "LiquidityRemoved") {
         const currentCycle = await balanceFetcher.getCurrentCycle(l1Token, txEvent.blockNumber, lruCache);
 
-        if(txEvent.timestamp > currentCycle.cycleTimestamp + 86400){
+        if (txEvent.timestamp > currentCycle.cycleTimestamp + 86400) {
           await balanceFetcher.startNewCycle(l1Token, txEvent.blockNumber, txEvent.timestamp, lruCache);
           continue;
         }
         const calculatedCycle = await balanceFetcher.calculateChange(l1Token, txEvent.blockNumber, lruCache);
 
-        if(calculatedCycle.percentChanged >= 0.1){
-          findings.push(createFinding(l1Token, calculatedCycle.initialAmount, calculatedCycle.newAmount))
+        if (calculatedCycle.percentChanged >= 0.1) {
+          findings.push(createFinding(l1Token, calculatedCycle.initialAmount, calculatedCycle.newAmount));
         }
       }
     }

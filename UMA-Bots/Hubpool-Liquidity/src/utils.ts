@@ -1,6 +1,7 @@
 import { Interface } from "ethers/lib/utils";
 
-const HUBPOOL_EVENTS = "event LiquidityRemoved(address indexed l1Token,uint256 amount,uint256 lpTokensBurnt,address indexed liquidityProvider)";
+const HUBPOOL_EVENTS =
+  "event LiquidityRemoved(address indexed l1Token,uint256 amount,uint256 lpTokensBurnt,address indexed liquidityProvider)";
 
 const LIQUIDITY_REMOVED_IFACE: Interface = new Interface([HUBPOOL_EVENTS]);
 

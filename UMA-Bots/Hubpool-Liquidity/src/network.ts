@@ -11,4 +11,4 @@ export const NetworkManagerData: Record<number, NetworkData> = {
   [Network.GOERLI]: {
     hubPoolAddress: "0x62DF0cDE1eB67D2c3f2928A591f3ABc170FE42Ba", // MockHubpool on Goerli testnet
   },
-}
+};
