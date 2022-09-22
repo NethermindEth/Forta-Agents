@@ -32,7 +32,7 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.3.1",
+    "forta-agent-tools": "^3.0.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.7.1",
