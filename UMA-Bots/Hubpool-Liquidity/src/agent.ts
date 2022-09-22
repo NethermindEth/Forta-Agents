@@ -2,11 +2,13 @@ import { Finding, getEthersProvider, HandleTransaction, TransactionEvent } from 
 import { createFinding } from "./findings.helper";
 import { providers } from "ethers";
 import { HUBPOOL_EVENTS } from "./utils";
-import TokenBalanceHelper from "./token.balance.helper";
-import NetworkManager, { NETWORK_MAP } from "./network";
-import NetworkData from "./network";
+import TokenBalanceHelper, { currentCycle } from "./token.balance.helper";
+import { NetworkData, NetworkManagerData } from "./network";
+import { NetworkManager } from "forta-agent-tools";
+import LRU from "lru-cache";
 
-const networkManager: NetworkData = new NetworkManager(NETWORK_MAP);
+const lruCache = new LRU<string, currentCycle>({ max: 10000 });
+const networkManager = new NetworkManager(NetworkManagerData);
 const balanceFetcher: TokenBalanceHelper = new TokenBalanceHelper(getEthersProvider(), networkManager);
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
@@ -16,31 +18,32 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
 
 export function provideHandleTransaction(
   balanceFetcher: TokenBalanceHelper,
-  networkManager: NetworkManager
+  networkManager: NetworkManager<NetworkData>,
+  lruCache: LRU<string, currentCycle>
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const hubPoolEvent = txEvent.filterLog(HUBPOOL_EVENTS, networkManager.hubPoolAddress);
+    const hubPoolEvent = txEvent.filterLog(HUBPOOL_EVENTS, networkManager.get("hubPoolAddress"));
 
     for (const liquidityEvent of hubPoolEvent) {
       let [l1Token] = liquidityEvent.args;
+      
+      if(liquidityEvent.name === "LiquidityAdded") continue;
+      
+      if(liquidityEvent.name === "LiquidityRemoved"){
+        const currentCycle = await balanceFetcher.getCurrentCycle(l1Token, txEvent.blockNumber, lruCache);
 
-      const [oldBalance, newBalance] = await balanceFetcher.getBalanceOf(txEvent.blockNumber, l1Token);
-
-      if (liquidityEvent.name === "LiquidityAdded") {
-        if (newBalance.lt(oldBalance)) {
-          findings.push(createFinding(liquidityEvent.name, l1Token, oldBalance, newBalance, true));
+        if(txEvent.timestamp > currentCycle.cycleTimestamp + 86400){
+          await balanceFetcher.startNewCycle(l1Token, txEvent.blockNumber, txEvent.timestamp, lruCache);
           continue;
         }
-      } else if (liquidityEvent.name === "LiquidityRemoved") {
-        if (newBalance.gt(oldBalance)) {
-          findings.push(createFinding(liquidityEvent.name, l1Token, oldBalance, newBalance, true));
-          continue;
+        const calculatedCycle = await balanceFetcher.calculateChange(l1Token, txEvent.blockNumber, lruCache);
+
+        if(calculatedCycle.percentChanged >= 0.1){
+          findings.push(createFinding(l1Token, calculatedCycle.initialAmount, calculatedCycle.newAmount))
         }
       }
-
-      findings.push(createFinding(liquidityEvent.name, l1Token, oldBalance, newBalance));
     }
     return findings;
   };
@@ -48,5 +51,5 @@ export function provideHandleTransaction(
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(balanceFetcher, networkManager),
+  handleTransaction: provideHandleTransaction(balanceFetcher, networkManager, lruCache),
 };
