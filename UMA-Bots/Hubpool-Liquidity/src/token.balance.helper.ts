@@ -77,7 +77,7 @@ export default class TokenBalanceHelper {
     lruCache.set(l1Token.toLocaleLowerCase(), newCycle);
   }
 
-  public async calculateChange(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<any> {
+  public async calculateChange(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<currentCycle> {
     const [, newBal] = await this.getBalance(l1Token, blockNum);
     const currentCycle = lruCache.get(l1Token.toLocaleLowerCase()) as currentCycle;
     const percentChange = (currentCycle.initialAmount - newBal) / currentCycle.initialAmount;
