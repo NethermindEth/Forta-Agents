@@ -41,7 +41,7 @@ export default class TokenBalanceHelper {
     return [oldBal, newBal, timestamp] as const;
   }
 
-  public async getCurrentCycle(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<any> {
+  public async getCurrentCycle(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<currentCycle> {
     const [oldBal, , timestamp] = await this.getBalance(l1Token, blockNum);
 
     if (lruCache.get(l1Token.toLocaleLowerCase()) === undefined) {
