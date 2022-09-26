@@ -92,6 +92,6 @@ export default class TokenBalanceHelper {
 
     lruCache.set(l1Token.toLocaleLowerCase(), updateCycle);
 
-    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<any>;
+    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<currentCycle>;
   }
 }
