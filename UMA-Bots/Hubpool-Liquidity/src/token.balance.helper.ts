@@ -55,7 +55,7 @@ export default class TokenBalanceHelper {
       lruCache.set(l1Token.toLocaleLowerCase(), startCycle);
     }
 
-    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<any>;
+    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<currentCycle>;
   }
 
   public async startNewCycle(
