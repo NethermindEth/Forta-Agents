@@ -41,7 +41,7 @@ export default class TokenBalanceHelper {
     return [oldBal, newBal, timestamp] as const;
   }
 
-  public async getCurrentCycle(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<any> {
+  public async getCurrentCycle(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<currentCycle> {
     const [oldBal, , timestamp] = await this.getBalance(l1Token, blockNum);
 
     if (lruCache.get(l1Token.toLocaleLowerCase()) === undefined) {
@@ -55,7 +55,7 @@ export default class TokenBalanceHelper {
       lruCache.set(l1Token.toLocaleLowerCase(), startCycle);
     }
 
-    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<any>;
+    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<currentCycle>;
   }
 
   public async startNewCycle(
@@ -77,7 +77,7 @@ export default class TokenBalanceHelper {
     lruCache.set(l1Token.toLocaleLowerCase(), newCycle);
   }
 
-  public async calculateChange(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<any> {
+  public async calculateChange(l1Token: string, blockNum: number, lruCache: LRU<string, currentCycle>): Promise<currentCycle> {
     const [, newBal] = await this.getBalance(l1Token, blockNum);
     const currentCycle = lruCache.get(l1Token.toLocaleLowerCase()) as currentCycle;
     const percentChange = (currentCycle.initialAmount - newBal) / currentCycle.initialAmount;
@@ -92,6 +92,6 @@ export default class TokenBalanceHelper {
 
     lruCache.set(l1Token.toLocaleLowerCase(), updateCycle);
 
-    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<any>;
+    return lruCache.get(l1Token.toLocaleLowerCase()) as Promise<currentCycle>;
   }
 }
