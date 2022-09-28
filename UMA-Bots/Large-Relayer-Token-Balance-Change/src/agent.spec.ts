@@ -1,5 +1,12 @@
-import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
-import { TestTransactionEvent } from "forta-agent-tools/lib/test";
+import {
+  Finding,
+  FindingSeverity,
+  FindingType,
+  getEthersProvider,
+  HandleTransaction,
+  TransactionEvent,
+} from "forta-agent";
+import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { TRANSFER_EVENT } from "./utils";
 import { provideHandleTransaction } from "./agent";
 import { createAddress, NetworkManager } from "forta-agent-tools";
@@ -45,7 +52,7 @@ describe("Large relay detection bot test suite", () => {
   beforeEach(() => {
     testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: BigNumber.from(0) });
     testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: BigNumber.from(0) });
-    handleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru);
+    handleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru, getEthersProvider());
   });
 
   it("returns empty findings if there is no event emitted", async () => {
@@ -134,7 +141,7 @@ describe("Large relay detection bot test suite", () => {
     // current balance in testLru for MONITORED_ERC20_ADDR TEST_MONITORED_ADDRESS is 1500000
     testLru.set(MONITORED_ERC20_ADDR, { [TEST_MONITORED_ADDRESS]: BigNumber.from(1500000) });
     testLru.set(MONITORED_ERC20_ADDR_2, { [TEST_MONITORED_ADDRESS]: BigNumber.from(0) });
-    handleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru);
+    handleTransaction = provideHandleTransaction(TRANSFER_EVENT, networkManagerTest, testLru, getEthersProvider());
 
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setFrom(RANDOM_ADDRESSES[0])
