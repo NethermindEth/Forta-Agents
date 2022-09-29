@@ -1,8 +1,4 @@
-import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
-import { NetworkManager } from "forta-agent-tools";
-import { NetworkDataInterface } from "./network";
-import LRU from "lru-cache";
-import { BigNumber } from "ethers";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export const TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
 export const ERC20_ABI = ["function balanceOf(address account) external view returns (uint256)"];
@@ -12,25 +8,6 @@ export const GOERLI_MONITORED_ADDRESSES = [
   "0x628bfE54739098012bDc282EFA2F74c226FF5d40",
 ];
 
-export async function loadDataForToken(
-  networkManager: NetworkManager<NetworkDataInterface>,
-  provider: ethers.providers.Provider,
-  lru: LRU<string, Record<string, BigNumber>>,
-  token: string
-) {
-  let monitoredAddresses: string[] = networkManager.get("monitoredAddresses");
-
-  let tokenContract = new ethers.Contract(token, ERC20_ABI, provider);
-  const balances: Record<string, BigNumber> = {};
-  await Promise.all(
-    monitoredAddresses.map(async (address) => {
-      let balance: BigNumber;
-      balance = BigNumber.from(await tokenContract.balanceOf(address));
-      balances[address] = balance;
-    })
-  );
-  lru.set(token.toLowerCase(), balances);
-}
 
 /*
  * @param amount: amount of tokens transferred
