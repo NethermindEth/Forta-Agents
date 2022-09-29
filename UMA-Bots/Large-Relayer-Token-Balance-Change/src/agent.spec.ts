@@ -79,7 +79,6 @@ describe("Large relay detection bot test suite", () => {
   it("doesn't return a finding if a transfer is detected from non-monitored address for a non-monitored token", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(TEST_BLOCK)
-      .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], RANDOM_INTEGER[0]]);
 
     const findings = await handleTransaction(txEvent);
@@ -89,7 +88,6 @@ describe("Large relay detection bot test suite", () => {
   it("doesn't return a finding for non-transfer events", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(TEST_BLOCK)
-      .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(RANDOM_EVENT_ABI, RANDOM_ADDRESSES[0], []);
 
     const findings = await handleTransaction(txEvent);
@@ -99,7 +97,6 @@ describe("Large relay detection bot test suite", () => {
   it("doesn't return a finding if a transfer is detected from a monitored address for a non-monitored token", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(TEST_BLOCK)
-      .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(TRANSFER_EVENT, RANDOM_ADDRESSES[0], [
         TEST_MONITORED_ADDRESS,
         RANDOM_ADDRESSES[1],
@@ -113,7 +110,6 @@ describe("Large relay detection bot test suite", () => {
   it("doesn't return a finding if a transfer is detected from a non-monitored address for a monitored token", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
       .setBlock(TEST_BLOCK)
-      .setFrom(RANDOM_ADDRESSES[1])
       .addEventLog(TRANSFER_EVENT, MONITORED_ERC20_ADDR, [RANDOM_ADDRESSES[0], RANDOM_ADDRESSES[1], RANDOM_INTEGER[0]]);
 
     const findings = await handleTransaction(txEvent);
