@@ -13,15 +13,6 @@ const TEST_BALANCES: [number, BigNumber][] = [
   [50, BigNumber.from(240)],
 ];
 
-// [blockNumber, symbol]
-const TEST_SYMBOLS: [number, string][] = [
-  [10, "AAA"],
-  [20, "BBB"],
-  [30, "CCC"],
-  [40, "DDD"],
-  [50, "EEE"],
-];
-
 const MONITORED_ADDRESS = createAddress("0xa1");
 const tokenAddress = createAddress("0xa2");
 const BALANCE_IFACE = new Interface(ERC20_ABI);
