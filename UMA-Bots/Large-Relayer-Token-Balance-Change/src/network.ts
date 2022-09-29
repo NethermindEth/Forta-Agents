@@ -14,7 +14,11 @@ import {
   OPTIMISM_PERCENTAGE_CHANGE_THRESHOLD,
 } from "./configurables";
 
-import { GOERLI_MONITORED_ADDRESSES, GOERLI_MONITORED_TOKENS, GOERLI_PERCENTAGE_CHANGE_THRESHOLD } from "./utils";
+import {
+  GOERLI_MONITORED_ADDRESSES,
+  GOERLI_MONITORED_TOKENS,
+  GOERLI_PERCENTAGE_CHANGE_THRESHOLD,
+} from "./configurables";
 
 export interface NetworkDataInterface {
   monitoredTokens: string[];
