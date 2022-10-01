@@ -5,7 +5,8 @@ export const ERC20_ABI = ["function balanceOf(address account) external view ret
 
 /*
  * @param amount: amount of tokens transferred
- * @param addr: monitored wallet address
+ * @param walletAddr: the monitored relayer address involved in the transfer
+ * @param tokenAddr: the address of the transferred token
  * @param fundsIn: boolean value indicating whether the transfer was made in or out of monitored wallet address
  */
 export function getFindingInstance(amount: string, walletAddr: string, tokenAddr: string, fundsIn: string) {
