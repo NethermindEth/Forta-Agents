@@ -13,7 +13,7 @@ This bot monitors large changes in token balances of major relayers for the [Acr
 ## Alerts
 
 - UMA-9
-  - Fired whenever a `Transfer` event is emitted with a large amount (more than the threshold) of monitored token transfer from a monitored wallet address
+  - Fired whenever a `Transfer` event is emitted with a large amount (more than the threshold) of monitored token transferred from/to a monitored wallet address
   - Severity is always set to "low" 
   - Type is always set to "info"
   - Metadata :
@@ -30,7 +30,7 @@ The list of monitored wallet addresses/token contract addresses/chain specific t
 The bot behaviour can be verified with the following transactions by running `npm run tx <TX_HASH>`:
 
 ### Ethereum Mainnet
-- [0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde](http1:/etherscan.io/tx/0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde) (1 finding - the monitored address sent a large amount (more than threshold) of USDC and `Transfer` was emitted)
+- [0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde](https:/etherscan.io/tx/0x234bb58e0b4cb18d1fb55a4fea208d57bc96851ebdff39317abbe8ef95aeafde) (1 finding - the monitored address sent a large amount (more than threshold) of USDC and `Transfer` was emitted)
 - [0x33ad4130b4f9c9c18ba09672c9c7e64fe623c715b6b4d48b3fb8f2f690be3003](https://etherscan.io/tx/0x33ad4130b4f9c9c18ba09672c9c7e64fe623c715b6b4d48b3fb8f2f690be3003) (1 finding - the monitored address sent a large amount (more than threshold) of USDC and `Transfer` was emitted)
 
  ### Goerli Testnet (PoC)

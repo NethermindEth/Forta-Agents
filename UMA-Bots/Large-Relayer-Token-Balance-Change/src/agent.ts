@@ -22,7 +22,7 @@ export function provideHandleTransaction(
   balanceFetcher: BalanceFetcher
 ): HandleTransaction {
   return async (txEvent: TransactionEvent) => {
-    let alertThreshold = networkManager.get("alertThreshold");
+    const alertThreshold = networkManager.get("alertThreshold");
 
     const findings: Finding[] = [];
     const transferEventTxns = txEvent.filterLog(transferEvent, networkManager.get("monitoredTokens")); // Transfer event transactions for monitored addresses

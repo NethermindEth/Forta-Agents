@@ -11,7 +11,7 @@ export const ERC20_ABI = ["function balanceOf(address account) external view ret
 export function getFindingInstance(amount: string, walletAddr: string, tokenAddr: string, fundsIn: string) {
   return Finding.fromObject({
     name: "Large relayer tokens balance change",
-    description: "A large amount of funds was transferred from a monitored relayer address",
+    description: "A monitored relayer address was involved in a large transfer of funds",
     alertId: "UMA-9",
     severity: FindingSeverity.Low,
     type: FindingType.Info,
