@@ -18,7 +18,8 @@ This bot monitors large changes in token balances of major relayers for the [Acr
   - Type is always set to "info"
   - Metadata :
       - `amount`: amount of tokens transferred
-      - `addr` : the monitored address involved in the transfer
+      - `walletAddr`: the monitored relayer address involved in the transfer
+      - `tokenAddr`: the address of the transferred token
       - `fundsIn` : boolean value indicating whether the funds from the transfer went in or out of the monitored wallet address
 
 ## Configuring the monitored wallet addresses list
