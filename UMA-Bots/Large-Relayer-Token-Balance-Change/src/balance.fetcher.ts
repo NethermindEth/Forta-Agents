@@ -5,12 +5,12 @@ import { ERC20_ABI } from "./utils";
 
 export default class BalanceFetcher {
   provider: providers.Provider;
-  private cache: LRU<string, BigNumber | string>;
+  private cache: LRU<string, BigNumber>;
   private tokenContract: Contract;
 
   constructor(provider: providers.Provider) {
     this.provider = provider;
-    this.cache = new LRU<string, BigNumber | string>({
+    this.cache = new LRU<string, BigNumber>({
       max: 10000,
     });
     this.tokenContract = new Contract("", new Interface(ERC20_ABI), this.provider);
