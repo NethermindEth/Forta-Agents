@@ -1,4 +1,5 @@
-import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { MockEthersProvider } from "forta-agent-tools/lib/test";
+import { createAddress } from "forta-agent-tools";
 import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
 import { ERC20_ABI } from "./utils";
