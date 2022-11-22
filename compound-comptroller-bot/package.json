@@ -1,7 +1,7 @@
 {
-  "name": "forta-agent-starter",
+  "name": "compound-comptroller-pause-events",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors Compound Comptroller contract's pause event emissions.",
   "chainIds": [
     1
   ],
@@ -19,7 +19,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.6"
