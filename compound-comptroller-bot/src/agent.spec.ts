@@ -6,7 +6,7 @@ import { provideHandleTransaction } from "./agent";
 
 import { PAUSE_EVENTS_ABIS, AgentConfig } from "./utils";
 
-describe("Compound Comptroller test suites", () => {
+describe("Compound Comptroller test suite", () => {
   let handleTransaction: HandleTransaction;
 
   const COMPTROLLER_IFACE = new Interface(PAUSE_EVENTS_ABIS);
@@ -139,13 +139,14 @@ describe("Compound Comptroller test suites", () => {
     expect(findings).toStrictEqual([createFinding("ActionPaused(address,string,bool)", TEST_DATA[6])]);
   });
 
-  it("should detect multiple event emissions", async () => {
+  it("should detect multiple event emissions and ignore irrelevant events", async () => {
     const transactionEvent = new TestTransactionEvent()
       .addEventLog(
         COMPTROLLER_IFACE.getEvent("ActionPaused(address,string,bool)"),
         COMPOUND_COMPTROLLER_ADDRESS,
         TEST_DATA[7]
       )
+      .addEventLog(IRRELEVANT_IFACE.getEvent("DifferentEvent"), COMPOUND_COMPTROLLER_ADDRESS)
       .addEventLog(COMPTROLLER_IFACE.getEvent("ActionPaused(string,bool)"), COMPOUND_COMPTROLLER_ADDRESS, TEST_DATA[4]);
 
     const findings = await handleTransaction(transactionEvent);
