@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action), and `ActionPaused(address,string,bool)`(an action on a market) events emissions on `Compound Comptroller` contract.
+This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action), and `ActionPaused(address,string,bool)`(an action on a market) events emissions from Compound's `Comptroller` contract.
 
 ## Supported Chains
 
