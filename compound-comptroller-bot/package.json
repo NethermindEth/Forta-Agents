@@ -1,7 +1,7 @@
 {
-  "name": "compound-comptroller-pause-events",
+  "name": "neth-comp",
   "version": "0.0.1",
-  "description": "Forta bot that monitors Compound Comptroller contract's pause event emissions.",
+  "description": "Detect pause event emissions from the Comptroller contract.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/compound-comptroller-bot",
   "chainIds": [
     1
