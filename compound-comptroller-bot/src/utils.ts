@@ -4,6 +4,8 @@ export const PAUSE_EVENTS_ABIS = [
   "event ActionPaused(address cToken, string action, bool pauseState)",
 ];
 
-export interface AgentConfig {
+export interface NetworkData {
   compoundComptrollerAddress: string;
 }
+
+export type AgentConfig = Record<number, NetworkData>;

@@ -51,8 +51,7 @@ The bot behaviour can be verified with the following transactions:
 
 ### Goerli Testnet (PoC)
 
-> For this test, uncomment the line indicated in `src/agent.config.ts` and set a Goerli Testnet RPC url as `jsonRpcUrl`
-> in your `forta.config.json` file and run:
+> For this test, set a Goerli Testnet RPC url as `jsonRpcUrl` in your `forta.config.json` file and run:
 
 - `npm run tx 0x283f9600499249b25d909d367b3c55bf7803435a92e49de541eeb00fe8ae18f2` - [ActionPaused (in a market)](https://goerli.etherscan.io/tx/0x283f9600499249b25d909d367b3c55bf7803435a92e49de541eeb00fe8ae18f2)
 - `npm run tx 0x5c47eeeef4b1277655fde0da22f6847d74bb19371def37febd0434469683f09b` - [ActionPaused (a global action)](https://goerli.etherscan.io/tx/0x5c47eeeef4b1277655fde0da22f6847d74bb19371def37febd0434469683f09b)
