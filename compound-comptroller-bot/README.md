@@ -17,9 +17,9 @@ This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action)
   - Type is always set to "Info"
   - Addresses includes the emitting address of the event
   - Metadata:
-    - CToken: Market address
-    - action: Action of the market
-    - pauseState: Pause state of the action
+    - `CToken`: Market address
+    - `action`: Action of the market
+    - `pauseState`: Pause state of the action
 
 - NETH-COMP-PAUSE-EVENT-2
 
@@ -28,8 +28,8 @@ This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action)
   - Type is always set to "Info"
   - Addresses includes the emitting address of the event
   - Metadata:
-    - action: Global action
-    - pauseState: Pause state of the action
+    - `action`: Global action
+    - `pauseState`: Pause state of the action
 
 - NETH-COMP-PAUSE-EVENT-3
   - Fired when the pause guardian is changed
@@ -37,8 +37,8 @@ This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action)
   - Type is always set to "Info"
   - Addresses includes the emitting address of the event
   - Metadata:
-    - oldPauseGuardian: Old pause guardian address
-    - newPauseGuardian: New pause guardian address
+    - `oldPauseGuardian`: Old pause guardian address
+    - `newPauseGuardian`: New pause guardian address
 
 ## Test Data
 
