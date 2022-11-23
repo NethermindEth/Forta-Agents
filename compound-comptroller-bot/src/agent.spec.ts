@@ -9,8 +9,8 @@ import { PAUSE_EVENTS_ABIS, AgentConfig } from "./utils";
 describe("Compound Comptroller test suites", () => {
   let handleTransaction: HandleTransaction;
 
-  PAUSE_EVENTS_ABIS.push("event DifferentEvent()");
   const COMPTROLLER_IFACE = new Interface(PAUSE_EVENTS_ABIS);
+  const IRRELEVANT_IFACE = new Interface(["event DifferentEvent()"]);
   const COMPOUND_COMPTROLLER_ADDRESS = createAddress("0xcc01");
 
   const TEST_DATA = [
@@ -57,7 +57,7 @@ describe("Compound Comptroller test suites", () => {
       default:
         return Finding.from({
           name: "Pause guardian is changed",
-          description: "Pause guardian is changed on the comptroller contract",
+          description: "Pause guardian is changed on the Comptroller contract",
           alertId: "NETHFORTA-31",
           protocol: "Compound",
           type: FindingType.Info,
@@ -98,8 +98,8 @@ describe("Compound Comptroller test suites", () => {
 
   it("should ignore other events on the comptroller contract", async () => {
     const transactionEvent = new TestTransactionEvent().addEventLog(
-      COMPTROLLER_IFACE.getEvent("DifferentEvent"),
-      createAddress("0xdf01")
+      IRRELEVANT_IFACE.getEvent("DifferentEvent"),
+      COMPOUND_COMPTROLLER_ADDRESS
     );
 
     const findings = await handleTransaction(transactionEvent);
