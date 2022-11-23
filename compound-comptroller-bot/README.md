@@ -10,29 +10,32 @@ This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action)
 
 ## Alerts
 
-- NETHFORTA-29
+- NETH-COMP-PAUSE-EVENT-1
 
   - Fired when an action is paused on a market
   - Severity is always set to "Info"
   - Type is always set to "Info"
+  - Addresses includes the emitting address of the event
   - Metadata:
     - CToken: Market address
     - action: Action of the market
     - pauseState: Pause state of the action
 
-- NETHFORTA-30
+- NETH-COMP-PAUSE-EVENT-2
 
   - Fired when an action is globally paused
   - Severity is always set to "Info"
   - Type is always set to "Info"
+  - Addresses includes the emitting address of the event
   - Metadata:
     - action: Global action
     - pauseState: Pause state of the action
 
-- NETHFORTA-31
+- NETH-COMP-PAUSE-EVENT-3
   - Fired when the pause guardian is changed
   - Severity is always set to "Info"
   - Type is always set to "Info"
+  - Addresses includes the emitting address of the event
   - Metadata:
     - oldPauseGuardian: Old pause guardian address
     - newPauseGuardian: New pause guardian address
