@@ -1,26 +1,56 @@
-# Large Tether Transfer Agent
+# Compound Comptroller Contract Pause Functionality Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects `NewPauseGuardian`, `ActionPaused(string, bool)`(global action), and `ActionPaused(address,string,bool)`(an action on a market) events emissions on `Compound Comptroller` contract.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- NETHFORTA-29
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired when an action is paused on a market
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
+  - Metadata:
+    - CToken: Market address
+    - action: Action of the market
+    - pauseState: Pause state of the action
+
+- NETHFORTA-30
+
+  - Fired when an action is globally paused
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
+  - Metadata:
+    - action: Global action
+    - pauseState: Pause state of the action
+
+- NETHFORTA-31
+  - Fired when the pause guardian is changed
+  - Severity is always set to "Info"
+  - Type is always set to "Info"
+  - Metadata:
+    - oldPauseGuardian: Old pause guardian address
+    - newPauseGuardian: New pause guardian address
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+### Mainnet
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+The bot behaviour can be verified with the following transactions:
+
+- `npm run tx 0x98144f1dcc9d916563041f68d11444925f817d4a857357fce73978a335a9a06b` - ActionPaused (in a market)
+- `npm run tx 0x0b2c0c863252edf8928c269d6349a0e33ea58dbfc82a1d75d7b6fd9815c0e8ac` - NewPauseGuardian
+
+### Goerli Testnet (PoC)
+
+> For this test, uncomment the line indicated in `src/agent.config.ts` and set a Goerli Testnet RPC url as `jsonRpcUrl`
+> in your `forta.config.json` file and run:
+
+- `npm run tx 0x283f9600499249b25d909d367b3c55bf7803435a92e49de541eeb00fe8ae18f2` - ActionPaused (in a market)
+- `npm run tx 0x5c47eeeef4b1277655fde0da22f6847d74bb19371def37febd0434469683f09b` - ActionPaused (a global action)
+- `npm run tx 0xd826034d85702dcf47335e2a5a5edd000aab7b6078a347cf05846007076c2824` - NewPauseGuardian
