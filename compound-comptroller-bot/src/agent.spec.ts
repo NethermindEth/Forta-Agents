@@ -31,7 +31,7 @@ describe("Compound Comptroller test suite", () => {
         return Finding.from({
           name: "An action is paused on a market",
           description: `${args[1]} is paused on ${args[0]}`,
-          alertId: "NETHFORTA-29",
+          alertId: "NETH-COMP-PAUSE-EVENT-1",
           protocol: "Compound",
           type: FindingType.Info,
           severity: FindingSeverity.Info,
@@ -45,7 +45,7 @@ describe("Compound Comptroller test suite", () => {
         return Finding.from({
           name: "A global action is paused",
           description: `${args[0]} is globally paused`,
-          alertId: "NETHFORTA-30",
+          alertId: "NETH-COMP-PAUSE-EVENT-2",
           protocol: "Compound",
           type: FindingType.Info,
           severity: FindingSeverity.Info,
@@ -58,7 +58,7 @@ describe("Compound Comptroller test suite", () => {
         return Finding.from({
           name: "Pause guardian is changed",
           description: "Pause guardian is changed on the Comptroller contract",
-          alertId: "NETHFORTA-31",
+          alertId: "NETH-COMP-PAUSE-EVENT-3",
           protocol: "Compound",
           type: FindingType.Info,
           severity: FindingSeverity.Info,
