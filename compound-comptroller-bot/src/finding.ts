@@ -32,7 +32,7 @@ export const createFinding = (log: ethers.utils.LogDescription): Finding => {
     default:
       return Finding.from({
         name: "Pause guardian is changed",
-        description: "Pause guardian is changed on the comptroller contract",
+        description: "Pause guardian is changed on the Comptroller contract",
         alertId: "NETHFORTA-31",
         protocol: "Compound",
         type: FindingType.Info,
