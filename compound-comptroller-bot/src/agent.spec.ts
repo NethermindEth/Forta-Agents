@@ -26,46 +26,47 @@ describe("Compound Comptroller test suites", () => {
   ];
 
   const createFinding = (signature: string, args: any[]): Finding => {
-    if (signature == "ActionPaused(address,string,bool)") {
-      return Finding.from({
-        name: "An action is paused on a market",
-        description: `${args[1]} is paused on ${args[0]}`,
-        alertId: "NETHFORTA-29",
-        protocol: "Compound",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        metadata: {
-          CToken: args[0],
-          action: args[1],
-          pauseState: args[2].toString(),
-        },
-      });
-    } else if (signature === "ActionPaused(string,bool)") {
-      return Finding.from({
-        name: "A global action is paused",
-        description: `${args[0]} is globally paused`,
-        alertId: "NETHFORTA-30",
-        protocol: "Compound",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        metadata: {
-          action: args[0],
-          pauseState: args[1].toString(),
-        },
-      });
-    } else {
-      return Finding.from({
-        name: "Pause guardian is changed",
-        description: "Pause guardian is changed on the comptroller contract",
-        alertId: "NETHFORTA-31",
-        protocol: "Compound",
-        type: FindingType.Info,
-        severity: FindingSeverity.Info,
-        metadata: {
-          oldPauseGuardian: args[0],
-          newPauseGuardian: args[1],
-        },
-      });
+    switch (signature) {
+      case "ActionPaused(address,string,bool)":
+        return Finding.from({
+          name: "An action is paused on a market",
+          description: `${args[1]} is paused on ${args[0]}`,
+          alertId: "NETHFORTA-29",
+          protocol: "Compound",
+          type: FindingType.Info,
+          severity: FindingSeverity.Info,
+          metadata: {
+            CToken: args[0],
+            action: args[1],
+            pauseState: args[2].toString(),
+          },
+        });
+      case "ActionPaused(string,bool)":
+        return Finding.from({
+          name: "A global action is paused",
+          description: `${args[0]} is globally paused`,
+          alertId: "NETHFORTA-30",
+          protocol: "Compound",
+          type: FindingType.Info,
+          severity: FindingSeverity.Info,
+          metadata: {
+            action: args[0],
+            pauseState: args[1].toString(),
+          },
+        });
+      default:
+        return Finding.from({
+          name: "Pause guardian is changed",
+          description: "Pause guardian is changed on the comptroller contract",
+          alertId: "NETHFORTA-31",
+          protocol: "Compound",
+          type: FindingType.Info,
+          severity: FindingSeverity.Info,
+          metadata: {
+            oldPauseGuardian: args[0],
+            newPauseGuardian: args[1],
+          },
+        });
     }
   };
 
