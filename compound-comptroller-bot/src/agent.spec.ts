@@ -22,7 +22,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   },
 };
 
-const createFinding = (signature: string, args: any[]): Finding => {
+const createFinding = (signature: string, args: any[], address: string): Finding => {
   switch (signature) {
     case "ActionPaused(address,string,bool)":
       return Finding.from({
@@ -37,6 +37,7 @@ const createFinding = (signature: string, args: any[]): Finding => {
           action: args[1],
           pauseState: args[2].toString(),
         },
+        addresses: [address],
       });
     case "ActionPaused(string,bool)":
       return Finding.from({
@@ -50,6 +51,7 @@ const createFinding = (signature: string, args: any[]): Finding => {
           action: args[0],
           pauseState: args[1].toString(),
         },
+        addresses: [address],
       });
     default:
       return Finding.from({
@@ -63,6 +65,7 @@ const createFinding = (signature: string, args: any[]): Finding => {
           oldPauseGuardian: args[0],
           newPauseGuardian: args[1],
         },
+        addresses: [address],
       });
   }
 };
@@ -127,7 +130,9 @@ describe("Compound Comptroller test suite", () => {
     );
 
     const findings = await handleTransaction(transactionEvent);
-    expect(findings).toStrictEqual([createFinding("NewPauseGarden(address,address)", TEST_DATA[0])]);
+    expect(findings).toStrictEqual([
+      createFinding("NewPauseGarden(address,address)", TEST_DATA[0], COMPOUND_COMPTROLLER_ADDRESS),
+    ]);
   });
 
   it("should detect a global action pause", async () => {
@@ -138,7 +143,9 @@ describe("Compound Comptroller test suite", () => {
     );
 
     const findings = await handleTransaction(transactionEvent);
-    expect(findings).toStrictEqual([createFinding("ActionPaused(string,bool)", TEST_DATA[3])]);
+    expect(findings).toStrictEqual([
+      createFinding("ActionPaused(string,bool)", TEST_DATA[3], COMPOUND_COMPTROLLER_ADDRESS),
+    ]);
   });
 
   it("should detect an action pause on a market", async () => {
@@ -149,7 +156,9 @@ describe("Compound Comptroller test suite", () => {
     );
 
     const findings = await handleTransaction(transactionEvent);
-    expect(findings).toStrictEqual([createFinding("ActionPaused(address,string,bool)", TEST_DATA[6])]);
+    expect(findings).toStrictEqual([
+      createFinding("ActionPaused(address,string,bool)", TEST_DATA[6], COMPOUND_COMPTROLLER_ADDRESS),
+    ]);
   });
 
   it("should detect multiple event emissions and ignore irrelevant events", async () => {
@@ -164,8 +173,8 @@ describe("Compound Comptroller test suite", () => {
 
     const findings = await handleTransaction(transactionEvent);
     expect(findings).toStrictEqual([
-      createFinding("ActionPaused(address,string,bool)", TEST_DATA[7]),
-      createFinding("ActionPaused(string,bool)", TEST_DATA[4]),
+      createFinding("ActionPaused(address,string,bool)", TEST_DATA[7], COMPOUND_COMPTROLLER_ADDRESS),
+      createFinding("ActionPaused(string,bool)", TEST_DATA[4], COMPOUND_COMPTROLLER_ADDRESS),
     ]);
   });
 });

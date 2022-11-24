@@ -1,6 +1,6 @@
-import { ethers, Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, LogDescription } from "forta-agent";
 
-export const createFinding = (log: ethers.utils.LogDescription): Finding => {
+export const createFinding = (log: LogDescription): Finding => {
   switch (log.signature) {
     case "ActionPaused(address,string,bool)":
       return Finding.from({
@@ -15,6 +15,7 @@ export const createFinding = (log: ethers.utils.LogDescription): Finding => {
           action: log.args[1],
           pauseState: log.args[2].toString(),
         },
+        addresses: [log.address],
       });
     case "ActionPaused(string,bool)":
       return Finding.from({
@@ -28,6 +29,7 @@ export const createFinding = (log: ethers.utils.LogDescription): Finding => {
           action: log.args[0],
           pauseState: log.args[1].toString(),
         },
+        addresses: [log.address],
       });
     default:
       return Finding.from({
@@ -41,6 +43,7 @@ export const createFinding = (log: ethers.utils.LogDescription): Finding => {
           oldPauseGuardian: log.args[0],
           newPauseGuardian: log.args[1],
         },
+        addresses: [log.address],
       });
   }
 };
