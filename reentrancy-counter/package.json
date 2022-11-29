@@ -2,7 +2,7 @@
   "name": "forta-agent-starter",
   "version": "0.0.2",
   "agentId": "nethforta-25",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Reentrancy Monitoring",
   "chainIds": [
     1,
     10,
