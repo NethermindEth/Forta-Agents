@@ -1,4 +1,4 @@
-# Compound Comptroller Contract Pause Functionality Bot
+# Compound v2 Comptroller Contract Pause Functionality Bot
 
 ## Description
 
