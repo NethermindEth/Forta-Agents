@@ -8,6 +8,12 @@ It report the amount of repeated calls with different severities according to di
 ## Supported Chains
 
 - Ethereum
+- Optimism
+- Binance Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Avalanche
 
 ## Alerts
 

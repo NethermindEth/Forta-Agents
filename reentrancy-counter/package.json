@@ -3,6 +3,15 @@
   "version": "0.0.1",
   "agentId": "nethforta-25",
   "description": "Forta Agent Typescript starter project",
+  "chainIds": [
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
