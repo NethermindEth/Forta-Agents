@@ -1,6 +1,6 @@
 {
   "name": "forta-agent-starter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "agentId": "nethforta-25",
   "description": "Forta Agent Typescript starter project",
   "chainIds": [
