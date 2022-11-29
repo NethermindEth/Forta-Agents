@@ -3,6 +3,7 @@
   "version": "0.0.2",
   "agentId": "nethforta-25",
   "description": "Reentrancy Monitoring",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/reentrancy-counter",
   "chainIds": [
     1,
     10,
