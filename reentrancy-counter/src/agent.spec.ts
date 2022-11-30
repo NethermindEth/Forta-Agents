@@ -16,7 +16,7 @@ describe("Reentrancy counter agent tests suit", () => {
 
   describe("handleTransaction", () => {
     it("Should return empty findings if no traces provided", async () => {
-      const tx: TransactionEvent = createTxEvent([]);
+      const tx: TestTransactionEvent = new TestTransactionEvent();
       const findings: Finding[] = await handleTransaction(tx);
       expect(findings).toStrictEqual([]);
     });
