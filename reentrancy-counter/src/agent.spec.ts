@@ -1,15 +1,7 @@
-import {
-  Finding,
-  HandleTransaction,
-  Trace,
-  TransactionEvent,
-} from "forta-agent";
+import { Finding, HandleTransaction } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import agent, { thresholds } from "./agent";
 import { createFinding, reentracyLevel } from "./agent.utils";
-
-const createTxEvent = (traces: Trace[]) =>
-  new TestTransactionEvent().addTraces(...traces);
 
 describe("Reentrancy counter agent tests suit", () => {
   const handleTransaction: HandleTransaction = agent.handleTransaction;
