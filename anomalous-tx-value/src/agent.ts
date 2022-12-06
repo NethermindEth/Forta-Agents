@@ -30,7 +30,6 @@ export const provideHandleTransaction = (
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    // create finding if ETH value is higher than threshold
     const value = new BigNumber(txEvent.transaction.value);
 
     if (value.isLessThanOrEqualTo(networkManager.get("threshold")))
