@@ -1,42 +1,39 @@
-import { 
-  Finding, 
-  FindingSeverity, 
-  FindingType 
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
-export interface Counter{
-  [key:string]: number,
-};
+export interface Counter {
+  [key: string]: number;
+}
 
-export const reentracyLevel = (
-  reentracyCount: number, 
-  thresholds: [number, FindingSeverity][],
-
+export const reentrancyLevel = (
+  reentrancyCount: number,
+  thresholds: [number, FindingSeverity][]
 ): [Boolean, FindingSeverity] => {
-  let isDangerousAndSeverity: [boolean, FindingSeverity] = [false, FindingSeverity.Unknown];
-  for(let i:number = 0; i < thresholds.length; i++){
+  let isDangerousAndSeverity: [boolean, FindingSeverity] = [
+    false,
+    FindingSeverity.Unknown,
+  ];
+  for (let i: number = 0; i < thresholds.length; i++) {
     const [threshold, severity] = thresholds[i];
-    if(reentracyCount < threshold) 
-      return isDangerousAndSeverity;
+    if (reentrancyCount < threshold) return isDangerousAndSeverity;
     isDangerousAndSeverity = [true, severity];
   }
   return isDangerousAndSeverity;
 };
 
 export const createFinding = (
-  addr: string, 
-  reentracyCount: number, 
+  addr: string,
+  reentrancyCount: number,
   severity: FindingSeverity
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentracyCount} calls to the same contract occured`,
+    description: `${reentrancyCount} calls to the same contract occured`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,
-    metadata:{
+    metadata: {
       address: addr,
-      reentracyCount: reentracyCount.toString(),
-    }
+      reentrancyCount: reentrancyCount.toString(),
+    },
   });
 };

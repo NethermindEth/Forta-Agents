@@ -1,7 +1,7 @@
 import { Finding, HandleTransaction } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import agent, { thresholds } from "./agent";
-import { createFinding, reentracyLevel } from "./agent.utils";
+import { createFinding, reentrancyLevel } from "./agent.utils";
 
 describe("Reentrancy counter agent tests suit", () => {
   const handleTransaction: HandleTransaction = agent.handleTransaction;
@@ -67,9 +67,9 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x1", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       );
-      const [report0x1, severity0x1] = reentracyLevel(1, thresholds);
-      const [report0x2, severity0x2] = reentracyLevel(3, thresholds);
-      const [report0x4, severity0x4] = reentracyLevel(5, thresholds);
+      const [report0x1, severity0x1] = reentrancyLevel(1, thresholds);
+      const [report0x2, severity0x2] = reentrancyLevel(3, thresholds);
+      const [report0x4, severity0x4] = reentrancyLevel(5, thresholds);
       const expected: Finding[] = [];
       if (report0x1) expected.push(createFinding("0x1", 1, severity0x1));
       if (report0x2) expected.push(createFinding("0x2", 3, severity0x2));
