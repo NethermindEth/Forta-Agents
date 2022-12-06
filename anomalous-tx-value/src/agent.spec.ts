@@ -6,7 +6,7 @@ import {
 } from "forta-agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 
-import agent, { DECIMALS, TX_VALUE_THRESHOLD } from ".";
+import agent, { DECIMALS, TX_VALUE_THRESHOLD } from "./agent";
 
 describe("Detect Very High Txn Value", () => {
   let handleTransaction: HandleTransaction;
