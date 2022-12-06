@@ -2,17 +2,28 @@ import {
   FindingType,
   FindingSeverity,
   Finding,
-  HandleTransaction
+  HandleTransaction,
+  Network
 } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
+import { provideHandleTransaction } from "./agent";
+import { AgentConfig, NetworkData } from "./utils";
 
-import agent, { DECIMALS, TX_VALUE_THRESHOLD } from "./agent";
+const DECIMALS = 10 ** 18;
+const DEFAULT_CONFIG: AgentConfig = {
+  [Network.MAINNET]: {
+    threshold: `${100 * DECIMALS}`
+  }
+};
 
 describe("Detect Very High Txn Value", () => {
   let handleTransaction: HandleTransaction;
+  let networkManager: NetworkManager<NetworkData>;
 
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
+    handleTransaction = provideHandleTransaction(networkManager);
   });
 
   describe("Handle Transaction", () => {
@@ -28,7 +39,7 @@ describe("Detect Very High Txn Value", () => {
     it("returns empty findings if value is equal to threshold", async () => {
       const txEvent = new TestTransactionEvent();
 
-      txEvent.setValue(`${TX_VALUE_THRESHOLD}`);
+      txEvent.setValue(`${100 * DECIMALS}`);
 
       const findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -46,8 +57,8 @@ describe("Detect Very High Txn Value", () => {
           name: "High Value Use Detection",
           description: "High value is used.",
           alertId: "NETHFORTA-2",
-          severity: FindingSeverity.High,
-          type: FindingType.Suspicious,
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
           metadata: {
             value: value.toString()
           }
