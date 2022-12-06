@@ -1,8 +1,8 @@
 {
-  "name": "forta-agent-starter",
-  "version": "0.1.0",
+  "name": "high-value-transaction",
+  "version": "0.2.0",
   "agentId": "nethforta-2",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors transactions that have high value",
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.6"
+    "forta-agent": "^0.1.15"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
