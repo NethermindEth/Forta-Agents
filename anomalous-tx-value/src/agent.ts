@@ -4,40 +4,56 @@ import {
   HandleTransaction,
   TransactionEvent,
   FindingSeverity,
-  FindingType
+  FindingType,
+  getEthersProvider,
+  Initialize
 } from "forta-agent";
+import { NetworkData } from "./utils";
+import { providers } from "ethers";
+import { NetworkManager } from "forta-agent-tools";
+import CONFIG from "./agent.config";
 
-export const DECIMALS = 10 ** 18;
-export const TX_VALUE_THRESHOLD = 100 * DECIMALS;
+const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
+const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
+};
 
-  // create finding if ETH value is higher than threshold
-  const value = new BigNumber(txEvent.transaction.value);
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
 
-  if (value.isLessThanOrEqualTo(TX_VALUE_THRESHOLD)) return findings;
+    // create finding if ETH value is higher than threshold
+    const value = new BigNumber(txEvent.transaction.value);
 
-  if (value.isGreaterThan(TX_VALUE_THRESHOLD)) {
+    if (value.isLessThanOrEqualTo(networkManager.get("threshold")))
+      return findings;
+
     findings.push(
       Finding.fromObject({
         name: "High Value Use Detection",
         description: "High value is used.",
         alertId: "NETHFORTA-2",
-        severity: FindingSeverity.High,
-        type: FindingType.Suspicious,
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
         metadata: {
           value: value.toString()
         }
       })
     );
-  }
 
-  return findings;
+    return findings;
+  };
 };
 
 export default {
-  handleTransaction
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager)
 };
