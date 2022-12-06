@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent checks transactions for reentrancy. This is done by the agent watching the call stack in transaction traces. It then reports the number of recurrent calls with varying severity based on various thresholds.
+This bot checks transactions for reentrancy. This is done by the bot watching the call stack in transaction traces. It then reports the number of recurrent calls with varying severity based on various thresholds.
 
 ## Supported Chains
 

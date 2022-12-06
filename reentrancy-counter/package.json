@@ -1,5 +1,5 @@
 {
-  "name": "forta-agent-starter",
+  "name": "forta-reentrancy-bot",
   "version": "0.0.2",
   "agentId": "nethforta-25",
   "description": "Reentrancy Monitoring",
