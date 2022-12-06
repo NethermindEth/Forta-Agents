@@ -1,12 +1,10 @@
 import {
-  TransactionEvent,
   FindingType,
   FindingSeverity,
   Finding,
-  EventType,
-  Network,
   HandleTransaction
 } from "forta-agent";
+import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 
 import agent, { DECIMALS, TX_VALUE_THRESHOLD } from ".";
 
@@ -17,56 +15,32 @@ describe("Detect Very High Txn Value", () => {
     handleTransaction = agent.handleTransaction;
   });
 
-  const createTxEvent = ({
-    transaction,
-    addresses,
-    blockNumber
-  }: any): TransactionEvent => {
-    const tx: any = {
-      value: transaction.value
-    };
-    const receipt: any = {};
-    const block: any = { number: blockNumber };
-    return new TransactionEvent(
-      EventType.BLOCK,
-      Network.MAINNET,
-      tx,
-      receipt,
-      [],
-      addresses,
-      block
-    );
-  };
-
   describe("Handle Transaction", () => {
     it("returns empty findings if value is below threshold", async () => {
-      const txEvent = createTxEvent({
-        transaction: { value: 1 * DECIMALS }
-      });
+      const txEvent = new TestTransactionEvent();
 
+      txEvent.setValue(`${1 * DECIMALS}`);
       const findings = await handleTransaction(txEvent);
 
       expect(findings).toStrictEqual([]);
     });
 
     it("returns empty findings if value is equal to threshold", async () => {
-      const txEvent = createTxEvent({
-        transaction: { value: TX_VALUE_THRESHOLD }
-      });
+      const txEvent = new TestTransactionEvent();
+
+      txEvent.setValue(`${TX_VALUE_THRESHOLD}`);
 
       const findings = await handleTransaction(txEvent);
-
       expect(findings).toStrictEqual([]);
     });
 
     it("returns a findings if value is above threshold", async () => {
+      const txEvent = new TestTransactionEvent();
       const value = 101 * DECIMALS;
-      const txEvent = createTxEvent({
-        transaction: { value: value }
-      });
+
+      txEvent.setValue(`${value}`);
 
       const findings = await handleTransaction(txEvent);
-
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "High Value Use Detection",
