@@ -3,6 +3,16 @@
   "version": "0.2.0",
   "agentId": "nethforta-2",
   "description": "Forta bot that monitors transactions that have high value",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/anomalous-tx-value",
+  "chainIds": [
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -17,11 +27,10 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.1.15"
+    "forta-agent": "^0.1.15",
+    "forta-agent-tools": "^3.1.2"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.23",
-    "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
