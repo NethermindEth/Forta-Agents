@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with anomalous transaction value (i.e. value greater a threshold).
+This bot detects transactions with anomalous transaction value (i.e. value greater than a threshold).
 
 The thresholds can be set inside `src/agent.config.ts` file.
 
