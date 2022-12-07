@@ -1,8 +1,18 @@
 {
-  "name": "forta-agent-starter",
-  "version": "0.1.0",
+  "name": "high-value-transaction",
+  "version": "0.2.0",
   "agentId": "nethforta-2",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta bot that monitors transactions that have high value",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/anomalous-tx-value",
+  "chainIds": [
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -13,17 +23,19 @@
     "range": "forta-agent run --range",
     "file": "forta-agent run --file",
     "publish": "forta-agent publish",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.6"
+    "forta-agent": "^0.1.15",
+    "forta-agent-tools": "^3.1.2"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.23",
-    "@types/nodemon": "^1.19.0",
+    "@types/jest": "^27.5.2",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.8.0",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }

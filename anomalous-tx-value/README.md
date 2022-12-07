@@ -1,25 +1,26 @@
-## Detect anomalous Transaction Value
+# Detect anomalous Transaction Value
 
-### Overview
+## Description
 
-This agent detects transactions with anomalous Transaction Value (i.e. value greater than the `TX_VALUE_THRESHOLD`).
+This bot detects transactions with anomalous transaction value (i.e. value greater than a threshold).
 
-## Installation
+The thresholds can be set inside `src/agent.config.ts` file.
 
-```
-npm install
-```
+## Supported Chains
 
-## Run
+- Ethereum
+- Optimism
+- BNB Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Avalanche
 
-Before run the agent to see how it works with real data, specify the `JSON-RPC` provider in the forta.config.json file. Uncomment the `jsonRpcUrl` property and set it to a websocket provider (e.g. `wss://mainnet.infura.io/ws/v3/`) if deploying in production, els use HTTP provider if testing with jest. Then ready to run the agent.
+## Alerts
 
-```
-npm start
-```
-
-## Test
-
-```
-npm test
-```
+- NETHFORTA-2
+  - Fired when a transaction has higher value than the threshold
+  - Severity is always set to "Info".
+  - Type is always set to "Info".
+  - Metadata:
+    - `value`: Value of the transaction
