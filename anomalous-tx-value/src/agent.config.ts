@@ -11,37 +11,37 @@ const thresholds = {
   ARBITRUM_ETH: 100,
   FTM: 600000,
   AVAX: 10000,
-  OPTIMISM_ETH: 100
+  OPTIMISM_ETH: 100,
 };
 
 const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
-    threshold: `${thresholds.MAINNET_ETH * DECIMALS}`
+    threshold: `${thresholds.MAINNET_ETH * DECIMALS}`,
   },
 
   [Network.BSC]: {
-    threshold: `${thresholds.BNB * DECIMALS}`
+    threshold: `${thresholds.BNB * DECIMALS}`,
   },
 
   [Network.POLYGON]: {
-    threshold: `${thresholds.MATIC * DECIMALS}`
+    threshold: `${thresholds.MATIC * DECIMALS}`,
   },
 
   [Network.ARBITRUM]: {
-    threshold: `${thresholds.ARBITRUM_ETH * DECIMALS}`
+    threshold: `${thresholds.ARBITRUM_ETH * DECIMALS}`,
   },
 
   [Network.FANTOM]: {
-    threshold: `${thresholds.FTM * DECIMALS}`
+    threshold: `${thresholds.FTM * DECIMALS}`,
   },
 
   [Network.AVALANCHE]: {
-    threshold: `${thresholds.AVAX * DECIMALS}`
+    threshold: `${thresholds.AVAX * DECIMALS}`,
   },
 
   [Network.OPTIMISM]: {
-    threshold: `${thresholds.OPTIMISM_ETH * DECIMALS}`
-  }
+    threshold: `${thresholds.OPTIMISM_ETH * DECIMALS}`,
+  },
 };
 
 export default CONFIG;

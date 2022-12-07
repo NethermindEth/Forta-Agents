@@ -6,7 +6,7 @@ import {
   FindingSeverity,
   FindingType,
   getEthersProvider,
-  Initialize
+  Initialize,
 } from "forta-agent";
 import { NetworkData } from "./utils";
 import { providers } from "ethers";
@@ -15,25 +15,19 @@ import CONFIG from "./agent.config";
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-const provideInitialize = (
-  networkManager: NetworkManager<NetworkData>,
-  provider: providers.Provider
-): Initialize => {
+const provideInitialize = (networkManager: NetworkManager<NetworkData>, provider: providers.Provider): Initialize => {
   return async () => {
     await networkManager.init(provider);
   };
 };
 
-export const provideHandleTransaction = (
-  networkManager: NetworkManager<NetworkData>
-): HandleTransaction => {
+export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     const value = new BigNumber(txEvent.transaction.value);
 
-    if (value.isLessThanOrEqualTo(networkManager.get("threshold")))
-      return findings;
+    if (value.isLessThanOrEqualTo(networkManager.get("threshold"))) return findings;
 
     findings.push(
       Finding.fromObject({
@@ -43,8 +37,8 @@ export const provideHandleTransaction = (
         severity: FindingSeverity.Info,
         type: FindingType.Info,
         metadata: {
-          value: value.toString()
-        }
+          value: value.toString(),
+        },
       })
     );
 
@@ -54,5 +48,5 @@ export const provideHandleTransaction = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(networkManager)
+  handleTransaction: provideHandleTransaction(networkManager),
 };

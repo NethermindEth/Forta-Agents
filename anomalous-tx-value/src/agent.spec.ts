@@ -1,10 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  Network
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, Network } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { provideHandleTransaction } from "./agent";
@@ -13,8 +7,8 @@ import { AgentConfig, NetworkData } from "./utils";
 const DECIMALS = 10 ** 18;
 const DEFAULT_CONFIG: AgentConfig = {
   [Network.MAINNET]: {
-    threshold: `${100 * DECIMALS}`
-  }
+    threshold: `${100 * DECIMALS}`,
+  },
 };
 
 describe("Detect Very High Txn Value", () => {
@@ -60,9 +54,9 @@ describe("Detect Very High Txn Value", () => {
           severity: FindingSeverity.Info,
           type: FindingType.Info,
           metadata: {
-            value: value.toString()
-          }
-        })
+            value: value.toString(),
+          },
+        }),
       ]);
     });
   });
