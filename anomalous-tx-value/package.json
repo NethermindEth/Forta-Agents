@@ -31,6 +31,7 @@
     "forta-agent-tools": "^3.1.2"
   },
   "devDependencies": {
+    "@types/jest": "^27.5.2",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
