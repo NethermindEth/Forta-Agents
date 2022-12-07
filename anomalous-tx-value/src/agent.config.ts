@@ -6,7 +6,7 @@ const DECIMALS = 10 ** 18;
 // Threshold amounts for individual network tokens
 const thresholds = {
   MAINNET_ETH: 100,
-  BNB: 40,
+  BNB: 450,
   MATIC: 150000,
   ARBITRUM_ETH: 100,
   FTM: 600000,
