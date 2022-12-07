@@ -34,8 +34,8 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
         name: "High Value Use Detection",
         description: "High value is used.",
         alertId: "NETHFORTA-2",
-        severity: FindingSeverity.Info,
-        type: FindingType.Info,
+        severity: FindingSeverity.High,
+        type: FindingType.Suspicious,
         metadata: {
           value: value.toString(),
         },
