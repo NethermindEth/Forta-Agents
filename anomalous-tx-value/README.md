@@ -2,7 +2,7 @@
 
 ## Description
 
-This agent detects transactions with anomalous Transaction Value (i.e. value greater than the `TX_VALUE_THRESHOLD`).
+This bot detects transactions with anomalous transaction value (i.e. value greater a threshold).
 
 The thresholds can be set inside `src/agent.config.ts` file.
 
@@ -10,7 +10,7 @@ The thresholds can be set inside `src/agent.config.ts` file.
 
 - Ethereum
 - Optimism
-- Binance Smart Chain
+- BNB Smart Chain
 - Polygon
 - Fantom
 - Arbitrum
