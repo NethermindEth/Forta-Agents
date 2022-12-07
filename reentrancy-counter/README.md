@@ -8,7 +8,7 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
 
 - Ethereum
 - Optimism
-- Binance Smart Chain
+- BNB Smart Chain
 - Polygon
 - Fantom
 - Arbitrum
@@ -20,6 +20,6 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
   - Fired when multiple nested calls occur to the same contract in a transaction (Reentrancy)
   - It reports all possible severities based on different call volume thresholds.
   - Type is always set to "suspicious"
-  - The metada contains the following information:
-    - The contract address where the reentrancy occurred
-    - A reentrancy counter based on how many times it occurred
+  - The metadata includes:
+  - `address`: The contract address where the reentrancy occurred
+  - `reentrancyCount`: A reentrancy counter based on how many times it occurred
