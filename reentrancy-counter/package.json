@@ -1,23 +1,39 @@
 {
-  "name": "forta-agent-starter",
-  "version": "0.0.1",
+  "name": "forta-reentrancy-bot",
+  "version": "0.0.2",
   "agentId": "nethforta-25",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Reentrancy Monitoring",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/reentrancy-counter",
+  "chainIds": [
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
-    "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec 'npm run build && forta-agent run'",
+    "start:dev": "nodemon --watch src --watch forta.config.json -e js,json --exec \"forta-agent run\"",
     "start:prod": "forta-agent run --prod",
-    "tx": "npm run build && forta-agent run --tx",
-    "block": "npm run build && forta-agent run --block",
-    "range": "npm run build && forta-agent run --range",
-    "file": "npm run build && forta-agent run --file",
+    "tx": "forta-agent run --tx",
+    "block": "forta-agent run --block",
+    "range": "forta-agent run --range",
+    "file": "forta-agent run --file",
     "publish": "forta-agent publish",
+    "info": "forta-agent info",
+    "logs": "forta-agent logs",
+    "push": "forta-agent push",
+    "disable": "forta-agent disable",
+    "enable": "forta-agent enable",
+    "keyfile": "forta-agent keyfile",
     "test": "jest"
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.15"
+    "forta-agent": "^0.1.15"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -25,6 +41,7 @@
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "forta-agent-tools": "^3.1.2"
   }
 }

@@ -2,19 +2,24 @@
 
 ## Description
 
-This agent detects report transaction where reentrancy ocur, based on the calls stack provided in the transaction traces.
-It report the amount of repeated calls with different severities according to different thresholds.
+This bot checks transactions for reentrancy. This is done by the bot watching the call stack in transaction traces. It then reports the number of recurrent calls with varying severity based on various thresholds.
 
 ## Supported Chains
 
 - Ethereum
+- Optimism
+- BNB Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Avalanche
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
-
 - NETHFORTA-25
-  - Fired when in a transaction ocur multiples nested calls to the same contract (reentrancy)
-  - It report all the posible severities based on different thresholds of the amount of calls
+  - Fired when multiple nested calls occur to the same contract in a transaction (Reentrancy)
+  - It reports all possible severities based on different call volume thresholds.
   - Type is always set to "suspicious"
-  - The metadata contains the reentered address & the reentrancy counter
+  - The metadata includes:
+  - `address`: The contract address where the reentrancy occurred
+  - `reentrancyCount`: A reentrancy counter based on how many times it occurred

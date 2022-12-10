@@ -1,15 +1,11 @@
-import { 
-  Finding, 
-  HandleTransaction, 
-  TransactionEvent, 
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
   Trace,
   FindingSeverity,
-} from 'forta-agent';
-import {
-  Counter,
-  reentracyLevel,
-  createFinding,
-} from './agent.utils';
+} from "forta-agent";
+import { Counter, reentrancyLevel, createFinding } from "./agent.utils";
 
 export const thresholds: [number, FindingSeverity][] = [
   [3, FindingSeverity.Info],
@@ -19,7 +15,9 @@ export const thresholds: [number, FindingSeverity][] = [
   [11, FindingSeverity.Critical],
 ];
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const handleTransaction: HandleTransaction = async (
+  txEvent: TransactionEvent
+) => {
   const findings: Finding[] = [];
 
   const maxReentrancyNumber: Counter = {};
@@ -40,7 +38,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   // Review the traces stack
   txEvent.traces.forEach((trace: Trace) => {
     const curStack: number[] = trace.traceAddress;
-    while(stack.length > curStack.length){
+    while (stack.length > curStack.length) {
       // @ts-ignore
       const last: string = stack.pop();
       currentCounter[last] -= 1;
@@ -48,19 +46,18 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     const to: string = trace.action.to;
     currentCounter[to] += 1;
     maxReentrancyNumber[to] = Math.max(
-      maxReentrancyNumber[to], 
-      currentCounter[to],
+      maxReentrancyNumber[to],
+      currentCounter[to]
     );
     stack.push(to);
   });
 
   // Create findings if needed
-  for(const addr in maxReentrancyNumber){
-    const maxCount: number = maxReentrancyNumber[addr]
-    const [report, severity] = reentracyLevel(maxCount, thresholds);
-    if(report)
-      findings.push(createFinding(addr, maxCount, severity));
-  };
+  for (const addr in maxReentrancyNumber) {
+    const maxCount: number = maxReentrancyNumber[addr];
+    const [report, severity] = reentrancyLevel(maxCount, thresholds);
+    if (report) findings.push(createFinding(addr, maxCount, severity));
+  }
 
   return findings;
 };
