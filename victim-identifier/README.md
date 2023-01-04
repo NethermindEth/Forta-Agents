@@ -20,14 +20,17 @@ This bot identifies possible victims during the preparation or the exploitation 
 
 - VICTIM-IDENTIFIER-PREPARATION-STAGE
 
-  - Fired when an contract address is identified as a possible victim in the preparation stage of an attack
+  - Fired when a contract address is identified as a possible victim in the preparation stage of an attack
   - Severity is always set to "Info".
   - Type is always set to "Info".
-  - Metadata contains a record of contract address to an object with the following properties:
+  - Metadata contains a `Record` of contract address to an object with the following properties:
     - `protocolUrl`: The victim protocol's website address, if found.
     - `protocolTwitter`: The victim protocol's twitter handle, if found.
     - `tag`: The victim protocol's name, if found.
-    - `holders`: The token holders of the victim if it is an ERC20 token.
+    - `holders`: The token holders of the victim if:
+      1. it is an ERC20 token.
+      2. they are found.
+      3. the number of victims is small, in order to avoid max findings size per request error.
   - Labels contain:
     - `entity`: The victim's address
     - `entityType`: The type of the entity, always set to "Address".
@@ -37,14 +40,17 @@ This bot identifies possible victims during the preparation or the exploitation 
 
 - VICTIM-IDENTIFIER-EXPLOITATION-STAGE
 
-  - Fired when an contract address is identified as a possible victim in the exploitation stage of an attack
+  - Fired when a contract address is identified as a possible victim in the exploitation stage of an attack
   - Severity is always set to "Info".
   - Type is always set to "Info".
-  - Metadata contains a record of contract address to an object with the following properties:
+  - Metadata contains a `Record` of contract address to an object with the following properties:
     - `protocolUrl`: The victim protocol's website address, if found.
     - `protocolTwitter`: The victim protocol's twitter handle, if found.
     - `tag`: The victim protocol's name, if found.
-    - `holders`: The token holders of the victim if it is an ERC20 token.
+    - `holders`: The token holders of the victim if:
+      1. it is an ERC20 token.
+      2. they are found.
+      3. the number of victims is small, in order to avoid max findings size per request error.
   - Labels contain:
     - `entity`: The victim's address
     - `entityType`: The type of the entity, always set to "Address".

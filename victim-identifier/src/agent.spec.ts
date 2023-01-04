@@ -1,12 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  Label,
-  LabelType,
-  EntityType,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, Label, LabelType, EntityType } from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
@@ -59,8 +51,7 @@ const testCreatePreparationStageFinding = (
 
   return Finding.fromObject({
     name: "Victim Identified - Preparation Stage",
-    description:
-      "A possible victim has been identified in the preparation stage of an attack",
+    description: "A possible victim has been identified in the preparation stage of an attack",
     alertId: "VICTIM-IDENTIFIER-PREPARATION-STAGE",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -116,8 +107,7 @@ const testCreateExploitationStageFinding = (
 
   return Finding.fromObject({
     name: "Victim Identified - Exploitation Stage",
-    description:
-      "A possible victim has been identified in the exploitation stage of an attack",
+    description: "A possible victim has been identified in the exploitation stage of an attack",
     alertId: "VICTIM-IDENTIFIER-EXPLOITATION-STAGE",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -131,9 +121,7 @@ describe("Victim Identifier bot test suite", () => {
   const mockVictimIdentifer = {
     getIdentifiedVictims: mockGetIdentifiedVictims,
   };
-  let handleTransaction: HandleTransaction = provideHandleTransaction(
-    mockVictimIdentifer as any
-  );
+  let handleTransaction: HandleTransaction = provideHandleTransaction(mockVictimIdentifer as any);
 
   describe("handleTransaction", () => {
     it("returns empty findings if there are no victims", async () => {
@@ -153,10 +141,7 @@ describe("Victim Identifier bot test suite", () => {
       const victims = {
         preparationStage: {
           "0x0000000000000000000000000000000000011888": {
-            holders: [
-              "0x000000000000000000000000000000000022aabb",
-              "0x0000000000000000000000000000000033aabbcc",
-            ],
+            holders: ["0x000000000000000000000000000000000022aabb", "0x0000000000000000000000000000000033aabbcc"],
             protocolTwitter: "Victim5678Twitter",
             protocolUrl: "victim5678.org",
             tag: "Victim5678",
@@ -166,15 +151,11 @@ describe("Victim Identifier bot test suite", () => {
         exploitationStage: {},
       };
 
-      when(mockGetIdentifiedVictims)
-        .calledWith(mockTxEvent)
-        .mockReturnValue(victims);
+      when(mockGetIdentifiedVictims).calledWith(mockTxEvent).mockReturnValue(victims);
 
       const findings = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        testCreatePreparationStageFinding(victims.preparationStage),
-      ]);
+      expect(findings).toStrictEqual([testCreatePreparationStageFinding(victims.preparationStage)]);
     });
 
     it("returns a finding if there is an exploitation stage victim", async () => {
@@ -192,18 +173,14 @@ describe("Victim Identifier bot test suite", () => {
         },
       };
 
-      when(mockGetIdentifiedVictims)
-        .calledWith(mockTxEvent)
-        .mockReturnValue(victims);
+      when(mockGetIdentifiedVictims).calledWith(mockTxEvent).mockReturnValue(victims);
 
       const findings = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        testCreateExploitationStageFinding(victims.exploitationStage),
-      ]);
+      expect(findings).toStrictEqual([testCreateExploitationStageFinding(victims.exploitationStage)]);
     });
 
-    it("returns a findings if there are multiple exploitation stage victims", async () => {
+    it("returns a finding if there are multiple exploitation stage victims", async () => {
       const mockTxEvent = new TestTransactionEvent();
       const victims = {
         preparationStage: {},
@@ -216,10 +193,7 @@ describe("Victim Identifier bot test suite", () => {
             confidence: 0,
           },
           "0x00000000000000000000000000000000777712132": {
-            holders: [
-              "0x000000000000000000000000000000012122aabb",
-              "0x0000000000000000000000000000000043aabbcc",
-            ],
+            holders: ["0x000000000000000000000000000000012122aabb", "0x0000000000000000000000000000000043aabbcc"],
             protocolTwitter: "",
             protocolUrl: "",
             tag: "Victim225678",
@@ -228,15 +202,11 @@ describe("Victim Identifier bot test suite", () => {
         },
       };
 
-      when(mockGetIdentifiedVictims)
-        .calledWith(mockTxEvent)
-        .mockReturnValue(victims);
+      when(mockGetIdentifiedVictims).calledWith(mockTxEvent).mockReturnValue(victims);
 
       const findings = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([
-        testCreateExploitationStageFinding(victims.exploitationStage),
-      ]);
+      expect(findings).toStrictEqual([testCreateExploitationStageFinding(victims.exploitationStage)]);
     });
   });
 
@@ -245,10 +215,7 @@ describe("Victim Identifier bot test suite", () => {
     const victims = {
       preparationStage: {
         "0x0000000000000000000000000000000000011888": {
-          holders: [
-            "0x000000000000000000000000000000000022aabb",
-            "0x0000000000000000000000000000000033aabbcc",
-          ],
+          holders: ["0x000000000000000000000000000000000022aabb", "0x0000000000000000000000000000000033aabbcc"],
           protocolTwitter: "Victim5678Twitter",
           protocolUrl: "victim5678.org",
           tag: "Victim5678",
@@ -265,9 +232,7 @@ describe("Victim Identifier bot test suite", () => {
         },
       },
     };
-    when(mockGetIdentifiedVictims)
-      .calledWith(mockTxEvent)
-      .mockReturnValue(victims);
+    when(mockGetIdentifiedVictims).calledWith(mockTxEvent).mockReturnValue(victims);
 
     const findings = await handleTransaction(mockTxEvent);
 
