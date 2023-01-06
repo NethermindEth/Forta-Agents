@@ -6,7 +6,6 @@ import {
   FindingType,
   getEthersProvider,
   Label,
-  LabelType,
   EntityType,
 } from "forta-agent";
 import { VictimIdentifier } from "forta-agent-tools";
@@ -25,38 +24,34 @@ const createPreparationStageFinding = (
   >
 ): Finding => {
   const labels: Label[] = [];
-  const metadata: Record<string, any> = {};
+  let metadata: {
+    [key: string]: string;
+  } = {};
+  let index = 1;
 
   // Iterate through the preparationStageVictims object
   for (const contract in preparationStageVictims) {
     const victim = preparationStageVictims[contract];
+    // Add properties to the metadata object, using the index as a suffix
+    metadata[`address${index}`] = contract;
+    metadata[`tag${index}`] = victim.tag;
+    metadata[`protocolUrl${index}`] = victim.protocolUrl;
+    metadata[`protocolTwitter${index}`] = victim.protocolTwitter;
     /* 
       Add the victim's properties to the metadata object -
       If the number of victims is large, don't output the "holders" property to avoid
-      "Cannot return more than 50kB of findings per request" error 
-    */
+      "Cannot return more than 50kB of findings per request" error */
     if (Object.keys(preparationStageVictims).length < 4) {
-      metadata[contract] = {
-        protocolUrl: victim.protocolUrl,
-        protocolTwitter: victim.protocolTwitter,
-        tag: victim.tag,
-        holders: victim.holders,
-      };
-    } else {
-      metadata[contract] = {
-        protocolUrl: victim.protocolUrl,
-        protocolTwitter: victim.protocolTwitter,
-        tag: victim.tag,
-      };
+      metadata[`holders${index}`] = victim.holders.join(", ");
     }
+    index++;
 
     // Create a label for the victim
     labels.push({
       entity: contract,
       entityType: EntityType.Address,
-      labelType: LabelType.Victim,
+      label: "Victim",
       confidence: victim.confidence,
-      customValue: "",
     });
   }
 
@@ -84,40 +79,36 @@ const createExploitationStageFinding = (
   >
 ): Finding => {
   const labels: Label[] = [];
-  const metadata: Record<string, any> = {};
+  let metadata: {
+    [key: string]: string;
+  } = {};
+  let index = 1;
 
   // Iterate through the exploitationStageVictims object
   for (const contract in exploitationStageVictims) {
     const victim = exploitationStageVictims[contract];
+    // Add properties to the metadata object, using the index as a suffix
+    metadata[`address${index}`] = contract;
+    metadata[`tag${index}`] = victim.tag;
+    metadata[`protocolUrl${index}`] = victim.protocolUrl;
+    metadata[`protocolTwitter${index}`] = victim.protocolTwitter;
     /* 
       Add the victim's properties to the metadata object -
       If the number of victims is large, don't output the "holders" property to avoid
-      "Cannot return more than 50kB of findings per request" error 
-    */
+      "Cannot return more than 50kB of findings per request" error */
     if (Object.keys(exploitationStageVictims).length < 4) {
-      metadata[contract] = {
-        protocolUrl: victim.protocolUrl,
-        protocolTwitter: victim.protocolTwitter,
-        tag: victim.tag,
-        holders: victim.holders,
-      };
-    } else {
-      metadata[contract] = {
-        protocolUrl: victim.protocolUrl,
-        protocolTwitter: victim.protocolTwitter,
-        tag: victim.tag,
-      };
+      metadata[`holders${index}`] = victim.holders.join(", ");
     }
+    index++;
+
     // Create a label for the victim
     labels.push({
       entity: contract,
       entityType: EntityType.Address,
-      labelType: LabelType.Victim,
+      label: "Victim",
       confidence: victim.confidence,
-      customValue: "",
     });
   }
-
   return Finding.fromObject({
     name: "Victim Identified - Exploitation Stage",
     description: "A possible victim has been identified in the exploitation stage of an attack",
@@ -142,10 +133,10 @@ export const provideHandleTransaction =
     if (Object.keys(victims.exploitationStage).length > 0) {
       findings.push(createExploitationStageFinding(victims.exploitationStage));
     }
+
     return findings;
   };
 
 export default {
-  provideHandleTransaction,
   handleTransaction: provideHandleTransaction(new VictimIdentifier(getEthersProvider(), keys)),
 };

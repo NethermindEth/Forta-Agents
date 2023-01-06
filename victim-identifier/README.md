@@ -23,13 +23,14 @@ This bot identifies possible victims during the preparation or the exploitation 
   - Fired when a contract address is identified as a possible victim in the preparation stage of an attack
   - Severity is always set to "Info".
   - Type is always set to "Info".
-  - Metadata contains a `Record` of contract address to an object with the following properties:
-    - `protocolUrl`: The victim protocol's website address, if found.
-    - `protocolTwitter`: The victim protocol's twitter handle, if found.
-    - `tag`: The victim protocol's name, if found.
-    - `holders`: The token holders of the victim if:
+  - Metadata contains:
+    - `address#`: The victim's contract address.
+    - `tag#`: The victim protocol's name, if found.
+    - `protocolUrl#`: The victim protocol's website address, if found.
+    - `protocolTwitter#`: The victim protocol's twitter handle, if found.
+    - `holders#`: The token holders of the victim if:
       1. it is an ERC20 token.
-      2. they are found.
+      2. the holders are found.
       3. the number of victims is small, in order to avoid max findings size per request error.
   - Labels contain:
     - `entity`: The victim's address
@@ -43,20 +44,21 @@ This bot identifies possible victims during the preparation or the exploitation 
   - Fired when a contract address is identified as a possible victim in the exploitation stage of an attack
   - Severity is always set to "Info".
   - Type is always set to "Info".
-  - Metadata contains a `Record` of contract address to an object with the following properties:
-    - `protocolUrl`: The victim protocol's website address, if found.
-    - `protocolTwitter`: The victim protocol's twitter handle, if found.
-    - `tag`: The victim protocol's name, if found.
-    - `holders`: The token holders of the victim if:
-      1. it is an ERC20 token.
-      2. they are found.
-      3. the number of victims is small, in order to avoid max findings size per request error.
-  - Labels contain:
-    - `entity`: The victim's address
-    - `entityType`: The type of the entity, always set to "Address".
-    - `labelType`: The type of the label, always set to "Victim".
-    - `confidence`: The confidence level of the contract being a victim (0-1).
-    - `customValue`: Not used.
+  - Metadata contains:
+  - `address#`: The victim's contract address.
+  - `tag#`: The victim protocol's name, if found.
+  - `protocolUrl#`: The victim protocol's website address, if found.
+  - `protocolTwitter#`: The victim protocol's twitter handle, if found.
+  - `holders#`: The token holders of the victim if:
+    1. it is an ERC20 token.
+    2. the holders are found.
+    3. the number of victims is small, in order to avoid max findings size per request error.
+
+- Labels contain:
+  - `entity`: The victim's address
+  - `entityType`: The type of the entity, always set to "Address".
+  - `label`: The type of the label, always set to "Victim".
+  - `confidence`: The confidence level of the contract being a victim (0-1).
 
 ## Test Data
 
