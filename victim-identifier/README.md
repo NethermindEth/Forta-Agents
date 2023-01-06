@@ -35,9 +35,8 @@ This bot identifies possible victims during the preparation or the exploitation 
   - Labels contain:
     - `entity`: The victim's address
     - `entityType`: The type of the entity, always set to "Address".
-    - `labelType`: The type of the label, always set to "Victim".
+    - `label`: The type of the label, always set to "Victim".
     - `confidence`: The confidence level of the contract being a victim (0-1).
-    - `customValue`: Not used.
 
 - VICTIM-IDENTIFIER-EXPLOITATION-STAGE
 
