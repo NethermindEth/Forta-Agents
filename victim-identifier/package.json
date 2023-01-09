@@ -1,8 +1,8 @@
 {
-  "name": "victim-identifer",
-  "version": "0.0.1",
+  "name": "victim-identifier",
+  "version": "0.0.2",
   "description": "Bot that identifies victims during the preparation or the exploitation stage of an attack",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-identifer",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-identifier",
   "chainIds": [
     1,
     10,
@@ -32,8 +32,8 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.15",
-    "forta-agent-tools": "^3.2.2"
+    "forta-agent": "^0.1.16",
+    "forta-agent-tools": "^3.2.3"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
