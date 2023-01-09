@@ -21,14 +21,15 @@ This bot identifies possible victims during the preparation or the exploitation 
 - VICTIM-IDENTIFIER-PREPARATION-STAGE
 
   - Fired when a contract address is identified as a possible victim in the preparation stage of an attack
+    - Per the library docs: `preparation stage of an attack, where victims are contained in a newly deployed contract's code`
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-    - `address#`: The victim's contract address.
-    - `tag#`: The victim protocol's name, if found.
-    - `protocolUrl#`: The victim protocol's website address, if found.
-    - `protocolTwitter#`: The victim protocol's twitter handle, if found.
-    - `holders#`: The token holders of the victim if:
+    - `address#`^: The victim's contract address.
+    - `tag#`^: The victim protocol's name, if found.
+    - `protocolUrl#`^: The victim protocol's website address, if found.
+    - `protocolTwitter#`^: The victim protocol's twitter handle, if found.
+    - `holders#`^: The token holders of the victim if:
       1. it is an ERC20 token.
       2. the holders are found.
       3. the number of victims is small, in order to avoid max findings size per request error.
@@ -41,23 +42,27 @@ This bot identifies possible victims during the preparation or the exploitation 
 - VICTIM-IDENTIFIER-EXPLOITATION-STAGE
 
   - Fired when a contract address is identified as a possible victim in the exploitation stage of an attack
+    - Per the library docs: `exploitation stage of an attack, in transactions where the victim protocol's balance is reduced`
   - Severity is always set to "Info".
   - Type is always set to "Info".
   - Metadata contains:
-  - `address#`: The victim's contract address.
-  - `tag#`: The victim protocol's name, if found.
-  - `protocolUrl#`: The victim protocol's website address, if found.
-  - `protocolTwitter#`: The victim protocol's twitter handle, if found.
-  - `holders#`: The token holders of the victim if:
-    1. it is an ERC20 token.
-    2. the holders are found.
-    3. the number of victims is small, in order to avoid max findings size per request error.
+    - `address#`^: The victim's contract address.
+    - `tag#`^: The victim protocol's name, if found.
+    - `protocolUrl#`^: The victim protocol's website address, if found.
+    - `protocolTwitter#`^: The victim protocol's twitter handle, if found.
+    - `holders#`^: The token holders of the victim if:
+      1. it is an ERC20 token.
+      2. the holders are found.
+      3. the number of victims is small, in order to avoid max findings size per request error.
 
 - Labels contain:
+
   - `entity`: The victim's address
   - `entityType`: The type of the entity, always set to "Address".
   - `label`: The type of the label, always set to "Victim".
   - `confidence`: The confidence level of the contract being a victim (0-1).
+
+> `^` indicates this property could have more than one instance appear in the alert's `metadata`, and thus each will be properly enumerated.
 
 ## Test Data
 
