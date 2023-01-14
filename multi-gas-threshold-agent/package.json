@@ -21,9 +21,10 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "forta-agent": "^0.1.16",
     "forta-agent-tools": "^3.2.3",
-    "node-fetch": "^3.3.0"
+    "node-fetch": "^2.6.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

@@ -1,16 +1,15 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import { fetchJwt } from "forta-agent";
-// import fetch from "node-fetch";
+import fetch from "node-fetch";
 import { existsSync, readFileSync, writeFileSync } from "fs";
-// require("dotenv").config();
 
-export default class PersistenceHelper {
+export class PersistenceHelper {
   databaseUrl: string;
   fetch: any;
 
-  constructor(dbUrl: string, fetch: any) {
+  constructor(dbUrl: string) {
     this.databaseUrl = dbUrl;
-    this.fetch = fetch;
-    console.log(`inside PHelper constructor`);
   }
 
   // TODO: figure out exact type for value
@@ -26,7 +25,6 @@ export default class PersistenceHelper {
           headers: headers,
           body: JSON.stringify(value),
         });
-
         if (response.ok) {
           console.log(`successfully persisted ${value} to database`);
           return;
@@ -47,7 +45,7 @@ export default class PersistenceHelper {
       const token = await fetchJwt({});
       const headers = { Authorization: `Bearer ${token}` };
       try {
-        const response = await this.fetch(`${this.databaseUrl}${key}`, { headers });
+        const response = await fetch(`${this.databaseUrl}${key}`, { headers });
 
         if (response.ok) {
           // TODO: Figure if `any` is right type for `data`

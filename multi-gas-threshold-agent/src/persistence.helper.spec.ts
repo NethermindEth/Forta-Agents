@@ -1,9 +1,7 @@
-import PersistenceHelper from "./persistence.helper";
+import { PersistenceHelper } from "./persistence.helper";
 import { existsSync, writeFileSync, unlinkSync } from "fs";
-// import fetch, { Response } from "node-fetch";
-import { Response } from "node-fetch";
-// import { Response, ResponseInit } from "node-fetch";
-// const { Response } = jest.requireActual("node-fetch");
+import fetch, { Response } from "node-fetch";
+
 jest.mock("node-fetch");
 
 const mockDbUrl = "databaseurl.com/";
@@ -19,16 +17,6 @@ const mockJwt = {
 };
 const mockKey = "mock-test-key";
 
-const originalEnv = process.env;
-
-// Mock environment variables
-const mockHasOwnProperty = jest.fn();
-/*
-process.env = {
-  hasOwnProperty: mockHasOwnProperty,
-};
-*/
-
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
 jest.mock("forta-agent", () => {
@@ -39,20 +27,7 @@ jest.mock("forta-agent", () => {
   };
 });
 
-const DETECT_FLASHLOANS_KEY = "nm-flashloans-bot-key";
-const DETECT_FLASHLOANS_HIGH_KEY = "nm-flashloans-high-profit-bot-key";
-const TOTAL_TXNS_KEY = "nm-flashloans-bot-total-txns-key";
-
 const removePersistentState = () => {
-  if (existsSync(DETECT_FLASHLOANS_KEY)) {
-    unlinkSync(DETECT_FLASHLOANS_KEY);
-  }
-  if (existsSync(DETECT_FLASHLOANS_HIGH_KEY)) {
-    unlinkSync(DETECT_FLASHLOANS_HIGH_KEY);
-  }
-  if (existsSync(TOTAL_TXNS_KEY)) {
-    unlinkSync(TOTAL_TXNS_KEY);
-  }
   if (existsSync(mockKey)) {
     unlinkSync(mockKey);
   }
@@ -60,58 +35,56 @@ const removePersistentState = () => {
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  // TODO: If this is right type for mockFetch
-  let mockFetch = jest.fn(); /*jest.mocked(fetch, true)*/
+  let mockFetch = jest.mocked(fetch, true);
 
   beforeAll(() => {
-    persistenceHelper = new PersistenceHelper(mockDbUrl, mockFetch);
+    persistenceHelper = new PersistenceHelper(mockDbUrl);
   });
 
   beforeEach(() => {
-    jest.resetModules();
-    process.env = {
-        ...originalEnv
-    };
     removePersistentState();
+    delete process.env.LOCAL_NODE;
   });
 
   afterEach(() => {
-    process.env = originalEnv;
     jest.clearAllMocks();
   });
 
   it("should correctly POST a value to the database", async () => {
     const mockValue = 101;
 
-    const mockResponseInit = { status: 202 };
     const mockPostMethodResponse = { data: "4234" };
-    const mockFetchResponse: Response = new Response(JSON.stringify(mockPostMethodResponse), mockResponseInit);
+    const mockFetchResponse: Response = {
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
+    } as any as Response;
 
-    // mockHasOwnProperty.mockReturnValueOnce(false);
-    // mockFetchJwt.mockResolvedValueOnce(mockJwt);
+    const mockEnv = {};
+    Object.assign(process.env, mockEnv);
+
+    mockFetchJwt.mockResolvedValueOnce(mockJwt);
+
     mockFetch.mockResolvedValueOnce(Promise.resolve(mockFetchResponse));
-
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
     await persistenceHelper.persist(mockValue, mockKey);
 
     expect(spy).toHaveBeenCalledWith("successfully persisted 101 to database");
-    expect(mockHasOwnProperty).toHaveBeenCalledTimes(1);
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
-    expect(mockFetch.mock.calls[0][1].method).toEqual("POST");
-    expect(mockFetch.mock.calls[0][1].headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-    expect(mockFetch.mock.calls[0][1].body).toEqual(JSON.stringify(mockValue));
+    expect(mockFetch.mock.calls[0][1]!.method).toEqual("POST");
+    expect(mockFetch.mock.calls[0][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
+    expect(mockFetch.mock.calls[0][1]!.body).toEqual(JSON.stringify(mockValue));
   });
 
-  /*
   it("should correctly store a value to a local file", async () => {
     const mockValue = 101;
 
-    mockHasOwnProperty.mockReturnValueOnce(true);
+    const mockEnv = { LOCAL_NODE: 35 };
+    Object.assign(process.env, mockEnv);
+
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(mockHasOwnProperty).toHaveBeenCalledTimes(1);
     expect(mockFetchJwt).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
 
@@ -120,12 +93,15 @@ describe("Persistence Helper test suite", () => {
 
   it("should fail to POST a value to the database", async () => {
     const mockValue = 202;
-
-    const mockResponseInit = { status: 305 };
     const mockPostMethodResponse = { data: "4234" };
-    const mockFetchResponse = new Response(JSON.stringify(mockPostMethodResponse), mockResponseInit);
+    const mockFetchResponse: Response = {
+      ok: false,
+      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
+    } as any as Response;
 
-    mockHasOwnProperty.mockReturnValueOnce(false);
+    const mockEnv = {};
+    Object.assign(process.env, mockEnv);
+
     mockFetchJwt.mockResolvedValueOnce(mockJwt);
     mockFetch.mockResolvedValueOnce(mockFetchResponse);
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -133,7 +109,6 @@ describe("Persistence Helper test suite", () => {
     await persistenceHelper.persist(mockValue, mockKey);
     expect(spy).not.toHaveBeenCalledWith("successfully persisted 202 to database");
 
-    expect(mockHasOwnProperty).toHaveBeenCalledTimes(1);
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
@@ -141,11 +116,16 @@ describe("Persistence Helper test suite", () => {
   it("should correctly load variable values from the database", async () => {
     const mockData = 4234;
 
-    const mockResponseInit = { status: 207 };
     const mockPostMethodResponse = mockData.toString();
-    const mockFetchResponse = new Response(JSON.stringify(mockPostMethodResponse), mockResponseInit);
 
-    mockHasOwnProperty.mockReturnValueOnce(false);
+    const mockFetchResponse: Response = {
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
+    } as any as Response;
+
+    const mockEnv = {};
+    Object.assign(process.env, mockEnv);
+
     mockFetchJwt.mockResolvedValueOnce(mockJwt);
     mockFetch.mockResolvedValueOnce(mockFetchResponse);
 
@@ -156,11 +136,15 @@ describe("Persistence Helper test suite", () => {
   it("should fail to load values from the database, but return zero", async () => {
     const mockData = 4234;
 
-    const mockResponseInit = { status: 308 };
     const mockPostMethodResponse = mockData.toString();
-    const mockFetchResponse = new Response(JSON.stringify(mockPostMethodResponse), mockResponseInit);
+    const mockFetchResponse: Response = {
+      ok: false,
+      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
+    } as any as Response;
 
-    mockHasOwnProperty.mockReturnValueOnce(false);
+    const mockEnv = {};
+    Object.assign(process.env, mockEnv);
+
     mockFetchJwt.mockResolvedValueOnce(mockJwt);
     mockFetch.mockResolvedValueOnce(mockFetchResponse);
 
@@ -173,7 +157,9 @@ describe("Persistence Helper test suite", () => {
 
     writeFileSync(mockKey, mockData.toString());
 
-    mockHasOwnProperty.mockReturnValueOnce(true);
+    const mockEnv = { LOCAL_NODE: 121 };
+    Object.assign(process.env, mockEnv);
+
     expect(mockFetchJwt).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
 
@@ -182,12 +168,13 @@ describe("Persistence Helper test suite", () => {
   });
 
   it("should fail load values from a local file if it doesn't exist, but return 0", async () => {
-    mockHasOwnProperty.mockReturnValueOnce(true);
+    const mockEnv = { LOCAL_NODE: 121 };
+    Object.assign(process.env, mockEnv);
+
     expect(mockFetchJwt).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
 
     const fetchedValue = await persistenceHelper.load(mockKey);
     expect(fetchedValue).toStrictEqual(0);
   });
-  */
 });

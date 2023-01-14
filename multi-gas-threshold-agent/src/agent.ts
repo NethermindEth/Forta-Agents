@@ -7,8 +7,7 @@ import {
   FindingType,
   ethers,
 } from "forta-agent";
-import fetch from "node-fetch";
-import PersistenceHelper from "./persistence.helper";
+import { PersistenceHelper } from "./persistence.helper";
 
 export const MEDIUM_GAS_THRESHOLD = "4000000";
 export const HIGH_GAS_THRESHOLD = "6000000";
@@ -120,12 +119,7 @@ export function provideHandleBlock(
 }
 
 export default {
-  initialize: provideInitialize(new PersistenceHelper(DATABASE_URL, fetch), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
+  initialize: provideInitialize(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
   handleTransaction: provideHandleTransaction(),
-  handleBlock: provideHandleBlock(
-    new PersistenceHelper(DATABASE_URL, fetch),
-    MEDIUM_GAS_KEY,
-    HIGH_GAS_KEY,
-    ALL_GAS_KEY
-  ),
+  handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
 };
