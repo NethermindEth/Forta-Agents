@@ -6,14 +6,16 @@ jest.mock("node-fetch");
 
 const mockDbUrl = "databaseurl.com/";
 const mockJwt = {
-  iss: "issuer",
-  sub: "0x556f8BE42f76c01F960f32CB1936D2e0e0Eb3F4D",
-  aud: "recipient",
-  exp: 1660119443,
-  nbf: 1660119383,
-  iat: 1660119413,
-  jti: "qkd5cfad-1884-11ed-a5c9-02420a639308",
-  "bot-id": "0x13k387b37769ce24236c403e76fc30f01fa774176e1416c861yfe6c07dfef71f",
+  token: {
+    iss: "issuer",
+    sub: "0x556f8BE42f76c01F960f32CB1936D2e0e0Eb3F4D",
+    aud: "recipient",
+    exp: 1660119443,
+    nbf: 1660119383,
+    iat: 1660119413,
+    jti: "qkd5cfad-1884-11ed-a5c9-02420a639308",
+    "bot-id": "0x13k387b37769ce24236c403e76fc30f01fa774176e1416c861yfe6c07dfef71f",
+  }
 };
 const mockKey = "mock-test-key";
 
