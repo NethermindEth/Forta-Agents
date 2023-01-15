@@ -12,12 +12,10 @@ export class PersistenceHelper {
     this.databaseUrl = dbUrl;
   }
 
-  // TODO: figure out exact type for value
   async persist(value: any, key: string) {
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
-      const token = await fetchJwt({});
-
+      const token = (await fetchJwt({}))?.token;
       const headers = { Authorization: `Bearer ${token}` };
       try {
         const response = await fetch(`${this.databaseUrl}${key}`, {
@@ -30,7 +28,7 @@ export class PersistenceHelper {
           return;
         }
       } catch (e) {
-        console.log(`failed to persist ${value} to database. Error: ${e}`);
+        console.log(`Failed to persist ${value} to database. Error: ${e}`);
       }
     } else {
       // Persist locally
@@ -42,16 +40,16 @@ export class PersistenceHelper {
   async load(key: string) {
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
-      const token = await fetchJwt({});
+      const token = (await fetchJwt({}))?.token;
       const headers = { Authorization: `Bearer ${token}` };
       try {
         const response = await fetch(`${this.databaseUrl}${key}`, { headers });
 
         if (response.ok) {
-          // TODO: Figure if `any` is right type for `data`
           const data: any = await response.json();
-          console.log(`successfully fetched value from database`);
-          return parseInt(data);
+          const value = parseInt(data);
+          console.log(`successfully fetched ${value} from database`);
+          return value;
         } else {
           console.log(`${key} has no database entry`);
           // If this is the first bot instance that is deployed,
@@ -61,7 +59,7 @@ export class PersistenceHelper {
           return 0;
         }
       } catch (e) {
-        console.log(`Error in fetching data.`);
+        console.log(`Error in fetching data. Error: ${e}`);
         throw e;
       }
     } else {
