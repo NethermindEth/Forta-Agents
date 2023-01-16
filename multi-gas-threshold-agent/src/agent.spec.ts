@@ -133,7 +133,7 @@ describe("multi gas threshold agent", () => {
               label: "High Gas Transaction",
               confidence: 1,
             }),
-          ]
+          ],
         }),
       ]);
     });
@@ -161,7 +161,7 @@ describe("multi gas threshold agent", () => {
               label: "High Gas Transaction",
               confidence: 1,
             }),
-          ]
+          ],
         }),
       ]);
     });
