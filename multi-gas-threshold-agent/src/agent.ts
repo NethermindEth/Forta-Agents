@@ -6,8 +6,13 @@ import {
   FindingSeverity,
   FindingType,
   ethers,
+  Label,
+  EntityType,
+  getEthersProvider
 } from "forta-agent";
 import { PersistenceHelper } from "./persistence.helper";
+
+let CHAIN_ID: string;
 
 export const MEDIUM_GAS_THRESHOLD = "4000000";
 export const HIGH_GAS_THRESHOLD = "6000000";
@@ -40,26 +45,25 @@ const getAnomalyScore = (gasSeverity: FindingSeverity) => {
     return highAnomalyScore.toFixed(2);
   } else if (gasSeverity === FindingSeverity.Medium) {
     const medAnomalyScore = medHighGasAlerts / allHighGasAlerts;
-    return medAnomalyScore;
+    return medAnomalyScore.toFixed(2);
   } else {
     return 1;
   }
 };
 
 export function provideInitialize(
+  provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
   mediumGasKey: string,
   highGasKey: string,
   allGasKey: string
 ) {
   return async function initialize() {
-    medHighGasAlerts = await persistenceHelper.load(mediumGasKey);
-    hiHighGasAlerts = await persistenceHelper.load(highGasKey);
-    allHighGasAlerts = await persistenceHelper.load(allGasKey);
-
-    console.log(
-      `medHighGasAlerts: ${medHighGasAlerts}; hiHighGasAlerts: ${hiHighGasAlerts}; allHighGasAlerts: ${allHighGasAlerts}`
-    );
+    const { chainId } = await provider.getNetwork();
+    CHAIN_ID = chainId.toString();
+    medHighGasAlerts = await persistenceHelper.load(mediumGasKey.concat("-", CHAIN_ID));
+    hiHighGasAlerts = await persistenceHelper.load(highGasKey.concat("-", CHAIN_ID));
+    allHighGasAlerts = await persistenceHelper.load(allGasKey.concat("-", CHAIN_ID));
   };
 }
 
@@ -92,6 +96,14 @@ export function provideHandleTransaction(): HandleTransaction {
           gas: gasUsed.toString(),
           anomalyScore: anomalyScore.toString(),
         },
+        labels: [
+          Label.fromObject({
+            entityType: EntityType.Transaction,
+            entity: txEvent.hash,
+            label: "High Gas Transaction",
+            confidence: 1,
+          }),
+        ]
       })
     );
 
@@ -109,9 +121,9 @@ export function provideHandleBlock(
     const findings: Finding[] = [];
 
     if (blockEvent.blockNumber % 240 === 0) {
-      await persistenceHelper.persist(medHighGasAlerts, mediumGasKey);
-      await persistenceHelper.persist(hiHighGasAlerts, highGasKey);
-      await persistenceHelper.persist(allHighGasAlerts, allGasKey);
+      await persistenceHelper.persist(medHighGasAlerts, mediumGasKey.concat("-", CHAIN_ID));
+      await persistenceHelper.persist(hiHighGasAlerts, highGasKey.concat("-", CHAIN_ID));
+      await persistenceHelper.persist(allHighGasAlerts, allGasKey.concat("-", CHAIN_ID));
     }
 
     return findings;
@@ -119,7 +131,7 @@ export function provideHandleBlock(
 }
 
 export default {
-  initialize: provideInitialize(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
+  initialize: provideInitialize(getEthersProvider(), new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
   handleTransaction: provideHandleTransaction(),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
 };
