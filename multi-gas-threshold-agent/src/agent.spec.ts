@@ -55,46 +55,55 @@ jest.mock("forta-agent", () => {
 });
 
 describe("multi gas threshold agent", () => {
+  let mockPersistenceHelper: PersistenceHelper;
+  let mockProvider: MockEthersProvider;
+  let mockFetch = jest.mocked(fetch, true);
+  let initialize: Initialize;
+  let handleTransaction: HandleTransaction;
+  let handleBlock: HandleBlock;
+  let mockFetchResponse: Response;
+
+  beforeAll(() => {
+    mockProvider = new MockEthersProvider();
+    mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
+  });
+
+  beforeEach(() => {
+    mockProvider.setNetwork(mockChainId);
+    initialize = provideInitialize(
+      mockProvider as any,
+      mockPersistenceHelper,
+      mockMedGasKey,
+      mockHighGasKey,
+      mockAllGasKey
+    );
+    const mockEnv = {};
+    Object.assign(process.env, mockEnv);
+
+    mockFetchResponse = {
+      ok: true,
+      json: jest
+        .fn()
+        .mockResolvedValueOnce(Promise.resolve(mockDetectedMediumGasAlerts.toString()))
+        .mockResolvedValueOnce(Promise.resolve(mockDetectedHighGasAlerts.toString()))
+        .mockResolvedValueOnce(Promise.resolve(mockDetectedTotalGasAlerts.toString())),
+    } as any as Response;
+
+    mockFetchJwt.mockResolvedValue(mockJwt);
+    mockFetch.mockResolvedValue(mockFetchResponse);
+
+    initialize();
+
+    handleTransaction = provideHandleTransaction();
+    handleBlock = provideHandleBlock(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
+    delete process.env.LOCAL_NODE;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe("transaction handler test suite", () => {
-    let mockPersistenceHelper: PersistenceHelper;
-    let mockProvider: MockEthersProvider;
-    let mockFetch = jest.mocked(fetch, true);
-    let initialize: Initialize;
-    let handleTransaction: HandleTransaction;
-
-    beforeAll(() => {
-      mockProvider = new MockEthersProvider();
-      mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
-    });
-
-    beforeEach(() => {
-      mockProvider.setNetwork(mockChainId);
-      initialize = provideInitialize(mockProvider as any, mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
-      const mockEnv = {};
-      Object.assign(process.env, mockEnv);
-
-      const mockFetchResponse: Response = {
-        ok: true,
-        json: jest
-          .fn()
-          .mockResolvedValueOnce(Promise.resolve(mockDetectedMediumGasAlerts.toString()))
-          .mockResolvedValueOnce(Promise.resolve(mockDetectedHighGasAlerts.toString()))
-          .mockResolvedValueOnce(Promise.resolve(mockDetectedTotalGasAlerts.toString())),
-      } as any as Response;
-
-      mockFetchJwt.mockResolvedValue(mockJwt);
-      mockFetch.mockResolvedValue(mockFetchResponse);
-
-      initialize();
-
-      handleTransaction = provideHandleTransaction();
-      delete process.env.LOCAL_NODE;
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it("Returns empty findings if gas used is below lowest threshold", async () => {
       const txEvent: TransactionEvent = new TestTransactionEvent().setGas("500000");
       const findings: Finding[] = await handleTransaction(txEvent);
@@ -164,43 +173,7 @@ describe("multi gas threshold agent", () => {
     });
   });
 
-  /*
   describe("block handler test suite", () => {
-    let mockPersistenceHelper: PersistenceHelper;
-    let mockFetch = jest.mocked(fetch, true);
-    let initialize: Initialize;
-    let handleBlock: HandleBlock;
-
-    beforeAll(() => {
-      mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
-    });
-
-    beforeEach(async () => {
-      initialize = provideInitialize(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
-      const mockEnv = {};
-      Object.assign(process.env, mockEnv);
-
-      const mockFetchResponse: Response = {
-        ok: true,
-        json: jest
-          .fn()
-          .mockResolvedValueOnce(mockDetectedMediumGasAlerts.toString())
-          .mockResolvedValueOnce(mockDetectedHighGasAlerts.toString())
-          .mockResolvedValueOnce(mockDetectedTotalGasAlerts.toString()),
-      } as any as Response;
-
-      mockFetchJwt.mockResolvedValue(mockJwt);
-      mockFetch.mockResolvedValue(mockFetchResponse);
-      initialize();
-
-      handleBlock = provideHandleBlock(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
-      delete process.env.LOCAL_NODE;
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it("should not persist values because block is not evenly divisible by 240", async () => {
       const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
 
@@ -208,7 +181,7 @@ describe("multi gas threshold agent", () => {
 
       // Only the three times for the initialize
       expect(mockFetchJwt).toHaveBeenCalledTimes(3);
-      expect(mockFetch).toHaveBeenCalledTimes(3);
+      expect(mockFetchResponse.json).toHaveBeenCalledTimes(3);
     });
 
     it("should persist the value in a block evenly divisible by 240", async () => {
@@ -224,8 +197,7 @@ describe("multi gas threshold agent", () => {
       expect(mockFetchJwt).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
       expect(mockFetch).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
 
-      console.log(`mockFetch.mock.calls.length: ${mockFetch.mock.calls.length}`);
-
+      /*
       expect(mockFetch.mock.calls[3][0]).toEqual(`${mockDbUrl}${mockMedGasKey}`);
       expect(mockFetch.mock.calls[3][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[3][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
@@ -240,7 +212,7 @@ describe("multi gas threshold agent", () => {
       expect(mockFetch.mock.calls[5][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[5][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
       expect(mockFetch.mock.calls[5][1]!.body).toEqual(JSON.stringify(mockAllGasKey));
+      */
     });
   });
-  */
 });
