@@ -68,7 +68,7 @@ describe("multi gas threshold agent", () => {
     mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockProvider.setNetwork(mockChainId);
     initialize = provideInitialize(
       mockProvider as any,
@@ -92,7 +92,7 @@ describe("multi gas threshold agent", () => {
     mockFetchJwt.mockResolvedValue(mockJwt);
     mockFetch.mockResolvedValue(mockFetchResponse);
 
-    initialize();
+    await initialize();
 
     handleTransaction = provideHandleTransaction();
     handleBlock = provideHandleBlock(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
@@ -197,22 +197,20 @@ describe("multi gas threshold agent", () => {
       expect(mockFetchJwt).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
       expect(mockFetch).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
 
-      /*
-      expect(mockFetch.mock.calls[3][0]).toEqual(`${mockDbUrl}${mockMedGasKey}`);
+      expect(mockFetch.mock.calls[3][0]).toEqual(`${mockDbUrl}${mockMedGasKey.concat("-", mockChainId.toString())}`);
       expect(mockFetch.mock.calls[3][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[3][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
       expect(mockFetch.mock.calls[3][1]!.body).toEqual(JSON.stringify(mockDetectedMediumGasAlerts));
 
-      expect(mockFetch.mock.calls[4][0]).toEqual(`${mockDbUrl}${mockHighGasKey}`);
+      expect(mockFetch.mock.calls[4][0]).toEqual(`${mockDbUrl}${mockHighGasKey.concat("-", mockChainId.toString())}`);
       expect(mockFetch.mock.calls[4][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[4][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
       expect(mockFetch.mock.calls[4][1]!.body).toEqual(JSON.stringify(mockDetectedHighGasAlerts));
 
-      expect(mockFetch.mock.calls[5][0]).toEqual(`${mockDbUrl}${mockAllGasKey}`);
+      expect(mockFetch.mock.calls[5][0]).toEqual(`${mockDbUrl}${mockAllGasKey.concat("-", mockChainId.toString())}`);
       expect(mockFetch.mock.calls[5][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[5][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-      expect(mockFetch.mock.calls[5][1]!.body).toEqual(JSON.stringify(mockAllGasKey));
-      */
+      expect(mockFetch.mock.calls[5][1]!.body).toEqual(JSON.stringify(mockDetectedTotalGasAlerts));
     });
   });
 });
