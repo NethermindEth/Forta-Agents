@@ -1,8 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "high-gas-used-bot",
   "version": "0.1.1",
   "agentId": "nethforta-1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Bot that detects transactions with unusually high gas used",
   "chainIds": [
     1
   ],
