@@ -1,25 +1,27 @@
-## Detect unusual amount of gas used
+# High Gas Used bot.
 
-### Overview
+## Description
 
-This agent detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This bot detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
 
-## Installation
+## Supported Chains
 
-```
-npm install
-```
+- Ethereum
 
-## Run
+## Alerts
 
-Before run the agent to see how it works with real data, specify the `JSON-RPC` provider in the forta.config.json file. Uncomment the `jsonRpcUrl` property and set it to a websocket provider (e.g. `wss://mainnet.infura.io/ws/v3/`) if deploying in production, else use HTTP provider if testing with jest. Then ready to run the agent.
-
-```
-npm start
-```
-
-## Test
-
-```
-npm test
-```
+- NETHFORTA-1
+  - Fired when a transaction uses more gas than the defined thresholds.
+  - Severity:
+    - For gas usage over `MEDIUM_GAS_THRESHOLD` is always set to "Medium".
+    - For gas usage over `HIGH_GAS_THRESHOLD` is always set to "High".
+  - Type is always set to "Suspicious".
+  - Metadata includes:
+    - `gas`: The amount of gas used by the transaction.
+    - `anomalyScore`: Score of how anomalous the alert is (0-1)
+      - Score calculated by finding amount of either `MEDIUM_GAS_THRESHOLD` or `HIGH_GAS_THRESHOLD` alerts out of the total number of alerts emitted by this bot.
+  - Label
+    - `entityType`: The type of the entity, always set to "Transaction"
+    - `entity`: The transaction's hash
+    - `label`: The type of the label, always set to "High Gas Transaction"
+    - `confidence`: The confidence level of the address being an attacker (0-1). Always set to `1`
