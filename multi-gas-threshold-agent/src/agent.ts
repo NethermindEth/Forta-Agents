@@ -8,7 +8,7 @@ import {
   ethers,
   Label,
   EntityType,
-  getEthersProvider
+  getEthersProvider,
 } from "forta-agent";
 import { PersistenceHelper } from "./persistence.helper";
 
@@ -103,7 +103,7 @@ export function provideHandleTransaction(): HandleTransaction {
             label: "High Gas Transaction",
             confidence: 1,
           }),
-        ]
+        ],
       })
     );
 
@@ -131,7 +131,13 @@ export function provideHandleBlock(
 }
 
 export default {
-  initialize: provideInitialize(getEthersProvider(), new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
+  initialize: provideInitialize(
+    getEthersProvider(),
+    new PersistenceHelper(DATABASE_URL),
+    MEDIUM_GAS_KEY,
+    HIGH_GAS_KEY,
+    ALL_GAS_KEY
+  ),
   handleTransaction: provideHandleTransaction(),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
 };
