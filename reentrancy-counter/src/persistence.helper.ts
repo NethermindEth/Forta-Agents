@@ -33,7 +33,7 @@ export class PersistenceHelper {
       }
     } else {
       // Persist locally
-      writeFileSync(key, JSON.stringify(value), "utf8");
+      writeFileSync(key, JSON.stringify(value));
       return;
     }
   }
