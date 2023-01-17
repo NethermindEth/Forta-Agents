@@ -24,3 +24,5 @@ The thresholds can be set inside `src/agent.config.ts` file.
   - Type is always set to "Info".
   - Metadata:
     - `value`: Value of the transaction
+    - `anomalyScore`: Score of how anomalous the alert is (0-1)
+      - Score calculated by finding the amount of anomalous value transactions detected by the bot out of the total amount of transactions that have a `value` greater than zero.
