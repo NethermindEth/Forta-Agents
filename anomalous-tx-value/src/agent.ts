@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import {
   Finding,
   HandleTransaction,
@@ -7,7 +8,6 @@ import {
   FindingType,
   getEthersProvider,
   Initialize,
-  ethers,
   Label,
   EntityType,
 } from "forta-agent";
@@ -49,12 +49,12 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const value = ethers.BigNumber.from(txEvent.transaction.value);
+    const value = new BigNumber(txEvent.transaction.value);
 
-    if (value.gt(ethers.constants.Zero)) {
+    if (value.isGreaterThan(new BigNumber(0))) {
       allTxnsWithValue += 1;
     }
-    if (value.lte(networkManager.get("threshold"))) return findings;
+    if (value.isLessThanOrEqualTo(networkManager.get("threshold"))) return findings;
 
     anomalousValueTxns += 1;
     const anomalyScore = (anomalousValueTxns / allTxnsWithValue).toFixed(2);
