@@ -30,7 +30,7 @@ let allTxnsWithValue = 0;
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
-const provideInitialize = (
+export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: providers.Provider,
   persistenceHelper: PersistenceHelper,
