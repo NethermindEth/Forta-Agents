@@ -1,6 +1,6 @@
 {
   "name": "high-value-transaction",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "agentId": "nethforta-2",
   "description": "Forta bot that monitors transactions that have high value",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/anomalous-tx-value",
