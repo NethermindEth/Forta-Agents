@@ -73,7 +73,7 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
           Label.fromObject({
             entityType: EntityType.Transaction,
             entity: txEvent.hash,
-            label: "High Gas Transaction",
+            label: "High Value Transaction",
             confidence: 1,
           }),
         ],

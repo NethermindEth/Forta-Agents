@@ -149,7 +149,7 @@ describe("Detect Very High Txn Value", () => {
             Label.fromObject({
               entityType: EntityType.Transaction,
               entity: txEvent.hash,
-              label: "High Gas Transaction",
+              label: "High Value Transaction",
               confidence: 1,
             }),
           ],
