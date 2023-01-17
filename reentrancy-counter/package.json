@@ -1,5 +1,5 @@
 {
-  "name": "forta-reentrancy-bot",
+  "name": "reentrancy-calls-detection-bot",
   "version": "0.0.3",
   "agentId": "nethforta-25",
   "description": "Reentrancy Monitoring",
