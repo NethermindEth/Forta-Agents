@@ -31,14 +31,15 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "dotenv": "^16.0.3",
     "forta-agent": "^0.1.16",
     "forta-agent-tools": "^3.1.2",
-    "node-fetch": "^2.6.8"
+    "node-fetch": "^2.6.8",
+    "bignumber.js": "^9.1.1"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
