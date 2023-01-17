@@ -27,8 +27,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.1.15"
+    "forta-agent": "^0.1.16",
+    "dotenv": "^16.0.3",
+    "node-fetch": "^2.6.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -37,6 +38,6 @@
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4",
-    "forta-agent-tools": "^3.1.2"
+    "forta-agent-tools": "^3.2.3"
   }
 }
