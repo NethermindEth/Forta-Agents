@@ -26,7 +26,7 @@
     "push": "forta-agent push",
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "dependencies": {
     "forta-agent": "^0.1.16",
