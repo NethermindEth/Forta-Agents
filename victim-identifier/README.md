@@ -4,7 +4,7 @@
 
 This bot identifies possible victims during the preparation or the exploitation stage of an attack, using the `VictimIdentifier` library from the [General-Agents-Module](https://github.com/NethermindEth/general-agents-module#victimidentifier)
 
-> The bot uses Luabase, Moralis, Ethplorer and block explorer APIs. In order to increase performance, add your own API keys to the `src/keys.ts` file.
+> The bot uses Moralis, Ethplorer and block explorer APIs. In order to increase performance, add your own API keys to the `src/keys.ts` file.
 
 ## Supported Chains
 
