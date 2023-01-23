@@ -1,6 +1,5 @@
 export const keys = {
   ethplorerApiKey: "",
-  luabaseApiKey: "",
   moralisApiKey: "",
   etherscanApiKey: "",
   optimisticEtherscanApiKey: "",
