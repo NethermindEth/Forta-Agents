@@ -1,2 +1,7 @@
-export const POLYGON_VALIDATOR_SIGNER_ADDRESS = "0xa8B52F02108AA5F4B675bDcC973760022D7C6020";
-export const MINIMUM_THRESHOLD = "1000000000000000000"; //1 ETH
+import { ethers } from "forta-agent";
+
+export const POLYGON_VALIDATOR_SIGNER_ADDRESS: string = "0xa8B52F02108AA5F4B675bDcC973760022D7C6020";
+export const MINIMUM_THRESHOLD = ethers.BigNumber.from("1000000000000000000"); //1 ETH
+export type Flag = {
+  wasOverThresholdAlert: boolean;
+};

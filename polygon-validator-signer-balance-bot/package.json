@@ -1,7 +1,8 @@
 {
-  "name": "Polygon-Validator-Signer-Bot",
+  "name": "polygon-validator-signer-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta Bot that monitors the balance of an account",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/polygon-validator-signer-balance-bot",
   "chainIds": [
     1
   ],
