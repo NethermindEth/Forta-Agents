@@ -7,10 +7,14 @@ let flag = {
   wasOverThresholdAlert: false,
 };
 
-export const provideInitialize = (ethersProvider: ethers.providers.JsonRpcProvider, flag: Flag): Initialize => {
+export const provideInitialize = (
+  ethersProvider: ethers.providers.JsonRpcProvider,
+  flag: Flag,
+  address: string
+): Initialize => {
   return async () => {
-    const accountBalance = await ethersProvider.getBalance(POLYGON_VALIDATOR_SIGNER_ADDRESS);
-    if (accountBalance?.gt(MINIMUM_THRESHOLD)) {
+    const accountBalance = await ethersProvider.getBalance(address);
+    if (accountBalance.gt(MINIMUM_THRESHOLD)) {
       flag.wasOverThresholdAlert = true;
     } else {
       flag.wasOverThresholdAlert = false;
@@ -18,16 +22,20 @@ export const provideInitialize = (ethersProvider: ethers.providers.JsonRpcProvid
   };
 };
 
-export function provideHandleBlock(ethersProvider: ethers.providers.JsonRpcProvider, flag: Flag): HandleBlock {
-  return async (txEvent: BlockEvent): Promise<Finding[]> => {
+export function provideHandleBlock(
+  ethersProvider: ethers.providers.JsonRpcProvider,
+  flag: Flag,
+  address: string
+): HandleBlock {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const accountBalance = await ethersProvider.getBalance(POLYGON_VALIDATOR_SIGNER_ADDRESS, txEvent.blockNumber - 1);
-    const formatBalance = accountBalance?.toString();
+    const accountBalance = await ethersProvider.getBalance(address, blockEvent.blockNumber - 1);
+    const balanceString = ethers.utils.formatEther(accountBalance.toString());
     if (accountBalance.lt(MINIMUM_THRESHOLD) && flag.wasOverThresholdAlert) {
-      findings.push(createUnderThresholdFinding(formatBalance));
+      findings.push(createUnderThresholdFinding(balanceString));
       flag.wasOverThresholdAlert = false;
     } else if (accountBalance.gt(MINIMUM_THRESHOLD) && !flag.wasOverThresholdAlert) {
-      findings.push(createOverThresholdFinding(formatBalance));
+      findings.push(createOverThresholdFinding(balanceString));
       flag.wasOverThresholdAlert = true;
     }
     return findings;
@@ -35,6 +43,6 @@ export function provideHandleBlock(ethersProvider: ethers.providers.JsonRpcProvi
 }
 
 export default {
-  initialize: provideInitialize(ethersProvider, flag),
-  handleBlock: provideHandleBlock(ethersProvider, flag),
+  initialize: provideInitialize(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS),
+  handleBlock: provideHandleBlock(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS),
 };
