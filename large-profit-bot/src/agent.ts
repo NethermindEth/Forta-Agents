@@ -123,7 +123,7 @@ export const provideHandleTransaction =
         return acc + value;
       }, 0);
 
-      // If the sum of the values is more than 10000 USD, add the address to the victims list
+      // If the sum of the values is more than 10000 USD, add the address to the large profit addresses list
       if (sum > 10000) {
         const confidence = fetcher.getConfidenceLevel(sum, "usdValue") as number;
         largeProfitAddresses.push({ address, confidence, isProfitInUsd: true, profit: sum });
