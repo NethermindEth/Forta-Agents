@@ -6,3 +6,7 @@ export const MINIMUM_THRESHOLD_TO_ETHER = ethers.utils.formatEther(MINIMUM_THRES
 export type Flag = {
   wasOverThresholdAlert: boolean;
 };
+
+export type mockFlag = {
+  wasOverThresholdAlert: boolean;
+};

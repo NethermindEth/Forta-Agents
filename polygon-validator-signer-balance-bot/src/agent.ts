@@ -10,11 +10,12 @@ let flag = {
 export const provideInitialize = (
   ethersProvider: ethers.providers.JsonRpcProvider,
   flag: Flag,
-  address: string
+  address: string,
+  threshold: ethers.BigNumber
 ): Initialize => {
   return async () => {
     const accountBalance = await ethersProvider.getBalance(address);
-    if (accountBalance.gt(MINIMUM_THRESHOLD)) {
+    if (accountBalance.gt(threshold)) {
       flag.wasOverThresholdAlert = true;
     } else {
       flag.wasOverThresholdAlert = false;
@@ -25,16 +26,18 @@ export const provideInitialize = (
 export function provideHandleBlock(
   ethersProvider: ethers.providers.JsonRpcProvider,
   flag: Flag,
-  address: string
+  address: string,
+  threshold: ethers.BigNumber
 ): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const accountBalance = await ethersProvider.getBalance(address, blockEvent.blockNumber - 1);
-    const balanceString = ethers.utils.formatEther(accountBalance.toString());
-    if (accountBalance.lt(MINIMUM_THRESHOLD) && flag.wasOverThresholdAlert) {
+    if (accountBalance.lt(threshold) && flag.wasOverThresholdAlert) {
+      const balanceString = ethers.utils.formatEther(accountBalance.toString());
       findings.push(createUnderThresholdFinding(balanceString));
       flag.wasOverThresholdAlert = false;
-    } else if (accountBalance.gt(MINIMUM_THRESHOLD) && !flag.wasOverThresholdAlert) {
+    } else if (accountBalance.gt(threshold) && !flag.wasOverThresholdAlert) {
+      const balanceString = ethers.utils.formatEther(accountBalance.toString());
       findings.push(createOverThresholdFinding(balanceString));
       flag.wasOverThresholdAlert = true;
     }
@@ -43,6 +46,6 @@ export function provideHandleBlock(
 }
 
 export default {
-  initialize: provideInitialize(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS),
-  handleBlock: provideHandleBlock(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS),
+  initialize: provideInitialize(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS, MINIMUM_THRESHOLD),
+  handleBlock: provideHandleBlock(ethersProvider, flag, POLYGON_VALIDATOR_SIGNER_ADDRESS, MINIMUM_THRESHOLD),
 };

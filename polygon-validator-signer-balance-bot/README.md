@@ -7,21 +7,19 @@ This bot monitors the ETH balance in the account [0xa8B52F02108AA5F4B675bDcC9737
 
 ## Supported Chains
 - Ethereum
-
-
 ## Alerts
 - POLY-01
-  - Fired when the account balance is below  specified threshold
+  - Fired when the account balance is below specified threshold
   - Severity is always set to "info" 
   - Type is always set to "info"
   - Metadata fields:
-   - `balance`: monitored address ETH balance
+    - `balance`: monitored address ETH balance
 
 
 - POLY-02
-  - Fired when the account balance is above  specified threshold
+  - Fired when the account balance is above specified threshold
   - Severity is always set to "info" 
   - Type is always set to "info"
   - Metadata fields:
-   - `balance`: monitored address ETH balance
+    - `balance`: monitored address ETH balance
 
