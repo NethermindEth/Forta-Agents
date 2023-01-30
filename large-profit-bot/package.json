@@ -30,20 +30,25 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.17",
-    "lru-cache": "^7.14.1"
+    "lru-cache": "^7.14.1",
+    "node-fetch": "^2.6.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/node-fetch": "^2.6.2",
     "@types/nodemon": "^1.19.0",
+    "@types/jest-when": "^3.5.2",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.8.3",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4",
-    "prettier": "^2.8.3"
+    "forta-agent-tools": "^3.2.5",
+    "jest-when": "^3.5.2"
   }
 }
