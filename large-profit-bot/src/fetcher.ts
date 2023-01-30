@@ -311,7 +311,7 @@ export default class Fetcher {
     return Number(tokenAmount) * usdPrice;
   }
 
-  public getExploitationStageConfidenceLevel = (value: number, method: string) => {
+  public getConfidenceLevel = (value: number, method: string) => {
     // "value" is either the USD value or the percentage of total supply
     if (method === "usdValue") {
       /*

@@ -1,4 +1,49 @@
-import { ethers } from "forta-agent";
+import { EntityType, Finding, FindingSeverity, FindingType, Label, ethers } from "forta-agent";
+
+export const createFinding = (
+  addresses: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[],
+  txHash: string,
+  severity: FindingSeverity,
+  txFrom: string,
+  txTo: string
+): Finding => {
+  let labels = [];
+  let profit = "";
+  addresses.map((address) => {
+    profit = address.isProfitInUsd ? `$${address.profit.toFixed(2)}` : `${address.profit}% of total supply`;
+    labels.push(
+      Label.fromObject({
+        entity: address.address,
+        entityType: EntityType.Address,
+        label: "Large Profit Receiver",
+        confidence: address.confidence,
+        remove: false,
+      })
+    );
+  });
+  labels.push(
+    Label.fromObject({
+      entity: txHash,
+      entityType: EntityType.Transaction,
+      label: "Large Profit Transaction",
+      confidence: 1,
+      remove: false,
+    })
+  );
+  return Finding.fromObject({
+    name: "Large Profit",
+    description: "Transaction resulted in a large profit for the initiator",
+    alertId: "LARGE-PROFIT",
+    severity,
+    type: FindingType.Suspicious,
+    metadata: {
+      txFrom,
+      txTo,
+      profit,
+    },
+    labels,
+  });
+};
 
 export const MAX_USD_VALUE = 500000;
 
