@@ -1,12 +1,18 @@
-import { Finding, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
-import { ERC20_TRANSFER_EVENT, WRAPPED_NATIVE_TOKEN_EVENTS, ZERO, wrappedNativeTokens } from "./utils";
+import { Finding, FindingSeverity, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import { ERC20_TRANSFER_EVENT, WRAPPED_NATIVE_TOKEN_EVENTS, ZERO, createFinding, wrappedNativeTokens } from "./utils";
 import Fetcher from "./fetcher";
 import { keys } from "./keys";
+import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
 
-const provideHandleTransaction =
-  (fetcher: Fetcher): HandleTransaction =>
+export const provideHandleTransaction =
+  (fetcher: Fetcher, provider: ethers.providers.Provider): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
+    if (txEvent.to) {
+      const isToAnEOA = (await provider.getCode(txEvent.to)) === "0x";
+      if (isToAnEOA) return findings;
+    }
+    if ((await provider.getTransactionCount(txEvent.from)) > EOA_TRANSACTION_COUNT_THRESHOLD) return findings;
 
     const balanceChangesMap: Map<string, Record<string, ethers.BigNumber>> = new Map();
 
@@ -79,75 +85,94 @@ const provideHandleTransaction =
       })
     );
 
-    // Remove empty records
+    // Remove empty records and filter out addresses other than txEvent.from and txEvent.to
     balanceChangesMap.forEach((record: Record<string, ethers.BigNumber>, key: string) => {
       Object.keys(record).forEach((token) => {
         if (record[token].eq(ZERO)) {
           delete record[token];
         }
       });
-      if (Object.keys(record).length === 0) {
+      if (
+        Object.keys(record).length === 0 ||
+        ![txEvent.from.toLowerCase(), txEvent.to?.toLowerCase()].includes(key.toLowerCase())
+      ) {
         balanceChangesMap.delete(key);
       }
     });
+
     const balanceChangesMapUsd: Map<string, Record<string, number>> = new Map();
     // Get the USD value of the balance changes
-    await Promise.all(
-      Array.from(balanceChangesMap.entries()).map(async ([key, record]) => {
-        const usdRecord: Record<string, number> = {};
-        await Promise.all(
-          Object.keys(record).map(async (token) => {
-            const UsdValue = await fetcher.getValueInUsd(
-              txEvent.blockNumber,
-              txEvent.network,
-              record[token].toString(),
-              token
-            );
-            usdRecord[token] = UsdValue;
-          })
+    for (const key of balanceChangesMap.keys()) {
+      const record = balanceChangesMap.get(key);
+      const usdRecord: Record<string, number> = {};
+      for (const token in record) {
+        const UsdValue = await fetcher.getValueInUsd(
+          txEvent.blockNumber,
+          txEvent.network,
+          record[token].toString(),
+          token
         );
-        balanceChangesMapUsd.set(key, usdRecord);
-      })
-    );
+        usdRecord[token] = UsdValue;
+      }
+      balanceChangesMapUsd.set(key, usdRecord);
+    }
+    const largeProfitAddresses: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[] = [];
 
-    const victims: { address: string; confidence: number }[] = [];
-    console.log(balanceChangesMap, balanceChangesMapUsd);
     balanceChangesMapUsd.forEach((record: Record<string, number>, address: string) => {
       const sum = Object.values(record).reduce((acc, value) => {
         return acc + value;
       }, 0);
-      // If the sum of the values is less than -100 USD, add the address to the victims list
+
+      // If the sum of the values is more than 10000 USD, add the address to the victims list
       if (sum > 10000) {
-        const confidence = fetcher.getExploitationStageConfidenceLevel(sum * -1, "usdValue") as number;
-        victims.push({ address, confidence });
+        const confidence = fetcher.getConfidenceLevel(sum, "usdValue") as number;
+        largeProfitAddresses.push({ address, confidence, isProfitInUsd: true, profit: sum });
       }
     });
-    console.log("HEREEE");
+
     // For tokens with no USD value fetched, check if the balance change is greater than 5% of the total supply
     await Promise.all(
       Array.from(balanceChangesMapUsd.entries()).map(async ([address, record]) => {
         return Promise.all(
           Object.keys(record).map(async (token) => {
             const usdValue = record[token];
-            console.log("OPP");
-            if (usdValue === 0) {
-              const value = balanceChangesMap.get(address);
 
+            if (usdValue === 0) {
+              // Filter out token mints from new token contracts
+              if (!txEvent.to) {
+                const nonce = txEvent.transaction.nonce;
+                const createdContractAddress = ethers.utils.getContractAddress({ from: txEvent.from, nonce: nonce });
+                if (token === createdContractAddress.toLowerCase()) {
+                  return;
+                }
+                // Filter out token transfers to the token contract itself
+              } else if (txEvent.to.toLowerCase() === token) {
+                return;
+              }
+
+              const value = balanceChangesMap.get(address);
               if (!value![token].isNegative()) {
                 const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token);
                 const threshold = totalSupply.div(20); // 5%
                 const absValue = value![token];
-                console.log("APP");
+
                 if (absValue.gt(threshold)) {
+                  // Filter out token mints (e.g. Uniswap LPs) to contract creators
+                  const wasTokenCreatedByInitiator = await fetcher.getContractCreator(token, Number(txEvent.network));
+                  if (wasTokenCreatedByInitiator === txEvent.from.toLowerCase()) {
+                    return;
+                  }
+
                   let percentage: number;
                   try {
                     percentage = absValue.mul(100).div(totalSupply).toNumber();
                   } catch {
-                    percentage = 100;
+                    percentage = 0;
                   }
 
-                  const confidence = fetcher.getExploitationStageConfidenceLevel(percentage, "totalSupply") as number;
-                  victims.push({ address, confidence });
+                  const confidence = fetcher.getConfidenceLevel(percentage, "totalSupply") as number;
+
+                  largeProfitAddresses.push({ address, confidence, isProfitInUsd: false, profit: percentage });
                 }
               }
             }
@@ -155,11 +180,94 @@ const provideHandleTransaction =
         );
       })
     );
-    console.log(victims);
+
+    if (!(largeProfitAddresses.length > 0)) {
+      return findings;
+    }
+
+    // Filter out duplicate addresses, keeping the entry with the higher confidence level
+    const filteredLargeProfitAddresses = largeProfitAddresses.reduce(
+      (acc: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[], curr) => {
+        const existingIndex = acc.findIndex(
+          (item: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }) =>
+            item.address === curr.address
+        );
+        if (existingIndex === -1) {
+          acc.push(curr);
+        } else if (acc[existingIndex].confidence < curr.confidence) {
+          acc[existingIndex].confidence = curr.confidence;
+        }
+        return acc;
+      },
+      []
+    );
+
+    let wasCalledContractCreatedByInitiator = false;
+    if (!txEvent.to) {
+      findings.push(
+        createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, "")
+      );
+    } else {
+      wasCalledContractCreatedByInitiator =
+        (await fetcher.getContractCreator(txEvent.to, Number(txEvent.network))) === txEvent.from.toLowerCase();
+      if (wasCalledContractCreatedByInitiator) {
+        findings.push(
+          createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, txEvent.to)
+        );
+      } else {
+        await Promise.all(
+          filteredLargeProfitAddresses.map(async (entry) => {
+            if (entry.address.toLowerCase() === txEvent.from.toLowerCase()) {
+              const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
+                txEvent.to!,
+                txEvent.from,
+                Number(txEvent.network)
+              );
+              if (isFirstInteraction) {
+                findings.push(
+                  createFinding(
+                    filteredLargeProfitAddresses,
+                    txEvent.hash,
+                    FindingSeverity.Medium,
+                    txEvent.from,
+                    txEvent.to!
+                  )
+                );
+              } else {
+                const isVerified = await fetcher.isContractVerified(txEvent.to!, Number(txEvent.network));
+                if (!isVerified && !hasHighNumberOfTotalTxs) {
+                  findings.push(
+                    createFinding(
+                      filteredLargeProfitAddresses,
+                      txEvent.hash,
+                      FindingSeverity.Medium,
+                      txEvent.from,
+                      txEvent.to!
+                    )
+                  );
+                  // If one of the booleans is true, the severity is set to Info
+                } else if (isVerified !== hasHighNumberOfTotalTxs) {
+                  findings.push(
+                    createFinding(
+                      filteredLargeProfitAddresses,
+                      txEvent.hash,
+                      FindingSeverity.Info,
+                      txEvent.from,
+                      txEvent.to!
+                    )
+                  );
+                } else return;
+              }
+            }
+          })
+        );
+      }
+    }
+
     return findings;
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(new Fetcher(getEthersProvider(), keys)),
+  handleTransaction: provideHandleTransaction(new Fetcher(getEthersProvider(), keys), getEthersProvider()),
   provideHandleTransaction,
 };
