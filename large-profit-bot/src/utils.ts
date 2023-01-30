@@ -8,9 +8,18 @@ export const createFinding = (
   txTo: string
 ): Finding => {
   let labels = [];
+  let metadata: {
+    [key: string]: string;
+  } = {};
+  metadata["txFrom"] = txFrom;
+  metadata["txTo"] = txTo;
+
+  let index = 1;
   let profit = "";
   addresses.map((address) => {
     profit = address.isProfitInUsd ? `$${address.profit.toFixed(2)}` : `${address.profit}% of total supply`;
+    metadata[`profit${index}`] = profit;
+    index++;
     labels.push(
       Label.fromObject({
         entity: address.address,
@@ -36,11 +45,7 @@ export const createFinding = (
     alertId: "LARGE-PROFIT",
     severity,
     type: FindingType.Suspicious,
-    metadata: {
-      txFrom,
-      txTo,
-      profit,
-    },
+    metadata,
     labels,
   });
 };
