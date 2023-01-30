@@ -1,102 +1,30 @@
 import { providers, Contract, BigNumber, ethers } from "ethers";
 import LRU from "lru-cache";
 import { Interface } from "ethers/lib/utils";
+import fetch from "node-fetch";
 import { MAX_USD_VALUE, TOKEN_ABI } from "./utils";
+import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./config";
 
 interface apiKeys {
-  // ethplorerApiKey?: string;
-  moralisApiKey?: string;
-  // etherscanApiKey?: string;
-  // optimisticEtherscanApiKey?: string;
-  // bscscanApiKey?: string;
-  // polygonscanApiKey?: string;
-  // fantomscanApiKey?: string;
-  // arbiscanApiKey?: string;
-  // snowtraceApiKey?: string;
+  moralisApiKeys: string[];
+  etherscanApiKeys: string[];
+  optimisticEtherscanApiKeys: string[];
+  bscscanApiKeys: string[];
+  polygonscanApiKeys: string[];
+  fantomscanApiKeys: string[];
+  arbiscanApiKeys: string[];
+  snowtraceApiKeys: string[];
 }
-
-const restApis: Record<string, string> = {
-  //ethplorerKey: "",
-  moralisKey: "",
-};
-
-// interface etherscanApisInterface {
-//   [key: number]: {
-//     key: string;
-//     urlContractName: string;
-//     urlContractCreation: string;
-//   };
-// }
-
-// const etherscanApis: etherscanApisInterface = {
-//   1: {
-//     key: "",
-//     urlContractName: "https://api.etherscan.io/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.etherscan.io/api?module=contract&action=getcontractcreation",
-//   },
-//   10: {
-//     key: "",
-//     urlContractName: "https://api-optimistic.etherscan.io/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api-optimistic.etherscan.io/api?module=contract&action=getcontractcreation",
-//   },
-//   56: {
-//     key: "",
-//     urlContractName: "https://api.bscscan.com/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.bscscan.com/api?module=contract&action=getcontractcreation",
-//   },
-//   137: {
-//     key: "",
-//     urlContractName: "https://api.polygonscan.com/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.polygonscan.com/api?module=contract&action=getcontractcreation",
-//   },
-//   250: {
-//     key: "",
-//     urlContractName: "https://api.ftmscan.com/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.ftmscan.com/api?module=contract&action=getcontractcreation",
-//   },
-//   42161: {
-//     key: "",
-//     urlContractName: "https://api.arbiscan.io/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.arbiscan.io/api?module=contract&action=getcontractcreation",
-//   },
-//   43114: {
-//     key: "",
-//     urlContractName: "https://api.snowtrace.io/api?module=contract&action=getsourcecode",
-//     urlContractCreation: "https://api.snowtrace.io/api?module=contract&action=getcontractcreation",
-//   },
-// };
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
   private cache: LRU<string, BigNumber | number | string>;
   private tokenContract: Contract;
   private tokensPriceCache: LRU<string, number>;
+  private apiKeys: apiKeys;
 
   constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: apiKeys) {
-    // Extract the keys or set default values
-    const {
-      //ethplorerApiKey = "freekey",
-      moralisApiKey = "",
-      // etherscanApiKey = "YourApiKeyToken",
-      // optimisticEtherscanApiKey = "YourApiKeyToken",
-      // bscscanApiKey = "YourApiKeyToken",
-      // polygonscanApiKey = "YourApiKeyToken",
-      // fantomscanApiKey = "YourApiKeyToken",
-      // arbiscanApiKey = "YourApiKeyToken",
-      // snowtraceApiKey = "YourApiKeyToken",
-    } = apiKeys;
-
-    // Set the keys
-    //restApis["ethplorerKey"] = ethplorerApiKey;
-    restApis["moralisKey"] = moralisApiKey;
-    // etherscanApis[1].key = etherscanApiKey;
-    // etherscanApis[10].key = optimisticEtherscanApiKey;
-    // etherscanApis[56].key = bscscanApiKey;
-    // etherscanApis[137].key = polygonscanApiKey;
-    // etherscanApis[250].key = fantomscanApiKey;
-    // etherscanApis[42161].key = arbiscanApiKey;
-    // etherscanApis[43114].key = snowtraceApiKey;
-
+    this.apiKeys = apiKeys;
     this.provider = provider;
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
     this.cache = new LRU<string, BigNumber | number | string>({
@@ -120,15 +48,21 @@ export default class Fetcher {
     return totalSupply;
   }
 
-  private async getDecimals(block: number | string, tokenAddress: string): Promise<number> {
+  public async getDecimals(block: number | string, tokenAddress: string): Promise<number> {
     const token = this.tokenContract.attach(tokenAddress);
 
     const key: string = `decimals-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as number;
 
-    const decimals: number = await token.decimals({
-      blockTag: block,
-    });
+    let decimals: number;
+
+    try {
+      decimals = await token.decimals({
+        blockTag: block,
+      });
+    } catch {
+      decimals = 0;
+    }
 
     this.cache.set(key, decimals);
 
@@ -151,12 +85,13 @@ export default class Fetcher {
   };
 
   private getUniswapPrice = async (chainId: number, token: string) => {
-    if (restApis["moralisKey"] === "") return 0;
+    if (!(this.apiKeys.moralisApiKeys.length > 0)) return 0;
+    const moralisApiKey = this.apiKeys.moralisApiKeys[Math.floor(Math.random() * this.apiKeys.moralisApiKeys.length)];
 
     const options = {
       method: "GET",
       params: { chain: this.getMoralisChainByChainId(chainId) },
-      headers: { accept: "application/json", "X-API-Key": restApis["moralisKey"] },
+      headers: { accept: "application/json", "X-API-Key": moralisApiKey },
     };
     const response = (await (
       await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
@@ -210,6 +145,106 @@ export default class Fetcher {
     return `https://api.coingecko.com/api/v3/simple/price?ids=${chain}&vs_currencies=usd`;
   };
 
+  private getEtherscanContractUrl = (address: string, chainId: number) => {
+    const { urlContract } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${urlContract}&address=${address}&apikey=${key}`;
+  };
+
+  // Fetches transactions in descending order (newest first)
+  private getEtherscanAddressUrl = (address: string, chainId: number) => {
+    const { urlAccount } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${urlAccount}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+  };
+
+  private getBlockExplorerKey = (chainId: number) => {
+    switch (chainId) {
+      case 10:
+        return this.apiKeys.optimisticEtherscanApiKeys.length > 0
+          ? this.apiKeys.optimisticEtherscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.optimisticEtherscanApiKeys.length)
+            ]
+          : "YourApiKeyToken";
+      case 56:
+        return this.apiKeys.bscscanApiKeys.length > 0
+          ? this.apiKeys.bscscanApiKeys[Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 137:
+        return this.apiKeys.polygonscanApiKeys.length > 0
+          ? this.apiKeys.polygonscanApiKeys[Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 250:
+        return this.apiKeys.fantomscanApiKeys.length > 0
+          ? this.apiKeys.fantomscanApiKeys[Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 42161:
+        return this.apiKeys.arbiscanApiKeys.length > 0
+          ? this.apiKeys.arbiscanApiKeys[Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 43114:
+        return this.apiKeys.snowtraceApiKeys.length > 0
+          ? this.apiKeys.snowtraceApiKeys[Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)]
+          : "YourApiKeyToken";
+      default:
+        return this.apiKeys.etherscanApiKeys.length > 0
+          ? this.apiKeys.etherscanApiKeys[Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)]
+          : "YourApiKeyToken";
+    }
+  };
+
+  public isContractVerified = async (address: string, chainId: number) => {
+    let result;
+
+    result = await (await fetch(this.getEtherscanContractUrl(address, chainId))).json();
+
+    if (result.message.startsWith("NOTOK") && result.result !== "Contract source code not verified") {
+      console.log(`block explorer error occured; skipping check for ${address}`);
+      return null;
+    }
+
+    const isVerified = result.status === "1";
+    return isVerified;
+  };
+
+  public getContractInfo = async (contract: string, txFrom: string, chainId: number) => {
+    let result;
+
+    result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
+
+    if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
+      console.log(`block explorer error occured; skipping check for ${contract}`);
+      return [null, null];
+    }
+
+    let numberOfInteractions: number = 0;
+    result.result.forEach((tx: any) => {
+      if (tx.from === txFrom) {
+        numberOfInteractions++;
+      }
+    });
+
+    const isFirstInteraction = numberOfInteractions <= 1;
+    const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+
+    return [isFirstInteraction, hasHighNumberOfTotalTxs];
+  };
+
+  public getContractCreator = async (address: string, chainId: number) => {
+    const { urlContractCreation } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
+
+    const result = await (await fetch(url)).json();
+
+    if (result.message.startsWith("NOTOK")) {
+      console.log(`block explorer error occured; skipping check for ${address}`);
+      return null;
+    }
+
+    return result.result[0].contractCreator;
+  };
+
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {
     let response, usdPrice;
 
@@ -246,10 +281,17 @@ export default class Fetcher {
             throw new Error("Error: Can't fetch USD price on CoinGecko");
           }
         } catch {
-          if (chainId === 10 || chainId === 42161) return 0; // Moralis API is not available on Optimism & Arbitrum
+          // Moralis API is not available on Optimism
+          if (chainId === 10) {
+            this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
+            return 0;
+          }
           try {
             usdPrice = await this.getUniswapPrice(chainId, token);
-            if (!usdPrice) return 0;
+            if (!usdPrice) {
+              this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
+              return 0;
+            }
           } catch {
             return 0;
           }
