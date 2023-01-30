@@ -7,6 +7,3 @@ export type Flag = {
   wasOverThresholdAlert: boolean;
 };
 
-export type mockFlag = {
-  wasOverThresholdAlert: boolean;
-};
