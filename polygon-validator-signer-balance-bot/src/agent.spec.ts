@@ -55,7 +55,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
         balance: ethers.utils.formatEther(balanceString),
       },
     });
-    expect(findings).toEqual([expectedFinding]);
+    expect(findings).toStrictEqual([expectedFinding]);
     expect(mockFlag.wasOverThresholdAlert).toBe(false);
   });
 
@@ -78,7 +78,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
         balance: ethers.utils.formatEther(balanceString),
       },
     });
-    expect(findings).toEqual([expectedFinding]);
+    expect(findings).toStrictEqual([expectedFinding]);
     expect(mockFlag.wasOverThresholdAlert).toBe(true);
   });
 
@@ -88,7 +88,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     mockFlag.wasOverThresholdAlert = true;
     const blockEvent = new TestBlockEvent().setNumber(10);
     const findings = await handleBlock(blockEvent);
-    expect(findings).toEqual([]);
+    expect(findings).toStrictEqual([]);
     expect(mockFlag.wasOverThresholdAlert).toBe(true);
   });
 
@@ -98,7 +98,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     mockFlag.wasOverThresholdAlert = false;
     const blockEvent = new TestBlockEvent().setNumber(10);
     const findings = await handleBlock(blockEvent);
-    expect(findings).toEqual([]);
+    expect(findings).toStrictEqual([]);
     expect(mockFlag.wasOverThresholdAlert).toBe(false);
   });
 
@@ -109,7 +109,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     const blockEvent1 = new TestBlockEvent().setNumber(10);
     const findings1 = await handleBlock(blockEvent1);
     const balanceString = (await mockEthersProvider.getBalance(mockUser)).toString();
-    expect(findings1).toEqual([
+    expect(findings1).toStrictEqual([
       Finding.fromObject({
         name: "Account balance below threshold!",
         description: `Account balance (${ethers.utils.formatEther(
@@ -125,7 +125,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     ]);
     const blockEvent2 = new TestBlockEvent().setNumber(11);
     const findings2 = await handleBlock(blockEvent2);
-    expect(findings2).toEqual([]);
+    expect(findings2).toStrictEqual([]);
   });
   it("should return only one finding when the balance is above the threshold for more than two blocks", async () => {
     const balance = ethers.BigNumber.from("15000000000000000000"); // 15 ETH
@@ -146,10 +146,10 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
         balance: ethers.utils.formatEther(balanceString),
       },
     });
-    expect(findings1).toEqual([expectedFinding]);
+    expect(findings1).toStrictEqual([expectedFinding]);
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     const blockEvent2 = new TestBlockEvent().setNumber(11);
     const findings2 = await handleBlock(blockEvent2);
-    expect(findings2).toEqual([]);
+    expect(findings2).toStrictEqual([]);
   });
 });
