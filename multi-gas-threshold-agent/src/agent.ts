@@ -42,10 +42,10 @@ const getSeverity = (gasUsed: ethers.BigNumber): FindingSeverity => {
 const getAnomalyScore = (gasSeverity: FindingSeverity) => {
   if (gasSeverity === FindingSeverity.High) {
     const highAnomalyScore = hiHighGasAlerts / allHighGasAlerts;
-    return highAnomalyScore.toFixed(2);
+    return highAnomalyScore.toFixed(2) === "0.00" ? highAnomalyScore.toString() : highAnomalyScore.toFixed(2);
   } else if (gasSeverity === FindingSeverity.Medium) {
     const medAnomalyScore = medHighGasAlerts / allHighGasAlerts;
-    return medAnomalyScore.toFixed(2);
+    return medAnomalyScore.toFixed(2) === "0.00" ? medAnomalyScore.toString() : medAnomalyScore.toFixed(2);
   } else {
     return 1;
   }
@@ -100,8 +100,9 @@ export function provideHandleTransaction(): HandleTransaction {
           Label.fromObject({
             entityType: EntityType.Transaction,
             entity: txEvent.hash,
-            label: "High Gas Transaction",
-            confidence: 1,
+            label: "Suspicious",
+            confidence: 0.7,
+            remove: false,
           }),
         ],
       })

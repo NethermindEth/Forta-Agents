@@ -28,18 +28,7 @@ const mockDetectedTotalGasAlerts = 35;
 
 const mockChainId = 123;
 const mockDbUrl = "databaseurl.com/";
-const mockJwt = {
-  token: {
-    iss: "issuer",
-    sub: "0x556f8BE42f76c01F960f32CB1936D2e0e0Eb3F4D",
-    aud: "recipient",
-    exp: 1660119443,
-    nbf: 1660119383,
-    iat: 1660119413,
-    jti: "qkd5cfad-1884-11ed-a5c9-02420a639308",
-    "bot-id": "0x13k387b37769ce24236c403e76fc30f01fa774176e1416c861yfe6c07dfef71f",
-  },
-};
+const mockJwt = "MOCK_JWT";
 const mockMedGasKey = "mock-medium-gas-key";
 const mockHighGasKey = "mock-high-gas-key";
 const mockAllGasKey = "mock-all-gas-key";
@@ -124,14 +113,16 @@ describe("multi gas threshold agent", () => {
           type: FindingType.Suspicious,
           metadata: {
             gas: MEDIUM_GAS_THRESHOLD,
-            anomalyScore: mockAnomalyScore.toFixed(2).toString(),
+            anomalyScore:
+              mockAnomalyScore.toFixed(2) === "0.00" ? mockAnomalyScore.toString() : mockAnomalyScore.toFixed(2),
           },
           labels: [
             Label.fromObject({
               entityType: EntityType.Transaction,
               entity: "0x1234",
-              label: "High Gas Transaction",
-              confidence: 1,
+              label: "Suspicious",
+              confidence: 0.7,
+              remove: false,
             }),
           ],
         }),
@@ -152,14 +143,16 @@ describe("multi gas threshold agent", () => {
           type: FindingType.Suspicious,
           metadata: {
             gas: HIGH_GAS_THRESHOLD,
-            anomalyScore: mockAnomalyScore.toFixed(2).toString(),
+            anomalyScore:
+              mockAnomalyScore.toFixed(2) === "0.00" ? mockAnomalyScore.toString() : mockAnomalyScore.toFixed(2),
           },
           labels: [
             Label.fromObject({
               entityType: EntityType.Transaction,
               entity: "0x1234",
-              label: "High Gas Transaction",
-              confidence: 1,
+              label: "Suspicious",
+              confidence: 0.7,
+              remove: false,
             }),
           ],
         }),

@@ -1,6 +1,6 @@
 {
   "name": "high-gas-used-bot",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "agentId": "nethforta-1",
   "description": "Bot that detects transactions with unusually high gas used",
   "chainIds": [
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "forta-agent": "^0.1.16",
+    "forta-agent": "^0.1.17",
     "node-fetch": "^2.6.8"
   },
   "devDependencies": {
