@@ -15,7 +15,7 @@ export class PersistenceHelper {
   async persist(value: any, key: string) {
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
-      const token = (await fetchJwt({}))?.token;
+      const token = await fetchJwt({});
       const headers = { Authorization: `Bearer ${token}` };
       try {
         const response = await fetch(`${this.databaseUrl}${key}`, {
@@ -40,7 +40,7 @@ export class PersistenceHelper {
   async load(key: string) {
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
-      const token = (await fetchJwt({}))?.token;
+      const token = await fetchJwt({});
       const headers = { Authorization: `Bearer ${token}` };
       try {
         const response = await fetch(`${this.databaseUrl}${key}`, { headers });
