@@ -84,26 +84,32 @@ export const createFinding = (
     metadata: {
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
-      anomalyScore: anomalyScore.toFixed(2),
+      anomalyScore:
+        anomalyScore.toFixed(2) === "0.00"
+          ? anomalyScore.toString()
+          : anomalyScore.toFixed(2),
     },
     labels: [
       Label.fromObject({
         entity: txHash,
         entityType: EntityType.Transaction,
-        label: "Reentrant contract call",
-        confidence: 1,
+        label: "Attack",
+        confidence: confidenceLevel,
+        remove: false,
       }),
       Label.fromObject({
         entity: addr,
         entityType: EntityType.Address,
-        label: "Reentrancy Victim",
+        label: "Victim",
         confidence: confidenceLevel,
+        remove: false,
       }),
       Label.fromObject({
         entity: txFrom,
         entityType: EntityType.Address,
-        label: "Reentrancy Attacker",
+        label: "Attacker",
         confidence: confidenceLevel,
+        remove: false,
       }),
     ],
   });
