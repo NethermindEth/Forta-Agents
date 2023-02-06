@@ -9,6 +9,8 @@ import {
   Label,
   EntityType,
   getEthersProvider,
+  getTransactionReceipt,
+  Receipt,
 } from "forta-agent";
 import { PersistenceHelper } from "./persistence.helper";
 
@@ -67,15 +69,13 @@ export function provideInitialize(
   };
 }
 
-export function provideHandleTransaction(): HandleTransaction {
+export function provideHandleTransaction(
+  getTransactionReceipt: (txHash: string) => Promise<Receipt>
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
-    if (txEvent.transaction.gas === undefined || txEvent.transaction.gas === null) {
-      return findings;
-    }
-
-    const gasUsed = ethers.BigNumber.from(txEvent.transaction.gas);
+    const gasUsed = ethers.BigNumber.from((await getTransactionReceipt(txEvent.hash)).gasUsed);
 
     if (gasUsed.lt(MEDIUM_GAS_THRESHOLD)) {
       return findings;
@@ -139,6 +139,6 @@ export default {
     HIGH_GAS_KEY,
     ALL_GAS_KEY
   ),
-  handleTransaction: provideHandleTransaction(),
+  handleTransaction: provideHandleTransaction(getTransactionReceipt),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
 };

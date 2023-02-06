@@ -51,6 +51,7 @@ describe("multi gas threshold agent", () => {
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
   let mockFetchResponse: Response;
+  const mockGetTransactionReceipt = jest.fn();
 
   beforeAll(() => {
     mockProvider = new MockEthersProvider();
@@ -83,7 +84,7 @@ describe("multi gas threshold agent", () => {
 
     await initialize();
 
-    handleTransaction = provideHandleTransaction();
+    handleTransaction = provideHandleTransaction(mockGetTransactionReceipt);
     handleBlock = provideHandleBlock(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
     delete process.env.LOCAL_NODE;
   });
@@ -94,7 +95,9 @@ describe("multi gas threshold agent", () => {
 
   describe("transaction handler test suite", () => {
     it("Returns empty findings if gas used is below lowest threshold", async () => {
-      const txEvent: TransactionEvent = new TestTransactionEvent().setGas("500000");
+      const txEvent: TransactionEvent = new TestTransactionEvent();
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: "500000" });
+
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
     });
@@ -102,7 +105,9 @@ describe("multi gas threshold agent", () => {
     it("Returns finding with severity Medium if gas used is between 1000000 and 3000000", async () => {
       const mockAnomalyScore = (mockDetectedMediumGasAlerts + 1) / (mockDetectedTotalGasAlerts + 1);
 
-      const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234").setGas(MEDIUM_GAS_THRESHOLD);
+      const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234");
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: MEDIUM_GAS_THRESHOLD });
+
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
@@ -132,7 +137,9 @@ describe("multi gas threshold agent", () => {
     it("Returns finding with severity High if gas used is greater than or equal to 3000000", async () => {
       const mockAnomalyScore = (mockDetectedHighGasAlerts + 1) / (mockDetectedTotalGasAlerts + 1);
 
-      const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234").setGas(HIGH_GAS_THRESHOLD);
+      const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234");
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: HIGH_GAS_THRESHOLD });
+
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
         Finding.fromObject({
@@ -157,12 +164,6 @@ describe("multi gas threshold agent", () => {
           ],
         }),
       ]);
-    });
-
-    it("Returns empty findings if gasUsed is undefined", async () => {
-      const txEvent: TransactionEvent = new TestTransactionEvent();
-      const findings: Finding[] = await handleTransaction(txEvent);
-      expect(findings).toStrictEqual([]);
     });
   });
 
