@@ -4,7 +4,13 @@
   "agentId": "nethforta-1",
   "description": "Bot that detects transactions with unusually high gas used",
   "chainIds": [
-    1
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
   ],
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/multi-gas-threshold-agent",
   "scripts": {
@@ -34,6 +40,7 @@
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/jest-when": "^3.5.2",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^3.2.3",
     "jest": "^27.5.1",

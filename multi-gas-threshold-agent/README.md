@@ -7,6 +7,12 @@ This bot detects transactions with unusual amount of gas used. It checks every t
 ## Supported Chains
 
 - Ethereum
+- Optimism
+- BNB Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Avalanche
 
 ## Alerts
 
