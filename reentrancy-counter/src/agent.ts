@@ -4,8 +4,6 @@ import {
   TransactionEvent,
   Trace,
   FindingSeverity,
-  Label,
-  EntityType,
   ethers,
   getEthersProvider,
   BlockEvent,
@@ -111,11 +109,12 @@ const handleTransaction: HandleTransaction = async (
     const maxCount: number = maxReentrancyNumber[addr];
     const [report, severity] = reentrancyLevel(maxCount, thresholds);
     if (report) {
-      const anomalyScore = getAnomalyScore(
+      let anomalyScore = getAnomalyScore(
         reentrantCallsPerSeverity,
         totalTxsWithTraces,
         severity
       );
+      anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
       findings.push(
         createFinding(

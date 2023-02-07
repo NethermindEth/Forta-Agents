@@ -29,19 +29,21 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
     - Label 1:
       - `entity`: The transaction's hash
       - `entityType`: The type of the entity, always set to "Transaction"
-      - `label`: The type of the label, always set to "Reentrant contract call"
-      - `confidence`: The confidence level of reentrancy happening in the transaction (0-1). Always set to `1`
+      - `label`: The type of the label, always set to "Attack"
+      - `confidence`: The confidence level of the transaction being an attack (0-1).
+        - Confidence level calculated based on the Finding Severity:
+          - Info -> 0.3, Low -> 0.4, Medium -> 0.5, High -> 0.6, Critical -> 0.7
     - Label 2:
       - `entity`: The reentered contract address
       - `entityType`: The type of the entity, always set to "Address"
-      - `label`: The type of the label, always set to "Reentrancy Victim"
+      - `label`: The type of the label, always set to "Victim"
       - `confidence`^: The confidence level of the reentered contract being a victim (0-1).
         - Confidence level calculated based on the Finding Severity:
           - Info -> 0.3, Low -> 0.4, Medium -> 0.5, High -> 0.6, Critical -> 0.7
     - Label 3:
       - `entity`: The address of the initiator of the transaction
       - `entityType`: The type of the entity, always set to "Address"
-      - `label`: The type of the label, always set to "Reentrancy Attacker"
+      - `label`: The type of the label, always set to "Attacker"
       - `confidence`^: The confidence level of the transaction initiator being an attacker (0-1).
         - Confidence level calculated based on the Finding Severity:
           - Info -> 0.3, Low -> 0.4, Medium -> 0.5, High -> 0.6, Critical -> 0.7

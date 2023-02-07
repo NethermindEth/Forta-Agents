@@ -1,6 +1,6 @@
 {
   "name": "reentrancy-calls-detection-bot",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "agentId": "nethforta-25",
   "description": "Reentrancy Monitoring",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/reentrancy-counter",
@@ -29,7 +29,7 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "forta-agent": "^0.1.16",
+    "forta-agent": "^0.1.17",
     "dotenv": "^16.0.3",
     "node-fetch": "^2.6.8"
   },
