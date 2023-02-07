@@ -9,6 +9,8 @@ import {
   Label,
   EntityType,
   getEthersProvider,
+  getTransactionReceipt,
+  Receipt,
 } from "forta-agent";
 import { PersistenceHelper } from "./persistence.helper";
 
@@ -42,10 +44,10 @@ const getSeverity = (gasUsed: ethers.BigNumber): FindingSeverity => {
 const getAnomalyScore = (gasSeverity: FindingSeverity) => {
   if (gasSeverity === FindingSeverity.High) {
     const highAnomalyScore = hiHighGasAlerts / allHighGasAlerts;
-    return highAnomalyScore.toFixed(2);
+    return highAnomalyScore.toFixed(2) === "0.00" ? highAnomalyScore.toString() : highAnomalyScore.toFixed(2);
   } else if (gasSeverity === FindingSeverity.Medium) {
     const medAnomalyScore = medHighGasAlerts / allHighGasAlerts;
-    return medAnomalyScore.toFixed(2);
+    return medAnomalyScore.toFixed(2) === "0.00" ? medAnomalyScore.toString() : medAnomalyScore.toFixed(2);
   } else {
     return 1;
   }
@@ -67,15 +69,13 @@ export function provideInitialize(
   };
 }
 
-export function provideHandleTransaction(): HandleTransaction {
+export function provideHandleTransaction(
+  getTransactionReceipt: (txHash: string) => Promise<Receipt>
+): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
-    if (txEvent.transaction.gas === undefined || txEvent.transaction.gas === null) {
-      return findings;
-    }
-
-    const gasUsed = ethers.BigNumber.from(txEvent.transaction.gas);
+    const gasUsed = ethers.BigNumber.from((await getTransactionReceipt(txEvent.hash)).gasUsed);
 
     if (gasUsed.lt(MEDIUM_GAS_THRESHOLD)) {
       return findings;
@@ -100,8 +100,9 @@ export function provideHandleTransaction(): HandleTransaction {
           Label.fromObject({
             entityType: EntityType.Transaction,
             entity: txEvent.hash,
-            label: "High Gas Transaction",
-            confidence: 1,
+            label: "Suspicious",
+            confidence: 0.7,
+            remove: false,
           }),
         ],
       })
@@ -138,6 +139,6 @@ export default {
     HIGH_GAS_KEY,
     ALL_GAS_KEY
   ),
-  handleTransaction: provideHandleTransaction(),
+  handleTransaction: provideHandleTransaction(getTransactionReceipt),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), MEDIUM_GAS_KEY, HIGH_GAS_KEY, ALL_GAS_KEY),
 };
