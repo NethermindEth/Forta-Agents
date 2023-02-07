@@ -75,7 +75,7 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
             entityType: EntityType.Transaction,
             entity: txEvent.hash,
             label: "Suspicious",
-            confidence: 0.7,
+            confidence: 0.6,
             remove: false,
           }),
         ],
