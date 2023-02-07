@@ -29,5 +29,6 @@ The thresholds can be set inside `src/agent.config.ts` file.
   - Label
     - `entityType`: The type of the entity, always set to "Transaction"
     - `entity`: The transaction's hash
-    - `label`: The type of the label, always set to "High Value Transaction"
-    - `confidence`: The confidence level of the address being an attacker (0-1). Always set to `1`
+    - `label`: The type of the label, always set to "Suspicious"
+    - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+    - `remove`: Boolean indicating whether the label is removed. Always set to `false`

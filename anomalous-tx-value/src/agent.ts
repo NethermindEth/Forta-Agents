@@ -57,7 +57,8 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     if (value.isLessThanOrEqualTo(networkManager.get("threshold"))) return findings;
 
     anomalousValueTxns += 1;
-    const anomalyScore = (anomalousValueTxns / allTxnsWithValue).toFixed(2);
+    let anomalyScore = anomalousValueTxns / allTxnsWithValue;
+    anomalyScore = Math.min(1, anomalyScore);
     findings.push(
       Finding.fromObject({
         name: "High Value Use Detection",
@@ -67,14 +68,15 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
         type: FindingType.Suspicious,
         metadata: {
           value: value.toString(),
-          anomalyScore: anomalyScore.toString(),
+          anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
         },
         labels: [
           Label.fromObject({
             entityType: EntityType.Transaction,
             entity: txEvent.hash,
-            label: "High Value Transaction",
-            confidence: 1,
+            label: "Suspicious",
+            confidence: 0.7,
+            remove: false,
           }),
         ],
       })
