@@ -113,7 +113,7 @@ describe("Detect Very High Txn Value", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns a findings if value is above threshold", async () => {
+    it("returns a finding if value is above threshold", async () => {
       // Adding one to each for the current transaction
       const mockAnomalyScore = (mockAnomalousValueTxns + 1) / (mockAllTxnsWithValue + 1);
 
@@ -141,6 +141,13 @@ describe("Detect Very High Txn Value", () => {
               entity: txEvent.hash,
               label: "Suspicious",
               confidence: 0.6,
+              remove: false,
+            }),
+            Label.fromObject({
+              entityType: EntityType.Address,
+              entity: txEvent.from,
+              label: "Attacker",
+              confidence: 0.1,
               remove: false,
             }),
           ],

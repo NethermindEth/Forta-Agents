@@ -26,9 +26,16 @@ The thresholds can be set inside `src/agent.config.ts` file.
     - `value`: Value of the transaction
     - `anomalyScore`: Score of how anomalous the alert is (0-1)
       - Score calculated by finding the amount of anomalous value transactions detected by the bot out of the total amount of transactions that have a `value` greater than zero.
-  - Label
-    - `entityType`: The type of the entity, always set to "Transaction"
-    - `entity`: The transaction's hash
-    - `label`: The type of the label, always set to "Suspicious"
-    - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
-    - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+  - Labels
+    - Label 1:
+      - `entityType`: The type of the entity, always set to "Transaction"
+      - `entity`: The transaction's hash
+      - `label`: The type of the label, always set to "Suspicious"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 2:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: The transaction initiator
+      - `label`: The type of the label, always set to "Attacker"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.1`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`

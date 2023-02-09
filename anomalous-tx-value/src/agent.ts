@@ -78,6 +78,13 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
             confidence: 0.6,
             remove: false,
           }),
+          Label.fromObject({
+            entityType: EntityType.Address,
+            entity: txEvent.from,
+            label: "Attacker",
+            confidence: 0.1,
+            remove: false,
+          }),
         ],
       })
     );

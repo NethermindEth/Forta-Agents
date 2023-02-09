@@ -129,6 +129,13 @@ describe("multi gas threshold agent", () => {
               confidence: 0.7,
               remove: false,
             }),
+            Label.fromObject({
+              entityType: EntityType.Address,
+              entity: txEvent.from,
+              label: "Attacker",
+              confidence: 0.1,
+              remove: false,
+            }),
           ],
         }),
       ]);
@@ -159,6 +166,13 @@ describe("multi gas threshold agent", () => {
               entity: "0x1234",
               label: "Suspicious",
               confidence: 0.7,
+              remove: false,
+            }),
+            Label.fromObject({
+              entityType: EntityType.Address,
+              entity: txEvent.from,
+              label: "Attacker",
+              confidence: 0.1,
               remove: false,
             }),
           ],

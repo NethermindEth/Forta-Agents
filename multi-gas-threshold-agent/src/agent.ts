@@ -104,6 +104,13 @@ export function provideHandleTransaction(
             confidence: 0.7,
             remove: false,
           }),
+          Label.fromObject({
+            entityType: EntityType.Address,
+            entity: txEvent.from,
+            label: "Attacker",
+            confidence: 0.1,
+            remove: false,
+          }),
         ],
       })
     );
