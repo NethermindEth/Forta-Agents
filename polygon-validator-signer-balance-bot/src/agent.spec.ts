@@ -123,7 +123,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
         },
       }),
     ]);
-    const blockEvent2 = new TestBlockEvent().setNumber(11);
+    const blockEvent2 = new TestBlockEvent().setNumber(12);
     const findings2 = await handleBlock(blockEvent2);
     expect(findings2).toStrictEqual([]);
   });
@@ -148,7 +148,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     });
     expect(findings1).toStrictEqual([expectedFinding]);
     mockEthersProvider.getBalance.mockResolvedValue(balance);
-    const blockEvent2 = new TestBlockEvent().setNumber(11);
+    const blockEvent2 = new TestBlockEvent().setNumber(12);
     const findings2 = await handleBlock(blockEvent2);
     expect(findings2).toStrictEqual([]);
   });
