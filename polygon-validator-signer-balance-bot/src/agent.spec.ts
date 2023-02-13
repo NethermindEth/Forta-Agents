@@ -102,7 +102,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     expect(mockFlag.wasOverThresholdAlert).toBe(false);
   });
 
-  it("should return only one finding when the balance is below the threshold for more than two blocks", async () => {
+  it("should return only one finding when the balance is below the threshold for more than one block", async () => {
     const balance = ethers.BigNumber.from("5000000000"); // 0.000000005 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = true;
@@ -127,7 +127,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     const findings2 = await handleBlock(blockEvent2);
     expect(findings2).toStrictEqual([]);
   });
-  it("should return only one finding when the balance is above the threshold for more than two blocks", async () => {
+  it("should return only one finding when the balance is above the threshold for more than one block", async () => {
     const balance = ethers.BigNumber.from("15000000000000000000"); // 15 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = false;
