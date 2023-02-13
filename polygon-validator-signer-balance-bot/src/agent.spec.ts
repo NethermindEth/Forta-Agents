@@ -10,7 +10,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   let initialize: Initialize;
   let mockFlag: Flag = { wasOverThresholdAlert: false };
   let mockUser: string = createAddress("0x01");
-  let mockThreshold: ethers.BigNumber = ethers.BigNumber.from("200000000000000000");
+  let mockThreshold: ethers.BigNumber = ethers.BigNumber.from("200000000000000000"); // 0.2 ETH
 
   beforeEach(async () => {
     mockEthersProvider = {
