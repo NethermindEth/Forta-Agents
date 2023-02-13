@@ -10,7 +10,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   let initialize: Initialize;
   let mockFlag: Flag = { wasOverThresholdAlert: false };
   let mockUser: string = createAddress("0x01");
-  let mockThreshold: ethers.BigNumber = ethers.BigNumber.from("1000000000000000000");
+  let mockThreshold: ethers.BigNumber = ethers.BigNumber.from("200000000000000000"); // 0.2 ETH
 
   beforeEach(async () => {
     mockEthersProvider = {
@@ -21,7 +21,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   });
 
   it("sets the flag to true when the balance is greater than the minimum threshold", async () => {
-    const accountBalance = ethers.utils.parseEther("10.0");
+    const accountBalance = ethers.utils.parseEther("0.21"); // 0.21 ETH
     mockEthersProvider.getBalance = jest.fn(() => Promise.resolve(accountBalance));
     await initialize();
     expect(mockFlag.wasOverThresholdAlert).toBe(true);
@@ -29,7 +29,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   });
 
   it("sets the flag to false when the balance is less than the minimum threshold", async () => {
-    const accountBalance = ethers.utils.parseEther("0.1");
+    const accountBalance = ethers.utils.parseEther("0.19"); // 0.19 ETH
     mockEthersProvider.getBalance = jest.fn(() => Promise.resolve(accountBalance));
     await initialize();
     expect(mockFlag.wasOverThresholdAlert).toBe(false);
@@ -83,7 +83,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   });
 
   it("should return an empty array when the account balance is above the threshold and an over threshold alert has been sent", async () => {
-    const balance = ethers.BigNumber.from("15000000000000000000"); // 15 ETH
+    const balance = ethers.BigNumber.from("220000000000000000"); // 0.22 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = true;
     const blockEvent = new TestBlockEvent().setNumber(10);
@@ -93,7 +93,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
   });
 
   it("should return an empty array when the account balance is below threshold and a below threshold alert has been sent", async () => {
-    const balance = ethers.BigNumber.from("5000000000"); // 0.000000005 ETH
+    const balance = ethers.BigNumber.from("170000000000000000"); // 0.17 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = false;
     const blockEvent = new TestBlockEvent().setNumber(10);
@@ -102,7 +102,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     expect(mockFlag.wasOverThresholdAlert).toBe(false);
   });
 
-  it("should return only one finding when the balance is below the threshold for more than two blocks", async () => {
+  it("should return only one finding when the balance is below the threshold for more than one block", async () => {
     const balance = ethers.BigNumber.from("5000000000"); // 0.000000005 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = true;
@@ -127,7 +127,8 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     const findings2 = await handleBlock(blockEvent2);
     expect(findings2).toStrictEqual([]);
   });
-  it("should return only one finding when the balance is above the threshold for more than two blocks", async () => {
+
+  it("should return only one finding when the balance is above the threshold for more than one block", async () => {
     const balance = ethers.BigNumber.from("15000000000000000000"); // 15 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
     mockFlag.wasOverThresholdAlert = false;
