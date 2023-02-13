@@ -127,6 +127,7 @@ describe("POLYGON-VALIDATOR-SIGNER BOT TEST SUITE", () => {
     const findings2 = await handleBlock(blockEvent2);
     expect(findings2).toStrictEqual([]);
   });
+
   it("should return only one finding when the balance is above the threshold for more than one block", async () => {
     const balance = ethers.BigNumber.from("15000000000000000000"); // 15 ETH
     mockEthersProvider.getBalance.mockResolvedValue(balance);
