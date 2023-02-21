@@ -91,7 +91,7 @@ describe("TokenInfoFetcher tests suite", () => {
 
     // Fetching decimals if token does not have decimals method
     const fetchedDecimals = await fetcher.getDecimals(121, createAddress("0x1234"));
-    expect(fetchedDecimals).toStrictEqual(0);
+    expect(fetchedDecimals).toStrictEqual(18);
 
     // clear mockProvider to use cache
     mockProvider.clear();

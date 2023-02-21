@@ -39,9 +39,34 @@ export default class Fetcher {
     const key: string = `totalSupply-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const totalSupply: BigNumber = await token.totalSupply({
-      blockTag: block,
-    });
+    const retryCount = 3;
+    let totalSupply;
+
+    for (let i = 0; i <= retryCount; i++) {
+      try {
+        totalSupply = await token.totalSupply({
+          blockTag: block,
+        });
+        break;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(`Error fetching total supply for token ${tokenAddress}`);
+        } else {
+          console.log(`Unknown error when fetching total supply: ${err}`);
+        }
+
+        if (i === retryCount) {
+          totalSupply = ethers.constants.MaxUint256;
+          console.log(
+            `Failed to fetch total supply for ${tokenAddress} after retries, using default max value ${totalSupply.toString()}`
+          );
+          break;
+        }
+
+        console.log(`Retrying in 1 second...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
 
     this.cache.set(key, totalSupply);
 
@@ -54,14 +79,30 @@ export default class Fetcher {
     const key: string = `decimals-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as number;
 
-    let decimals: number;
+    const retryCount = 3;
+    let decimals: number = 0;
 
-    try {
-      decimals = await token.decimals({
-        blockTag: block,
-      });
-    } catch {
-      decimals = 0;
+    for (let i = 0; i <= retryCount; i++) {
+      try {
+        decimals = await token.decimals({
+          blockTag: block,
+        });
+        break;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(`Error fetching decimals for token ${tokenAddress}`);
+        } else {
+          console.log(`Unknown error when fetching total supply: ${err}`);
+        }
+        if (i === retryCount) {
+          decimals = 18;
+          console.log(`Failed to fetch decimals for ${tokenAddress} after retries, using default max value: 18`);
+          break;
+        }
+
+        console.log(`Retrying in 1 second...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
 
     this.cache.set(key, decimals);
@@ -93,10 +134,21 @@ export default class Fetcher {
       params: { chain: this.getMoralisChainByChainId(chainId) },
       headers: { accept: "application/json", "X-API-Key": moralisApiKey },
     };
-    const response = (await (
-      await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
-    ).json()) as any;
-    return response.usdPrice;
+
+    const retryCount = 2;
+    for (let i = 0; i <= retryCount; i++) {
+      const response = (await (
+        await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
+      ).json()) as any;
+
+      if (response.usdPrice) {
+        return response.usdPrice;
+      } else if (response.message && !response.message.startsWith("No pools found")) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        return 0;
+      }
+    }
   };
 
   private getTokenPriceUrl = (chain: string, token: string) => {
@@ -234,24 +286,33 @@ export default class Fetcher {
     const { urlContractCreation } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
-
     const result = await (await fetch(url)).json();
 
-    if (result.message.startsWith("NOTOK")) {
+    if (
+      result.message.startsWith("NOTOK") ||
+      result.message.startsWith("No data") ||
+      result.message.startsWith("Query Timeout")
+    ) {
       console.log(`block explorer error occured; skipping check for ${address}`);
       return null;
     }
-
     return result.result[0].contractCreator;
   };
 
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {
     let response, usdPrice;
+    let foundInCache = false;
 
-    const key = `usdPrice-${token}-${block}`;
-    if (this.tokensPriceCache.has(key)) {
-      usdPrice = this.tokensPriceCache.get(key);
-    } else {
+    for (let i = block - 9; i <= block; i++) {
+      const key = `usdPrice-${token}-${i}`;
+      if (this.tokensPriceCache.has(key)) {
+        usdPrice = this.tokensPriceCache.get(key);
+        foundInCache = true;
+        break;
+      }
+    }
+
+    if (!foundInCache) {
       if (token === "native") {
         const chain = this.getNativeTokenByChainId(chainId);
 
@@ -264,39 +325,45 @@ export default class Fetcher {
             retries--;
           }
         }
-        if (!response || !response[this.getNativeTokenByChainId(chainId)]) {
-          if (this.tokensPriceCache.has(`usdPrice-${token}-${block - 1}`)) {
-            usdPrice = this.tokensPriceCache.get(`usdPrice-${token}-${block - 1}`);
-          } else return 0;
+        if (!response || !response[chain]) {
+          return 0;
         } else {
-          usdPrice = response[this.getNativeTokenByChainId(chainId)].usd;
+          usdPrice = response[chain].usd;
         }
       } else {
         const chain = this.getChainByChainId(chainId);
-        try {
-          response = (await (await fetch(this.getTokenPriceUrl(chain, token))).json()) as any;
-          if (response && response[token]) {
-            usdPrice = response[token].usd;
-          } else {
-            throw new Error("Error: Can't fetch USD price on CoinGecko");
-          }
-        } catch {
-          // Moralis API is not available on Optimism
-          if (chainId === 10) {
-            this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
-            return 0;
-          }
+        let retryCount = 1;
+        for (let i = 0; i < retryCount; i++) {
           try {
-            usdPrice = await this.getUniswapPrice(chainId, token);
-            if (!usdPrice) {
-              this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
-              return 0;
+            response = (await (await fetch(this.getTokenPriceUrl(chain, token))).json()) as any;
+            if (response && response[token]) {
+              usdPrice = response[token].usd;
+              break;
+            } else {
+              throw new Error("Error: Can't fetch USD price on CoinGecko");
             }
           } catch {
+            if (!response.status) {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+            } else {
+              break;
+            }
+          }
+        }
+        if (!usdPrice) {
+          // Moralis API is not available on Optimism
+          if (chainId === 10) {
+            return 0;
+          }
+          usdPrice = await this.getUniswapPrice(chainId, token);
+          if (!usdPrice) {
+            this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
+            console.log("Setting 0 as the price of token:", token);
             return 0;
           }
         }
       }
+
       this.tokensPriceCache.set(`usdPrice-${token}-${block}`, usdPrice);
     }
 
@@ -307,7 +374,6 @@ export default class Fetcher {
       const decimals = await this.getDecimals(block, token);
       tokenAmount = ethers.utils.formatUnits(amount, decimals);
     }
-
     return Number(tokenAmount) * usdPrice;
   }
 
