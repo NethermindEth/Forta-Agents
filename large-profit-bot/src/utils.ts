@@ -5,14 +5,16 @@ export const createFinding = (
   txHash: string,
   severity: FindingSeverity,
   txFrom: string,
-  txTo: string
+  txTo: string,
+  anomalyScore: number
 ): Finding => {
-  let labels = [];
+  let labels: Label[] = [];
   let metadata: {
     [key: string]: string;
   } = {};
   metadata["txFrom"] = txFrom;
   metadata["txTo"] = txTo;
+  metadata["anomalyScore"] = anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2);
 
   let index = 1;
   let profit = "";
@@ -24,21 +26,37 @@ export const createFinding = (
       Label.fromObject({
         entity: address.address,
         entityType: EntityType.Address,
-        label: "Large Profit Receiver",
+        label: "Attacker",
         confidence: address.confidence,
         remove: false,
       })
     );
   });
+  if (!labels.some((label) => label.entity.toLowerCase() === txFrom)) {
+    // Get the max confidence of the existing labels and set it as the confidence of the txFrom label
+    const maxConfidence = labels.reduce((max, label) => {
+      return label.confidence > max ? label.confidence : max;
+    }, 0);
+    labels.push(
+      Label.fromObject({
+        entity: ethers.utils.getAddress(txFrom),
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: maxConfidence,
+        remove: false,
+      })
+    );
+  }
   labels.push(
     Label.fromObject({
       entity: txHash,
       entityType: EntityType.Transaction,
-      label: "Large Profit Transaction",
+      label: "Attack",
       confidence: 1,
       remove: false,
     })
   );
+
   return Finding.fromObject({
     name: "Large Profit",
     description: "Transaction resulted in a large profit for the initiator",
