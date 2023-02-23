@@ -29,6 +29,9 @@ let medHighGasAlerts = 0;
 let hiHighGasAlerts = 0;
 let allHighGasAlerts = 0;
 
+let transactionsProcessed = 0;
+let lastBlock = 0;
+
 const getSeverity = (gasUsed: ethers.BigNumber): FindingSeverity => {
   if (gasUsed.gte(HIGH_GAS_THRESHOLD)) {
     hiHighGasAlerts += 1;
@@ -75,7 +78,32 @@ export function provideHandleTransaction(
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
 
-    const gasUsed = ethers.BigNumber.from((await getTransactionReceipt(txEvent.hash)).gasUsed);
+    if (txEvent.blockNumber != lastBlock) {
+      lastBlock = txEvent.blockNumber;
+      console.log(`-----Transactions processed in block ${txEvent.blockNumber - 1}: ${transactionsProcessed}-----`);
+      transactionsProcessed = 0;
+    }
+    transactionsProcessed += 1;
+
+    const maxRetries = 2;
+    let retryCount = 0;
+    let gasUsed = ethers.BigNumber.from(0);
+
+    while (retryCount <= maxRetries) {
+      try {
+        const receipt = await getTransactionReceipt(txEvent.hash);
+        gasUsed = ethers.BigNumber.from(receipt.gasUsed);
+        break; // if we reach this point, the operation was successful and we can exit the loop
+      } catch {
+        console.log(`Attempt ${retryCount + 1} to fetch transaction receipt failed`);
+        if (retryCount === maxRetries) {
+          throw new Error(`Failed to retrieve transaction receipt after ${maxRetries + 1} attempts`);
+        }
+        retryCount++;
+        // wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
 
     if (gasUsed.lt(MEDIUM_GAS_THRESHOLD)) {
       return findings;
