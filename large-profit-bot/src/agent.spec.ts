@@ -1,10 +1,37 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, ethers, Label, EntityType } from "forta-agent";
-import { provideHandleTransaction } from "./agent";
+import {
+  FindingType,
+  FindingSeverity,
+  Finding,
+  HandleTransaction,
+  ethers,
+  Label,
+  EntityType,
+  Initialize,
+} from "forta-agent";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import { when } from "jest-when";
 import { Interface } from "ethers/lib/utils";
 import { createAddress } from "forta-agent-tools";
 import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { ERC20_TRANSFER_EVENT } from "./utils";
+
+jest.mock("node-fetch");
+
+const mockLargeProfitTxns = 12;
+const mockAllTxns = 35;
+const mockChainId = 1;
+const mockLargeProfitTxnsKey = "mockLargeProfitTxns-key";
+const mockAllTxnsKey = "mockAllTxns-key";
+
+// Mock the fetchJwt function of the forta-agent module
+const mockFetchJwt = jest.fn();
+jest.mock("forta-agent", () => {
+  const original = jest.requireActual("forta-agent");
+  return {
+    ...original,
+    fetchJwt: () => mockFetchJwt(),
+  };
+});
 
 class MockEthersProviderExtended extends MockEthersProvider {
   public getTransactionCount: any;
@@ -39,14 +66,16 @@ const testCreateFinding = (
   txHash: string,
   severity: FindingSeverity,
   txFrom: string,
-  txTo: string
+  txTo: string,
+  anomalyScore: number
 ): Finding => {
-  let labels = [];
+  let labels: Label[] = [];
   let metadata: {
     [key: string]: string;
   } = {};
   metadata["txFrom"] = txFrom;
   metadata["txTo"] = txTo;
+  metadata["anomalyScore"] = anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2);
 
   let index = 1;
   let profit = "";
@@ -58,17 +87,32 @@ const testCreateFinding = (
       Label.fromObject({
         entity: address.address,
         entityType: EntityType.Address,
-        label: "Large Profit Receiver",
+        label: "Attacker",
         confidence: address.confidence,
         remove: false,
       })
     );
   });
+  if (!labels.some((label) => label.entity.toLowerCase() === txFrom)) {
+    // Get the max confidence of the existing labels and set it as the confidence of the txFrom label
+    const maxConfidence = labels.reduce((max, label) => {
+      return label.confidence > max ? label.confidence : max;
+    }, 0);
+    labels.push(
+      Label.fromObject({
+        entity: ethers.utils.getAddress(txFrom),
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: maxConfidence,
+        remove: false,
+      })
+    );
+  }
   labels.push(
     Label.fromObject({
       entity: txHash,
       entityType: EntityType.Transaction,
-      label: "Large Profit Transaction",
+      label: "Attack",
       confidence: 1,
       remove: false,
     })
@@ -100,7 +144,28 @@ describe("Large Profit Bot test suite", () => {
     getContractInfo: jest.fn(),
     isContractVerified: jest.fn(),
   };
+  const mockPersistenceHelper = {
+    persist: jest.fn(),
+    load: jest.fn(),
+  };
+  let initialize: Initialize;
+
   const handleTransaction: HandleTransaction = provideHandleTransaction(mockFetcher as any, mockProvider as any);
+
+  beforeAll(() => {
+    mockProvider.setNetwork(mockChainId);
+  });
+
+  beforeEach(async () => {
+    initialize = provideInitialize(
+      mockProvider as any,
+      mockPersistenceHelper as any,
+      mockLargeProfitTxnsKey,
+      mockAllTxnsKey
+    );
+    mockPersistenceHelper.load.mockReturnValueOnce(mockLargeProfitTxns).mockReturnValueOnce(mockAllTxns);
+    await initialize();
+  });
 
   it("should return empty findings if the receiver of the transaction is an EOA", async () => {
     const mockTxTo = createAddress("0x5678");
@@ -191,7 +256,10 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return a finding when the tx resulted in a large profit (great percentage of token's total supply) for the initiator and the contract called was created by the initiator", async () => {
@@ -224,7 +292,11 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 1, isProfitInUsd: false, profit: percentage }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return a finding when the tx was a conrtact creation and resulted in a large profit for the initiator", async () => {
@@ -246,7 +318,11 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, "")]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, "", mockAnomalyScore),
+    ]);
   });
 
   it("should return a finding if this is the first interaction between the initiator and the contract called", async () => {
@@ -271,7 +347,11 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return a finding if the contract called is neither verifed nor has a high number of past transactions", async () => {
@@ -297,7 +377,11 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return an Info severity finding if the contract called is not verifed but has a high number of past transactions", async () => {
@@ -323,7 +407,10 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return an Info severity finding if the contract called is verifed but has a low number of past transactions", async () => {
@@ -349,7 +436,11 @@ describe("Large Profit Bot test suite", () => {
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo)]);
+    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
+
+    expect(findings).toStrictEqual([
+      testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo, mockAnomalyScore),
+    ]);
   });
 
   it("should return empty findings if the contract called is verifed and has a high number of past transactions", async () => {
