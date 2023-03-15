@@ -15,7 +15,7 @@ import { provideInitialize, provideHandleTransaction, BOT_ID } from "./agent";
 import { when } from "jest-when";
 import { ScanCountType } from "bot-alert-rate";
 
-export const testCreateFinding = (
+const testCreateFinding = (
   txHash: string,
   from: string,
   to: string,
