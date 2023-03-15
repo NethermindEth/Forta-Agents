@@ -28,8 +28,12 @@ export const provideHandleTransaction =
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
-    const { hash, from, to, transaction } = txEvent;
-    const { value, data } = transaction;
+    const {
+      hash,
+      from,
+      to,
+      transaction: { value, data },
+    } = txEvent;
 
     if (to && data.length === 10) {
       if (await dataFetcher.isEoa(to)) {

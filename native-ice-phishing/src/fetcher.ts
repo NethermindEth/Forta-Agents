@@ -29,7 +29,7 @@ export default class DataFetcher {
       } catch (err) {
         tries++;
         if (tries === maxTries) {
-          throw err; // re-throw the error if maximum tries reached
+          throw err; // throw the error if maximum tries reached
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
       }
@@ -46,7 +46,7 @@ export default class DataFetcher {
 
     const url = this.signatureDbUrl + bytes.slice(2, 10);
 
-    let response;
+    let response: any;
     let tries = 0;
     const maxTries = 3;
 
@@ -57,7 +57,7 @@ export default class DataFetcher {
       } catch (err) {
         tries++;
         if (tries === maxTries) {
-          throw err; // re-throw the error if maximum tries reached
+          throw err; // throw the error if maximum tries reached
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
       }
