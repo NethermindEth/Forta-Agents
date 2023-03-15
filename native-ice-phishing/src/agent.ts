@@ -4,6 +4,7 @@ import {
   Network,
   ethers,
   getEthersProvider,
+  FindingSeverity,
 } from "forta-agent";
 import { ScanCountType } from "bot-alert-rate";
 import calculateAlertRate from "bot-alert-rate";
@@ -30,17 +31,23 @@ export const provideHandleTransaction =
     const { hash, from, to, transaction } = txEvent;
     const { value, data } = transaction;
 
-    if (to && value !== "0x0" && data.length === 10) {
+    if (to && data.length === 10) {
       if (await dataFetcher.isEoa(to)) {
         const sig = await dataFetcher.getSignature(data);
         if (sig) {
+          const [alertId, severity] =
+            value !== "0x0"
+              ? ["NIP-1", FindingSeverity.Medium]
+              : ["NIP-2", FindingSeverity.Info];
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
-            "NIP-1",
+            alertId,
             ScanCountType.TxWithInputDataCount
           );
-          findings.push(createFinding(hash, from, to, sig, anomalyScore));
+          findings.push(
+            createFinding(hash, from, to, sig, anomalyScore, severity)
+          );
         } else {
           console.log(
             `No signature found for ${data} in ${hash} from ${from} to ${to}`
