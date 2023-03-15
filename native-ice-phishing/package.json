@@ -1,7 +1,7 @@
 {
   "name": "native-ice-phishing-detection-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "Forta Bot that monitors native ice phishing attacks",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/native-ice-phishing",
   "chainIds": [
     1,
