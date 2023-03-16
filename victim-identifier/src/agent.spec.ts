@@ -2,6 +2,28 @@ import { FindingType, FindingSeverity, Finding, HandleTransaction, Label, Entity
 import { provideHandleTransaction } from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
+import { createAddress } from "forta-agent-tools";
+
+class TestTransactionEventExtended extends TestTransactionEvent {
+  constructor() {
+    super();
+  }
+
+  public setFrom(address: string): TestTransactionEventExtended {
+    super.setFrom(address);
+    return this;
+  }
+
+  public setTo(address: string | null): TestTransactionEventExtended {
+    this.transaction.to = address ? address.toLowerCase() : null;
+    return this;
+  }
+
+  public setNonce(value: number): TestTransactionEventExtended {
+    this.transaction.nonce = value;
+    return this;
+  }
+}
 
 const testCreatePreparationStageFinding = (
   preparationStageVictims: Record<
@@ -13,28 +35,45 @@ const testCreatePreparationStageFinding = (
       holders: string[];
       confidence: number;
     }
-  >
+  >,
+  createdContractAddresses: string[],
+  txFrom: string
 ): Finding => {
   const labels: Label[] = [];
   let metadata: {
     [key: string]: string;
   } = {};
+
+  createdContractAddresses.forEach((contract, index) => {
+    metadata[index === 0 ? "contract" : `contract${index + 1}`] = contract;
+  });
+
+  metadata["deployer"] = txFrom;
+
+  labels.push({
+    entity: txFrom,
+    entityType: EntityType.Address,
+    label: "Attacker",
+    confidence: 1,
+    remove: false,
+  });
+
   let index = 1;
 
   // Iterate through the preparationStageVictims object
   for (const contract in preparationStageVictims) {
-    const victim = preparationStageVictims[contract];
+    const { protocolUrl, protocolTwitter, tag, holders, confidence } = preparationStageVictims[contract];
     // Add properties to the metadata object, using the index as a suffix
     metadata[`address${index}`] = contract;
-    metadata[`tag${index}`] = victim.tag;
-    metadata[`protocolUrl${index}`] = victim.protocolUrl;
-    metadata[`protocolTwitter${index}`] = victim.protocolTwitter;
-    /*
-        Add the victim's properties to the metadata object -
-        If the number of victims is large, don't output the "holders" property to avoid
-        "Cannot return more than 50kB of findings per request" error */
+    metadata[`tag${index}`] = tag;
+    metadata[`protocolUrl${index}`] = protocolUrl;
+    metadata[`protocolTwitter${index}`] = protocolTwitter;
+    /* 
+      Add the victim's properties to the metadata object -
+      If the number of victims is large, don't output the "holders" property to avoid
+      "Cannot return more than 50kB of findings per request" error */
     if (Object.keys(preparationStageVictims).length < 4) {
-      metadata[`holders${index}`] = victim.holders.join(", ");
+      metadata[`holders${index}`] = holders.join(", ");
     }
     index++;
 
@@ -43,7 +82,7 @@ const testCreatePreparationStageFinding = (
       entity: contract,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: victim.confidence,
+      confidence: confidence,
       remove: false,
     });
   }
@@ -135,7 +174,10 @@ describe("Victim Identifier bot test suite", () => {
     });
 
     it("returns a finding if there is a preparation stage victim", async () => {
-      const mockTxEvent = new TestTransactionEvent();
+      const mockTxEvent: TestTransactionEventExtended = new TestTransactionEventExtended()
+        .setFrom(createAddress("0x01"))
+        .setTo(null)
+        .setNonce(24);
       const victims = {
         preparationStage: {
           "0x0000000000000000000000000000000000011888": {
@@ -153,7 +195,13 @@ describe("Victim Identifier bot test suite", () => {
 
       const findings = await handleTransaction(mockTxEvent);
 
-      expect(findings).toStrictEqual([testCreatePreparationStageFinding(victims.preparationStage)]);
+      expect(findings).toStrictEqual([
+        testCreatePreparationStageFinding(
+          victims.preparationStage,
+          ["0x45E3929804a31Ca48C531bCba737c542Ef5352E5"],
+          createAddress("0x01")
+        ),
+      ]);
     });
 
     it("returns a finding if there is an exploitation stage victim", async () => {
@@ -209,7 +257,10 @@ describe("Victim Identifier bot test suite", () => {
   });
 
   it("returns multiple findings if there is a preparation stage and an exploitation stage victim", async () => {
-    const mockTxEvent = new TestTransactionEvent();
+    const mockTxEvent: TestTransactionEventExtended = new TestTransactionEventExtended()
+      .setFrom(createAddress("0x01"))
+      .setTo(null)
+      .setNonce(24);
     const victims = {
       preparationStage: {
         "0x0000000000000000000000000000000000011888": {
@@ -235,7 +286,11 @@ describe("Victim Identifier bot test suite", () => {
     const findings = await handleTransaction(mockTxEvent);
 
     expect(findings).toStrictEqual([
-      testCreatePreparationStageFinding(victims.preparationStage),
+      testCreatePreparationStageFinding(
+        victims.preparationStage,
+        ["0x45E3929804a31Ca48C531bCba737c542Ef5352E5"],
+        createAddress("0x01")
+      ),
       testCreateExploitationStageFinding(victims.exploitationStage),
     ]);
   });
