@@ -7,6 +7,7 @@ import {
   getEthersProvider,
   Label,
   EntityType,
+  ethers,
 } from "forta-agent";
 import { VictimIdentifier } from "forta-agent-tools";
 import { keys } from "./keys";
@@ -21,28 +22,45 @@ const createPreparationStageFinding = (
       holders: string[];
       confidence: number;
     }
-  >
+  >,
+  createdContractAddresses: string[],
+  txFrom: string
 ): Finding => {
   const labels: Label[] = [];
   let metadata: {
     [key: string]: string;
   } = {};
+
+  createdContractAddresses.forEach((contract, index) => {
+    metadata[index === 0 ? "contract" : `contract${index + 1}`] = contract;
+  });
+
+  metadata["deployer"] = txFrom;
+
+  labels.push({
+    entity: txFrom,
+    entityType: EntityType.Address,
+    label: "Attacker",
+    confidence: 1,
+    remove: false,
+  });
+
   let index = 1;
 
   // Iterate through the preparationStageVictims object
   for (const contract in preparationStageVictims) {
-    const victim = preparationStageVictims[contract];
+    const { protocolUrl, protocolTwitter, tag, holders, confidence } = preparationStageVictims[contract];
     // Add properties to the metadata object, using the index as a suffix
     metadata[`address${index}`] = contract;
-    metadata[`tag${index}`] = victim.tag;
-    metadata[`protocolUrl${index}`] = victim.protocolUrl;
-    metadata[`protocolTwitter${index}`] = victim.protocolTwitter;
+    metadata[`tag${index}`] = tag;
+    metadata[`protocolUrl${index}`] = protocolUrl;
+    metadata[`protocolTwitter${index}`] = protocolTwitter;
     /* 
       Add the victim's properties to the metadata object -
       If the number of victims is large, don't output the "holders" property to avoid
       "Cannot return more than 50kB of findings per request" error */
     if (Object.keys(preparationStageVictims).length < 4) {
-      metadata[`holders${index}`] = victim.holders.join(", ");
+      metadata[`holders${index}`] = holders.join(", ");
     }
     index++;
 
@@ -51,7 +69,7 @@ const createPreparationStageFinding = (
       entity: contract,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: victim.confidence,
+      confidence: confidence,
       remove: false,
     });
   }
@@ -141,8 +159,29 @@ export const provideHandleTransaction =
     const victims = await victimsIdentifier.getIdentifiedVictims(txEvent);
 
     if (Object.keys(victims.preparationStage).length > 0) {
-      findings.push(createPreparationStageFinding(victims.preparationStage));
+      let createdContractAddresses: string[] = [];
+      const { traces, from } = txEvent;
+      if (traces.length > 0) {
+        await Promise.all(
+          traces.map(async (trace) => {
+            if (trace.type === "create") {
+              if (txEvent.from === trace.action.from || createdContractAddresses.includes(trace.action.from)) {
+                const createdContractAddress = trace.result.address;
+                createdContractAddresses.push(createdContractAddress);
+              }
+            }
+          })
+        );
+      } else {
+        if (!txEvent.to) {
+          const nonce = txEvent.transaction.nonce;
+          const createdContractAddress = ethers.utils.getContractAddress({ from: txEvent.from, nonce: nonce });
+          createdContractAddresses.push(createdContractAddress);
+        }
+      }
+      findings.push(createPreparationStageFinding(victims.preparationStage, createdContractAddresses, from));
     }
+
     if (Object.keys(victims.exploitationStage).length > 0) {
       findings.push(createExploitationStageFinding(victims.exploitationStage));
     }
