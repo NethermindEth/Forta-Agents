@@ -52,6 +52,7 @@ const createPreparationStageFinding = (
       entityType: EntityType.Address,
       label: "Victim",
       confidence: victim.confidence,
+      remove: false,
     });
   }
 
@@ -107,6 +108,7 @@ const createExploitationStageFinding = (
       entityType: EntityType.Address,
       label: "Victim",
       confidence: victim.confidence,
+      remove: false,
     });
   }
   return Finding.fromObject({
@@ -120,9 +122,20 @@ const createExploitationStageFinding = (
   });
 };
 
+let st = new Date().getTime();
+let lastBlock = 0;
+let transactionsProcessed = 0;
 export const provideHandleTransaction =
   (victimsIdentifier: VictimIdentifier): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
+    if (txEvent.blockNumber != lastBlock) {
+      lastBlock = txEvent.blockNumber;
+      let et = new Date().getTime();
+      console.log(`--------Block ${lastBlock - 1} took ${et - st} ms--------`);
+      console.log(`-----Transactions processed: ${transactionsProcessed}-----`);
+      transactionsProcessed = 0;
+      st = et;
+    }
     const findings: Finding[] = [];
 
     const victims = await victimsIdentifier.getIdentifiedVictims(txEvent);
@@ -134,6 +147,7 @@ export const provideHandleTransaction =
       findings.push(createExploitationStageFinding(victims.exploitationStage));
     }
 
+    transactionsProcessed++;
     return findings;
   };
 

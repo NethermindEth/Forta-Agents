@@ -44,6 +44,7 @@ const testCreatePreparationStageFinding = (
       entityType: EntityType.Address,
       label: "Victim",
       confidence: victim.confidence,
+      remove: false,
     });
   }
 
@@ -99,6 +100,7 @@ const testCreateExploitationStageFinding = (
       entityType: EntityType.Address,
       label: "Victim",
       confidence: victim.confidence,
+      remove: false,
     });
   }
   return Finding.fromObject({
