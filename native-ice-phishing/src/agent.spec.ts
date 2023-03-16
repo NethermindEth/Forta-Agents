@@ -126,7 +126,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .mockReturnValue("transfer(address,uint256)");
 
     when(mockCalculateRate)
-      .calledWith(1, BOT_ID, "NIP-1", ScanCountType.TxWithInputDataCount)
+      .calledWith(1, BOT_ID, "NIP-1", ScanCountType.TxWithInputDataCount, 0)
       .mockReturnValue(0.0034234);
 
     const findings: Finding[] = await handleTransaction(tx);
@@ -159,7 +159,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .mockReturnValue("transfer(address,uint256)");
 
     when(mockCalculateRate)
-      .calledWith(1, BOT_ID, "NIP-2", ScanCountType.TxWithInputDataCount)
+      .calledWith(1, BOT_ID, "NIP-2", ScanCountType.TxWithInputDataCount, 0)
       .mockReturnValue(0.0234234);
 
     const findings: Finding[] = await handleTransaction(tx);

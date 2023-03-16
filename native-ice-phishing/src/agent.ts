@@ -13,6 +13,8 @@ import { createFinding } from "./findings";
 import { ZETTABLOCK_API_KEY } from "./key";
 
 let chainId: Network;
+let txWithInputDataCount = 0;
+
 export const BOT_ID =
   "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0";
 
@@ -35,9 +37,14 @@ export const provideHandleTransaction =
       transaction: { value, data },
     } = txEvent;
 
-    if (to && data.length === 10) {
-      if (await dataFetcher.isEoa(to)) {
+    if (to && data !== "0x") {
+      //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
+      const isRelevantChain = [10, 250, 43114].includes(Number(chainId));
+      if (isRelevantChain) txWithInputDataCount++;
+
+      if (data.length === 10 && (await dataFetcher.isEoa(to))) {
         const sig = await dataFetcher.getSignature(data);
+
         if (sig) {
           const [alertId, severity] =
             value !== "0x0"
@@ -47,7 +54,10 @@ export const provideHandleTransaction =
             Number(chainId),
             BOT_ID,
             alertId,
-            ScanCountType.TxWithInputDataCount
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.TxWithInputDataCount,
+            txWithInputDataCount // No issue in passing 0 for non-relevant chains
           );
           findings.push(
             createFinding(hash, from, to, sig, anomalyScore, severity)
