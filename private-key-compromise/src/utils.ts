@@ -33,7 +33,6 @@ export const updateDB = async (
   let transferObj: any = {};
 
   const records: any = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
-  console.log("records", records);
 
   // if this is the first time and there's no record in db, create one
   if (!Object.keys(records).length) {
@@ -41,10 +40,6 @@ export const updateDB = async (
 
     await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
   } else {
-    const records: any = await persistenceHelper.load(
-      pkCompValueKey.concat("-", chainId)
-    );
-
     // if the attacker is already in db and the victim is not, push the new victim address
     if (records[to] && !records[to].includes(from)) {
       records[to].push(from);
