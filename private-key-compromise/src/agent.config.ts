@@ -3,7 +3,7 @@ import { AgentConfig } from "./utils";
 
 // threshold amounts for individual network tokens to be left in an account in order to be considered as drained
 const thresholds = {
-  MAINNET_ETH: "5000",
+  MAINNET_ETH: "0.05",
   BNB: "0.05",
   MATIC: "5",
   ARBITRUM_ETH: "0.05",
