@@ -105,11 +105,7 @@ export const provideHandleTransaction =
       );
     }
 
-    const records: any = await persistenceHelper.load(
-      pkCompValueKey.concat("-", chainId)
-    );
-
-    if (records) return findings;
+    return findings;
   };
 
 export default {
