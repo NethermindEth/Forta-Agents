@@ -30,6 +30,7 @@
     "dotenv": "^16.0.3",
     "forta-agent": "^0.1.23",
     "forta-agent-tools": "^3.2.7",
+    "lru-cache": "^8.0.4",
     "node-fetch": "^2.6.9"
   },
   "devDependencies": {
