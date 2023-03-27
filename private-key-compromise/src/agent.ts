@@ -5,9 +5,10 @@ import {
   ethers,
   getEthersProvider,
 } from "forta-agent";
-import { NetworkData } from "./utils";
+import { NetworkData, updateDB } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
+import BalanceFetcher from "./balance.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
 import CONFIG from "./agent.config";
 
@@ -15,7 +16,6 @@ const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
 
 let chainId: string;
-let pkCompValueRecord: {};
 
 export const ERC20_TRANSFER_EVENT =
   "event Transfer(address indexed from, address indexed to, uint256 value)";
@@ -24,19 +24,11 @@ const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
-  provider: ethers.providers.Provider,
-  persistenceHelper: PersistenceHelper,
-  pkCompValueKey: any
+  provider: ethers.providers.Provider
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
     chainId = networkManager.getNetwork().toString();
-
-    pkCompValueRecord = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
-
-    console.log("init", pkCompValueRecord);
-
-    // allTxnsWithValue = await persistenceHelper.load(anyValueKey.concat("-", chainId));
   };
 };
 
@@ -51,7 +43,6 @@ export const provideHandleTransaction =
 
     const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
 
-    // const value = ethers.utils.formatEther(txEvent.transaction.value);
     const {
       hash,
       from,
@@ -59,24 +50,9 @@ export const provideHandleTransaction =
       transaction: { value, data },
     } = txEvent;
 
-    // check for ERC20 transfers
-    // await Promise.all(transferEvents.map(async transfer => {}));
-
     // check for native token transfers
-
     if (to && value != "0x0" && data === "0x") {
-      console.log("hash", hash);
-      console.log("from", from);
-      console.log("to", to);
-      console.log("value", value);
-      console.log("data", data);
-
-      // const balance = ethers.utils.formatEther(
-      //   await provider.getBalance(txEvent.transaction.from)
-      // );
-
       const balance = await provider.getBalance(txEvent.transaction.from);
-      console.log("balance", ethers.utils.formatEther(balance));
 
       // if the account is drained
       if (
@@ -84,64 +60,60 @@ export const provideHandleTransaction =
           ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold")))
         )
       ) {
+        await updateDB(from, to, chainId, pkCompValueKey);
+
         const records: any = await persistenceHelper.load(
           pkCompValueKey.concat("-", chainId)
         );
-        console.log("records", records);
 
-        let transferObj: any = {};
-
-        // if this is the first time and there's no record in db
-        if (!Object.keys(records).length) {
-          transferObj[to] = [from];
-
-          await persistenceHelper.persist(
-            transferObj,
-            pkCompValueKey.concat("-", chainId)
-          );
-        } else {
-          const records: any = await persistenceHelper.load(
-            pkCompValueKey.concat("-", chainId)
-          );
-
-          if (records[to] && !records[to].includes(from)) {
-            records[to].push(from);
-            transferObj[to] = records[to];
-
-            await persistenceHelper.persist(
-              transferObj,
-              pkCompValueKey.concat("-", chainId)
-            );
-          } else if (!records[to]) {
-            records[to] = [from];
-            transferObj = records;
-
-            await persistenceHelper.persist(
-              transferObj,
-              pkCompValueKey.concat("-", chainId)
-            );
-          }
+        // if there are multiple transfers to the same address, emit an alert
+        if (records[to].length > 3) {
+          findings.push(createFinding(hash, records[to], to, 0.1));
         }
-
-        // findings.push(createFinding(hash, [from], to, 0.1));
       }
+    }
 
-      console.log(
-        "zort",
-        await persistenceHelper.load(pkCompValueKey.concat("-", chainId))
+    // check for ERC20 transfers
+    if (transferEvents.length) {
+      await Promise.all(
+        transferEvents.map(async transfer => {
+          const balanceFetcher: BalanceFetcher = new BalanceFetcher(
+            getEthersProvider(),
+            transfer.address
+          );
+
+          const balanceFrom = await balanceFetcher.getBalanceOf(
+            transfer.args.from,
+            txEvent.blockNumber
+          );
+
+          if (balanceFrom.eq(0)) {
+            await updateDB(transfer.args.from, transfer.args.to, chainId, pkCompValueKey);
+
+            const records: any = await persistenceHelper.load(
+              pkCompValueKey.concat("-", chainId)
+            );
+
+            // if there are multiple transfers to the same address, emit an alert
+            if (records[transfer.args.to].length > 3) {
+              findings.push(
+                createFinding(hash, records[transfer.args.to], transfer.args.to, 0.1)
+              );
+            }
+          }
+        })
       );
     }
 
-    return findings;
+    const records: any = await persistenceHelper.load(
+      pkCompValueKey.concat("-", chainId)
+    );
+
+    if (records) return findings;
   };
 
 export default {
-  initialize: provideInitialize(
-    networkManager,
-    getEthersProvider(),
-    new PersistenceHelper(DATABASE_URL),
-    PK_COMP_TXNS_KEY
-  ),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(
     getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
