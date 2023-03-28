@@ -4,8 +4,9 @@ import {
   TransactionEvent,
   ethers,
   getEthersProvider,
+  BlockEvent,
 } from "forta-agent";
-import { NetworkData, updateDB } from "./utils";
+import { NetworkData, Transfer, updateRecord } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
 import BalanceFetcher from "./balance.fetcher";
@@ -16,6 +17,7 @@ const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
 
 let chainId: string;
+let transferObj: Transfer = {};
 
 export const ERC20_TRANSFER_EVENT =
   "event Transfer(address indexed from, address indexed to, uint256 value)";
@@ -24,21 +26,19 @@ const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
-  provider: ethers.providers.Provider
+  provider: ethers.providers.Provider,
+  persistenceHelper: PersistenceHelper,
+  pkCompValueKey: string
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
     chainId = networkManager.getNetwork().toString();
+    transferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
   };
 };
 
 export const provideHandleTransaction =
-  (
-    provider: ethers.providers.Provider,
-    persistenceHelper: PersistenceHelper,
-    pkCompValueKey: string
-  ) =>
-  async (txEvent: TransactionEvent) => {
+  (provider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
     const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
@@ -60,15 +60,11 @@ export const provideHandleTransaction =
           ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold")))
         )
       ) {
-        await updateDB(from, to, chainId, pkCompValueKey);
-
-        const records: any = await persistenceHelper.load(
-          pkCompValueKey.concat("-", chainId)
-        );
+        await updateRecord(from, to, transferObj);
 
         // if there are multiple transfers to the same address, emit an alert
-        if (records[to].length > 3) {
-          findings.push(createFinding(hash, records[to], to, 0.1));
+        if (transferObj[to].length > 0) {
+          findings.push(createFinding(hash, transferObj[to], to, 0.1));
         }
       }
     }
@@ -88,16 +84,12 @@ export const provideHandleTransaction =
           );
 
           if (balanceFrom.eq(0)) {
-            await updateDB(transfer.args.from, transfer.args.to, chainId, pkCompValueKey);
-
-            const records: any = await persistenceHelper.load(
-              pkCompValueKey.concat("-", chainId)
-            );
+            await updateRecord(transfer.args.from, transfer.args.to, transferObj);
 
             // if there are multiple transfers to the same address, emit an alert
-            if (records[transfer.args.to].length > 3) {
+            if (transferObj[transfer.args.to].length > 0) {
               findings.push(
-                createFinding(hash, records[transfer.args.to], transfer.args.to, 0.1)
+                createFinding(hash, transferObj[transfer.args.to], transfer.args.to, 0.1)
               );
             }
           }
@@ -108,11 +100,28 @@ export const provideHandleTransaction =
     return findings;
   };
 
+export function provideHandleBlock(
+  persistenceHelper: PersistenceHelper,
+  pkCompValueKey: string
+) {
+  return async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
+
+    if (blockEvent.blockNumber % 300 === 0) {
+      await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
+    }
+
+    return findings;
+  };
+}
+
 export default {
-  initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleTransaction: provideHandleTransaction(
+  initialize: provideInitialize(
+    networkManager,
     getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
     PK_COMP_TXNS_KEY
   ),
+  handleTransaction: provideHandleTransaction(getEthersProvider()),
+  handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),
 };
