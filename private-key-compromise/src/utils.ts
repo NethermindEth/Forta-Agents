@@ -1,3 +1,8 @@
+import { timePeriodDays } from "./bot.config";
+
+const ONE_DAY = 24 * 60 * 60;
+export const TIME_PERIOD = timePeriodDays * ONE_DAY;
+
 export interface NetworkData {
   threshold: string;
 }
@@ -5,6 +10,11 @@ export interface NetworkData {
 export type AgentConfig = Record<number, NetworkData>;
 
 export type Transfer = Record<string, string[]>;
+
+export type AlertedAddress = {
+  address: string;
+  timestamp: number;
+};
 
 export const BALANCEOF_ABI = [
   "function balanceOf(address account) external view returns (uint256)",
