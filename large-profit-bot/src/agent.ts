@@ -1,29 +1,9 @@
-import {
-  BlockEvent,
-  Finding,
-  FindingSeverity,
-  HandleTransaction,
-  Initialize,
-  TransactionEvent,
-  ethers,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, FindingSeverity, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import LRU from "lru-cache";
 import { ERC20_TRANSFER_EVENT, WRAPPED_NATIVE_TOKEN_EVENTS, ZERO, createFinding, wrappedNativeTokens } from "./utils";
 import Fetcher from "./fetcher";
 import { keys } from "./keys";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
-import { PersistenceHelper } from "./persistence.helper";
-
-let chainId: string;
-
-const DATABASE_URL = "https://research.forta.network/database/bot/";
-
-const LARGE_PROFIT_TXNS_KEY = "nm-large-profit-prod-bot-txns-key";
-const ALL_TXNS_KEY = "nm-large-profit-prod-bot-all-txns-key";
-
-let largeProfitTxns = 0;
-let allTxns = 0;
 
 let transactionsProcessed = 0;
 let lastBlock = 0;
@@ -33,20 +13,6 @@ const TX_COUNT_THRESHOLD = 70;
 const contractsCache = new LRU<string, boolean>({
   max: 10000,
 });
-
-export const provideInitialize = (
-  provider: ethers.providers.Provider,
-  persistenceHelper: PersistenceHelper,
-  largeProfitsTxnsKey: string,
-  allTxnsKey: string
-): Initialize => {
-  return async () => {
-    chainId = (await provider.getNetwork()).chainId.toString();
-
-    largeProfitTxns = await persistenceHelper.load(largeProfitsTxnsKey.concat("-", chainId));
-    allTxns = await persistenceHelper.load(allTxnsKey.concat("-", chainId));
-  };
-};
 
 export const provideHandleTransaction =
   (fetcher: Fetcher, provider: ethers.providers.Provider): HandleTransaction =>
@@ -94,8 +60,6 @@ export const provideHandleTransaction =
     }
 
     if (txCount > EOA_TRANSACTION_COUNT_THRESHOLD) return findings;
-
-    allTxns += 1;
 
     const balanceChangesMap: Map<string, Record<string, ethers.BigNumber>> = new Map();
 
@@ -231,7 +195,6 @@ export const provideHandleTransaction =
         }
       })
     );
-
     const balances = new Map(balanceChangesMap);
     const balanceChangesMapUsd: Map<string, Record<string, number>> = new Map();
     // Get the USD value of the balance changes
@@ -250,8 +213,13 @@ export const provideHandleTransaction =
       }
       balanceChangesMapUsd.set(key, usdRecord);
     }
-    const largeProfitAddresses: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[] = [];
-
+    const largeProfitAddresses: {
+      address: string;
+      confidence: number;
+      anomalyScore: number;
+      isProfitInUsd: boolean;
+      profit: number;
+    }[] = [];
     balanceChangesMapUsd.forEach((record: Record<string, number>, address: string) => {
       const sum = Object.values(record).reduce((acc, value) => {
         return acc + value;
@@ -259,10 +227,11 @@ export const provideHandleTransaction =
 
       // If the sum of the values is more than 10000 USD, add the address to the large profit addresses list
       if (sum > 10000) {
-        const confidence = fetcher.getConfidenceLevel(sum, "usdValue") as number;
-        largeProfitAddresses.push({ address, confidence, isProfitInUsd: true, profit: sum });
+        const [confidence, anomalyScore] = fetcher.getCLandAS(sum, "usdValue") as number[];
+        largeProfitAddresses.push({ address, confidence, anomalyScore, isProfitInUsd: true, profit: sum });
       }
     });
+
     // For tokens with no USD value fetched, check if the balance change is greater than 5% of the total supply
     await Promise.all(
       Array.from(balanceChangesMapUsd.entries()).map(async ([address, record]) => {
@@ -307,8 +276,14 @@ export const provideHandleTransaction =
                       percentage = 0;
                     }
                   }
-                  const confidence = fetcher.getConfidenceLevel(percentage, "totalSupply") as number;
-                  largeProfitAddresses.push({ address, confidence, isProfitInUsd: false, profit: percentage });
+                  const [confidence, anomalyScore] = fetcher.getCLandAS(percentage, "totalSupply") as number[];
+                  largeProfitAddresses.push({
+                    address,
+                    confidence,
+                    anomalyScore,
+                    isProfitInUsd: false,
+                    profit: percentage,
+                  });
                 }
               }
             }
@@ -322,15 +297,24 @@ export const provideHandleTransaction =
 
     // Filter out duplicate addresses, keeping the entry with the higher confidence level
     const filteredLargeProfitAddresses = largeProfitAddresses.reduce(
-      (acc: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[], curr) => {
+      (
+        acc: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
+        curr
+      ) => {
         const existingIndex = acc.findIndex(
-          (item: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }) =>
-            item.address === curr.address
+          (item: {
+            address: string;
+            confidence: number;
+            anomalyScore: number;
+            isProfitInUsd: boolean;
+            profit: number;
+          }) => item.address === curr.address
         );
         if (existingIndex === -1) {
           acc.push(curr);
         } else if (acc[existingIndex].confidence < curr.confidence) {
           acc[existingIndex].confidence = curr.confidence;
+          acc[existingIndex].anomalyScore = curr.anomalyScore;
         }
         return acc;
       },
@@ -339,33 +323,15 @@ export const provideHandleTransaction =
 
     let wasCalledContractCreatedByInitiator = false;
     if (!txEvent.to) {
-      largeProfitTxns += 1;
-      const anomalyScore = largeProfitTxns / allTxns;
       findings.push(
-        createFinding(
-          filteredLargeProfitAddresses,
-          txEvent.hash,
-          FindingSeverity.Medium,
-          txEvent.from,
-          "",
-          anomalyScore
-        )
+        createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, "")
       );
     } else {
       wasCalledContractCreatedByInitiator =
         (await fetcher.getContractCreator(txEvent.to, Number(txEvent.network))) === txEvent.from.toLowerCase();
       if (wasCalledContractCreatedByInitiator) {
-        largeProfitTxns += 1;
-        const anomalyScore = largeProfitTxns / allTxns;
         findings.push(
-          createFinding(
-            filteredLargeProfitAddresses,
-            txEvent.hash,
-            FindingSeverity.Medium,
-            txEvent.from,
-            txEvent.to,
-            anomalyScore
-          )
+          createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, txEvent.to)
         );
       } else {
         await Promise.all(
@@ -377,45 +343,36 @@ export const provideHandleTransaction =
                 Number(txEvent.network)
               );
               if (isFirstInteraction) {
-                largeProfitTxns += 1;
-                const anomalyScore = largeProfitTxns / allTxns;
                 findings.push(
                   createFinding(
                     filteredLargeProfitAddresses,
                     txEvent.hash,
                     FindingSeverity.Medium,
                     txEvent.from,
-                    txEvent.to!,
-                    anomalyScore
+                    txEvent.to!
                   )
                 );
               } else {
                 const isVerified = await fetcher.isContractVerified(txEvent.to!, Number(txEvent.network));
                 if (!isVerified && !hasHighNumberOfTotalTxs) {
-                  largeProfitTxns += 1;
-                  const anomalyScore = largeProfitTxns / allTxns;
                   findings.push(
                     createFinding(
                       filteredLargeProfitAddresses,
                       txEvent.hash,
                       FindingSeverity.Medium,
                       txEvent.from,
-                      txEvent.to!,
-                      anomalyScore
+                      txEvent.to!
                     )
                   );
                   // If one of the booleans is true, the severity is set to Info
                 } else if (isVerified !== hasHighNumberOfTotalTxs) {
-                  largeProfitTxns += 1;
-                  const anomalyScore = largeProfitTxns / allTxns;
                   findings.push(
                     createFinding(
                       filteredLargeProfitAddresses,
                       txEvent.hash,
                       FindingSeverity.Info,
                       txEvent.from,
-                      txEvent.to!,
-                      anomalyScore
+                      txEvent.to!
                     )
                   );
                 } else return;
@@ -429,28 +386,7 @@ export const provideHandleTransaction =
     return findings;
   };
 
-export function provideHandleBlock(persistenceHelper: PersistenceHelper, largeProfitKey: string, allTxnsKey: string) {
-  return async (blockEvent: BlockEvent) => {
-    const findings: Finding[] = [];
-
-    if (blockEvent.blockNumber % 240 === 0) {
-      await persistenceHelper.persist(largeProfitTxns, largeProfitKey.concat("-", chainId));
-      await persistenceHelper.persist(allTxns, allTxnsKey.concat("-", chainId));
-    }
-
-    return findings;
-  };
-}
-
 export default {
-  initialize: provideInitialize(
-    getEthersProvider(),
-    new PersistenceHelper(DATABASE_URL),
-    LARGE_PROFIT_TXNS_KEY,
-    ALL_TXNS_KEY
-  ),
-  provideInitialize,
   handleTransaction: provideHandleTransaction(new Fetcher(getEthersProvider(), keys), getEthersProvider()),
   provideHandleTransaction,
-  handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), LARGE_PROFIT_TXNS_KEY, ALL_TXNS_KEY),
 };

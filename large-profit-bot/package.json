@@ -1,6 +1,6 @@
 {
   "name": "large-profit-bot",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Forta bot that detects large profits",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-profit-bot",
   "chainIds": [
@@ -12,6 +12,12 @@
     250,
     43114
   ],
+  "chainSettings": {
+    "default": {
+      "shards": 3,
+      "target": 2
+    }
+  },
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -34,7 +40,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.17",
+    "forta-agent": "^0.1.24",
     "lru-cache": "^7.14.1",
     "node-fetch": "^2.6.8",
     "dotenv": "^16.0.3"

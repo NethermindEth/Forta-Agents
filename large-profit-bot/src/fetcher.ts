@@ -128,7 +128,6 @@ export default class Fetcher {
   private getUniswapPrice = async (chainId: number, token: string) => {
     if (!(this.apiKeys.moralisApiKeys.length > 0)) return 0;
     const moralisApiKey = this.apiKeys.moralisApiKeys[Math.floor(Math.random() * this.apiKeys.moralisApiKeys.length)];
-
     const options = {
       method: "GET",
       params: { chain: this.getMoralisChainByChainId(chainId) },
@@ -254,7 +253,6 @@ export default class Fetcher {
       console.log(`block explorer error occured; skipping check for ${address}`);
       return null;
     }
-
     const isVerified = result.status === "1";
     return isVerified;
   };
@@ -343,7 +341,7 @@ export default class Fetcher {
               throw new Error("Error: Can't fetch USD price on CoinGecko");
             }
           } catch {
-            if (!response.status) {
+            if (!response) {
               await new Promise((resolve) => setTimeout(resolve, 1000));
             } else {
               break;
@@ -377,7 +375,7 @@ export default class Fetcher {
     return Number(tokenAmount) * usdPrice;
   }
 
-  public getConfidenceLevel = (value: number, method: string) => {
+  public getCLandAS = (value: number, method: string) => {
     // "value" is either the USD value or the percentage of total supply
     if (method === "usdValue") {
       /*
@@ -391,16 +389,18 @@ export default class Fetcher {
           The resulting Confidence Level will be a number between 0 and 1, with 0.1 increments (e.g. 0.1, 0.2, 0.3, etc.)
         */
       const level = Math.round(value / (MAX_USD_VALUE / 10)) / 10;
-      return Math.min(1, level);
+      const CL = Math.min(1, level);
+      const anomalyScore = CL === 1 ? 0.0001 : 1 - CL;
+      return [CL, anomalyScore];
     } else if (method === "totalSupply") {
       if (value >= 30) {
-        return 1;
+        return [1, 0.0001];
       } else if (value >= 20) {
-        return 0.9;
+        return [0.9, 0.1];
       } else if (value >= 10) {
-        return 0.8;
+        return [0.8, 0.2];
       } else if (value >= 5) {
-        return 0.7;
+        return [0.7, 0.3];
       }
     }
   };

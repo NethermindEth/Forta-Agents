@@ -1,12 +1,11 @@
 import { EntityType, Finding, FindingSeverity, FindingType, Label, ethers } from "forta-agent";
 
 export const createFinding = (
-  addresses: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[],
+  addresses: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
   txHash: string,
   severity: FindingSeverity,
   txFrom: string,
-  txTo: string,
-  anomalyScore: number
+  txTo: string
 ): Finding => {
   let labels: Label[] = [];
   let metadata: {
@@ -14,7 +13,12 @@ export const createFinding = (
   } = {};
   metadata["txFrom"] = txFrom;
   metadata["txTo"] = txTo;
-  metadata["anomalyScore"] = anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2);
+
+  const anomalyScore = addresses.reduce(
+    (min, { anomalyScore }) => Math.min(min, anomalyScore),
+    addresses[0].anomalyScore
+  );
+  metadata["anomalyScore"] = anomalyScore.toString();
 
   let index = 1;
   let profit = "";
