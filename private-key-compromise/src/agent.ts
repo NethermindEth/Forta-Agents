@@ -12,6 +12,7 @@ import {
   updateRecord,
   TIME_PERIOD,
   AlertedAddress,
+  ERC20_TRANSFER_EVENT,
 } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
@@ -27,9 +28,6 @@ let chainId: string;
 let transferObj: Transfer = {};
 let alertedAddresses: AlertedAddress[] = [];
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 
 export const provideInitialize = (
@@ -41,12 +39,19 @@ export const provideInitialize = (
   return async () => {
     await networkManager.init(provider);
     chainId = networkManager.getNetwork().toString();
+    console.log("chainId", chainId);
+
     transferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
   };
 };
 
 export const provideHandleTransaction =
-  (provider: ethers.providers.Provider) => async (txEvent: TransactionEvent) => {
+  (
+    provider: ethers.providers.Provider,
+    networkManager: NetworkManager<NetworkData>,
+    balanceFetcher: BalanceFetcher
+  ) =>
+  async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
     const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
@@ -65,7 +70,10 @@ export const provideHandleTransaction =
         const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
 
         if (await dataFetcher.isEoa(to)) {
-          const balance = await provider.getBalance(txEvent.transaction.from);
+          const balance = await provider.getBalance(
+            txEvent.transaction.from,
+            txEvent.blockNumber
+          );
 
           // if the account is drained
           if (
@@ -78,7 +86,9 @@ export const provideHandleTransaction =
             await updateRecord(from, to, transferObj);
 
             // if there are multiple transfers to the same address, emit an alert
-            if (transferObj[to].length > 0) {
+            console.log("transferObj bu ", transferObj);
+
+            if (transferObj[to].length > 3) {
               alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
               findings.push(createFinding(hash, transferObj[to], to, 0.1));
             }
@@ -91,6 +101,7 @@ export const provideHandleTransaction =
       await Promise.all(
         transferEvents.map(async transfer => {
           // check only if the to address is not inside alertedAddresses
+
           if (
             !alertedAddresses.some(
               alertedAddress => alertedAddress.address == transfer.args.to
@@ -99,13 +110,9 @@ export const provideHandleTransaction =
             const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
 
             if (await dataFetcher.isEoa(transfer.args.to)) {
-              const balanceFetcher: BalanceFetcher = new BalanceFetcher(
-                getEthersProvider(),
-                transfer.address
-              );
-
               const balanceFrom = await balanceFetcher.getBalanceOf(
                 transfer.args.from,
+                transfer.address,
                 txEvent.blockNumber
               );
 
@@ -113,7 +120,7 @@ export const provideHandleTransaction =
                 await updateRecord(transfer.args.from, transfer.args.to, transferObj);
 
                 // if there are multiple transfers to the same address, emit an alert
-                if (transferObj[transfer.args.to].length > 0) {
+                if (transferObj[transfer.args.to].length > 3) {
                   alertedAddresses.push({
                     address: transfer.args.to,
                     timestamp: txEvent.timestamp,
@@ -135,6 +142,8 @@ export const provideHandleTransaction =
       );
     }
 
+    // console.log("", transferObj);
+
     return findings;
   };
 
@@ -145,7 +154,7 @@ export function provideHandleBlock(
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    if (blockEvent.blockNumber % 300 === 0) {
+    if (blockEvent.blockNumber % 20 === 0) {
       await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
     }
 
@@ -164,6 +173,10 @@ export default {
     new PersistenceHelper(DATABASE_URL),
     PK_COMP_TXNS_KEY
   ),
-  handleTransaction: provideHandleTransaction(getEthersProvider()),
+  handleTransaction: provideHandleTransaction(
+    getEthersProvider(),
+    networkManager,
+    new BalanceFetcher(getEthersProvider())
+  ),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),
 };
