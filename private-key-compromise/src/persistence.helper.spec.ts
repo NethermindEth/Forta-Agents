@@ -59,7 +59,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(spy).toHaveBeenCalledWith("successfully persisted 101 to database");
+    expect(spy).toHaveBeenCalledWith("successfully persisted to database");
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
@@ -100,16 +100,16 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     await persistenceHelper.persist(mockValue, mockKey);
-    expect(spy).not.toHaveBeenCalledWith("successfully persisted 202 to database");
+    expect(spy).not.toHaveBeenCalledWith("successfully persisted to database");
 
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it("should correctly load variable values from the database", async () => {
-    const mockData = 4234;
+    const mockData = { "0x0": ["0x1", "0x2"] };
 
-    const mockPostMethodResponse = mockData.toString();
+    const mockPostMethodResponse = mockData;
 
     const mockFetchResponse: Response = {
       ok: true,
@@ -123,11 +123,11 @@ describe("Persistence Helper test suite", () => {
     mockFetch.mockResolvedValueOnce(mockFetchResponse);
 
     const fetchedValue = await persistenceHelper.load(mockKey);
-    expect(fetchedValue).toStrictEqual(4234);
+    expect(fetchedValue).toStrictEqual({ "0x0": ["0x1", "0x2"] });
   });
 
   it("should fail to load values from the database, but return {}", async () => {
-    const mockData = 4234;
+    const mockData = '{ "0x0": ["0x1", "0x2"] }';
 
     const mockPostMethodResponse = mockData.toString();
     const mockFetchResponse: Response = {
@@ -146,7 +146,7 @@ describe("Persistence Helper test suite", () => {
   });
 
   it("should correctly load values from a local file if it exists", async () => {
-    const mockData = 4234;
+    const mockData = '{ "0x0": ["0x1", "0x2"] }';
 
     writeFileSync(mockKey, mockData.toString());
 
@@ -157,7 +157,7 @@ describe("Persistence Helper test suite", () => {
     expect(mockFetch).not.toHaveBeenCalled();
 
     const fetchedValue = await persistenceHelper.load(mockKey);
-    expect(fetchedValue).toStrictEqual(4234);
+    expect(fetchedValue).toStrictEqual({ "0x0": ["0x1", "0x2"] });
   });
 
   it("should fail load values from a local file if it doesn't exist, but return {}", async () => {
