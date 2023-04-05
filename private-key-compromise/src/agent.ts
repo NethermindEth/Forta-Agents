@@ -18,8 +18,10 @@ import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
 import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
+import ContractFetcher from "./contract.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
 import CONFIG from "./bot.config";
+import { keys } from "./keys";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
@@ -42,6 +44,7 @@ export const provideInitialize = (
     console.log("chainId", chainId);
 
     transferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+    console.log("transferObj in memory:", transferObj);
   };
 };
 
@@ -49,7 +52,8 @@ export const provideHandleTransaction =
   (
     provider: ethers.providers.Provider,
     networkManager: NetworkManager<NetworkData>,
-    balanceFetcher: BalanceFetcher
+    balanceFetcher: BalanceFetcher,
+    contractFetcher: ContractFetcher
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -68,8 +72,13 @@ export const provideHandleTransaction =
       // check only if the to address is not inside alertedAddresses
       if (!alertedAddresses.some(alertedAddress => alertedAddress.address == to)) {
         const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
+        const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+          to,
+          Number(chainId),
+          txEvent.blockNumber
+        );
 
-        if (await dataFetcher.isEoa(to)) {
+        if ((await dataFetcher.isEoa(to)) && !hasHighNumberOfTotalTxs) {
           const balance = await provider.getBalance(
             txEvent.transaction.from,
             txEvent.blockNumber
@@ -86,8 +95,6 @@ export const provideHandleTransaction =
             await updateRecord(from, to, transferObj);
 
             // if there are multiple transfers to the same address, emit an alert
-            console.log("transferObj bu ", transferObj);
-
             if (transferObj[to].length > 3) {
               alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
               findings.push(createFinding(hash, transferObj[to], to, 0.1));
@@ -96,6 +103,7 @@ export const provideHandleTransaction =
         }
       }
     }
+
     // check for ERC20 transfers
     if (transferEvents.length) {
       await Promise.all(
@@ -108,8 +116,13 @@ export const provideHandleTransaction =
             )
           ) {
             const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
+            const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+              transfer.args.to,
+              Number(chainId),
+              txEvent.blockNumber
+            );
 
-            if (await dataFetcher.isEoa(transfer.args.to)) {
+            if ((await dataFetcher.isEoa(transfer.args.to)) && !hasHighNumberOfTotalTxs) {
               const balanceFrom = await balanceFetcher.getBalanceOf(
                 transfer.args.from,
                 transfer.address,
@@ -154,7 +167,9 @@ export function provideHandleBlock(
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    if (blockEvent.blockNumber % 20 === 0) {
+    if (blockEvent.blockNumber % 300 === 0) {
+      console.log("transfer obj in bloc k", transferObj);
+
       await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
     }
 
@@ -176,7 +191,8 @@ export default {
   handleTransaction: provideHandleTransaction(
     getEthersProvider(),
     networkManager,
-    new BalanceFetcher(getEthersProvider())
+    new BalanceFetcher(getEthersProvider()),
+    new ContractFetcher(getEthersProvider(), keys)
   ),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),
 };
