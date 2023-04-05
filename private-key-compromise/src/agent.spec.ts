@@ -1,13 +1,3 @@
-// returns empty findings if there is no transfer events
-// returns empty findings if there is 3 native transfers and 0 token transfers to an attacker address
-// returns empty findings if there is 3 token transfers and 0 native transfers to an attacker address
-// returns empty findings if there is 2 native transfers and 1 token transfer to an attacker address
-// returns empty findings if there is 2 token transfers and 1 native transfers to an attacker address
-// returns findings if there is more than 3 native transfers
-// returns findings if there is more than 3 erc20 token transfers
-// returns findings if there is 3 native transfers and 1 token transfers to an attacker address
-// returns findings if there is 2 native transfers and 2 token transfers to an attacker address
-
 import {
   Finding,
   FindingSeverity,
@@ -22,7 +12,11 @@ import {
 } from "forta-agent";
 import { Interface } from "@ethersproject/abi";
 
-import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import {
+  TestTransactionEvent,
+  TestBlockEvent,
+  MockEthersProvider,
+} from "forta-agent-tools/lib/test";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction, provideHandleBlock } from "./agent";
 import { when } from "jest-when";
@@ -30,6 +24,7 @@ import fetch, { Response } from "node-fetch";
 import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import BalanceFetcher from "./balance.fetcher";
+import ContractFetcher from "./contract.fetcher";
 
 jest.mock("node-fetch");
 const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
@@ -38,7 +33,9 @@ const mockChainId = 1;
 const mockDbUrl = "databaseurl.com/";
 const mockJwt = "MOCK_JWT";
 const mockpKCompValueKey = "mock-pk-comp-value-bot-key";
-const mockpKCompValueTxns = {};
+const mockpKCompValueTxns = {
+  "0x0000000000000000000000000000000000000020": [createAddress("0x21")],
+};
 
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
@@ -73,8 +70,64 @@ class MockEthersProviderExtension extends MockEthersProvider {
     return this;
   }
 }
+const senders = [
+  createAddress("0x1"),
+  createAddress("0x2"),
+  createAddress("0x3"),
+  createAddress("0x4"),
+];
 
-describe("Detect Very High Txn Value", () => {
+const receivers = [
+  createAddress("0x11"),
+  createAddress("0x12"),
+  createAddress("0x13"),
+  createAddress("0x14"),
+];
+
+const createFinding = (
+  txHash: string,
+  from: string[],
+  to: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Possible private key compromise",
+    description: `${from.toString()} transferred funds to ${to}`,
+    alertId: "PKC-1",
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker: to,
+      victims: from.toString(),
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.6,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: from.toString(),
+        entityType: EntityType.Address,
+        label: "Victim",
+        confidence: 0.6,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: to,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.6,
+        remove: false,
+      }),
+    ],
+  });
+};
+
+describe("Detect Private Key Compromise", () => {
   let mockPersistenceHelper: PersistenceHelper;
   let mockProvider: MockEthersProviderExtension;
   let mockFetch = jest.mocked(fetch, true);
@@ -84,6 +137,10 @@ describe("Detect Very High Txn Value", () => {
   let networkManager: NetworkManager<NetworkData>;
   let mockFetchResponse: Response;
   let mockBalanceFetcher: BalanceFetcher;
+
+  const mockContractFetcher = {
+    getContractInfo: jest.fn(),
+  };
 
   beforeAll(() => {
     mockProvider = new MockEthersProviderExtension();
@@ -104,12 +161,10 @@ describe("Detect Very High Txn Value", () => {
 
     mockFetchResponse = {
       ok: true,
-      json: jest
-        .fn()
-        .mockResolvedValueOnce(Promise.resolve(JSON.stringify(mockpKCompValueTxns))),
+      json: jest.fn().mockResolvedValueOnce(Promise.resolve(mockpKCompValueTxns)),
     } as any as Response;
 
-    // mockFetchJwt.mockResolvedValue(mockJwt);
+    mockFetchJwt.mockResolvedValue(mockJwt);
     mockFetch.mockResolvedValue(mockFetchResponse);
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
 
@@ -118,7 +173,8 @@ describe("Detect Very High Txn Value", () => {
     handleTransaction = provideHandleTransaction(
       mockProvider as any,
       networkManager,
-      mockBalanceFetcher
+      mockBalanceFetcher,
+      mockContractFetcher as any
     );
     handleBlock = provideHandleBlock(mockPersistenceHelper, mockpKCompValueKey);
     delete process.env.LOCAL_NODE;
@@ -128,7 +184,19 @@ describe("Detect Very High Txn Value", () => {
     jest.clearAllMocks();
   });
 
-  describe.only("Transaction handler test suite", () => {
+  const setTokenBalance = (
+    tokenAddr: string,
+    blockNumber: number,
+    accAddr: string,
+    balance: string
+  ) => {
+    mockProvider.addCallTo(tokenAddr, blockNumber, BALANCE_IFACE, "balanceOf", {
+      inputs: [accAddr],
+      outputs: [ethers.BigNumber.from(balance)],
+    });
+  };
+
+  describe("Transaction handler test suite", () => {
     it("returns empty findings if there is no native token transfers", async () => {
       const txEvent = new TestTransactionEvent();
 
@@ -139,15 +207,9 @@ describe("Detect Very High Txn Value", () => {
 
     it("returns empty findings if there is 3 native transfers and 0 token transfers to an attacker address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent()
-        .setFrom(createAddress("0x1"))
-        .setTo(createAddress("0x13"));
-      const txEvent2 = new TestTransactionEvent()
-        .setFrom(createAddress("0x2"))
-        .setTo(createAddress("0x13"));
-      const txEvent3 = new TestTransactionEvent()
-        .setFrom(createAddress("0x3"))
-        .setTo(createAddress("0x13"));
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
+      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[0]);
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
@@ -162,24 +224,17 @@ describe("Detect Very High Txn Value", () => {
 
     it("returns empty findings if there are 2 native transfers and 1 token transfer to an attacker address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent()
-        .setFrom(createAddress("0x1"))
-        .setTo(createAddress("0x13"));
-      const txEvent2 = new TestTransactionEvent()
-        .setFrom(createAddress("0x2"))
-        .setTo(createAddress("0x13"));
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
         .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          createAddress("0x3"),
-          createAddress("0x2"),
+          senders[2],
+          receivers[0],
           ethers.BigNumber.from("1000000"),
         ]);
 
-      mockProvider.addCallTo(createAddress("0x99"), 1, BALANCE_IFACE, "balanceOf", {
-        inputs: [createAddress("0x3")],
-        outputs: [ethers.BigNumber.from("0")],
-      });
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
@@ -192,40 +247,197 @@ describe("Detect Very High Txn Value", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    // describe("Block handler test suite", () => {
-    //   it("should not persist values because block is not evenly divisible by 240", async () => {
-    //     const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
+    it("returns empty findings if there are 1 native transfers and 2 token transfer to an attacker address", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
 
-    //     await handleBlock(mockBlockEvent);
+      const txEvent2 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[1],
+          receivers[0],
+          ethers.BigNumber.from("1000000"),
+        ]);
 
-    //     // Only the three times for the initialize
-    //     expect(mockFetchJwt).toHaveBeenCalledTimes(2);
-    //     expect(mockFetchResponse.json).toHaveBeenCalledTimes(2);
-    //   });
+      const txEvent3 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[2],
+          receivers[0],
+          ethers.BigNumber.from("1000000"),
+        ]);
 
-    //   it("should persist the value in a block evenly divisible by 240", async () => {
-    //     const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(720);
+      setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
-    //     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
+      txEvent.setValue("1");
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
 
-    //     await handleBlock(mockBlockEvent);
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
 
-    //     expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockAnomalousValueTxns} to database`);
-    //     expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockAllTxnsWithValue} to database`);
-    //     expect(mockFetchJwt).toHaveBeenCalledTimes(4); // Two during initialization, two in block handler
-    //     expect(mockFetch).toHaveBeenCalledTimes(4); // Two during initialization, two in block handler
+      findings = await handleTransaction(txEvent3);
+      expect(findings).toStrictEqual([]);
+    });
 
-    //     expect(mockFetch.mock.calls[2][0]).toEqual(
-    //       `${mockDbUrl}${mockAnomalousValueKey.concat("-", mockChainId.toString())}`
-    //     );
-    //     expect(mockFetch.mock.calls[2][1]!.method).toEqual("POST");
-    //     expect(mockFetch.mock.calls[2][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-    //     expect(mockFetch.mock.calls[2][1]!.body).toEqual(JSON.stringify(mockAnomalousValueTxns));
+    it("returns findings if there are more than 3 native transfers to a single address", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
+      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[0]);
+      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[0]);
 
-    //     expect(mockFetch.mock.calls[3][0]).toEqual(`${mockDbUrl}${mockAllValueKey.concat("-", mockChainId.toString())}`);
-    //     expect(mockFetch.mock.calls[3][1]!.method).toEqual("POST");
-    //     expect(mockFetch.mock.calls[3][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-    //     expect(mockFetch.mock.calls[3][1]!.body).toEqual(JSON.stringify(mockAllTxnsWithValue));
-    //   });
+      txEvent.setValue("1");
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+      txEvent2.setValue("2");
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+      txEvent3.setValue("3");
+      findings = await handleTransaction(txEvent3);
+      expect(findings).toStrictEqual([]);
+      txEvent4.setValue("4");
+      findings = await handleTransaction(txEvent4);
+      expect(findings).toStrictEqual([
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[0],
+          0.1
+        ),
+      ]);
+    });
+
+    it("returns findings if there are more than 3 token transfers", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[0],
+          receivers[1],
+          ethers.BigNumber.from("1000000"),
+        ]);
+
+      const txEvent2 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[1],
+          receivers[1],
+          ethers.BigNumber.from("1000000"),
+        ]);
+
+      const txEvent3 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[2],
+          receivers[1],
+          ethers.BigNumber.from("1000000"),
+        ]);
+
+      const txEvent4 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[3],
+          receivers[1],
+          ethers.BigNumber.from("1000000"),
+        ]);
+
+      setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[3], "0");
+
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent3);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent4);
+      expect(findings).toStrictEqual([
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[1],
+          0.1
+        ),
+      ]);
+    });
+
+    it("returns empty findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[2]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
+      const txEvent3 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[2],
+          receivers[2],
+          ethers.BigNumber.from("1000000"),
+        ]);
+      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[2]);
+
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+
+      txEvent.setValue("1");
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+
+      txEvent2.setValue("2");
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent3);
+      expect(findings).toStrictEqual([]);
+
+      txEvent4.setValue("4");
+      findings = await handleTransaction(txEvent4);
+      expect(findings).toStrictEqual([
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[2],
+          0.1
+        ),
+      ]);
+    });
+  });
+
+  describe("Block handler test suite", () => {
+    it("should not persist values because block is not evenly divisible by 300", async () => {
+      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(305);
+
+      await handleBlock(mockBlockEvent);
+
+      expect(mockFetchJwt).toHaveBeenCalledTimes(1);
+      expect(mockFetchResponse.json).toHaveBeenCalledTimes(1);
+    });
+
+    it("should persist the value in a block evenly divisible by 300", async () => {
+      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
+
+      const spy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+      await handleBlock(mockBlockEvent);
+
+      expect(spy).toHaveBeenCalledWith("successfully persisted to database");
+      expect(mockFetchJwt).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
+      expect(mockFetch).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
+
+      expect(mockFetch.mock.calls[1][0]).toEqual(
+        `${mockDbUrl}${mockpKCompValueKey.concat("-", mockChainId.toString())}`
+      );
+      expect(mockFetch.mock.calls[1][1]!.method).toEqual("POST");
+      expect(mockFetch.mock.calls[1][1]!.headers).toEqual({
+        Authorization: `Bearer ${mockJwt}`,
+      });
+      expect(mockFetch.mock.calls[1][1]!.body).toEqual(
+        JSON.stringify(mockpKCompValueTxns)
+      );
+    });
   });
 });
