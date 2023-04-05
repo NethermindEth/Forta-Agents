@@ -24,11 +24,11 @@ export class PersistenceHelper {
           body: JSON.stringify(value),
         });
         if (response.ok) {
-          console.log(`successfully persisted ${value} to database`);
+          console.log("successfully persisted to database");
           return;
         }
       } catch (e) {
-        console.log(`Failed to persist ${value} to database. Error: ${e}`);
+        console.log(`Failed to persist to database. Error: ${e}`);
       }
     } else {
       // Persist locally
@@ -47,9 +47,8 @@ export class PersistenceHelper {
 
         if (response.ok) {
           const data: any = await response.json();
-          const value = JSON.parse(data);
-          console.log(`successfully fetched ${value} from database`);
-          return value;
+          console.log("successfully fetched data from databasex", data, typeof data);
+          return data;
         } else {
           console.log(`${key} has no database entry`);
           // If this is the first bot instance that is deployed,
