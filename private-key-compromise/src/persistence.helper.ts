@@ -47,7 +47,7 @@ export class PersistenceHelper {
 
         if (response.ok) {
           const data: any = await response.json();
-          console.log("successfully fetched data from databasex", data, typeof data);
+          console.log("successfully fetched data from database");
           return data;
         } else {
           console.log(`${key} has no database entry`);
