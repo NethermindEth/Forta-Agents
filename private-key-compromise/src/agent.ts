@@ -40,7 +40,8 @@ export const provideHandleTransaction =
     provider: ethers.providers.Provider,
     networkManager: NetworkManager<NetworkData>,
     balanceFetcher: BalanceFetcher,
-    contractFetcher: ContractFetcher
+    contractFetcher: ContractFetcher,
+    dataFetcher: DataFetcher
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -65,7 +66,6 @@ export const provideHandleTransaction =
     if (to && value != "0x0" && data === "0x") {
       // check only if the to address is not inside alertedAddresses
       if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-        const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
         const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(to, Number(chainId), txEvent.blockNumber);
 
         if ((await dataFetcher.isEoa(to)) && !hasHighNumberOfTotalTxs) {
@@ -90,9 +90,7 @@ export const provideHandleTransaction =
       await Promise.all(
         transferEvents.map(async (transfer) => {
           // check only if the to address is not inside alertedAddresses
-
           if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
-            const dataFetcher: DataFetcher = new DataFetcher(getEthersProvider());
             const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
               transfer.args.to,
               Number(chainId),
@@ -155,7 +153,8 @@ export default {
     getEthersProvider(),
     networkManager,
     new BalanceFetcher(getEthersProvider()),
-    new ContractFetcher(getEthersProvider(), keys)
+    new ContractFetcher(getEthersProvider(), keys),
+    new DataFetcher(getEthersProvider())
   ),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),
 };
