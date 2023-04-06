@@ -4,7 +4,6 @@ import fetch from "node-fetch";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./bot.config";
 
 interface apiKeys {
-  moralisApiKeys: string[];
   etherscanApiKeys: string[];
   optimisticEtherscanApiKeys: string[];
   bscscanApiKeys: string[];
