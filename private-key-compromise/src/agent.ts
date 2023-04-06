@@ -125,8 +125,6 @@ export const provideHandleTransaction =
       );
     }
 
-    // console.log("", transferObj);
-
     return findings;
   };
 
