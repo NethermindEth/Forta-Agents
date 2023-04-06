@@ -1,7 +1,6 @@
 import { Network } from "forta-agent";
 import { AgentConfig } from "./utils";
 
-export const EOA_TRANSACTION_COUNT_THRESHOLD = 100;
 export const CONTRACT_TRANSACTION_COUNT_THRESHOLD = 500;
 
 export const timePeriodDays = 1;
