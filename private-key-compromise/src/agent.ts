@@ -9,6 +9,7 @@ import ContractFetcher from "./contract.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
 import CONFIG from "./bot.config";
 import { keys } from "./keys";
+import { ZETTABLOCK_API_KEY } from "./keys";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
@@ -17,7 +18,8 @@ const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea
 let chainId: string;
 let transferObj: Transfer = {};
 let alertedAddresses: AlertedAddress[] = [];
-
+let isRelevantChain: boolean;
+let transfersCount = 0;
 let transactionsProcessed = 0;
 let lastBlock = 0;
 
@@ -31,9 +33,13 @@ export const provideInitialize = (
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
+    process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
     chainId = networkManager.getNetwork().toString();
 
     transferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+
+    //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
+    isRelevantChain = [10, 250, 43114].includes(Number(chainId));
   };
 };
 
@@ -80,11 +86,13 @@ export const provideHandleTransaction =
             // if there are multiple transfers to the same address, emit an alert
             if (transferObj[to].length > 3) {
               alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
+              if (isRelevantChain) transfersCount++;
               const anomalyScore = await calculateAlertRate(
                 Number(chainId),
                 BOT_ID,
                 "PKC-1",
-                ScanCountType.TransferCount
+                ScanCountType.TransferCount,
+                transfersCount
               );
               findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
             }
@@ -121,11 +129,13 @@ export const provideHandleTransaction =
                     address: transfer.args.to,
                     timestamp: txEvent.timestamp,
                   });
+                  if (isRelevantChain) transfersCount++;
                   const anomalyScore = await calculateAlertRate(
                     Number(chainId),
                     BOT_ID,
                     "PKC-1",
-                    ScanCountType.ErcTransferCount
+                    ScanCountType.ErcTransferCount,
+                    transfersCount
                   );
                   findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
                 }
