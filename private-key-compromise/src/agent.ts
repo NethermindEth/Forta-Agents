@@ -125,7 +125,7 @@ export const provideHandleTransaction =
                     Number(chainId),
                     BOT_ID,
                     "PKC-1",
-                    ScanCountType.TransferCount
+                    ScanCountType.ErcTransferCount
                   );
                   findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
                 }
