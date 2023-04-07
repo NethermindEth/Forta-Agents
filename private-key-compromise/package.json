@@ -34,6 +34,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bot-alert-rate": "^0.0.4",
     "dotenv": "^16.0.3",
     "forta-agent": "^0.1.23",
     "forta-agent-tools": "^3.2.7",
