@@ -20,6 +20,7 @@ let transferObj: Transfer = {};
 let alertedAddresses: AlertedAddress[] = [];
 let isRelevantChain: boolean;
 let transfersCount = 0;
+let ercTransferCount = 0;
 let transactionsProcessed = 0;
 let lastBlock = 0;
 
@@ -72,6 +73,7 @@ export const provideHandleTransaction =
 
     // check for native token transfers
     if (to && value != "0x0" && data === "0x") {
+      if (isRelevantChain) transfersCount++;
       // check only if the to address is not inside alertedAddresses
       if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
         const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(to, Number(chainId), txEvent.blockNumber);
@@ -86,7 +88,7 @@ export const provideHandleTransaction =
             // if there are multiple transfers to the same address, emit an alert
             if (transferObj[to].length > 3) {
               alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
-              if (isRelevantChain) transfersCount++;
+
               const anomalyScore = await calculateAlertRate(
                 Number(chainId),
                 BOT_ID,
@@ -105,6 +107,7 @@ export const provideHandleTransaction =
     if (transferEvents.length) {
       await Promise.all(
         transferEvents.map(async (transfer) => {
+          if (isRelevantChain) ercTransferCount++;
           // check only if the to address is not inside alertedAddresses
           if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
             const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
@@ -129,13 +132,13 @@ export const provideHandleTransaction =
                     address: transfer.args.to,
                     timestamp: txEvent.timestamp,
                   });
-                  if (isRelevantChain) transfersCount++;
+
                   const anomalyScore = await calculateAlertRate(
                     Number(chainId),
                     BOT_ID,
                     "PKC-1",
                     ScanCountType.ErcTransferCount,
-                    transfersCount
+                    ercTransferCount
                   );
                   findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
                 }
