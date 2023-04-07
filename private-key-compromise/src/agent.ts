@@ -2,6 +2,7 @@ import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider, Block
 import { NetworkData, Transfer, updateRecord, TIME_PERIOD, AlertedAddress, ERC20_TRANSFER_EVENT } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
+import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
 import ContractFetcher from "./contract.fetcher";
@@ -11,6 +12,7 @@ import { keys } from "./keys";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
+const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
 let chainId: string;
 let transferObj: Transfer = {};
@@ -78,7 +80,13 @@ export const provideHandleTransaction =
             // if there are multiple transfers to the same address, emit an alert
             if (transferObj[to].length > 3) {
               alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
-              findings.push(createFinding(hash, transferObj[to], to, 0.1));
+              const anomalyScore = await calculateAlertRate(
+                Number(chainId),
+                BOT_ID,
+                "PKC-1",
+                ScanCountType.TransferCount
+              );
+              findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
             }
           }
         }
@@ -113,8 +121,13 @@ export const provideHandleTransaction =
                     address: transfer.args.to,
                     timestamp: txEvent.timestamp,
                   });
-
-                  findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, 0.1));
+                  const anomalyScore = await calculateAlertRate(
+                    Number(chainId),
+                    BOT_ID,
+                    "PKC-1",
+                    ScanCountType.TransferCount
+                  );
+                  findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
                 }
               }
             }
