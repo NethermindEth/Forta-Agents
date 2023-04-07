@@ -20,7 +20,6 @@ import fetch, { Response } from "node-fetch";
 import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import BalanceFetcher from "./balance.fetcher";
-import DataFetcher from "./data.fetcher";
 
 jest.mock("node-fetch");
 const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
@@ -32,6 +31,14 @@ const mockpKCompValueKey = "mock-pk-comp-value-bot-key";
 const mockpKCompValueTxns = {
   "0x0000000000000000000000000000000000000020": [createAddress("0x21")],
 };
+
+// Mock calculateAlertRate function of the bot-alert-rate module
+const mockCalculateAlertRate = jest.fn();
+jest.mock("bot-alert-rate", () => ({
+  ...jest.requireActual("bot-alert-rate"),
+  __esModule: true,
+  default: () => mockCalculateAlertRate(),
+}));
 
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
@@ -140,6 +147,7 @@ describe("Detect Private Key Compromise", () => {
       json: jest.fn().mockResolvedValueOnce(Promise.resolve(mockpKCompValueTxns)),
     } as any as Response;
 
+    mockCalculateAlertRate.mockResolvedValueOnce("0.1");
     mockFetchJwt.mockResolvedValue(mockJwt);
     mockFetch.mockResolvedValue(mockFetchResponse);
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
