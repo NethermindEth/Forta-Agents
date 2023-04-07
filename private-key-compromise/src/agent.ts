@@ -93,7 +93,7 @@ export const provideHandleTransaction =
                 Number(chainId),
                 BOT_ID,
                 "PKC-1",
-                ScanCountType.TransferCount,
+                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
                 transfersCount
               );
               findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
@@ -137,7 +137,7 @@ export const provideHandleTransaction =
                     Number(chainId),
                     BOT_ID,
                     "PKC-1",
-                    ScanCountType.ErcTransferCount,
+                    isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
                     ercTransferCount
                   );
                   findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
