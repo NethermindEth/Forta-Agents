@@ -8,3 +8,4 @@ export const keys = {
   arbiscanApiKeys: [],
   snowtraceApiKeys: [],
 };
+export const ZETTABLOCK_API_KEY = "";
