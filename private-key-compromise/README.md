@@ -49,13 +49,9 @@ This bot identifies possible private key compromises by analyzing all the native
 
 ## Test Data
 
-The bot behaviour can be verified with the following commands:
+The bot behaviour can be verified with the following command:
 
 On Ethereum:
-
-```
-npm run tx 0x3461c5e3a72afb27c28d894330ab67283dec76a21b1512f5160c66cec0ada98a,0xbc66e4ba40f4711d18073f5568f7aae633900f8fd8658181edfcebe3d8382fb8,0x639c3bdfb7306aede9039fb9eead22de3a4f34450fe4a5774e7679037492c7b8,0x4ac7783ebf4e2758db29062335561ae26622bac5f6447f32f0db4c06dd11818d
-```
 
 ```
 npm run tx 0x8f338a787398fe8925319b60e73f9ba5757a1a72b711e8d05ab081b50260ac7d,0x10136159d5991dd1ab4e444d9db0d4c750760f9ea3201e78d5697f863b9b945e,0x1ce1ca7053f5c330aa7f167f1d4580855051db05d321a1b0f730391a1ebf09d7,0x8d1f0196f996cd07e36c3ee1b0eaff8e2da0745742f1dc4dec36069d5d894a6f
