@@ -7,13 +7,13 @@ export const timePeriodDays = 1;
 
 // threshold amounts for individual network tokens to be left in an account in order to be considered as drained
 const thresholds = {
-  MAINNET_ETH: "0.05",
-  BNB: "0.05",
+  MAINNET_ETH: "0.01",
+  BNB: "0.01",
   MATIC: "5",
-  ARBITRUM_ETH: "0.05",
+  ARBITRUM_ETH: "0.01",
   FTM: "20",
   AVAX: "0.3",
-  OPTIMISM_ETH: "0.05",
+  OPTIMISM_ETH: "0.01",
 };
 
 const CONFIG: AgentConfig = {
