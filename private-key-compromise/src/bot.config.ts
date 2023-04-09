@@ -49,30 +49,38 @@ const CONFIG: AgentConfig = {
 interface etherscanApisInterface {
   [key: number]: {
     urlAccount: string;
+    urlAccountToken: string;
   };
 }
 
 export const etherscanApis: etherscanApisInterface = {
   1: {
     urlAccount: "https://api.etherscan.io/api?module=account&action=txlist",
+    urlAccountToken: "https://api.etherscan.io/api?module=account&action=tokentx",
   },
   10: {
     urlAccount: "https://api-optimistic.etherscan.io/api?module=account&action=txlist",
+    urlAccountToken: "https://api-optimistic.etherscan.io/api?module=account&action=tokentx",
   },
   56: {
     urlAccount: "https://api.bscscan.com/api?module=account&action=txlist",
+    urlAccountToken: "https://api.bscscan.com/api?module=account&action=tokentx",
   },
   137: {
     urlAccount: "https://api.polygonscan.com/api?module=account&action=txlist",
+    urlAccountToken: "https://api.polygonscan.com/api?module=account&action=tokentx",
   },
   250: {
     urlAccount: "https://api.ftmscan.com/api?module=account&action=txlist",
+    urlAccountToken: "https://api.ftmscan.com/api?module=account&action=tokentx",
   },
   42161: {
     urlAccount: "https://api.arbiscan.io/api?module=account&action=txlist",
+    urlAccountToken: "https://api.arbiscan.io/api?module=account&action=tokentx",
   },
   43114: {
     urlAccount: "https://api.snowtrace.io/api?module=account&action=txlist",
+    urlAccountToken: "https://api.snowtrace.io/api?module=account&action=tokentx",
   },
 };
 

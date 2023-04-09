@@ -27,10 +27,10 @@ export default class Fetcher {
   }
 
   // Fetches transactions in descending order (newest first)
-  private getEtherscanAddressUrl = (address: string, chainId: number) => {
-    const { urlAccount } = etherscanApis[chainId];
+  private getEtherscanAddressUrl = (address: string, chainId: number, isToken: boolean) => {
+    const url = isToken ? etherscanApis[chainId].urlAccountToken : etherscanApis[chainId].urlAccount;
     const key = this.getBlockExplorerKey(chainId);
-    return `${urlAccount}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+    return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
   };
 
   private getBlockExplorerKey = (chainId: number) => {
@@ -43,65 +43,45 @@ export default class Fetcher {
           : "YourApiKeyToken";
       case 56:
         return this.apiKeys.bscscanApiKeys.length > 0
-          ? this.apiKeys.bscscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)
-            ]
+          ? this.apiKeys.bscscanApiKeys[Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)]
           : "YourApiKeyToken";
       case 137:
         return this.apiKeys.polygonscanApiKeys.length > 0
-          ? this.apiKeys.polygonscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)
-            ]
+          ? this.apiKeys.polygonscanApiKeys[Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)]
           : "YourApiKeyToken";
       case 250:
         return this.apiKeys.fantomscanApiKeys.length > 0
-          ? this.apiKeys.fantomscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)
-            ]
+          ? this.apiKeys.fantomscanApiKeys[Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)]
           : "YourApiKeyToken";
       case 42161:
         return this.apiKeys.arbiscanApiKeys.length > 0
-          ? this.apiKeys.arbiscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)
-            ]
+          ? this.apiKeys.arbiscanApiKeys[Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)]
           : "YourApiKeyToken";
       case 43114:
         return this.apiKeys.snowtraceApiKeys.length > 0
-          ? this.apiKeys.snowtraceApiKeys[
-              Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)
-            ]
+          ? this.apiKeys.snowtraceApiKeys[Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)]
           : "YourApiKeyToken";
       default:
         return this.apiKeys.etherscanApiKeys.length > 0
-          ? this.apiKeys.etherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)
-            ]
+          ? this.apiKeys.etherscanApiKeys[Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)]
           : "YourApiKeyToken";
     }
   };
 
-  public getContractInfo = async (
-    contract: string,
-    chainId: number,
-    blockNumber: number
-  ) => {
+  public getContractInfo = async (contract: string, chainId: number, isToken: boolean, blockNumber: number) => {
     const key: string = `${contract}-${blockNumber}`;
     if (this.cache.has(key)) return this.cache.get(key) as boolean;
 
     let result;
 
-    result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
+    result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId, isToken))).json();
 
-    if (
-      result.message.startsWith("NOTOK") ||
-      result.message.startsWith("Query Timeout")
-    ) {
+    if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
       console.log(`block explorer error occured; skipping check for ${contract}`);
       return [null, null];
     }
 
-    const hasHighNumberOfTotalTxs =
-      result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+    const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
 
     this.cache.set(key, hasHighNumberOfTotalTxs);
     return hasHighNumberOfTotalTxs;

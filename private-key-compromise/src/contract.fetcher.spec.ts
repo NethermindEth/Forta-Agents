@@ -47,7 +47,7 @@ describe("TokenInfoFetcher tests suite", () => {
       )
     );
 
-    const hasHighNumberOfTotalTxs = await fetcher.getContractInfo(mockTxTo, chainId, 1);
+    const hasHighNumberOfTotalTxs = await fetcher.getContractInfo(mockTxTo, chainId, false, 1);
     expect([hasHighNumberOfTotalTxs]).toStrictEqual([false]);
   });
 });

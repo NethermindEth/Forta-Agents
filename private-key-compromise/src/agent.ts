@@ -76,7 +76,12 @@ export const provideHandleTransaction =
       if (isRelevantChain) transfersCount++;
       // check only if the to address is not inside alertedAddresses
       if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-        const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(to, Number(chainId), txEvent.blockNumber);
+        const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+          to,
+          Number(chainId),
+          false,
+          txEvent.blockNumber
+        );
 
         if ((await dataFetcher.isEoa(to)) && !hasHighNumberOfTotalTxs) {
           const balance = await provider.getBalance(txEvent.transaction.from, txEvent.blockNumber);
@@ -113,6 +118,7 @@ export const provideHandleTransaction =
             const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
               transfer.args.to,
               Number(chainId),
+              true,
               txEvent.blockNumber
             );
 
