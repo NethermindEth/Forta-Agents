@@ -57,7 +57,7 @@ export const provideHandleTransaction =
 
     if (txEvent.blockNumber != lastBlock) {
       lastBlock = txEvent.blockNumber;
-      console.log(`-----Transactions processed in block ${txEvent.blockNumber - 1}: ${transactionsProcessed}-----`);
+      console.log(`----Transactions processed in block ${txEvent.blockNumber - 1}: ${transactionsProcessed}----`);
       transactionsProcessed = 0;
     }
     transactionsProcessed += 1;
