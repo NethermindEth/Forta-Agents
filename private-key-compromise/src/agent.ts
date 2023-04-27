@@ -10,6 +10,7 @@ import { PersistenceHelper } from "./persistence.helper";
 import CONFIG from "./bot.config";
 import { keys } from "./keys";
 import { ZETTABLOCK_API_KEY } from "./keys";
+import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
@@ -185,7 +186,7 @@ export default {
     getEthersProvider(),
     networkManager,
     new BalanceFetcher(getEthersProvider()),
-    new ContractFetcher(getEthersProvider(), keys),
+    new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider())
   ),
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),

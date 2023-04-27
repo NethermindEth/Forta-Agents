@@ -22,7 +22,7 @@ describe("TokenInfoFetcher tests suite", () => {
   let fetcher: ContractFetcher;
 
   beforeAll(() => {
-    fetcher = new ContractFetcher(mockProvider as any, testKeys);
+    fetcher = new ContractFetcher(mockProvider as any, fetch, testKeys);
   });
 
   afterEach(() => {
