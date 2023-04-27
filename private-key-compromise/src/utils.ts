@@ -44,3 +44,25 @@ export const updateRecord = async (from: string, to: string, transferObj: Transf
     transferObj[to] = [from];
   }
 };
+
+export const deepMerge = (target: Transfer, source: Transfer) => {
+  const isObject = (obj: Transfer) => obj && typeof obj === "object";
+
+  if (!isObject(target) || !isObject(source)) {
+    return source;
+  }
+
+  Object.keys(source).forEach((key) => {
+    const targetValue = target[key];
+    const sourceValue = source[key];
+
+    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+      const merged = targetValue.concat(sourceValue);
+      target[key] = merged.filter((item, pos) => merged.indexOf(item) === pos);
+    } else {
+      target[key] = sourceValue;
+    }
+  });
+
+  return target;
+};

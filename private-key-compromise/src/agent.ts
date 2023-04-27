@@ -1,5 +1,13 @@
 import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider, BlockEvent } from "forta-agent";
-import { NetworkData, Transfer, updateRecord, TIME_PERIOD, AlertedAddress, ERC20_TRANSFER_EVENT } from "./utils";
+import {
+  NetworkData,
+  Transfer,
+  updateRecord,
+  TIME_PERIOD,
+  AlertedAddress,
+  ERC20_TRANSFER_EVENT,
+  deepMerge,
+} from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
@@ -163,7 +171,18 @@ export function provideHandleBlock(persistenceHelper: PersistenceHelper, pkCompV
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
 
-    if (blockEvent.blockNumber % 300 === 0) {
+    const loadedTransferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+
+    transferObj = deepMerge(transferObj, loadedTransferObj);
+
+    // Remove alerted addresses from the object to be persisted into db
+    if (alertedAddresses.length) {
+      for (const el of alertedAddresses) {
+        delete transferObj[el.address];
+      }
+    }
+
+    if (blockEvent.blockNumber % 150 === 0) {
       await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
     }
 

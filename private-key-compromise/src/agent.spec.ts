@@ -144,7 +144,7 @@ describe("Detect Private Key Compromise", () => {
 
     mockFetchResponse = {
       ok: true,
-      json: jest.fn().mockResolvedValueOnce(Promise.resolve(mockpKCompValueTxns)),
+      json: jest.fn().mockResolvedValue(Promise.resolve(mockpKCompValueTxns)),
     } as any as Response;
 
     mockCalculateAlertRate.mockResolvedValueOnce("0.1");
@@ -378,34 +378,28 @@ describe("Detect Private Key Compromise", () => {
   });
 
   describe("Block handler test suite", () => {
-    it("should not persist values because block is not evenly divisible by 300", async () => {
+    it("should not persist values because block is not evenly divisible by 150", async () => {
       const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(305);
-
       await handleBlock(mockBlockEvent);
-
-      expect(mockFetchJwt).toHaveBeenCalledTimes(1);
-      expect(mockFetchResponse.json).toHaveBeenCalledTimes(1);
+      expect(mockFetchJwt).toHaveBeenCalledTimes(2);
+      expect(mockFetchResponse.json).toHaveBeenCalledTimes(2);
     });
-
-    it("should persist the value in a block evenly divisible by 300", async () => {
+    it("should persist the value in a block evenly divisible by 150", async () => {
       const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
-
       const spy = jest.spyOn(console, "log").mockImplementation(() => {});
-
       await handleBlock(mockBlockEvent);
-
       expect(spy).toHaveBeenCalledWith("successfully persisted to database");
-      expect(mockFetchJwt).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
-      expect(mockFetch).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
+      expect(mockFetchJwt).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
+      expect(mockFetch).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
 
       expect(mockFetch.mock.calls[1][0]).toEqual(
         `${mockDbUrl}${mockpKCompValueKey.concat("-", mockChainId.toString())}`
       );
-      expect(mockFetch.mock.calls[1][1]!.method).toEqual("POST");
-      expect(mockFetch.mock.calls[1][1]!.headers).toEqual({
+      expect(mockFetch.mock.calls[2][1]!.method).toEqual("POST");
+      expect(mockFetch.mock.calls[2][1]!.headers).toEqual({
         Authorization: `Bearer ${mockJwt}`,
       });
-      expect(mockFetch.mock.calls[1][1]!.body).toEqual(JSON.stringify(mockpKCompValueTxns));
+      expect(mockFetch.mock.calls[2][1]!.body).toEqual(JSON.stringify(mockpKCompValueTxns));
     });
   });
 });
