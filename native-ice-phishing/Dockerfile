@@ -16,5 +16,6 @@ WORKDIR /app
 COPY --from=builder /app/dist ./src
 COPY --from=builder /app/obfuscated ./src
 COPY package*.json ./
+COPY ./LICENSE ./
 RUN npm ci --production
 CMD [ "npm", "run", "start:prod" ]
