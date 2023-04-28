@@ -31,7 +31,7 @@ export default class Fetcher {
   private getEtherscanAddressUrl = (address: string, chainId: number, isToken: boolean) => {
     const url = isToken ? etherscanApis[chainId].urlAccountToken : etherscanApis[chainId].urlAccount;
     const key = this.getBlockExplorerKey(chainId);
-    return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+    return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&page=1&offset=501&apikey=${key}`;
   };
 
   private getBlockExplorerKey = (chainId: number) => {
@@ -79,8 +79,6 @@ export default class Fetcher {
 
     if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
       console.log(`block explorer error occured; skipping check for ${contract}`);
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       return [null, null];
     }
