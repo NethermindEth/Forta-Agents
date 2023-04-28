@@ -24,6 +24,16 @@ const TEST_SIGNATURES: [string, string][] = [
   ["0x12345672", "burn(address,uint256)"],
 ];
 
+const testKeys = {
+  etherscanApiKeys: ["Test4"],
+  optimisticEtherscanApiKeys: ["Test5"],
+  bscscanApiKeys: ["Test6"],
+  polygonscanApiKeys: ["Test7"],
+  fantomscanApiKeys: ["Test8"],
+  arbiscanApiKeys: ["Test9"],
+  snowtraceApiKeys: ["Test10"],
+};
+
 class MockEthersProviderExtended extends MockEthersProvider {
   public getCode: any;
 
@@ -46,7 +56,7 @@ describe("DatFetcher tests suite", () => {
   let fetcher: DataFetcher;
 
   beforeAll(() => {
-    fetcher = new DataFetcher(mockProvider as any);
+    fetcher = new DataFetcher(mockProvider as any, testKeys);
   });
 
   afterEach(() => {
@@ -85,5 +95,33 @@ describe("DatFetcher tests suite", () => {
       const fetchedSignature = await fetcher.getSignature(input);
       expect(fetchedSignature).toStrictEqual('"' + sig + '"');
     }
+  });
+
+  it("should fetch contract info correctly", async () => {
+    const chainId = 1;
+    const mockTxFrom = createAddress("0x1238");
+    const mockTxTo = createAddress("0x1239");
+
+    const mockFetch = jest.mocked(fetch, true);
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [
+            {
+              from: mockTxFrom,
+              hash: "0xabcd",
+            },
+          ],
+        })
+      )
+    );
+
+    const [isFirstInteraction, hasHighNumberOfTotalTxs] =
+      await fetcher.getAddressInfo(mockTxTo, mockTxFrom, chainId, "0xabcd");
+    expect([isFirstInteraction, hasHighNumberOfTotalTxs]).toStrictEqual([
+      true,
+      false,
+    ]);
   });
 });
