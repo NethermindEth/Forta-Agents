@@ -27,6 +27,7 @@ This agent detects transactions resulting in a large profit (>$10000 or more tha
 
     - `txFrom`: The transaction initiator
     - `txTo`: The contract called
+    - `anomalyScore`: The "inverse" of the Confidence Level (i.e. if CL is 0.7, then the anomalyScore is set to 0.3)
     - `profit#`: The profit of the transaction
       > This property could have more than one instance appear in the alert's `metadata`, and thus each will be properly enumerated.
 

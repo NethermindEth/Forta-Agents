@@ -1,14 +1,5 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  ethers,
-  Label,
-  EntityType,
-  Initialize,
-} from "forta-agent";
-import { provideHandleTransaction, provideInitialize } from "./agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, ethers, Label, EntityType } from "forta-agent";
+import { provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import { Interface } from "ethers/lib/utils";
 import { createAddress } from "forta-agent-tools";
@@ -20,8 +11,6 @@ jest.mock("node-fetch");
 const mockLargeProfitTxns = 12;
 const mockAllTxns = 35;
 const mockChainId = 1;
-const mockLargeProfitTxnsKey = "mockLargeProfitTxns-key";
-const mockAllTxnsKey = "mockAllTxns-key";
 
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
@@ -62,12 +51,11 @@ class TestTransactionEventExtended extends TestTransactionEvent {
 }
 
 const testCreateFinding = (
-  addresses: { address: string; confidence: number; isProfitInUsd: boolean; profit: number }[],
+  addresses: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
   txHash: string,
   severity: FindingSeverity,
   txFrom: string,
-  txTo: string,
-  anomalyScore: number
+  txTo: string
 ): Finding => {
   let labels: Label[] = [];
   let metadata: {
@@ -75,7 +63,11 @@ const testCreateFinding = (
   } = {};
   metadata["txFrom"] = txFrom;
   metadata["txTo"] = txTo;
-  metadata["anomalyScore"] = anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2);
+  const anomalyScore = addresses.reduce(
+    (min, { anomalyScore }) => Math.min(min, anomalyScore),
+    addresses[0].anomalyScore
+  );
+  metadata["anomalyScore"] = anomalyScore.toString();
 
   let index = 1;
   let profit = "";
@@ -139,33 +131,12 @@ describe("Large Profit Bot test suite", () => {
   const mockFetcher = {
     getValueInUsd: jest.fn(),
     getTotalSupply: jest.fn(),
-    getConfidenceLevel: jest.fn(),
+    getCLandAS: jest.fn(),
     getContractCreator: jest.fn(),
     getContractInfo: jest.fn(),
     isContractVerified: jest.fn(),
   };
-  const mockPersistenceHelper = {
-    persist: jest.fn(),
-    load: jest.fn(),
-  };
-  let initialize: Initialize;
-
   const handleTransaction: HandleTransaction = provideHandleTransaction(mockFetcher as any, mockProvider as any);
-
-  beforeAll(() => {
-    mockProvider.setNetwork(mockChainId);
-  });
-
-  beforeEach(async () => {
-    initialize = provideInitialize(
-      mockProvider as any,
-      mockPersistenceHelper as any,
-      mockLargeProfitTxnsKey,
-      mockAllTxnsKey
-    );
-    mockPersistenceHelper.load.mockReturnValueOnce(mockLargeProfitTxns).mockReturnValueOnce(mockAllTxns);
-    await initialize();
-  });
 
   it("should return empty findings if the receiver of the transaction is an EOA", async () => {
     const mockTxTo = createAddress("0x5678");
@@ -251,15 +222,12 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue(mockTxFrom);
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
   });
 
   it("should return a finding when the tx resulted in a large profit (great percentage of token's total supply) for the initiator and the contract called was created by the initiator", async () => {
@@ -287,16 +255,14 @@ describe("Large Profit Bot test suite", () => {
       .div(ethers.BigNumber.from("4424324324423423"))
       .toNumber();
 
-    when(mockFetcher.getConfidenceLevel).calledWith(percentage, "totalSupply").mockReturnValue(1);
+    when(mockFetcher.getCLandAS).calledWith(percentage, "totalSupply").mockReturnValue([1, 0.001]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue(mockTxFrom);
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 1, isProfitInUsd: false, profit: percentage }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [
+      { address: mockTxFrom, confidence: 1, anomalyScore: 0.001, isProfitInUsd: false, profit: percentage },
+    ];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
   });
 
   it("should return a finding when the tx was a conrtact creation and resulted in a large profit for the initiator", async () => {
@@ -314,15 +280,11 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, "", mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, "")]);
   });
 
   it("should return a finding if this is the first interaction between the initiator and the contract called", async () => {
@@ -341,17 +303,13 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([true, false]); // First Interaction
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
   });
 
   it("should return a finding if the contract called is neither verifed nor has a high number of past transactions", async () => {
@@ -370,18 +328,14 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, false]); // Not high number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Medium, mockTxFrom, mockTxTo)]);
   });
 
   it("should return an Info severity finding if the contract called is not verifed but has a high number of past transactions", async () => {
@@ -400,17 +354,14 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, true]); // High number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo)]);
   });
 
   it("should return an Info severity finding if the contract called is verifed but has a low number of past transactions", async () => {
@@ -429,18 +380,14 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, false]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
     const findings = await handleTransaction(txEvent);
 
-    const addresses = [{ address: mockTxFrom, confidence: 0, isProfitInUsd: true, profit: 11000 }];
-    const mockAnomalyScore = (mockLargeProfitTxns + 1) / (mockAllTxns + 1);
-
-    expect(findings).toStrictEqual([
-      testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo, mockAnomalyScore),
-    ]);
+    const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
+    expect(findings).toStrictEqual([testCreateFinding(addresses, "0x1", FindingSeverity.Info, mockTxFrom, mockTxTo)]);
   });
 
   it("should return empty findings if the contract called is verifed and has a high number of past transactions", async () => {
@@ -459,7 +406,7 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
-    when(mockFetcher.getConfidenceLevel).calledWith(11000, "usdValue").mockReturnValue(0);
+    when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, true]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
