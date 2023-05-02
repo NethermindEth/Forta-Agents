@@ -21,7 +21,7 @@ import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
-const PK_COMP_TXNS_KEY = "nm-private-key-compromise-bot-key";
+const PK_COMP_TXNS_KEY = "nm-pk-compromise-bot-key";
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
 let chainId: string;
@@ -66,7 +66,7 @@ export const provideHandleTransaction =
 
     if (txEvent.blockNumber != lastBlock) {
       lastBlock = txEvent.blockNumber;
-      console.log(`----Transactions processed in block ${txEvent.blockNumber - 1}: ${transactionsProcessed}----`);
+      console.log(`----Transactions processed in block ${txEvent.blockNumber - 7}: ${transactionsProcessed}----`);
       transactionsProcessed = 0;
     }
     transactionsProcessed += 1;
@@ -182,7 +182,7 @@ export function provideHandleBlock(persistenceHelper: PersistenceHelper, pkCompV
       }
     }
 
-    if (blockEvent.blockNumber % 150 === 0) {
+    if (blockEvent.blockNumber % 10 === 0) {
       await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
     }
 
