@@ -1,26 +1,54 @@
-# Large Tether Transfer Agent
+# Governance Events Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects events related to governance actions in Compound v3 Comet contracts.
+
+The Comet deployment addresses for each network can be configured in the
+`agent.config.ts` file.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Polygon
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- COMP2-2-1
+  - Fired when there's a pause action on a Comet contract
+  - Severity is always set to "Medium"
+  - Type is always set to "Info"
+  - Metadata:
+    - `chain`: Network chain ID or name
+    - `comet`: Address of the related Comet contract
+    - `supplyPaused`: Status of supply pausing
+    - `transferPaused`: Status of supply pausing
+    - `withdrawPaused`: Status of supply pausing
+    - `absorbPaused`: Status of supply pausing
+    - `buyPaused`: Status of supply pausing
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- COMP2-2-2
+  - Fired when there's a reserve withdrawal on a Comet contract
+  - Severity is always set to "High"
+  - Type is always set to "Info"
+  - Metadata:
+    - `chain`: Network chain ID or name
+    - `comet`: Address of the related Comet contract
+    - `to`: Address of the withdrawal recipient
+    - `amount`: Amount withdrawn
+
+- COMP2-2-3
+  - Fired when a Comet contract approves an ERC20 allowance for another contract
+  - Severity is always set to "High"
+  - Type is always set to "Info"
+  - Metadata:
+    - `chain`: Network chain ID or name
+    - `comet`: Address of the related Comet contract
+    - `token`: Address of the related token
+    - `spender`: Address of the allowance spender
+    - `amount`: Allowance amount
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
-
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+No emission of these events was found on existing Comet contracts. To check
+the unit test cases and results, run `npm run test`.
