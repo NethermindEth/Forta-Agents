@@ -4,7 +4,7 @@ export function createPauseActionFinding(log: LogDescription, chainId: number): 
   return Finding.from({
     name: "Pause action on Comet contract",
     description: "A pause action was executed in a Comet contract",
-    alertId: "COMP2-1-1",
+    alertId: "COMP2-2-1",
     protocol: "Compound",
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
@@ -25,7 +25,7 @@ export function createWithdrawReservesFinding(log: LogDescription, chainId: numb
   return Finding.from({
     name: "Withdraw reserves action on Comet contract",
     description: "A withdraw reserves action was executed in a Comet contract",
-    alertId: "COMP2-1-2",
+    alertId: "COMP2-2-2",
     protocol: "Compound",
     type: FindingType.Info,
     severity: FindingSeverity.High,
@@ -43,7 +43,7 @@ export function createApproveFinding(log: LogDescription, chainId: number): Find
   return Finding.from({
     name: "Token approval from Comet contract",
     description: "A token approval was emitted from a Comet contract",
-    alertId: "COMP2-1-3",
+    alertId: "COMP2-2-3",
     protocol: "Compound",
     type: FindingType.Info,
     severity: FindingSeverity.High,
