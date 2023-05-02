@@ -17,6 +17,7 @@ export function createPauseActionFinding(log: LogDescription, chainId: number): 
       absorbPaused: log.args.absorbPaused.toString(),
       buyPaused: log.args.buyPaused.toString(),
     },
+    addresses: [ethers.utils.getAddress(log.address)],
   });
 }
 
@@ -34,6 +35,7 @@ export function createWithdrawReservesFinding(log: LogDescription, chainId: numb
       to: ethers.utils.getAddress(log.args.to),
       amount: log.args.amount.toString(),
     },
+    addresses: [ethers.utils.getAddress(log.address), ethers.utils.getAddress(log.args.to)],
   });
 }
 
@@ -52,5 +54,10 @@ export function createApproveFinding(log: LogDescription, chainId: number): Find
       spender: ethers.utils.getAddress(log.args.spender),
       amount: log.args.amount.toString(),
     },
+    addresses: [
+      ethers.utils.getAddress(log.address),
+      ethers.utils.getAddress(log.args.owner),
+      ethers.utils.getAddress(log.args.spender),
+    ],
   });
 }

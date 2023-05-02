@@ -40,6 +40,7 @@ function createPauseActionFinding(
       absorbPaused: absorbPaused.toString(),
       buyPaused: buyPaused.toString(),
     },
+    addresses: [comet],
   });
 }
 
@@ -62,6 +63,7 @@ function createWithdrawReservesFinding(
       to,
       amount: amount.toString(),
     },
+    addresses: [comet, to],
   });
 }
 
@@ -86,6 +88,7 @@ function createApproveFinding(
       spender,
       amount: amount.toString(),
     },
+    addresses: [token, comet, spender],
   });
 }
 
@@ -145,7 +148,7 @@ describe("Bot Test Suite", () => {
   it("should ignore other events emitted from target contracts", async () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
-    COMET_ADDRESSES.forEach(comet => {
+    COMET_ADDRESSES.forEach((comet) => {
       txEvent.addEventLog("event SomeEvent(uint256 arg)", comet, [0]);
     });
 
@@ -161,9 +164,23 @@ describe("Bot Test Suite", () => {
     const withdrawPaused = true;
     const absorbPaused = false;
     const buyPaused = true;
-    const expectedFinding = createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network);
+    const expectedFinding = createPauseActionFinding(
+      comet,
+      supplyPaused,
+      transferPaused,
+      withdrawPaused,
+      absorbPaused,
+      buyPaused,
+      network
+    );
 
-    txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused]);
+    txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
+      supplyPaused,
+      transferPaused,
+      withdrawPaused,
+      absorbPaused,
+      buyPaused,
+    ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([expectedFinding]);
   });
@@ -221,8 +238,16 @@ describe("Bot Test Suite", () => {
       const withdrawPaused = true;
       const absorbPaused = false;
       const buyPaused = true;
-      expectedFindings.push(createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network));
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused]);
+      expectedFindings.push(
+        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
+      );
+      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
+        supplyPaused,
+        transferPaused,
+        withdrawPaused,
+        absorbPaused,
+        buyPaused,
+      ]);
     }
     {
       const supplyPaused = false;
@@ -230,8 +255,16 @@ describe("Bot Test Suite", () => {
       const withdrawPaused = false;
       const absorbPaused = true;
       const buyPaused = false;
-      expectedFindings.push(createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network));
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused]);
+      expectedFindings.push(
+        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
+      );
+      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
+        supplyPaused,
+        transferPaused,
+        withdrawPaused,
+        absorbPaused,
+        buyPaused,
+      ]);
     }
     {
       const to = createAddress("0xdef1");
@@ -277,8 +310,16 @@ describe("Bot Test Suite", () => {
       const withdrawPaused = true;
       const absorbPaused = false;
       const buyPaused = true;
-      expectedFindings.push(createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network));
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused]);
+      expectedFindings.push(
+        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
+      );
+      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
+        supplyPaused,
+        transferPaused,
+        withdrawPaused,
+        absorbPaused,
+        buyPaused,
+      ]);
     }
     {
       const comet = COMET_ADDRESSES[1];
@@ -287,8 +328,16 @@ describe("Bot Test Suite", () => {
       const withdrawPaused = false;
       const absorbPaused = true;
       const buyPaused = false;
-      expectedFindings.push(createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network));
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused]);
+      expectedFindings.push(
+        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
+      );
+      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
+        supplyPaused,
+        transferPaused,
+        withdrawPaused,
+        absorbPaused,
+        buyPaused,
+      ]);
     }
     {
       const comet = COMET_ADDRESSES[1];
