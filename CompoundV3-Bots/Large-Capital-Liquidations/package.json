@@ -29,6 +29,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bottleneck": "^2.19.5",
     "forta-agent": "^0.1.27",
     "forta-agent-tools": "^3.2.7"
   },
