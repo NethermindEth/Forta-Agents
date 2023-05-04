@@ -15,7 +15,7 @@ Note that the bot is configurable in `agent.config.ts` file, where:
 
 ## Alerts
 
-- COMP-1
+- COMP2-1
   - Fired when `reserves` reaches or exceeds the `targetReserves` in any of comet contracts.
   - Severity is always set to "Medium"
   - Type is always set to "info"
@@ -26,4 +26,5 @@ Note that the bot is configurable in `agent.config.ts` file, where:
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+No emission of these events was found on existing Comet contracts. To check
+the unit test cases and results, run `npm run test`.

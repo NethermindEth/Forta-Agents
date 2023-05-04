@@ -32,7 +32,6 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
     let targetReservesPromises: Promise<BigNumber>[] = [];
     let reservesPromises: Promise<BigNumber>[] = [];
     let cometAddresses = fetcher.networkManager.get("cometAddresses");
-    console.log(blockEvent.block.timestamp);
 
     cometAddresses.map(async (comet: string) => {
       // Call getReserves() for each comet contract

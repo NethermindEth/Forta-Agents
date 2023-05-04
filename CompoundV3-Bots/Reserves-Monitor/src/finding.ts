@@ -8,7 +8,7 @@ export function createFinding(
   return Finding.from({
     name: `Comet reserves reached targetReserves`,
     description: `Reserves on comet contract are >= target reserves`,
-    alertId: "COMP-1",
+    alertId: "COMP2-1",
     protocol: "Compound",
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
