@@ -4,10 +4,12 @@ const ONE_DAY = 24 * 60 * 60;
 const timePeriodDays = 5;
 export const TIME_PERIOD = timePeriodDays * ONE_DAY;
 
-export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 7 MB
+export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
 
 export const POLYGON_MATIC_ADDRESS =
   "0x0000000000000000000000000000000000001010";
+
+export const WITHDRAW_SIG = "3ccfd60b";
 
 export const toTxCountThreshold = 2000;
 export const fromTxCountThreshold = 9999;

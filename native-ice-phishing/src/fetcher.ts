@@ -109,6 +109,12 @@ export default class DataFetcher {
     }&sort=asc&apikey=${key}`;
   };
 
+  private getSourceCodeUrl = (address: string, chainId: number) => {
+    const { sourceCode } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${sourceCode}&address=${address}&apikey=${key}`;
+  };
+
   getCode = async (address: string) => {
     if (this.codeCache.has(address))
       return this.codeCache.get(address) as string;
@@ -416,5 +422,45 @@ export default class DataFetcher {
         }
       }
     }
+  };
+
+  getSourceCode = async (address: string, chainId: number) => {
+    const maxRetries = 3;
+    let result;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getSourceCodeUrl(address, chainId))
+        ).json();
+
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(
+            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(
+              `block explorer error occured (final attempt); skipping check for ${address}`
+            );
+            return "";
+          }
+        } else {
+          break;
+        }
+      } catch {
+        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
+        if (attempt === maxRetries) {
+          console.log(
+            `Error during fetch (final attempt); skipping check for ${address}`
+          );
+          return "";
+        }
+      }
+    }
+
+    return result.result[0].SourceCode;
   };
 }

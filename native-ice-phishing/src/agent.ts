@@ -13,6 +13,7 @@ import { ScanCountType } from "bot-alert-rate";
 import calculateAlertRate from "bot-alert-rate";
 import DataFetcher from "./fetcher";
 import {
+  createCriticalSeverityFinding,
   createFinding,
   createHighSeverityFinding,
   createLowSeverityFinding,
@@ -29,6 +30,7 @@ import {
   Data,
   Transfer,
   filterConflictingEntries,
+  WITHDRAW_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import {
@@ -39,6 +41,7 @@ import {
 let chainId: number = 0;
 let txWithInputDataCount = 0;
 let transfersCount = 0;
+let contractCreationsCount = 0;
 let isRelevantChain: boolean;
 
 let storedData: Data = {
@@ -138,6 +141,7 @@ export const provideInitialize = (
     storedData.alertedHashes = alertedFuncSigs.map((sig) =>
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes(sig)).substring(0, 10)
     );
+
     return {
       alertConfig: {
         subscriptions: [
@@ -189,6 +193,75 @@ export const provideHandleTransaction =
       logs,
       blockNumber,
     } = txEvent;
+    if (!txEvent.to) {
+      if (isRelevantChain) contractCreationsCount++;
+      const nonce = txEvent.transaction.nonce;
+      const createdContractAddress = ethers.utils.getContractAddress({
+        from: txEvent.from,
+        nonce: nonce,
+      });
+      const code = await dataFetcher.getCode(createdContractAddress);
+      if (!code) {
+        return findings;
+      }
+      const sourceCode = await dataFetcher.getSourceCode(
+        createdContractAddress,
+        chainId
+      );
+      if (sourceCode) {
+        const payableString = "payable";
+        const withdrawRegex =
+          /require\(owner == msg.sender\);\s*msg\.sender\.transfer\(address\(this\)\.balance\);/g;
+        if (
+          withdrawRegex.test(sourceCode) &&
+          sourceCode.includes(payableString)
+        ) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-5",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        }
+      } else if (code.includes(WITHDRAW_SIG)) {
+        const hashesWithoutPrefix = alertedHashes.map((hash) => {
+          return hash.substring(2);
+        });
+        const hasCodeWithoutPrefix = hashesWithoutPrefix.some((c) =>
+          code.includes(c)
+        );
+        if (hasCodeWithoutPrefix) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-5",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        }
+      }
+    }
 
     // At the beginning of the block
     if (blockNumber != lastBlock) {
