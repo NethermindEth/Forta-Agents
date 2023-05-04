@@ -118,7 +118,8 @@ export const provideHandleBlock = (
     const logs = (
       await provider.getLogs({
         topics: [["Supply", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
-        blockHash: blockEvent.blockHash,
+        fromBlock: blockEvent.blockNumber,
+        toBlock: blockEvent.blockNumber,
       })
     ).map((log) => ({ ...log, ...iface.parseLog(log) }));
 
