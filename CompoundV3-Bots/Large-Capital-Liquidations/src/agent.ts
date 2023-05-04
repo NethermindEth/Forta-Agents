@@ -31,18 +31,20 @@ export const provideInitializeTask = (
           minTime: 1_000,
         });
 
-        const baseIndexScale = await comet.baseIndexScale();
-        const { baseBorrowIndex } = await comet.totalsBasic();
+        const baseIndexScale = await comet.baseIndexScale({ blockTag: "latest" });
+        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: "latest" });
 
-        while (!state.lastHandledBlock || blockCursor < state.lastHandledBlock) {
-          const withdrawLogs = await bottleneck.schedule(() =>
-            comet.queryFilter("Withdraw", blockCursor, blockCursor + blockRange - 1)
-          );
+        state.lastHandledBlock = await provider.getBlockNumber();
+
+        while (blockCursor < state.lastHandledBlock) {
+          const withdrawLogs = await bottleneck.schedule(async () => {
+            return await comet.queryFilter("Withdraw", blockCursor, blockCursor + blockRange - 1);
+          });
 
           const borrowers = Array.from(new Set(withdrawLogs.map((log) => log.args!.to)));
           const [success, userBasics] = (await multicallProvider.all(
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
-            blockCursor + blockRange - 1,
+            "latest",
             100
           )) as [boolean, { principal: ethers.BigNumber }[]];
 
@@ -124,8 +126,8 @@ export const provideHandleBlock = (
     await Promise.all(
       cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
         const cometLogs = logs.filter((log) => log.address.toLowerCase() === comet.address.toLowerCase());
-        const baseIndexScale = await comet.baseIndexScale();
-        const { baseBorrowIndex } = await comet.totalsBasic();
+        const baseIndexScale = await comet.baseIndexScale({ blockTag: blockEvent.blockNumber });
+        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: blockEvent.blockNumber });
 
         let changedPositions = new Set<string>();
 
