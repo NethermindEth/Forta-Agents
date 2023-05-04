@@ -1,10 +1,11 @@
 {
-  "name": "forta-agent-starter",
+  "name": "comp2-3",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
-  "repository": "https://github.com/forta-network/forta-bot-sdk/tree/master/starter-project",
+  "description": "Forta bot that detects base token transfers to comet contracts without matching Supply or BuyCollateral events",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Transfers-Monitor",
   "chainIds": [
-    1
+    1,
+    137
   ],
   "scripts": {
     "build": "tsc",
@@ -27,7 +28,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.26"
+    "forta-agent": "^0.1.27",
+    "forta-agent-tools": "^3.2.7"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

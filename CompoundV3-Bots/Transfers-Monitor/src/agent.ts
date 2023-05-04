@@ -1,83 +1,112 @@
 import {
-  BlockEvent,
   Finding,
   Initialize,
-  HandleBlock,
   HandleTransaction,
-  HandleAlert,
-  AlertEvent,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
+  ethers,
 } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
+import { NetworkData, TransferLog } from "./utils";
+import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
+import CONFIG from "./agent.config";
+import { BigNumber, getDefaultProvider } from "ethers";
+import { createTransferFinding } from "./finding";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager(CONFIG);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const initialize: Initialize = async () => {
-//   // do some initialization on startup e.g. fetch data
-// }
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    const transferEvents: Set<any> = new Set([]);
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    // Filter the transaction logs for Transfer events in base tokens.
+    txEvent
+      .filterLog(TRANSFER_ABI, networkManager.get("baseTokens"))
+      .forEach((log) => {
+        let cometAddressIndex = networkManager
+          .get("cometAddresses")
+          .indexOf(log.args.to);
 
-// const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some alert condition
-//   return findings;
-// }
+        // If the transfer event is destined for a Comet contract with the same baseToken,
+        // add it to the transferEvents set
+        if (
+          cometAddressIndex > -1 &&
+          networkManager.get("cometAddresses")[cometAddressIndex] ==
+            log.args.to &&
+          log.address == networkManager.get("baseTokens")[cometAddressIndex]
+        ) {
+          transferEvents.add({
+            from: log.args.from,
+            index: cometAddressIndex,
+            amount: log.args.amount,
+          });
+        }
+      });
+
+    if (transferEvents.size > 0) {
+      // get all Supply and BuyCollateral events
+      let supply_buy_events = new Set(
+        txEvent.filterLog(
+          [SUPPLY_ABI, BUY_COLLATERAL_ABI],
+          networkManager.get("cometAddresses")
+        )
+      );
+
+      // For each transfer event, if there is a matching Supply or BuyCollateral event,
+      // remove both events from their respective sets
+      transferEvents.forEach((transfer: TransferLog) => {
+        let cometAddress = networkManager.get("cometAddresses")[transfer.index];
+
+        for (let event of Array.from(supply_buy_events.values())) {
+          if (event.name == "Supply") {
+            if (
+              event.address == cometAddress &&
+              event.args.from == transfer.from &&
+              BigNumber.from(event.args.amount).eq(transfer.amount)
+            ) {
+              supply_buy_events.delete(event);
+              transferEvents.delete(transfer);
+              break;
+            }
+          } else if (
+            event.address == cometAddress &&
+            event.args.buyer == transfer.from &&
+            BigNumber.from(event.args.baseAmount).eq(transfer.amount)
+          ) {
+            supply_buy_events.delete(event);
+            transferEvents.delete(transfer);
+            break;
+          }
+        }
+      });
+      // Create finding for each Trasfer event that wasn't matched
+      transferEvents.forEach((transferAlert) =>
+        findings.push(
+          createTransferFinding(
+            networkManager.get("cometAddresses")[transferAlert.index],
+            transferAlert.from,
+            transferAlert.amount
+          )
+        )
+      );
+    }
+
+    return findings;
+  };
+};
 
 export default {
-  // initialize,
-  handleTransaction,
-  // handleBlock,
-  // handleAlert
+  initialize: provideInitialize(networkManager, getDefaultProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
