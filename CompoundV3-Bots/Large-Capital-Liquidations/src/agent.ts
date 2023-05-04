@@ -1,11 +1,4 @@
-import {
-  ethers,
-  Finding,
-  Initialize,
-  HandleBlock,
-  BlockEvent,
-  getEthersProvider,
-} from "forta-agent";
+import { ethers, Finding, Initialize, HandleBlock, BlockEvent, getEthersBatchProvider } from "forta-agent";
 import Bottleneck from "bottleneck";
 import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agent-tools";
 
@@ -213,7 +206,7 @@ export const provideHandleBlock = (
   };
 };
 
-const provider = getEthersProvider();
+const provider = getEthersBatchProvider();
 const networkManager = new NetworkManager(CONFIG);
 const multicallProvider = new MulticallProvider(provider);
 const state: AgentState = {
