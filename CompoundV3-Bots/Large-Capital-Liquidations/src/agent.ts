@@ -101,18 +101,18 @@ export const provideHandleBlock = (
 ): HandleBlock => {
   const iface = new ethers.utils.Interface(COMET_ABI);
 
-  const cometContracts = networkManager.get("cometContracts").map((comet) => ({
-    comet: new ethers.Contract(comet.address, iface, provider),
-    multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
-    threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
-    monitoringListLength: comet.monitoringListLength,
-  }));
-
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     if (!state.initialized) {
       state.lastHandledBlock = blockEvent.blockNumber;
       return [];
     }
+
+    const cometContracts = networkManager.get("cometContracts").map((comet) => ({
+      comet: new ethers.Contract(comet.address, iface, provider),
+      multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
+      threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
+      monitoringListLength: comet.monitoringListLength,
+    }));
 
     const chainId = networkManager.getNetwork();
     const logs = (
