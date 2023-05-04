@@ -1,66 +1,18 @@
-import { ethers, Finding, getEthersProvider, Initialize, HandleBlock, BlockEvent } from "forta-agent";
+import {
+  ethers,
+  Finding,
+  Initialize,
+  HandleBlock,
+  BlockEvent,
+  getEthersProvider,
+} from "forta-agent";
 import Bottleneck from "bottleneck";
 import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agent-tools";
 
 import CONFIG from "./agent.config";
 import { COMET_ABI } from "./constants";
-import { AgentState, BorrowPosition, NetworkData } from "./utils";
+import { addPositionsToMonitoringList, AgentState, borrowLiquidity, NetworkData } from "./utils";
 import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
-
-function addPositionsToMonitoringList(
-  state: AgentState,
-  comet: string,
-  monitoringListLength: number,
-  positions: BorrowPosition[]
-) {
-  const monitoringList = state.monitoringLists[comet] || [];
-  const monitoringListMap = Object.fromEntries(monitoringList.map((el, idx) => [el.borrower, idx]));
-
-  positions.forEach((position) => {
-    if (monitoringListMap[position.borrower] !== undefined) {
-      monitoringList[monitoringListMap[position.borrower]] = position;
-    } else {
-      monitoringList.push(position);
-    }
-  });
-
-  // ascending sorting because borrows are negative
-  monitoringList.sort((a, b) => (a.principal.lt(b.principal) ? -1 : a.principal.eq(b.principal) ? 0 : 1));
-
-  state.monitoringLists[comet] = monitoringList.slice(0, monitoringListLength);
-}
-
-function checkMonitoringListHealth(
-  comet: string,
-  monitoringListLength: number,
-  threshold: ethers.BigNumber,
-  baseBorrowIndex: ethers.BigNumber,
-  baseIndexScale: ethers.BigNumber
-) {
-  const monitoringList = state.monitoringLists[comet];
-
-  if (monitoringList.length < monitoringListLength) {
-    return;
-  }
-
-  const minBalance = borrowLiquidity(monitoringList[monitoringList.length - 1], baseBorrowIndex, baseIndexScale);
-
-  if (minBalance.gte(threshold)) {
-    console.warn(
-      `Monitoring list length ${monitoringListLength} is too short for the threshold ${threshold} for Comet ${comet}`
-    );
-  }
-}
-
-function borrowLiquidity(
-  position: BorrowPosition,
-  baseBorrowIndex: ethers.BigNumber,
-  baseIndexScale: ethers.BigNumber
-) {
-  return position.principal.isNegative()
-    ? position.principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale)
-    : ethers.BigNumber.from(0);
-}
 
 export const provideInitializeTask = (
   state: AgentState,
@@ -111,7 +63,10 @@ export const provideInitializeTask = (
               borrower,
               principal: userBasics[idx].principal,
               alertedAt: 0,
-            }))
+            })),
+            threshold,
+            baseBorrowIndex,
+            baseIndexScale
           );
 
           blockCursor += blockRange;
@@ -119,8 +74,6 @@ export const provideInitializeTask = (
             `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${blockCursor + blockRange - 1}`
           );
         }
-
-        checkMonitoringListHealth(comet.address, monitoringListLength, threshold, baseBorrowIndex, baseIndexScale);
       })
     );
 
@@ -218,7 +171,10 @@ export const provideHandleBlock = (
             borrower,
             principal: userBasics[idx].principal,
             alertedAt: 0,
-          }))
+          })),
+          threshold,
+          baseBorrowIndex,
+          baseIndexScale
         );
 
         const largePositions = state.monitoringLists[comet.address].filter((entry) =>
@@ -250,8 +206,6 @@ export const provideHandleBlock = (
             entry.alertedAt = blockEvent.block.timestamp;
           }
         });
-
-        checkMonitoringListHealth(comet.address, monitoringListLength, threshold, baseBorrowIndex, baseIndexScale);
       })
     );
 
@@ -259,8 +213,9 @@ export const provideHandleBlock = (
   };
 };
 
+const provider = getEthersProvider();
 const networkManager = new NetworkManager(CONFIG);
-const multicallProvider = new MulticallProvider(getEthersProvider());
+const multicallProvider = new MulticallProvider(provider);
 const state: AgentState = {
   initialized: false,
   monitoringLists: {},
@@ -268,6 +223,6 @@ const state: AgentState = {
 };
 
 export default {
-  initialize: provideInitialize(state, networkManager, multicallProvider, getEthersProvider()),
-  handleBlock: provideHandleBlock(state, networkManager, multicallProvider, getEthersProvider()),
+  initialize: provideInitialize(state, networkManager, multicallProvider, provider),
+  handleBlock: provideHandleBlock(state, networkManager, multicallProvider, provider),
 };
