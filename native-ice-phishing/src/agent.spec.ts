@@ -206,6 +206,7 @@ const mockFetcher = {
   getTransactions: jest.fn(),
   getNonce: jest.fn(),
   getFunctions: jest.fn(),
+  getEvents: jest.fn(),
   getAddressInfo: jest.fn(),
   getAddresses: jest.fn(),
   getLabel: jest.fn(),
@@ -517,14 +518,13 @@ describe("Native Ice Phishing Bot test suite", () => {
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0x0f"))
       .setTo(null)
-      // .setValue("0x0bb")
-      // .setData("0xa9059cbb")
       .setNonce(23)
       .setHash("0xabcd");
     const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
     when(mockFetcher.getCode)
       .calledWith(mockContractAddress)
       .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
     when(mockFetcher.getSourceCode)
       .calledWith(mockContractAddress, 1)
       .mockReturnValueOnce("Not Malicious Contract Code");
@@ -542,6 +542,8 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getCode)
       .calledWith(mockContractAddress)
       .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
+
     when(mockFetcher.getSourceCode)
       .calledWith(mockContractAddress, 1)
       .mockReturnValueOnce("");
@@ -559,6 +561,8 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getCode)
       .calledWith(mockContractAddress)
       .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
+
     const sourceCode = `function random() payable {}
     function withdraw() {
       require(owner == msg.sender);
@@ -594,6 +598,9 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getCode)
       .calledWith(mockContractAddress)
       .mockReturnValueOnce(`0xa9059cbb${WITHDRAW_SIG}`);
+    when(mockFetcher.getEvents)
+      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
+      .mockReturnValueOnce([]);
 
     when(mockFetcher.getSourceCode)
       .calledWith(mockContractAddress, 1)

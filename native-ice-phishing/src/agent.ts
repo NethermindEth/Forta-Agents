@@ -200,10 +200,17 @@ export const provideHandleTransaction =
         from: txEvent.from,
         nonce: nonce,
       });
+
       const code = await dataFetcher.getCode(createdContractAddress);
       if (!code) {
         return findings;
       }
+
+      const events = await dataFetcher.getEvents(code);
+      if (events.length > 1) {
+        return findings;
+      }
+
       const sourceCode = await dataFetcher.getSourceCode(
         createdContractAddress,
         chainId

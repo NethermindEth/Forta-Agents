@@ -400,6 +400,12 @@ export default class DataFetcher {
     return functions;
   };
 
+  getEvents = async (code: string) => {
+    const evm = new EVM(code);
+    const events = evm.getEvents();
+    return events;
+  };
+
   getTransactions = async (
     provider: ethers.providers.Provider,
     blockNumber: number
