@@ -64,10 +64,11 @@ export const provideInitializeTask = (
             baseIndexScale
           );
 
-          blockCursor += blockRange;
           console.log(
             `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${blockCursor + blockRange - 1}`
           );
+
+          blockCursor += blockRange;
         }
       })
     );
