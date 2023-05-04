@@ -115,7 +115,7 @@ This bot monitors:
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Victim"
         - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.7
-- NIP-4
+- NIP-5
   - Fired when a contract is deployed with characteristics indicative of a potential native ice phishing attack.
   - Severity is always set to "Critical"
   - Type is always set to "Suspicious"
