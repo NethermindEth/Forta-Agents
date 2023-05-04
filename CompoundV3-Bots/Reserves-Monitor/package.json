@@ -2,7 +2,7 @@
   "name": "comp2-1",
   "version": "0.0.1",
   "description": "Forta bot that detects when comet reserves reach target reserves",
-  "repository": "https://github.com/forta-network/forta-bot-sdk/tree/master/starter-project",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Reserves-Monitor",
   "chainIds": [
     1,
     137
