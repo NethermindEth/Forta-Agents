@@ -31,6 +31,7 @@ import {
   Transfer,
   filterConflictingEntries,
   WITHDRAW_SIG,
+  BALANCEOF_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import {
@@ -202,12 +203,13 @@ export const provideHandleTransaction =
       });
 
       const code = await dataFetcher.getCode(createdContractAddress);
-      if (!code) {
+      if (!code || code.includes(BALANCEOF_SIG)) {
         return findings;
       }
 
       const events = await dataFetcher.getEvents(code);
-      if (events.length > 1) {
+      const functions = await dataFetcher.getFunctions(code);
+      if (events.length > 1 || functions.length > 10) {
         return findings;
       }
 

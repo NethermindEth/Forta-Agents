@@ -10,6 +10,7 @@ export const POLYGON_MATIC_ADDRESS =
   "0x0000000000000000000000000000000000001010";
 
 export const WITHDRAW_SIG = "3ccfd60b";
+export const BALANCEOF_SIG = "70a08231";
 
 export const toTxCountThreshold = 2000;
 export const fromTxCountThreshold = 9999;
