@@ -107,8 +107,9 @@ export const provideHandleTransaction =
 
         const indexToDelete = Math.floor(Object.keys(transferObj).length / 4);
 
+        const myObj = Object.keys(transferObj);
         for (let i = 0; i < indexToDelete; i++) {
-          delete transferObj[Object.keys(transferObj)[0]];
+          delete transferObj[myObj[i]];
         }
 
         objectSize = Buffer.from(JSON.stringify(transferObj)).length;
