@@ -41,7 +41,7 @@ export const provideInitializeTask = (
             return await comet.queryFilter("Withdraw", blockCursor, blockCursor + blockRange - 1);
           });
 
-          const borrowers = Array.from(new Set(withdrawLogs.map((log) => log.args!.to)));
+          const borrowers = Array.from(new Set(withdrawLogs.map((log) => log.args!.src)));
           const [success, userBasics] = (await multicallProvider.all(
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
             "latest",
