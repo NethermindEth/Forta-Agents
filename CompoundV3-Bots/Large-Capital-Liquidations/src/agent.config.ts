@@ -17,7 +17,7 @@ const CONFIG: AgentConfig = {
         // denominated in the same scale as in the contract
         baseLargeThreshold: "1000000000000000000",
         // Length of the largest borrow positions that is constantly checked
-        // for uncollateralized borrows.
+        // for size & uncollateralized borrows.
         // Ideally this limit must include all borrows currently greater or
         // equal than the threshold, otherwise positions that should be
         // monitored will likely be lost. If at any time the smallest position
