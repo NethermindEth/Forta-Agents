@@ -3,7 +3,6 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-  HandleBlock,
   Network,
   Label,
   EntityType,
@@ -14,7 +13,7 @@ import { Interface } from "@ethersproject/abi";
 
 import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { createAddress, NetworkManager } from "forta-agent-tools";
-import { provideInitialize, provideHandleTransaction, provideHandleBlock } from "./agent";
+import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
 import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
@@ -117,7 +116,6 @@ describe("Detect Private Key Compromise", () => {
   let mockFetch = jest.mocked(fetch, true);
   let initialize: Initialize;
   let handleTransaction: HandleTransaction;
-  let handleBlock: HandleBlock;
   let networkManager: NetworkManager<NetworkData>;
   let mockFetchResponse: Response;
   let mockBalanceFetcher: BalanceFetcher;
@@ -159,9 +157,11 @@ describe("Detect Private Key Compromise", () => {
       networkManager,
       mockBalanceFetcher,
       mockContractFetcher as any,
-      mockDataFetcher as any
+      mockDataFetcher as any,
+      mockPersistenceHelper,
+      mockpKCompValueKey
     );
-    handleBlock = provideHandleBlock(mockPersistenceHelper, mockpKCompValueKey);
+
     delete process.env.LOCAL_NODE;
   });
 
@@ -377,29 +377,29 @@ describe("Detect Private Key Compromise", () => {
     });
   });
 
-  describe("Block handler test suite", () => {
-    it("should not persist values because block is not evenly divisible by 150", async () => {
-      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(305);
-      await handleBlock(mockBlockEvent);
-      expect(mockFetchJwt).toHaveBeenCalledTimes(2);
-      expect(mockFetchResponse.json).toHaveBeenCalledTimes(2);
-    });
-    it("should persist the value in a block evenly divisible by 150", async () => {
-      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
-      const spy = jest.spyOn(console, "log").mockImplementation(() => {});
-      await handleBlock(mockBlockEvent);
-      expect(spy).toHaveBeenCalledWith("successfully persisted to database");
-      expect(mockFetchJwt).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
-      expect(mockFetch).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
+  // describe("Block handler test suite", () => {
+  //   it("should not persist values because block is not evenly divisible by 150", async () => {
+  //     const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(305);
+  //     await handleBlock(mockBlockEvent);
+  //     expect(mockFetchJwt).toHaveBeenCalledTimes(2);
+  //     expect(mockFetchResponse.json).toHaveBeenCalledTimes(2);
+  //   });
+  //   it("should persist the value in a block evenly divisible by 150", async () => {
+  //     const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
+  //     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
+  //     await handleBlock(mockBlockEvent);
+  //     expect(spy).toHaveBeenCalledWith("successfully persisted to database");
+  //     expect(mockFetchJwt).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
+  //     expect(mockFetch).toHaveBeenCalledTimes(3); // Two during initialization, two in block handler
 
-      expect(mockFetch.mock.calls[1][0]).toEqual(
-        `${mockDbUrl}${mockpKCompValueKey.concat("-", mockChainId.toString())}`
-      );
-      expect(mockFetch.mock.calls[2][1]!.method).toEqual("POST");
-      expect(mockFetch.mock.calls[2][1]!.headers).toEqual({
-        Authorization: `Bearer ${mockJwt}`,
-      });
-      expect(mockFetch.mock.calls[2][1]!.body).toEqual(JSON.stringify(mockpKCompValueTxns));
-    });
-  });
+  //     expect(mockFetch.mock.calls[1][0]).toEqual(
+  //       `${mockDbUrl}${mockpKCompValueKey.concat("-", mockChainId.toString())}`
+  //     );
+  //     expect(mockFetch.mock.calls[2][1]!.method).toEqual("POST");
+  //     expect(mockFetch.mock.calls[2][1]!.headers).toEqual({
+  //       Authorization: `Bearer ${mockJwt}`,
+  //     });
+  //     expect(mockFetch.mock.calls[2][1]!.body).toEqual(JSON.stringify(mockpKCompValueTxns));
+  //   });
+  // });
 });

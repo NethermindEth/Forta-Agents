@@ -3,6 +3,8 @@ import { timePeriodDays } from "./bot.config";
 const ONE_DAY = 24 * 60 * 60;
 export const TIME_PERIOD = timePeriodDays * ONE_DAY;
 
+export const MAX_OBJECT_SIZE = 1024 * 1024 * 2;
+
 export interface NetworkData {
   threshold: string;
 }
@@ -16,12 +18,9 @@ export type AlertedAddress = {
   timestamp: number;
 };
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
+export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
 
-export const BALANCEOF_ABI = [
-  "function balanceOf(address account) external view returns (uint256)",
-];
+export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
 
 export const updateRecord = async (from: string, to: string, transferObj: Transfer) => {
   /**

@@ -3,7 +3,7 @@ import { AgentConfig } from "./utils";
 
 export const CONTRACT_TRANSACTION_COUNT_THRESHOLD = 500;
 
-export const timePeriodDays = 0.5;
+export const timePeriodDays = 0.25;
 
 // threshold amounts for individual network tokens to be left in an account in order to be considered as drained
 const thresholds = {

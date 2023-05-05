@@ -7,6 +7,7 @@ import {
   AlertedAddress,
   ERC20_TRANSFER_EVENT,
   deepMerge,
+  MAX_OBJECT_SIZE,
 } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./findings";
@@ -21,7 +22,7 @@ import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
-const PK_COMP_TXNS_KEY = "nm-pk-compromise-bot-key";
+const PK_COMP_TXNS_KEY = "nm-pk-comp-bot-key";
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
 let chainId: string;
@@ -31,9 +32,11 @@ let isRelevantChain: boolean;
 let transfersCount = 0;
 let ercTransferCount = 0;
 let transactionsProcessed = 0;
+
 let lastBlock = 0;
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
+let st = 0;
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -59,26 +62,64 @@ export const provideHandleTransaction =
     networkManager: NetworkManager<NetworkData>,
     balanceFetcher: BalanceFetcher,
     contractFetcher: ContractFetcher,
-    dataFetcher: DataFetcher
+    dataFetcher: DataFetcher,
+    persistenceHelper: PersistenceHelper,
+    pkCompValueKey: string
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-
-    if (txEvent.blockNumber != lastBlock) {
-      lastBlock = txEvent.blockNumber;
-      console.log(`----Transactions processed in block ${txEvent.blockNumber - 7}: ${transactionsProcessed}----`);
-      transactionsProcessed = 0;
-    }
-    transactionsProcessed += 1;
-
-    const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
 
     const {
       hash,
       from,
       to,
       transaction: { value, data },
+      timestamp,
+      blockNumber,
     } = txEvent;
+
+    // At the beginning of the block
+    if (blockNumber != lastBlock) {
+      const et = new Date().getTime();
+      console.log(`Block processing time: ${et - st} ms`);
+      const loadedTransferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+
+      transferObj = deepMerge(transferObj, loadedTransferObj);
+
+      // Remove alerted addresses from the object to be persisted into db
+      if (alertedAddresses.length) {
+        for (const el of alertedAddresses) {
+          delete transferObj[el.address];
+        }
+      }
+
+      alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
+
+      lastBlock = blockNumber;
+      console.log(`-----Transactions processed in block ${blockNumber - 7}: ${transactionsProcessed}-----`);
+      transactionsProcessed = 0;
+      st = new Date().getTime();
+
+      let objectSize = Buffer.from(JSON.stringify(transferObj)).length;
+
+      while (objectSize > MAX_OBJECT_SIZE) {
+        console.log("Cleaning Object of size: ", objectSize);
+
+        const indexToDelete = Math.floor(Object.keys(transferObj).length / 4);
+
+        for (let i = 0; i < indexToDelete; i++) {
+          delete transferObj[Object.keys(transferObj)[0]];
+        }
+
+        objectSize = Buffer.from(JSON.stringify(transferObj)).length;
+        console.log("Object size after cleaning: ", objectSize);
+      }
+
+      await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
+    }
+    transactionsProcessed += 1;
+
+    const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
 
     // check for native token transfers
     if (to && value != "0x0" && data === "0x") {
@@ -167,33 +208,6 @@ export const provideHandleTransaction =
     return findings;
   };
 
-export function provideHandleBlock(persistenceHelper: PersistenceHelper, pkCompValueKey: string) {
-  return async (blockEvent: BlockEvent) => {
-    const findings: Finding[] = [];
-
-    const loadedTransferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
-
-    transferObj = deepMerge(transferObj, loadedTransferObj);
-
-    // Remove alerted addresses from the object to be persisted into db
-    if (alertedAddresses.length) {
-      for (const el of alertedAddresses) {
-        delete transferObj[el.address];
-      }
-    }
-
-    if (blockEvent.blockNumber % 10 === 0) {
-      await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
-    }
-
-    alertedAddresses = alertedAddresses.filter(
-      (address) => blockEvent.block.timestamp - address.timestamp < TIME_PERIOD
-    );
-
-    return findings;
-  };
-}
-
 export default {
   initialize: provideInitialize(
     networkManager,
@@ -206,7 +220,8 @@ export default {
     networkManager,
     new BalanceFetcher(getEthersProvider()),
     new ContractFetcher(getEthersProvider(), fetch, keys),
-    new DataFetcher(getEthersProvider())
+    new DataFetcher(getEthersProvider()),
+    new PersistenceHelper(DATABASE_URL),
+    PK_COMP_TXNS_KEY
   ),
-  handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), PK_COMP_TXNS_KEY),
 };
