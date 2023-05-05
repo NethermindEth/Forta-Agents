@@ -143,7 +143,7 @@ export const provideHandleBlock = (
               break;
             case "AbsorbDebt":
               if ((log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
-                findings.push(createAbsorbFinding(comet.address, log.args.borrower, log.args.basePaidOut, chainId));
+                findings.push(createAbsorbFinding(comet.address, log.args.absorber, log.args.borrower, log.args.basePaidOut, chainId));
               }
               changedPositions.add(log.args.borrower);
               break;

@@ -2,6 +2,7 @@ import { ethers, Finding, FindingSeverity, FindingType, LogDescription, Network 
 
 export function createAbsorbFinding(
   comet: string,
+  absorber: string,
   borrower: string,
   positionSize: ethers.BigNumberish,
   chainId: number
@@ -16,10 +17,11 @@ export function createAbsorbFinding(
     metadata: {
       chain: Network[chainId] || chainId.toString(),
       comet: ethers.utils.getAddress(comet),
+      absorber: ethers.utils.getAddress(absorber),
       borrower: ethers.utils.getAddress(borrower),
       positionSize: positionSize.toString(),
     },
-    addresses: [ethers.utils.getAddress(comet), ethers.utils.getAddress(borrower)],
+    addresses: [ethers.utils.getAddress(comet), ethers.utils.getAddress(absorber), ethers.utils.getAddress(borrower)],
   });
 }
 
