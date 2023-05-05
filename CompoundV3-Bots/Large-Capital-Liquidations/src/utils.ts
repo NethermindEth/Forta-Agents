@@ -8,6 +8,9 @@ export interface NetworkData {
     monitoringListLength: number;
   }>;
   alertInterval: number;
+  multicallSize: number;
+  logFetchingBlockRange: number;
+  logFetchingInterval: number;
 }
 
 export interface BorrowPosition {

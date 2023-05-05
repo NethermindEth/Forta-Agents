@@ -4,17 +4,29 @@ import { AgentConfig } from "./utils";
 const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Minimum interval between two uncollateralized borrow alerts for the
-    // same borrower
+    // same borrower.
     alertInterval: 60 * 60,
+    // Maximum calls in one multicall, used to check the borrow
+    // collateralization status and user principals.
+    // To change this the usual eth_call gas limits must be noticed.
+    multicallSize: 100,
+    // Block range used for each log fetching call during initialization.
+    // Again, to change this the usual eth_getLogs block range limits must
+    // be considered.
+    logFetchingBlockRange: 2000,
+    // Interval between log fetching calls for the same Comet contract, which
+    // lead to user principal fetches. It must be a reasonable amount to avoid
+    // any problems with the bot runner provider.
+    logFetchingInterval: 2000, // ms
     // Comet contracts to be monitored and some extra data
     cometContracts: [
       {
-        // Address of the Comet contract
+        // Address of the Comet contract.
         address: "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
-        // Deployment block of the contract (used for historical borrow fetching)
+        // Deployment block of the contract (used for historical borrow fetching).
         deploymentBlock: 15331586,
         // Lower threshold that defines whether a position is 'large',
-        // denominated in the same scale as in the contract
+        // denominated in the same scale as in the contract.
         baseLargeThreshold: "1000000000000000000",
         // Length of the largest borrow positions that is constantly checked
         // for size & uncollateralized borrows.
@@ -38,6 +50,9 @@ const CONFIG: AgentConfig = {
 
   [Network.POLYGON]: {
     alertInterval: 60 * 60,
+    multicallSize: 100,
+    logFetchingBlockRange: 2000,
+    logFetchingInterval: 2000,
     cometContracts: [
       {
         address: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",

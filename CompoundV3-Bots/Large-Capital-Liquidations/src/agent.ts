@@ -13,7 +13,6 @@ export const provideInitializeTask = (
   multicallProvider: MulticallProvider,
   provider: ethers.providers.JsonRpcProvider
 ): (() => Promise<void>) => {
-  const blockRange = 2_000;
   const iface = new ethers.utils.Interface(COMET_ABI);
 
   const scanState = networkManager.get("cometContracts").map((comet) => ({
@@ -27,8 +26,9 @@ export const provideInitializeTask = (
   return async () => {
     await Promise.all(
       scanState.map(async ({ comet, multicallComet, blockCursor, threshold, monitoringListLength }) => {
+        const blockRange = networkManager.get("logFetchingBlockRange");
         const bottleneck = new Bottleneck({
-          minTime: 1_000,
+          minTime: networkManager.get("logFetchingInterval"),
         });
 
         const baseIndexScale = await comet.baseIndexScale({ blockTag: "latest" });
@@ -45,7 +45,7 @@ export const provideInitializeTask = (
           const [success, userBasics] = (await multicallProvider.all(
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
             "latest",
-            100
+            networkManager.get("multicallSize")
           )) as [boolean, { principal: ethers.BigNumber }[]];
 
           if (!success) throw new Error("Error while fetching user principals");
@@ -143,7 +143,15 @@ export const provideHandleBlock = (
               break;
             case "AbsorbDebt":
               if ((log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
-                findings.push(createAbsorbFinding(comet.address, log.args.absorber, log.args.borrower, log.args.basePaidOut, chainId));
+                findings.push(
+                  createAbsorbFinding(
+                    comet.address,
+                    log.args.absorber,
+                    log.args.borrower,
+                    log.args.basePaidOut,
+                    chainId
+                  )
+                );
               }
               changedPositions.add(log.args.borrower);
               break;
@@ -155,7 +163,7 @@ export const provideHandleBlock = (
         const [userBasicsSuccess, userBasics] = (await multicallProvider.all(
           Array.from(changedPositions).map((borrower) => multicallComet.userBasic(borrower)),
           blockEvent.block.number,
-          100
+          networkManager.get("multicallSize")
         )) as [boolean, { principal: ethers.BigNumber }[]];
 
         if (!userBasicsSuccess) throw new Error("Error while fetching user principals");
@@ -181,7 +189,7 @@ export const provideHandleBlock = (
         let [borrowerStatusesSuccess, borrowerStatuses] = await multicallProvider.all(
           largePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
           blockEvent.block.number,
-          100
+          networkManager.get("multicallSize")
         );
 
         if (!borrowerStatusesSuccess) throw new Error("Error while trying to fetch borrow collateralization status");
