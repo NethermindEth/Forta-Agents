@@ -4,7 +4,7 @@ export function createAbsorbFinding(
   comet: string,
   absorber: string,
   borrower: string,
-  positionSize: ethers.BigNumberish,
+  basePaidOut: ethers.BigNumberish,
   chainId: number
 ): Finding {
   return Finding.from({
@@ -19,7 +19,7 @@ export function createAbsorbFinding(
       comet: ethers.utils.getAddress(comet),
       absorber: ethers.utils.getAddress(absorber),
       borrower: ethers.utils.getAddress(borrower),
-      positionSize: positionSize.toString(),
+      basePaidOut: basePaidOut.toString(),
     },
     addresses: [ethers.utils.getAddress(comet), ethers.utils.getAddress(absorber), ethers.utils.getAddress(borrower)],
   });
