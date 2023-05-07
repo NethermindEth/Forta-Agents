@@ -6,10 +6,11 @@ This bot detects large borrow positions liquidation risk and absorptions on
 Comet contracts.
 
 At startup, this bot filters all `Withdraw` events on the assigned Comet
-contracts, checks their principals and builds a list of borrowers to be
-monitored. This process can take several minutes, especially considering
+contracts, checks their principals and builds a list of the biggest borrowers.
+This process can take several minutes, especially considering
 there's some rate limiting on the log fetching to avoid problems with the bot
-runner provider limits.
+runner provider limits. This process is logged and should be available in the
+bot logs once it's running.
 
 Then, after this process is done, the bot handles block events. Filtering 
 principal-changing events, i.e. `Supply`, `Withdraw` and `AbsorbDebt`,
@@ -23,12 +24,18 @@ calls to `isBorrowCollateralized`. If it's not, then a finding is emitted
 provided it has not been emitted shortly before (configurable through the
 `alertInterval` configuration field).
 
-This is a safer approach than locally computing the borrow state because
-it does not require managing the collateral amounts locally, which can lead
-to inconsistencies, and both a batched RPC provider and multicalls are used
-to call `isBorrowCollateralized` for multiple accounts at the same time, which
-really mitigate the issues of making this many calls at once in terms of
-network latency.
+The monitoring list has a size limit, but ideally its limit should not matter
+provided the "large" threshold users are all included in it and there's some
+buffer left. In the edge case that "large" users are potentially being ignored
+because all of them do not fit into the monitoring list, warning logs will be
+emitted.
+
+This is an overall safer approach than locally computing the borrow state
+because it does not require managing the collateral amounts locally, which can
+lead to inconsistencies, and both a batched RPC provider and multicalls are
+used to call `isBorrowCollateralized` for multiple accounts at the same time,
+which really mitigates the issues of making this many calls at once in terms
+of network latency.
 
 The Comet deployment addresses for each network and other parameters can be
 configured in the `agent.config.ts` file.
