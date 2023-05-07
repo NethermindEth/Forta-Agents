@@ -800,26 +800,27 @@ describe("Bot Test Suite", () => {
 
     const findings = await handleBlock(blockEvent);
 
-    const presentValue = (principal: ethers.BigNumber) => principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale);
+    const presentValueBorrow = (principal: ethers.BigNumber) =>
+      principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale);
 
     expect(findings.sort()).toStrictEqual(
       [
         createLiquidationRiskFinding(
           previousBorrowers[0].comet,
           previousBorrowers[0].address,
-          presentValue(previousBorrowers[0].principal),
+          presentValueBorrow(previousBorrowers[0].principal),
           network
         ),
         createLiquidationRiskFinding(
           currentBorrowers[0].comet,
           currentBorrowers[0].address,
-          presentValue(currentBorrowers[0].principal),
+          presentValueBorrow(currentBorrowers[0].principal),
           network
         ),
         createLiquidationRiskFinding(
           currentBorrowers[2].comet,
           currentBorrowers[2].address,
-          presentValue(currentBorrowers[2].principal),
+          presentValueBorrow(currentBorrowers[2].principal),
           network
         ),
       ].sort()
@@ -894,10 +895,11 @@ describe("Bot Test Suite", () => {
     setIsBorrowCollateralized(borrower.comet, borrower.address, borrower.isCollateralized, blockNumber);
 
     let findings = await handleBlock(blockEvent);
-    const presentValue = (principal: ethers.BigNumber) => principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale);
+    const presentValueBorrow = (principal: ethers.BigNumber) =>
+      principal.isNegative() ? principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale) : ethers.BigNumber.from(0);
 
     expect(findings).toStrictEqual([
-      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValue(borrower.principal), network),
+      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValueBorrow(borrower.principal), network),
     ]);
     expect(state.monitoringLists).toStrictEqual({
       [COMET_CONTRACTS[0].address]: [
@@ -949,7 +951,7 @@ describe("Bot Test Suite", () => {
     findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([
-      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValue(borrower.principal), network),
+      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValueBorrow(borrower.principal), network),
     ]);
     expect(state.monitoringLists).toStrictEqual({
       [COMET_CONTRACTS[0].address]: [

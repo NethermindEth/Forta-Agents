@@ -68,7 +68,7 @@ export function checkMonitoringListHealth(
     return;
   }
 
-  const minBalance = borrowLiquidity(monitoringList[monitoringList.length - 1], baseBorrowIndex, baseIndexScale);
+  const minBalance = presentValueBorrow(monitoringList[monitoringList.length - 1], baseBorrowIndex, baseIndexScale);
 
   if (minBalance.gte(threshold)) {
     console.warn(
@@ -77,7 +77,7 @@ export function checkMonitoringListHealth(
   }
 }
 
-export function borrowLiquidity(
+export function presentValueBorrow(
   position: BorrowPosition,
   baseBorrowIndex: ethers.BigNumber,
   baseIndexScale: ethers.BigNumber

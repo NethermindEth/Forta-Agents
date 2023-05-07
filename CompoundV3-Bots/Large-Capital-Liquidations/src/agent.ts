@@ -4,7 +4,7 @@ import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agen
 
 import CONFIG from "./agent.config";
 import { COMET_ABI } from "./constants";
-import { addPositionsToMonitoringList, AgentState, borrowLiquidity, NetworkData } from "./utils";
+import { addPositionsToMonitoringList, AgentState, presentValueBorrow, NetworkData } from "./utils";
 import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
 
 export const provideInitializeTask = (
@@ -183,7 +183,7 @@ export const provideHandleBlock = (
         );
 
         const largePositions = state.monitoringLists[comet.address].filter((entry) =>
-          borrowLiquidity(entry, baseBorrowIndex, baseIndexScale).gte(threshold)
+          presentValueBorrow(entry, baseBorrowIndex, baseIndexScale).gte(threshold)
         );
 
         let [borrowerStatusesSuccess, borrowerStatuses] = await multicallProvider.all(
@@ -204,7 +204,7 @@ export const provideHandleBlock = (
               createLiquidationRiskFinding(
                 comet.address,
                 entry.borrower,
-                borrowLiquidity(entry, baseBorrowIndex, baseIndexScale),
+                presentValueBorrow(entry, baseBorrowIndex, baseIndexScale),
                 chainId
               )
             );
