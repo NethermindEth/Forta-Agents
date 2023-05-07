@@ -198,7 +198,7 @@ export const provideHandleBlock = (
           const isBorrowCollateralized = borrowerStatuses[idx];
           if (
             !isBorrowCollateralized &&
-            blockEvent.block.timestamp - entry.alertedAt > networkManager.get("alertInterval")
+            (!entry.alertedAt || blockEvent.block.timestamp - entry.alertedAt > networkManager.get("alertInterval"))
           ) {
             findings.push(
               createLiquidationRiskFinding(
