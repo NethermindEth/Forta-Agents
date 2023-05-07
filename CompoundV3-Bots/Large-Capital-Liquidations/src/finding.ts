@@ -1,4 +1,4 @@
-import { ethers, Finding, FindingSeverity, FindingType, LogDescription, Network } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
 export function createAbsorbFinding(
   comet: string,
