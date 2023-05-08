@@ -1,6 +1,6 @@
 {
   "name": "native-ice-phishing-detection-bot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Forta Bot that monitors native ice phishing attacks",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/native-ice-phishing",
   "chainIds": [

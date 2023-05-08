@@ -11,6 +11,10 @@ export const POLYGON_MATIC_ADDRESS =
 
 export const WITHDRAW_SIG = "3ccfd60b";
 export const BALANCEOF_SIG = "70a08231";
+export const OWNER_ABI = [
+  "function owner() public view returns (address)",
+  "function getOwner() public view returns (address)",
+];
 
 export const toTxCountThreshold = 2000;
 export const fromTxCountThreshold = 9999;
@@ -30,6 +34,35 @@ export type Data = {
   alertedAddresses: string[];
   alertedHashes: string[];
 };
+
+interface Transaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  transactionIndex: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasPrice: string;
+  isError: string;
+  txreceipt_status: string;
+  input: string;
+  contractAddress: string;
+  cumulativeGasUsed: string;
+  gasUsed: string;
+  confirmations: string;
+  methodId: string;
+  functionName: string;
+}
+
+export interface Response {
+  status: string;
+  message: string;
+  result: Transaction[];
+}
 
 export const filterConflictingEntries: (transfers: Transfer[]) => Transfer[] = (
   transfers

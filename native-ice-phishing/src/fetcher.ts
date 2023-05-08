@@ -3,7 +3,12 @@ import { providers } from "ethers";
 import LRU from "lru-cache";
 import { EVM } from "evm";
 import { etherscanApis } from "./config";
-import { fromTxCountThreshold, toTxCountThreshold } from "./utils";
+import {
+  OWNER_ABI,
+  fromTxCountThreshold,
+  toTxCountThreshold,
+  Response,
+} from "./utils";
 import { ethers } from "forta-agent";
 
 interface apiKeys {
@@ -22,6 +27,7 @@ export default class DataFetcher {
   private codeCache: LRU<string, string>;
   private functionCache: LRU<string, string>;
   private nonceCache: LRU<string, number>;
+  private ownerCache: LRU<string, string>;
   private apiKeys: apiKeys;
   private signatureDbUrl: string =
     "https://raw.githubusercontent.com/ethereum-lists/4bytes/master/signatures/";
@@ -33,6 +39,7 @@ export default class DataFetcher {
     this.codeCache = new LRU<string, string>({ max: 10000 });
     this.nonceCache = new LRU<string, number>({ max: 50000 });
     this.functionCache = new LRU<string, string>({ max: 10000 });
+    this.ownerCache = new LRU<string, string>({ max: 10000 });
   }
 
   private getBlockExplorerKey = (chainId: number) => {
@@ -113,6 +120,16 @@ export default class DataFetcher {
     const { sourceCode } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     return `${sourceCode}&address=${address}&apikey=${key}`;
+  };
+
+  private getLogsUrl = (
+    address: string,
+    blockNumber: number,
+    chainId: number
+  ) => {
+    const { logs } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${logs}&address=${address}&fromBlock=0&toBlock=${blockNumber}&page=1&offset=2&apikey=${key}`;
   };
 
   getCode = async (address: string) => {
@@ -294,6 +311,65 @@ export default class DataFetcher {
     return [isFirstInteraction, hasHighNumberOfTotalTxs];
   };
 
+  hasValidEntries = async (address: string, chainId: number, hash: string) => {
+    const maxRetries = 3;
+    let result: Response = { message: "", status: "", result: [] };
+    let hasValidEntries = false;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(
+            this.getEtherscanAddressUrl(address, chainId, toTxCountThreshold)
+          )
+        ).json();
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(
+            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(
+              `block explorer error occured (final attempt); skipping check for ${address}`
+            );
+            return false;
+          }
+        } else {
+          break;
+        }
+      } catch {
+        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
+        if (attempt === maxRetries) {
+          console.log(
+            `Error during fetch (final attempt); skipping check for ${address}`
+          );
+          return false;
+        }
+      }
+    }
+    result.result.forEach((entry: any, i: number) => {
+      if (entry.hash === hash && i >= 3) {
+        const prevEntries = result.result.slice(i - 3, i) as any[];
+        const hasZeroValue = prevEntries.some(
+          (prevEntry) => prevEntry.value === "0"
+        );
+        const hasDuplicateFrom = prevEntries.some(
+          (prevEntry, j) =>
+            prevEntries.findIndex(
+              (otherPrevEntry) => otherPrevEntry.from === prevEntry.from
+            ) !== j
+        );
+        if (!hasZeroValue && !hasDuplicateFrom) {
+          hasValidEntries = true;
+        }
+      }
+    });
+
+    return hasValidEntries;
+  };
+
   getAddresses = async (address: string, chainId: number, hash: string) => {
     // setting offset to 1 as we only need the first tx
     let url = this.getEtherscanAddressUrl(
@@ -468,5 +544,70 @@ export default class DataFetcher {
     }
 
     return result.result[0].SourceCode;
+  };
+
+  getNumberOfLogs = async (
+    address: string,
+    blockNumber: number,
+    chainId: number
+  ) => {
+    const maxRetries = 3;
+    let result;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getLogsUrl(address, blockNumber, chainId))
+        ).json();
+
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(
+            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(
+              `block explorer error occured (final attempt); skipping check for ${address}`
+            );
+            return 10;
+          }
+        } else {
+          break;
+        }
+      } catch {
+        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
+        if (attempt === maxRetries) {
+          console.log(
+            `Error during fetch (final attempt); skipping check for ${address}`
+          );
+          return 10;
+        }
+      }
+    }
+
+    return result.result.length;
+  };
+
+  getOwner = async (address: string, block: number): Promise<string> => {
+    const key: string = `${address} - ${block}`;
+    if (this.ownerCache.has(key)) return this.ownerCache.get(key) as string;
+
+    const contract = new ethers.Contract(address, OWNER_ABI, this.provider);
+    let owner: string;
+    try {
+      owner = await contract.owner({
+        blockTag: block,
+      });
+    } catch {
+      try {
+        owner = await contract.getOwner({ blockTag: block });
+      } catch {
+        owner = "";
+      }
+    }
+    this.ownerCache.set(key, owner);
+    return owner;
   };
 }

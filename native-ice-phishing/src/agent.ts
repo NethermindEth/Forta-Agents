@@ -17,6 +17,7 @@ import {
   createFinding,
   createHighSeverityFinding,
   createLowSeverityFinding,
+  createWithdrawalFinding,
 } from "./findings";
 import { ZETTABLOCK_API_KEY } from "./key";
 import { keys } from "./keys";
@@ -43,6 +44,7 @@ let chainId: number = 0;
 let txWithInputDataCount = 0;
 let transfersCount = 0;
 let contractCreationsCount = 0;
+let withdrawalsCount = 0;
 let isRelevantChain: boolean;
 
 let storedData: Data = {
@@ -194,12 +196,90 @@ export const provideHandleTransaction =
       logs,
       blockNumber,
     } = txEvent;
-    if (!txEvent.to) {
+
+    if (to) {
+      let owner = "";
+      let numberOfLogs = 10; // Initialize with the number out of the expected range
+
+      if (txEvent.traces.length) {
+        await Promise.all(
+          txEvent.traces.map(async (trace) => {
+            if (trace.action.value !== "0x0" && trace.action.to !== to) {
+              withdrawalsCount++;
+
+              if (!owner) {
+                owner = await dataFetcher.getOwner(to, blockNumber);
+              }
+              if (owner && from === owner.toLowerCase()) {
+                // Only fetch the number of logs if it is not already known
+                if (numberOfLogs === 10) {
+                  numberOfLogs = await dataFetcher.getNumberOfLogs(
+                    to,
+                    blockNumber,
+                    chainId
+                  );
+                }
+                if (numberOfLogs < 2) {
+                  const hasValidEntries = await dataFetcher.hasValidEntries(
+                    to,
+                    chainId,
+                    hash
+                  );
+                  if (hasValidEntries) {
+                    const anomalyScore = await calculateAlertRate(
+                      Number(chainId),
+                      BOT_ID,
+                      "NIP-6",
+                      ScanCountType.CustomScanCount,
+                      withdrawalsCount // No issue in passing 0 for non-relevant chains
+                    );
+                    findings.push(
+                      createWithdrawalFinding(hash, from, to, anomalyScore)
+                    );
+                  }
+                }
+              }
+            }
+          })
+        );
+      } else if (txEvent.transaction.data === "0x" + WITHDRAW_SIG) {
+        withdrawalsCount++;
+
+        owner = await dataFetcher.getOwner(to, blockNumber);
+        if (owner && from === owner.toLowerCase()) {
+          numberOfLogs = await dataFetcher.getNumberOfLogs(
+            to,
+            blockNumber,
+            chainId
+          );
+
+          if (numberOfLogs < 2) {
+            const hasValidEntries = await dataFetcher.hasValidEntries(
+              to,
+              chainId,
+              hash
+            );
+            if (hasValidEntries) {
+              const anomalyScore = await calculateAlertRate(
+                Number(chainId),
+                BOT_ID,
+                "NIP-6",
+                ScanCountType.CustomScanCount,
+                withdrawalsCount // No issue in passing 0 for non-relevant chains
+              );
+              findings.push(
+                createWithdrawalFinding(hash, from, to, anomalyScore)
+              );
+            }
+          }
+        }
+      }
+    } else {
       if (isRelevantChain) contractCreationsCount++;
       const nonce = txEvent.transaction.nonce;
       const createdContractAddress = ethers.utils.getContractAddress({
-        from: txEvent.from,
-        nonce: nonce,
+        from,
+        nonce,
       });
 
       const code = await dataFetcher.getCode(createdContractAddress);
@@ -247,8 +327,8 @@ export const provideHandleTransaction =
         const hashesWithoutPrefix = alertedHashes.map((hash) => {
           return hash.substring(2);
         });
-        const hasCodeWithoutPrefix = hashesWithoutPrefix.some((c) =>
-          code.includes(c)
+        const hasCodeWithoutPrefix = hashesWithoutPrefix.some(
+          (c) => c !== WITHDRAW_SIG && code.includes(c)
         );
         if (hasCodeWithoutPrefix) {
           const anomalyScore = await calculateAlertRate(

@@ -199,6 +199,42 @@ const testCreateCriticalSeverityFinding = (
   });
 };
 
+const testCreateWithdrawalFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Withdrawal transaction in a possible native ice phishing attack",
+    description: `${attacker} called withdraw function in contract: ${address} possibly used for a native ice phishing attack`,
+    alertId: "NIP-6",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
 const mockFetcher = {
   isEoa: jest.fn(),
   getCode: jest.fn(),
@@ -211,6 +247,9 @@ const mockFetcher = {
   getAddresses: jest.fn(),
   getLabel: jest.fn(),
   getSourceCode: jest.fn(),
+  getOwner: jest.fn(),
+  getNumberOfLogs: jest.fn(),
+  hasValidEntries: jest.fn(),
 };
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
@@ -601,14 +640,16 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getEvents)
       .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
       .mockReturnValueOnce([]);
-
+    when(mockFetcher.getFunctions)
+      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
+      .mockReturnValueOnce([]);
     when(mockFetcher.getSourceCode)
       .calledWith(mockContractAddress, 1)
       .mockReturnValueOnce("");
 
     when(mockCalculateRate)
       .calledWith(1, BOT_ID, "NIP-5", ScanCountType.ContractCreationCount, 0)
-      .mockReturnValue(0.0034231);
+      .mockReturnValueOnce(0.0034231);
     const findings: Finding[] = await handleTransaction(tx);
     expect(findings).toStrictEqual([
       testCreateCriticalSeverityFinding(
@@ -616,6 +657,46 @@ describe("Native Ice Phishing Bot test suite", () => {
         createAddress("0x0f"),
         mockContractAddress,
         0.0034231
+      ),
+    ]);
+  });
+
+  it("should return a finding if there's a withdrawal from the owner of a contract used for native ice phishing attack", async () => {
+    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+    mockFetcher.getTransactions.mockReturnValueOnce([
+      { hash: "hash15" },
+      { hash: "hash25" },
+    ]);
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(createAddress("0x01"))
+      .setData("0x3ccfd60b")
+      .setBlock(234)
+      .setHash("0xabcd");
+
+    when(mockFetcher.getOwner)
+      .calledWith(createAddress("0x01"), 234)
+      .mockResolvedValueOnce(createAddress("0x0f"));
+
+    when(mockFetcher.getNumberOfLogs)
+      .calledWith(createAddress("0x01"), 234, 1)
+      .mockResolvedValueOnce(1);
+
+    when(mockFetcher.hasValidEntries)
+      .calledWith(createAddress("0x01"), 1, "0xabcd")
+      .mockResolvedValueOnce(true);
+
+    when(mockCalculateRate)
+      .calledWith(1, BOT_ID, "NIP-6", ScanCountType.CustomScanCount, 1)
+      .mockReturnValueOnce(0.0134231);
+
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([
+      testCreateWithdrawalFinding(
+        "0xabcd",
+        createAddress("0x0f"),
+        createAddress("0x01"),
+        0.0134231
       ),
     ]);
   });

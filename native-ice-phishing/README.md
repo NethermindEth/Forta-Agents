@@ -134,6 +134,25 @@ This bot monitors:
       - `entityType`: The type of the entity, always set to "Address"
       - `label`: The type of the label, always set to "Attacker"
       - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
+- NIP-6
+  - Fired when there's a withdrawal from the owner of a contract used for a native ice phishing attack.
+  - Severity is always set to "Critical"
+  - Type is always set to "Suspicious"
+  - Metadata contains:
+    - `attacker`: The owner address
+    - `address`: The contract address
+    - `anomalyScore`: The anomaly score of the alert
+  - Labels contain:
+    - Label 1:
+      - `entity`: The transaction's hash
+      - `entityType`: The type of the entity, always set to "Transaction"
+      - `label`: The type of the label, always set to "Attack"
+      - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
+    - Label 2:
+      - `entity`: The contract creator address
+      - `entityType`: The type of the entity, always set to "Address"
+      - `label`: The type of the label, always set to "Attacker"
+      - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
 
 ## Test Data
 
