@@ -69,8 +69,8 @@ export default class Fetcher {
     }
   };
 
-  public getContractInfo = async (contract: string, chainId: number, isToken: boolean, blockNumber: number) => {
-    const key: string = `${contract}-${blockNumber}`;
+  public getContractInfo = async (contract: string, chainId: number, isToken: boolean) => {
+    const key: string = `${contract}`;
     if (this.cache.has(key)) return this.cache.get(key) as boolean;
 
     let result;
