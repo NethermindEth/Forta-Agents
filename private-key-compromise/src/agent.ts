@@ -127,32 +127,28 @@ export const provideHandleTransaction =
       if (isRelevantChain) transfersCount++;
       // check only if the to address is not inside alertedAddresses
       if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-        const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
-          to,
-          Number(chainId),
-          false,
-          txEvent.blockNumber
-        );
+        if (await dataFetcher.isEoa(to)) {
+          const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(to, Number(chainId), false);
+          if (!hasHighNumberOfTotalTxs) {
+            const balance = await provider.getBalance(txEvent.transaction.from, txEvent.blockNumber);
 
-        if ((await dataFetcher.isEoa(to)) && !hasHighNumberOfTotalTxs) {
-          const balance = await provider.getBalance(txEvent.transaction.from, txEvent.blockNumber);
+            // if the account is drained
+            if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
+              await updateRecord(from, to, transferObj);
 
-          // if the account is drained
-          if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
-            await updateRecord(from, to, transferObj);
+              // if there are multiple transfers to the same address, emit an alert
+              if (transferObj[to].length > 3) {
+                alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
 
-            // if there are multiple transfers to the same address, emit an alert
-            if (transferObj[to].length > 3) {
-              alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
-
-              const anomalyScore = await calculateAlertRate(
-                Number(chainId),
-                BOT_ID,
-                "PKC-1",
-                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                transfersCount
-              );
-              findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
+                const anomalyScore = await calculateAlertRate(
+                  Number(chainId),
+                  BOT_ID,
+                  "PKC-1",
+                  isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                  transfersCount
+                );
+                findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
+              }
             }
           }
         }
@@ -166,38 +162,38 @@ export const provideHandleTransaction =
           if (isRelevantChain) ercTransferCount++;
           // check only if the to address is not inside alertedAddresses
           if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
-            const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
-              transfer.args.to,
-              Number(chainId),
-              true,
-              txEvent.blockNumber
-            );
-
-            if ((await dataFetcher.isEoa(transfer.args.to)) && !hasHighNumberOfTotalTxs) {
-              const balanceFrom = await balanceFetcher.getBalanceOf(
-                transfer.args.from,
-                transfer.address,
-                txEvent.blockNumber
+            if (await dataFetcher.isEoa(transfer.args.to)) {
+              const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+                transfer.args.to,
+                Number(chainId),
+                true
               );
+              if (!hasHighNumberOfTotalTxs) {
+                const balanceFrom = await balanceFetcher.getBalanceOf(
+                  transfer.args.from,
+                  transfer.address,
+                  txEvent.blockNumber
+                );
 
-              if (balanceFrom.eq(0)) {
-                await updateRecord(transfer.args.from, transfer.args.to, transferObj);
+                if (balanceFrom.eq(0)) {
+                  await updateRecord(transfer.args.from, transfer.args.to, transferObj);
 
-                // if there are multiple transfers to the same address, emit an alert
-                if (transferObj[transfer.args.to].length > 3) {
-                  alertedAddresses.push({
-                    address: transfer.args.to,
-                    timestamp: txEvent.timestamp,
-                  });
+                  // if there are multiple transfers to the same address, emit an alert
+                  if (transferObj[transfer.args.to].length > 3) {
+                    alertedAddresses.push({
+                      address: transfer.args.to,
+                      timestamp: txEvent.timestamp,
+                    });
 
-                  const anomalyScore = await calculateAlertRate(
-                    Number(chainId),
-                    BOT_ID,
-                    "PKC-1",
-                    isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                    ercTransferCount
-                  );
-                  findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
+                    const anomalyScore = await calculateAlertRate(
+                      Number(chainId),
+                      BOT_ID,
+                      "PKC-1",
+                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                      ercTransferCount
+                    );
+                    findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
+                  }
                 }
               }
             }
