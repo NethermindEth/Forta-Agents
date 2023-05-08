@@ -33,6 +33,7 @@ import {
   filterConflictingEntries,
   WITHDRAW_SIG,
   BALANCEOF_SIG,
+  checkRoundValue,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import {
@@ -196,161 +197,6 @@ export const provideHandleTransaction =
       logs,
       blockNumber,
     } = txEvent;
-
-    if (to) {
-      let owner = "";
-      let numberOfLogs = 10; // Initialize with the number out of the expected range
-
-      if (txEvent.traces.length) {
-        await Promise.all(
-          txEvent.traces.map(async (trace) => {
-            if (trace.action.value !== "0x0" && trace.action.to !== to) {
-              withdrawalsCount++;
-
-              if (!owner) {
-                owner = await dataFetcher.getOwner(to, blockNumber);
-              }
-              if (owner && from === owner.toLowerCase()) {
-                // Only fetch the number of logs if it is not already known
-                if (numberOfLogs === 10) {
-                  numberOfLogs = await dataFetcher.getNumberOfLogs(
-                    to,
-                    blockNumber,
-                    chainId
-                  );
-                }
-                if (numberOfLogs < 2) {
-                  const hasValidEntries = await dataFetcher.hasValidEntries(
-                    to,
-                    chainId,
-                    hash
-                  );
-                  if (hasValidEntries) {
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "NIP-6",
-                      ScanCountType.CustomScanCount,
-                      withdrawalsCount // No issue in passing 0 for non-relevant chains
-                    );
-                    findings.push(
-                      createWithdrawalFinding(hash, from, to, anomalyScore)
-                    );
-                  }
-                }
-              }
-            }
-          })
-        );
-      } else if (txEvent.transaction.data === "0x" + WITHDRAW_SIG) {
-        withdrawalsCount++;
-
-        owner = await dataFetcher.getOwner(to, blockNumber);
-        if (owner && from === owner.toLowerCase()) {
-          numberOfLogs = await dataFetcher.getNumberOfLogs(
-            to,
-            blockNumber,
-            chainId
-          );
-
-          if (numberOfLogs < 2) {
-            const hasValidEntries = await dataFetcher.hasValidEntries(
-              to,
-              chainId,
-              hash
-            );
-            if (hasValidEntries) {
-              const anomalyScore = await calculateAlertRate(
-                Number(chainId),
-                BOT_ID,
-                "NIP-6",
-                ScanCountType.CustomScanCount,
-                withdrawalsCount // No issue in passing 0 for non-relevant chains
-              );
-              findings.push(
-                createWithdrawalFinding(hash, from, to, anomalyScore)
-              );
-            }
-          }
-        }
-      }
-    } else {
-      if (isRelevantChain) contractCreationsCount++;
-      const nonce = txEvent.transaction.nonce;
-      const createdContractAddress = ethers.utils.getContractAddress({
-        from,
-        nonce,
-      });
-
-      const code = await dataFetcher.getCode(createdContractAddress);
-      if (!code || code.includes(BALANCEOF_SIG)) {
-        return findings;
-      }
-
-      const events = await dataFetcher.getEvents(code);
-      const functions = await dataFetcher.getFunctions(code);
-      if (events.length > 1 || functions.length > 10) {
-        return findings;
-      }
-
-      const sourceCode = await dataFetcher.getSourceCode(
-        createdContractAddress,
-        chainId
-      );
-      if (sourceCode) {
-        const payableString = "payable";
-        const withdrawRegex =
-          /require\(owner == msg.sender\);\s*msg\.sender\.transfer\(address\(this\)\.balance\);/g;
-        if (
-          withdrawRegex.test(sourceCode) &&
-          sourceCode.includes(payableString)
-        ) {
-          const anomalyScore = await calculateAlertRate(
-            Number(chainId),
-            BOT_ID,
-            "NIP-5",
-            isRelevantChain
-              ? ScanCountType.CustomScanCount
-              : ScanCountType.ContractCreationCount,
-            contractCreationsCount // No issue in passing 0 for non-relevant chains
-          );
-          findings.push(
-            createCriticalSeverityFinding(
-              hash,
-              from,
-              createdContractAddress,
-              anomalyScore
-            )
-          );
-        }
-      } else if (code.includes(WITHDRAW_SIG)) {
-        const hashesWithoutPrefix = alertedHashes.map((hash) => {
-          return hash.substring(2);
-        });
-        const hasCodeWithoutPrefix = hashesWithoutPrefix.some(
-          (c) => c !== WITHDRAW_SIG && code.includes(c)
-        );
-        if (hasCodeWithoutPrefix) {
-          const anomalyScore = await calculateAlertRate(
-            Number(chainId),
-            BOT_ID,
-            "NIP-5",
-            isRelevantChain
-              ? ScanCountType.CustomScanCount
-              : ScanCountType.ContractCreationCount,
-            contractCreationsCount // No issue in passing 0 for non-relevant chains
-          );
-          findings.push(
-            createCriticalSeverityFinding(
-              hash,
-              from,
-              createdContractAddress,
-              anomalyScore
-            )
-          );
-        }
-      }
-    }
 
     // At the beginning of the block
     if (blockNumber != lastBlock) {
@@ -517,6 +363,161 @@ export const provideHandleTransaction =
     // In the last transaction of the block
     if (hash === transactions[transactions.length - 1].hash) {
       await mergeAndPersistObjects();
+    }
+
+    if (to) {
+      let owner = "";
+      let numberOfLogs = 10; // Initialize with the number out of the expected range
+
+      if (txEvent.traces.length) {
+        await Promise.all(
+          txEvent.traces.map(async (trace) => {
+            if (trace.action.value !== "0x0" && trace.action.to !== to) {
+              withdrawalsCount++;
+
+              if (!owner) {
+                owner = await dataFetcher.getOwner(to, blockNumber);
+              }
+              if (owner && from === owner.toLowerCase()) {
+                // Only fetch the number of logs if it is not already known
+                if (numberOfLogs === 10) {
+                  numberOfLogs = await dataFetcher.getNumberOfLogs(
+                    to,
+                    blockNumber,
+                    chainId
+                  );
+                }
+                if (numberOfLogs < 2) {
+                  const hasValidEntries = await dataFetcher.hasValidEntries(
+                    to,
+                    chainId,
+                    hash
+                  );
+                  if (hasValidEntries) {
+                    const anomalyScore = await calculateAlertRate(
+                      Number(chainId),
+                      BOT_ID,
+                      "NIP-6",
+                      ScanCountType.CustomScanCount,
+                      withdrawalsCount // No issue in passing 0 for non-relevant chains
+                    );
+                    findings.push(
+                      createWithdrawalFinding(hash, from, to, anomalyScore)
+                    );
+                  }
+                }
+              }
+            }
+          })
+        );
+      } else if (txEvent.transaction.data === "0x" + WITHDRAW_SIG) {
+        withdrawalsCount++;
+
+        owner = await dataFetcher.getOwner(to, blockNumber);
+        if (owner && from === owner.toLowerCase()) {
+          numberOfLogs = await dataFetcher.getNumberOfLogs(
+            to,
+            blockNumber,
+            chainId
+          );
+
+          if (numberOfLogs < 2) {
+            const hasValidEntries = await dataFetcher.hasValidEntries(
+              to,
+              chainId,
+              hash
+            );
+            if (hasValidEntries) {
+              const anomalyScore = await calculateAlertRate(
+                Number(chainId),
+                BOT_ID,
+                "NIP-6",
+                ScanCountType.CustomScanCount,
+                withdrawalsCount // No issue in passing 0 for non-relevant chains
+              );
+              findings.push(
+                createWithdrawalFinding(hash, from, to, anomalyScore)
+              );
+            }
+          }
+        }
+      }
+    } else {
+      if (isRelevantChain) contractCreationsCount++;
+      const nonce = txEvent.transaction.nonce;
+      const createdContractAddress = ethers.utils.getContractAddress({
+        from,
+        nonce,
+      });
+
+      const code = await dataFetcher.getCode(createdContractAddress);
+      if (!code || code.includes(BALANCEOF_SIG)) {
+        return findings;
+      }
+
+      const events = await dataFetcher.getEvents(code);
+      const functions = await dataFetcher.getFunctions(code);
+      if (events.length > 1 || functions.length > 10) {
+        return findings;
+      }
+
+      const sourceCode = await dataFetcher.getSourceCode(
+        createdContractAddress,
+        chainId
+      );
+      if (sourceCode) {
+        const payableString = "payable";
+        const withdrawRegex =
+          /require\(owner == msg.sender\);\s*msg\.sender\.transfer\(address\(this\)\.balance\);/g;
+        if (
+          withdrawRegex.test(sourceCode) &&
+          sourceCode.includes(payableString)
+        ) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-5",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        }
+      } else if (code.includes(WITHDRAW_SIG)) {
+        const hashesWithoutPrefix = alertedHashes.map((hash) => {
+          return hash.substring(2);
+        });
+        const hasCodeWithoutPrefix = hashesWithoutPrefix.some(
+          (c) => c !== WITHDRAW_SIG && code.includes(c)
+        );
+        if (hasCodeWithoutPrefix) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-5",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        }
+      }
     }
 
     if (Number(chainId) !== 137) {
@@ -704,24 +705,40 @@ export const provideHandleTransaction =
         const sig = await dataFetcher.getSignature(data);
 
         if (sig) {
+          let isValueRound = true;
+          let isValueUnique = false;
           const [alertId, severity] =
             value !== "0x0"
               ? ["NIP-1", FindingSeverity.Medium]
               : ["NIP-2", FindingSeverity.Info];
-          const anomalyScore = await calculateAlertRate(
-            Number(chainId),
-            BOT_ID,
-            alertId,
-            isRelevantChain
-              ? ScanCountType.CustomScanCount
-              : ScanCountType.TxWithInputDataCount,
-            txWithInputDataCount // No issue in passing 0 for non-relevant chains
-          );
-          findings.push(
-            createFinding(hash, from, to, sig, anomalyScore, severity)
-          );
-          if (!alertedHashes.includes(data)) {
-            alertedHashes.push(data);
+          if (value !== "0x0") {
+            const bNValue = ethers.BigNumber.from(value);
+            isValueRound = checkRoundValue(bNValue);
+            if (!isValueRound) {
+              isValueUnique = await dataFetcher.isValueUnique(
+                to,
+                chainId,
+                hash,
+                bNValue.toString()
+              );
+            }
+          }
+          if (value === "0x0" || (!isValueRound && isValueUnique)) {
+            const anomalyScore = await calculateAlertRate(
+              Number(chainId),
+              BOT_ID,
+              alertId,
+              isRelevantChain
+                ? ScanCountType.CustomScanCount
+                : ScanCountType.TxWithInputDataCount,
+              txWithInputDataCount // No issue in passing 0 for non-relevant chains
+            );
+            findings.push(
+              createFinding(hash, from, to, sig, anomalyScore, severity)
+            );
+            if (!alertedHashes.includes(data)) {
+              alertedHashes.push(data);
+            }
           }
         } else {
           console.log(

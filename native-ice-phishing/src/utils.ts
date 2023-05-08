@@ -102,3 +102,9 @@ export const filterConflictingEntries: (transfers: Transfer[]) => Transfer[] = (
     );
   });
 };
+
+export const checkRoundValue = (num: ethers.BigNumber): boolean => {
+  const divisor = ethers.BigNumber.from("1000000000000000000"); // equivalent to 10^18
+  const quotient = num.div(divisor);
+  return quotient.mul(divisor).eq(num);
+};

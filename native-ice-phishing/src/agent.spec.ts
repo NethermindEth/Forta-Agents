@@ -5,6 +5,7 @@ import {
   FindingType,
   HandleTransaction,
   Label,
+  ethers,
 } from "forta-agent";
 import {
   TestTransactionEvent,
@@ -250,6 +251,7 @@ const mockFetcher = {
   getOwner: jest.fn(),
   getNumberOfLogs: jest.fn(),
   hasValidEntries: jest.fn(),
+  isValueUnique: jest.fn(),
 };
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
@@ -354,6 +356,15 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getSignature)
       .calledWith("0x12345678")
       .mockReturnValue("transfer(address,uint256)");
+
+    when(mockFetcher.isValueUnique)
+      .calledWith(
+        createAddress("0x01"),
+        1,
+        "0xabcd",
+        ethers.BigNumber.from("0x0bb").toString()
+      )
+      .mockReturnValue(true);
 
     when(mockCalculateRate)
       .calledWith(1, BOT_ID, "NIP-1", ScanCountType.TxWithInputDataCount, 0)
