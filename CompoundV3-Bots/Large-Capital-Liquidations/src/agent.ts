@@ -21,10 +21,12 @@ export const provideInitializeTask = (
   provider: ethers.providers.JsonRpcProvider
 ): (() => Promise<void>) => {
   const iface = new ethers.utils.Interface(COMET_ABI);
-  const scanState = networkManager.get("cometContracts").map((comet) => ({
+  const cometContracts = networkManager.get("cometContracts").map((comet) => ({
     comet: new ethers.Contract(comet.address, iface, provider),
     multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
-    blockCursor: comet.deploymentBlock,
+    deploymentBlock: comet.deploymentBlock,
+    baseIndexScale: ethers.BigNumber.from(0),
+    baseBorrowIndex: ethers.BigNumber.from(0),
     monitoringListLength: comet.monitoringListLength,
     threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
   }));
@@ -32,69 +34,79 @@ export const provideInitializeTask = (
   const blockTag = !DEBUG ? "latest" : DEBUG_CURRENT_BLOCK;
 
   return async () => {
-    // asynchronously for each Comet contract
+    let currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
+    let blockCursor = cometContracts.reduce((a, b) => (a.deploymentBlock < b.deploymentBlock ? a : b)).deploymentBlock;
+
+    // get current borrow data to compute present values
     await Promise.all(
-      scanState.map(async ({ comet, multicallComet, blockCursor, threshold, monitoringListLength }) => {
-        const blockRange = networkManager.get("logFetchingBlockRange");
-        const bottleneck = new Bottleneck({
-          minTime: networkManager.get("logFetchingInterval"),
-        });
-
-        // get current borrow data to compute present values
-        const baseIndexScale = await comet.baseIndexScale({ blockTag });
-        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag });
-
-        let currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
-
-        while (blockCursor < currentBlock) {
-          if (state.lastHandledBlock) currentBlock = state.lastHandledBlock;
-
-          // get relevant logs for this Comet contract
-          const logs = await bottleneck.schedule(async () => {
-            return (
-              await provider.getLogs({
-                topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
-                fromBlock: blockCursor,
-                toBlock: Math.min(blockCursor + blockRange - 1, currentBlock),
-                address: comet.address,
-              })
-            ).map((log) => ({ ...log, ...iface.parseLog(log) }));
-          });
-
-          // get borrowers and principals from potential borrowers involved in the logs
-          const borrowers = getPotentialBorrowersFromLogs(logs);
-          const userBasics = await multicallAll(
-            multicallProvider,
-            borrowers.map((borrower) => multicallComet.userBasic(borrower)),
-            blockTag,
-            networkManager.get("multicallSize")
-          );
-
-          addPositionsToMonitoringList(
-            state,
-            comet.address,
-            monitoringListLength,
-            borrowers.map((borrower, idx) => ({
-              borrower,
-              principal: userBasics[idx].principal,
-              alertedAt: 0,
-            })),
-            threshold,
-            baseBorrowIndex,
-            baseIndexScale
-          );
-
-          console.log(
-            `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${blockCursor + blockRange - 1}`
-          );
-
-          blockCursor += blockRange;
-
-          // update the initialization block to avoid any blocks being missed
-          state.initializationBlock = currentBlock;
-        }
+      cometContracts.map(async (entry) => {
+        entry.baseBorrowIndex = await entry.comet.baseIndexScale({ blockTag });
+        entry.baseBorrowIndex = (await entry.comet.totalsBasic({ blockTag })).baseBorrowIndex;
       })
     );
+
+    const blockRange = networkManager.get("logFetchingBlockRange");
+    const bottleneck = new Bottleneck({
+      minTime: networkManager.get("logFetchingInterval"),
+    });
+
+    // for each block range
+    for (; blockCursor < currentBlock; blockCursor += blockRange) {
+      if (state.lastHandledBlock) currentBlock = state.lastHandledBlock;
+
+      const toBlock = Math.min(blockCursor + blockRange - 1, currentBlock);
+      const contractsToScan = cometContracts.filter((entry) => entry.deploymentBlock <= toBlock);
+
+      await Promise.all(
+        contractsToScan.map(
+          async ({ comet, multicallComet, monitoringListLength, threshold, baseBorrowIndex, baseIndexScale }) => {
+            // get relevant logs for this Comet contract
+            const logs = await bottleneck.schedule(async () => {
+              return (
+                await provider.getLogs({
+                  topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+                  fromBlock: blockCursor,
+                  toBlock: Math.min(blockCursor + blockRange - 1, currentBlock),
+                  address: comet.address,
+                })
+              ).map((log) => ({ ...log, ...iface.parseLog(log) }));
+            });
+
+            // get borrowers and principals from potential borrowers involved in the logs
+            const borrowers = getPotentialBorrowersFromLogs(logs);
+            const userBasics = await multicallAll(
+              multicallProvider,
+              borrowers.map((borrower) => multicallComet.userBasic(borrower)),
+              blockTag,
+              networkManager.get("multicallSize")
+            );
+
+            addPositionsToMonitoringList(
+              state,
+              comet.address,
+              monitoringListLength,
+              borrowers.map((borrower, idx) => ({
+                borrower,
+                principal: userBasics[idx].principal,
+                alertedAt: 0,
+              })),
+              threshold,
+              baseBorrowIndex,
+              baseIndexScale
+            );
+
+            console.log(
+              `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${
+                blockCursor + blockRange - 1
+              }`
+            );
+          }
+        )
+      );
+    }
+
+    // update the initialization block to avoid any blocks being missed
+    state.initializationBlock = currentBlock;
 
     console.log("Finished initialize task");
     state.initialized = true;
