@@ -5,18 +5,19 @@
 This bot detects large borrow positions liquidation risk and absorptions on
 Comet contracts.
 
-At startup, this bot filters all `Supply`, `Withdraw` and `AbsorbDebt` events
-on the assigned Comet contracts, checks potential borrowers' principals and
-builds a list of the biggest borrowers. This process can take several minutes,
-especially considering there's some rate limiting on the log fetching to avoid
-problems with the bot runner provider limits. This process is logged and
-should be available in the bot logs once it's running.
+At startup, this bot filters all `Supply`, `Transfer`, `Withdraw` and
+`AbsorbDebt` events on the assigned Comet contracts, checks potential
+borrowers' principals and builds a list of the biggest borrowers. This process
+can take several minutes, especially considering there's some rate limiting
+on the log fetching to avoid problems with the bot runner provider limits.
+This process is logged and should be available in the bot logs once it's
+running.
 
 Then, after this process is done, the bot handles block events. Filtering 
-principal-changing events, i.e. `Supply`, `Withdraw` and `AbsorbDebt`,
-whenever one of those happens the potential borrower principal is fetched
-and it's added to the monitoring list. In the case of absorptions, if the
-absorbed amount is "large" then the associated finding is created.
+principal-changing events, i.e. `Supply`, `Transfer`, `Withdraw` and
+`AbsorbDebt`, whenever one of those happens the potential borrower principal
+is fetched and it's added to the monitoring list. In the case of absorptions,
+if the absorbed amount is "large" then the associated finding is created.
 
 With this, all current "large" positions, based on the current borrow index
 and the principal, are then checked for borrow collateralization through
