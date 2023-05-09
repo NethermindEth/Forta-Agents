@@ -1,6 +1,25 @@
 import { Network } from "forta-agent";
 import { AgentConfig } from "./utils";
 
+export const DEBUG = false;
+export const DEBUG_CURRENT_BLOCK = 15419040;
+export const DEBUG_CONFIG = {
+  [Network.MAINNET]: {
+    alertInterval: 60 * 60,
+    multicallSize: 100,
+    logFetchingBlockRange: 2000,
+    logFetchingInterval: 2000,
+    cometContracts: [
+      {
+        address: "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
+        deploymentBlock: 15331586,
+        baseLargeThreshold: "1",
+        monitoringListLength: 1000,
+      },
+    ],
+  },
+};
+
 const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Minimum interval between two uncollateralized borrow alerts for the

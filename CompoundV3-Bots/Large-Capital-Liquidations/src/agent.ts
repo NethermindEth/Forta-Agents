@@ -2,7 +2,7 @@ import { ethers, Finding, Initialize, HandleBlock, BlockEvent, getEthersBatchPro
 import Bottleneck from "bottleneck";
 import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agent-tools";
 
-import CONFIG from "./agent.config";
+import CONFIG, { DEBUG, DEBUG_CONFIG, DEBUG_CURRENT_BLOCK } from "./agent.config";
 import { COMET_ABI } from "./constants";
 import {
   addPositionsToMonitoringList,
@@ -21,7 +21,6 @@ export const provideInitializeTask = (
   provider: ethers.providers.JsonRpcProvider
 ): (() => Promise<void>) => {
   const iface = new ethers.utils.Interface(COMET_ABI);
-
   const scanState = networkManager.get("cometContracts").map((comet) => ({
     comet: new ethers.Contract(comet.address, iface, provider),
     multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
@@ -29,6 +28,8 @@ export const provideInitializeTask = (
     monitoringListLength: comet.monitoringListLength,
     threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
   }));
+
+  const blockTag = !DEBUG ? "latest" : DEBUG_CURRENT_BLOCK;
 
   return async () => {
     await Promise.all(
@@ -38,10 +39,12 @@ export const provideInitializeTask = (
           minTime: networkManager.get("logFetchingInterval"),
         });
 
-        const baseIndexScale = await comet.baseIndexScale({ blockTag: "latest" });
-        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: "latest" });
+        const baseIndexScale = await comet.baseIndexScale({ blockTag });
+        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag });
 
-        state.lastHandledBlock = await provider.getBlockNumber();
+        const currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
+
+        state.lastHandledBlock = currentBlock;
 
         while (blockCursor < state.lastHandledBlock) {
           const logs = await bottleneck.schedule(async () => {
@@ -60,7 +63,7 @@ export const provideInitializeTask = (
           const userBasics = await multicallAll(
             multicallProvider,
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
-            "latest",
+            blockTag,
             networkManager.get("multicallSize")
           );
 
@@ -103,7 +106,12 @@ export const provideInitialize = (
     await multicallProvider.init();
 
     const initializeTask = provideInitializeTask(state, networkManager, multicallProvider, provider);
-    initializeTask();
+
+    if (DEBUG) {
+      await initializeTask();
+    } else {
+      initializeTask();
+    }
   };
 };
 
@@ -211,7 +219,7 @@ export const provideHandleBlock = (
 };
 
 const provider = getEthersBatchProvider();
-const networkManager = new NetworkManager(CONFIG);
+const networkManager = new NetworkManager(!DEBUG ? CONFIG : DEBUG_CONFIG);
 const multicallProvider = new MulticallProvider(provider);
 const state: AgentState = {
   initialized: false,
