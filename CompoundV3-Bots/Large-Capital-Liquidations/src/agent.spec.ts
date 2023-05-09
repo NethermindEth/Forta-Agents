@@ -141,6 +141,16 @@ describe("Bot Test Suite", () => {
     ]);
   }
 
+  function addTransfer(comet: string, from: string, to: string, block: number | string) {
+    mockProvider.addLogs([
+      {
+        ...COMET_IFACE.encodeEventLog("Transfer", [from, to, ethers.constants.Zero]),
+        address: comet,
+        blockNumber: block,
+      } as Log,
+    ]);
+  }
+
   function addAbsorbDebt(
     comet: string,
     absorber: string,
@@ -256,10 +266,12 @@ describe("Bot Test Suite", () => {
 
   it("should correctly build a monitoring list based on previous borrowers", async () => {
     const previousBorrowers = [
+      { address: createChecksumAddress("0xb00"), principal: 0 },
       { address: createChecksumAddress("0xb01"), principal: -1 },
       { address: createChecksumAddress("0xb02"), principal: -2 },
       { address: createChecksumAddress("0xb03"), principal: -3 },
       { address: createChecksumAddress("0xb04"), principal: -4 },
+      { address: createChecksumAddress("0xb05"), principal: -5 },
     ];
 
     COMET_CONTRACTS.forEach((comet) => {
@@ -278,16 +290,21 @@ describe("Bot Test Suite", () => {
       );
       setUserPrincipal(comet.address, previousBorrowers[2].address, previousBorrowers[2].principal, "latest");
 
-      addSupply(comet.address, previousBorrowers[3].address, comet.deploymentBlock);
+      addTransfer(comet.address, previousBorrowers[3].address, previousBorrowers[4].address, comet.deploymentBlock + 3);
+      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[4].address, previousBorrowers[4].principal, "latest");
+
+      addSupply(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 3);
       addAbsorbDebt(
         comet.address,
         ethers.constants.AddressZero,
-        previousBorrowers[3].address,
+        previousBorrowers[5].address,
         0,
-        comet.deploymentBlock + 1
+        comet.deploymentBlock + 2
       );
-      addWithdrawal(comet.address, previousBorrowers[3].address, comet.deploymentBlock + 2);
-      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, "latest");
+      addWithdrawal(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 1);
+      addTransfer(comet.address, previousBorrowers[5].address, previousBorrowers[5].address, comet.deploymentBlock);
+      setUserPrincipal(comet.address, previousBorrowers[5].address, previousBorrowers[5].principal, "latest");
     });
 
     await initialize();
@@ -324,7 +341,7 @@ describe("Bot Test Suite", () => {
         addWithdrawal(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
         addSupply(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
         addAbsorbDebt(IRRELEVANT_ADDRESS, ethers.constants.AddressZero, borrower.address, 0, comet.deploymentBlock);
-        setUserPrincipal(IRRELEVANT_ADDRESS, borrower.address, borrower.principal, "latest");
+        addTransfer(IRRELEVANT_ADDRESS, borrower.address, borrower.address, comet.deploymentBlock);
       });
     });
 
@@ -389,6 +406,8 @@ describe("Bot Test Suite", () => {
       { address: createChecksumAddress("0xb03"), principal: -3, comet: COMET_CONTRACTS[0].address },
       { address: createChecksumAddress("0xb04"), principal: -4, comet: COMET_CONTRACTS[1].address },
       { address: createChecksumAddress("0xb05"), principal: -5, comet: COMET_CONTRACTS[0].address },
+      { address: createChecksumAddress("0xb06"), principal: -6, comet: COMET_CONTRACTS[1].address },
+      { address: createChecksumAddress("0xb07"), principal: -7, comet: COMET_CONTRACTS[1].address },
     ];
 
     const blockNumber = 11;
@@ -421,6 +440,19 @@ describe("Bot Test Suite", () => {
       blockNumber
     );
     setUserPrincipal(currentBorrowers[2].comet, currentBorrowers[2].address, 0, blockNumber);
+    addTransfer(currentBorrowers[3].comet, currentBorrowers[3].address, currentBorrowers[4].address, blockNumber);
+    setUserPrincipal(
+      currentBorrowers[3].comet,
+      currentBorrowers[3].address,
+      currentBorrowers[3].principal,
+      blockNumber
+    );
+    setUserPrincipal(
+      currentBorrowers[4].comet,
+      currentBorrowers[4].address,
+      currentBorrowers[4].principal,
+      blockNumber
+    );
 
     const findings = await handleBlock(blockEvent);
 
@@ -441,6 +473,16 @@ describe("Bot Test Suite", () => {
       ],
       [COMET_CONTRACTS[1].address]: [
         {
+          borrower: currentBorrowers[4].address,
+          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
+          alertedAt: 0,
+        },
+        {
+          borrower: currentBorrowers[3].address,
+          principal: ethers.BigNumber.from(currentBorrowers[3].principal),
+          alertedAt: 0,
+        },
+        {
           borrower: currentBorrowers[1].address,
           principal: ethers.BigNumber.from(currentBorrowers[1].principal),
           alertedAt: 0,
@@ -454,7 +496,7 @@ describe("Bot Test Suite", () => {
     });
 
     const nextBorrowers = [
-      { address: createChecksumAddress("0xb06"), principal: -6, comet: COMET_CONTRACTS[0].address },
+      { address: createChecksumAddress("0xb08"), principal: -8, comet: COMET_CONTRACTS[0].address },
     ];
 
     const nextBlockNumber = 12;
@@ -492,6 +534,16 @@ describe("Bot Test Suite", () => {
       ],
       [COMET_CONTRACTS[1].address]: [
         {
+          borrower: currentBorrowers[4].address,
+          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
+          alertedAt: 0,
+        },
+        {
+          borrower: currentBorrowers[3].address,
+          principal: ethers.BigNumber.from(currentBorrowers[3].principal),
+          alertedAt: 0,
+        },
+        {
           borrower: currentBorrowers[1].address,
           principal: ethers.BigNumber.from(currentBorrowers[1].principal),
           alertedAt: 0,
@@ -509,6 +561,7 @@ describe("Bot Test Suite", () => {
     const previousBorrowers = [
       { address: createChecksumAddress("0xb01"), principal: -1 },
       { address: createChecksumAddress("0xb02"), principal: -2 },
+      { address: createChecksumAddress("0xb03"), principal: -3 },
     ];
 
     COMET_CONTRACTS.forEach((comet) => {
@@ -522,10 +575,11 @@ describe("Bot Test Suite", () => {
     await initializationPromise;
 
     const currentBorrowers = [
-      { address: previousBorrowers[0].address, principal: -3, comet: COMET_CONTRACTS[0].address },
-      { address: previousBorrowers[1].address, principal: 3, comet: COMET_CONTRACTS[0].address },
-      { address: previousBorrowers[0].address, principal: -4, comet: COMET_CONTRACTS[1].address },
+      { address: previousBorrowers[0].address, principal: -4, comet: COMET_CONTRACTS[0].address },
+      { address: previousBorrowers[1].address, principal: 4, comet: COMET_CONTRACTS[0].address },
+      { address: previousBorrowers[0].address, principal: -5, comet: COMET_CONTRACTS[1].address },
       { address: previousBorrowers[1].address, principal: 0, comet: COMET_CONTRACTS[1].address },
+      { address: previousBorrowers[2].address, principal: 10, comet: COMET_CONTRACTS[1].address },
     ];
 
     const blockNumber = 11;
@@ -569,13 +623,27 @@ describe("Bot Test Suite", () => {
     );
     setUserPrincipal(currentBorrowers[3].comet, currentBorrowers[3].address, 0, blockNumber);
 
+    addTransfer(currentBorrowers[4].comet, currentBorrowers[4].address, currentBorrowers[4].address, blockNumber);
+    setUserPrincipal(
+      currentBorrowers[4].comet,
+      currentBorrowers[4].address,
+      currentBorrowers[4].principal,
+      blockNumber
+    );
+
     const findings = await handleBlock(blockEvent);
+
     expect(findings).toStrictEqual([]);
     expect(state.monitoringLists).toStrictEqual({
       [COMET_CONTRACTS[0].address]: [
         {
           borrower: currentBorrowers[0].address,
           principal: ethers.BigNumber.from(currentBorrowers[0].principal),
+          alertedAt: 0,
+        },
+        {
+          borrower: previousBorrowers[2].address,
+          principal: ethers.BigNumber.from(previousBorrowers[2].principal),
           alertedAt: 0,
         },
         {
@@ -593,6 +661,11 @@ describe("Bot Test Suite", () => {
         {
           borrower: currentBorrowers[3].address,
           principal: ethers.BigNumber.from(currentBorrowers[3].principal),
+          alertedAt: 0,
+        },
+        {
+          borrower: currentBorrowers[4].address,
+          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
           alertedAt: 0,
         },
       ],
