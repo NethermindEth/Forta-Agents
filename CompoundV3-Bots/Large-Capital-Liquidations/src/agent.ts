@@ -203,25 +203,25 @@ export const provideHandleBlock = (
           baseIndexScale
         );
 
-        const largePositions = state.monitoringLists[comet.address].filter((entry) =>
-          presentValueBorrow(entry, baseBorrowIndex, baseIndexScale).gte(threshold)
-        );
+        const eligiblePositions = state.monitoringLists[comet.address].filter((entry) => {
+          const isLarge = presentValueBorrow(entry, baseBorrowIndex, baseIndexScale).gte(threshold);
+          const isNotUnderCooldown =
+            !entry.alertedAt || blockEvent.block.timestamp - entry.alertedAt >= networkManager.get("alertInterval");
 
-        // get borrow position collateralization status for all large positions
+          return isLarge && isNotUnderCooldown;
+        });
+
+        // get borrow position collateralization status for all eligible positions
         const borrowerStatuses = await multicallAll(
           multicallProvider,
-          largePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
+          eligiblePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
           blockEvent.block.number,
           networkManager.get("multicallSize")
         );
 
         // if an eligible borrow position is not collateralized, emit a finding and set its alert timestamp
-        largePositions.forEach((entry, idx) => {
-          const isBorrowCollateralized = borrowerStatuses[idx];
-          if (
-            !isBorrowCollateralized &&
-            (!entry.alertedAt || blockEvent.block.timestamp - entry.alertedAt >= networkManager.get("alertInterval"))
-          ) {
+        eligiblePositions.forEach((entry, idx) => {
+          if (!borrowerStatuses[idx]) {
             findings.push(
               createLiquidationRiskFinding(
                 comet.address,
