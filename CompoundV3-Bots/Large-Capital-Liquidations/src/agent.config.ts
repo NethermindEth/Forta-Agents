@@ -24,7 +24,7 @@ const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Minimum interval between two uncollateralized borrow alerts for the
     // same borrower.
-    alertInterval: 60 * 60,
+    alertInterval: 60 * 60, // seconds
     // Maximum calls in one multicall, used to check the borrow
     // collateralization status and user principals.
     // To change this the usual eth_call gas limits must be noticed.
@@ -48,12 +48,13 @@ const CONFIG: AgentConfig = {
         // denominated in the same scale as in the contract.
         baseLargeThreshold: "1000000000000000000",
         // Length of the largest borrow positions that is constantly checked
-        // for size & uncollateralized borrows.
+        // for size & uncollateralized borrows. Works as an upper limit of
+        // positions.
         // Ideally this limit must include all borrows currently greater or
         // equal than the threshold, otherwise positions that should be
-        // monitored will likely be lost. If at any time the smallest position
-        // is greater or equal than the threshold, a warning log will be
-        // emitted.
+        // monitored will likely be lost. If, when changing the list, the
+        // smallest position is greater or equal than the threshold, a warning
+        // log will be emitted.
         // It must also be considered that this should be a viable amount
         // considering memory limits and the network block rate.
         monitoringListLength: 1000,
