@@ -32,6 +32,7 @@ export const provideInitializeTask = (
   const blockTag = !DEBUG ? "latest" : DEBUG_CURRENT_BLOCK;
 
   return async () => {
+    // asynchronously for each Comet contract
     await Promise.all(
       scanState.map(async ({ comet, multicallComet, blockCursor, threshold, monitoringListLength }) => {
         const blockRange = networkManager.get("logFetchingBlockRange");
@@ -39,6 +40,7 @@ export const provideInitializeTask = (
           minTime: networkManager.get("logFetchingInterval"),
         });
 
+        // get current borrow data to compute present values
         const baseIndexScale = await comet.baseIndexScale({ blockTag });
         const { baseBorrowIndex } = await comet.totalsBasic({ blockTag });
 
@@ -47,6 +49,7 @@ export const provideInitializeTask = (
         state.lastHandledBlock = currentBlock;
 
         while (blockCursor < state.lastHandledBlock) {
+          // get relevant logs for this Comet contract
           const logs = await bottleneck.schedule(async () => {
             return (
               await provider.getLogs({
@@ -58,8 +61,8 @@ export const provideInitializeTask = (
             ).map((log) => ({ ...log, ...iface.parseLog(log) }));
           });
 
+          // get borrowers and principals from potential borrowers involved in the logs
           const borrowers = getPotentialBorrowersFromLogs(logs);
-
           const userBasics = await multicallAll(
             multicallProvider,
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
@@ -86,6 +89,9 @@ export const provideInitializeTask = (
           );
 
           blockCursor += blockRange;
+
+          // set the initialization block to the current max block number from the logs, to avoid any blocks being
+          // missed from transitions between this point and the handlers if this is the final chunk
           state.initializationBlock = logs.reduce((a, b) => (a.blockNumber > b.blockNumber ? a : b)).blockNumber;
         }
       })
@@ -108,6 +114,7 @@ export const provideInitialize = (
 
     const initializeTask = provideInitializeTask(state, networkManager, multicallProvider, provider);
 
+    // if debugging, await the long-running task so it's easier to manage
     if (DEBUG) {
       await initializeTask();
     } else {
@@ -138,6 +145,8 @@ export const provideHandleBlock = (
     }));
 
     const chainId = networkManager.getNetwork();
+
+    // if this is the first handler call, consider the initialization block for log fetching
     const fromBlock =
       state.lastHandledBlock === blockEvent.blockNumber - 1
         ? Math.min(state.initializationBlock + 1, blockEvent.blockNumber)
@@ -145,8 +154,10 @@ export const provideHandleBlock = (
 
     const findings: Finding[] = [];
 
+    // asynchronously  for each Comet contract
     await Promise.all(
       cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
+        // get relevant logs for this Comet contract
         const cometLogs = (
           await provider.getLogs({
             topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
@@ -156,9 +167,11 @@ export const provideHandleBlock = (
           })
         ).map((log) => ({ ...log, ...iface.parseLog(log) }));
 
+        // get current borrow data to compute present values
         const baseIndexScale = await comet.baseIndexScale({ blockTag: blockEvent.blockNumber });
         const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: blockEvent.blockNumber });
 
+        // if there's a big absorption, emit a finding
         cometLogs.forEach((log) => {
           if (log.name === "AbsorbDebt" && (log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
             findings.push(
@@ -167,6 +180,7 @@ export const provideHandleBlock = (
           }
         });
 
+        // get borrowers and principals from potential borrowers involved in the logs
         const borrowers = getPotentialBorrowersFromLogs(cometLogs);
         const userBasics = await multicallAll(
           multicallProvider,
@@ -193,6 +207,7 @@ export const provideHandleBlock = (
           presentValueBorrow(entry, baseBorrowIndex, baseIndexScale).gte(threshold)
         );
 
+        // get borrow position collateralization status for all large positions
         const borrowerStatuses = await multicallAll(
           multicallProvider,
           largePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
@@ -200,6 +215,7 @@ export const provideHandleBlock = (
           networkManager.get("multicallSize")
         );
 
+        // if an eligible borrow position is not collateralized, emit a finding and set its alert timestamp
         largePositions.forEach((entry, idx) => {
           const isBorrowCollateralized = borrowerStatuses[idx];
           if (

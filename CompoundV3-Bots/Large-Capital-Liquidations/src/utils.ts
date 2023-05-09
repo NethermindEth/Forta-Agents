@@ -92,6 +92,7 @@ export function presentValueBorrow(
 export function getPotentialBorrowersFromLogs(logs: LogDescription[]): string[] {
   const addresses = new Set<string>();
 
+  // get addresses whose position principals may have changed from these events
   logs.forEach((log) => {
     switch (log.name) {
       case "Supply":
