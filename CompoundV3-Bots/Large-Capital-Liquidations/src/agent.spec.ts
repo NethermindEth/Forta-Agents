@@ -258,13 +258,36 @@ describe("Bot Test Suite", () => {
     const previousBorrowers = [
       { address: createChecksumAddress("0xb01"), principal: -1 },
       { address: createChecksumAddress("0xb02"), principal: -2 },
+      { address: createChecksumAddress("0xb03"), principal: -3 },
+      { address: createChecksumAddress("0xb04"), principal: -4 },
     ];
 
     COMET_CONTRACTS.forEach((comet) => {
-      previousBorrowers.forEach((borrower, idx) => {
-        addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, "latest");
-      });
+      addWithdrawal(comet.address, previousBorrowers[0].address, comet.deploymentBlock);
+      setUserPrincipal(comet.address, previousBorrowers[0].address, previousBorrowers[0].principal, "latest");
+
+      addSupply(comet.address, previousBorrowers[1].address, comet.deploymentBlock + 1);
+      setUserPrincipal(comet.address, previousBorrowers[1].address, previousBorrowers[1].principal, "latest");
+
+      addAbsorbDebt(
+        comet.address,
+        ethers.constants.AddressZero,
+        previousBorrowers[2].address,
+        0,
+        comet.deploymentBlock + 2
+      );
+      setUserPrincipal(comet.address, previousBorrowers[2].address, previousBorrowers[2].principal, "latest");
+
+      addSupply(comet.address, previousBorrowers[3].address, comet.deploymentBlock);
+      addAbsorbDebt(
+        comet.address,
+        ethers.constants.AddressZero,
+        previousBorrowers[3].address,
+        0,
+        comet.deploymentBlock + 1
+      );
+      addWithdrawal(comet.address, previousBorrowers[3].address, comet.deploymentBlock + 2);
+      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, "latest");
     });
 
     await initialize();
@@ -289,12 +312,19 @@ describe("Bot Test Suite", () => {
   });
 
   it("should not add users to monitoring lists if relevant events were emitted from other contracts", async () => {
-    const previousBorrowers = [{ address: createChecksumAddress("0xb01"), principal: -1 }];
+    const previousBorrowers = [
+      { address: createChecksumAddress("0xb01"), principal: -1 },
+      { address: createChecksumAddress("0xb02"), principal: -2 },
+      { address: createChecksumAddress("0xb03"), principal: -3 },
+      { address: createChecksumAddress("0xb04"), principal: -4 },
+    ];
 
     COMET_CONTRACTS.forEach((comet) => {
-      previousBorrowers.forEach((borrower, idx) => {
-        addWithdrawal(IRRELEVANT_ADDRESS, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, "latest");
+      previousBorrowers.forEach((borrower) => {
+        addWithdrawal(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
+        addSupply(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
+        addAbsorbDebt(IRRELEVANT_ADDRESS, ethers.constants.AddressZero, borrower.address, 0, comet.deploymentBlock);
+        setUserPrincipal(IRRELEVANT_ADDRESS, borrower.address, borrower.principal, "latest");
       });
     });
 
@@ -307,9 +337,9 @@ describe("Bot Test Suite", () => {
     });
 
     const currentBorrowers = [
-      { address: createChecksumAddress("0xb03"), principal: -3 },
-      { address: createChecksumAddress("0xb04"), principal: -4 },
       { address: createChecksumAddress("0xb05"), principal: -5 },
+      { address: createChecksumAddress("0xb06"), principal: -6 },
+      { address: createChecksumAddress("0xb07"), principal: -7 },
     ];
 
     const blockNumber = 11;
@@ -342,7 +372,7 @@ describe("Bot Test Suite", () => {
     });
   });
 
-  it("should add users to the monitoring list if there's a relevant event from comet contracts", async () => {
+  it("should add users to the monitoring list if there's a relevant event from comet contracts on each block", async () => {
     const previousBorrowers = [{ address: createChecksumAddress("0xb01"), principal: -1 }];
 
     COMET_CONTRACTS.forEach((comet) => {
@@ -428,17 +458,17 @@ describe("Bot Test Suite", () => {
     ];
 
     const nextBlockNumber = 12;
-    const nextBlockEvent = new TestBlockEvent().setNumber(blockNumber);
+    const nextBlockEvent = new TestBlockEvent().setNumber(nextBlockNumber);
 
     COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
+      setBaseBorrowIndex(comet.address, 1, nextBlockNumber);
+      setBaseIndexScale(comet.address, 1, nextBlockNumber);
     });
 
-    addWithdrawal(nextBorrowers[0].comet, nextBorrowers[0].address, blockNumber);
-    setUserPrincipal(nextBorrowers[0].comet, nextBorrowers[0].address, nextBorrowers[0].principal, blockNumber);
+    addWithdrawal(nextBorrowers[0].comet, nextBorrowers[0].address, nextBlockNumber);
+    setUserPrincipal(nextBorrowers[0].comet, nextBorrowers[0].address, nextBorrowers[0].principal, nextBlockNumber);
 
-    const nextFindings = await handleBlock(blockEvent);
+    const nextFindings = await handleBlock(nextBlockEvent);
 
     expect(nextFindings).toStrictEqual([]);
     expect(state.monitoringLists).toStrictEqual({
