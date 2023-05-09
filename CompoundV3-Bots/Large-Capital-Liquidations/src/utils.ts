@@ -96,6 +96,10 @@ export function getPotentialBorrowersFromLogs(logs: LogDescription[]): string[] 
       case "Supply":
         addresses.add(log.args.dst);
         break;
+      case "Transfer":
+        addresses.add(log.args.from);
+        addresses.add(log.args.to);
+        break;
       case "Withdraw":
         addresses.add(log.args.src);
         break;

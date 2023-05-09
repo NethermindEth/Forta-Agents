@@ -47,7 +47,7 @@ export const provideInitializeTask = (
           const logs = await bottleneck.schedule(async () => {
             return (
               await provider.getLogs({
-                topics: [["Supply", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+                topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
                 fromBlock: blockCursor,
                 toBlock: blockCursor + blockRange - 1,
                 address: comet.address,
@@ -129,19 +129,18 @@ export const provideHandleBlock = (
     }));
 
     const chainId = networkManager.getNetwork();
-    const logs = (
-      await provider.getLogs({
-        topics: [["Supply", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
-        fromBlock: blockEvent.blockNumber,
-        toBlock: blockEvent.blockNumber,
-      })
-    ).map((log) => ({ ...log, ...iface.parseLog(log) }));
-
     const findings: Finding[] = [];
 
     await Promise.all(
       cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
-        const cometLogs = logs.filter((log) => log.address.toLowerCase() === comet.address.toLowerCase());
+        const cometLogs = (
+          await provider.getLogs({
+            topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+            fromBlock: blockEvent.blockNumber,
+            toBlock: blockEvent.blockNumber,
+            address: comet.address,
+          })
+        ).map((log) => ({ ...log, ...iface.parseLog(log) }));
 
         const baseIndexScale = await comet.baseIndexScale({ blockTag: blockEvent.blockNumber });
         const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: blockEvent.blockNumber });

@@ -1,5 +1,6 @@
 export const COMET_ABI = [
   "event Supply(address indexed from, address indexed dst, uint amount)",
+  "event Transfer(address indexed from, address indexed to, uint amount)",
   "event Withdraw(address indexed src, address indexed to, uint amount)",
   "event AbsorbDebt(address indexed absorber, address indexed borrower, uint basePaidOut, uint usdValue)",
   "function isBorrowCollateralized(address account) public view returns (bool)",
