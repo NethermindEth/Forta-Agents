@@ -43,7 +43,7 @@ export function addPositionsToMonitoringList(
 
   positions.forEach((position) => {
     if (monitoringListMap[position.borrower] !== undefined) {
-      monitoringList[monitoringListMap[position.borrower]] = position;
+      monitoringList[monitoringListMap[position.borrower]].principal = position.principal;
     } else {
       monitoringList.push(position);
     }
