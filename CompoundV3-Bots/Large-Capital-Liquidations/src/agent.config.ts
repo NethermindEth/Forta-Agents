@@ -33,9 +33,10 @@ const CONFIG: AgentConfig = {
     // Again, to change this the usual eth_getLogs block range limits must
     // be considered.
     logFetchingBlockRange: 2000,
-    // Interval between log fetching calls for the same Comet contract, which
-    // lead to user principal fetches. It must be a reasonable amount to avoid
-    // any problems with the bot runner provider.
+    // Interval between log fetching calls for the initialization step.
+    // It must be a reasonable amount to avoid any problems with the bot
+    // runner provider, especially considering each log fetch leads to
+    // additional calls.
     logFetchingInterval: 2000, // ms
     // Comet contracts to be monitored and some extra data
     cometContracts: [
