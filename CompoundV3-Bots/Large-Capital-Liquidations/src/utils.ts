@@ -1,4 +1,5 @@
 import { LogDescription, ethers } from "forta-agent";
+import { MulticallProvider } from "forta-agent-tools";
 
 export interface NetworkData {
   cometContracts: Array<{
@@ -105,4 +106,18 @@ export function getPotentialBorrowersFromLogs(logs: LogDescription[]): string[] 
   });
 
   return Array.from(addresses);
+}
+
+export async function multicallAll(
+  multicallProvider: MulticallProvider,
+  ...params: Parameters<MulticallProvider["all"]>
+) {
+  const resp = await multicallProvider.tryAll(...params);
+
+  const failIndex = resp.findIndex((call) => !call.success);
+  if (failIndex !== -1) {
+    throw new Error("At least one call in a multicall all failed: " + JSON.stringify(params[0][failIndex]));
+  }
+
+  return resp.map((call) => call.returnData);
 }

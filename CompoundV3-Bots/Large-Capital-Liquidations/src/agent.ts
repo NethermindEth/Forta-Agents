@@ -10,6 +10,7 @@ import {
   presentValueBorrow,
   NetworkData,
   getPotentialBorrowersFromLogs,
+  multicallAll,
 } from "./utils";
 import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
 
@@ -56,13 +57,12 @@ export const provideInitializeTask = (
 
           const borrowers = getPotentialBorrowersFromLogs(logs);
 
-          const [success, userBasics] = (await multicallProvider.all(
+          const userBasics = await multicallAll(
+            multicallProvider,
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
             "latest",
             networkManager.get("multicallSize")
-          )) as [boolean, { principal: ethers.BigNumber }[]];
-
-          if (!success) throw new Error("Error while fetching user principals");
+          );
 
           addPositionsToMonitoringList(
             state,
@@ -155,14 +155,12 @@ export const provideHandleBlock = (
         });
 
         const borrowers = getPotentialBorrowersFromLogs(cometLogs);
-
-        const [userBasicsSuccess, userBasics] = (await multicallProvider.all(
+        const userBasics = await multicallAll(
+          multicallProvider,
           borrowers.map((borrower) => multicallComet.userBasic(borrower)),
           blockEvent.block.number,
           networkManager.get("multicallSize")
-        )) as [boolean, { principal: ethers.BigNumber }[]];
-
-        if (!userBasicsSuccess) throw new Error("Error while fetching user principals");
+        );
 
         addPositionsToMonitoringList(
           state,
@@ -182,13 +180,12 @@ export const provideHandleBlock = (
           presentValueBorrow(entry, baseBorrowIndex, baseIndexScale).gte(threshold)
         );
 
-        let [borrowerStatusesSuccess, borrowerStatuses] = await multicallProvider.all(
+        const borrowerStatuses = await multicallAll(
+          multicallProvider,
           largePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
           blockEvent.block.number,
           networkManager.get("multicallSize")
         );
-
-        if (!borrowerStatusesSuccess) throw new Error("Error while trying to fetch borrow collateralization status");
 
         largePositions.forEach((entry, idx) => {
           const isBorrowCollateralized = borrowerStatuses[idx];
