@@ -71,4 +71,20 @@ configured in the `agent.config.ts` file.
 
 ## Test Data
 
+Besides unit tests, you can also test this bot with real data. First, set up
+an Ethereum Mainnet RPC in your `forta.config.json` file, then enable the
+debug mode in `agent.config.ts` by setting the `DEBUG` flag to `true`. This
+will mainly make it possible to test the initialization step. Now, run:
 
+```
+npx forta-agent run --range 15419040..15419043
+```
+
+The bot will, in the initialization step, get all potential borrowers through
+events from block `15331586` (set as the Comet deployment block in the debug
+config) to block `15419040`, set as the `DEBUG_CURRENT_BLOCK`.
+
+Then, on block `15419040`, the first one a block event is actually handled,
+a finding will be emitted because a "large" borrow position is not
+collateralized, and on block `15419043` this same position is then absorbed,
+which leads to an absorption finding.
