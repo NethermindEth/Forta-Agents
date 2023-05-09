@@ -1,4 +1,4 @@
-import { ethers } from "forta-agent";
+import { LogDescription, ethers } from "forta-agent";
 
 export interface NetworkData {
   cometContracts: Array<{
@@ -85,4 +85,24 @@ export function presentValueBorrow(
   return position.principal.isNegative()
     ? position.principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale)
     : ethers.BigNumber.from(0);
+}
+
+export function getPotentialBorrowersFromLogs(logs: LogDescription[]): string[] {
+  const addresses = new Set<string>();
+
+  logs.forEach((log) => {
+    switch (log.name) {
+      case "Supply":
+        addresses.add(log.args.dst);
+        break;
+      case "Withdraw":
+        addresses.add(log.args.src);
+        break;
+      case "AbsorbDebt":
+        addresses.add(log.args.borrower);
+        break;
+    }
+  });
+
+  return Array.from(addresses);
 }

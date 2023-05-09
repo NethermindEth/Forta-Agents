@@ -4,7 +4,13 @@ import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agen
 
 import CONFIG from "./agent.config";
 import { COMET_ABI } from "./constants";
-import { addPositionsToMonitoringList, AgentState, presentValueBorrow, NetworkData } from "./utils";
+import {
+  addPositionsToMonitoringList,
+  AgentState,
+  presentValueBorrow,
+  NetworkData,
+  getPotentialBorrowersFromLogs,
+} from "./utils";
 import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
 
 export const provideInitializeTask = (
@@ -37,11 +43,19 @@ export const provideInitializeTask = (
         state.lastHandledBlock = await provider.getBlockNumber();
 
         while (blockCursor < state.lastHandledBlock) {
-          const withdrawLogs = await bottleneck.schedule(async () => {
-            return await comet.queryFilter("Withdraw", blockCursor, blockCursor + blockRange - 1);
+          const logs = await bottleneck.schedule(async () => {
+            return (
+              await provider.getLogs({
+                topics: [["Supply", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+                fromBlock: blockCursor,
+                toBlock: blockCursor + blockRange - 1,
+                address: comet.address,
+              })
+            ).map((log) => ({ ...log, ...iface.parseLog(log) }));
           });
 
-          const borrowers = Array.from(new Set(withdrawLogs.map((log) => log.args!.src)));
+          const borrowers = getPotentialBorrowersFromLogs(logs);
+
           const [success, userBasics] = (await multicallProvider.all(
             borrowers.map((borrower) => multicallComet.userBasic(borrower)),
             "latest",
@@ -128,40 +142,22 @@ export const provideHandleBlock = (
     await Promise.all(
       cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
         const cometLogs = logs.filter((log) => log.address.toLowerCase() === comet.address.toLowerCase());
+
         const baseIndexScale = await comet.baseIndexScale({ blockTag: blockEvent.blockNumber });
         const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: blockEvent.blockNumber });
 
-        let changedPositions = new Set<string>();
-
         cometLogs.forEach((log) => {
-          switch (log.name) {
-            case "Supply":
-              changedPositions.add(log.args.dst);
-              break;
-            case "Withdraw":
-              changedPositions.add(log.args.src);
-              break;
-            case "AbsorbDebt":
-              if ((log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
-                findings.push(
-                  createAbsorbFinding(
-                    comet.address,
-                    log.args.absorber,
-                    log.args.borrower,
-                    log.args.basePaidOut,
-                    chainId
-                  )
-                );
-              }
-              changedPositions.add(log.args.borrower);
-              break;
+          if (log.name === "AbsorbDebt" && (log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
+            findings.push(
+              createAbsorbFinding(comet.address, log.args.absorber, log.args.borrower, log.args.basePaidOut, chainId)
+            );
           }
         });
 
-        const borrowers = Array.from(changedPositions);
+        const borrowers = getPotentialBorrowersFromLogs(cometLogs);
 
         const [userBasicsSuccess, userBasics] = (await multicallProvider.all(
-          Array.from(changedPositions).map((borrower) => multicallComet.userBasic(borrower)),
+          borrowers.map((borrower) => multicallComet.userBasic(borrower)),
           blockEvent.block.number,
           networkManager.get("multicallSize")
         )) as [boolean, { principal: ethers.BigNumber }[]];
