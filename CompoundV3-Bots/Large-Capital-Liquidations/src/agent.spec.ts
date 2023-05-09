@@ -234,6 +234,7 @@ describe("Bot Test Suite", () => {
       },
       monitoringLists: {},
       lastHandledBlock: 0,
+      initializationBlock: 0,
     };
 
     COMET_CONTRACTS.forEach((comet) => {

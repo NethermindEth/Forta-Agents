@@ -24,6 +24,7 @@ export interface AgentState {
   initialized: boolean;
   monitoringLists: Record<string, Array<BorrowPosition>>;
   lastHandledBlock: number;
+  initializationBlock: number;
 }
 
 export type AgentConfig = Record<number, NetworkData>;

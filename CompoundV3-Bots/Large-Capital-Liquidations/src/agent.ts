@@ -86,6 +86,7 @@ export const provideInitializeTask = (
           );
 
           blockCursor += blockRange;
+          state.initializationBlock = logs.reduce((a, b) => (a.blockNumber > b.blockNumber ? a : b)).blockNumber;
         }
       })
     );
@@ -137,6 +138,11 @@ export const provideHandleBlock = (
     }));
 
     const chainId = networkManager.getNetwork();
+    const fromBlock =
+      state.lastHandledBlock === blockEvent.blockNumber - 1
+        ? Math.min(state.initializationBlock + 1, blockEvent.blockNumber)
+        : blockEvent.blockNumber;
+
     const findings: Finding[] = [];
 
     await Promise.all(
@@ -144,7 +150,7 @@ export const provideHandleBlock = (
         const cometLogs = (
           await provider.getLogs({
             topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
-            fromBlock: blockEvent.blockNumber,
+            fromBlock,
             toBlock: blockEvent.blockNumber,
             address: comet.address,
           })
@@ -225,6 +231,7 @@ const state: AgentState = {
   initialized: false,
   monitoringLists: {},
   lastHandledBlock: 0,
+  initializationBlock: 0,
 };
 
 export default {
