@@ -34,6 +34,7 @@ import {
   WITHDRAW_SIG,
   BALANCEOF_SIG,
   checkRoundValue,
+  WITHDRAWTO_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import {
@@ -368,7 +369,7 @@ export const provideHandleTransaction =
     if (to) {
       let owner = "";
       let numberOfLogs = 10; // Initialize with the number out of the expected range
-
+      const data = txEvent.transaction.data;
       if (txEvent.traces.length) {
         await Promise.all(
           txEvent.traces.map(async (trace) => {
@@ -402,7 +403,13 @@ export const provideHandleTransaction =
                       withdrawalsCount // No issue in passing 0 for non-relevant chains
                     );
                     findings.push(
-                      createWithdrawalFinding(hash, from, to, anomalyScore)
+                      createWithdrawalFinding(
+                        hash,
+                        from,
+                        to,
+                        trace.action.to,
+                        anomalyScore
+                      )
                     );
                   }
                 }
@@ -410,9 +417,11 @@ export const provideHandleTransaction =
             }
           })
         );
-      } else if (txEvent.transaction.data === "0x" + WITHDRAW_SIG) {
+      } else if (
+        data === "0x" + WITHDRAW_SIG ||
+        data.startsWith("0x" + WITHDRAWTO_SIG)
+      ) {
         withdrawalsCount++;
-
         owner = await dataFetcher.getOwner(to, blockNumber);
         if (owner && from === owner.toLowerCase()) {
           numberOfLogs = await dataFetcher.getNumberOfLogs(
@@ -435,8 +444,11 @@ export const provideHandleTransaction =
                 ScanCountType.CustomScanCount,
                 withdrawalsCount // No issue in passing 0 for non-relevant chains
               );
+              const receiver = data.startsWith("0x" + WITHDRAWTO_SIG)
+                ? "0x" + data.substring(data.length - 40)
+                : from;
               findings.push(
-                createWithdrawalFinding(hash, from, to, anomalyScore)
+                createWithdrawalFinding(hash, from, to, receiver, anomalyScore)
               );
             }
           }

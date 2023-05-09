@@ -204,6 +204,7 @@ const testCreateWithdrawalFinding = (
   txHash: string,
   attacker: string,
   address: string,
+  receiver: string,
   anomalyScore: number
 ): Finding => {
   return Finding.fromObject({
@@ -215,6 +216,7 @@ const testCreateWithdrawalFinding = (
     metadata: {
       attacker,
       address,
+      receiver,
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
@@ -227,6 +229,13 @@ const testCreateWithdrawalFinding = (
       }),
       Label.fromObject({
         entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: receiver,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.9,
@@ -681,7 +690,9 @@ describe("Native Ice Phishing Bot test suite", () => {
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setFrom(createAddress("0x0f"))
       .setTo(createAddress("0x01"))
-      .setData("0x3ccfd60b")
+      .setData(
+        "0x00f714ce00000000000000000000000000000000000000000000000000128ed4154bf6b9000000000000000000000000bca7af384bc384f86d78e37516537b3fecb86bbc"
+      )
       .setBlock(234)
       .setHash("0xabcd");
 
@@ -702,11 +713,13 @@ describe("Native Ice Phishing Bot test suite", () => {
       .mockReturnValueOnce(0.0134231);
 
     const findings: Finding[] = await handleTransaction(tx);
+    const receiver = "0xbca7af384bc384f86d78e37516537b3fecb86bbc";
     expect(findings).toStrictEqual([
       testCreateWithdrawalFinding(
         "0xabcd",
         createAddress("0x0f"),
         createAddress("0x01"),
+        receiver,
         0.0134231
       ),
     ]);

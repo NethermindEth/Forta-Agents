@@ -188,6 +188,7 @@ export const createWithdrawalFinding = (
   txHash: string,
   attacker: string,
   address: string,
+  receiver: string,
   anomalyScore: number
 ): Finding => {
   return Finding.fromObject({
@@ -199,6 +200,7 @@ export const createWithdrawalFinding = (
     metadata: {
       attacker,
       address,
+      receiver,
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
@@ -211,6 +213,13 @@ export const createWithdrawalFinding = (
       }),
       Label.fromObject({
         entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: receiver,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.9,

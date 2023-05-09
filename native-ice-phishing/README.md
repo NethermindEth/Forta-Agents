@@ -141,6 +141,7 @@ This bot monitors:
   - Metadata contains:
     - `attacker`: The owner address
     - `address`: The contract address
+    - `receiver`: The address that received the funds
     - `anomalyScore`: The anomaly score of the alert
   - Labels contain:
     - Label 1:
@@ -149,7 +150,12 @@ This bot monitors:
       - `label`: The type of the label, always set to "Attack"
       - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
     - Label 2:
-      - `entity`: The contract creator address
+      - `entity`: The withdrawal initiator address
+      - `entityType`: The type of the entity, always set to "Address"
+      - `label`: The type of the label, always set to "Attacker"
+      - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
+    - Label 3:
+      - `entity`: The withdrawl receiver address
       - `entityType`: The type of the entity, always set to "Address"
       - `label`: The type of the label, always set to "Attacker"
       - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
