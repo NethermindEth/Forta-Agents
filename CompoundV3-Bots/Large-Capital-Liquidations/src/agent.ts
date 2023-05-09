@@ -44,18 +44,18 @@ export const provideInitializeTask = (
         const baseIndexScale = await comet.baseIndexScale({ blockTag });
         const { baseBorrowIndex } = await comet.totalsBasic({ blockTag });
 
-        const currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
+        let currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
 
-        state.lastHandledBlock = currentBlock;
+        while (blockCursor < currentBlock) {
+          if (state.lastHandledBlock) currentBlock = state.lastHandledBlock;
 
-        while (blockCursor < state.lastHandledBlock) {
           // get relevant logs for this Comet contract
           const logs = await bottleneck.schedule(async () => {
             return (
               await provider.getLogs({
                 topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
                 fromBlock: blockCursor,
-                toBlock: blockCursor + blockRange - 1,
+                toBlock: Math.min(blockCursor + blockRange - 1, currentBlock),
                 address: comet.address,
               })
             ).map((log) => ({ ...log, ...iface.parseLog(log) }));
@@ -90,9 +90,8 @@ export const provideInitializeTask = (
 
           blockCursor += blockRange;
 
-          // set the initialization block to the current max block number from the logs, to avoid any blocks being
-          // missed from transitions between this point and the handlers if this is the final chunk
-          state.initializationBlock = logs.reduce((a, b) => (a.blockNumber > b.blockNumber ? a : b)).blockNumber;
+          // update the initialization block to avoid any blocks being missed
+          state.initializationBlock = currentBlock;
         }
       })
     );
