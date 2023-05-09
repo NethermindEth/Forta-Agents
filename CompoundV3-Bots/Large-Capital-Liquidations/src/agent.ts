@@ -31,8 +31,6 @@ export const provideInitializeTask = (
     threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
   }));
 
-  const blockTag = !DEBUG ? "latest" : DEBUG_CURRENT_BLOCK;
-
   return async () => {
     let currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
     let blockCursor = cometContracts.reduce((a, b) => (a.deploymentBlock < b.deploymentBlock ? a : b)).deploymentBlock;
@@ -40,8 +38,8 @@ export const provideInitializeTask = (
     // get current borrow data to compute present values
     await Promise.all(
       cometContracts.map(async (entry) => {
-        entry.baseBorrowIndex = await entry.comet.baseIndexScale({ blockTag });
-        entry.baseBorrowIndex = (await entry.comet.totalsBasic({ blockTag })).baseBorrowIndex;
+        entry.baseBorrowIndex = await entry.comet.baseIndexScale({ blockTag: "latest" });
+        entry.baseBorrowIndex = (await entry.comet.totalsBasic({ blockTag: "latest" })).baseBorrowIndex;
       })
     );
 
@@ -60,13 +58,15 @@ export const provideInitializeTask = (
       await Promise.all(
         contractsToScan.map(
           async ({ comet, multicallComet, monitoringListLength, threshold, baseBorrowIndex, baseIndexScale }) => {
+            const toBlock = Math.min(blockCursor + blockRange - 1, currentBlock);
+
             // get relevant logs for this Comet contract
             const logs = await bottleneck.schedule(async () => {
               return (
                 await provider.getLogs({
                   topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
                   fromBlock: blockCursor,
-                  toBlock: Math.min(blockCursor + blockRange - 1, currentBlock),
+                  toBlock,
                   address: comet.address,
                 })
               ).map((log) => ({ ...log, ...iface.parseLog(log) }));
@@ -77,7 +77,7 @@ export const provideInitializeTask = (
             const userBasics = await multicallAll(
               multicallProvider,
               borrowers.map((borrower) => multicallComet.userBasic(borrower)),
-              blockTag,
+              toBlock,
               networkManager.get("multicallSize")
             );
 
