@@ -17,14 +17,12 @@ import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
 import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI, AlertedAddress } from "./utils";
-import { PersistenceHelper } from "./persistence.helper";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
 const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
 
 const mockChainId = 1;
-const mockDbUrl = "databaseurl.com/";
 const mockJwt = "MOCK_JWT";
 
 const mockDBKeys = {
@@ -59,6 +57,7 @@ jest.mock("forta-agent", () => {
 const DEFAULT_CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     threshold: "0.05",
+    tokenName: "ETH",
   },
 };
 
@@ -85,7 +84,7 @@ const senders = [
 
 const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
 
-const createFinding = (txHash: string, from: string[], to: string, anomalyScore: number): Finding => {
+const createFinding = (txHash: string, from: string[], to: string, assets: string[], anomalyScore: number): Finding => {
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
@@ -95,6 +94,11 @@ const createFinding = (txHash: string, from: string[], to: string, anomalyScore:
     metadata: {
       attacker: to,
       victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
@@ -300,7 +304,7 @@ describe("Detect Private Key Compromise", () => {
       txEvent4.setValue("4");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[0], 0.1),
+        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[0], ["ETH"], 0.1),
       ]);
     });
 
@@ -364,7 +368,13 @@ describe("Detect Private Key Compromise", () => {
 
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[1], 0.1),
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[1],
+          [createAddress("0x99")],
+          0.1
+        ),
       ]);
 
       findings = await handleTransaction(txEvent5);
@@ -372,7 +382,7 @@ describe("Detect Private Key Compromise", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
+    it("returns findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
       let findings;
       const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[2]);
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
@@ -402,7 +412,13 @@ describe("Detect Private Key Compromise", () => {
       txEvent4.setValue("4");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[2], 0.1),
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[2],
+          ["ETH", createAddress("0x99")],
+          0.1
+        ),
       ]);
     });
   });

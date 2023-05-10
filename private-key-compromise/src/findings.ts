@@ -4,6 +4,7 @@ export const createFinding = (
   txHash: string,
   from: string[],
   to: string,
+  assets: string[],
   anomalyScore: number
 ): Finding => {
   return Finding.fromObject({
@@ -15,6 +16,11 @@ export const createFinding = (
     metadata: {
       attacker: to,
       victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
