@@ -24,7 +24,11 @@ export class PersistenceHelper {
           body: JSON.stringify(value),
         });
         if (response.ok) {
-          console.log("successfully persisted to database");
+          if (key.includes("alerted")) {
+            console.log("successfully persisted addresses to database");
+          } else {
+            console.log("successfully persisted transfers to database");
+          }
           return;
         }
       } catch (e) {
@@ -47,7 +51,12 @@ export class PersistenceHelper {
 
         if (response.ok) {
           const data: any = await response.json();
-          console.log("successfully fetched data from database");
+
+          if (key.includes("alerted")) {
+            console.log("successfully fetched addresses from database");
+          } else {
+            console.log("successfully fetched transfers from database");
+          }
           return data;
         } else {
           console.log(`${key} has no database entry`);
@@ -55,6 +64,9 @@ export class PersistenceHelper {
           // the database will not have data to return,
           // thus return zero to assign value to the variables
           // necessary
+          if (key.includes("alerted")) {
+            return [];
+          }
           return {};
         }
       } catch (e) {
@@ -72,6 +84,10 @@ export class PersistenceHelper {
         // the database will not have data to return,
         // thus return zero to assign value to the variables
         // necessary
+
+        if (key.includes("alerted")) {
+          return [];
+        }
         return {};
       }
     }

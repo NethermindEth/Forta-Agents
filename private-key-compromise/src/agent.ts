@@ -22,7 +22,11 @@ import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
-const PK_COMP_TXNS_KEY = "nm-pk-comp-bot-key";
+const DATABASE_OBJECT_KEYS = {
+  transfersKey: "nm-pk-comp-bot-key",
+  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key",
+};
+
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
 let chainId: string;
@@ -42,14 +46,15 @@ export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
-  pkCompValueKey: string
+  databaseKeys: { transfersKey: string; alertedAddressesKey: string }
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
     process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
     chainId = networkManager.getNetwork().toString();
 
-    transferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+    transferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
+    alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
 
     //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
     isRelevantChain = [10, 250, 43114].includes(Number(chainId));
@@ -64,7 +69,7 @@ export const provideHandleTransaction =
     contractFetcher: ContractFetcher,
     dataFetcher: DataFetcher,
     persistenceHelper: PersistenceHelper,
-    pkCompValueKey: string
+    databaseKeys: { transfersKey: string; alertedAddressesKey: string }
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -82,7 +87,8 @@ export const provideHandleTransaction =
     if (blockNumber != lastBlock) {
       const et = new Date().getTime();
       console.log(`Block processing time: ${et - st} ms`);
-      const loadedTransferObj = await persistenceHelper.load(pkCompValueKey.concat("-", chainId));
+      const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
+      alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
 
       transferObj = deepMerge(transferObj, loadedTransferObj);
 
@@ -116,7 +122,7 @@ export const provideHandleTransaction =
         console.log("Object size after cleaning: ", objectSize);
       }
 
-      await persistenceHelper.persist(transferObj, pkCompValueKey.concat("-", chainId));
+      await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
     }
     transactionsProcessed += 1;
 
@@ -138,16 +144,25 @@ export const provideHandleTransaction =
 
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to].length > 3) {
-                alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
+                alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
 
-                const anomalyScore = await calculateAlertRate(
-                  Number(chainId),
-                  BOT_ID,
-                  "PKC-1",
-                  isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                  transfersCount
-                );
-                findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
+                if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                  alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
+
+                  await persistenceHelper.persist(
+                    alertedAddresses,
+                    databaseKeys.alertedAddressesKey.concat("-", chainId)
+                  );
+
+                  const anomalyScore = await calculateAlertRate(
+                    Number(chainId),
+                    BOT_ID,
+                    "PKC-1",
+                    isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                    transfersCount
+                  );
+                  findings.push(createFinding(hash, transferObj[to], to, anomalyScore));
+                }
               }
             }
           }
@@ -180,19 +195,29 @@ export const provideHandleTransaction =
 
                   // if there are multiple transfers to the same address, emit an alert
                   if (transferObj[transfer.args.to].length > 3) {
-                    alertedAddresses.push({
-                      address: transfer.args.to,
-                      timestamp: txEvent.timestamp,
-                    });
-
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "PKC-1",
-                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                      ercTransferCount
+                    alertedAddresses = await persistenceHelper.load(
+                      databaseKeys.alertedAddressesKey.concat("-", chainId)
                     );
-                    findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
+
+                    if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                      alertedAddresses.push({
+                        address: transfer.args.to,
+                        timestamp: txEvent.timestamp,
+                      });
+                      await persistenceHelper.persist(
+                        alertedAddresses,
+                        databaseKeys.alertedAddressesKey.concat("-", chainId)
+                      );
+
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-1",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                        ercTransferCount
+                      );
+                      findings.push(createFinding(hash, transferObj[transfer.args.to], transfer.args.to, anomalyScore));
+                    }
                   }
                 }
               }
@@ -210,7 +235,7 @@ export default {
     networkManager,
     getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
-    PK_COMP_TXNS_KEY
+    DATABASE_OBJECT_KEYS
   ),
   handleTransaction: provideHandleTransaction(
     getEthersProvider(),
@@ -219,6 +244,6 @@ export default {
     new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider()),
     new PersistenceHelper(DATABASE_URL),
-    PK_COMP_TXNS_KEY
+    DATABASE_OBJECT_KEYS
   ),
 };
