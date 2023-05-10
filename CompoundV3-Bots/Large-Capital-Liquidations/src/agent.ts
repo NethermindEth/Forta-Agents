@@ -60,7 +60,7 @@ export const provideInitializeTask = (
           async ({ comet, multicallComet, monitoringListLength, threshold, baseBorrowIndex, baseIndexScale }) => {
             const toBlock = Math.min(blockCursor + blockRange - 1, currentBlock);
 
-            // get relevant logs for this Comet contract
+            // get principal-changing logs for this Comet contract
             const logs = await bottleneck.schedule(async () => {
               return (
                 await provider.getLogs({
@@ -168,19 +168,19 @@ export const provideHandleBlock = (
     // asynchronously  for each Comet contract
     await Promise.all(
       cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
-        // get relevant logs for this Comet contract
-        const cometLogs = (
-          await provider.getLogs({
-            topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
-            fromBlock,
-            toBlock: blockEvent.blockNumber,
-            address: comet.address,
-          })
-        ).map((log) => ({ ...log, ...iface.parseLog(log) }));
-
-        // get current borrow data to compute present values
-        const baseIndexScale = await comet.baseIndexScale({ blockTag: blockEvent.blockNumber });
-        const { baseBorrowIndex } = await comet.totalsBasic({ blockTag: blockEvent.blockNumber });
+        // get principal-changing logs and current borrow data to compute present values
+        const [cometLogs, baseIndexScale, { baseBorrowIndex }] = await Promise.all([
+          provider
+            .getLogs({
+              topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+              fromBlock,
+              toBlock: blockEvent.blockNumber,
+              address: comet.address,
+            })
+            .then((logs) => logs.map((log) => ({ ...log, ...iface.parseLog(log) }))),
+          comet.baseIndexScale({ blockTag: blockEvent.blockNumber }),
+          comet.totalsBasic({ blockTag: blockEvent.blockNumber }),
+        ]);
 
         // if there's a big absorption, emit a finding
         cometLogs.forEach((log) => {
