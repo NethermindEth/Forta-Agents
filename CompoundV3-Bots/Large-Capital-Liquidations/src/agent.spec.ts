@@ -275,12 +275,14 @@ describe("Bot Test Suite", () => {
       { address: createChecksumAddress("0xb05"), principal: -5 },
     ];
 
+    const currentBlock = await provider.getBlockNumber();
+
     COMET_CONTRACTS.forEach((comet) => {
       addWithdrawal(comet.address, previousBorrowers[0].address, comet.deploymentBlock);
-      setUserPrincipal(comet.address, previousBorrowers[0].address, previousBorrowers[0].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[0].address, previousBorrowers[0].principal, currentBlock);
 
       addSupply(comet.address, previousBorrowers[1].address, comet.deploymentBlock + 1);
-      setUserPrincipal(comet.address, previousBorrowers[1].address, previousBorrowers[1].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[1].address, previousBorrowers[1].principal, currentBlock);
 
       addAbsorbDebt(
         comet.address,
@@ -289,11 +291,11 @@ describe("Bot Test Suite", () => {
         0,
         comet.deploymentBlock + 2
       );
-      setUserPrincipal(comet.address, previousBorrowers[2].address, previousBorrowers[2].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[2].address, previousBorrowers[2].principal, currentBlock);
 
       addTransfer(comet.address, previousBorrowers[3].address, previousBorrowers[4].address, comet.deploymentBlock + 3);
-      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, "latest");
-      setUserPrincipal(comet.address, previousBorrowers[4].address, previousBorrowers[4].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, currentBlock);
+      setUserPrincipal(comet.address, previousBorrowers[4].address, previousBorrowers[4].principal, currentBlock);
 
       addSupply(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 3);
       addAbsorbDebt(
@@ -305,7 +307,7 @@ describe("Bot Test Suite", () => {
       );
       addWithdrawal(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 1);
       addTransfer(comet.address, previousBorrowers[5].address, previousBorrowers[5].address, comet.deploymentBlock);
-      setUserPrincipal(comet.address, previousBorrowers[5].address, previousBorrowers[5].principal, "latest");
+      setUserPrincipal(comet.address, previousBorrowers[5].address, previousBorrowers[5].principal, currentBlock);
     });
 
     await initialize();
@@ -392,11 +394,12 @@ describe("Bot Test Suite", () => {
 
   it("should add users to the monitoring list if there's a relevant event from comet contracts on each block", async () => {
     const previousBorrowers = [{ address: createChecksumAddress("0xb01"), principal: -1 }];
+    const currentBlock = await provider.getBlockNumber();
 
     COMET_CONTRACTS.forEach((comet) => {
       previousBorrowers.forEach((borrower, idx) => {
         addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, "latest");
+        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
       });
     });
 
@@ -565,10 +568,12 @@ describe("Bot Test Suite", () => {
       { address: createChecksumAddress("0xb03"), principal: -3 },
     ];
 
+    const currentBlock = await provider.getBlockNumber();
+
     COMET_CONTRACTS.forEach((comet) => {
       previousBorrowers.forEach((borrower, idx) => {
         addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, "latest");
+        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
       });
     });
 
@@ -739,10 +744,12 @@ describe("Bot Test Suite", () => {
       true
     );
 
+    const currentBlock = await provider.getBlockNumber();
+
     COMET_CONTRACTS.forEach((comet) => {
       borrowers.forEach((borrower, idx) => {
         addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, "latest");
+        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
       });
     });
 
@@ -844,9 +851,11 @@ describe("Bot Test Suite", () => {
       },
     ];
 
+    const currentBlock = await provider.getBlockNumber();
+
     previousBorrowers.forEach((borrower, idx) => {
       addWithdrawal(borrower.comet, borrower.address, idx);
-      setUserPrincipal(borrower.comet, borrower.address, borrower.principal, "latest");
+      setUserPrincipal(borrower.comet, borrower.address, borrower.principal, currentBlock);
     });
 
     await initialize();
@@ -981,8 +990,10 @@ describe("Bot Test Suite", () => {
       isCollateralized: false,
     };
 
+    const currentBlock = await provider.getBlockNumber();
+
     addWithdrawal(borrower.comet, borrower.address, 0);
-    setUserPrincipal(borrower.comet, borrower.address, borrower.principal, "latest");
+    setUserPrincipal(borrower.comet, borrower.address, borrower.principal, currentBlock);
 
     await initialize();
     await initializationPromise;
