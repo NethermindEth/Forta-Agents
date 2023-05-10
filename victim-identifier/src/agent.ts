@@ -149,7 +149,7 @@ export const provideHandleTransaction =
     if (txEvent.blockNumber != lastBlock) {
       lastBlock = txEvent.blockNumber;
       let et = new Date().getTime();
-      console.log(`--------Block ${lastBlock - 1} took ${et - st} ms--------`);
+      console.log(`--------Last Block processed took ${et - st} ms--------`);
       console.log(`-----Transactions processed: ${transactionsProcessed}-----`);
       transactionsProcessed = 0;
       st = et;
