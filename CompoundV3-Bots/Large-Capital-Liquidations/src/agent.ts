@@ -38,7 +38,7 @@ export const provideInitializeTask = (
     // get current borrow data to compute present values
     await Promise.all(
       cometContracts.map(async (entry) => {
-        entry.baseBorrowIndex = await entry.comet.baseIndexScale({ blockTag: "latest" });
+        entry.baseIndexScale = await entry.comet.baseIndexScale({ blockTag: "latest" });
         entry.baseBorrowIndex = (await entry.comet.totalsBasic({ blockTag: "latest" })).baseBorrowIndex;
       })
     );
