@@ -250,7 +250,7 @@ export const provideHandleTransaction =
       lastBlock = blockNumber;
       console.log(
         `-----Transactions processed in block ${
-          blockNumber - 5
+          blockNumber - 6
         }: ${transactionsProcessed}-----`
       );
       transactionsProcessed = 0;
