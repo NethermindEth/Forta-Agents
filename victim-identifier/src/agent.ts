@@ -43,6 +43,7 @@ const createPreparationStageFinding = (
     label: "Attacker",
     confidence: 1,
     remove: false,
+    metadata: {},
   });
 
   let index = 1;
@@ -71,6 +72,7 @@ const createPreparationStageFinding = (
       label: "Victim",
       confidence: confidence,
       remove: false,
+      metadata: {},
     });
   }
 
@@ -127,6 +129,7 @@ const createExploitationStageFinding = (
       label: "Victim",
       confidence: victim.confidence,
       remove: false,
+      metadata: {},
     });
   }
   return Finding.fromObject({
