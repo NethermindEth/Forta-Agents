@@ -9,7 +9,7 @@ import {
   Network,
 } from "forta-agent";
 import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { createAddress as _createAddress, NetworkManager } from "forta-agent-tools";
+import { createChecksumAddress, NetworkManager } from "forta-agent-tools";
 
 import { provideInitialize, provideHandleTransaction } from "./agent";
 import { AgentConfig, NetworkData } from "./utils";
@@ -92,10 +92,10 @@ function createApproveFinding(
   });
 }
 
-const createAddress = (addr: string) => ethers.utils.getAddress(_createAddress(addr));
-const COMET_ADDRESSES = [createAddress("0x1"), createAddress("0x2")];
-const TOKEN_ADDRESS = createAddress("0x3");
-const IRRELEVANT_ADDRESS = createAddress("0x4");
+const addr = createChecksumAddress;
+const COMET_ADDRESSES = [addr("0x1"), addr("0x2")];
+const TOKEN_ADDRESS = addr("0x3");
+const IRRELEVANT_ADDRESS = addr("0x4");
 
 const network = Network.MAINNET;
 
@@ -140,7 +140,7 @@ describe("Bot Test Suite", () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
     txEvent.addEventLog(PAUSE_ACTION_ABI, IRRELEVANT_ADDRESS, [false, false, false, false, false]);
-    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, IRRELEVANT_ADDRESS, [createAddress("0x0"), 0]);
+    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, IRRELEVANT_ADDRESS, [addr("0x0"), 0]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
@@ -189,7 +189,7 @@ describe("Bot Test Suite", () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
     const comet = COMET_ADDRESSES[0];
-    const to = createAddress("0xdef1");
+    const to = addr("0xdef1");
     const amount = 1000;
     const expectedFinding = createWithdrawReservesFinding(comet, to, amount, network);
 
@@ -203,7 +203,7 @@ describe("Bot Test Suite", () => {
 
     const token = TOKEN_ADDRESS;
     const owner = IRRELEVANT_ADDRESS;
-    const spender = createAddress("0xdef1");
+    const spender = addr("0xdef1");
     const amount = 1000;
 
     txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
@@ -217,7 +217,7 @@ describe("Bot Test Suite", () => {
     const comet = COMET_ADDRESSES[0];
     const token = TOKEN_ADDRESS;
     const owner = comet;
-    const spender = createAddress("0xdef1");
+    const spender = addr("0xdef1");
     const amount = 1000;
     const expectedFinding = createApproveFinding(comet, token, spender, amount, network);
 
@@ -267,13 +267,13 @@ describe("Bot Test Suite", () => {
       ]);
     }
     {
-      const to = createAddress("0xdef1");
+      const to = addr("0xdef1");
       const amount = 1000;
       expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
       txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
     }
     {
-      const to = createAddress("0xf00d");
+      const to = addr("0xf00d");
       const amount = 2000;
       expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
       txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
@@ -281,15 +281,15 @@ describe("Bot Test Suite", () => {
     {
       const token = TOKEN_ADDRESS;
       const owner = comet;
-      const spender = createAddress("0xdef1");
+      const spender = addr("0xdef1");
       const amount = 1000;
       expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
       txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
     }
     {
-      const token = createAddress("0xdef1");
+      const token = addr("0xdef1");
       const owner = comet;
-      const spender = createAddress("0xf00d");
+      const spender = addr("0xf00d");
       const amount = 2000;
       expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
       txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
@@ -341,14 +341,14 @@ describe("Bot Test Suite", () => {
     }
     {
       const comet = COMET_ADDRESSES[1];
-      const to = createAddress("0xdef1");
+      const to = addr("0xdef1");
       const amount = 1000;
       expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
       txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
     }
     {
       const comet = COMET_ADDRESSES[0];
-      const to = createAddress("0xf00d");
+      const to = addr("0xf00d");
       const amount = 2000;
       expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
       txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
@@ -357,16 +357,16 @@ describe("Bot Test Suite", () => {
       const comet = COMET_ADDRESSES[0];
       const token = TOKEN_ADDRESS;
       const owner = comet;
-      const spender = createAddress("0xdef1");
+      const spender = addr("0xdef1");
       const amount = 1000;
       expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
       txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
     }
     {
       const comet = COMET_ADDRESSES[1];
-      const token = createAddress("0xdef1");
+      const token = addr("0xdef1");
       const owner = comet;
-      const spender = createAddress("0xf00d");
+      const spender = addr("0xf00d");
       const amount = 2000;
       expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
       txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
