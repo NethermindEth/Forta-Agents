@@ -9,6 +9,11 @@ const CONFIG: AgentConfig = {
   [Network.POLYGON]: {
     cometAddresses: ["0xF25212E676D1F7F89Cd72fFEe66158f541246445"],
   },
+
+  // Sepolia
+  11155111: {
+    cometAddresses: ["0x8b3fd6dd96da931f1d2ffe3b4660690b5e2420c6"],
+  },
 };
 
 export default CONFIG;
