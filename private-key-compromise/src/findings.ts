@@ -7,6 +7,16 @@ export const createFinding = (
   assets: string[],
   anomalyScore: number
 ): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.6,
+      remove: false,
+    });
+  });
+
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
@@ -32,19 +42,13 @@ export const createFinding = (
         remove: false,
       }),
       Label.fromObject({
-        entity: from.toString(),
-        entityType: EntityType.Address,
-        label: "Victim",
-        confidence: 0.6,
-        remove: false,
-      }),
-      Label.fromObject({
         entity: to,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.6,
         remove: false,
       }),
+      ...victims,
     ],
   });
 };

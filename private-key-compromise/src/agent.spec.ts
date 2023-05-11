@@ -11,12 +11,12 @@ import {
 } from "forta-agent";
 import { Interface } from "@ethersproject/abi";
 
-import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
-import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI, AlertedAddress } from "./utils";
+import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
@@ -85,6 +85,16 @@ const senders = [
 const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
 
 const createFinding = (txHash: string, from: string[], to: string, assets: string[], anomalyScore: number): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.6,
+      remove: false,
+    });
+  });
+
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
@@ -110,19 +120,13 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
         remove: false,
       }),
       Label.fromObject({
-        entity: from.toString(),
-        entityType: EntityType.Address,
-        label: "Victim",
-        confidence: 0.6,
-        remove: false,
-      }),
-      Label.fromObject({
         entity: to,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.6,
         remove: false,
       }),
+      ...victims,
     ],
   });
 };
