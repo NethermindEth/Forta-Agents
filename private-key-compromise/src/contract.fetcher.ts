@@ -1,6 +1,5 @@
 import { providers, ethers } from "ethers";
 import LRU from "lru-cache";
-import fetch from "node-fetch";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./bot.config";
 
 interface apiKeys {
@@ -15,12 +14,14 @@ interface apiKeys {
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
+  fetch: any;
   private apiKeys: apiKeys;
   private cache: LRU<string, boolean>;
 
-  constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: apiKeys) {
+  constructor(provider: ethers.providers.JsonRpcProvider, fetch: any, apiKeys: apiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
+    this.fetch = fetch;
     this.cache = new LRU<string, boolean>({
       max: 10000,
     });
@@ -30,7 +31,7 @@ export default class Fetcher {
   private getEtherscanAddressUrl = (address: string, chainId: number, isToken: boolean) => {
     const url = isToken ? etherscanApis[chainId].urlAccountToken : etherscanApis[chainId].urlAccount;
     const key = this.getBlockExplorerKey(chainId);
-    return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+    return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&page=1&offset=501&apikey=${key}`;
   };
 
   private getBlockExplorerKey = (chainId: number) => {
@@ -68,16 +69,17 @@ export default class Fetcher {
     }
   };
 
-  public getContractInfo = async (contract: string, chainId: number, isToken: boolean, blockNumber: number) => {
-    const key: string = `${contract}-${blockNumber}`;
+  public getContractInfo = async (contract: string, chainId: number, isToken: boolean) => {
+    const key: string = `${contract}`;
     if (this.cache.has(key)) return this.cache.get(key) as boolean;
 
     let result;
 
-    result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId, isToken))).json();
+    result = await (await this.fetch(this.getEtherscanAddressUrl(contract, chainId, isToken))).json();
 
     if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
       console.log(`block explorer error occured; skipping check for ${contract}`);
+
       return [null, null];
     }
 

@@ -22,7 +22,7 @@ describe("TokenInfoFetcher tests suite", () => {
   let fetcher: ContractFetcher;
 
   beforeAll(() => {
-    fetcher = new ContractFetcher(mockProvider as any, testKeys);
+    fetcher = new ContractFetcher(mockProvider as any, fetch, testKeys);
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe("TokenInfoFetcher tests suite", () => {
       )
     );
 
-    const hasHighNumberOfTotalTxs = await fetcher.getContractInfo(mockTxTo, chainId, false, 1);
+    const hasHighNumberOfTotalTxs = await fetcher.getContractInfo(mockTxTo, chainId, false);
     expect([hasHighNumberOfTotalTxs]).toStrictEqual([false]);
   });
 });

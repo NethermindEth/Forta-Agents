@@ -3,7 +3,7 @@ import { AgentConfig } from "./utils";
 
 export const CONTRACT_TRANSACTION_COUNT_THRESHOLD = 500;
 
-export const timePeriodDays = 0.5;
+export const timePeriodDays = 0.25;
 
 // threshold amounts for individual network tokens to be left in an account in order to be considered as drained
 const thresholds = {
@@ -16,33 +16,50 @@ const thresholds = {
   OPTIMISM_ETH: "0.01",
 };
 
+const tokenName = {
+  MAINNET_ETH: "ETH",
+  BNB: "BNB",
+  MATIC: "MATIC",
+  ARBITRUM_ETH: "ETH",
+  FTM: "FTM",
+  AVAX: "AVAX",
+  OPTIMISM_ETH: "ETH",
+};
+
 const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     threshold: thresholds.MAINNET_ETH,
+    tokenName: tokenName.MAINNET_ETH,
   },
 
   [Network.BSC]: {
     threshold: thresholds.BNB,
+    tokenName: tokenName.BNB,
   },
 
   [Network.POLYGON]: {
     threshold: thresholds.MATIC,
+    tokenName: tokenName.MATIC,
   },
 
   [Network.ARBITRUM]: {
     threshold: thresholds.ARBITRUM_ETH,
+    tokenName: tokenName.ARBITRUM_ETH,
   },
 
   [Network.FANTOM]: {
     threshold: thresholds.FTM,
+    tokenName: tokenName.FTM,
   },
 
   [Network.AVALANCHE]: {
     threshold: thresholds.AVAX,
+    tokenName: tokenName.AVAX,
   },
 
   [Network.OPTIMISM]: {
     threshold: thresholds.OPTIMISM_ETH,
+    tokenName: tokenName.OPTIMISM_ETH,
   },
 };
 

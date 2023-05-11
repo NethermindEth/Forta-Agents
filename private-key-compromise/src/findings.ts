@@ -4,8 +4,19 @@ export const createFinding = (
   txHash: string,
   from: string[],
   to: string,
+  assets: string[],
   anomalyScore: number
 ): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.6,
+      remove: false,
+    });
+  });
+
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
@@ -15,6 +26,11 @@ export const createFinding = (
     metadata: {
       attacker: to,
       victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
@@ -26,19 +42,13 @@ export const createFinding = (
         remove: false,
       }),
       Label.fromObject({
-        entity: from.toString(),
-        entityType: EntityType.Address,
-        label: "Victim",
-        confidence: 0.6,
-        remove: false,
-      }),
-      Label.fromObject({
         entity: to,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.6,
         remove: false,
       }),
+      ...victims,
     ],
   });
 };

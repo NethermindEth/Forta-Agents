@@ -22,7 +22,7 @@ export default class DataFetcher {
         if (tries === 2) {
           throw err; // throw the error if maximum tries reached
         }
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 

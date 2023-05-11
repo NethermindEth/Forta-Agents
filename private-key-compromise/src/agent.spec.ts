@@ -3,7 +3,6 @@ import {
   FindingSeverity,
   FindingType,
   HandleTransaction,
-  HandleBlock,
   Network,
   Label,
   EntityType,
@@ -12,25 +11,30 @@ import {
 } from "forta-agent";
 import { Interface } from "@ethersproject/abi";
 
-import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { createAddress, NetworkManager } from "forta-agent-tools";
-import { provideInitialize, provideHandleTransaction, provideHandleBlock } from "./agent";
+import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
 import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
-import { PersistenceHelper } from "./persistence.helper";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
 const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
 
 const mockChainId = 1;
-const mockDbUrl = "databaseurl.com/";
 const mockJwt = "MOCK_JWT";
-const mockpKCompValueKey = "mock-pk-comp-value-bot-key";
+
+const mockDBKeys = {
+  transfersKey: "mock-pk-comp-value-bot-key",
+  alertedAddressesKey: "mock-pk-comp-bot-alerted-addresses-key",
+};
+
 const mockpKCompValueTxns = {
   "0x0000000000000000000000000000000000000020": [createAddress("0x21")],
 };
+
+const mockpKCompAlertedAddresses = [{ address: createAddress("0x21"), timestamp: 1 }];
 
 // Mock calculateAlertRate function of the bot-alert-rate module
 const mockCalculateAlertRate = jest.fn();
@@ -53,6 +57,7 @@ jest.mock("forta-agent", () => {
 const DEFAULT_CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     threshold: "0.05",
+    tokenName: "ETH",
   },
 };
 
@@ -69,11 +74,27 @@ class MockEthersProviderExtension extends MockEthersProvider {
     return this;
   }
 }
-const senders = [createAddress("0x1"), createAddress("0x2"), createAddress("0x3"), createAddress("0x4")];
+const senders = [
+  createAddress("0x1"),
+  createAddress("0x2"),
+  createAddress("0x3"),
+  createAddress("0x4"),
+  createAddress("0x5"),
+];
 
 const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
 
-const createFinding = (txHash: string, from: string[], to: string, anomalyScore: number): Finding => {
+const createFinding = (txHash: string, from: string[], to: string, assets: string[], anomalyScore: number): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.6,
+      remove: false,
+    });
+  });
+
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
@@ -83,6 +104,11 @@ const createFinding = (txHash: string, from: string[], to: string, anomalyScore:
     metadata: {
       attacker: to,
       victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
       anomalyScore: anomalyScore.toString(),
     },
     labels: [
@@ -94,30 +120,26 @@ const createFinding = (txHash: string, from: string[], to: string, anomalyScore:
         remove: false,
       }),
       Label.fromObject({
-        entity: from.toString(),
-        entityType: EntityType.Address,
-        label: "Victim",
-        confidence: 0.6,
-        remove: false,
-      }),
-      Label.fromObject({
         entity: to,
         entityType: EntityType.Address,
         label: "Attacker",
         confidence: 0.6,
         remove: false,
       }),
+      ...victims,
     ],
   });
 };
 
 describe("Detect Private Key Compromise", () => {
-  let mockPersistenceHelper: PersistenceHelper;
+  const mockPersistenceHelper = {
+    persist: jest.fn(),
+    load: jest.fn(),
+  };
   let mockProvider: MockEthersProviderExtension;
   let mockFetch = jest.mocked(fetch, true);
   let initialize: Initialize;
   let handleTransaction: HandleTransaction;
-  let handleBlock: HandleBlock;
   let networkManager: NetworkManager<NetworkData>;
   let mockFetchResponse: Response;
   let mockBalanceFetcher: BalanceFetcher;
@@ -132,20 +154,21 @@ describe("Detect Private Key Compromise", () => {
 
   beforeAll(() => {
     mockProvider = new MockEthersProviderExtension();
-    mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
+    // mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
   });
 
   beforeEach(async () => {
     mockProvider.setNetwork(mockChainId);
-    initialize = provideInitialize(networkManager, mockProvider as any, mockPersistenceHelper, mockpKCompValueKey);
+
+    initialize = provideInitialize(networkManager, mockProvider as any, mockPersistenceHelper as any, mockDBKeys);
     const mockEnv = {};
     Object.assign(process.env, mockEnv);
 
-    mockFetchResponse = {
-      ok: true,
-      json: jest.fn().mockResolvedValueOnce(Promise.resolve(mockpKCompValueTxns)),
-    } as any as Response;
+    // mockFetchResponse = {
+    //   ok: true,
+    //   json: jest.fn().mockResolvedValue(Promise.resolve(mockpKCompValueTxns)),
+    // } as any as Response;
 
     mockCalculateAlertRate.mockResolvedValueOnce("0.1");
     mockFetchJwt.mockResolvedValue(mockJwt);
@@ -153,15 +176,18 @@ describe("Detect Private Key Compromise", () => {
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
 
     await initialize();
+    mockPersistenceHelper.load.mockResolvedValue(mockpKCompValueTxns).mockResolvedValue(mockpKCompAlertedAddresses);
 
     handleTransaction = provideHandleTransaction(
       mockProvider as any,
       networkManager,
       mockBalanceFetcher,
       mockContractFetcher as any,
-      mockDataFetcher as any
+      mockDataFetcher as any,
+      mockPersistenceHelper as any,
+      mockDBKeys
     );
-    handleBlock = provideHandleBlock(mockPersistenceHelper, mockpKCompValueKey);
+
     delete process.env.LOCAL_NODE;
   });
 
@@ -282,7 +308,7 @@ describe("Detect Private Key Compromise", () => {
       txEvent4.setValue("4");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[0], 0.1),
+        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[0], ["ETH"], 0.1),
       ]);
     });
 
@@ -320,6 +346,14 @@ describe("Detect Private Key Compromise", () => {
           ethers.BigNumber.from("1000000"),
         ]);
 
+      const txEvent5 = new TestTransactionEvent()
+        .setBlock(1)
+        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
+          senders[4],
+          receivers[1],
+          ethers.BigNumber.from("1000000"),
+        ]);
+
       setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
@@ -338,11 +372,21 @@ describe("Detect Private Key Compromise", () => {
 
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[1], 0.1),
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[1],
+          [createAddress("0x99")],
+          0.1
+        ),
       ]);
+
+      findings = await handleTransaction(txEvent5);
+
+      expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
+    it("returns findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
       let findings;
       const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[2]);
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
@@ -372,40 +416,14 @@ describe("Detect Private Key Compromise", () => {
       txEvent4.setValue("4");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[2], 0.1),
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[2],
+          ["ETH", createAddress("0x99")],
+          0.1
+        ),
       ]);
-    });
-  });
-
-  describe("Block handler test suite", () => {
-    it("should not persist values because block is not evenly divisible by 300", async () => {
-      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(305);
-
-      await handleBlock(mockBlockEvent);
-
-      expect(mockFetchJwt).toHaveBeenCalledTimes(1);
-      expect(mockFetchResponse.json).toHaveBeenCalledTimes(1);
-    });
-
-    it("should persist the value in a block evenly divisible by 300", async () => {
-      const mockBlockEvent: TestBlockEvent = new TestBlockEvent().setNumber(600);
-
-      const spy = jest.spyOn(console, "log").mockImplementation(() => {});
-
-      await handleBlock(mockBlockEvent);
-
-      expect(spy).toHaveBeenCalledWith("successfully persisted to database");
-      expect(mockFetchJwt).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
-      expect(mockFetch).toHaveBeenCalledTimes(2); // Two during initialization, two in block handler
-
-      expect(mockFetch.mock.calls[1][0]).toEqual(
-        `${mockDbUrl}${mockpKCompValueKey.concat("-", mockChainId.toString())}`
-      );
-      expect(mockFetch.mock.calls[1][1]!.method).toEqual("POST");
-      expect(mockFetch.mock.calls[1][1]!.headers).toEqual({
-        Authorization: `Bearer ${mockJwt}`,
-      });
-      expect(mockFetch.mock.calls[1][1]!.body).toEqual(JSON.stringify(mockpKCompValueTxns));
     });
   });
 });
