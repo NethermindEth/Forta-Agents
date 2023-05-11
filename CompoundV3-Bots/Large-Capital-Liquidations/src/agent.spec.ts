@@ -7,6 +7,9 @@ import { provideInitialize, provideHandleBlock } from "./agent";
 import { AgentConfig, AgentState, NetworkData } from "./utils";
 import { COMET_ABI } from "./constants";
 
+const addr = createChecksumAddress;
+const bn = ethers.BigNumber.from;
+
 export function createAbsorbFinding(
   comet: string,
   absorber: string,
@@ -55,21 +58,21 @@ export function createLiquidationRiskFinding(
   });
 }
 
-const COMET_CONTRACTS = [
+const COMET = [
   {
-    address: createChecksumAddress("0x1"),
-    deploymentBlock: 0,
-    baseLargeThreshold: "100",
-    monitoringListLength: 101,
-  },
-  {
-    address: createChecksumAddress("0x2"),
+    address: addr("0x1"),
     deploymentBlock: 0,
     baseLargeThreshold: "1000",
     monitoringListLength: 101,
   },
+  {
+    address: addr("0x2"),
+    deploymentBlock: 0,
+    baseLargeThreshold: "10000",
+    monitoringListLength: 101,
+  },
 ];
-const IRRELEVANT_ADDRESS = createChecksumAddress("0x3");
+const IRRELEVANT_ADDRESS = addr("0x3");
 
 const MAINNET_MULTICALL_ADDRESS = "0x5ba1e12693dc8f9c48aad8770482f4739beed696";
 const MULTICALL_IFACE = new ethers.utils.Interface([
@@ -81,13 +84,80 @@ const network = Network.MAINNET;
 
 const DEFAULT_CONFIG: AgentConfig = {
   [network]: {
-    cometContracts: COMET_CONTRACTS,
+    cometContracts: COMET,
     alertInterval: 10,
     multicallSize: 10,
     logFetchingBlockRange: 2000,
     logFetchingInterval: 0,
   },
 };
+
+interface SupplyInteraction {
+  to: string;
+  comet: string;
+  type: "supply";
+  blockTag: number | "latest";
+  principalAmount: ethers.BigNumberish;
+}
+
+function supply(
+  comet: string,
+  to: string,
+  principalAmount: ethers.BigNumberish,
+  blockTag: number | "latest"
+): SupplyInteraction {
+  return { type: "supply", to, comet, blockTag, principalAmount };
+}
+
+interface TransferInteraction {
+  from: string;
+  comet: string;
+  type: "transfer";
+  blockTag: number | "latest";
+  to: string;
+  principalAmount: ethers.BigNumberish;
+}
+
+function transfer(
+  comet: string,
+  from: string,
+  to: string,
+  principalAmount: ethers.BigNumberish,
+  blockTag: number | "latest"
+): TransferInteraction {
+  return { type: "transfer", from, to, comet, blockTag, principalAmount };
+}
+
+interface WithdrawInteraction {
+  from: string;
+  comet: string;
+  type: "withdraw";
+  blockTag: number | "latest";
+  principalAmount: ethers.BigNumberish;
+}
+
+function withdraw(
+  comet: string,
+  from: string,
+  principalAmount: ethers.BigNumberish,
+  blockTag: number | "latest"
+): WithdrawInteraction {
+  return { type: "withdraw", from, comet, blockTag, principalAmount };
+}
+
+interface AbsorbInteraction {
+  absorber: string;
+  comet: string;
+  type: "absorb";
+  blockTag: number | "latest";
+  borrower: string;
+}
+
+function absorb(comet: string, absorber: string, borrower: string, blockTag: number | "latest"): AbsorbInteraction {
+  return { type: "absorb", absorber, borrower, comet, blockTag };
+}
+
+type Interaction = SupplyInteraction | TransferInteraction | WithdrawInteraction | AbsorbInteraction;
 
 describe("Bot Test Suite", () => {
   let provider: ethers.providers.JsonRpcProvider;
@@ -99,101 +169,224 @@ describe("Bot Test Suite", () => {
   let state: AgentState;
   let initialized: boolean;
   let initializationPromise: Promise<void>;
+  let userPrincipals: Record<string, Record<string, ethers.BigNumber>>;
+  let baseBorrowIndexes: Record<number | string, ethers.BigNumber>;
+  let baseIndexScales: Record<number | string, ethers.BigNumber>;
+
+  async function block(blockTag: number | "latest") {
+    return blockTag === "latest" ? await provider.getBlockNumber() : blockTag;
+  }
 
   function generateMockProviderCall() {
     const _call = mockProvider.call;
 
     mockProvider.call = jest.fn().mockImplementation(async ({ data, to, from }, blockTag) => {
-      if (to.toLowerCase() === MAINNET_MULTICALL_ADDRESS) {
+      try {
+        if (blockTag === "latest") {
+          return await mockProvider.call({ data, to, from }, await provider.getBlockNumber());
+        }
+
+        if (to.toLowerCase() !== MAINNET_MULTICALL_ADDRESS) {
+          return await _call({ data, to, from });
+        }
+
         const calls = MULTICALL_IFACE.decodeFunctionData("tryAggregate", data).calls as Array<{
           callData: string;
           target: string;
         }>;
+
         const results = await Promise.all(
           calls.map((call) => mockProvider.call({ data: call.callData, to: call.target }, blockTag))
         );
+
         return MULTICALL_IFACE.encodeFunctionResult("tryAggregate", [
           results.map((result) => ({ success: true, returnData: result })),
         ]);
-      } else {
-        return _call({ data, to, from });
+      } catch {
+        if (COMET.some((comet) => comet.address.toLowerCase() === to.toLowerCase())) {
+          const tx = COMET_IFACE.parseTransaction({ data });
+          throw new Error(
+            `Error while trying to call ${tx.name}(${tx.args
+              .map((el) => el.toString())
+              .join(", ")}) on contract ${to} at block ${blockTag}`
+          );
+        } else {
+          throw new Error(`Error while trying to make the call ${JSON.stringify({ data, to })} at block ${blockTag}`);
+        }
       }
     });
   }
 
-  function addWithdrawal(comet: string, src: string, block: number | string) {
+  async function processInteractions(interactions: Interaction[]) {
+    const latestBlock = await provider.getBlockNumber();
+
+    const block = (tag: number | "latest") => (tag === "latest" ? latestBlock : tag);
+    const principal = (comet: string, addr: string) => {
+      comet = comet.toLowerCase();
+      if (!userPrincipals[comet]) userPrincipals[comet] = {};
+      return userPrincipals[comet][addr.toLowerCase()] || ethers.constants.Zero;
+    };
+    const setPrincipal = (comet: string, addr: string, value: ethers.BigNumber) =>
+      (userPrincipals[comet.toLowerCase()][addr.toLowerCase()] = value);
+
+    [...interactions]
+      .sort((a, b) => block(a.blockTag) - block(b.blockTag))
+      .forEach((interaction) => {
+        const comet = interaction.comet;
+        const blockTag = interaction.blockTag;
+        const baseBorrowIndex = baseBorrowIndexes[latestBlock];
+        const baseIndexScale = baseIndexScales[latestBlock];
+
+        const presentValue = (amount: ethers.BigNumberish) => baseBorrowIndex.mul(amount).div(baseIndexScale);
+
+        switch (interaction.type) {
+          case "supply":
+            {
+              const addr = interaction.to;
+              const amount = interaction.principalAmount;
+
+              setPrincipal(comet, addr, principal(comet, addr).add(amount));
+
+              addSupply(comet, addr, presentValue(amount), block(blockTag));
+              setUserPrincipal(comet, addr, principal(comet, addr), block(blockTag));
+              setUserPrincipal(comet, addr, principal(comet, addr), latestBlock);
+            }
+            break;
+          case "transfer":
+            {
+              const { from, to, principalAmount } = interaction;
+
+              setPrincipal(comet, from, principal(comet, from).sub(principalAmount));
+              setPrincipal(comet, to, principal(comet, to).add(principalAmount));
+
+              addTransfer(comet, from, to, presentValue(principalAmount), block(blockTag));
+              setUserPrincipal(comet, from, principal(comet, from), block(blockTag));
+              setUserPrincipal(comet, to, principal(comet, to), block(blockTag));
+              setUserPrincipal(comet, from, principal(comet, from), latestBlock);
+              setUserPrincipal(comet, to, principal(comet, to), latestBlock);
+            }
+            break;
+          case "withdraw":
+            {
+              const { from, principalAmount } = interaction;
+
+              setPrincipal(comet, from, principal(comet, from).sub(principalAmount));
+
+              addWithdrawal(comet, from, presentValue(principalAmount), block(blockTag));
+              setUserPrincipal(comet, from, principal(comet, from), block(blockTag));
+              setUserPrincipal(comet, from, principal(comet, from), latestBlock);
+            }
+            break;
+          case "absorb":
+            {
+              const { borrower, absorber } = interaction;
+
+              const previousPrincipal = principal(comet, borrower);
+              if (!previousPrincipal.isNegative()) {
+                throw new Error("Cannot absorb positive position");
+              }
+
+              setPrincipal(comet, borrower, ethers.constants.Zero);
+
+              addAbsorbDebt(comet, absorber, borrower, presentValue(previousPrincipal).mul(-1), block(blockTag));
+              setUserPrincipal(comet, borrower, principal(comet, borrower), block(blockTag));
+              setUserPrincipal(comet, absorber, principal(comet, borrower), latestBlock);
+            }
+            break;
+        }
+      });
+  }
+
+  async function addWithdrawal(comet: string, src: string, amount: ethers.BigNumberish, blockTag: number | "latest") {
     mockProvider.addLogs([
       {
-        ...COMET_IFACE.encodeEventLog("Withdraw", [src, ethers.constants.AddressZero, ethers.constants.Zero]),
+        ...COMET_IFACE.encodeEventLog("Withdraw", [src, ethers.constants.AddressZero, amount]),
         address: comet,
-        blockNumber: block,
+        blockNumber: await block(blockTag),
       } as Log,
     ]);
   }
 
-  function addSupply(comet: string, dst: string, block: number | string) {
+  async function addSupply(comet: string, dst: string, amount: ethers.BigNumberish, blockTag: number | "latest") {
     mockProvider.addLogs([
       {
-        ...COMET_IFACE.encodeEventLog("Supply", [ethers.constants.AddressZero, dst, ethers.constants.Zero]),
+        ...COMET_IFACE.encodeEventLog("Supply", [ethers.constants.AddressZero, dst, amount]),
         address: comet,
-        blockNumber: block,
+        blockNumber: await block(blockTag),
       } as Log,
     ]);
   }
 
-  function addTransfer(comet: string, from: string, to: string, block: number | string) {
+  async function addTransfer(
+    comet: string,
+    from: string,
+    to: string,
+    amount: ethers.BigNumberish,
+    blockTag: number | "latest"
+  ) {
     mockProvider.addLogs([
       {
-        ...COMET_IFACE.encodeEventLog("Transfer", [from, to, ethers.constants.Zero]),
+        ...COMET_IFACE.encodeEventLog("Transfer", [from, to, amount]),
         address: comet,
-        blockNumber: block,
+        blockNumber: await block(blockTag),
       } as Log,
     ]);
   }
 
-  function addAbsorbDebt(
+  async function addAbsorbDebt(
     comet: string,
     absorber: string,
     borrower: string,
     basePaidOut: ethers.BigNumberish,
-    block: number | string
+    blockTag: number | "latest"
   ) {
-    basePaidOut = ethers.BigNumber.from(basePaidOut);
+    basePaidOut = bn(basePaidOut);
     mockProvider.addLogs([
       {
         ...COMET_IFACE.encodeEventLog("AbsorbDebt", [absorber, borrower, basePaidOut, ethers.constants.Zero]),
         address: comet,
-        blockNumber: block,
+        blockNumber: await block(blockTag),
       } as Log,
     ]);
   }
 
-  function setUserPrincipal(comet: string, user: string, principal: ethers.BigNumberish, block: number | string) {
-    principal = ethers.BigNumber.from(principal);
-    mockProvider.addCallTo(comet, block, COMET_IFACE, "userBasic", {
+  async function setUserPrincipal(
+    comet: string,
+    user: string,
+    principal: ethers.BigNumberish,
+    blockTag: number | "latest"
+  ) {
+    principal = bn(principal);
+    mockProvider.addCallTo(comet, await block(blockTag), COMET_IFACE, "userBasic", {
       inputs: [user],
       outputs: [principal, ethers.constants.Zero, ethers.constants.Zero, 0, 0],
     });
   }
 
-  function setIsBorrowCollateralized(comet: string, user: string, status: boolean, block: number | string) {
-    mockProvider.addCallTo(comet, block, COMET_IFACE, "isBorrowCollateralized", {
+  async function setIsBorrowCollateralized(comet: string, user: string, status: boolean, blockTag: number | "latest") {
+    mockProvider.addCallTo(comet, await block(blockTag), COMET_IFACE, "isBorrowCollateralized", {
       inputs: [user],
       outputs: [status],
     });
   }
 
-  function setBaseIndexScale(comet: string, value: ethers.BigNumberish, block: number | string) {
-    value = ethers.BigNumber.from(value);
-    mockProvider.addCallTo(comet, block, COMET_IFACE, "baseIndexScale", {
+  async function setBaseIndexScale(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
+    value = bn(value);
+    const blockNumber = await block(blockTag);
+
+    mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "baseIndexScale", {
       inputs: [],
       outputs: [value],
     });
+
+    baseIndexScales[blockNumber] = value;
   }
 
-  function setBaseBorrowIndex(comet: string, value: ethers.BigNumberish, block: number | string) {
-    value = ethers.BigNumber.from(value);
-    mockProvider.addCallTo(comet, block, COMET_IFACE, "totalsBasic", {
+  async function setBaseBorrowIndex(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
+    value = bn(value);
+    const blockNumber = await block(blockTag);
+
+    mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "totalsBasic", {
       inputs: [],
       outputs: [
         {
@@ -208,6 +401,8 @@ describe("Bot Test Suite", () => {
         },
       ],
     });
+
+    baseBorrowIndexes[blockNumber] = value;
   }
 
   beforeEach(async () => {
@@ -219,6 +414,10 @@ describe("Bot Test Suite", () => {
     provider = mockProvider as unknown as ethers.providers.JsonRpcProvider;
 
     multicallProvider = new MulticallProvider(provider, network);
+
+    userPrincipals = {};
+    baseBorrowIndexes = {};
+    baseIndexScales = {};
 
     let initializationResolve: (value: void | PromiseLike<void>) => void;
     initializationPromise = new Promise((res) => (initializationResolve = res));
@@ -237,10 +436,12 @@ describe("Bot Test Suite", () => {
       initializationBlock: 0,
     };
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, "latest");
-      setBaseIndexScale(comet.address, 1, "latest");
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
     networkManager = new NetworkManager(DEFAULT_CONFIG);
     initialize = provideInitialize(state, networkManager, multicallProvider, provider);
@@ -265,818 +466,604 @@ describe("Bot Test Suite", () => {
     expect(state.initialized).toStrictEqual(true);
   });
 
-  it("should correctly build a monitoring list based on previous borrowers", async () => {
-    const previousBorrowers = [
-      { address: createChecksumAddress("0xb00"), principal: 0 },
-      { address: createChecksumAddress("0xb01"), principal: -1 },
-      { address: createChecksumAddress("0xb02"), principal: -2 },
-      { address: createChecksumAddress("0xb03"), principal: -3 },
-      { address: createChecksumAddress("0xb04"), principal: -4 },
-      { address: createChecksumAddress("0xb05"), principal: -5 },
+  it("should correctly build a monitoring list based on previous interactions", async () => {
+    const interactions: Interaction[] = [
+      withdraw(COMET[0].address, addr("0xb0"), 100, 0),
+      supply(COMET[0].address, addr("0xb1"), 200, 1),
+      transfer(COMET[0].address, addr("0xb2"), addr("0xb3"), 300, 2),
+      withdraw(COMET[1].address, addr("0xb4"), 400, "latest"),
+      supply(COMET[1].address, addr("0xb4"), 500, "latest"),
+      transfer(COMET[1].address, addr("0xb4"), addr("0xb5"), 600, "latest"),
     ];
 
-    const currentBlock = await provider.getBlockNumber();
-
-    COMET_CONTRACTS.forEach((comet) => {
-      addWithdrawal(comet.address, previousBorrowers[0].address, comet.deploymentBlock);
-      setUserPrincipal(comet.address, previousBorrowers[0].address, previousBorrowers[0].principal, currentBlock);
-
-      addSupply(comet.address, previousBorrowers[1].address, comet.deploymentBlock + 1);
-      setUserPrincipal(comet.address, previousBorrowers[1].address, previousBorrowers[1].principal, currentBlock);
-
-      addAbsorbDebt(
-        comet.address,
-        ethers.constants.AddressZero,
-        previousBorrowers[2].address,
-        0,
-        comet.deploymentBlock + 2
-      );
-      setUserPrincipal(comet.address, previousBorrowers[2].address, previousBorrowers[2].principal, currentBlock);
-
-      addTransfer(comet.address, previousBorrowers[3].address, previousBorrowers[4].address, comet.deploymentBlock + 3);
-      setUserPrincipal(comet.address, previousBorrowers[3].address, previousBorrowers[3].principal, currentBlock);
-      setUserPrincipal(comet.address, previousBorrowers[4].address, previousBorrowers[4].principal, currentBlock);
-
-      addSupply(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 3);
-      addAbsorbDebt(
-        comet.address,
-        ethers.constants.AddressZero,
-        previousBorrowers[5].address,
-        0,
-        comet.deploymentBlock + 2
-      );
-      addWithdrawal(comet.address, previousBorrowers[5].address, comet.deploymentBlock + 1);
-      addTransfer(comet.address, previousBorrowers[5].address, previousBorrowers[5].address, comet.deploymentBlock);
-      setUserPrincipal(comet.address, previousBorrowers[5].address, previousBorrowers[5].principal, currentBlock);
-    });
+    await processInteractions(interactions);
 
     await initialize();
     await initializationPromise;
 
     expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: previousBorrowers
-        .sort((a, b) => a.principal - b.principal)
-        .map((borrower) => ({
-          borrower: borrower.address,
-          principal: ethers.BigNumber.from(borrower.principal),
-          alertedAt: 0,
-        })),
-      [COMET_CONTRACTS[1].address]: previousBorrowers
-        .sort((a, b) => a.principal - b.principal)
-        .map((borrower) => ({
-          borrower: borrower.address,
-          principal: ethers.BigNumber.from(borrower.principal),
-          alertedAt: 0,
-        })),
+      [COMET[0].address]: [
+        { alertedAt: 0, borrower: addr("0xb2"), principal: bn(-300) },
+        { alertedAt: 0, borrower: addr("0xb0"), principal: bn(-100) },
+        { alertedAt: 0, borrower: addr("0xb1"), principal: bn(200) },
+        { alertedAt: 0, borrower: addr("0xb3"), principal: bn(300) },
+      ],
+      [COMET[1].address]: [
+        { alertedAt: 0, borrower: addr("0xb4"), principal: bn(-400 + 500 - 600) },
+        { alertedAt: 0, borrower: addr("0xb5"), principal: bn(600) },
+      ],
     });
   });
 
-  it("should not add users to monitoring lists if relevant events were emitted from other contracts", async () => {
-    const previousBorrowers = [
-      { address: createChecksumAddress("0xb01"), principal: -1 },
-      { address: createChecksumAddress("0xb02"), principal: -2 },
-      { address: createChecksumAddress("0xb03"), principal: -3 },
-      { address: createChecksumAddress("0xb04"), principal: -4 },
+  it("should not add users to monitoring lists if previous events were emitted from other contracts", async () => {
+    const interactions: Interaction[] = [
+      withdraw(IRRELEVANT_ADDRESS, addr("0xb0"), 100, "latest"),
+      supply(IRRELEVANT_ADDRESS, addr("0xb1"), 200, "latest"),
+      transfer(IRRELEVANT_ADDRESS, addr("0xb2"), addr("0xb3"), 300, "latest"),
+      withdraw(IRRELEVANT_ADDRESS, addr("0xb4"), 400, "latest"),
+      supply(IRRELEVANT_ADDRESS, addr("0xb4"), 500, "latest"),
+      transfer(IRRELEVANT_ADDRESS, addr("0xb4"), addr("0xb5"), 600, "latest"),
     ];
 
-    COMET_CONTRACTS.forEach((comet) => {
-      previousBorrowers.forEach((borrower) => {
-        addWithdrawal(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
-        addSupply(IRRELEVANT_ADDRESS, borrower.address, comet.deploymentBlock);
-        addAbsorbDebt(IRRELEVANT_ADDRESS, ethers.constants.AddressZero, borrower.address, 0, comet.deploymentBlock);
-        addTransfer(IRRELEVANT_ADDRESS, borrower.address, borrower.address, comet.deploymentBlock);
-      });
-    });
+    await processInteractions(interactions);
 
     await initialize();
     await initializationPromise;
 
     expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [],
-      [COMET_CONTRACTS[1].address]: [],
-    });
-
-    const currentBorrowers = [
-      { address: createChecksumAddress("0xb05"), principal: -5 },
-      { address: createChecksumAddress("0xb06"), principal: -6 },
-      { address: createChecksumAddress("0xb07"), principal: -7 },
-    ];
-
-    const blockNumber = 11;
-    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
-
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-    });
-
-    addWithdrawal(IRRELEVANT_ADDRESS, currentBorrowers[0].address, blockNumber);
-    setUserPrincipal(IRRELEVANT_ADDRESS, currentBorrowers[0].address, currentBorrowers[0].principal, blockNumber);
-    addSupply(IRRELEVANT_ADDRESS, currentBorrowers[1].address, blockNumber);
-    setUserPrincipal(IRRELEVANT_ADDRESS, currentBorrowers[1].address, currentBorrowers[1].principal, blockNumber);
-    addAbsorbDebt(
-      IRRELEVANT_ADDRESS,
-      ethers.constants.AddressZero,
-      currentBorrowers[2].address,
-      -currentBorrowers[2].principal,
-      blockNumber
-    );
-    setUserPrincipal(IRRELEVANT_ADDRESS, currentBorrowers[2].address, 0, blockNumber);
-
-    const findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([]);
-    expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [],
-      [COMET_CONTRACTS[1].address]: [],
+      [COMET[0].address]: [],
+      [COMET[1].address]: [],
     });
   });
 
   it("should add users to the monitoring list if there's a relevant event from comet contracts on each block", async () => {
-    const previousBorrowers = [{ address: createChecksumAddress("0xb01"), principal: -1 }];
-    const currentBlock = await provider.getBlockNumber();
+    const previousInteractions: Interaction[] = [withdraw(COMET[0].address, addr("0xb0"), 100, 0)];
 
-    COMET_CONTRACTS.forEach((comet) => {
-      previousBorrowers.forEach((borrower, idx) => {
-        addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
-      });
-    });
+    await processInteractions(previousInteractions);
 
     await initialize();
     await initializationPromise;
 
-    const currentBorrowers = [
-      { address: createChecksumAddress("0xb03"), principal: -3, comet: COMET_CONTRACTS[0].address },
-      { address: createChecksumAddress("0xb04"), principal: -4, comet: COMET_CONTRACTS[1].address },
-      { address: createChecksumAddress("0xb05"), principal: -5, comet: COMET_CONTRACTS[0].address },
-      { address: createChecksumAddress("0xb06"), principal: -6, comet: COMET_CONTRACTS[1].address },
-      { address: createChecksumAddress("0xb07"), principal: -7, comet: COMET_CONTRACTS[1].address },
-    ];
-
-    const blockNumber = 11;
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    addWithdrawal(currentBorrowers[0].comet, currentBorrowers[0].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[0].comet,
-      currentBorrowers[0].address,
-      currentBorrowers[0].principal,
-      blockNumber
-    );
-    addSupply(currentBorrowers[1].comet, currentBorrowers[1].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[1].comet,
-      currentBorrowers[1].address,
-      currentBorrowers[1].principal,
-      blockNumber
-    );
-    addAbsorbDebt(
-      currentBorrowers[2].comet,
-      ethers.constants.AddressZero,
-      currentBorrowers[2].address,
-      -currentBorrowers[2].principal,
-      blockNumber
-    );
-    setUserPrincipal(currentBorrowers[2].comet, currentBorrowers[2].address, 0, blockNumber);
-    addTransfer(currentBorrowers[3].comet, currentBorrowers[3].address, currentBorrowers[4].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[3].comet,
-      currentBorrowers[3].address,
-      currentBorrowers[3].principal,
-      blockNumber
-    );
-    setUserPrincipal(
-      currentBorrowers[4].comet,
-      currentBorrowers[4].address,
-      currentBorrowers[4].principal,
-      blockNumber
-    );
+    const interactions = [
+      supply(COMET[0].address, addr("0xb1"), 200, "latest"),
+      transfer(COMET[0].address, addr("0xb2"), addr("0xb3"), 300, "latest"),
+      withdraw(COMET[1].address, addr("0xb4"), 400, "latest"),
+      supply(COMET[1].address, addr("0xb4"), 500, "latest"),
+      transfer(COMET[1].address, addr("0xb4"), addr("0xb5"), 600, "latest"),
+    ];
+
+    await processInteractions(interactions);
 
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
     expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: currentBorrowers[0].address,
-          principal: ethers.BigNumber.from(currentBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: previousBorrowers[0].address,
-          principal: ethers.BigNumber.from(previousBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        { borrower: currentBorrowers[2].address, principal: ethers.BigNumber.from(0), alertedAt: 0 },
+      [COMET[0].address]: [
+        { alertedAt: 0, borrower: addr("0xb2"), principal: bn(-300) },
+        { alertedAt: 0, borrower: addr("0xb0"), principal: bn(-100) },
+        { alertedAt: 0, borrower: addr("0xb1"), principal: bn(200) },
+        { alertedAt: 0, borrower: addr("0xb3"), principal: bn(300) },
       ],
-      [COMET_CONTRACTS[1].address]: [
-        {
-          borrower: currentBorrowers[4].address,
-          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[3].address,
-          principal: ethers.BigNumber.from(currentBorrowers[3].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[1].address,
-          principal: ethers.BigNumber.from(currentBorrowers[1].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: previousBorrowers[0].address,
-          principal: ethers.BigNumber.from(previousBorrowers[0].principal),
-          alertedAt: 0,
-        },
+      [COMET[1].address]: [
+        { alertedAt: 0, borrower: addr("0xb4"), principal: bn(-400 + 500 - 600) },
+        { alertedAt: 0, borrower: addr("0xb5"), principal: bn(600) },
       ],
     });
 
-    const nextBorrowers = [
-      { address: createChecksumAddress("0xb08"), principal: -8, comet: COMET_CONTRACTS[0].address },
-    ];
-
-    const nextBlockNumber = 12;
+    const nextBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(nextBlockNumber);
     const nextBlockEvent = new TestBlockEvent().setNumber(nextBlockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, nextBlockNumber);
-      setBaseIndexScale(comet.address, 1, nextBlockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    addWithdrawal(nextBorrowers[0].comet, nextBorrowers[0].address, nextBlockNumber);
-    setUserPrincipal(nextBorrowers[0].comet, nextBorrowers[0].address, nextBorrowers[0].principal, nextBlockNumber);
+    const nextInteractions = [
+      supply(COMET[1].address, addr("0xb6"), 700, "latest"),
+      transfer(COMET[1].address, addr("0xb7"), addr("0xb8"), 800, "latest"),
+      withdraw(COMET[0].address, addr("0xb9"), 900, "latest"),
+    ];
+
+    await processInteractions(nextInteractions);
 
     const nextFindings = await handleBlock(nextBlockEvent);
 
     expect(nextFindings).toStrictEqual([]);
     expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: nextBorrowers[0].address,
-          principal: ethers.BigNumber.from(nextBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[0].address,
-          principal: ethers.BigNumber.from(currentBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: previousBorrowers[0].address,
-          principal: ethers.BigNumber.from(previousBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        { borrower: currentBorrowers[2].address, principal: ethers.BigNumber.from(0), alertedAt: 0 },
+      [COMET[0].address]: [
+        { alertedAt: 0, borrower: addr("0xb9"), principal: bn(-900) },
+        { alertedAt: 0, borrower: addr("0xb2"), principal: bn(-300) },
+        { alertedAt: 0, borrower: addr("0xb0"), principal: bn(-100) },
+        { alertedAt: 0, borrower: addr("0xb1"), principal: bn(200) },
+        { alertedAt: 0, borrower: addr("0xb3"), principal: bn(300) },
       ],
-      [COMET_CONTRACTS[1].address]: [
-        {
-          borrower: currentBorrowers[4].address,
-          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[3].address,
-          principal: ethers.BigNumber.from(currentBorrowers[3].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[1].address,
-          principal: ethers.BigNumber.from(currentBorrowers[1].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: previousBorrowers[0].address,
-          principal: ethers.BigNumber.from(previousBorrowers[0].principal),
-          alertedAt: 0,
-        },
+      [COMET[1].address]: [
+        { alertedAt: 0, borrower: addr("0xb7"), principal: bn(-800) },
+        { alertedAt: 0, borrower: addr("0xb4"), principal: bn(-400 + 500 - 600) },
+        { alertedAt: 0, borrower: addr("0xb5"), principal: bn(600) },
+        { alertedAt: 0, borrower: addr("0xb6"), principal: bn(700) },
+        { alertedAt: 0, borrower: addr("0xb8"), principal: bn(800) },
       ],
     });
   });
 
   it("should update existing users principals in the monitoring list if there's a relevant event involving them", async () => {
-    const previousBorrowers = [
-      { address: createChecksumAddress("0xb01"), principal: -1 },
-      { address: createChecksumAddress("0xb02"), principal: -2 },
-      { address: createChecksumAddress("0xb03"), principal: -3 },
+    const previousInteractions: Interaction[] = [
+      withdraw(COMET[0].address, addr("0xb0"), 100, 0),
+      supply(COMET[0].address, addr("0xb1"), 200, "latest"),
+      transfer(COMET[1].address, addr("0xb2"), addr("0xb3"), 300, "latest"),
     ];
 
-    const currentBlock = await provider.getBlockNumber();
-
-    COMET_CONTRACTS.forEach((comet) => {
-      previousBorrowers.forEach((borrower, idx) => {
-        addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
-      });
-    });
+    await processInteractions(previousInteractions);
 
     await initialize();
     await initializationPromise;
 
-    const currentBorrowers = [
-      { address: previousBorrowers[0].address, principal: -4, comet: COMET_CONTRACTS[0].address },
-      { address: previousBorrowers[1].address, principal: 4, comet: COMET_CONTRACTS[0].address },
-      { address: previousBorrowers[0].address, principal: -5, comet: COMET_CONTRACTS[1].address },
-      { address: previousBorrowers[1].address, principal: 0, comet: COMET_CONTRACTS[1].address },
-      { address: previousBorrowers[2].address, principal: 10, comet: COMET_CONTRACTS[1].address },
-    ];
-
-    const blockNumber = 11;
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-    });
-
-    addWithdrawal(currentBorrowers[0].comet, currentBorrowers[0].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[0].comet,
-      currentBorrowers[0].address,
-      currentBorrowers[0].principal,
-      blockNumber
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
     );
 
-    addSupply(currentBorrowers[1].comet, currentBorrowers[1].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[1].comet,
-      currentBorrowers[1].address,
-      currentBorrowers[1].principal,
-      blockNumber
-    );
+    const interactions = [
+      supply(COMET[0].address, addr("0xb0"), 100, "latest"),
+      withdraw(COMET[0].address, addr("0xb1"), 200, "latest"),
+      transfer(COMET[1].address, addr("0xb3"), addr("0xb2"), 300, "latest"),
+    ];
 
-    addWithdrawal(currentBorrowers[2].comet, currentBorrowers[2].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[2].comet,
-      currentBorrowers[2].address,
-      currentBorrowers[2].principal,
-      blockNumber
-    );
-
-    addAbsorbDebt(
-      currentBorrowers[3].comet,
-      ethers.constants.AddressZero,
-      currentBorrowers[3].address,
-      -previousBorrowers[1].principal,
-      blockNumber
-    );
-    setUserPrincipal(currentBorrowers[3].comet, currentBorrowers[3].address, 0, blockNumber);
-
-    addTransfer(currentBorrowers[4].comet, currentBorrowers[4].address, currentBorrowers[4].address, blockNumber);
-    setUserPrincipal(
-      currentBorrowers[4].comet,
-      currentBorrowers[4].address,
-      currentBorrowers[4].principal,
-      blockNumber
-    );
+    await processInteractions(interactions);
 
     const findings = await handleBlock(blockEvent);
 
     expect(findings).toStrictEqual([]);
     expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: currentBorrowers[0].address,
-          principal: ethers.BigNumber.from(currentBorrowers[0].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: previousBorrowers[2].address,
-          principal: ethers.BigNumber.from(previousBorrowers[2].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[1].address,
-          principal: ethers.BigNumber.from(currentBorrowers[1].principal),
-          alertedAt: 0,
-        },
+      [COMET[0].address]: [
+        { alertedAt: 0, borrower: addr("0xb0"), principal: bn(0) },
+        { alertedAt: 0, borrower: addr("0xb1"), principal: bn(0) },
       ],
-      [COMET_CONTRACTS[1].address]: [
-        {
-          borrower: currentBorrowers[2].address,
-          principal: ethers.BigNumber.from(currentBorrowers[2].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[3].address,
-          principal: ethers.BigNumber.from(currentBorrowers[3].principal),
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[4].address,
-          principal: ethers.BigNumber.from(currentBorrowers[4].principal),
-          alertedAt: 0,
-        },
+      [COMET[1].address]: [
+        { alertedAt: 0, borrower: addr("0xb2"), principal: bn(0) },
+        { alertedAt: 0, borrower: addr("0xb3"), principal: bn(0) },
       ],
     });
   });
 
-  it("should not emit a finding if there's a debt absorption is not large", async () => {
+  it("should not add users to the monitoring list if there's a relevant event from another contract on each block", async () => {
+    const previousInteractions: Interaction[] = [withdraw(COMET[0].address, addr("0xb0"), 100, 0)];
+
+    await processInteractions(previousInteractions);
+
     await initialize();
     await initializationPromise;
 
-    const blockNumber = 11;
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    const borrower = createChecksumAddress("0xb01");
-    const basePaidOuts = COMET_CONTRACTS.map((comet) => ethers.BigNumber.from(comet.baseLargeThreshold).sub(1));
+    const interactions = [
+      supply(IRRELEVANT_ADDRESS, addr("0xb1"), 100, "latest"),
+      withdraw(IRRELEVANT_ADDRESS, addr("0xb2"), 200, "latest"),
+      transfer(IRRELEVANT_ADDRESS, addr("0xb3"), addr("0xb4"), 300, "latest"),
+    ];
 
-    COMET_CONTRACTS.forEach((comet, idx) => {
-      addAbsorbDebt(comet.address, ethers.constants.AddressZero, borrower, basePaidOuts[idx], blockNumber);
-      setUserPrincipal(comet.address, borrower, 0, blockNumber);
+    await processInteractions(interactions);
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+    expect(state.monitoringLists).toStrictEqual({
+      [COMET[0].address]: [{ alertedAt: 0, borrower: addr("0xb0"), principal: bn(-100) }],
+      [COMET[1].address]: [],
     });
+  });
+
+  it("should not update users principals on the monitoring list if there's a relevant event from another contract on each block", async () => {
+    const previousInteractions: Interaction[] = [withdraw(COMET[0].address, addr("0xb0"), 100, 0)];
+
+    await processInteractions(previousInteractions);
+
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const interactions = [
+      supply(IRRELEVANT_ADDRESS, addr("0xb0"), 100, "latest"),
+      withdraw(IRRELEVANT_ADDRESS, addr("0xb0"), 200, "latest"),
+      transfer(IRRELEVANT_ADDRESS, addr("0xb0"), addr("0xb1"), 300, "latest"),
+    ];
+
+    await processInteractions(interactions);
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([]);
+    expect(state.monitoringLists).toStrictEqual({
+      [COMET[0].address]: [{ alertedAt: 0, borrower: addr("0xb0"), principal: bn(-100) }],
+      [COMET[1].address]: [],
+    });
+  });
+
+  it("should not emit a finding if there's a debt absorption that is not large", async () => {
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const basePaidOuts = COMET.map((comet) => bn(comet.baseLargeThreshold).sub(1));
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), basePaidOuts[0], "latest"),
+      absorb(COMET[0].address, addr("0xa0"), addr("0xb0"), "latest"),
+      withdraw(COMET[1].address, addr("0xb0"), basePaidOuts[1], "latest"),
+      absorb(COMET[1].address, addr("0xa0"), addr("0xb0"), "latest"),
+    ];
+
+    await processInteractions(interactions);
 
     const findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
-  it("should emit a finding if there's a large debt absorption", async () => {
+  it("should emit a finding if there's a debt absorption that is large", async () => {
     await initialize();
     await initializationPromise;
 
-    const blockNumber = 11;
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    const borrower = createChecksumAddress("0xb01");
-    const absorber = createChecksumAddress("0xa01");
-    const basePaidOuts = COMET_CONTRACTS.map((comet) => comet.baseLargeThreshold);
+    const basePaidOuts = COMET.map((comet) => bn(comet.baseLargeThreshold));
 
-    COMET_CONTRACTS.forEach((comet, idx) => {
-      addAbsorbDebt(comet.address, absorber, borrower, basePaidOuts[idx], blockNumber);
-      setUserPrincipal(comet.address, borrower, 0, blockNumber);
-    });
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), basePaidOuts[0], "latest"),
+      absorb(COMET[0].address, addr("0xa0"), addr("0xb0"), "latest"),
+      withdraw(COMET[1].address, addr("0xb0"), basePaidOuts[1], "latest"),
+      absorb(COMET[1].address, addr("0xa0"), addr("0xb0"), "latest"),
+      withdraw(COMET[0].address, addr("0xb1"), basePaidOuts[0].add(1), "latest"),
+      absorb(COMET[0].address, addr("0xa1"), addr("0xb1"), "latest"),
+      withdraw(COMET[1].address, addr("0xb2"), basePaidOuts[1].add(1), "latest"),
+      absorb(COMET[1].address, addr("0xa2"), addr("0xb2"), "latest"),
+    ];
+
+    await processInteractions(interactions);
 
     const findings = await handleBlock(blockEvent);
     expect(findings.sort()).toStrictEqual(
       [
-        createAbsorbFinding(COMET_CONTRACTS[0].address, absorber, borrower, basePaidOuts[0], network),
-        createAbsorbFinding(COMET_CONTRACTS[1].address, absorber, borrower, basePaidOuts[1], network),
+        createAbsorbFinding(COMET[0].address, addr("0xa0"), addr("0xb0"), basePaidOuts[0], network),
+        createAbsorbFinding(COMET[1].address, addr("0xa0"), addr("0xb0"), basePaidOuts[1], network),
+        createAbsorbFinding(COMET[0].address, addr("0xa1"), addr("0xb1"), basePaidOuts[0].add(1), network),
+        createAbsorbFinding(COMET[1].address, addr("0xa2"), addr("0xb2"), basePaidOuts[1].add(1), network),
       ].sort()
     );
   });
 
   it("should only check status of large borrows", async () => {
-    const borrowers = [
-      { address: createChecksumAddress("0xb01"), principal: 1 },
-      { address: createChecksumAddress("0xb02"), principal: -2 },
-      { address: createChecksumAddress("0xb03"), principal: `-${COMET_CONTRACTS[0].baseLargeThreshold}` },
-      { address: createChecksumAddress("0xb04"), principal: `-${COMET_CONTRACTS[1].baseLargeThreshold}` },
-    ];
-
-    expect(ethers.BigNumber.from(COMET_CONTRACTS[1].baseLargeThreshold).gt(COMET_CONTRACTS[0].baseLargeThreshold)).toBe(
-      true
-    );
-
-    const currentBlock = await provider.getBlockNumber();
-
-    COMET_CONTRACTS.forEach((comet) => {
-      borrowers.forEach((borrower, idx) => {
-        addWithdrawal(comet.address, borrower.address, idx);
-        setUserPrincipal(comet.address, borrower.address, borrower.principal, currentBlock);
-      });
-    });
-
     await initialize();
     await initializationPromise;
 
-    const blockNumber = 11;
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, 1, blockNumber);
-      setBaseIndexScale(comet.address, 1, blockNumber);
-      setIsBorrowCollateralized(comet.address, borrowers[0].address, true, blockNumber);
-      setIsBorrowCollateralized(comet.address, borrowers[1].address, false, blockNumber);
-      setIsBorrowCollateralized(comet.address, borrowers[2].address, false, blockNumber);
-      setIsBorrowCollateralized(comet.address, borrowers[3].address, true, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const largeAmounts = COMET.map((comet) => bn(comet.baseLargeThreshold));
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), largeAmounts[0].sub(1), "latest"),
+      withdraw(COMET[1].address, addr("0xb1"), largeAmounts[1].sub(1), "latest"),
+      withdraw(COMET[0].address, addr("0xb2"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb3"), largeAmounts[1], "latest"),
+    ];
+
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), true, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+
+    await processInteractions(interactions);
+
+    const findings = await handleBlock(blockEvent);
+    expect(findings).toStrictEqual([]);
+
+    const isBorrowCollateralized = (comet: string, borrower: string) => [
+      {
+        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrower]),
+        to: comet,
+      },
+      blockNumber,
+    ];
+
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb0")));
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb1")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb2")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb3")));
+  });
+
+  it("should only check status of positions that have not been alerted recently", async () => {
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(10);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const largeAmounts = COMET.map((comet) => bn(comet.baseLargeThreshold));
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb1"), largeAmounts[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb2"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb3"), largeAmounts[1], "latest"),
+    ];
+
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+    await processInteractions(interactions);
 
     await handleBlock(blockEvent);
 
-    expect(mockProvider.call).not.toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[0].address]),
-        to: COMET_CONTRACTS[0].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).not.toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[1].address]),
-        to: COMET_CONTRACTS[0].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[2].address]),
-        to: COMET_CONTRACTS[0].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[3].address]),
-        to: COMET_CONTRACTS[0].address,
-      },
-      blockNumber
+    const nextBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(nextBlockNumber);
+    const nextBlockEvent = new TestBlockEvent()
+      .setNumber(nextBlockNumber)
+      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
     );
 
-    expect(mockProvider.call).not.toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[0].address]),
-        to: COMET_CONTRACTS[1].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).not.toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[1].address]),
-        to: COMET_CONTRACTS[1].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).not.toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[2].address]),
-        to: COMET_CONTRACTS[1].address,
-      },
-      blockNumber
-    );
-    expect(mockProvider.call).toHaveBeenCalledWith(
-      {
-        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrowers[3].address]),
-        to: COMET_CONTRACTS[1].address,
-      },
-      blockNumber
-    );
-  });
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
 
-  it("should emit a finding for each large borrower whose borrow is not collateralized", async () => {
-    const baseBorrowIndex = 250;
-    const baseIndexScale = 100;
-    const thresholdPrincipals = COMET_CONTRACTS.map((comet) =>
-      ethers.BigNumber.from(comet.baseLargeThreshold).mul(-1).mul(baseIndexScale).div(baseBorrowIndex)
-    );
-
-    const previousBorrowers = [
+    const isBorrowCollateralized = (comet: string, borrower: string) => [
       {
-        address: createChecksumAddress("0xb01"),
-        principal: thresholdPrincipals[0],
-        comet: COMET_CONTRACTS[0].address,
-        isCollateralized: false,
+        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrower]),
+        to: comet,
       },
-      {
-        address: createChecksumAddress("0xb02"),
-        principal: thresholdPrincipals[1],
-        comet: COMET_CONTRACTS[1].address,
-        isCollateralized: true,
-      },
+      nextBlockNumber,
     ];
 
-    const currentBlock = await provider.getBlockNumber();
+    await handleBlock(nextBlockEvent);
 
-    previousBorrowers.forEach((borrower, idx) => {
-      addWithdrawal(borrower.comet, borrower.address, idx);
-      setUserPrincipal(borrower.comet, borrower.address, borrower.principal, currentBlock);
-    });
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb0")));
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb1")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb2")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb3")));
+  });
 
+  it("should only check status of positions that have not been alerted recently", async () => {
     await initialize();
     await initializationPromise;
 
-    const currentBorrowers = [
-      {
-        address: createChecksumAddress("0xb03"),
-        principal: thresholdPrincipals[0].sub(1),
-        comet: COMET_CONTRACTS[0].address,
-        isCollateralized: false,
-      },
-      {
-        address: createChecksumAddress("0xb04"),
-        principal: thresholdPrincipals[0].add(1),
-        comet: COMET_CONTRACTS[0].address,
-        isCollateralized: false,
-      },
-      {
-        address: createChecksumAddress("0xb05"),
-        principal: thresholdPrincipals[1].sub(1),
-        comet: COMET_CONTRACTS[1].address,
-        isCollateralized: false,
-      },
-      {
-        address: createChecksumAddress("0xb06"),
-        principal: thresholdPrincipals[1].add(1),
-        comet: COMET_CONTRACTS[1].address,
-        isCollateralized: false,
-      },
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(10);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const largeAmounts = COMET.map((comet) => bn(comet.baseLargeThreshold));
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb1"), largeAmounts[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb2"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb3"), largeAmounts[1], "latest"),
     ];
 
-    const blockNumber = 11;
-    const blockTimestamp = 1000;
-    const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(blockTimestamp);
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+    await processInteractions(interactions);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, baseBorrowIndex, blockNumber);
-      setBaseIndexScale(comet.address, baseIndexScale, blockNumber);
-    });
+    await handleBlock(blockEvent);
 
-    currentBorrowers.forEach((borrower) => {
-      addWithdrawal(borrower.comet, borrower.address, blockNumber);
-      setUserPrincipal(borrower.comet, borrower.address, borrower.principal, blockNumber);
-    });
+    const nextBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(nextBlockNumber);
+    const nextBlockEvent = new TestBlockEvent()
+      .setNumber(nextBlockNumber)
+      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, baseBorrowIndex, blockNumber);
-      setBaseIndexScale(comet.address, baseIndexScale, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    [...previousBorrowers, ...currentBorrowers].forEach((borrower) => {
-      setIsBorrowCollateralized(borrower.comet, borrower.address, borrower.isCollateralized, blockNumber);
-    });
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+
+    const isBorrowCollateralized = (comet: string, borrower: string) => [
+      {
+        data: COMET_IFACE.encodeFunctionData("isBorrowCollateralized", [borrower]),
+        to: comet,
+      },
+      nextBlockNumber,
+    ];
+
+    await handleBlock(nextBlockEvent);
+
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb0")));
+    expect(mockProvider.call).not.toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb1")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[0].address, addr("0xb2")));
+    expect(mockProvider.call).toHaveBeenCalledWith(...isBorrowCollateralized(COMET[1].address, addr("0xb3")));
+  });
+
+  it("should emit a finding for each large borrower whose borrow is not collateralized if it's not under cooldown", async () => {
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(10);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const largeAmounts = COMET.map((comet) => bn(comet.baseLargeThreshold));
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb0"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb1"), largeAmounts[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb2"), largeAmounts[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb3"), largeAmounts[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb4"), largeAmounts[0].sub(1), "latest"),
+      withdraw(COMET[0].address, addr("0xb5"), largeAmounts[0].add(1), "latest"),
+      supply(COMET[0].address, addr("0xb6"), largeAmounts[0], "latest"),
+    ];
+
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), true, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb4"), true, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb5"), true, "latest");
+    await processInteractions(interactions);
 
     const findings = await handleBlock(blockEvent);
 
-    const presentValueBorrow = (principal: ethers.BigNumber) =>
-      principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale);
-
     expect(findings.sort()).toStrictEqual(
       [
-        createLiquidationRiskFinding(
-          previousBorrowers[0].comet,
-          previousBorrowers[0].address,
-          presentValueBorrow(previousBorrowers[0].principal),
-          network
-        ),
-        createLiquidationRiskFinding(
-          currentBorrowers[0].comet,
-          currentBorrowers[0].address,
-          presentValueBorrow(currentBorrowers[0].principal),
-          network
-        ),
-        createLiquidationRiskFinding(
-          currentBorrowers[2].comet,
-          currentBorrowers[2].address,
-          presentValueBorrow(currentBorrowers[2].principal),
-          network
-        ),
+        createLiquidationRiskFinding(COMET[0].address, addr("0xb0"), largeAmounts[0], network),
+        createLiquidationRiskFinding(COMET[1].address, addr("0xb1"), largeAmounts[1], network),
       ].sort()
     );
-    expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: currentBorrowers[0].address,
-          principal: currentBorrowers[0].principal,
-          alertedAt: blockTimestamp,
-        },
-        {
-          borrower: previousBorrowers[0].address,
-          principal: previousBorrowers[0].principal,
-          alertedAt: blockTimestamp,
-        },
-        {
-          borrower: currentBorrowers[1].address,
-          principal: currentBorrowers[1].principal,
-          alertedAt: 0,
-        },
-      ],
-      [COMET_CONTRACTS[1].address]: [
-        {
-          borrower: currentBorrowers[2].address,
-          principal: currentBorrowers[2].principal,
-          alertedAt: blockTimestamp,
-        },
-        {
-          borrower: previousBorrowers[1].address,
-          principal: previousBorrowers[1].principal,
-          alertedAt: 0,
-        },
-        {
-          borrower: currentBorrowers[3].address,
-          principal: currentBorrowers[3].principal,
-          alertedAt: 0,
-        },
-      ],
-    });
-  });
-  it("should emit alerts at most as frequently as set by the alert interval", async () => {
-    const baseBorrowIndex = 250;
-    const baseIndexScale = 100;
-    const thresholdPrincipal = ethers.BigNumber.from(COMET_CONTRACTS[0].baseLargeThreshold)
-      .mul(-1)
-      .mul(baseIndexScale)
-      .div(baseBorrowIndex);
 
-    const borrower = {
-      address: createChecksumAddress("0xb01"),
-      principal: thresholdPrincipal,
-      comet: COMET_CONTRACTS[0].address,
-      isCollateralized: false,
-    };
+    const nextBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(nextBlockNumber);
+    const nextBlockEvent = new TestBlockEvent()
+      .setNumber(nextBlockNumber)
+      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
 
-    const currentBlock = await provider.getBlockNumber();
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    addWithdrawal(borrower.comet, borrower.address, 0);
-    setUserPrincipal(borrower.comet, borrower.address, borrower.principal, currentBlock);
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb4"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb5"), false, "latest");
 
-    await initialize();
-    await initializationPromise;
-
-    let blockNumber = 11;
-    let blockTimestamp = 1000;
-    let blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(blockTimestamp);
-
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, baseBorrowIndex, blockNumber);
-      setBaseIndexScale(comet.address, baseIndexScale, blockNumber);
-    });
-
-    setIsBorrowCollateralized(borrower.comet, borrower.address, borrower.isCollateralized, blockNumber);
-
-    let findings = await handleBlock(blockEvent);
-    const presentValueBorrow = (principal: ethers.BigNumber) =>
-      principal.isNegative() ? principal.mul(-1).mul(baseBorrowIndex).div(baseIndexScale) : ethers.BigNumber.from(0);
-
-    expect(findings).toStrictEqual([
-      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValueBorrow(borrower.principal), network),
+    const nextFindings = await handleBlock(nextBlockEvent);
+    expect(nextFindings.sort()).toStrictEqual([
+      createLiquidationRiskFinding(COMET[0].address, addr("0xb2"), largeAmounts[0], network),
+      createLiquidationRiskFinding(COMET[0].address, addr("0xb5"), largeAmounts[0].add(1), network),
     ]);
-    expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: borrower.address,
-          principal: borrower.principal,
-          alertedAt: blockTimestamp,
-        },
-      ],
-      [COMET_CONTRACTS[1].address]: [],
-    });
 
-    blockNumber = blockNumber + 1;
-    blockTimestamp = blockTimestamp + 1;
-    blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(blockTimestamp);
+    const finalBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(finalBlockNumber);
+    const finalBlockEvent = new TestBlockEvent()
+      .setNumber(finalBlockNumber)
+      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval);
 
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, baseBorrowIndex, blockNumber);
-      setBaseIndexScale(comet.address, baseIndexScale, blockNumber);
-    });
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
 
-    setIsBorrowCollateralized(borrower.comet, borrower.address, borrower.isCollateralized, blockNumber);
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb1"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb2"), false, "latest");
+    await setIsBorrowCollateralized(COMET[1].address, addr("0xb3"), true, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb4"), false, "latest");
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb5"), false, "latest");
 
-    findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([]);
-    expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: borrower.address,
-          principal: borrower.principal,
-          alertedAt: blockTimestamp - 1,
-        },
-      ],
-      [COMET_CONTRACTS[1].address]: [],
-    });
-
-    blockNumber = blockNumber + 2;
-    blockTimestamp = blockTimestamp + DEFAULT_CONFIG[network].alertInterval;
-    blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(blockTimestamp);
-
-    COMET_CONTRACTS.forEach((comet) => {
-      setBaseBorrowIndex(comet.address, baseBorrowIndex, blockNumber);
-      setBaseIndexScale(comet.address, baseIndexScale, blockNumber);
-    });
-
-    setIsBorrowCollateralized(borrower.comet, borrower.address, borrower.isCollateralized, blockNumber);
-
-    findings = await handleBlock(blockEvent);
-
-    expect(findings).toStrictEqual([
-      createLiquidationRiskFinding(borrower.comet, borrower.address, presentValueBorrow(borrower.principal), network),
+    const finalFindings = await handleBlock(finalBlockEvent);
+    expect(finalFindings.sort()).toStrictEqual([
+      createLiquidationRiskFinding(COMET[0].address, addr("0xb0"), largeAmounts[0], network),
+      createLiquidationRiskFinding(COMET[1].address, addr("0xb1"), largeAmounts[1], network),
     ]);
-    expect(state.monitoringLists).toStrictEqual({
-      [COMET_CONTRACTS[0].address]: [
-        {
-          borrower: borrower.address,
-          principal: borrower.principal,
-          alertedAt: blockTimestamp,
-        },
-      ],
-      [COMET_CONTRACTS[1].address]: [],
-    });
   });
 });
