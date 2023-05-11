@@ -7,11 +7,8 @@ import {
 } from "forta-agent";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 
-import {
-  createAddress,
-  TestBlockEvent,
-  MockEthersProvider,
-} from "forta-agent-tools/lib/tests";
+import { createAddress } from "forta-agent-tools";
+import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import Fetcher from "./dataFetcher";

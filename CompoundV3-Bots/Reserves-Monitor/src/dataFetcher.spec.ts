@@ -1,4 +1,5 @@
-import { createAddress, MockEthersProvider } from "forta-agent-tools/lib/tests";
+import { createAddress } from "forta-agent-tools";
+import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import { BigNumber } from "ethers";
 import Fetcher from "./dataFetcher";
 import { Interface } from "ethers/lib/utils";
