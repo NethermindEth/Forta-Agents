@@ -381,7 +381,6 @@ describe("Bot Test Suite", () => {
       outputs: [value],
     });
 
-    console.log(comet, blockNumber);
     if (!baseIndexScales[comet]) baseIndexScales[comet] = {};
     baseIndexScales[comet][blockNumber] = value;
   }
