@@ -3,8 +3,6 @@ import {
   Finding,
   FindingSeverity,
   FindingType,
-  Initialize,
-  HandleBlock,
   HandleTransaction,
   Network,
 } from "forta-agent";
