@@ -102,7 +102,7 @@ export const provideHandleTransaction =
       alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
 
       lastBlock = blockNumber;
-      console.log(`-----Transactions processed in block ${blockNumber - 7}: ${transactionsProcessed}-----`);
+      console.log(`-----Transactions processed in last block before ${blockNumber}: ${transactionsProcessed}-----`);
       transactionsProcessed = 0;
       st = new Date().getTime();
 
