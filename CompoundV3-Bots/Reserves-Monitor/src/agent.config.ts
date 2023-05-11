@@ -14,6 +14,12 @@ const CONFIG: AgentConfig = {
     cometAddresses: ["0xF25212E676D1F7F89Cd72fFEe66158f541246445"],
     alertFrequency: 7200, // every 2 hours
   },
+
+  // Sepolia
+  11155111: {
+    cometAddresses: ["0x61fFE3A3147386137C8CB9fCAF708687619cEBd3"],
+    alertFrequency: 7200,
+  }
 };
 
 export default CONFIG;
