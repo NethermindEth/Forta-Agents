@@ -5,7 +5,8 @@
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Reserves-Monitor",
   "chainIds": [
     1,
-    137
+    137,
+    11155111
   ],
   "scripts": {
     "build": "tsc",
