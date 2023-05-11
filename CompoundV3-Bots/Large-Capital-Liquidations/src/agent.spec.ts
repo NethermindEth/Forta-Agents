@@ -170,8 +170,8 @@ describe("Bot Test Suite", () => {
   let initialized: boolean;
   let initializationPromise: Promise<void>;
   let userPrincipals: Record<string, Record<string, ethers.BigNumber>>;
-  let baseBorrowIndexes: Record<number | string, ethers.BigNumber>;
-  let baseIndexScales: Record<number | string, ethers.BigNumber>;
+  let baseBorrowIndexes: Record<string, Record<number, ethers.BigNumber>>;
+  let baseIndexScales: Record<string, Record<number, ethers.BigNumber>>;
 
   async function block(blockTag: number | "latest") {
     return blockTag === "latest" ? await provider.getBlockNumber() : blockTag;
@@ -232,10 +232,11 @@ describe("Bot Test Suite", () => {
     [...interactions]
       .sort((a, b) => block(a.blockTag) - block(b.blockTag))
       .forEach((interaction) => {
-        const comet = interaction.comet;
+        const comet = interaction.comet.toLowerCase();
         const blockTag = interaction.blockTag;
-        const baseBorrowIndex = baseBorrowIndexes[latestBlock];
-        const baseIndexScale = baseIndexScales[latestBlock];
+
+        const baseBorrowIndex = comet !== IRRELEVANT_ADDRESS ? baseBorrowIndexes[comet][latestBlock] : bn(1);
+        const baseIndexScale = comet !== IRRELEVANT_ADDRESS ? baseIndexScales[comet][latestBlock] : bn(1);
 
         const presentValue = (amount: ethers.BigNumberish) => baseBorrowIndex.mul(amount).div(baseIndexScale);
 
@@ -372,6 +373,7 @@ describe("Bot Test Suite", () => {
 
   async function setBaseIndexScale(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
     value = bn(value);
+    comet = comet.toLowerCase();
     const blockNumber = await block(blockTag);
 
     mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "baseIndexScale", {
@@ -379,11 +381,14 @@ describe("Bot Test Suite", () => {
       outputs: [value],
     });
 
-    baseIndexScales[blockNumber] = value;
+    console.log(comet, blockNumber);
+    if (!baseIndexScales[comet]) baseIndexScales[comet] = {};
+    baseIndexScales[comet][blockNumber] = value;
   }
 
   async function setBaseBorrowIndex(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
     value = bn(value);
+    comet = comet.toLowerCase();
     const blockNumber = await block(blockTag);
 
     mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "totalsBasic", {
@@ -402,7 +407,8 @@ describe("Bot Test Suite", () => {
       ],
     });
 
-    baseBorrowIndexes[blockNumber] = value;
+    if (!baseBorrowIndexes[comet]) baseBorrowIndexes[comet] = {};
+    baseBorrowIndexes[comet][blockNumber] = value;
   }
 
   beforeEach(async () => {
@@ -978,23 +984,30 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(blockNumber);
     const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(10);
 
+    const baseBorrowIndexes = { [COMET[0].address]: bn(10), [COMET[1].address]: bn(20) };
+    const baseIndexScales = { [COMET[0].address]: bn(2), [COMET[1].address]: bn(3) };
+    const principalValue = (comet: string, amount: ethers.BigNumberish) =>
+      baseIndexScales[comet].mul(amount).div(baseBorrowIndexes[comet]);
+    const presentValue = (comet: string, amount: ethers.BigNumberish) =>
+      baseBorrowIndexes[comet].mul(amount).div(baseIndexScales[comet]);
+
     await Promise.all(
       COMET.map(async (comet) => {
-        await setBaseBorrowIndex(comet.address, 1, "latest");
-        await setBaseIndexScale(comet.address, 1, "latest");
+        await setBaseBorrowIndex(comet.address, baseBorrowIndexes[comet.address], "latest");
+        await setBaseIndexScale(comet.address, baseIndexScales[comet.address], "latest");
       })
     );
 
-    const largeAmounts = COMET.map((comet) => bn(comet.baseLargeThreshold));
+    const largePrincipals = COMET.map((comet) => principalValue(comet.address, comet.baseLargeThreshold));
 
     const interactions = [
-      withdraw(COMET[0].address, addr("0xb0"), largeAmounts[0], "latest"),
-      withdraw(COMET[1].address, addr("0xb1"), largeAmounts[1], "latest"),
-      withdraw(COMET[0].address, addr("0xb2"), largeAmounts[0], "latest"),
-      withdraw(COMET[1].address, addr("0xb3"), largeAmounts[1], "latest"),
-      withdraw(COMET[0].address, addr("0xb4"), largeAmounts[0].sub(1), "latest"),
-      withdraw(COMET[0].address, addr("0xb5"), largeAmounts[0].add(1), "latest"),
-      supply(COMET[0].address, addr("0xb6"), largeAmounts[0], "latest"),
+      withdraw(COMET[0].address, addr("0xb0"), largePrincipals[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb1"), largePrincipals[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb2"), largePrincipals[0], "latest"),
+      withdraw(COMET[1].address, addr("0xb3"), largePrincipals[1], "latest"),
+      withdraw(COMET[0].address, addr("0xb4"), largePrincipals[0].sub(1), "latest"),
+      withdraw(COMET[0].address, addr("0xb5"), largePrincipals[0].add(1), "latest"),
+      supply(COMET[0].address, addr("0xb6"), largePrincipals[0], "latest"),
     ];
 
     await setIsBorrowCollateralized(COMET[0].address, addr("0xb0"), false, "latest");
@@ -1009,8 +1022,18 @@ describe("Bot Test Suite", () => {
 
     expect(findings.sort()).toStrictEqual(
       [
-        createLiquidationRiskFinding(COMET[0].address, addr("0xb0"), largeAmounts[0], network),
-        createLiquidationRiskFinding(COMET[1].address, addr("0xb1"), largeAmounts[1], network),
+        createLiquidationRiskFinding(
+          COMET[0].address,
+          addr("0xb0"),
+          presentValue(COMET[0].address, largePrincipals[0]),
+          network
+        ),
+        createLiquidationRiskFinding(
+          COMET[1].address,
+          addr("0xb1"),
+          presentValue(COMET[1].address, largePrincipals[1]),
+          network
+        ),
       ].sort()
     );
 
@@ -1022,8 +1045,8 @@ describe("Bot Test Suite", () => {
 
     await Promise.all(
       COMET.map(async (comet) => {
-        await setBaseBorrowIndex(comet.address, 1, "latest");
-        await setBaseIndexScale(comet.address, 1, "latest");
+        await setBaseBorrowIndex(comet.address, baseBorrowIndexes[comet.address], "latest");
+        await setBaseIndexScale(comet.address, baseIndexScales[comet.address], "latest");
       })
     );
 
@@ -1036,8 +1059,18 @@ describe("Bot Test Suite", () => {
 
     const nextFindings = await handleBlock(nextBlockEvent);
     expect(nextFindings.sort()).toStrictEqual([
-      createLiquidationRiskFinding(COMET[0].address, addr("0xb2"), largeAmounts[0], network),
-      createLiquidationRiskFinding(COMET[0].address, addr("0xb5"), largeAmounts[0].add(1), network),
+      createLiquidationRiskFinding(
+        COMET[0].address,
+        addr("0xb2"),
+        presentValue(COMET[0].address, largePrincipals[0]),
+        network
+      ),
+      createLiquidationRiskFinding(
+        COMET[0].address,
+        addr("0xb5"),
+        presentValue(COMET[0].address, largePrincipals[0].add(1)),
+        network
+      ),
     ]);
 
     const finalBlockNumber = blockNumber + 1;
@@ -1048,8 +1081,8 @@ describe("Bot Test Suite", () => {
 
     await Promise.all(
       COMET.map(async (comet) => {
-        await setBaseBorrowIndex(comet.address, 1, "latest");
-        await setBaseIndexScale(comet.address, 1, "latest");
+        await setBaseBorrowIndex(comet.address, baseBorrowIndexes[comet.address], "latest");
+        await setBaseIndexScale(comet.address, baseIndexScales[comet.address], "latest");
       })
     );
 
@@ -1062,8 +1095,18 @@ describe("Bot Test Suite", () => {
 
     const finalFindings = await handleBlock(finalBlockEvent);
     expect(finalFindings.sort()).toStrictEqual([
-      createLiquidationRiskFinding(COMET[0].address, addr("0xb0"), largeAmounts[0], network),
-      createLiquidationRiskFinding(COMET[1].address, addr("0xb1"), largeAmounts[1], network),
+      createLiquidationRiskFinding(
+        COMET[0].address,
+        addr("0xb0"),
+        presentValue(COMET[0].address, largePrincipals[0]),
+        network
+      ),
+      createLiquidationRiskFinding(
+        COMET[1].address,
+        addr("0xb1"),
+        presentValue(COMET[1].address, largePrincipals[1]),
+        network
+      ),
     ]);
   });
 });
