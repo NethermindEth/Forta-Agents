@@ -3,72 +3,436 @@ import {
   FindingSeverity,
   Finding,
   HandleTransaction,
-  createTransactionEvent,
-  ethers,
+  TransactionEvent,
+  Log,
+  Network,
 } from "forta-agent";
-import agent, {
-  ERC20_TRANSFER_EVENT,
-  TETHER_ADDRESS,
-  TETHER_DECIMALS,
-} from "./agent";
+import { provideHandleTransaction } from "./agent";
+import { createAddress } from "forta-agent-tools";
 
-describe("high tether transfer agent", () => {
+import {
+  MockEthersProvider,
+  TestTransactionEvent,
+} from "forta-agent-tools/lib/test";
+import { Interface, formatBytes32String, getAddress } from "ethers/lib/utils";
+import {
+  EXECUTE_TX_ABI,
+  PROPOSAL_EVENT_ABI,
+  SEND_MESSAGE_ABI,
+} from "./constants";
+import { ethers } from "ethers";
+import { NetworkManager } from "forta-agent-tools";
+import { AgentConfig, NetworkData } from "./utils";
+
+function mockCreateProposalFinding(
+  network: string,
+  bridgeReceiver: string,
+  id: string,
+  fxChild: string,
+  txHash: string
+): Finding {
+  return Finding.from({
+    name: "Proposal created on BridgeReceiver contract",
+    description:
+      "A ProposalCreated event was emitted on BridgeReceiver contract, the corresponding creation message was found",
+    alertId: "COMP2-5-1",
+    protocol: "Compound",
+    type: FindingType.Info,
+    severity: FindingSeverity.Info,
+    metadata: {
+      network,
+      bridgeReceiver,
+      id,
+      fxChild,
+      txHash,
+    },
+  });
+}
+
+function mockCreateSuspiciousProposalFinding(
+  network: string,
+  bridgeReceiver: string,
+  id: string,
+  fxChild: string
+): Finding {
+  return Finding.from({
+    name: "A suspicious proposal was created on BridgeReceiver contract",
+    description:
+      "A ProposalCreated event was emitted on BridgeReceiver contract, no corresponding creation message was found",
+
+    alertId: "COMP2-5-2",
+    protocol: "Compound",
+    type: FindingType.Suspicious,
+    severity: FindingSeverity.High,
+    metadata: {
+      network,
+      bridgeReceiver,
+      id,
+      fxChild,
+    },
+  });
+}
+
+function encodeCallData(
+  dataArr: (string | number | string[] | number[])[],
+  receiverAddr: string
+) {
+  const data = ethers.utils.defaultAbiCoder.encode(
+    ["address[]", "uint256[]", "string[]", "bytes[]"],
+    dataArr
+  );
+  const calldata = SEND_MESSAGE_IFACE.encodeFunctionData("sendMessageToChild", [
+    receiverAddr,
+    data,
+  ]);
+  return calldata;
+}
+
+async function addLogsToMockProvider(
+  mockProvider: MockEthersProvider,
+  blockNumber: number,
+  address: string,
+  topics: string[],
+  data: string,
+  txHash?: string
+) {
+  mockProvider.addLogs([
+    {
+      blockNumber,
+      data,
+      address,
+      topics,
+      transactionHash: txHash,
+    },
+  ] as Log[]);
+}
+
+const FX_CHILD = createAddress("0xab1");
+const LAST_MAINNET_BLOCK = 100;
+
+const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
+const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
+
+const PROPOSAL_TEST_DATA: [
+  string,
+  string,
+  string[],
+  number[],
+  string[],
+  string[],
+  number
+][] = [
+  [
+    FX_CHILD,
+    "1",
+    [createAddress("0x11a"), createAddress("0x11b")],
+    [30, 20],
+    [
+      "function func1() public returns (uint256)",
+      "function func2() public returns(uint)",
+    ],
+    ["0x", "0x"],
+    0,
+  ],
+  [
+    FX_CHILD,
+    "2",
+    [createAddress("0x12a"), createAddress("0x12b")],
+    [60, 20],
+    [
+      "function func1() public returns (uint256)",
+      "function func2() public returns(uint)",
+    ],
+    ["0x", "0x"],
+    0,
+  ],
+  [
+    FX_CHILD,
+    "3",
+    [createAddress("0x13a")],
+    [30],
+    ["function func1() public returns (uint256)"],
+    ["0x"],
+    10,
+  ],
+];
+const DIFF_DATA = [
+  FX_CHILD,
+  "4",
+  [createAddress("0x14a")],
+  [30],
+  ["function func1() public returns (uint256)"],
+  ["0x"],
+  10,
+];
+
+const network = Network.MAINNET;
+
+const DEFAULT_CONFIG: AgentConfig = {
+  [network]: {
+    bridgeReceiver: createAddress("0xff1"),
+    fxRoot: createAddress("0xff2"),
+    timeLock: createAddress("0xff3"),
+    blockChunk: 50,
+    pastBlocks: 100,
+    rpcEndpoint: "rpc-endpoint",
+  },
+};
+
+describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
+  let mockProvider: MockEthersProvider;
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
+  let networkManager: NetworkManager<NetworkData>;
 
-  beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+  beforeEach(async () => {
+    mockProvider = new MockEthersProvider();
+    mockProvider.setNetwork(network);
+
+    mockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+    networkManager = new NetworkManager(DEFAULT_CONFIG);
+    await networkManager.init(
+      mockProvider as unknown as ethers.providers.Provider
+    );
+
+    const _getLogs = mockProvider.getLogs;
+    mockProvider.getLogs = jest.fn((...args) =>
+      Promise.resolve(_getLogs(...args))
+    );
+
+    handleTransaction = provideHandleTransaction(
+      networkManager,
+      mockProvider as any
+    );
   });
 
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
+  it("returns empty findings when no event is emitted", async () => {
+    const txEvent = new TestTransactionEvent().setBlock(1);
 
-      const findings = await handleTransaction(mockTxEvent);
+    expect(await handleTransaction(txEvent)).toStrictEqual([]);
+  });
 
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+  it("returns an Info finding if ProposalCreated event is emitted and corresponding ExecuteTransaction was found", async () => {
+    const findings = [];
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
+        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
+        [
+          formatBytes32String("hash1"),
+          networkManager.get("fxRoot"),
+          10,
+          "",
+          encodeCallData(
+            testData.slice(2, 6),
+            networkManager.get("bridgeReceiver")
+          ),
+          1,
+        ]
       );
-    });
 
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
+      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+        PROPOSAL_EVENT_ABI,
+        networkManager.get("bridgeReceiver"),
+        testData
+      );
+
+      await addLogsToMockProvider(
+        mockProvider,
+        1,
+        networkManager.get("timeLock"),
+        transactionExecutedLog.topics,
+        transactionExecutedLog.data,
+        formatBytes32String("tx1")
+      );
+      findings.push(await handleTransaction(txEvent));
+    }
+
+    expect(findings.flat()).toStrictEqual(
+      PROPOSAL_TEST_DATA.map((data) =>
+        mockCreateProposalFinding(
+          network.toString(),
+          networkManager.get("bridgeReceiver"),
+          data[1],
+          getAddress(data[0]),
+          formatBytes32String("tx1")
+        )
+      )
+    );
+  });
+
+  it("returns a High Severity finding if ProposalCreated event is emitted and no ExecuteTransaction event was emitted", async () => {
+    const findings = [];
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+        PROPOSAL_EVENT_ABI,
+        networkManager.get("bridgeReceiver"),
+        testData
+      );
+
+      await addLogsToMockProvider(
+        mockProvider,
+        1,
+        networkManager.get("timeLock"),
+        [],
+        ""
+      );
+      findings.push(await handleTransaction(txEvent));
+    }
+
+    expect(findings.flat()).toStrictEqual(
+      PROPOSAL_TEST_DATA.map((data) =>
+        mockCreateSuspiciousProposalFinding(
+          network.toString(),
+          networkManager.get("bridgeReceiver"),
+          data[1],
+          getAddress(data[0])
+        )
+      )
+    );
+  });
+
+  it("returns a High Severity finding if ProposalCreated event is emitted and no corresponding ExecuteTransaction event was found", async () => {
+    const findings = [];
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+        PROPOSAL_EVENT_ABI,
+        networkManager.get("bridgeReceiver"),
+        testData
+      );
+
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
+        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
+        [
+          formatBytes32String("hash1"),
+          createAddress("0xd01"), // target is different from fxRoot
+          10,
+          "",
+          encodeCallData(
+            testData.slice(2, 6),
+            networkManager.get("bridgeReceiver")
+          ),
+          1,
+        ]
+      );
+
+      await addLogsToMockProvider(
+        mockProvider,
+        1,
+        networkManager.get("timeLock"),
+        transactionExecutedLog.topics,
+        transactionExecutedLog.data
+      );
+
+      findings.push(await handleTransaction(txEvent));
+    }
+
+    expect(findings.flat()).toStrictEqual(
+      PROPOSAL_TEST_DATA.map((data) =>
+        mockCreateSuspiciousProposalFinding(
+          network.toString(),
+          networkManager.get("bridgeReceiver"),
+          data[1],
+          getAddress(data[0])
+        )
+      )
+    );
+  });
+
+  it("returns a High Severity finding if ProposalCreated event is emitted and corresponding ExecuteTransaction event has different data", async () => {
+    const findings = [];
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+        PROPOSAL_EVENT_ABI,
+        networkManager.get("bridgeReceiver"),
+        testData
+      );
+
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
+        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
+        [
+          formatBytes32String("hash1"),
+          networkManager.get("fxRoot"),
+          10,
+          "",
+          encodeCallData(
+            DIFF_DATA.slice(2, 6),
+            networkManager.get("bridgeReceiver")
+          ), // data is different
+          1,
+        ]
+      );
+
+      await addLogsToMockProvider(
+        mockProvider,
+        1,
+        networkManager.get("timeLock"),
+        transactionExecutedLog.topics,
+        transactionExecutedLog.data
+      );
+
+      findings.push(await handleTransaction(txEvent));
+    }
+
+    expect(findings.flat()).toStrictEqual(
+      PROPOSAL_TEST_DATA.map((data) =>
+        mockCreateSuspiciousProposalFinding(
+          network.toString(),
+          networkManager.get("bridgeReceiver"),
+          data[1],
+          getAddress(data[0])
+        )
+      )
+    );
+  });
+
+  it("fetches blocks correctly using batches", async () => {
+    let networkManager: NetworkManager<NetworkData>;
+    const blockBatches = [
+      [10, 100],
+      [20, 100],
+      [25, 100],
+      [30, 100],
+      [40, 100],
+    ];
+
+    for (const blocksData of blockBatches) {
+      mockProvider = new MockEthersProvider();
+      mockProvider.setNetwork(network);
+      mockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+
+      const config = {
+        [network]: {
+          bridgeReceiver: createAddress("0xff1"),
+          fxRoot: createAddress("0xff2"),
+          timeLock: createAddress("0xff3"),
+          blockChunk: blocksData[0],
+          pastBlocks: blocksData[1],
+          rpcEndpoint: "rpc-endpoint",
         },
       };
-      mockTxEvent.filterLog = jest
-        .fn()
-        .mockReturnValue([mockTetherTransferEvent]);
 
-      const findings = await handleTransaction(mockTxEvent);
+      networkManager = new NetworkManager(config);
+      await networkManager.init(
+        mockProvider as unknown as ethers.providers.Provider
+      );
 
-      const normalizedValue = mockTetherTransferEvent.args.value.div(
-        10 ** TETHER_DECIMALS
+      handleTransaction = provideHandleTransaction(
+        networkManager,
+        mockProvider as any
       );
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(
-        ERC20_TRANSFER_EVENT,
-        TETHER_ADDRESS
+
+      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
+        PROPOSAL_EVENT_ABI,
+        networkManager.get("bridgeReceiver"),
+        PROPOSAL_TEST_DATA[0]
       );
-    });
+
+      await handleTransaction(txEvent);
+
+      expect(await mockProvider.getLogs).toBeCalledTimes(
+        Math.ceil(
+          networkManager.get("pastBlocks") / networkManager.get("blockChunk")
+        )
+      );
+    }
   });
 });
