@@ -1,77 +1,162 @@
+import { ethers, Finding, getEthersBatchProvider, Initialize, HandleTransaction, TransactionEvent } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
+import CONFIG from "./agent.config";
+import { LOCAL_TIMELOCK_ABI, EXECUTE_TRANSACTION_ABI, PROPOSAL_EXECUTED_ABI, PROPOSAL_CREATED_ABI } from "./constants";
 import {
-  BlockEvent,
-  Finding,
-  Initialize,
-  HandleBlock,
-  HandleTransaction,
-  HandleAlert,
-  AlertEvent,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+  createSuccessfulProposalExecutionFinding,
+  createUnsuccessfulProposalExecutionFinding,
+  createUnknownTimelockExecutionFinding,
+} from "./finding";
+import { ExecuteTransactionArgs, NetworkData, ProposalCreatedArgs, getPastEventLogs } from "./utils";
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager(CONFIG);
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const initialize: Initialize = async () => {
-//   // do some initialization on startup e.g. fetch data
-// }
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): HandleTransaction => {
+  const bridgeReceiverIface = new ethers.utils.Interface([LOCAL_TIMELOCK_ABI, PROPOSAL_CREATED_ABI]);
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const executeTransactionLogs = txEvent.filterLog(EXECUTE_TRANSACTION_ABI);
 
-// const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some alert condition
-//   return findings;
-// }
+    if (!executeTransactionLogs.length) {
+      return [];
+    }
+
+    const findings: Finding[] = [];
+    const chainId = networkManager.getNetwork();
+    const block = txEvent.blockNumber;
+
+    const creationFetchingBlockRange = networkManager.get("creationFetchingBlockRange");
+    const creationFetchingBlockStep = networkManager.get("creationFetchingBlockStep");
+    const bridgeReceiver = new ethers.Contract(
+      networkManager.get("bridgeReceiverAddress"),
+      bridgeReceiverIface,
+      provider
+    );
+    const timelock = await bridgeReceiver.localTimelock();
+
+    // Filter ExecuteTransaction logs from the local timelock and ProposalExecuted logs from the bridge receiver
+    const timelockExecutionLogs = executeTransactionLogs.filter(
+      (el) => el.address.toLowerCase() === timelock.toLowerCase()
+    );
+    const proposalExecutedLogs = txEvent.filterLog(PROPOSAL_EXECUTED_ABI, bridgeReceiver.address);
+
+    if (!timelockExecutionLogs.length && !proposalExecutedLogs.length) {
+      return [];
+    }
+
+    // Tries fetching past ProposalCreated events to get proposal calls
+    const proposalCreationInfos = (
+      await getPastEventLogs(
+        bridgeReceiver.filters.ProposalCreated(),
+        block,
+        creationFetchingBlockRange,
+        creationFetchingBlockStep,
+        provider
+      )
+    ).map((log) => bridgeReceiverIface.parseLog(log).args) as unknown as Array<ProposalCreatedArgs>;
+
+    // Processes the above data into a better format for matching, and checks whether any proposal creation
+    // event was missed (edge case)
+    const missedProposalIds: ethers.BigNumber[] = [];
+    const executedProposalInfos = proposalExecutedLogs.map((log) => {
+      const creationInfo = proposalCreationInfos.find((el) => el.id.eq(log.args.id));
+
+      if (!creationInfo) {
+        missedProposalIds.push(log.args.id);
+        return undefined;
+      }
+
+      return {
+        id: creationInfo.id,
+        calls: creationInfo.targets.map((_, idx) => ({
+          matched: false,
+          target: creationInfo.targets[idx],
+          value: creationInfo.values[idx],
+          signature: creationInfo.signatures[idx],
+          data: creationInfo.calldatas[idx],
+        })),
+      };
+    });
+
+    if (missedProposalIds.length) {
+      console.warn(
+        "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
+      );
+      console.warn(`Missed proposals: ${missedProposalIds.map((id) => id.toString()).join(", ")}`);
+    }
+
+    const timelockExecutionInfos = timelockExecutionLogs.map((log) => ({
+      matched: false,
+      ...log.args,
+    })) as unknown as Array<ExecuteTransactionArgs & { matched: boolean }>;
+
+    // Matches proposal calls with executed calls
+    timelockExecutionInfos.forEach((callExecution) => {
+      for (const proposalExecution of executedProposalInfos) {
+        const matchingCall = proposalExecution?.calls.find((call) => {
+          return (
+            call.target.toLowerCase() === callExecution.target.toLowerCase() &&
+            call.value.eq(callExecution.value) &&
+            call.signature === callExecution.signature &&
+            call.data === callExecution.data
+          );
+        });
+
+        if (matchingCall) {
+          matchingCall.matched = true;
+          callExecution.matched = true;
+          break;
+        }
+      }
+    });
+
+    executedProposalInfos.forEach((proposalExecution) => {
+      if (!proposalExecution) return;
+
+      if (proposalExecution.calls.some((call) => !call.matched)) {
+        findings.push(
+          createUnsuccessfulProposalExecutionFinding(bridgeReceiver.address, timelock, proposalExecution.id, chainId)
+        );
+      } else {
+        findings.push(
+          createSuccessfulProposalExecutionFinding(bridgeReceiver.address, timelock, proposalExecution.id, chainId)
+        );
+      }
+    });
+
+    timelockExecutionInfos
+      .filter((callExecution) => !callExecution.matched)
+      .forEach((callExecution) => {
+        findings.push(
+          createUnknownTimelockExecutionFinding(
+            bridgeReceiver.address,
+            timelock,
+            callExecution.target,
+            callExecution.value,
+            callExecution.signature,
+            callExecution.data,
+            chainId
+          )
+        );
+      });
+
+    return findings;
+  };
+};
 
 export default {
-  // initialize,
-  handleTransaction,
-  // handleBlock,
-  // handleAlert
+  initialize: provideInitialize(networkManager, getEthersBatchProvider()),
+  handleTransaction: provideHandleTransaction(networkManager, getEthersBatchProvider()),
 };
