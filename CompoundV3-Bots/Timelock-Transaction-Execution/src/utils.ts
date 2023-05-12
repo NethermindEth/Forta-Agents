@@ -1,5 +1,4 @@
 export interface NetworkData {
-  cometAddresses: string[];
   bridgeReceiverAddress: string;
 }
 
