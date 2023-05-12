@@ -4,7 +4,7 @@
   "description": "Forta Agent Typescript starter project",
   "repository": "https://github.com/forta-network/forta-bot-sdk/tree/master/starter-project",
   "chainIds": [
-    1
+    137
   ],
   "scripts": {
     "build": "tsc",
