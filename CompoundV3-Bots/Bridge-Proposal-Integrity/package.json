@@ -1,10 +1,10 @@
 {
-  "name": "forta-agent-starter",
+  "name": "comp2-5",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
-  "repository": "https://github.com/forta-network/forta-bot-sdk/tree/master/starter-project",
+  "description": "Forta bot that monitors Compound III BaseBridgeReceiver contract for bridged proposals",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Bridge-Proposal-Integrity",
   "chainIds": [
-    1
+    137
   ],
   "scripts": {
     "build": "tsc",
@@ -24,10 +24,13 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "obfuscate": "javascript-obfuscator ./dist --output ./obfuscated --config obfuscation-config.js"
   },
   "dependencies": {
-    "forta-agent": "^0.1.28"
+    "forta-agent": "^0.1.28",
+    "forta-agent-tools": "^3.2.7"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
@@ -35,6 +38,7 @@
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "javascript-obfuscator": "^4.0.2"
   }
 }

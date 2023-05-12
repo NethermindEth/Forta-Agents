@@ -1,83 +1,146 @@
 import {
-  BlockEvent,
   Finding,
   Initialize,
-  HandleBlock,
   HandleTransaction,
-  HandleAlert,
-  AlertEvent,
   TransactionEvent,
-  FindingSeverity,
-  FindingType,
+  ethers,
+  getEthersProvider,
 } from "forta-agent";
+import { NetworkManager } from "forta-agent-tools";
+import CONFIG from "./agent.config";
+import { NetworkData, encodePacked } from "./utils";
+import {
+  EXECUTE_TX_ABI,
+  PROPOSAL_EVENT_ABI,
+  SEND_MESSAGE_ABI,
+} from "./constants";
+import { Interface, getAddress } from "ethers/lib/utils";
+import {
+  ProposalCreatedFinding,
+  SuspiciousProposalCreatedFinding,
+} from "./finding";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+const networkManager = new NetworkManager(CONFIG);
+const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
+const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
-    }
-  });
-
-  return findings;
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: ethers.providers.Provider
+): Initialize => {
+  return async () => {
+    await networkManager.init(provider);
+  };
 };
 
-// const initialize: Initialize = async () => {
-//   // do some initialization on startup e.g. fetch data
-// }
+export const provideHandleTransaction = (
+  networkManager: NetworkManager<NetworkData>,
+  provider?: ethers.providers.Provider
+): HandleTransaction => {
+  return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    const abi = ethers.utils.defaultAbiCoder;
+    const mainnetProvider = provider
+      ? provider
+      : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
 
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    // Listen to ProposalCreated events on BaseBridgeReciever contract
+    const proposalLogs = txEvent.filterLog(
+      PROPOSAL_EVENT_ABI,
+      networkManager.get("bridgeReceiver")
+    );
 
-// const handleAlert: HandleAlert = async (alertEvent: AlertEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some alert condition
-//   return findings;
-// }
+    for (let proposalLog of proposalLogs) {
+      const data = abi.encode(
+        ["address[]", "uint256[]", "string[]", "bytes[]"],
+        [
+          proposalLog.args.targets,
+          proposalLog.args[3],
+          proposalLog.args.signatures,
+          proposalLog.args.calldatas,
+        ]
+      );
+
+      // Encode call to sendMessageToChild
+      const calldata = SEND_MESSAGE_IFACE.encodeFunctionData(
+        "sendMessageToChild",
+        [networkManager.get("bridgeReceiver"), data]
+      );
+
+      const timeLockContract = new ethers.Contract(
+        networkManager.get("timeLock"),
+        EXECUTE_TX_IFACE,
+        mainnetProvider
+      );
+
+      // ExecuteTransaction event filter
+      const eventFilter = timeLockContract.filters.ExecuteTransaction(
+        null,
+        getAddress(networkManager.get("fxRoot"))
+      );
+
+      // Retrieve past events that match the filter and have a `target` that is equal to the expected value
+      const lastBlock = await mainnetProvider.getBlockNumber();
+      const blockChunk = networkManager.get("blockChunk");
+
+      const txExecutionLogs = (
+        await Promise.all(
+          Array.from({
+            length: Math.ceil(networkManager.get("pastBlocks") / blockChunk),
+          }).map(async (_, idx) => {
+            const fromBlock = Math.max(
+              lastBlock - blockChunk * (idx + 1) + 1,
+              0
+            );
+            return await mainnetProvider.getLogs({
+              ...eventFilter,
+              fromBlock,
+              // toBlock: Math.min(fromBlock + blockChunk - 1, lastBlock),
+              toBlock: lastBlock - blockChunk * idx,
+            });
+          })
+        )
+      ).flat();
+
+      let eventFound = false;
+      for (let log of txExecutionLogs) {
+        let decodedEvent = EXECUTE_TX_IFACE.decodeEventLog(
+          "ExecuteTransaction",
+          log.data,
+          log.topics
+        );
+
+        let callDataFromEvent =
+          decodedEvent.signature === ""
+            ? decodedEvent.data
+            : encodePacked(decodedEvent.signature, decodedEvent.data);
+
+        if (callDataFromEvent === calldata) {
+          eventFound = true;
+          findings.push(
+            ProposalCreatedFinding(
+              proposalLog,
+              networkManager.getNetwork().toString(),
+              log.transactionHash
+            )
+          );
+          break;
+        }
+      }
+
+      if (!eventFound)
+        findings.push(
+          SuspiciousProposalCreatedFinding(
+            proposalLog,
+            networkManager.getNetwork().toString()
+          )
+        );
+    }
+    return findings;
+  };
+};
 
 export default {
-  // initialize,
-  handleTransaction,
-  // handleBlock,
-  // handleAlert
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleTransaction: provideHandleTransaction(networkManager),
 };
