@@ -36,3 +36,25 @@ export function rangeChunks(from: number, to: number, chunkSize: number): Array<
 
   return resp;
 }
+
+export function getPastEventLogs(
+  filter: ethers.EventFilter,
+  fromBlock: number,
+  blockRange: number,
+  blockStep: number,
+  provider: ethers.providers.Provider
+) {
+  const chunks = rangeChunks(Math.max(fromBlock - blockRange + 1, 0), fromBlock, blockStep);
+
+  const logs = Promise.all(
+    chunks.map(([from, to]) =>
+      provider.getLogs({
+        ...filter,
+        fromBlock: from,
+        toBlock: to,
+      })
+    )
+  );
+
+  return logs.then((logs) => logs.flat());
+}
