@@ -25,7 +25,7 @@ export type AlertedAddress = {
   timestamp: number;
 };
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
+export const ERC20_TRANSFER_FUNCTION = "function transfer(address to, uint256 amount) public";
 
 export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
 

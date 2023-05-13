@@ -16,7 +16,7 @@ import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
-import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
+import { AgentConfig, NetworkData, ERC20_TRANSFER_FUNCTION, BALANCEOF_ABI } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
@@ -234,11 +234,13 @@ describe("Detect Private Key Compromise", () => {
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
@@ -259,20 +261,23 @@ describe("Detect Private Key Compromise", () => {
 
       const txEvent2 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[1],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[1]);
 
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
-
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
@@ -316,43 +321,53 @@ describe("Detect Private Key Compromise", () => {
       let findings;
       const txEvent = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[0],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[0]);
 
       const txEvent2 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[1],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[1]);
 
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
 
       const txEvent4 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[3],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[3]);
 
       const txEvent5 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[4],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[4]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
@@ -392,11 +407,14 @@ describe("Detect Private Key Compromise", () => {
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[2],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[2], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
+
       const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[2]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");

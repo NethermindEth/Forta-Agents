@@ -5,7 +5,7 @@ import {
   updateRecord,
   TIME_PERIOD,
   AlertedAddress,
-  ERC20_TRANSFER_EVENT,
+  ERC20_TRANSFER_FUNCTION,
   deepMerge,
   MAX_OBJECT_SIZE,
 } from "./utils";
@@ -102,7 +102,7 @@ export const provideHandleTransaction =
       alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
 
       lastBlock = blockNumber;
-      console.log(`-----Transactions processed in last block before ${blockNumber}: ${transactionsProcessed}-----`);
+      console.log(`-----Transactions processed in the last block before ${blockNumber}: ${transactionsProcessed}-----`);
       transactionsProcessed = 0;
       st = new Date().getTime();
 
@@ -126,7 +126,7 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
-    const transferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT);
+    const transferFunctions = txEvent.filterFunction(ERC20_TRANSFER_FUNCTION);
 
     // check for native token transfers
     if (to && value != "0x0" && data === "0x") {
@@ -179,9 +179,9 @@ export const provideHandleTransaction =
     }
 
     // check for ERC20 transfers
-    if (transferEvents.length) {
+    if (transferFunctions.length) {
       await Promise.all(
-        transferEvents.map(async (transfer) => {
+        transferFunctions.map(async (transfer) => {
           if (isRelevantChain) ercTransferCount++;
 
           // check only if the to address is not inside alertedAddresses
@@ -192,15 +192,12 @@ export const provideHandleTransaction =
                 Number(chainId),
                 true
               );
+
               if (!hasHighNumberOfTotalTxs) {
-                const balanceFrom = await balanceFetcher.getBalanceOf(
-                  transfer.args.from,
-                  transfer.address,
-                  txEvent.blockNumber
-                );
+                const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
 
                 if (balanceFrom.eq(0)) {
-                  await updateRecord(transfer.args.from, transfer.args.to, transfer.address, transferObj);
+                  await updateRecord(from, transfer.args.to, transfer.address, transferObj);
 
                   // if there are multiple transfers to the same address, emit an alert
                   if (transferObj[transfer.args.to].length > 3) {
