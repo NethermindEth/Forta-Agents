@@ -37,6 +37,14 @@ function rangeChunks(from: number, to: number, chunkSize: number): Array<[from: 
   return resp;
 }
 
+export function pastBlockChunks(
+  fromBlock: number,
+  blockRange: number,
+  chunkSize: number
+): Array<[from: number, to: number]> {
+  return rangeChunks(Math.max(fromBlock - blockRange + 1, 0), fromBlock, chunkSize);
+}
+
 export function getPastEventLogs(
   filter: ethers.EventFilter,
   fromBlock: number,
@@ -44,7 +52,7 @@ export function getPastEventLogs(
   blockStep: number,
   provider: ethers.providers.Provider
 ) {
-  const chunks = rangeChunks(Math.max(fromBlock - blockRange + 1, 0), fromBlock, blockStep);
+  const chunks = pastBlockChunks(fromBlock, blockRange, blockStep);
 
   const logs = Promise.all(
     chunks.map(([from, to]) =>
