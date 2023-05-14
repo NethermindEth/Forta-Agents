@@ -136,9 +136,8 @@ export const provideHandleTransaction = (
       }
     });
 
-    timelockExecutionInfos
-      .filter((callExecution) => !callExecution.matched)
-      .forEach((callExecution) => {
+    timelockExecutionInfos.forEach((callExecution) => {
+      if (!callExecution.matched) {
         findings.push(
           createUnknownTimelockExecutionFinding(
             bridgeReceiver.address,
@@ -150,7 +149,8 @@ export const provideHandleTransaction = (
             chainId
           )
         );
-      });
+      }
+    });
 
     return findings;
   };
