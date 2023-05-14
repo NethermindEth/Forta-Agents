@@ -17,12 +17,19 @@ import {
 import { Interface, formatBytes32String, getAddress } from "ethers/lib/utils";
 import {
   EXECUTE_TX_ABI,
+  FX_CHILD_ABI,
+  FX_ROOT_ABI,
   PROPOSAL_EVENT_ABI,
   SEND_MESSAGE_ABI,
+  TIMELOCK_ABI,
 } from "./constants";
 import { ethers } from "ethers";
 import { NetworkManager } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
+
+const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
+const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
+const RECEIVER_IFACE = new Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
 
 function mockCreateProposalFinding(
   network: string,
@@ -88,15 +95,15 @@ function encodeCallData(
   return calldata;
 }
 
-async function addLogsToMockProvider(
-  mockProvider: MockEthersProvider,
+async function addLogsToProvider(
+  mockTimelockProvider: MockEthersProvider,
   blockNumber: number,
   address: string,
   topics: string[],
   data: string,
   txHash?: string
 ) {
-  mockProvider.addLogs([
+  mockTimelockProvider.addLogs([
     {
       blockNumber,
       data,
@@ -109,9 +116,6 @@ async function addLogsToMockProvider(
 
 const FX_CHILD = createAddress("0xab1");
 const LAST_MAINNET_BLOCK = 100;
-
-const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
-const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
 
 const PROPOSAL_TEST_DATA: [
   string,
@@ -171,8 +175,6 @@ const network = Network.MAINNET;
 const DEFAULT_CONFIG: AgentConfig = {
   [network]: {
     bridgeReceiver: createAddress("0xff1"),
-    fxRoot: createAddress("0xff2"),
-    timeLock: createAddress("0xff3"),
     blockChunk: 50,
     pastBlocks: 100,
     rpcEndpoint: "rpc-endpoint",
@@ -180,33 +182,81 @@ const DEFAULT_CONFIG: AgentConfig = {
 };
 
 describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
+  const fxChild = createAddress("0xaefe");
+  const fxRoot = createAddress("0xaefd");
+  const timelock = createAddress("0xaeff");
+  const BLOCK_NUMBER = 1;
+
+  let mockTimelockProvider: MockEthersProvider;
   let mockProvider: MockEthersProvider;
+
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
 
-  beforeEach(async () => {
-    mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+  async function addCallsToProvider(
+    mockProvider: MockEthersProvider,
+    blockNumber: string | number
+  ) {
+    mockProvider.addCallTo(
+      networkManager.get("bridgeReceiver"),
+      blockNumber,
+      RECEIVER_IFACE,
+      "fxChild",
+      {
+        inputs: [],
+        outputs: [fxChild],
+      }
+    );
 
-    mockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+    mockProvider.addCallTo(
+      networkManager.get("bridgeReceiver"),
+      blockNumber,
+      RECEIVER_IFACE,
+      "govTimelock",
+      {
+        inputs: [],
+        outputs: [timelock],
+      }
+    );
+
+    mockProvider.addCallTo(
+      fxChild,
+      BLOCK_NUMBER,
+      new Interface([FX_ROOT_ABI]),
+      "fxRoot",
+      {
+        inputs: [],
+        outputs: [fxRoot],
+      }
+    );
+  }
+
+  beforeEach(async () => {
+    mockTimelockProvider = new MockEthersProvider();
+    mockTimelockProvider.setNetwork(network);
+    mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+
+    mockProvider = new MockEthersProvider();
     networkManager = new NetworkManager(DEFAULT_CONFIG);
     await networkManager.init(
-      mockProvider as unknown as ethers.providers.Provider
+      mockTimelockProvider as unknown as ethers.providers.Provider
     );
 
-    const _getLogs = mockProvider.getLogs;
-    mockProvider.getLogs = jest.fn((...args) =>
+    const _getLogs = mockTimelockProvider.getLogs;
+    mockTimelockProvider.getLogs = jest.fn((...args) =>
       Promise.resolve(_getLogs(...args))
     );
+    await addCallsToProvider(mockProvider, BLOCK_NUMBER);
 
     handleTransaction = provideHandleTransaction(
       networkManager,
-      mockProvider as any
+      mockProvider as unknown as ethers.providers.Provider,
+      mockTimelockProvider as any
     );
   });
 
   it("returns empty findings when no event is emitted", async () => {
-    const txEvent = new TestTransactionEvent().setBlock(1);
+    const txEvent = new TestTransactionEvent().setBlock(BLOCK_NUMBER);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
@@ -218,7 +268,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
         [
           formatBytes32String("hash1"),
-          networkManager.get("fxRoot"),
+          fxRoot,
           10,
           "",
           encodeCallData(
@@ -229,16 +279,18 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         ]
       );
 
-      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-        PROPOSAL_EVENT_ABI,
-        networkManager.get("bridgeReceiver"),
-        testData
-      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(
+          PROPOSAL_EVENT_ABI,
+          networkManager.get("bridgeReceiver"),
+          testData
+        );
 
-      await addLogsToMockProvider(
-        mockProvider,
+      await addLogsToProvider(
+        mockTimelockProvider,
         1,
-        networkManager.get("timeLock"),
+        timelock,
         transactionExecutedLog.topics,
         transactionExecutedLog.data,
         formatBytes32String("tx1")
@@ -262,19 +314,15 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   it("returns a High Severity finding if ProposalCreated event is emitted and no ExecuteTransaction event was emitted", async () => {
     const findings = [];
     for (const testData of PROPOSAL_TEST_DATA) {
-      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-        PROPOSAL_EVENT_ABI,
-        networkManager.get("bridgeReceiver"),
-        testData
-      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(
+          PROPOSAL_EVENT_ABI,
+          networkManager.get("bridgeReceiver"),
+          testData
+        );
 
-      await addLogsToMockProvider(
-        mockProvider,
-        1,
-        networkManager.get("timeLock"),
-        [],
-        ""
-      );
+      await addLogsToProvider(mockTimelockProvider, 1, timelock, [], "");
       findings.push(await handleTransaction(txEvent));
     }
 
@@ -293,11 +341,13 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   it("returns a High Severity finding if ProposalCreated event is emitted and no corresponding ExecuteTransaction event was found", async () => {
     const findings = [];
     for (const testData of PROPOSAL_TEST_DATA) {
-      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-        PROPOSAL_EVENT_ABI,
-        networkManager.get("bridgeReceiver"),
-        testData
-      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(
+          PROPOSAL_EVENT_ABI,
+          networkManager.get("bridgeReceiver"),
+          testData
+        );
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
         EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
@@ -314,10 +364,10 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         ]
       );
 
-      await addLogsToMockProvider(
-        mockProvider,
+      await addLogsToProvider(
+        mockTimelockProvider,
         1,
-        networkManager.get("timeLock"),
+        timelock,
         transactionExecutedLog.topics,
         transactionExecutedLog.data
       );
@@ -340,17 +390,19 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   it("returns a High Severity finding if ProposalCreated event is emitted and corresponding ExecuteTransaction event has different data", async () => {
     const findings = [];
     for (const testData of PROPOSAL_TEST_DATA) {
-      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-        PROPOSAL_EVENT_ABI,
-        networkManager.get("bridgeReceiver"),
-        testData
-      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(
+          PROPOSAL_EVENT_ABI,
+          networkManager.get("bridgeReceiver"),
+          testData
+        );
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
         EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
         [
           formatBytes32String("hash1"),
-          networkManager.get("fxRoot"),
+          fxRoot,
           10,
           "",
           encodeCallData(
@@ -361,10 +413,10 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         ]
       );
 
-      await addLogsToMockProvider(
-        mockProvider,
+      await addLogsToProvider(
+        mockTimelockProvider,
         1,
-        networkManager.get("timeLock"),
+        timelock,
         transactionExecutedLog.topics,
         transactionExecutedLog.data
       );
@@ -395,9 +447,9 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     ];
 
     for (const blocksData of blockBatches) {
-      mockProvider = new MockEthersProvider();
-      mockProvider.setNetwork(network);
-      mockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+      mockTimelockProvider = new MockEthersProvider();
+      mockTimelockProvider.setNetwork(network);
+      mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
 
       const config = {
         [network]: {
@@ -412,23 +464,26 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
       networkManager = new NetworkManager(config);
       await networkManager.init(
-        mockProvider as unknown as ethers.providers.Provider
+        mockTimelockProvider as unknown as ethers.providers.Provider
       );
 
       handleTransaction = provideHandleTransaction(
         networkManager,
-        mockProvider as any
+        mockProvider as unknown as ethers.providers.Provider,
+        mockTimelockProvider as any
       );
 
-      const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
-        PROPOSAL_EVENT_ABI,
-        networkManager.get("bridgeReceiver"),
-        PROPOSAL_TEST_DATA[0]
-      );
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(
+          PROPOSAL_EVENT_ABI,
+          networkManager.get("bridgeReceiver"),
+          PROPOSAL_TEST_DATA[0]
+        );
 
       await handleTransaction(txEvent);
 
-      expect(await mockProvider.getLogs).toBeCalledTimes(
+      expect(await mockTimelockProvider.getLogs).toBeCalledTimes(
         Math.ceil(
           networkManager.get("pastBlocks") / networkManager.get("blockChunk")
         )
