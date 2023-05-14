@@ -21,7 +21,7 @@ export interface ProposalCreatedArgs {
   rootMessageSender: string;
   id: ethers.BigNumber;
   targets: string[];
-  values: ethers.BigNumber[];
+  txValues: ethers.BigNumber[];
   signatures: string[];
   calldatas: string[];
   eta: ethers.BigNumber;

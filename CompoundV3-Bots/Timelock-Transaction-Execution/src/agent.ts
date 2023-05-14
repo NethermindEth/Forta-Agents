@@ -83,7 +83,7 @@ export const provideHandleTransaction = (
         calls: creationInfo.targets.map((_, idx) => ({
           matched: false,
           target: creationInfo.targets[idx],
-          value: creationInfo.values[idx],
+          value: creationInfo.txValues[idx],
           signature: creationInfo.signatures[idx],
           data: creationInfo.calldatas[idx],
         })),
