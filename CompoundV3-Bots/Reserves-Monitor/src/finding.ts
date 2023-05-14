@@ -16,7 +16,7 @@ export function createFinding(
     type: FindingType.Info,
     metadata: {
       network,
-      comet: getAddress(comet),
+      comet: getAddress(comet).toLowerCase(),
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),
     },

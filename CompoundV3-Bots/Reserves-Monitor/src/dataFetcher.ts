@@ -8,7 +8,7 @@ import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 export default class Fetcher {
   provider: providers.Provider;
   networkManager: NetworkManager<NetworkData>;
-  cometContracts: any;
+  cometContracts: Record<string, Contract>;
 
   constructor(
     provider: providers.Provider,
