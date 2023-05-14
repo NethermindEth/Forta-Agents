@@ -2,8 +2,6 @@ import { ethers } from "ethers";
 
 export interface NetworkData {
   bridgeReceiver: string;
-  fxRoot: string;
-  timeLock: string;
   rpcEndpoint: string;
   blockChunk: number;
   pastBlocks: number;
