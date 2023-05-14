@@ -69,7 +69,7 @@ describe("Fetcher test suite", () => {
     networkManager.setNetwork(network);
 
     fetcher = new Fetcher(mockProvider as any, networkManager);
-    await fetcher.setContracts();
+    fetcher.setContracts();
   });
 
   it("should fetch correct reserves amounts for each contract and block", async () => {

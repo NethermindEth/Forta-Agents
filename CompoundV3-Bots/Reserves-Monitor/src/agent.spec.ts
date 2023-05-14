@@ -67,7 +67,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
       mockProvider as unknown as ethers.providers.Provider,
       networkManager
     );
-    await fetcher.setContracts();
+    fetcher.setContracts();
 
     handleBlock = await BOT.provideHandleBlock(fetcher);
   });

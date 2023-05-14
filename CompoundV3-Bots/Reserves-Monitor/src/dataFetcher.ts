@@ -18,7 +18,7 @@ export default class Fetcher {
     this.networkManager = networkManager;
     this.cometContracts = {};
   }
-  public async setContracts() {
+  public setContracts() {
     this.networkManager.get("cometAddresses").map((addr: string) => {
       this.cometContracts[addr] = new Contract(
         addr,
