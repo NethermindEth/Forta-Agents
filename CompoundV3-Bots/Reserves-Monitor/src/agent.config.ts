@@ -19,7 +19,7 @@ const CONFIG: AgentConfig = {
   11155111: {
     cometAddresses: ["0x61fFE3A3147386137C8CB9fCAF708687619cEBd3"],
     alertFrequency: 7200,
-  }
+  },
 };
 
 export default CONFIG;

@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot monitors reserves in Compound III `comet` contracts. It emits an alert if contract `reserves` reaches the `targetReserves`.
+This bot monitors reserves in Compound III `Comet` contracts. It emits an alert if contract `reserves` reaches the `targetReserves`.
 Note that the bot is configurable in `agent.config.ts` file, where:
 
 - `cometAddresses`: contains the list of comet contract adddresses for each network.
