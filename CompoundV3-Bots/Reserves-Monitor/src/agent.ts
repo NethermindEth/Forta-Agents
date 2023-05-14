@@ -59,6 +59,7 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
           ALERTS[comet] = blockEvent.block.timestamp;
           findings.push(
             createFinding(
+              fetcher.networkManager.getNetwork().toString(),
               comet,
               reserves[index].toString(),
               targetRes.toString()

@@ -2,6 +2,7 @@ import { getAddress } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export function createFinding(
+  network: string,
   comet: string,
   reserves: number | string,
   targetReserves: number | string
@@ -14,6 +15,7 @@ export function createFinding(
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
     metadata: {
+      network,
       comet: getAddress(comet),
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),
