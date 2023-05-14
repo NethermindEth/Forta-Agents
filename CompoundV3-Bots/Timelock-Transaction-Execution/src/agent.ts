@@ -44,7 +44,7 @@ export const provideHandleTransaction = (
       bridgeReceiverIface,
       provider
     );
-    const timelock = await bridgeReceiver.localTimelock();
+    const timelock = await bridgeReceiver.localTimelock({ blockTag: block });
 
     // Filter ExecuteTransaction logs from the local timelock and ProposalExecuted logs from the bridge receiver
     const timelockExecutionLogs = executeTransactionLogs.filter(
