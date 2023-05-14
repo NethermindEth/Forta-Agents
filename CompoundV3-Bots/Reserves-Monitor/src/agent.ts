@@ -51,7 +51,7 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
       if (reserves[index].gte(0) && abs(reserves[index]).gte(targetRes)) {
         // If last alert exceeds the frequency, or no alert was emitted before, return finding
         if (
-          ALERTS[comet] == -1 ||
+          ALERTS[comet] === -1 ||
           blockEvent.block.timestamp >
             fetcher.networkManager.get("alertFrequency") + ALERTS[comet]
         ) {
