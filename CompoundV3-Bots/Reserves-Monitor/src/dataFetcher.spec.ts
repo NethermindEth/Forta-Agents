@@ -1,12 +1,19 @@
-import { createAddress } from "forta-agent-tools";
+import { NetworkManager, createAddress } from "forta-agent-tools";
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import Fetcher from "./dataFetcher";
 import { Interface } from "ethers/lib/utils";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
+import { NetworkData } from "./utils";
+import { Network } from "forta-agent";
+
+const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
+const network = Network.MAINNET;
 
 describe("Fetcher test suite", () => {
-  const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
+  let mockProvider: MockEthersProvider;
+  let networkManager: NetworkManager<NetworkData>;
+  let fetcher: Fetcher;
 
   // Format: [targetReserves, reserves, blockNumber]
   const TEST_CASES: [BigNumber, BigNumber, number][] = [
@@ -16,24 +23,20 @@ describe("Fetcher test suite", () => {
     [BigNumber.from("400"), BigNumber.from("400"), 4],
   ];
 
-  const TEST_ADDRESSES = [
+  const COMET_ADDRESSES = [
     createAddress("0x11"),
     createAddress("0x12"),
     createAddress("0x13"),
   ];
 
-  const mockGetFn = (id: string) => {
-    if (id == "cometAddresses") return TEST_ADDRESSES;
-  };
-  const mockProvider: MockEthersProvider = new MockEthersProvider();
-  const mockNetworkManager = {
-    cometAddresses: TEST_ADDRESSES,
-    networkMap: {},
-    setNetwork: jest.fn(),
-    get: mockGetFn as any,
-  };
+  const ALERT_FREQ = 1000;
 
-  const fetcher = new Fetcher(mockProvider as any, mockNetworkManager as any);
+  const DEFAULT_CONFIG = {
+    [network]: {
+      cometAddresses: COMET_ADDRESSES,
+      alertFrequency: ALERT_FREQ,
+    },
+  };
   function createGetReservesCall(
     comet: string,
     reserves: BigNumber,
@@ -54,13 +57,23 @@ describe("Fetcher test suite", () => {
       outputs: [targetReserves],
     });
   }
-  beforeAll(async () => {
+
+  beforeEach(async () => {
+    mockProvider = new MockEthersProvider();
+    mockProvider.setNetwork(network);
+
+    networkManager = new NetworkManager(DEFAULT_CONFIG);
+    await networkManager.init(
+      mockProvider as unknown as ethers.providers.Provider
+    );
+    networkManager.setNetwork(network);
+
+    fetcher = new Fetcher(mockProvider as any, networkManager);
     await fetcher.setContracts();
   });
-  beforeEach(() => mockProvider.clear());
 
   it("should fetch correct reserves amounts for each contract and block", async () => {
-    for (let comet of TEST_ADDRESSES) {
+    for (let comet of COMET_ADDRESSES) {
       for (let [, reserves, blockNumber] of TEST_CASES) {
         createGetReservesCall(comet, reserves, blockNumber);
 
@@ -75,7 +88,7 @@ describe("Fetcher test suite", () => {
   });
 
   it("should fetch correct target reserves amounts for each contract and block", async () => {
-    for (let comet of TEST_ADDRESSES) {
+    for (let comet of COMET_ADDRESSES) {
       for (let [targetReserves, , blockNumber] of TEST_CASES) {
         createTargetReservesCall(comet, targetReserves, blockNumber);
 
