@@ -106,6 +106,10 @@ export const provideHandleTransaction = (
     // Matches proposal calls with executed calls
     timelockExecutionInfos.forEach((callExecution) => {
       for (const proposalExecution of executedProposalInfos) {
+        if (proposalExecution && !proposalExecution.eta.eq(callExecution.eta)) {
+          continue;
+        }
+
         const matchingCall = proposalExecution?.calls.find((call) => {
           return (
             call.target.toLowerCase() === callExecution.target.toLowerCase() &&
