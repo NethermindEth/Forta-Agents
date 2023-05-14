@@ -195,8 +195,9 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
         blockEvent.block.timestamp + testConfig.alertFrequency - 10
       );
 
-    const findings = await handleBlock(blockEvent);
-    findings.concat(await handleBlock(blockEvent2));
+    const findings = (
+      await Promise.all([handleBlock(blockEvent), handleBlock(blockEvent2)])
+    ).flat();
 
     expect(findings.toString()).toStrictEqual(
       [

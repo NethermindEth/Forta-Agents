@@ -73,8 +73,8 @@ describe("Fetcher test suite", () => {
   });
 
   it("should fetch correct reserves amounts for each contract and block", async () => {
-    for (let comet of COMET_ADDRESSES) {
-      for (let [, reserves, blockNumber] of TEST_CASES) {
+    for (const comet of COMET_ADDRESSES) {
+      for (const [, reserves, blockNumber] of TEST_CASES) {
         createGetReservesCall(comet, reserves, blockNumber);
 
         const fetchedReserves: BigNumber = await fetcher.getReserves(
@@ -88,8 +88,8 @@ describe("Fetcher test suite", () => {
   });
 
   it("should fetch correct target reserves amounts for each contract and block", async () => {
-    for (let comet of COMET_ADDRESSES) {
-      for (let [targetReserves, , blockNumber] of TEST_CASES) {
+    for (const comet of COMET_ADDRESSES) {
+      for (const [targetReserves, , blockNumber] of TEST_CASES) {
         createTargetReservesCall(comet, targetReserves, blockNumber);
 
         const fetchedTargetReserves: BigNumber =

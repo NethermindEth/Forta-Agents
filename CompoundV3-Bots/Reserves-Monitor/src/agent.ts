@@ -28,10 +28,10 @@ export const provideInitialize =
 
 export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    let findings: Finding[] = [];
-    let targetReservesPromises: Promise<BigNumber>[] = [];
-    let reservesPromises: Promise<BigNumber>[] = [];
-    let cometAddresses = fetcher.networkManager.get("cometAddresses");
+    const findings: Finding[] = [];
+    const targetReservesPromises: Promise<BigNumber>[] = [];
+    const reservesPromises: Promise<BigNumber>[] = [];
+    const cometAddresses = fetcher.networkManager.get("cometAddresses");
 
     cometAddresses.map(async (comet: string) => {
       // Call getReserves() for each comet contract
@@ -40,8 +40,8 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
       targetReservesPromises.push(fetcher.getTargetReserves(comet, "latest"));
     });
 
-    let targetReserves = await Promise.all(targetReservesPromises);
-    let reserves = await Promise.all(reservesPromises);
+    const targetReserves = await Promise.all(targetReservesPromises);
+    const reserves = await Promise.all(reservesPromises);
 
     targetReserves.forEach((targetRes, index) => {
       const comet = cometAddresses[index];
