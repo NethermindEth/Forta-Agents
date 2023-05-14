@@ -30,7 +30,7 @@ export interface ProposalCreatedArgs {
 function rangeChunks(from: number, to: number, chunkSize: number): Array<[from: number, to: number]> {
   const resp: Array<[from: number, to: number]> = [];
 
-  for (let i = from; i < to; i += chunkSize) {
+  for (let i = from; i <= to; i += chunkSize) {
     resp.push([i, Math.min(i + chunkSize - 1, to)]);
   }
 
