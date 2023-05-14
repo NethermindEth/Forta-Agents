@@ -57,7 +57,8 @@ export function createUnknownTimelockExecutionFinding(
 ): Finding {
   return Finding.from({
     name: "Unknown transaction was executed through the Timelock contract",
-    description: "A transaction that is not linked to any proposal was executed through the Timelock contract",
+    description:
+      "A transaction that is not linked to any proposal was executed through the Timelock contract. This might have been due to the proposal creation not being recognized, please check the bot logs.",
     alertId: "COMP2-6-3",
     protocol: "Compound",
     type: FindingType.Suspicious,
