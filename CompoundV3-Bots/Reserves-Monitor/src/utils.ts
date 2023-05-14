@@ -1,8 +1,8 @@
 import { BigNumber } from "ethers";
 
 export interface NetworkData {
-  cometAddresses: string[];
-  alertFrequency: number;
+  cometAddresses: string[]; // List of comet contract adddresses for each network.
+  alertFrequency: number; // Frequency of emitting alerts for the same contract.
 }
 
 export type AgentConfig = Record<number, NetworkData>;

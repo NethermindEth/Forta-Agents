@@ -91,9 +91,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     expect(JSON.stringify(findings)).toStrictEqual(
       JSON.stringify([
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -127,9 +127,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     expect(JSON.stringify(findings)).toStrictEqual(
       JSON.stringify([
         Finding.fromObject({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -173,9 +173,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     expect(findings.toString()).toStrictEqual(
       [
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -220,9 +220,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     expect(findings.toString()).toStrictEqual(
       [
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -233,9 +233,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
           },
         }),
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -285,9 +285,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     for (let i = 1; i < TEST_ADDRESSES.length; i++) {
       expectedFindings.push(
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
@@ -302,9 +302,9 @@ describe("COMP2 - Reserves Monitor Bot Tests suite", () => {
     for (let i = 1; i < TEST_ADDRESSES.length; i++) {
       expectedFindings.push(
         Finding.from({
-          name: `Comet reserves reached targetReserves`,
-          description: `Reserves on comet contract are >= target reserves`,
-          alertId: "COMP2-1",
+          name: "Comet reserves reached target reserves",
+          description: `Reserves on Comet contract are >= target reserves`,
+          alertId: "COMP2-1-1",
           protocol: "Compound",
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
