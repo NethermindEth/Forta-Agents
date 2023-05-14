@@ -1,11 +1,12 @@
+import { BigNumberish } from "ethers";
 import { getAddress } from "ethers/lib/utils";
 import { Finding, FindingSeverity, FindingType } from "forta-agent";
 
 export function createFinding(
   network: string,
   comet: string,
-  reserves: number | string,
-  targetReserves: number | string
+  reserves: BigNumberish,
+  targetReserves: BigNumberish
 ): Finding {
   return Finding.from({
     name: "Comet reserves reached target reserves",

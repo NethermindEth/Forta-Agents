@@ -1,4 +1,4 @@
-import { providers, Contract, BigNumber } from "ethers";
+import { providers, Contract, BigNumber, BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkData } from "./utils";
@@ -29,7 +29,7 @@ export default class Fetcher {
   }
   public async getReserves(
     address: string,
-    block: number | string
+    block: BigNumberish
   ): Promise<BigNumber> {
     const reserves: BigNumber = this.cometContracts[address].getReserves({
       blockTag: block,
@@ -39,7 +39,7 @@ export default class Fetcher {
 
   public async getTargetReserves(
     address: string,
-    block: number | string
+    block: BigNumberish
   ): Promise<BigNumber> {
     const targetReserves: BigNumber = this.cometContracts[
       address

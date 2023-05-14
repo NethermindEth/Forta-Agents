@@ -2,29 +2,25 @@ import {
   BlockEvent,
   Finding,
   HandleBlock,
-  FindingSeverity,
-  FindingType,
   getEthersProvider,
 } from "forta-agent";
 import CONFIG from "./agent.config";
 import { BigNumber, providers } from "ethers";
 import Fetcher from "./dataFetcher";
 import { NetworkManager } from "forta-agent-tools";
-import { NetworkData, abs } from "./utils";
 import { createFinding } from "./finding";
 
 const ALERTS: { [address: string]: number } = {};
 
-const networkManager: NetworkManager<NetworkData> = new NetworkManager(CONFIG);
+const networkManager = new NetworkManager(CONFIG);
 const dataFetcher: Fetcher = new Fetcher(getEthersProvider(), networkManager);
 
-export const provideInitialize =
-  (provider: providers.Provider | any) => async () => {
-    const { chainId } = await provider.getNetwork();
-    await networkManager.init(provider);
-    networkManager.setNetwork(chainId);
-    dataFetcher.setContracts();
-  };
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  await networkManager.init(provider);
+  networkManager.setNetwork(chainId);
+  dataFetcher.setContracts();
+};
 
 export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
@@ -48,7 +44,7 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
       if (!ALERTS[comet]) ALERTS[comet] = -1;
 
       // 0. if Reserves > 0 and Reserves >= targetReserves
-      if (reserves[index].gte(0) && abs(reserves[index]).gte(targetRes)) {
+      if (reserves[index].gte(0) && reserves[index].abs().gte(targetRes)) {
         // If last alert exceeds the frequency, or no alert was emitted before, return finding
         if (
           ALERTS[comet] === -1 ||
@@ -61,8 +57,8 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
             createFinding(
               fetcher.networkManager.getNetwork().toString(),
               comet,
-              reserves[index].toString(),
-              targetRes.toString()
+              reserves[index],
+              targetRes
             )
           );
         }
