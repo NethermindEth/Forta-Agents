@@ -87,6 +87,7 @@ export const provideHandleTransaction = (
           signature: creationInfo.signatures[idx],
           data: creationInfo.calldatas[idx],
         })),
+        eta: creationInfo.eta,
       };
     });
 
@@ -142,10 +143,12 @@ export const provideHandleTransaction = (
           createUnknownTimelockExecutionFinding(
             bridgeReceiver.address,
             timelock,
+            callExecution.txHash,
             callExecution.target,
             callExecution.value,
             callExecution.signature,
             callExecution.data,
+            callExecution.eta,
             chainId
           )
         );

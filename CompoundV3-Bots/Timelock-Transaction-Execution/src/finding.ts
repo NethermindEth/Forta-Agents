@@ -49,10 +49,12 @@ export function createUnsuccessfulProposalExecutionFinding(
 export function createUnknownTimelockExecutionFinding(
   bridgeReceiver: string,
   timelock: string,
+  txHash: string,
   target: string,
   value: ethers.BigNumber,
   signature: string,
   data: string,
+  eta: ethers.BigNumber,
   chainId: number
 ): Finding {
   return Finding.from({
@@ -67,10 +69,12 @@ export function createUnknownTimelockExecutionFinding(
       chain: Network[chainId] || chainId.toString(),
       bridgeReceiver: ethers.utils.getAddress(bridgeReceiver),
       timelock: ethers.utils.getAddress(timelock),
+      txHash,
       target: ethers.utils.getAddress(target),
       value: value.toString(),
       signature,
       data,
+      eta: eta.toString(),
     },
     addresses: [
       ethers.utils.getAddress(bridgeReceiver),
