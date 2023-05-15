@@ -17,6 +17,7 @@ Note that the bot is configurable through the `agent.config.ts` file.
   - Severity is always set to "Medium"
   - Type is always set to "info"
   - Metadata includes:
+    - `chain`: Network chain ID or name
     - `comet`: Address of the Comet contract
     - `reserves`: Reserves amount of the Comet contract
     - `targetReserves`: Target reserves amount of the Comet contract

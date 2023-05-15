@@ -1,9 +1,9 @@
 import { BigNumberish } from "ethers";
 import { getAddress } from "ethers/lib/utils";
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
 export function createFinding(
-  network: string,
+  chainId: number,
   comet: string,
   reserves: BigNumberish,
   targetReserves: BigNumberish
@@ -16,7 +16,7 @@ export function createFinding(
     severity: FindingSeverity.Medium,
     type: FindingType.Info,
     metadata: {
-      network,
+      chain: Network[chainId] || chainId.toString(),
       comet: getAddress(comet).toLowerCase(),
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),

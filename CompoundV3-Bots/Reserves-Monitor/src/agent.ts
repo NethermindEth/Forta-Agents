@@ -61,7 +61,7 @@ export const provideHandleBlock = (
           state.alerts[comet] = blockEvent.block.timestamp;
           findings.push(
             createFinding(
-              fetcher.networkManager.getNetwork().toString(),
+              fetcher.networkManager.getNetwork(),
               comet,
               reserves[index],
               targetRes

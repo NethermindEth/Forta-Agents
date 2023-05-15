@@ -124,7 +124,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: testConfig.cometAddresses[0],
             reserves: reservesValue.toString(),
             targetReserves: reservesValue.toString(),
@@ -162,7 +162,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: testConfig.cometAddresses[0],
             reserves: reservesValue.toString(),
             targetReserves: targetReservesValue.toString(),
@@ -210,7 +210,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: testConfig.cometAddresses[0],
             reserves: reservesValue.toString(),
             targetReserves: targetReservesValue.toString(),
@@ -264,7 +264,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: testConfig.cometAddresses[0],
             reserves: reservesValue.toString(),
             targetReserves: targetReservesValue.toString(),
@@ -278,7 +278,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: testConfig.cometAddresses[0],
             reserves: reservesValue.add(200).toString(),
             targetReserves: targetReservesValue.add(200).toString(),
@@ -332,7 +332,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: addr,
             reserves: reservesValue.toString(),
             targetReserves: targetReservesValue.toString(),
@@ -350,7 +350,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
           severity: FindingSeverity.Medium,
           type: FindingType.Info,
           metadata: {
-            network: network.toString(),
+            chain: Network[network] || network.toString(),
             comet: addr,
             reserves: reservesValue.add(200).toString(),
             targetReserves: targetReservesValue.add(200).toString(),
