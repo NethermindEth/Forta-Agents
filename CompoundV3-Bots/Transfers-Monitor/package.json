@@ -25,7 +25,8 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "forta-agent": "^0.1.27",
@@ -36,6 +37,7 @@
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.8.8",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
