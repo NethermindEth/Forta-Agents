@@ -33,22 +33,19 @@ function mockCreateTransferFinding(
 }
 
 const mockGetFn = (id: string) => {
-  if (id === "cometAddresses") return TEST_ADDRESSES;
+  if (id === "cometContracts") return COMET_CONTRACTS;
   else return BASE_TOKENS;
 };
 
-const TEST_ADDRESSES = [
-  createAddress("0x11"),
-  createAddress("0x12"),
-  createAddress("0x13"),
-  createAddress("0x14"),
+const COMET_CONTRACTS = [
+  { address: createAddress("0x11a"), baseToken: createAddress("0x21f") },
+  { address: createAddress("0x12a"), baseToken: createAddress("0x22f") },
+  { address: createAddress("0x13a"), baseToken: createAddress("0x23F") },
+  { address: createAddress("0x14a"), baseToken: createAddress("0x24f") },
 ];
-const BASE_TOKENS = [
-  createAddress("0x21"),
-  createAddress("0x22"),
-  createAddress("0x23"),
-  createAddress("0x24"),
-];
+const TEST_ADDRESSES = COMET_CONTRACTS.map((comet) => comet.address);
+const BASE_TOKENS = COMET_CONTRACTS.map((comet) => comet.baseToken);
+
 const TEST_USERS = [
   createAddress("0x31"),
   createAddress("0x32"),
@@ -56,7 +53,6 @@ const TEST_USERS = [
   createAddress("0x34"),
 ];
 
-// const mockProvider: MockEthersProvider = new MockEthersProvider();
 const TRANSFER_IFACE = new Interface([TRANSFER_ABI]);
 const COMET_IFACE = new Interface([SUPPLY_ABI, BUY_COLLATERAL_ABI]);
 
@@ -101,6 +97,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   });
 
   it("returns empty findings if Transfer target is not a comet contract", async () => {
+    console.log("this test");
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       TRANSFER_IFACE.getEvent("Transfer"),
       BASE_TOKENS[0],

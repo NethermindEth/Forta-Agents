@@ -4,12 +4,13 @@ import {
   HandleTransaction,
   TransactionEvent,
   ethers,
+  getEthersProvider,
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import { NetworkData, TransferLog } from "./utils";
 import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
 import CONFIG from "./agent.config";
-import { BigNumber, getDefaultProvider } from "ethers";
+import { BigNumber } from "ethers";
 import { createTransferFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
@@ -28,86 +29,78 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const transferEvents: Set<any> = new Set([]);
+    const transferEvents: any[] = [];
+    const cometContracts = networkManager.get("cometContracts");
+    const cometAddresses = cometContracts.map((contract) => contract.address);
 
     // Filter the transaction logs for Transfer events in base tokens.
     txEvent
-      .filterLog(TRANSFER_ABI, networkManager.get("baseTokens"))
+      .filterLog(
+        TRANSFER_ABI,
+        cometContracts.map((contract) => contract.baseToken)
+      )
       .forEach((log) => {
-        const cometAddressIndex = networkManager
-          .get("cometAddresses")
-          .indexOf(log.args.to);
-
-        // If the transfer event is destined for a Comet contract with the same baseToken,
-        // add it to the transferEvents set
+        const destinationComet = cometContracts.find(
+          (comet) => comet.address.toLowerCase() === log.args.to.toLowerCase()
+        );
         if (
-          cometAddressIndex > -1 &&
-          networkManager.get("cometAddresses")[cometAddressIndex] ===
-            log.args.to &&
-          log.address === networkManager.get("baseTokens")[cometAddressIndex]
+          destinationComet &&
+          destinationComet.baseToken.toLowerCase() === log.address.toLowerCase()
         ) {
-          transferEvents.add({
+          transferEvents.push({
+            destinationComet,
             from: log.args.from,
-            index: cometAddressIndex,
             amount: log.args.amount,
           });
         }
       });
 
-    if (transferEvents.size > 0) {
+    if (transferEvents.length > 0) {
       // get all Supply and BuyCollateral events
-      const supplyBuyEvents = new Set(
-        txEvent.filterLog(
-          [SUPPLY_ABI, BUY_COLLATERAL_ABI],
-          networkManager.get("cometAddresses")
-        )
-      );
+      const supplyBuyEvents = txEvent
+        .filterLog([SUPPLY_ABI, BUY_COLLATERAL_ABI], cometAddresses)
+        .map((e1) => ({ ...e1, matched: false }));
 
-      // For each transfer event, if there is a matching Supply or BuyCollateral event,
-      // remove both events from their respective sets
       transferEvents.forEach((transfer: TransferLog) => {
-        const cometAddress =
-          networkManager.get("cometAddresses")[transfer.index];
+        const cometAddress = transfer.destinationComet.address;
+        let transferMatched = false;
 
-        for (const event of Array.from(supplyBuyEvents.values())) {
-          if (event.name === "Supply") {
-            if (
-              event.address === cometAddress &&
-              event.args.from === transfer.from &&
-              BigNumber.from(event.args.amount).eq(transfer.amount)
+        for (const event of supplyBuyEvents) {
+          if (!event.matched && event.address === cometAddress) {
+            if (event.name === "Supply") {
+              if (
+                event.args.from === transfer.from &&
+                BigNumber.from(event.args.amount).eq(transfer.amount)
+              ) {
+                event.matched = true;
+                transferMatched = true;
+                break;
+              }
+            } else if (
+              event.args.buyer === transfer.from &&
+              BigNumber.from(event.args.baseAmount).eq(transfer.amount)
             ) {
-              supplyBuyEvents.delete(event);
-              transferEvents.delete(transfer);
+              event.matched = true;
+              transferMatched = true;
               break;
             }
-          } else if (
-            event.address === cometAddress &&
-            event.args.buyer === transfer.from &&
-            BigNumber.from(event.args.baseAmount).eq(transfer.amount)
-          ) {
-            supplyBuyEvents.delete(event);
-            transferEvents.delete(transfer);
-            break;
           }
         }
+        if (!transferMatched)
+          findings.push(
+            createTransferFinding(
+              transfer.destinationComet.address,
+              transfer.from,
+              transfer.amount
+            )
+          );
       });
-      // Create finding for each Trasfer event that wasn't matched
-      transferEvents.forEach((transferAlert) =>
-        findings.push(
-          createTransferFinding(
-            networkManager.get("cometAddresses")[transferAlert.index],
-            transferAlert.from,
-            transferAlert.amount
-          )
-        )
-      );
     }
-
     return findings;
   };
 };
 
 export default {
-  initialize: provideInitialize(networkManager, getDefaultProvider()),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
   handleTransaction: provideHandleTransaction(networkManager),
 };
