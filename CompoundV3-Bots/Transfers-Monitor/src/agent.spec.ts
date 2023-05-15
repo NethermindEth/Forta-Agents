@@ -12,11 +12,12 @@ import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
+import { BigNumberish } from "ethers";
 
 function mockCreateTransferFinding(
   comet: string,
   sender: string,
-  amount: number | string
+  amount: BigNumberish
 ): Finding {
   return Finding.from({
     name: "Base token transfer on Comet contract",

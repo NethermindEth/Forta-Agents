@@ -1,11 +1,15 @@
+import { BigNumberish } from "ethers";
+
 export interface NetworkData {
-  cometContracts: { address: string; baseToken: string }[];
+  cometContracts: CometData[];
 }
 
 export type AgentConfig = Record<number, NetworkData>;
 
 export type TransferLog = {
   from: string;
-  destinationComet: { address: string; baseToken: string };
-  amount: number | string;
+  destinationComet: CometData;
+  amount: BigNumberish;
 };
+
+export type CometData = { address: string; baseToken: string };

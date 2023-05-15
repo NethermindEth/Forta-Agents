@@ -16,9 +16,10 @@ This bot detects when a `Transfer` event on the base contract is directed to a C
   - Severity is always set to "Medium"
   - Type is always set to "Info"
   - Metadata:
+    - `chain`: Network ID or name.
     - `cometContract`: address of the comet contract where the transfer is directed.
     - `sender`: the first side of the transfer.
-    - `transferAmount`: amount that was transfered to the comet contract
+    - `transferAmount`: amount that was transfered to the comet contract.
 
 ## Test Data
 

@@ -1,10 +1,11 @@
+import { BigNumberish } from "ethers";
 import { Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
 export function createTransferFinding(
   chainId: number,
   comet: string,
   sender: string,
-  amount: number | string
+  amount: BigNumberish
 ): Finding {
   return Finding.from({
     name: "Base token transfer on Comet contract",

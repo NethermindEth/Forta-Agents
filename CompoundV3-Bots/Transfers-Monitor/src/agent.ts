@@ -7,10 +7,10 @@ import {
   getEthersProvider,
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import { NetworkData, TransferLog } from "./utils";
+import { CometData, NetworkData, TransferLog } from "./utils";
 import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
 import CONFIG from "./agent.config";
-import { BigNumber } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import { createTransferFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
@@ -29,7 +29,11 @@ export const provideHandleTransaction = (
 ): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const transferEvents: any[] = [];
+    const transferEvents: {
+      destinationComet: CometData;
+      from: string;
+      amount: BigNumberish;
+    }[] = [];
     const cometContracts = networkManager.get("cometContracts");
     const cometAddresses = cometContracts.map((contract) => contract.address);
 
