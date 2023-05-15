@@ -32,7 +32,7 @@ const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
 const RECEIVER_IFACE = new Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
 
 function mockCreateProposalFinding(
-  network: string,
+  chainId: number,
   bridgeReceiver: string,
   id: string,
   fxChild: string,
@@ -47,7 +47,7 @@ function mockCreateProposalFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {
-      network,
+      network: Network[chainId] || chainId.toString(),
       bridgeReceiver,
       id,
       fxChild,
@@ -57,7 +57,7 @@ function mockCreateProposalFinding(
 }
 
 function mockCreateSuspiciousProposalFinding(
-  network: string,
+  chainId: number,
   bridgeReceiver: string,
   id: string,
   fxChild: string
@@ -72,7 +72,7 @@ function mockCreateSuspiciousProposalFinding(
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
     metadata: {
-      network,
+      network: Network[chainId] || chainId.toString(),
       bridgeReceiver,
       id,
       fxChild,
@@ -301,7 +301,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         mockCreateProposalFinding(
-          network.toString(),
+          network,
           networkManager.get("bridgeReceiver"),
           data[1],
           getAddress(data[0]),
@@ -329,7 +329,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         mockCreateSuspiciousProposalFinding(
-          network.toString(),
+          network,
           networkManager.get("bridgeReceiver"),
           data[1],
           getAddress(data[0])
@@ -378,7 +378,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         mockCreateSuspiciousProposalFinding(
-          network.toString(),
+          network,
           networkManager.get("bridgeReceiver"),
           data[1],
           getAddress(data[0])
@@ -427,7 +427,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         mockCreateSuspiciousProposalFinding(
-          network.toString(),
+          network,
           networkManager.get("bridgeReceiver"),
           data[1],
           getAddress(data[0])

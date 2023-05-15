@@ -4,11 +4,12 @@ import {
   FindingSeverity,
   FindingType,
   LogDescription,
+  Network,
 } from "forta-agent";
 
 export function ProposalCreatedFinding(
   log: LogDescription,
-  network: string,
+  chainId: number,
   txHash: string
 ): Finding {
   return Finding.from({
@@ -20,7 +21,7 @@ export function ProposalCreatedFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {
-      network,
+      network: Network[chainId] || chainId.toString(),
       bridgeReceiver: getAddress(log.address),
       id: log.args.id.toString(),
       fxChild: getAddress(log.args.rootMessageSender),
@@ -31,7 +32,7 @@ export function ProposalCreatedFinding(
 
 export function SuspiciousProposalCreatedFinding(
   log: LogDescription,
-  network: string
+  chainId: number
 ): Finding {
   return Finding.from({
     name: "A suspicious proposal was created on BridgeReceiver contract",
@@ -43,7 +44,7 @@ export function SuspiciousProposalCreatedFinding(
     type: FindingType.Suspicious,
     severity: FindingSeverity.High,
     metadata: {
-      network,
+      network: Network[chainId] || chainId.toString(),
       bridgeReceiver: getAddress(log.address),
       id: log.args.id.toString(),
       fxChild: getAddress(log.args.rootMessageSender),

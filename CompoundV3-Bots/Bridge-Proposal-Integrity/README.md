@@ -16,7 +16,7 @@ This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata:
-    - `network`: etwork ID where `ProposalCreated` was emitted.
+    - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
     - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
     - `id`:
     - `fxChild`: Address of the proposal creation message sender.
@@ -27,7 +27,7 @@ This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals
   - Severity is always set to "Suspicious"
   - Type is always set to "High"
   - Metadata:
-    - `network`: Network ID where `ProposalCreated` was emitted.
+    - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
     - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
     - `id`:
     - `fxChild`: Address of the proposal creation message sender.

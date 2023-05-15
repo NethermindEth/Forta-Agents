@@ -146,7 +146,7 @@ export const provideHandleTransaction = (
             findings.push(
               ProposalCreatedFinding(
                 proposalLog,
-                networkManager.getNetwork().toString(),
+                networkManager.getNetwork(),
                 log.transactionHash
               )
             );
@@ -158,7 +158,7 @@ export const provideHandleTransaction = (
           findings.push(
             SuspiciousProposalCreatedFinding(
               proposalLog,
-              networkManager.getNetwork().toString()
+              networkManager.getNetwork()
             )
           );
       }
