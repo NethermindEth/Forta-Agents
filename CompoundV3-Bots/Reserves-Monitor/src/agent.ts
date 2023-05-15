@@ -9,20 +9,26 @@ import { providers } from "ethers";
 import Fetcher from "./dataFetcher";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./finding";
-
-const ALERTS: { [address: string]: number } = {};
+import { AgentState } from "./utils";
 
 const networkManager = new NetworkManager(CONFIG);
 const dataFetcher: Fetcher = new Fetcher(getEthersProvider(), networkManager);
+const state: AgentState = {
+  alerts: {},
+};
 
 export const provideInitialize = (provider: providers.Provider) => async () => {
   const { chainId } = await provider.getNetwork();
   await networkManager.init(provider);
   networkManager.setNetwork(chainId);
+
   dataFetcher.setContracts();
 };
 
-export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
+export const provideHandleBlock = (
+  fetcher: Fetcher,
+  state: AgentState
+): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -41,18 +47,18 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
 
     targetReserves.forEach((targetRes, index) => {
       const comet = cometAddresses[index];
-      if (!ALERTS[comet]) ALERTS[comet] = -1;
+      if (!state.alerts[comet]) state.alerts[comet] = -1;
 
       // 0. if Reserves > 0 and Reserves >= targetReserves
       if (reserves[index].gte(0) && reserves[index].gte(targetRes)) {
         // If last alert exceeds the frequency, or no alert was emitted before, return finding
         if (
-          ALERTS[comet] === -1 ||
+          state.alerts[comet] === -1 ||
           blockEvent.block.timestamp >
-            fetcher.networkManager.get("alertFrequency") + ALERTS[comet]
+            fetcher.networkManager.get("alertFrequency") + state.alerts[comet]
         ) {
           // Update latest alert.
-          ALERTS[comet] = blockEvent.block.timestamp;
+          state.alerts[comet] = blockEvent.block.timestamp;
           findings.push(
             createFinding(
               fetcher.networkManager.getNetwork().toString(),
@@ -63,7 +69,7 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
           );
         }
         //Update lastest alert
-      } else ALERTS[comet] = -1;
+      } else state.alerts[comet] = -1;
     });
     return findings;
   };
@@ -71,5 +77,5 @@ export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
 
 export default {
   initialize: provideInitialize(getEthersProvider()),
-  handleBlock: provideHandleBlock(dataFetcher),
+  handleBlock: provideHandleBlock(dataFetcher, state),
 };

@@ -5,4 +5,8 @@ export interface NetworkData {
   alertFrequency: number; // Frequency of emitting alerts for the same contract.
 }
 
+export interface AgentState {
+  alerts: { [address: string]: number };
+}
+
 export type AgentConfig = Record<number, NetworkData>;

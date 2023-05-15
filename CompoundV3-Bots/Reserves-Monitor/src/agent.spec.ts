@@ -7,13 +7,13 @@ import {
   Network,
 } from "forta-agent";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
-
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { BigNumber, ethers } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import Fetcher from "./dataFetcher";
-import { NetworkData } from "./utils";
+import { AgentState, NetworkData } from "./utils";
+import { provideHandleBlock } from "./agent";
 
 const COMET_ADDRESSES = [createAddress("0xdef1"), createAddress("0xdEf2")];
 const ALERT_FREQ = 1000;
@@ -34,6 +34,9 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   let mockProvider: MockEthersProvider;
   let handleBlock: HandleBlock;
   let fetcher: Fetcher;
+  let state: AgentState = {
+    alerts: {},
+  };
 
   const testConfig = DEFAULT_CONFIG[network];
 
@@ -51,9 +54,6 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   }
 
   beforeEach(async () => {
-    jest.resetModules();
-    const BOT = require("./agent"); // Done to re-initialize ALERTS struct.
-
     mockProvider = new MockEthersProvider();
     mockProvider.setNetwork(network);
 
@@ -69,7 +69,8 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     );
     fetcher.setContracts();
 
-    handleBlock = await BOT.provideHandleBlock(fetcher);
+    state.alerts = {};
+    handleBlock = provideHandleBlock(fetcher, state);
   });
 
   it("returns empty findings if reserves are less than target reserves", async () => {
