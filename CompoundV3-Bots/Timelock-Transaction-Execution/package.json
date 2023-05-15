@@ -1,8 +1,8 @@
 {
-  "name": "forta-agent-starter",
+  "name": "comp2-6",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
-  "repository": "https://github.com/forta-network/forta-bot-sdk/tree/master/starter-project",
+  "description": "Forta bot that monitors and analyzes Compound v3 proposal executions on secondary networks",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Timelock-Transaction-Execution",
   "chainIds": [
     137
   ],
