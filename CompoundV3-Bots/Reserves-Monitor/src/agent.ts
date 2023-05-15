@@ -5,7 +5,7 @@ import {
   getEthersProvider,
 } from "forta-agent";
 import CONFIG from "./agent.config";
-import { BigNumber, providers } from "ethers";
+import { providers } from "ethers";
 import Fetcher from "./dataFetcher";
 import { NetworkManager } from "forta-agent-tools";
 import { createFinding } from "./finding";
@@ -25,26 +25,26 @@ export const provideInitialize = (provider: providers.Provider) => async () => {
 export const provideHandleBlock = (fetcher: Fetcher): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const targetReservesPromises: Promise<BigNumber>[] = [];
-    const reservesPromises: Promise<BigNumber>[] = [];
+
     const cometAddresses = fetcher.networkManager.get("cometAddresses");
 
-    cometAddresses.map(async (comet: string) => {
-      // Call getReserves() for each comet contract
-      reservesPromises.push(fetcher.getReserves(comet, "latest"));
-      // Call targetReserves() for each comet contract
-      targetReservesPromises.push(fetcher.getTargetReserves(comet, "latest"));
-    });
-
-    const targetReserves = await Promise.all(targetReservesPromises);
-    const reserves = await Promise.all(reservesPromises);
+    const [reserves, targetReserves] = await Promise.all([
+      Promise.all(
+        cometAddresses.map((comet) => fetcher.getReserves(comet, "latest"))
+      ),
+      Promise.all(
+        cometAddresses.map((comet) =>
+          fetcher.getTargetReserves(comet, "latest")
+        )
+      ),
+    ]);
 
     targetReserves.forEach((targetRes, index) => {
       const comet = cometAddresses[index];
       if (!ALERTS[comet]) ALERTS[comet] = -1;
 
       // 0. if Reserves > 0 and Reserves >= targetReserves
-      if (reserves[index].gte(0) && reserves[index].abs().gte(targetRes)) {
+      if (reserves[index].gte(0) && reserves[index].gte(targetRes)) {
         // If last alert exceeds the frequency, or no alert was emitted before, return finding
         if (
           ALERTS[comet] === -1 ||
