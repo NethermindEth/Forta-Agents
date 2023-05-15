@@ -45,7 +45,7 @@ export function pastBlockChunks(
   return rangeChunks(Math.max(fromBlock - blockRange + 1, 0), fromBlock, chunkSize);
 }
 
-export function getPastEventLogs(
+export async function getPastEventLogs(
   filter: ethers.EventFilter,
   fromBlock: number,
   blockRange: number,
@@ -54,7 +54,7 @@ export function getPastEventLogs(
 ) {
   const chunks = pastBlockChunks(fromBlock, blockRange, blockStep);
 
-  const logs = Promise.all(
+  const logs = await Promise.all(
     chunks.map(([from, to]) =>
       provider.getLogs({
         ...filter,
@@ -64,5 +64,5 @@ export function getPastEventLogs(
     )
   );
 
-  return logs.then((logs) => logs.flat());
+  return logs.flat();
 }
