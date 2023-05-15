@@ -36,11 +36,13 @@ export const provideHandleBlock = (
 
     const [reserves, targetReserves] = await Promise.all([
       Promise.all(
-        cometAddresses.map((comet) => fetcher.getReserves(comet, "latest"))
+        cometAddresses.map((comet) =>
+          fetcher.getReserves(comet, blockEvent.blockNumber)
+        )
       ),
       Promise.all(
         cometAddresses.map((comet) =>
-          fetcher.getTargetReserves(comet, "latest")
+          fetcher.getTargetReserves(comet, blockEvent.blockNumber)
         )
       ),
     ]);

@@ -16,6 +16,7 @@ import { AgentState, NetworkData } from "./utils";
 import { provideHandleBlock } from "./agent";
 
 const COMET_ADDRESSES = [createAddress("0xdef1"), createAddress("0xdEf2")];
+const BLOCK_NUMBERS = [10, 20, 30];
 const ALERT_FREQ = 1000;
 
 const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
@@ -40,14 +41,22 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
   const testConfig = DEFAULT_CONFIG[network];
 
-  function createGetReservesCall(comet: string, reserves: BigNumber) {
-    return mockProvider.addCallTo(comet, "latest", IFACE, "getReserves", {
+  function createGetReservesCall(
+    block: number,
+    comet: string,
+    reserves: BigNumber
+  ) {
+    return mockProvider.addCallTo(comet, block, IFACE, "getReserves", {
       inputs: [],
       outputs: [reserves],
     });
   }
-  function createTargetReservesCall(comet: string, targetReserves: BigNumber) {
-    return mockProvider.addCallTo(comet, "latest", IFACE, "targetReserves", {
+  function createTargetReservesCall(
+    block: number,
+    comet: string,
+    targetReserves: BigNumber
+  ) {
+    return mockProvider.addCallTo(comet, block, IFACE, "targetReserves", {
       inputs: [],
       outputs: [targetReserves],
     });
@@ -75,11 +84,11 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
   it("returns empty findings if reserves are less than target reserves", async () => {
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
     for (const addr of COMET_ADDRESSES) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(80));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(80));
     }
 
     const findings = await handleBlock(blockEvent);
@@ -88,12 +97,12 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
   it("returns empty findings if reserves are negative", async () => {
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
     for (const addr of COMET_ADDRESSES) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(-200));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(-200));
     }
     const findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
@@ -102,15 +111,23 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   it("returns a finding if Reserves == targetReserves in one comet contract", async () => {
     const reservesValue: BigNumber = BigNumber.from(200);
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(testConfig.cometAddresses[0], reservesValue);
-    createGetReservesCall(testConfig.cometAddresses[0], reservesValue);
+    createTargetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
 
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(50));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
     }
 
     const findings = await handleBlock(blockEvent);
@@ -139,15 +156,23 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     const targetReservesValue: BigNumber = BigNumber.from(200);
 
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(testConfig.cometAddresses[0], targetReservesValue);
-    createGetReservesCall(testConfig.cometAddresses[0], reservesValue);
+    createTargetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      targetReservesValue
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
 
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(50));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
     }
 
     const findings = await handleBlock(blockEvent);
@@ -178,23 +203,47 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
     // First Block
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(testConfig.cometAddresses[0], targetReservesValue);
-    createGetReservesCall(testConfig.cometAddresses[0], reservesValue);
+    createTargetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      targetReservesValue
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
 
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(50));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
     }
 
     // Next Block
     const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(11)
+      .setNumber(BLOCK_NUMBERS[1])
       .setTimestamp(
         blockEvent.block.timestamp + testConfig.alertFrequency - 10
       );
+
+    createTargetReservesCall(
+      BLOCK_NUMBERS[1],
+      testConfig.cometAddresses[0],
+      targetReservesValue
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[1],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
+
+    for (const addr of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(50));
+    }
 
     const findings = (
       await Promise.all([handleBlock(blockEvent), handleBlock(blockEvent2)])
@@ -224,33 +273,50 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     const reservesValue: BigNumber = BigNumber.from(500);
     const targetReservesValue: BigNumber = BigNumber.from(200);
 
-    createTargetReservesCall(testConfig.cometAddresses[0], targetReservesValue);
-    createGetReservesCall(testConfig.cometAddresses[0], reservesValue);
+    createTargetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      targetReservesValue
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      reservesValue
+    );
 
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, BigNumber.from(100));
-      createGetReservesCall(addr, BigNumber.from(50));
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
     }
 
     // First Block
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
     const findings = await handleBlock(blockEvent);
 
     // Next Block
     const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(11)
+      .setNumber(BLOCK_NUMBERS[1])
       .setTimestamp(
         blockEvent.block.timestamp + testConfig.alertFrequency + 10
       );
 
     createTargetReservesCall(
+      BLOCK_NUMBERS[1],
       testConfig.cometAddresses[0],
       targetReservesValue.add(200)
     );
-    createGetReservesCall(testConfig.cometAddresses[0], reservesValue.add(200));
+    createGetReservesCall(
+      BLOCK_NUMBERS[1],
+      testConfig.cometAddresses[0],
+      reservesValue.add(200)
+    );
+    for (const addr of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(100));
+      createGetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(50));
+    }
 
     findings.push(...(await handleBlock(blockEvent2)));
 
@@ -294,29 +360,52 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
     // First Block
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
+      .setNumber(BLOCK_NUMBERS[0])
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(testConfig.cometAddresses[0], BigNumber.from(100));
-    createGetReservesCall(testConfig.cometAddresses[0], BigNumber.from(50));
+    createTargetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      BigNumber.from(100)
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[0],
+      testConfig.cometAddresses[0],
+      BigNumber.from(50)
+    );
 
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, targetReservesValue);
-      createGetReservesCall(addr, reservesValue);
+      createTargetReservesCall(BLOCK_NUMBERS[0], addr, targetReservesValue);
+      createGetReservesCall(BLOCK_NUMBERS[0], addr, reservesValue);
     }
 
     const findings = await handleBlock(blockEvent);
 
     // Next Block
     const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(11)
+      .setNumber(BLOCK_NUMBERS[1])
       .setTimestamp(
         blockEvent.block.timestamp + testConfig.alertFrequency + 10
       );
 
+    createTargetReservesCall(
+      BLOCK_NUMBERS[1],
+      testConfig.cometAddresses[0],
+      BigNumber.from(100)
+    );
+    createGetReservesCall(
+      BLOCK_NUMBERS[1],
+      testConfig.cometAddresses[0],
+      BigNumber.from(50)
+    );
+
     for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(addr, targetReservesValue.add(200));
-      createGetReservesCall(addr, reservesValue.add(200));
+      createTargetReservesCall(
+        BLOCK_NUMBERS[1],
+        addr,
+        targetReservesValue.add(200)
+      );
+      createGetReservesCall(BLOCK_NUMBERS[1], addr, reservesValue.add(200));
     }
 
     findings.push(...(await handleBlock(blockEvent2)));
