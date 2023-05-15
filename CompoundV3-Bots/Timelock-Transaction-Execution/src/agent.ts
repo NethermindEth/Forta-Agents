@@ -95,7 +95,7 @@ export const provideHandleTransaction = (
       console.warn(
         "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
       );
-      console.warn(`Missed proposals: ${missedProposalIds.map((id) => id.toString()).join(", ")}`);
+      console.warn(`Missed proposal IDs: ${missedProposalIds.map((id) => id.toString()).join(", ")}`);
     }
 
     const timelockExecutionInfos = timelockExecutionLogs.map((log) => ({

@@ -355,7 +355,7 @@ describe("Bot Test Suite", () => {
     expect(warnLogSpy).toHaveBeenCalledWith(
       "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
     );
-    expect(warnLogSpy).toHaveBeenCalledWith("Missed proposals: 0, 1");
+    expect(warnLogSpy).toHaveBeenCalledWith("Missed proposal IDs: 0, 1");
   });
 
   it("should emit a finding if an executed transaction could not be associated with any proposal", async () => {
