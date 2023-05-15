@@ -34,7 +34,7 @@ export const provideHandleTransaction = (
     txEvent
       .filterLog(TRANSFER_ABI, networkManager.get("baseTokens"))
       .forEach((log) => {
-        let cometAddressIndex = networkManager
+        const cometAddressIndex = networkManager
           .get("cometAddresses")
           .indexOf(log.args.to);
 
@@ -56,7 +56,7 @@ export const provideHandleTransaction = (
 
     if (transferEvents.size > 0) {
       // get all Supply and BuyCollateral events
-      let supply_buy_events = new Set(
+      const supplyBuyEvents = new Set(
         txEvent.filterLog(
           [SUPPLY_ABI, BUY_COLLATERAL_ABI],
           networkManager.get("cometAddresses")
@@ -66,16 +66,17 @@ export const provideHandleTransaction = (
       // For each transfer event, if there is a matching Supply or BuyCollateral event,
       // remove both events from their respective sets
       transferEvents.forEach((transfer: TransferLog) => {
-        let cometAddress = networkManager.get("cometAddresses")[transfer.index];
+        const cometAddress =
+          networkManager.get("cometAddresses")[transfer.index];
 
-        for (let event of Array.from(supply_buy_events.values())) {
+        for (const event of Array.from(supplyBuyEvents.values())) {
           if (event.name === "Supply") {
             if (
               event.address === cometAddress &&
               event.args.from === transfer.from &&
               BigNumber.from(event.args.amount).eq(transfer.amount)
             ) {
-              supply_buy_events.delete(event);
+              supplyBuyEvents.delete(event);
               transferEvents.delete(transfer);
               break;
             }
@@ -84,7 +85,7 @@ export const provideHandleTransaction = (
             event.args.buyer === transfer.from &&
             BigNumber.from(event.args.baseAmount).eq(transfer.amount)
           ) {
-            supply_buy_events.delete(event);
+            supplyBuyEvents.delete(event);
             transferEvents.delete(transfer);
             break;
           }
