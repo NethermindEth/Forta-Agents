@@ -4,12 +4,14 @@ import {
   Finding,
   HandleTransaction,
   TransactionEvent,
+  Network,
 } from "forta-agent";
 import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
 import { provideHandleTransaction } from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
-import { createAddress } from "forta-agent-tools";
+import { NetworkManager, createAddress } from "forta-agent-tools";
+import { AgentConfig, NetworkData } from "./utils";
 
 function mockCreateTransferFinding(
   comet: string,
@@ -32,11 +34,6 @@ function mockCreateTransferFinding(
   });
 }
 
-const mockGetFn = (id: string) => {
-  if (id === "cometContracts") return COMET_CONTRACTS;
-  else return BASE_TOKENS;
-};
-
 const COMET_CONTRACTS = [
   { address: createAddress("0x11a"), baseToken: createAddress("0x21f") },
   { address: createAddress("0x12a"), baseToken: createAddress("0x22f") },
@@ -56,18 +53,18 @@ const TEST_USERS = [
 const TRANSFER_IFACE = new Interface([TRANSFER_ABI]);
 const COMET_IFACE = new Interface([SUPPLY_ABI, BUY_COLLATERAL_ABI]);
 
-const mockNetworkManager = {
-  cometAddresses: TEST_ADDRESSES,
-  networkMap: {},
-  setNetwork: jest.fn(),
-  get: mockGetFn as any,
+const network = Network.MAINNET;
+const TEST_CONFIG: AgentConfig = {
+  [network]: { cometContracts: COMET_CONTRACTS },
 };
 
 describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   let handleTransaction: HandleTransaction;
+  let networkManager: NetworkManager<NetworkData>;
 
   beforeEach(async () => {
-    handleTransaction = provideHandleTransaction(mockNetworkManager as any);
+    networkManager = new NetworkManager(TEST_CONFIG, network);
+    handleTransaction = provideHandleTransaction(networkManager);
   });
 
   it("returns empty findings when no event is emitted", async () => {

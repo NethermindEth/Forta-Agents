@@ -56,7 +56,7 @@ export const provideHandleTransaction = (
       });
 
     if (transferEvents.length > 0) {
-      // get all Supply and BuyCollateral events
+      // get all Supply and BuyCollateral event logs
       const supplyBuyEvents = txEvent
         .filterLog([SUPPLY_ABI, BUY_COLLATERAL_ABI], cometAddresses)
         .map((e1) => ({ ...e1, matched: false }));
