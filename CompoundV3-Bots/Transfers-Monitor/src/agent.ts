@@ -42,9 +42,9 @@ export const provideHandleTransaction = (
         // add it to the transferEvents set
         if (
           cometAddressIndex > -1 &&
-          networkManager.get("cometAddresses")[cometAddressIndex] ==
+          networkManager.get("cometAddresses")[cometAddressIndex] ===
             log.args.to &&
-          log.address == networkManager.get("baseTokens")[cometAddressIndex]
+          log.address === networkManager.get("baseTokens")[cometAddressIndex]
         ) {
           transferEvents.add({
             from: log.args.from,
@@ -69,10 +69,10 @@ export const provideHandleTransaction = (
         let cometAddress = networkManager.get("cometAddresses")[transfer.index];
 
         for (let event of Array.from(supply_buy_events.values())) {
-          if (event.name == "Supply") {
+          if (event.name === "Supply") {
             if (
-              event.address == cometAddress &&
-              event.args.from == transfer.from &&
+              event.address === cometAddress &&
+              event.args.from === transfer.from &&
               BigNumber.from(event.args.amount).eq(transfer.amount)
             ) {
               supply_buy_events.delete(event);
@@ -80,8 +80,8 @@ export const provideHandleTransaction = (
               break;
             }
           } else if (
-            event.address == cometAddress &&
-            event.args.buyer == transfer.from &&
+            event.address === cometAddress &&
+            event.args.buyer === transfer.from &&
             BigNumber.from(event.args.baseAmount).eq(transfer.amount)
           ) {
             supply_buy_events.delete(event);
