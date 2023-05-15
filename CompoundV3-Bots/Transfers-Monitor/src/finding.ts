@@ -1,6 +1,7 @@
-import { Finding, FindingSeverity, FindingType } from "forta-agent";
+import { Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
 export function createTransferFinding(
+  chainId: number,
   comet: string,
   sender: string,
   amount: number | string
@@ -14,6 +15,7 @@ export function createTransferFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     metadata: {
+      chain: Network[chainId] || chainId.toString(),
       cometContract: comet,
       sender,
       transferAmount: amount.toString(),

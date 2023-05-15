@@ -89,6 +89,7 @@ export const provideHandleTransaction = (
         if (!transferMatched)
           findings.push(
             createTransferFinding(
+              networkManager.getNetwork(),
               transfer.destinationComet.address,
               transfer.from,
               transfer.amount

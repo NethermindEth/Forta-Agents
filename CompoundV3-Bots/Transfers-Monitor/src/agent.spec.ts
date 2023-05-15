@@ -27,6 +27,7 @@ function mockCreateTransferFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     metadata: {
+      chain: Network[network] || network.toString(),
       cometContract: comet,
       sender,
       transferAmount: amount.toString(),
@@ -64,6 +65,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
 
   beforeEach(async () => {
     networkManager = new NetworkManager(TEST_CONFIG, network);
+    networkManager.setNetwork(network);
     handleTransaction = provideHandleTransaction(networkManager);
   });
 
@@ -94,7 +96,6 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   });
 
   it("returns empty findings if Transfer target is not a comet contract", async () => {
-    console.log("this test");
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       TRANSFER_IFACE.getEvent("Transfer"),
       BASE_TOKENS[0],
