@@ -14,6 +14,9 @@ chosen to avoid alert flooding.
 - Ethereum
 - Polygon
 
+More networks can easily be supported by adding the network parameters to
+`agent.config.ts` and the chain ID to the `chainIds` field in `package.json`!
+
 ## Alerts
 
 Below are the alerts that can be emitted from this bot. The title and
