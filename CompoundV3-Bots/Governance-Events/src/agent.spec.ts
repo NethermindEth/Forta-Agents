@@ -1,11 +1,4 @@
-import {
-  ethers,
-  Finding,
-  FindingSeverity,
-  FindingType,
-  HandleTransaction,
-  Network,
-} from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, HandleTransaction, Network } from "forta-agent";
 import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { createChecksumAddress, NetworkManager } from "forta-agent-tools";
 
@@ -228,148 +221,51 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
     const comet = COMET_ADDRESSES[0];
-    const expectedFindings = [];
 
-    {
-      const supplyPaused = true;
-      const transferPaused = false;
-      const withdrawPaused = true;
-      const absorbPaused = false;
-      const buyPaused = true;
-      expectedFindings.push(
-        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
-      );
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
-        supplyPaused,
-        transferPaused,
-        withdrawPaused,
-        absorbPaused,
-        buyPaused,
-      ]);
-    }
-    {
-      const supplyPaused = false;
-      const transferPaused = true;
-      const withdrawPaused = false;
-      const absorbPaused = true;
-      const buyPaused = false;
-      expectedFindings.push(
-        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
-      );
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
-        supplyPaused,
-        transferPaused,
-        withdrawPaused,
-        absorbPaused,
-        buyPaused,
-      ]);
-    }
-    {
-      const to = addr("0xdef1");
-      const amount = 1000;
-      expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
-      txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
-    }
-    {
-      const to = addr("0xf00d");
-      const amount = 2000;
-      expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
-      txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
-    }
-    {
-      const token = TOKEN_ADDRESS;
-      const owner = comet;
-      const spender = addr("0xdef1");
-      const amount = 1000;
-      expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
-      txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
-    }
-    {
-      const token = addr("0xdef1");
-      const owner = comet;
-      const spender = addr("0xf00d");
-      const amount = 2000;
-      expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
-      txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
-    }
+    txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [true, false, true, false, true]);
+    txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [false, true, false, true, false]);
 
-    expect(await handleTransaction(txEvent)).toStrictEqual(expectedFindings);
+    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [addr("0xdef1"), 1000]);
+    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [addr("0xf00d"), 2000]);
+
+    txEvent.addEventLog(APPROVAL_ABI, TOKEN_ADDRESS, [comet, addr("0xdef1"), 1000]);
+    txEvent.addEventLog(APPROVAL_ABI, addr("0xdef1"), [comet, addr("0xf00d"), 2000]);
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings.sort()).toStrictEqual(
+      [
+        createPauseActionFinding(comet, true, false, true, false, true, network),
+        createPauseActionFinding(comet, false, true, false, true, false, network),
+        createWithdrawReservesFinding(comet, addr("0xdef1"), 1000, network),
+        createWithdrawReservesFinding(comet, addr("0xf00d"), 2000, network),
+        createApproveFinding(comet, TOKEN_ADDRESS, addr("0xdef1"), 1000, network),
+        createApproveFinding(comet, addr("0xdef1"), addr("0xf00d"), 2000, network),
+      ].sort()
+    );
   });
 
   it("should link findings to the correct comet address", async () => {
     const txEvent = new TestTransactionEvent().setBlock(1);
 
-    const expectedFindings = [];
+    txEvent.addEventLog(PAUSE_ACTION_ABI, COMET_ADDRESSES[0], [true, false, true, false, true]);
+    txEvent.addEventLog(PAUSE_ACTION_ABI, COMET_ADDRESSES[1], [false, true, false, true, false]);
 
-    {
-      const comet = COMET_ADDRESSES[0];
-      const supplyPaused = true;
-      const transferPaused = false;
-      const withdrawPaused = true;
-      const absorbPaused = false;
-      const buyPaused = true;
-      expectedFindings.push(
-        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
-      );
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
-        supplyPaused,
-        transferPaused,
-        withdrawPaused,
-        absorbPaused,
-        buyPaused,
-      ]);
-    }
-    {
-      const comet = COMET_ADDRESSES[1];
-      const supplyPaused = false;
-      const transferPaused = true;
-      const withdrawPaused = false;
-      const absorbPaused = true;
-      const buyPaused = false;
-      expectedFindings.push(
-        createPauseActionFinding(comet, supplyPaused, transferPaused, withdrawPaused, absorbPaused, buyPaused, network)
-      );
-      txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
-        supplyPaused,
-        transferPaused,
-        withdrawPaused,
-        absorbPaused,
-        buyPaused,
-      ]);
-    }
-    {
-      const comet = COMET_ADDRESSES[1];
-      const to = addr("0xdef1");
-      const amount = 1000;
-      expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
-      txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
-    }
-    {
-      const comet = COMET_ADDRESSES[0];
-      const to = addr("0xf00d");
-      const amount = 2000;
-      expectedFindings.push(createWithdrawReservesFinding(comet, to, amount, network));
-      txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
-    }
-    {
-      const comet = COMET_ADDRESSES[0];
-      const token = TOKEN_ADDRESS;
-      const owner = comet;
-      const spender = addr("0xdef1");
-      const amount = 1000;
-      expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
-      txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
-    }
-    {
-      const comet = COMET_ADDRESSES[1];
-      const token = addr("0xdef1");
-      const owner = comet;
-      const spender = addr("0xf00d");
-      const amount = 2000;
-      expectedFindings.push(createApproveFinding(comet, token, spender, amount, network));
-      txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
-    }
+    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, COMET_ADDRESSES[1], [addr("0xdef1"), 1000]);
+    txEvent.addEventLog(WITHDRAW_RESERVES_ABI, COMET_ADDRESSES[0], [addr("0xf00d"), 2000]);
 
-    expect(await handleTransaction(txEvent)).toStrictEqual(expectedFindings);
+    txEvent.addEventLog(APPROVAL_ABI, TOKEN_ADDRESS, [COMET_ADDRESSES[0], addr("0xdef1"), 1000]);
+    txEvent.addEventLog(APPROVAL_ABI, addr("0xdef1"), [COMET_ADDRESSES[1], addr("0xf00d"), 2000]);
+
+    const findings = await handleTransaction(txEvent);
+    expect(findings.sort()).toStrictEqual(
+      [
+        createPauseActionFinding(COMET_ADDRESSES[0], true, false, true, false, true, network),
+        createPauseActionFinding(COMET_ADDRESSES[1], false, true, false, true, false, network),
+        createWithdrawReservesFinding(COMET_ADDRESSES[1], addr("0xdef1"), 1000, network),
+        createWithdrawReservesFinding(COMET_ADDRESSES[0], addr("0xf00d"), 2000, network),
+        createApproveFinding(COMET_ADDRESSES[0], TOKEN_ADDRESS, addr("0xdef1"), 1000, network),
+        createApproveFinding(COMET_ADDRESSES[1], addr("0xdef1"), addr("0xf00d"), 2000, network),
+      ].sort()
+    );
   });
 });
