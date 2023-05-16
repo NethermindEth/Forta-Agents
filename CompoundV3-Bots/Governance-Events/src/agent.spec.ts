@@ -123,7 +123,7 @@ describe("Bot Test Suite", () => {
     handleTransaction = provideHandleTransaction(networkManager);
   });
 
-  it("should correctly get the network data", async () => {
+  it("should correctly get network data", async () => {
     expect(networkManager.getNetwork()).toStrictEqual(network);
     expect(networkManager.get("cometAddresses")).toStrictEqual(DEFAULT_CONFIG[Network.MAINNET].cometAddresses);
   });
