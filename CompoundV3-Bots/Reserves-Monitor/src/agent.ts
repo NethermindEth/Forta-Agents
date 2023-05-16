@@ -2,6 +2,7 @@ import {
   BlockEvent,
   Finding,
   HandleBlock,
+  Initialize,
   getEthersProvider,
 } from "forta-agent";
 import { providers } from "ethers";
@@ -17,12 +18,14 @@ const state: AgentState = {
   alerts: {},
 };
 
-export const provideInitialize = (provider: providers.Provider) => async () => {
-  const { chainId } = await provider.getNetwork();
-  await networkManager.init(provider);
-  networkManager.setNetwork(chainId);
+export const provideInitialize = (provider: providers.Provider): Initialize => {
+  return async () => {
+    const { chainId } = await provider.getNetwork();
+    await networkManager.init(provider);
+    networkManager.setNetwork(chainId);
 
-  dataFetcher.setContracts();
+    dataFetcher.setContracts();
+  };
 };
 
 export const provideHandleBlock = (
