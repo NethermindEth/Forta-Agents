@@ -1,11 +1,4 @@
-import {
-  ethers,
-  Finding,
-  Initialize,
-  BlockEvent,
-  HandleBlock,
-  getEthersProvider,
-} from "forta-agent";
+import { ethers, Finding, Initialize, BlockEvent, HandleBlock, getEthersProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
 import { AgentState, NetworkData } from "./utils";
@@ -28,19 +21,14 @@ export const provideInitialize = (
   return async () => {
     await networkManager.init(provider);
 
-    state.cometContracts = networkManager
-      .get("cometAddresses")
-      .reduce((acc, comet) => {
-        acc[comet] = new ethers.Contract(comet, iface, provider);
-        return acc;
-      }, {} as Record<string, ethers.Contract>);
+    state.cometContracts = networkManager.get("cometAddresses").reduce((acc, comet) => {
+      acc[comet] = new ethers.Contract(comet, iface, provider);
+      return acc;
+    }, {} as Record<string, ethers.Contract>);
   };
 };
 
-export const provideHandleBlock = (
-  state: AgentState,
-  networkManager: NetworkManager<NetworkData>
-): HandleBlock => {
+export const provideHandleBlock = (state: AgentState, networkManager: NetworkManager<NetworkData>): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -71,19 +59,12 @@ export const provideHandleBlock = (
 
       const aboveTargetReserves = reserves[index].gte(targetRes);
       const pastAlertCooldown =
-        state.alertedAt[comet] === -1 ||
-        blockEvent.block.timestamp >= alertInterval + state.alertedAt[comet];
+        state.alertedAt[comet] === -1 || blockEvent.block.timestamp >= alertInterval + state.alertedAt[comet];
 
       if (aboveTargetReserves && pastAlertCooldown) {
         state.alertedAt[comet] = blockEvent.block.timestamp;
-        findings.push(
-          createFinding(
-            networkManager.getNetwork(),
-            comet,
-            reserves[index],
-            targetRes
-          )
-        );
+
+        findings.push(createFinding(networkManager.getNetwork(), comet, reserves[index], targetRes));
       } else if (!aboveTargetReserves) {
         state.alertedAt[comet] = -1;
       }

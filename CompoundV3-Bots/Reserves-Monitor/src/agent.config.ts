@@ -4,10 +4,7 @@ import { AgentConfig } from "./utils";
 const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Addresses of the Comet contracts
-    cometAddresses: [
-      "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
-      "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
-    ],
+    cometAddresses: ["0xc3d688B66703497DAA19211EEdff47f25384cdc3", "0xA17581A9E3356d9A858b789D68B4d866e593aE94"],
     // Interval between of continuous alerts if reserves stay above target
     // reserves, in seconds
     alertInterval: 2 * 60 * 60, // every 2 hours

@@ -1,10 +1,4 @@
-import {
-  ethers,
-  Finding,
-  FindingSeverity,
-  FindingType,
-  Network,
-} from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
 export function createFinding(
   chainId: number,

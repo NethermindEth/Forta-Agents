@@ -1,12 +1,4 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleBlock,
-  BlockEvent,
-  Network,
-  ethers,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleBlock, BlockEvent, Network, ethers } from "forta-agent";
 import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
@@ -31,11 +23,7 @@ const DEFAULT_CONFIG = {
   },
 };
 
-function createFinding(
-  comet: string,
-  reserves: ethers.BigNumber,
-  targetReserves: ethers.BigNumber
-): Finding {
+function createFinding(comet: string, reserves: ethers.BigNumber, targetReserves: ethers.BigNumber): Finding {
   return Finding.from({
     name: "Comet reserves reached target reserves",
     description: "Reserves on Comet contract are >= target reserves",
@@ -62,22 +50,14 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
 
   const testConfig = DEFAULT_CONFIG[NETWORK];
 
-  function createGetReservesCall(
-    block: number,
-    comet: string,
-    reserves: ethers.BigNumber
-  ) {
+  function createGetReservesCall(block: number, comet: string, reserves: ethers.BigNumber) {
     return mockProvider.addCallTo(comet, block, IFACE, "getReserves", {
       inputs: [],
       outputs: [reserves],
     });
   }
 
-  function createTargetReservesCall(
-    block: number,
-    comet: string,
-    targetReserves: ethers.BigNumber
-  ) {
+  function createTargetReservesCall(block: number, comet: string, targetReserves: ethers.BigNumber) {
     return mockProvider.addCallTo(comet, block, IFACE, "targetReserves", {
       inputs: [],
       outputs: [targetReserves],
@@ -103,26 +83,18 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
 
   it("should correctly get network data", async () => {
     expect(networkManager.getNetwork()).toStrictEqual(NETWORK);
-    expect(networkManager.get("cometAddresses")).toStrictEqual(
-      DEFAULT_CONFIG[NETWORK].cometAddresses
-    );
-    expect(networkManager.get("alertInterval")).toStrictEqual(
-      DEFAULT_CONFIG[NETWORK].alertInterval
-    );
+    expect(networkManager.get("cometAddresses")).toStrictEqual(DEFAULT_CONFIG[NETWORK].cometAddresses);
+    expect(networkManager.get("alertInterval")).toStrictEqual(DEFAULT_CONFIG[NETWORK].alertInterval);
   });
 
   it("should instantiate the Comet contracts on initialize", async () => {
     expect(state.cometContracts).not.toStrictEqual({});
-    expect(
-      Object.values(state.cometContracts).map((comet) => comet.address)
-    ).toStrictEqual(COMET_ADDRESSES);
+    expect(Object.values(state.cometContracts).map((comet) => comet.address)).toStrictEqual(COMET_ADDRESSES);
   });
 
   it("returns empty findings if reserves are less than target reserves", async () => {
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(block)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block).setTimestamp(INIT_TIMESTAMP);
 
     for (const comet of COMET_ADDRESSES) {
       createTargetReservesCall(block, comet, bn(100));
@@ -135,9 +107,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
 
   it("returns empty findings if reserves are negative", async () => {
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(block)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block).setTimestamp(INIT_TIMESTAMP);
 
     for (const comet of COMET_ADDRESSES) {
       createTargetReservesCall(block, comet, bn(100));
@@ -152,9 +122,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const reservesValue = bn(200);
 
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(block)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block).setTimestamp(INIT_TIMESTAMP);
 
     const comet = COMET_ADDRESSES[0];
 
@@ -168,9 +136,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     }
 
     const findings = await handleBlock(blockEvent);
-    expect(findings).toStrictEqual([
-      createFinding(comet, reservesValue, reservesValue),
-    ]);
+    expect(findings).toStrictEqual([createFinding(comet, reservesValue, reservesValue)]);
   });
 
   it("returns a finding if Reserves > targetReserves in one comet contract", async () => {
@@ -178,9 +144,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const targetReservesValue = bn(200);
 
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(block)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(block).setTimestamp(INIT_TIMESTAMP);
 
     const comet = COMET_ADDRESSES[0];
 
@@ -194,9 +158,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     }
 
     const findings = await handleBlock(blockEvent);
-    expect(findings.sort()).toStrictEqual([
-      createFinding(comet, reservesValue, targetReservesValue),
-    ]);
+    expect(findings.sort()).toStrictEqual([createFinding(comet, reservesValue, targetReservesValue)]);
   });
 
   it("returns one finding if Reserves > targetReserves and time limit not reached", async () => {
@@ -204,9 +166,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const targetReservesValue = bn(200);
 
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(10).setTimestamp(INIT_TIMESTAMP);
 
     const comet = COMET_ADDRESSES[0];
 
@@ -236,9 +196,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
 
     const nextFindings = await handleBlock(nextBlockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(comet, reservesValue, targetReservesValue),
-    ]);
+    expect(findings).toStrictEqual([createFinding(comet, reservesValue, targetReservesValue)]);
 
     expect(nextFindings).toStrictEqual([]);
   });
@@ -248,9 +206,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const targetReservesValue = bn(200);
 
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(10).setTimestamp(INIT_TIMESTAMP);
 
     const comet = COMET_ADDRESSES[0];
 
@@ -280,13 +236,9 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
 
     const nextFindings = await handleBlock(nextBlockEvent);
 
-    expect(findings).toStrictEqual([
-      createFinding(comet, reservesValue, targetReservesValue),
-    ]);
+    expect(findings).toStrictEqual([createFinding(comet, reservesValue, targetReservesValue)]);
 
-    expect(nextFindings).toStrictEqual([
-      createFinding(comet, reservesValue, targetReservesValue),
-    ]);
+    expect(nextFindings).toStrictEqual([createFinding(comet, reservesValue, targetReservesValue)]);
   });
 
   it("returns findings for multiple comet contracts", async () => {
@@ -294,9 +246,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const targetReservesValues = COMET_ADDRESSES.map((_, idx) => bn(idx * 100));
 
     const block = 10;
-    const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(10)
-      .setTimestamp(INIT_TIMESTAMP);
+    const blockEvent: BlockEvent = new TestBlockEvent().setNumber(10).setTimestamp(INIT_TIMESTAMP);
 
     COMET_ADDRESSES.forEach((comet, idx) => {
       createTargetReservesCall(block, comet, targetReservesValues[idx]);
@@ -320,15 +270,11 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     const nextFindings = await handleBlock(nextBlockEvent);
 
     expect(findings.sort()).toStrictEqual(
-      COMET_ADDRESSES.map((comet, idx) =>
-        createFinding(comet, reservesValues[idx], targetReservesValues[idx])
-      ).sort()
+      COMET_ADDRESSES.map((comet, idx) => createFinding(comet, reservesValues[idx], targetReservesValues[idx])).sort()
     );
 
     expect(nextFindings.sort()).toStrictEqual(
-      COMET_ADDRESSES.map((comet, idx) =>
-        createFinding(comet, reservesValues[idx], targetReservesValues[idx])
-      ).sort()
+      COMET_ADDRESSES.map((comet, idx) => createFinding(comet, reservesValues[idx], targetReservesValues[idx])).sort()
     );
   });
 });
