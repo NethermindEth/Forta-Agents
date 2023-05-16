@@ -2,7 +2,7 @@
   "name": "comp2-2",
   "version": "0.0.1",
   "description": "Forta bot that detects some events related to governance actions on Compound v3 Comet contracts",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Protocol-Reserves",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Governance-Events",
   "chainIds": [
     1,
     137,
