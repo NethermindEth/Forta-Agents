@@ -5,8 +5,9 @@ import {
   HandleBlock,
   BlockEvent,
   Network,
+  ethers,
 } from "forta-agent";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";

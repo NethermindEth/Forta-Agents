@@ -1,8 +1,8 @@
-import { Network } from "forta-agent";
+import { Network, ethers } from "forta-agent";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import Fetcher from "./dataFetcher";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 import { NetworkData } from "./utils";
