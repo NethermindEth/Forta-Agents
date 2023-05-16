@@ -84,14 +84,15 @@ function createApproveFinding(
 }
 
 const addr = createChecksumAddress;
+
 const COMET_ADDRESSES = [addr("0x1"), addr("0x2")];
 const TOKEN_ADDRESS = addr("0x3");
 const IRRELEVANT_ADDRESS = addr("0x4");
 
-const network = Network.MAINNET;
+const NETWORK = Network.MAINNET;
 
 const DEFAULT_CONFIG: AgentConfig = {
-  [network]: {
+  [NETWORK]: {
     cometAddresses: COMET_ADDRESSES,
   },
 };
@@ -104,7 +105,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
 
   beforeEach(async () => {
     mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+    mockProvider.setNetwork(NETWORK);
 
     provider = mockProvider as unknown as ethers.providers.Provider;
 
@@ -117,7 +118,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
   });
 
   it("should correctly get network data", async () => {
-    expect(networkManager.getNetwork()).toStrictEqual(network);
+    expect(networkManager.getNetwork()).toStrictEqual(NETWORK);
     expect(networkManager.get("cometAddresses")).toStrictEqual(DEFAULT_CONFIG[Network.MAINNET].cometAddresses);
   });
 
@@ -162,7 +163,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
       withdrawPaused,
       absorbPaused,
       buyPaused,
-      network
+      NETWORK
     );
 
     txEvent.addEventLog(PAUSE_ACTION_ABI, comet, [
@@ -182,7 +183,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     const comet = COMET_ADDRESSES[0];
     const to = addr("0xdef1");
     const amount = 1000;
-    const expectedFinding = createWithdrawReservesFinding(comet, to, amount, network);
+    const expectedFinding = createWithdrawReservesFinding(comet, to, amount, NETWORK);
 
     txEvent.addEventLog(WITHDRAW_RESERVES_ABI, comet, [to, amount]);
 
@@ -210,7 +211,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     const owner = comet;
     const spender = addr("0xdef1");
     const amount = 1000;
-    const expectedFinding = createApproveFinding(comet, token, spender, amount, network);
+    const expectedFinding = createApproveFinding(comet, token, spender, amount, NETWORK);
 
     txEvent.addEventLog(APPROVAL_ABI, token, [owner, spender, amount]);
 
@@ -234,12 +235,12 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     const findings = await handleTransaction(txEvent);
     expect(findings.sort()).toStrictEqual(
       [
-        createPauseActionFinding(comet, true, false, true, false, true, network),
-        createPauseActionFinding(comet, false, true, false, true, false, network),
-        createWithdrawReservesFinding(comet, addr("0xdef1"), 1000, network),
-        createWithdrawReservesFinding(comet, addr("0xf00d"), 2000, network),
-        createApproveFinding(comet, TOKEN_ADDRESS, addr("0xdef1"), 1000, network),
-        createApproveFinding(comet, addr("0xdef1"), addr("0xf00d"), 2000, network),
+        createPauseActionFinding(comet, true, false, true, false, true, NETWORK),
+        createPauseActionFinding(comet, false, true, false, true, false, NETWORK),
+        createWithdrawReservesFinding(comet, addr("0xdef1"), 1000, NETWORK),
+        createWithdrawReservesFinding(comet, addr("0xf00d"), 2000, NETWORK),
+        createApproveFinding(comet, TOKEN_ADDRESS, addr("0xdef1"), 1000, NETWORK),
+        createApproveFinding(comet, addr("0xdef1"), addr("0xf00d"), 2000, NETWORK),
       ].sort()
     );
   });
@@ -259,12 +260,12 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     const findings = await handleTransaction(txEvent);
     expect(findings.sort()).toStrictEqual(
       [
-        createPauseActionFinding(COMET_ADDRESSES[0], true, false, true, false, true, network),
-        createPauseActionFinding(COMET_ADDRESSES[1], false, true, false, true, false, network),
-        createWithdrawReservesFinding(COMET_ADDRESSES[1], addr("0xdef1"), 1000, network),
-        createWithdrawReservesFinding(COMET_ADDRESSES[0], addr("0xf00d"), 2000, network),
-        createApproveFinding(COMET_ADDRESSES[0], TOKEN_ADDRESS, addr("0xdef1"), 1000, network),
-        createApproveFinding(COMET_ADDRESSES[1], addr("0xdef1"), addr("0xf00d"), 2000, network),
+        createPauseActionFinding(COMET_ADDRESSES[0], true, false, true, false, true, NETWORK),
+        createPauseActionFinding(COMET_ADDRESSES[1], false, true, false, true, false, NETWORK),
+        createWithdrawReservesFinding(COMET_ADDRESSES[1], addr("0xdef1"), 1000, NETWORK),
+        createWithdrawReservesFinding(COMET_ADDRESSES[0], addr("0xf00d"), 2000, NETWORK),
+        createApproveFinding(COMET_ADDRESSES[0], TOKEN_ADDRESS, addr("0xdef1"), 1000, NETWORK),
+        createApproveFinding(COMET_ADDRESSES[1], addr("0xdef1"), addr("0xf00d"), 2000, NETWORK),
       ].sort()
     );
   });
