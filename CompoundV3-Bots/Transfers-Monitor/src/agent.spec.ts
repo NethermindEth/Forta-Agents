@@ -1,4 +1,5 @@
 import {
+  ethers,
   FindingType,
   FindingSeverity,
   Finding,
@@ -15,12 +16,11 @@ import {
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
-import { BigNumberish, ethers } from "ethers";
 
 function mockCreateTransferFinding(
   comet: string,
   sender: string,
-  amount: BigNumberish
+  amount: ethers.BigNumberish
 ): Finding {
   return Finding.from({
     name: "Base token transfer on Comet contract",

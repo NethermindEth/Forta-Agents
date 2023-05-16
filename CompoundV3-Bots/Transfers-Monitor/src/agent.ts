@@ -10,7 +10,6 @@ import { NetworkManager } from "forta-agent-tools";
 import { CometData, NetworkData, TransferLog } from "./utils";
 import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
 import CONFIG from "./agent.config";
-import { BigNumber, BigNumberish } from "ethers";
 import { createTransferFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
@@ -32,7 +31,7 @@ export const provideHandleTransaction = (
     const transferEvents: {
       destinationComet: CometData;
       from: string;
-      amount: BigNumberish;
+      amount: ethers.BigNumberish;
     }[] = [];
     const cometContracts = networkManager.get("cometContracts");
     const cometAddresses = cometContracts.map((contract) => contract.address);
@@ -74,7 +73,7 @@ export const provideHandleTransaction = (
             if (event.name === "Supply") {
               if (
                 event.args.from === transfer.from &&
-                BigNumber.from(event.args.amount).eq(transfer.amount)
+                ethers.BigNumber.from(event.args.amount).eq(transfer.amount)
               ) {
                 event.matched = true;
                 transferMatched = true;
@@ -82,7 +81,7 @@ export const provideHandleTransaction = (
               }
             } else if (
               event.args.buyer === transfer.from &&
-              BigNumber.from(event.args.baseAmount).eq(transfer.amount)
+              ethers.BigNumber.from(event.args.baseAmount).eq(transfer.amount)
             ) {
               event.matched = true;
               transferMatched = true;
