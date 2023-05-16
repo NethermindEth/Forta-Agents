@@ -1,3 +1,4 @@
+import { ethers } from "forta-agent";
 import { providers, Contract, BigNumber, BigNumberish } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager } from "forta-agent-tools";
@@ -6,46 +7,32 @@ import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 
 // Class to fetch on-chain data
 export default class Fetcher {
-  provider: providers.Provider;
-  networkManager: NetworkManager<NetworkData>;
-  cometContracts: Record<string, Contract>;
+  cometContracts: Record<string, Contract> = {};
 
-  constructor(
-    provider: providers.Provider,
-    networkManager: NetworkManager<NetworkData>
+  public loadContracts(
+    networkManager: NetworkManager<NetworkData>,
+    provider: providers.Provider
   ) {
-    this.provider = provider;
-    this.networkManager = networkManager;
-    this.cometContracts = {};
-  }
-  public setContracts() {
-    this.networkManager.get("cometAddresses").map((addr: string) => {
-      this.cometContracts[addr] = new Contract(
-        addr,
-        new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]),
-        this.provider
-      );
+    const cometIface = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
+
+    networkManager.get("cometAddresses").forEach((addr: string) => {
+      this.cometContracts[addr] = new Contract(addr, cometIface, provider);
     });
   }
+
   public async getReserves(
     address: string,
     block: BigNumberish
   ): Promise<BigNumber> {
-    const reserves: BigNumber = this.cometContracts[address].getReserves({
-      blockTag: block,
-    });
-    return reserves;
+    const comet = this.cometContracts[address];
+    return comet.getReserves({ blockTag: block });
   }
 
   public async getTargetReserves(
     address: string,
     block: BigNumberish
   ): Promise<BigNumber> {
-    const targetReserves: BigNumber = this.cometContracts[
-      address
-    ].targetReserves({
-      blockTag: block,
-    });
-    return targetReserves;
+    const comet = this.cometContracts[address];
+    return comet.targetReserves({ blockTag: block });
   }
 }

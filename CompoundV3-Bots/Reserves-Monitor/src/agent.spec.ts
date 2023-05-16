@@ -76,14 +76,14 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     );
     networkManager.setNetwork(network);
 
-    fetcher = new Fetcher(
-      mockProvider as unknown as ethers.providers.Provider,
-      networkManager
+    fetcher = new Fetcher();
+    fetcher.loadContracts(
+      networkManager,
+      mockProvider as unknown as ethers.providers.Provider
     );
-    fetcher.setContracts();
 
     state.alerts = {};
-    handleBlock = provideHandleBlock(fetcher, state);
+    handleBlock = provideHandleBlock(networkManager, fetcher, state);
   });
 
   it("returns empty findings if reserves are less than target reserves", async () => {

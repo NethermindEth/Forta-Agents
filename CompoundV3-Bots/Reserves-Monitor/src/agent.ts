@@ -9,31 +9,33 @@ import { providers } from "ethers";
 import { NetworkManager } from "forta-agent-tools";
 import Fetcher from "./dataFetcher";
 import CONFIG from "./agent.config";
-import { AgentState } from "./utils";
+import { AgentState, NetworkData } from "./utils";
 import { createFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
-const dataFetcher: Fetcher = new Fetcher(getEthersProvider(), networkManager);
-const state: AgentState = {
-  alerts: {},
-};
+const dataFetcher: Fetcher = new Fetcher();
+const state: AgentState = { alerts: {} };
 
-export const provideInitialize = (provider: providers.Provider): Initialize => {
+export const provideInitialize = (
+  networkManager: NetworkManager<NetworkData>,
+  provider: providers.Provider
+): Initialize => {
   return async () => {
     await networkManager.init(provider);
 
-    dataFetcher.setContracts();
+    dataFetcher.loadContracts(networkManager, provider);
   };
 };
 
 export const provideHandleBlock = (
+  networkManager: NetworkManager<NetworkData>,
   fetcher: Fetcher,
   state: AgentState
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const cometAddresses = fetcher.networkManager.get("cometAddresses");
+    const cometAddresses = networkManager.get("cometAddresses");
 
     const [reserves, targetReserves] = await Promise.all([
       Promise.all(
@@ -58,13 +60,13 @@ export const provideHandleBlock = (
         if (
           state.alerts[comet] === -1 ||
           blockEvent.block.timestamp >
-            fetcher.networkManager.get("alertFrequency") + state.alerts[comet]
+            networkManager.get("alertFrequency") + state.alerts[comet]
         ) {
           // Update latest alert.
           state.alerts[comet] = blockEvent.block.timestamp;
           findings.push(
             createFinding(
-              fetcher.networkManager.getNetwork(),
+              networkManager.getNetwork(),
               comet,
               reserves[index],
               targetRes
@@ -79,6 +81,6 @@ export const provideHandleBlock = (
 };
 
 export default {
-  initialize: provideInitialize(getEthersProvider()),
-  handleBlock: provideHandleBlock(dataFetcher, state),
+  initialize: provideInitialize(networkManager, getEthersProvider()),
+  handleBlock: provideHandleBlock(networkManager, dataFetcher, state),
 };
