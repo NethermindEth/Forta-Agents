@@ -10,7 +10,7 @@ export function createFinding(
 ): Finding {
   return Finding.from({
     name: "Comet reserves reached target reserves",
-    description: `Reserves on Comet contract are >= target reserves`,
+    description: "Reserves on Comet contract are >= target reserves",
     alertId: "COMP2-1-1",
     protocol: "Compound",
     severity: FindingSeverity.Medium,
