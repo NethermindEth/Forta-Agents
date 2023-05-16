@@ -4,12 +4,12 @@ import {
   HandleBlock,
   getEthersProvider,
 } from "forta-agent";
-import CONFIG from "./agent.config";
 import { providers } from "ethers";
-import Fetcher from "./dataFetcher";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding } from "./finding";
+import Fetcher from "./dataFetcher";
+import CONFIG from "./agent.config";
 import { AgentState } from "./utils";
+import { createFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
 const dataFetcher: Fetcher = new Fetcher(getEthersProvider(), networkManager);

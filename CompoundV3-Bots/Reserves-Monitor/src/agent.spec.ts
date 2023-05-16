@@ -6,14 +6,14 @@ import {
   BlockEvent,
   Network,
 } from "forta-agent";
-import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
-import { NetworkManager, createAddress } from "forta-agent-tools";
-import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { BigNumber, ethers } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import Fetcher from "./dataFetcher";
+import { NetworkManager, createAddress } from "forta-agent-tools";
+import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 import { AgentState, NetworkData } from "./utils";
 import { provideHandleBlock } from "./agent";
+import Fetcher from "./dataFetcher";
 
 const COMET_ADDRESSES = [createAddress("0xdef1"), createAddress("0xdEf2")];
 const BLOCK_NUMBERS = [10, 20, 30];

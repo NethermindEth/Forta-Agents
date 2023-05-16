@@ -1,11 +1,11 @@
+import { Network } from "forta-agent";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
+import { Interface } from "ethers/lib/utils";
 import { BigNumber, ethers } from "ethers";
 import Fetcher from "./dataFetcher";
-import { Interface } from "ethers/lib/utils";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 import { NetworkData } from "./utils";
-import { Network } from "forta-agent";
 
 const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
 const network = Network.MAINNET;
