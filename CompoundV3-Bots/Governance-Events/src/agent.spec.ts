@@ -103,7 +103,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   },
 };
 
-describe("Bot Test Suite", () => {
+describe("COMP2-2 - Governance Events Bot Test Suite", () => {
   let provider: ethers.providers.Provider;
   let mockProvider: MockEthersProvider;
   let networkManager: NetworkManager<NetworkData>;
