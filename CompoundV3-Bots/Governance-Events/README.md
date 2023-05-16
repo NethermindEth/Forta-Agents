@@ -2,7 +2,9 @@
 
 ## Description
 
-This bot detects events related to governance actions in Compound v3 Comet contracts.
+This bot detects events related to governance actions in Compound v3 Comet
+contracts, more specifically `PauseAction` and `WithdrawReserves`, as well
+as `Approval`s with the contract as owner.
 
 The Comet deployment addresses for each network can be configured in the
 `agent.config.ts` file.
@@ -51,8 +53,9 @@ The Comet deployment addresses for each network can be configured in the
 ## Test Data
 
 No emission of these events was found on existing Comet contracts. Considering
-this, a PoC contract, which can be found at `PoC/GovernanceEventsPoc.sol`, was
-made and deployed to the Sepolia network.
+this, besides the unit tests, which can be executed by running `npm run test`,
+a PoC contract, which can be found at `PoC/GovernanceEventsPoc.sol`, was made
+and deployed to the Sepolia network.
 
 To test the bot against its data, first set up a Sepolia RPC in your
 `forta.config.json` file. Then, run the following command to execute the bot
