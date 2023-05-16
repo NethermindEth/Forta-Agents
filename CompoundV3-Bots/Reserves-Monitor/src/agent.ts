@@ -59,7 +59,7 @@ export const provideHandleBlock = (
       const aboveTargetReserves = reserves[index].gte(targetRes);
       const pastAlertCooldown =
         state.alertedAt[comet] === -1 ||
-        blockEvent.block.timestamp > alertInterval + state.alertedAt[comet];
+        blockEvent.block.timestamp >= alertInterval + state.alertedAt[comet];
 
       if (aboveTargetReserves && pastAlertCooldown) {
         state.alertedAt[comet] = blockEvent.block.timestamp;
