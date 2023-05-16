@@ -17,15 +17,14 @@ import {
   SEND_MESSAGE_ABI,
   TIMELOCK_ABI,
 } from "./constants";
-import { Interface, getAddress } from "ethers/lib/utils";
 import {
   ProposalCreatedFinding,
   SuspiciousProposalCreatedFinding,
 } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
-const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
-const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
+const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
+const EXECUTE_TX_IFACE = new ethers.utils.Interface([EXECUTE_TX_ABI]);
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -72,7 +71,7 @@ export const provideHandleTransaction = (
         [FX_ROOT_ABI],
         provider
       );
-      const fxRoot = getAddress(
+      const fxRoot = ethers.utils.getAddress(
         await fxChildContract.fxRoot({ blockTag: txEvent.blockNumber })
       );
 

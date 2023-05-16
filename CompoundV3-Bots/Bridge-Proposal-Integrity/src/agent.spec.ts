@@ -7,7 +7,7 @@ import {
   Log,
   Network,
 } from "forta-agent";
-import { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import { createAddress } from "forta-agent-tools";
 
 import {
@@ -237,22 +237,25 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
 
     mockProvider = new MockEthersProvider();
+    mockProvider.setNetwork(network);
     networkManager = new NetworkManager(DEFAULT_CONFIG);
-    await networkManager.init(
-      mockTimelockProvider as unknown as ethers.providers.Provider
-    );
+
+    const provider = mockProvider as unknown as ethers.providers.Provider;
+    const initialize = provideInitialize(networkManager, provider);
+    await initialize();
 
     const _getLogs = mockTimelockProvider.getLogs;
     mockTimelockProvider.getLogs = jest.fn((...args) =>
       Promise.resolve(_getLogs(...args))
     );
-    await addCallsToProvider(mockProvider, BLOCK_NUMBER);
 
     handleTransaction = provideHandleTransaction(
       networkManager,
-      mockProvider as unknown as ethers.providers.Provider,
+      provider,
       mockTimelockProvider as any
     );
+
+    await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
 
   it("returns empty findings when no event is emitted", async () => {
