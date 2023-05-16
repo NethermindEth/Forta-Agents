@@ -22,10 +22,10 @@ The Comet deployment addresses for each network can be configured in the
     - `chain`: Network chain ID or name
     - `comet`: Address of the related Comet contract
     - `supplyPaused`: Status of supply pausing
-    - `transferPaused`: Status of supply pausing
-    - `withdrawPaused`: Status of supply pausing
-    - `absorbPaused`: Status of supply pausing
-    - `buyPaused`: Status of supply pausing
+    - `transferPaused`: Status of transfer pausing
+    - `withdrawPaused`: Status of withdrawal pausing
+    - `absorbPaused`: Status of absorption pausing
+    - `buyPaused`: Status of buying pausing
 
 - COMP2-2-2
   - Fired when there's a reserve withdrawal on a Comet contract
