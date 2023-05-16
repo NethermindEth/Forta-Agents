@@ -18,7 +18,7 @@ The Comet deployment addresses for each network can be configured in the
 
 - COMP2-2-1
   - Fired when there's a pause action on a Comet contract
-  - Severity is always set to "Medium"
+  - Severity is always set to "High"
   - Type is always set to "Info"
   - Metadata:
     - `chain`: Network chain ID or name

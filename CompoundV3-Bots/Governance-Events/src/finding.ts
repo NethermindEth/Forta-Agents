@@ -7,7 +7,7 @@ export function createPauseActionFinding(log: LogDescription, chainId: number): 
     alertId: "COMP2-2-1",
     protocol: "Compound",
     type: FindingType.Info,
-    severity: FindingSeverity.Medium,
+    severity: FindingSeverity.High,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
       comet: ethers.utils.getAddress(log.address),
