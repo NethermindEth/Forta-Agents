@@ -36,7 +36,7 @@ export const provideHandleBlock = (
     const findings: Finding[] = [];
 
     const cometAddresses = networkManager.get("cometAddresses");
-    const alertFrequency = networkManager.get("alertFrequency");
+    const alertInterval = networkManager.get("alertInterval");
 
     const [reserves, targetReserves] = await Promise.all([
       Promise.all(
@@ -59,7 +59,7 @@ export const provideHandleBlock = (
       const aboveTargetReserves = reserves[index].gte(targetRes);
       const pastAlertCooldown =
         state.alertedAt[comet] === -1 ||
-        blockEvent.block.timestamp > alertFrequency + state.alertedAt[comet];
+        blockEvent.block.timestamp > alertInterval + state.alertedAt[comet];
 
       if (aboveTargetReserves && pastAlertCooldown) {
         state.alertedAt[comet] = blockEvent.block.timestamp;

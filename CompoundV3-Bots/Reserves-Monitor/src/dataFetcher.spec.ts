@@ -29,12 +29,12 @@ describe("Fetcher test suite", () => {
     createAddress("0x13"),
   ];
 
-  const ALERT_FREQ = 1000;
+  const ALERT_INTERVAL = 1000;
 
   const DEFAULT_CONFIG = {
     [network]: {
       cometAddresses: COMET_ADDRESSES,
-      alertFrequency: ALERT_FREQ,
+      alertInterval: ALERT_INTERVAL,
     },
   };
   function createGetReservesCall(

@@ -1,6 +1,6 @@
 export interface NetworkData {
   cometAddresses: string[];
-  alertFrequency: number;
+  alertInterval: number;
 }
 
 export interface AgentState {
