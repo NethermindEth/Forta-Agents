@@ -16,6 +16,10 @@ The Comet deployment addresses for each network can be configured in the
 
 ## Alerts
 
+Below are the alerts that can be emitted from this bot. The title and
+description of the findings, as well as the severity and type, can be found
+and modified in the `src/finding.ts` file.
+
 - COMP2-2-1
   - Fired when there's a pause action on a Comet contract
   - Severity is always set to "High"
