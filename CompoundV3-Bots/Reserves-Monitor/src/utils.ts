@@ -6,8 +6,8 @@ export interface NetworkData {
 }
 
 export interface AgentState {
-  cometContracts: { [address: string]: ethers.Contract };
-  alertedAt: { [address: string]: number };
+  cometContracts: Record<string, ethers.Contract>;
+  alertedAt: Record<string, number>;
 }
 
 export type AgentConfig = Record<number, NetworkData>;

@@ -11,7 +11,7 @@ import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 import { AgentState, NetworkData } from "./utils";
-import { provideHandleBlock } from "./agent";
+import { provideHandleBlock, provideInitialize } from "./agent";
 
 const addr = createChecksumAddress;
 const bn = ethers.BigNumber.from;
@@ -88,24 +88,16 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     mockProvider.setNetwork(NETWORK);
     provider = mockProvider as unknown as ethers.providers.Provider;
 
-    networkManager = new NetworkManager(DEFAULT_CONFIG);
-    await networkManager.init(provider);
-
     state = {
       alertedAt: {},
       cometContracts: {},
     };
-    networkManager
-      .get("cometAddresses")
-      .forEach(
-        (comet) =>
-          (state.cometContracts[comet] = new ethers.Contract(
-            comet,
-            IFACE,
-            provider
-          ))
-      ),
-      (handleBlock = provideHandleBlock(networkManager, state));
+
+    networkManager = new NetworkManager(DEFAULT_CONFIG);
+    const initialize = provideInitialize(state, networkManager, provider);
+
+    handleBlock = provideHandleBlock(state, networkManager);
+    await initialize();
   });
 
   it("returns empty findings if reserves are less than target reserves", async () => {

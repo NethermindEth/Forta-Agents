@@ -19,6 +19,7 @@ const state: AgentState = {
 };
 
 export const provideInitialize = (
+  state: AgentState,
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): Initialize => {
@@ -28,22 +29,19 @@ export const provideInitialize = (
       TARGET_RESERVES_ABI,
     ]);
     await networkManager.init(provider);
-    networkManager
+
+    state.cometContracts = networkManager
       .get("cometAddresses")
-      .forEach(
-        (comet) =>
-          (state.cometContracts[comet] = new ethers.Contract(
-            comet,
-            iface,
-            provider
-          ))
-      );
+      .reduce((acc: Record<string, ethers.Contract>, comet) => {
+        acc[comet] = new ethers.Contract(comet, iface, provider);
+        return acc;
+      }, {});
   };
 };
 
 export const provideHandleBlock = (
-  networkManager: NetworkManager<NetworkData>,
-  state: AgentState
+  state: AgentState,
+  networkManager: NetworkManager<NetworkData>
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -98,6 +96,6 @@ export const provideHandleBlock = (
 };
 
 export default {
-  initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, state),
+  initialize: provideInitialize(state, networkManager, getEthersProvider()),
+  handleBlock: provideHandleBlock(state, networkManager),
 };
