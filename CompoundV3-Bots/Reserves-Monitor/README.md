@@ -31,11 +31,11 @@ PoC contract, which can be found at `PoC/ReservesMonitorPoc.sol`, was made and
 deployed to the Sepolia network.
 
 To test the bot against its data, first set up a Sepolia RPC in your
-`forta.config.json` file. Then, build the bot using `npm run build` and run
-the following command to execute the bot in a block range:
+`forta.config.json` file. Then, run the following command to execute the bot
+in a block range:
 
 ```
-npx forta-agent run --range 3466251..3466253
+npm run range 3466251..3466253
 ```
 
 The finding should be emitted on 3466253, as then `reserves` is changed to
