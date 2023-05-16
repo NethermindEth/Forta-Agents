@@ -101,7 +101,22 @@ describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
     await initialize();
   });
 
-  it("should")
+  it("should correctly get network data", async () => {
+    expect(networkManager.getNetwork()).toStrictEqual(NETWORK);
+    expect(networkManager.get("cometAddresses")).toStrictEqual(
+      DEFAULT_CONFIG[NETWORK].cometAddresses
+    );
+    expect(networkManager.get("alertInterval")).toStrictEqual(
+      DEFAULT_CONFIG[NETWORK].alertInterval
+    );
+  });
+
+  it("should instantiate the Comet contracts on initialize", async () => {
+    expect(state.cometContracts).not.toStrictEqual({});
+    expect(
+      Object.values(state.cometContracts).map((comet) => comet.address)
+    ).toStrictEqual(COMET_ADDRESSES);
+  });
 
   it("returns empty findings if reserves are less than target reserves", async () => {
     const block = 10;
