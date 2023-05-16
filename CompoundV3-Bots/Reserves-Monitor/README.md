@@ -2,7 +2,8 @@
 
 ## Description
 
-This bot monitors reserves in Compound III `Comet` contracts. It emits an alert if contract `reserves` reaches the `targetReserves`.
+This bot monitors reserves in Compound v3 `Comet` contracts. It emits an alert
+if contract `reserves` reaches the `targetReserves`.
 Note that the bot is configurable through the `agent.config.ts` file.
 
 ## Supported Chains
@@ -13,7 +14,8 @@ Note that the bot is configurable through the `agent.config.ts` file.
 ## Alerts
 
 - COMP2-1-1
-  - Fired when `reserves` reaches or exceeds the `targetReserves` in any of comet contracts.
+  - Fired when `reserves` reaches or exceeds the `targetReserves` in any of
+  Comet contracts.
   - Severity is always set to "Medium"
   - Type is always set to "info"
   - Metadata includes:
