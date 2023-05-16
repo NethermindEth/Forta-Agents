@@ -9,14 +9,17 @@ import {
 } from "forta-agent";
 import { BigNumber } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import { NetworkManager, createAddress } from "forta-agent-tools";
+import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 import { AgentState, NetworkData } from "./utils";
 import { provideHandleBlock } from "./agent";
 import Fetcher from "./dataFetcher";
 
-const COMET_ADDRESSES = [createAddress("0xdef1"), createAddress("0xdEf2")];
+const COMET_ADDRESSES = [
+  createChecksumAddress("0xdef1"),
+  createChecksumAddress("0xdEf2"),
+];
 const BLOCK_NUMBERS = [10, 20, 30];
 const ALERT_FREQ = 1000;
 

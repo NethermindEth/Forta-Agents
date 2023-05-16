@@ -17,7 +17,7 @@ export function createFinding(
     type: FindingType.Info,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
-      comet: getAddress(comet).toLowerCase(),
+      comet: getAddress(comet),
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),
     },
