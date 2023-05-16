@@ -7,12 +7,15 @@ import {
   Network,
 } from "forta-agent";
 import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
-import { provideHandleTransaction } from "./agent";
-import { TestTransactionEvent } from "forta-agent-tools/lib/test";
+import { provideHandleTransaction, provideInitialize } from "./agent";
+import {
+  MockEthersProvider,
+  TestTransactionEvent,
+} from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
-import { BigNumberish } from "ethers";
+import { BigNumberish, ethers } from "ethers";
 
 function mockCreateTransferFinding(
   comet: string,
@@ -63,11 +66,18 @@ const TEST_CONFIG: AgentConfig = {
 describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
+  let mockProvider: MockEthersProvider;
 
   beforeEach(async () => {
+    mockProvider = new MockEthersProvider();
+    mockProvider.setNetwork(network);
+
+    const provider = mockProvider as unknown as ethers.providers.Provider;
     networkManager = new NetworkManager(TEST_CONFIG, network);
-    networkManager.setNetwork(network);
+
+    const initialize = provideInitialize(networkManager, provider);
     handleTransaction = provideHandleTransaction(networkManager);
+    await initialize();
   });
 
   it("returns empty findings when no event is emitted", async () => {
