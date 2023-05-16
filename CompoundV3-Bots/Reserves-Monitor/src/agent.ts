@@ -23,19 +23,17 @@ export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): Initialize => {
+  const iface = new ethers.utils.Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
+
   return async () => {
-    const iface = new ethers.utils.Interface([
-      RESERVES_ABI,
-      TARGET_RESERVES_ABI,
-    ]);
     await networkManager.init(provider);
 
     state.cometContracts = networkManager
       .get("cometAddresses")
-      .reduce((acc: Record<string, ethers.Contract>, comet) => {
+      .reduce((acc, comet) => {
         acc[comet] = new ethers.Contract(comet, iface, provider);
         return acc;
-      }, {});
+      }, {} as Record<string, ethers.Contract>);
   };
 };
 
