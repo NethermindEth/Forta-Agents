@@ -53,7 +53,7 @@ function createFinding(
   });
 }
 
-describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
+describe("COMP2-1 - Reserves Monitor Bot Test Suite", () => {
   let networkManager: NetworkManager<NetworkData>;
   let mockProvider: MockEthersProvider;
   let provider: ethers.providers.Provider;
@@ -100,6 +100,8 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
     handleBlock = provideHandleBlock(state, networkManager);
     await initialize();
   });
+
+  it("should")
 
   it("returns empty findings if reserves are less than target reserves", async () => {
     const block = 10;
