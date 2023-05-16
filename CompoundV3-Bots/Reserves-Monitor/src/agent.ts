@@ -7,29 +7,42 @@ import {
   getEthersProvider,
 } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import Fetcher from "./dataFetcher";
 import CONFIG from "./agent.config";
 import { AgentState, NetworkData } from "./utils";
 import { createFinding } from "./finding";
+import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
 
 const networkManager = new NetworkManager(CONFIG);
-const dataFetcher: Fetcher = new Fetcher();
-const state: AgentState = { alertedAt: {} };
+const state: AgentState = {
+  cometContracts: {},
+  alertedAt: {},
+};
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider
 ): Initialize => {
   return async () => {
+    const iface = new ethers.utils.Interface([
+      RESERVES_ABI,
+      TARGET_RESERVES_ABI,
+    ]);
     await networkManager.init(provider);
-
-    dataFetcher.loadContracts(networkManager, provider);
+    networkManager
+      .get("cometAddresses")
+      .forEach(
+        (comet) =>
+          (state.cometContracts[comet] = new ethers.Contract(
+            comet,
+            iface,
+            provider
+          ))
+      );
   };
 };
 
 export const provideHandleBlock = (
   networkManager: NetworkManager<NetworkData>,
-  fetcher: Fetcher,
   state: AgentState
 ): HandleBlock => {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
@@ -41,12 +54,16 @@ export const provideHandleBlock = (
     const [reserves, targetReserves] = await Promise.all([
       Promise.all(
         cometAddresses.map((comet) =>
-          fetcher.getReserves(comet, blockEvent.blockNumber)
+          state.cometContracts[comet].getReserves({
+            blockTag: blockEvent.blockNumber,
+          })
         )
       ),
       Promise.all(
         cometAddresses.map((comet) =>
-          fetcher.getTargetReserves(comet, blockEvent.blockNumber)
+          state.cometContracts[comet].targetReserves({
+            blockTag: blockEvent.blockNumber,
+          })
         )
       ),
     ]);
@@ -82,5 +99,5 @@ export const provideHandleBlock = (
 
 export default {
   initialize: provideInitialize(networkManager, getEthersProvider()),
-  handleBlock: provideHandleBlock(networkManager, dataFetcher, state),
+  handleBlock: provideHandleBlock(networkManager, state),
 };
