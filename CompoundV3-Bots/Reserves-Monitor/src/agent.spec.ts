@@ -16,32 +16,54 @@ import { AgentState, NetworkData } from "./utils";
 import { provideHandleBlock } from "./agent";
 import Fetcher from "./dataFetcher";
 
-const COMET_ADDRESSES = [
-  createChecksumAddress("0xdef1"),
-  createChecksumAddress("0xdEf2"),
-];
-const BLOCK_NUMBERS = [10, 20, 30];
-const ALERT_FREQ = 1000;
+const addr = createChecksumAddress;
+const bn = BigNumber.from;
+
+const COMET_ADDRESSES = [addr("0xdef1"), addr("0xdef2")];
+const ALERT_INTERVAL = 1000;
 
 const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
 const INIT_TIMESTAMP = 10000;
-const network = Network.MAINNET;
+
+const NETWORK = Network.MAINNET;
 
 const DEFAULT_CONFIG = {
-  [network]: {
+  [NETWORK]: {
     cometAddresses: COMET_ADDRESSES,
-    alertFrequency: ALERT_FREQ,
+    alertInterval: ALERT_INTERVAL,
   },
 };
+
+function createFinding(
+  comet: string,
+  reserves: ethers.BigNumber,
+  targetReserves: ethers.BigNumber
+): Finding {
+  return Finding.from({
+    name: "Comet reserves reached target reserves",
+    description: "Reserves on Comet contract are >= target reserves",
+    alertId: "COMP2-1-1",
+    protocol: "Compound",
+    severity: FindingSeverity.Medium,
+    type: FindingType.Info,
+    metadata: {
+      chain: Network[NETWORK],
+      comet: ethers.utils.getAddress(comet),
+      reserves: reserves.toString(),
+      targetReserves: targetReserves.toString(),
+    },
+  });
+}
 
 describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   let networkManager: NetworkManager<NetworkData>;
   let mockProvider: MockEthersProvider;
+  let provider: ethers.providers.Provider;
   let handleBlock: HandleBlock;
   let fetcher: Fetcher;
-  let state: AgentState = { alertedAt: {} };
+  let state: AgentState;
 
-  const testConfig = DEFAULT_CONFIG[network];
+  const testConfig = DEFAULT_CONFIG[NETWORK];
 
   function createGetReservesCall(
     block: number,
@@ -53,6 +75,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
       outputs: [reserves],
     });
   }
+
   function createTargetReservesCall(
     block: number,
     comet: string,
@@ -66,31 +89,29 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
 
   beforeEach(async () => {
     mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+    mockProvider.setNetwork(NETWORK);
+    provider = mockProvider as unknown as ethers.providers.Provider;
 
     networkManager = new NetworkManager(DEFAULT_CONFIG);
-    await networkManager.init(
-      mockProvider as unknown as ethers.providers.Provider
-    );
-    networkManager.setNetwork(network);
+    await networkManager.init(provider);
 
     fetcher = new Fetcher();
-    fetcher.loadContracts(
-      networkManager,
-      mockProvider as unknown as ethers.providers.Provider
-    );
+    fetcher.loadContracts(networkManager, provider);
 
-    state.alertedAt = {};
+    state = { alertedAt: {} };
+
     handleBlock = provideHandleBlock(networkManager, fetcher, state);
   });
 
   it("returns empty findings if reserves are less than target reserves", async () => {
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(block)
       .setTimestamp(INIT_TIMESTAMP);
-    for (const addr of COMET_ADDRESSES) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(80));
+
+    for (const comet of COMET_ADDRESSES) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(80));
     }
 
     const findings = await handleBlock(blockEvent);
@@ -98,357 +119,201 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   });
 
   it("returns empty findings if reserves are negative", async () => {
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(block)
       .setTimestamp(INIT_TIMESTAMP);
 
-    for (const addr of COMET_ADDRESSES) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(-200));
+    for (const comet of COMET_ADDRESSES) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(-200));
     }
+
     const findings = await handleBlock(blockEvent);
     expect(findings).toStrictEqual([]);
   });
 
   it("returns a finding if Reserves == targetReserves in one comet contract", async () => {
-    const reservesValue: BigNumber = BigNumber.from(200);
+    const reservesValue = bn(200);
+
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(block)
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
+    const comet = COMET_ADDRESSES[0];
 
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
+    createTargetReservesCall(block, comet, reservesValue);
+
+    createGetReservesCall(block, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(50));
     }
 
     const findings = await handleBlock(blockEvent);
-    expect(JSON.stringify(findings)).toStrictEqual(
-      JSON.stringify([
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: testConfig.cometAddresses[0],
-            reserves: reservesValue.toString(),
-            targetReserves: reservesValue.toString(),
-          },
-        }),
-      ])
-    );
+    expect(findings).toStrictEqual([
+      createFinding(comet, reservesValue, reservesValue),
+    ]);
   });
 
   it("returns a finding if Reserves > targetReserves in one comet contract", async () => {
-    const reservesValue: BigNumber = BigNumber.from(500);
-    const targetReservesValue: BigNumber = BigNumber.from(200);
+    const reservesValue = bn(500);
+    const targetReservesValue = bn(200);
 
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(block)
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      targetReservesValue
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
+    const comet = COMET_ADDRESSES[0];
 
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
+    createTargetReservesCall(block, comet, targetReservesValue);
+
+    createGetReservesCall(block, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(50));
     }
 
     const findings = await handleBlock(blockEvent);
-
-    expect(JSON.stringify(findings)).toStrictEqual(
-      JSON.stringify([
-        Finding.fromObject({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: testConfig.cometAddresses[0],
-            reserves: reservesValue.toString(),
-            targetReserves: targetReservesValue.toString(),
-          },
-        }),
-      ])
-    );
+    expect(findings.sort()).toStrictEqual([
+      createFinding(comet, reservesValue, targetReservesValue),
+    ]);
   });
 
   it("returns one finding if Reserves > targetReserves and time limit not reached", async () => {
-    const reservesValue: BigNumber = BigNumber.from(500);
-    const targetReservesValue: BigNumber = BigNumber.from(200);
+    const reservesValue = bn(500);
+    const targetReservesValue = bn(200);
 
-    // First Block
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(10)
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      targetReservesValue
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
+    const comet = COMET_ADDRESSES[0];
 
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
+    createTargetReservesCall(block, comet, targetReservesValue);
+
+    createGetReservesCall(block, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(50));
     }
 
-    // Next Block
-    const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[1])
-      .setTimestamp(
-        blockEvent.block.timestamp + testConfig.alertFrequency - 10
-      );
+    const findings = await handleBlock(blockEvent);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      targetReservesValue
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
+    const nextBlock = 11;
+    const nextBlockEvent: BlockEvent = new TestBlockEvent()
+      .setNumber(nextBlock)
+      .setTimestamp(blockEvent.block.timestamp + testConfig.alertInterval - 1);
 
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(50));
+    createTargetReservesCall(nextBlock, comet, targetReservesValue);
+    createGetReservesCall(nextBlock, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(nextBlock, comet, bn(100));
+      createGetReservesCall(nextBlock, comet, bn(50));
     }
 
-    const findings = (
-      await Promise.all([handleBlock(blockEvent), handleBlock(blockEvent2)])
-    ).flat();
+    const nextFindings = await handleBlock(nextBlockEvent);
 
-    expect(findings.toString()).toStrictEqual(
-      [
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: testConfig.cometAddresses[0],
-            reserves: reservesValue.toString(),
-            targetReserves: targetReservesValue.toString(),
-          },
-        }),
-      ].toString()
-    );
+    expect(findings).toStrictEqual([
+      createFinding(comet, reservesValue, targetReservesValue),
+    ]);
+
+    expect(nextFindings).toStrictEqual([]);
   });
 
   it("returns second finding if Reserves > targetReserves and time limit reached", async () => {
-    const reservesValue: BigNumber = BigNumber.from(500);
-    const targetReservesValue: BigNumber = BigNumber.from(200);
+    const reservesValue = bn(500);
+    const targetReservesValue = bn(200);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      targetReservesValue
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      reservesValue
-    );
-
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, BigNumber.from(50));
-    }
-
-    // First Block
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(10)
       .setTimestamp(INIT_TIMESTAMP);
+
+    const comet = COMET_ADDRESSES[0];
+
+    createTargetReservesCall(block, comet, targetReservesValue);
+
+    createGetReservesCall(block, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(block, comet, bn(100));
+      createGetReservesCall(block, comet, bn(50));
+    }
 
     const findings = await handleBlock(blockEvent);
 
-    // Next Block
-    const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[1])
-      .setTimestamp(
-        blockEvent.block.timestamp + testConfig.alertFrequency + 10
-      );
+    const nextBlock = 11;
+    const nextBlockEvent: BlockEvent = new TestBlockEvent()
+      .setNumber(nextBlock)
+      .setTimestamp(blockEvent.block.timestamp + testConfig.alertInterval);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      targetReservesValue.add(200)
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      reservesValue.add(200)
-    );
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(100));
-      createGetReservesCall(BLOCK_NUMBERS[1], addr, BigNumber.from(50));
+    createTargetReservesCall(nextBlock, comet, targetReservesValue);
+    createGetReservesCall(nextBlock, comet, reservesValue);
+
+    for (const comet of COMET_ADDRESSES.slice(1)) {
+      createTargetReservesCall(nextBlock, comet, bn(100));
+      createGetReservesCall(nextBlock, comet, bn(50));
     }
 
-    findings.push(...(await handleBlock(blockEvent2)));
+    const nextFindings = await handleBlock(nextBlockEvent);
 
-    expect(findings.toString()).toStrictEqual(
-      [
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: testConfig.cometAddresses[0],
-            reserves: reservesValue.toString(),
-            targetReserves: targetReservesValue.toString(),
-          },
-        }),
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: testConfig.cometAddresses[0],
-            reserves: reservesValue.add(200).toString(),
-            targetReserves: targetReservesValue.add(200).toString(),
-          },
-        }),
-      ].toString()
-    );
+    expect(findings).toStrictEqual([
+      createFinding(comet, reservesValue, targetReservesValue),
+    ]);
+
+    expect(nextFindings).toStrictEqual([
+      createFinding(comet, reservesValue, targetReservesValue),
+    ]);
   });
 
   it("returns findings for multiple comet contracts", async () => {
-    const reservesValue: BigNumber = BigNumber.from(500);
-    const targetReservesValue: BigNumber = BigNumber.from(200);
+    const reservesValues = COMET_ADDRESSES.map((_, idx) => bn(idx * 100));
+    const targetReservesValues = COMET_ADDRESSES.map((_, idx) => bn(idx * 100));
 
-    // First Block
+    const block = 10;
     const blockEvent: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[0])
+      .setNumber(10)
       .setTimestamp(INIT_TIMESTAMP);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      BigNumber.from(100)
-    );
-    createGetReservesCall(
-      BLOCK_NUMBERS[0],
-      testConfig.cometAddresses[0],
-      BigNumber.from(50)
-    );
+    COMET_ADDRESSES.forEach((comet, idx) => {
+      createTargetReservesCall(block, comet, targetReservesValues[idx]);
 
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(BLOCK_NUMBERS[0], addr, targetReservesValue);
-      createGetReservesCall(BLOCK_NUMBERS[0], addr, reservesValue);
-    }
+      createGetReservesCall(block, comet, reservesValues[idx]);
+    });
 
     const findings = await handleBlock(blockEvent);
 
-    // Next Block
-    const blockEvent2: BlockEvent = new TestBlockEvent()
-      .setNumber(BLOCK_NUMBERS[1])
-      .setTimestamp(
-        blockEvent.block.timestamp + testConfig.alertFrequency + 10
-      );
+    const nextBlock = 11;
+    const nextBlockEvent: BlockEvent = new TestBlockEvent()
+      .setNumber(nextBlock)
+      .setTimestamp(blockEvent.block.timestamp + testConfig.alertInterval);
 
-    createTargetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      BigNumber.from(100)
+    COMET_ADDRESSES.forEach((comet, idx) => {
+      createTargetReservesCall(nextBlock, comet, targetReservesValues[idx]);
+
+      createGetReservesCall(nextBlock, comet, reservesValues[idx]);
+    });
+
+    const nextFindings = await handleBlock(nextBlockEvent);
+
+    expect(findings.sort()).toStrictEqual(
+      COMET_ADDRESSES.map((comet, idx) =>
+        createFinding(comet, reservesValues[idx], targetReservesValues[idx])
+      ).sort()
     );
-    createGetReservesCall(
-      BLOCK_NUMBERS[1],
-      testConfig.cometAddresses[0],
-      BigNumber.from(50)
+
+    expect(nextFindings.sort()).toStrictEqual(
+      COMET_ADDRESSES.map((comet, idx) =>
+        createFinding(comet, reservesValues[idx], targetReservesValues[idx])
+      ).sort()
     );
-
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      createTargetReservesCall(
-        BLOCK_NUMBERS[1],
-        addr,
-        targetReservesValue.add(200)
-      );
-      createGetReservesCall(BLOCK_NUMBERS[1], addr, reservesValue.add(200));
-    }
-
-    findings.push(...(await handleBlock(blockEvent2)));
-    const expectedFindings = [];
-
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      expectedFindings.push(
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: addr,
-            reserves: reservesValue.toString(),
-            targetReserves: targetReservesValue.toString(),
-          },
-        })
-      );
-    }
-    for (const addr of COMET_ADDRESSES.slice(1)) {
-      expectedFindings.push(
-        Finding.from({
-          name: "Comet reserves reached target reserves",
-          description: `Reserves on Comet contract are >= target reserves`,
-          alertId: "COMP2-1-1",
-          protocol: "Compound",
-          severity: FindingSeverity.Medium,
-          type: FindingType.Info,
-          metadata: {
-            chain: Network[network] || network.toString(),
-            comet: addr,
-            reserves: reservesValue.add(200).toString(),
-            targetReserves: targetReservesValue.add(200).toString(),
-          },
-        })
-      );
-    }
-    expect(findings.toString()).toStrictEqual(expectedFindings.toString());
   });
 });
