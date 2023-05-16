@@ -20,9 +20,7 @@ const state: AgentState = {
 
 export const provideInitialize = (provider: providers.Provider): Initialize => {
   return async () => {
-    const { chainId } = await provider.getNetwork();
     await networkManager.init(provider);
-    networkManager.setNetwork(chainId);
 
     dataFetcher.setContracts();
   };
