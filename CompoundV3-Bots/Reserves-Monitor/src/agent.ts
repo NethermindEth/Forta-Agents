@@ -14,7 +14,7 @@ import { createFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG);
 const dataFetcher: Fetcher = new Fetcher();
-const state: AgentState = { alerts: {} };
+const state: AgentState = { alertedAt: {} };
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -36,6 +36,7 @@ export const provideHandleBlock = (
     const findings: Finding[] = [];
 
     const cometAddresses = networkManager.get("cometAddresses");
+    const alertFrequency = networkManager.get("alertFrequency");
 
     const [reserves, targetReserves] = await Promise.all([
       Promise.all(
@@ -52,30 +53,29 @@ export const provideHandleBlock = (
 
     targetReserves.forEach((targetRes, index) => {
       const comet = cometAddresses[index];
-      if (!state.alerts[comet]) state.alerts[comet] = -1;
 
-      // 0. if Reserves > 0 and Reserves >= targetReserves
-      if (reserves[index].gte(0) && reserves[index].gte(targetRes)) {
-        // If last alert exceeds the frequency, or no alert was emitted before, return finding
-        if (
-          state.alerts[comet] === -1 ||
-          blockEvent.block.timestamp >
-            networkManager.get("alertFrequency") + state.alerts[comet]
-        ) {
-          // Update latest alert.
-          state.alerts[comet] = blockEvent.block.timestamp;
-          findings.push(
-            createFinding(
-              networkManager.getNetwork(),
-              comet,
-              reserves[index],
-              targetRes
-            )
-          );
-        }
-        //Update lastest alert
-      } else state.alerts[comet] = -1;
+      if (!state.alertedAt[comet]) state.alertedAt[comet] = -1;
+
+      const aboveTargetReserves = reserves[index].gte(targetRes);
+      const pastAlertCooldown =
+        state.alertedAt[comet] === -1 ||
+        blockEvent.block.timestamp > alertFrequency + state.alertedAt[comet];
+
+      if (aboveTargetReserves && pastAlertCooldown) {
+        state.alertedAt[comet] = blockEvent.block.timestamp;
+        findings.push(
+          createFinding(
+            networkManager.getNetwork(),
+            comet,
+            reserves[index],
+            targetRes
+          )
+        );
+      } else if (!aboveTargetReserves) {
+        state.alertedAt[comet] = -1;
+      }
     });
+
     return findings;
   };
 };

@@ -39,9 +39,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   let mockProvider: MockEthersProvider;
   let handleBlock: HandleBlock;
   let fetcher: Fetcher;
-  let state: AgentState = {
-    alerts: {},
-  };
+  let state: AgentState = { alertedAt: {} };
 
   const testConfig = DEFAULT_CONFIG[network];
 
@@ -82,7 +80,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
       mockProvider as unknown as ethers.providers.Provider
     );
 
-    state.alerts = {};
+    state.alertedAt = {};
     handleBlock = provideHandleBlock(networkManager, fetcher, state);
   });
 

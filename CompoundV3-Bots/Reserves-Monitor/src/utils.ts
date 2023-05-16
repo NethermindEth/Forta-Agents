@@ -4,7 +4,7 @@ export interface NetworkData {
 }
 
 export interface AgentState {
-  alerts: { [address: string]: number };
+  alertedAt: { [address: string]: number };
 }
 
 export type AgentConfig = Record<number, NetworkData>;
