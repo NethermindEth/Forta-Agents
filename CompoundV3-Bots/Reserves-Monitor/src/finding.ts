@@ -25,5 +25,6 @@ export function createFinding(
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),
     },
+    addresses: [ethers.utils.getAddress(comet)],
   });
 }
