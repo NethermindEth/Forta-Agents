@@ -1,12 +1,16 @@
-import { BigNumberish } from "ethers";
-import { getAddress } from "ethers/lib/utils";
-import { Finding, FindingSeverity, FindingType, Network } from "forta-agent";
+import {
+  ethers,
+  Finding,
+  FindingSeverity,
+  FindingType,
+  Network,
+} from "forta-agent";
 
 export function createFinding(
   chainId: number,
   comet: string,
-  reserves: BigNumberish,
-  targetReserves: BigNumberish
+  reserves: ethers.BigNumberish,
+  targetReserves: ethers.BigNumberish
 ): Finding {
   return Finding.from({
     name: "Comet reserves reached target reserves",
@@ -17,7 +21,7 @@ export function createFinding(
     type: FindingType.Info,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
-      comet: getAddress(comet),
+      comet: ethers.utils.getAddress(comet),
       reserves: reserves.toString(),
       targetReserves: targetReserves.toString(),
     },

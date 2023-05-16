@@ -1,11 +1,11 @@
 import {
-  BlockEvent,
+  ethers,
   Finding,
-  HandleBlock,
   Initialize,
+  BlockEvent,
+  HandleBlock,
   getEthersProvider,
 } from "forta-agent";
-import { providers } from "ethers";
 import { NetworkManager } from "forta-agent-tools";
 import Fetcher from "./dataFetcher";
 import CONFIG from "./agent.config";
@@ -18,7 +18,7 @@ const state: AgentState = { alertedAt: {} };
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
-  provider: providers.Provider
+  provider: ethers.providers.Provider
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);

@@ -7,8 +7,6 @@ import {
   Network,
   ethers,
 } from "forta-agent";
-import { BigNumber } from "ethers";
-import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { RESERVES_ABI, TARGET_RESERVES_ABI } from "./constants";
@@ -17,12 +15,12 @@ import { provideHandleBlock } from "./agent";
 import Fetcher from "./dataFetcher";
 
 const addr = createChecksumAddress;
-const bn = BigNumber.from;
+const bn = ethers.BigNumber.from;
 
 const COMET_ADDRESSES = [addr("0xdef1"), addr("0xdef2")];
 const ALERT_INTERVAL = 1000;
 
-const IFACE = new Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
+const IFACE = new ethers.utils.Interface([RESERVES_ABI, TARGET_RESERVES_ABI]);
 const INIT_TIMESTAMP = 10000;
 
 const NETWORK = Network.MAINNET;
@@ -68,7 +66,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   function createGetReservesCall(
     block: number,
     comet: string,
-    reserves: BigNumber
+    reserves: ethers.BigNumber
   ) {
     return mockProvider.addCallTo(comet, block, IFACE, "getReserves", {
       inputs: [],
@@ -79,7 +77,7 @@ describe("COMP2-1 - Reserves Monitor Bot Test suite", () => {
   function createTargetReservesCall(
     block: number,
     comet: string,
-    targetReserves: BigNumber
+    targetReserves: ethers.BigNumber
   ) {
     return mockProvider.addCallTo(comet, block, IFACE, "targetReserves", {
       inputs: [],
