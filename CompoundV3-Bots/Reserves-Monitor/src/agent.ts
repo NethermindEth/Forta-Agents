@@ -57,15 +57,15 @@ export const provideHandleBlock = (state: AgentState, networkManager: NetworkMan
 
       if (!state.alertedAt[comet]) state.alertedAt[comet] = -1;
 
-      const aboveTargetReserves = reserves[index].gte(targetRes);
+      const aboveOrAtTargetReserves = reserves[index].gte(targetRes);
       const pastAlertCooldown =
         state.alertedAt[comet] === -1 || blockEvent.block.timestamp >= alertInterval + state.alertedAt[comet];
 
-      if (aboveTargetReserves && pastAlertCooldown) {
+      if (aboveOrAtTargetReserves && pastAlertCooldown) {
         state.alertedAt[comet] = blockEvent.block.timestamp;
 
         findings.push(createFinding(networkManager.getNetwork(), comet, reserves[index], targetRes));
-      } else if (!aboveTargetReserves) {
+      } else if (!aboveOrAtTargetReserves) {
         state.alertedAt[comet] = -1;
       }
     });
