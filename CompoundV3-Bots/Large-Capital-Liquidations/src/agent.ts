@@ -20,20 +20,17 @@ export const provideInitializeTask = (
   multicallProvider: MulticallProvider,
   provider: ethers.providers.JsonRpcProvider
 ): (() => Promise<void>) => {
-  const iface = new ethers.utils.Interface(COMET_ABI);
-  const cometContracts = networkManager.get("cometContracts").map((comet) => ({
-    comet: new ethers.Contract(comet.address, iface, provider),
-    multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
-    deploymentBlock: comet.deploymentBlock,
+  const cometContracts = state.cometContracts.map((entry) => ({
+    ...entry,
     baseIndexScale: ethers.BigNumber.from(0),
     baseBorrowIndex: ethers.BigNumber.from(0),
-    monitoringListLength: comet.monitoringListLength,
-    threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
   }));
 
   return async () => {
     let currentBlock = !DEBUG ? await provider.getBlockNumber() : DEBUG_CURRENT_BLOCK;
-    let blockCursor = cometContracts.reduce((a, b) => (a.deploymentBlock < b.deploymentBlock ? a : b)).deploymentBlock;
+    let blockCursor = state.cometContracts.reduce((a, b) =>
+      a.deploymentBlock < b.deploymentBlock ? a : b
+    ).deploymentBlock;
 
     // get current borrow data to compute present values
     await Promise.all(
@@ -64,12 +61,14 @@ export const provideInitializeTask = (
             const logs = await bottleneck.schedule(async () => {
               return (
                 await provider.getLogs({
-                  topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+                  topics: [
+                    ["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => comet.interface.getEventTopic(el)),
+                  ],
                   fromBlock: blockCursor,
                   toBlock,
                   address: comet.address,
                 })
-              ).map((log) => ({ ...log, ...iface.parseLog(log) }));
+              ).map((log) => ({ ...log, ...comet.interface.parseLog(log) }));
             });
 
             // get borrowers and principals from potential borrowers involved in the logs
@@ -119,9 +118,19 @@ export const provideInitialize = (
   multicallProvider: MulticallProvider,
   provider: ethers.providers.JsonRpcProvider
 ): Initialize => {
+  const cometIface = new ethers.utils.Interface(COMET_ABI);
+
   return async () => {
     await networkManager.init(provider);
     await multicallProvider.init();
+
+    state.cometContracts = networkManager.get("cometContracts").map((cometInfo) => ({
+      comet: new ethers.Contract(cometInfo.address, cometIface, provider),
+      multicallComet: new MulticallContract(cometInfo.address, cometIface.fragments as ethers.utils.Fragment[]),
+      threshold: ethers.BigNumber.from(cometInfo.baseLargeThreshold),
+      monitoringListLength: cometInfo.monitoringListLength,
+      deploymentBlock: cometInfo.deploymentBlock,
+    }));
 
     const initializeTask = provideInitializeTask(state, networkManager, multicallProvider, provider);
 
@@ -140,20 +149,11 @@ export const provideHandleBlock = (
   multicallProvider: MulticallProvider,
   provider: ethers.providers.JsonRpcProvider
 ): HandleBlock => {
-  const iface = new ethers.utils.Interface(COMET_ABI);
-
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     if (!state.initialized) {
       state.lastHandledBlock = blockEvent.blockNumber;
       return [];
     }
-
-    const cometContracts = networkManager.get("cometContracts").map((comet) => ({
-      comet: new ethers.Contract(comet.address, iface, provider),
-      multicallComet: new MulticallContract(comet.address, iface.fragments as ethers.utils.Fragment[]),
-      threshold: ethers.BigNumber.from(comet.baseLargeThreshold),
-      monitoringListLength: comet.monitoringListLength,
-    }));
 
     const chainId = networkManager.getNetwork();
 
@@ -165,19 +165,19 @@ export const provideHandleBlock = (
 
     const findings: Finding[] = [];
 
-    // asynchronously  for each Comet contract
+    // asynchronously for each Comet contract
     await Promise.all(
-      cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
+      state.cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
         // get principal-changing logs and current borrow data to compute present values
         const [cometLogs, baseIndexScale, { baseBorrowIndex }] = await Promise.all([
           provider
             .getLogs({
-              topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => iface.getEventTopic(el))],
+              topics: [["Supply", "Transfer", "Withdraw", "AbsorbDebt"].map((el) => comet.interface.getEventTopic(el))],
               fromBlock,
               toBlock: blockEvent.blockNumber,
               address: comet.address,
             })
-            .then((logs) => logs.map((log) => ({ ...log, ...iface.parseLog(log) }))),
+            .then((logs) => logs.map((log) => ({ ...log, ...comet.interface.parseLog(log) }))),
           comet.baseIndexScale({ blockTag: blockEvent.blockNumber }),
           comet.totalsBasic({ blockTag: blockEvent.blockNumber }),
         ]);
@@ -257,6 +257,7 @@ const multicallProvider = new MulticallProvider(provider);
 const state: AgentState = {
   initialized: false,
   monitoringLists: {},
+  cometContracts: [],
   lastHandledBlock: 0,
   initializationBlock: 0,
 };

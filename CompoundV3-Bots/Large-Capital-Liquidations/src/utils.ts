@@ -1,5 +1,5 @@
 import { LogDescription, ethers } from "forta-agent";
-import { MulticallProvider } from "forta-agent-tools";
+import { MulticallContract, MulticallProvider } from "forta-agent-tools";
 
 export interface NetworkData {
   cometContracts: Array<{
@@ -23,6 +23,13 @@ export interface BorrowPosition {
 export interface AgentState {
   initialized: boolean;
   monitoringLists: Record<string, Array<BorrowPosition>>;
+  cometContracts: Array<{
+    comet: ethers.Contract;
+    multicallComet: MulticallContract;
+    threshold: ethers.BigNumber;
+    deploymentBlock: number;
+    monitoringListLength: number;
+  }>;
   lastHandledBlock: number;
   initializationBlock: number;
 }
