@@ -46,7 +46,7 @@ export const provideInitializeTask = (
     });
 
     // for each block range
-    for (; blockCursor < currentBlock; blockCursor += blockRange) {
+    for (; blockCursor <= currentBlock; blockCursor += blockRange) {
       if (state.lastHandledBlock) currentBlock = state.lastHandledBlock;
 
       const toBlock = Math.min(blockCursor + blockRange - 1, currentBlock);
