@@ -74,11 +74,11 @@ configured in the `agent.config.ts` file.
 Besides unit tests, you can also test this bot with real data. First, set up
 an Ethereum Mainnet RPC in your `forta.config.json` file, then enable the
 debug mode in `agent.config.ts` by setting the `DEBUG` flag to `true`. This
-will mainly make it possible to test the initialization step. Now, build the
-bot using `npm run build` and then run:
+will mainly make it possible to test the initialization step. Now, run the
+following command to execute the bot in a block range:
 
 ```
-npx forta-agent run --range 15419040..15419043
+npm run range 15419040..15419043
 ```
 
 The bot will, in the initialization step, get all potential borrowers through
