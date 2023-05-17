@@ -186,7 +186,7 @@ describe("Bot Test Suite", () => {
           return await mockProvider.call({ data, to, from }, await provider.getBlockNumber());
         }
 
-        if (to.toLowerCase() !== MAINNET_MULTICALL_ADDRESS) {
+        if (addr(to) !== addr(MAINNET_MULTICALL_ADDRESS)) {
           return await _call({ data, to, from });
         }
 
@@ -203,7 +203,7 @@ describe("Bot Test Suite", () => {
           results.map((result) => ({ success: true, returnData: result })),
         ]);
       } catch {
-        if (COMET.some((comet) => comet.address.toLowerCase() === to.toLowerCase())) {
+        if (COMET.some((comet) => addr(comet.address) === addr(to))) {
           const tx = COMET_IFACE.parseTransaction({ data });
           throw new Error(
             `Error while trying to call ${tx.name}(${tx.args
@@ -221,18 +221,18 @@ describe("Bot Test Suite", () => {
     const latestBlock = await provider.getBlockNumber();
 
     const block = (tag: number | "latest") => (tag === "latest" ? latestBlock : tag);
-    const principal = (comet: string, addr: string) => {
-      comet = comet.toLowerCase();
+    const principal = (comet: string, user: string) => {
+      comet = addr(comet);
       if (!userPrincipals[comet]) userPrincipals[comet] = {};
-      return userPrincipals[comet][addr.toLowerCase()] || ethers.constants.Zero;
+      return userPrincipals[comet][addr(user)] || ethers.constants.Zero;
     };
-    const setPrincipal = (comet: string, addr: string, value: ethers.BigNumber) =>
-      (userPrincipals[comet.toLowerCase()][addr.toLowerCase()] = value);
+    const setPrincipal = (comet: string, user: string, value: ethers.BigNumber) =>
+      (userPrincipals[addr(comet)][addr(user)] = value);
 
     [...interactions]
       .sort((a, b) => block(a.blockTag) - block(b.blockTag))
       .forEach((interaction) => {
-        const comet = interaction.comet.toLowerCase();
+        const comet = addr(interaction.comet);
         const blockTag = interaction.blockTag;
 
         const baseBorrowIndex = comet !== IRRELEVANT_ADDRESS ? baseBorrowIndexes[comet][latestBlock] : bn(1);
@@ -373,7 +373,7 @@ describe("Bot Test Suite", () => {
 
   async function setBaseIndexScale(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
     value = bn(value);
-    comet = comet.toLowerCase();
+    comet = addr(comet);
     const blockNumber = await block(blockTag);
 
     mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "baseIndexScale", {
@@ -387,7 +387,7 @@ describe("Bot Test Suite", () => {
 
   async function setBaseBorrowIndex(comet: string, value: ethers.BigNumberish, blockTag: number | "latest") {
     value = bn(value);
-    comet = comet.toLowerCase();
+    comet = addr(comet);
     const blockNumber = await block(blockTag);
 
     mockProvider.addCallTo(comet, blockNumber, COMET_IFACE, "totalsBasic", {
