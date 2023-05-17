@@ -437,6 +437,7 @@ describe("Bot Test Suite", () => {
         initializationResolve();
       },
       monitoringLists: {},
+      cometContracts: [],
       lastHandledBlock: 0,
       initializationBlock: 0,
     };
@@ -469,6 +470,18 @@ describe("Bot Test Suite", () => {
     await initialize();
     await initializationPromise;
     expect(state.initialized).toStrictEqual(true);
+  });
+
+  it("should correctly instantiate Comet contract objects", async () => {
+    await initialize();
+    await initializationPromise;
+
+    state.cometContracts.forEach((entry, idx) => {
+      expect(addr(entry.comet.address)).toStrictEqual(addr(COMET[idx].address));
+      expect(addr(entry.multicallComet.address)).toStrictEqual(addr(COMET[idx].address));
+      expect(entry.threshold.eq(COMET[idx].baseLargeThreshold)).toBe(true);
+      expect(entry.deploymentBlock).toStrictEqual(COMET[idx].deploymentBlock);
+    });
   });
 
   it("should correctly build a monitoring list based on previous interactions", async () => {
