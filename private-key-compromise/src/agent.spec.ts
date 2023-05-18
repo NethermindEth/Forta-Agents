@@ -136,6 +136,9 @@ describe("Detect Private Key Compromise", () => {
     persist: jest.fn(),
     load: jest.fn(),
   };
+  const mockMarketCapFetcher = {
+    getTopMarketCap: jest.fn(),
+  };
   let mockProvider: MockEthersProviderExtension;
   let mockFetch = jest.mocked(fetch, true);
   let initialize: Initialize;
@@ -150,6 +153,7 @@ describe("Detect Private Key Compromise", () => {
 
   const mockDataFetcher = {
     isEoa: jest.fn(),
+    getSymbol: jest.fn(),
   };
 
   beforeAll(() => {
@@ -161,7 +165,13 @@ describe("Detect Private Key Compromise", () => {
   beforeEach(async () => {
     mockProvider.setNetwork(mockChainId);
 
-    initialize = provideInitialize(networkManager, mockProvider as any, mockPersistenceHelper as any, mockDBKeys);
+    initialize = provideInitialize(
+      networkManager,
+      mockProvider as any,
+      mockPersistenceHelper as any,
+      mockDBKeys,
+      mockMarketCapFetcher as any
+    );
     const mockEnv = {};
     Object.assign(process.env, mockEnv);
 
@@ -184,6 +194,7 @@ describe("Detect Private Key Compromise", () => {
       mockBalanceFetcher,
       mockContractFetcher as any,
       mockDataFetcher as any,
+      mockMarketCapFetcher as any,
       mockPersistenceHelper as any,
       mockDBKeys
     );
@@ -203,6 +214,8 @@ describe("Detect Private Key Compromise", () => {
   };
 
   describe("Transaction handler test suite", () => {
+    when(mockMarketCapFetcher.getTopMarketCap).calledWith().mockReturnValue(["ABC", "DEF"]);
+
     it("returns empty findings if there is no native token transfers", async () => {
       const txEvent = new TestTransactionEvent();
 
@@ -280,6 +293,8 @@ describe("Detect Private Key Compromise", () => {
         .setFrom(senders[2]);
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
@@ -375,6 +390,7 @@ describe("Detect Private Key Compromise", () => {
       setTokenBalance(createAddress("0x99"), 1, senders[3], "0");
 
       when(mockDataFetcher.isEoa).calledWith(receivers[1]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -419,6 +435,7 @@ describe("Detect Private Key Compromise", () => {
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
       when(mockDataFetcher.isEoa).calledWith(receivers[2]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
