@@ -1,9 +1,20 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, Label, EntityType } from "forta-agent";
+import {
+  FindingType,
+  FindingSeverity,
+  Finding,
+  HandleTransaction,
+  Label,
+  EntityType,
+  getEthersProvider,
+  createTransactionEvent,
+} from "forta-agent";
 import { provideHandleTransaction } from "./agent";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
-import { createAddress } from "forta-agent-tools";
+import { VictimIdentifier, createAddress } from "forta-agent-tools";
+import { keys } from "./keys";
 
+jest.setTimeout(500000);
 class TestTransactionEventExtended extends TestTransactionEvent {
   constructor() {
     super();
@@ -164,6 +175,185 @@ describe("Victim Identifier bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(mockVictimIdentifer as any);
 
   describe("handleTransaction", () => {
+    it.only("tests performance", async () => {
+      const realProvider = getEthersProvider();
+      const handleRealTransaction = provideHandleTransaction(new VictimIdentifier(realProvider, keys));
+
+      // ------ Exploitation stage attack ------
+      const exploitationStageTxReceipt = await realProvider.getTransactionReceipt(
+        "0x4134c0d3351881823b4b4364a60c51dcebbc185786ab702c4ef74d8f9eeab042"
+      );
+
+      const exploitationStageTx = await realProvider.getTransaction(
+        "0x4134c0d3351881823b4b4364a60c51dcebbc185786ab702c4ef74d8f9eeab042"
+      );
+
+      // Lowercase all addresses in logs to match the real txEvent logs
+      const lowerCaseLogs = exploitationStageTxReceipt.logs.map((log) => {
+        return {
+          ...log,
+          address: log.address.toLowerCase(),
+        };
+      });
+
+      const exploitationTxEvent = createTransactionEvent({
+        transaction: {
+          hash: exploitationStageTxReceipt.transactionHash,
+          from: exploitationStageTxReceipt.from.toLowerCase(),
+          to: exploitationStageTxReceipt.to.toLowerCase(),
+          nonce: exploitationStageTx.nonce,
+          data: exploitationStageTx.data,
+          gas: "1",
+          gasPrice: exploitationStageTx.gasPrice!.toString(),
+          value: "0x0",
+          r: exploitationStageTx.r!,
+          s: exploitationStageTx.s!,
+          v: exploitationStageTx.v!.toFixed(),
+        },
+        block: {
+          number: exploitationStageTxReceipt.blockNumber,
+          hash: exploitationStageTxReceipt.blockHash,
+          timestamp: 1684408535,
+        },
+        logs: lowerCaseLogs,
+        contractAddress: null,
+      });
+
+      // ------ Preparation stage attack ------
+      const preparationStageTxReceipt = await realProvider.getTransactionReceipt(
+        "0x47260a3d2c2ff5f7500feeedac8891b63f24a7a72be1cadf30c37110c7fe94ca"
+      );
+
+      const preparationStageTx = await realProvider.getTransaction(
+        "0x47260a3d2c2ff5f7500feeedac8891b63f24a7a72be1cadf30c37110c7fe94ca"
+      );
+
+      // Lowercase all addresses in logs to match the real txEvent logs
+      const lowerCaseLogs2 = preparationStageTxReceipt.logs.map((log) => {
+        return {
+          ...log,
+          address: log.address.toLowerCase(),
+        };
+      });
+
+      const preparationStageTxEvent = createTransactionEvent({
+        transaction: {
+          hash: preparationStageTxReceipt.transactionHash,
+          from: preparationStageTxReceipt.from.toLowerCase(),
+          to: null,
+          nonce: preparationStageTx.nonce,
+          data: preparationStageTx.data,
+          gas: "1",
+          gasPrice: preparationStageTx.gasPrice!.toString(),
+          value: "0x0",
+          r: preparationStageTx.r!,
+          s: preparationStageTx.s!,
+          v: preparationStageTx.v!.toFixed(),
+        },
+        block: {
+          number: preparationStageTxReceipt.blockNumber,
+          hash: preparationStageTxReceipt.blockHash,
+          timestamp: 1684408535,
+        },
+        logs: lowerCaseLogs2,
+        contractAddress: null,
+      });
+
+      // ------ Normal Transaction ------
+      const normalTxReceipt = await realProvider.getTransactionReceipt(
+        "0x1de511c1cbe1cbda7051780de06b337c4cd211ef3801d4b46c79d2102e6a1143"
+      );
+
+      const normalTx = await realProvider.getTransaction(
+        "0x1de511c1cbe1cbda7051780de06b337c4cd211ef3801d4b46c79d2102e6a1143"
+      );
+
+      // Lowercase all addresses in logs to match the real txEvent logs
+      const lowerCaseLogs3 = normalTxReceipt.logs.map((log) => {
+        return {
+          ...log,
+          address: log.address.toLowerCase(),
+        };
+      });
+
+      const normalTxEvent = createTransactionEvent({
+        transaction: {
+          hash: normalTxReceipt.transactionHash,
+          from: normalTxReceipt.from.toLowerCase(),
+          to: normalTxReceipt.to.toLowerCase(),
+          nonce: normalTx.nonce,
+          data: normalTx.data,
+          gas: "1",
+          gasPrice: normalTx.gasPrice!.toString(),
+          value: "0x0",
+          r: normalTx.r!,
+          s: normalTx.s!,
+          v: normalTx.v!.toFixed(),
+        },
+        block: {
+          number: normalTxReceipt.blockNumber,
+          hash: normalTxReceipt.blockHash,
+          timestamp: 1684408535,
+        },
+        logs: lowerCaseLogs3,
+        contractAddress: null,
+      });
+
+      //     Chain: Blocktime, Number of Tx -> Avg processing time in ms target
+      //     Ethereum: 12s, 150 -> 80ms
+      //     BSC: 3s, 70 -> 43ms
+      //     Polygon: 2s, 50 -> 40ms
+      //     Avalanche: 2s, 5 -> 400ms
+      //     Arbitrum: 1s, 5 -> 200ms
+      //     Optimism: 24s, 150 -> 160ms
+      //     Fantom: 1s, 5 -> 200ms
+
+      //      local testing reveals an avg processing time of 500, which results in the following sharding config:
+      //      Ethereum: 12s, 150 -> 80ms - 7
+      //      BSC: 3s, 70 -> 43ms - 12
+      //      Polygon: 2s, 50 -> 40ms - 13
+      //      Avalanche: 2s, 5 -> 400ms - 2
+      //      Arbitrum: 1s, 5 -> 200ms - 3
+      //      Optimism: 24s, 150 -> 160ms - 4
+      //      Fantom: 1s, 5 -> 200ms - 3
+
+      const processingRuns = 15;
+      let totalTimeExploitationStageAttack = 0;
+      let totalTimePreparationStageAttack = 0;
+      let totalTimeNormalTx = 0;
+      for (let i = 0; i < processingRuns; i++) {
+        const startTimeExploitationStageAttack = performance.now();
+        await handleRealTransaction(exploitationTxEvent);
+        const endTimeExploitationStageAttack = performance.now();
+        totalTimeExploitationStageAttack += endTimeExploitationStageAttack - startTimeExploitationStageAttack;
+
+        const startTimePreparationStageAttack = performance.now();
+        await handleRealTransaction(preparationStageTxEvent);
+        const endTimePreparationStageAttack = performance.now();
+        totalTimePreparationStageAttack += endTimePreparationStageAttack - startTimePreparationStageAttack;
+
+        const startTimeNormalTx = performance.now();
+        await handleRealTransaction(normalTxEvent);
+        const endTimeNormalTx = performance.now();
+        totalTimeNormalTx += endTimeNormalTx - startTimeNormalTx;
+      }
+      const processingTimeExploitationStage = totalTimeExploitationStageAttack / processingRuns;
+      const processingTimePreparationStage = totalTimePreparationStageAttack / processingRuns;
+      const processingTimeNormalTx = totalTimeNormalTx / processingRuns;
+      console.log(
+        (processingTimeExploitationStage * 0.07 +
+          processingTimePreparationStage * 0.01 +
+          processingTimeNormalTx * 0.92) /
+          3
+      );
+      expect(
+        (processingTimeExploitationStage * 0.07 +
+          processingTimePreparationStage * 0.01 +
+          processingTimeNormalTx * 0.92) /
+          3
+      ).toBeLessThan(500);
+    });
+
     it("returns empty findings if there are no victims", async () => {
       const mockTxEvent = new TestTransactionEvent();
 

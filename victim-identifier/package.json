@@ -13,17 +13,29 @@
     43114
   ],
   "chainSettings": {
-    "default": {
-      "shards": 4,
-      "target": 2
-    },
     "1": {
-      "shards": 5,
-      "target": 2
+      "shards": 7,
+      "target": 3
     },
     "56": {
-      "shards": 5,
-      "target": 2
+      "shards": 12,
+      "target": 3
+    },
+    "137": {
+      "shards": 13,
+      "target": 3
+    },
+    "43114": {
+      "shards": 2,
+      "target": 3
+    },
+    "10": {
+      "shards": 4,
+      "target": 3
+    },
+    "default": {
+      "shards": 3,
+      "target": 3
     }
   },
   "scripts": {
@@ -46,7 +58,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "0.1.24",
+    "forta-agent": "^0.1.31",
     "forta-agent-tools": "^3.2.6"
   },
   "devDependencies": {
