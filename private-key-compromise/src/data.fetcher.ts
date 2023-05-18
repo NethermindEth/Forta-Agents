@@ -1,13 +1,19 @@
-import { providers } from "ethers";
+import { providers, Contract } from "ethers";
+import { Interface } from "ethers/lib/utils";
 import LRU from "lru-cache";
+import { SYMBOL_ABI } from "./utils";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
   private eoaCache: LRU<string, boolean>;
+  private symbolCache: LRU<string, string>;
+  private tokenContract: Contract;
 
   constructor(provider: providers.Provider) {
     this.provider = provider;
     this.eoaCache = new LRU<string, boolean>({ max: 10000 });
+    this.symbolCache = new LRU<string, string>({ max: 10000 });
+    this.tokenContract = new Contract("", new Interface(SYMBOL_ABI), this.provider);
   }
 
   isEoa = async (address: string) => {
@@ -30,4 +36,20 @@ export default class DataFetcher {
     this.eoaCache.set(address, isEoa);
     return isEoa;
   };
+
+  public async getSymbol(tokenAddress: string, block: number): Promise<string> {
+    if (this.symbolCache.has(tokenAddress)) return this.symbolCache.get(tokenAddress) as string;
+
+    const token = this.tokenContract.attach(tokenAddress);
+
+    const symbol = (
+      await token.symbol({
+        blockTag: block,
+      })
+    ).toLowerCase();
+
+    this.symbolCache.set(tokenAddress, symbol);
+
+    return symbol;
+  }
 }

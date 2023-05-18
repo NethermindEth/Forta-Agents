@@ -15,6 +15,7 @@ import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
 import ContractFetcher from "./contract.fetcher";
+import MarketCapFetcher from "./marketcap.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
 import CONFIG from "./bot.config";
 import { keys } from "./keys";
@@ -36,6 +37,7 @@ let isRelevantChain: boolean;
 let transfersCount = 0;
 let ercTransferCount = 0;
 let transactionsProcessed = 0;
+let topTokens: string[] = [];
 
 let lastBlock = 0;
 
@@ -46,7 +48,8 @@ export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
-  databaseKeys: { transfersKey: string; alertedAddressesKey: string }
+  databaseKeys: { transfersKey: string; alertedAddressesKey: string },
+  marketCapFetcher: MarketCapFetcher
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
@@ -58,6 +61,8 @@ export const provideInitialize = (
 
     //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
     isRelevantChain = [10, 250, 43114].includes(Number(chainId));
+
+    topTokens = await marketCapFetcher.getTopMarketCap();
   };
 };
 
@@ -68,6 +73,7 @@ export const provideHandleTransaction =
     balanceFetcher: BalanceFetcher,
     contractFetcher: ContractFetcher,
     dataFetcher: DataFetcher,
+    marketCapFetcher: MarketCapFetcher,
     persistenceHelper: PersistenceHelper,
     databaseKeys: { transfersKey: string; alertedAddressesKey: string }
   ) =>
@@ -82,6 +88,11 @@ export const provideHandleTransaction =
       timestamp,
       blockNumber,
     } = txEvent;
+
+    // fetch top tokens list sorted by market cap in every 6 hours
+    if (blockNumber % 1800 == 0) {
+      topTokens = await marketCapFetcher.getTopMarketCap();
+    }
 
     // At the beginning of the block
     if (blockNumber != lastBlock) {
@@ -184,53 +195,58 @@ export const provideHandleTransaction =
         transferFunctions.map(async (transfer) => {
           if (isRelevantChain) ercTransferCount++;
 
-          // check only if the to address is not inside alertedAddresses
-          if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
-            if (await dataFetcher.isEoa(transfer.args.to)) {
-              const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
-                transfer.args.to,
-                Number(chainId),
-                true
-              );
+          // check top 100 tokens in the market
+          const symbol = await dataFetcher.getSymbol(transfer.address, blockNumber);
 
-              if (!hasHighNumberOfTotalTxs) {
-                const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
+          if (topTokens.includes(symbol)) {
+            if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
+              // check only if the to address is not inside alertedAddresses
+              if (await dataFetcher.isEoa(transfer.args.to)) {
+                const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+                  transfer.args.to,
+                  Number(chainId),
+                  true
+                );
 
-                if (balanceFrom.eq(0)) {
-                  await updateRecord(from, transfer.args.to, transfer.address, transferObj);
+                if (!hasHighNumberOfTotalTxs) {
+                  const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
 
-                  // if there are multiple transfers to the same address, emit an alert
-                  if (transferObj[transfer.args.to].length > 3) {
-                    alertedAddresses = await persistenceHelper.load(
-                      databaseKeys.alertedAddressesKey.concat("-", chainId)
-                    );
+                  if (balanceFrom.eq(0)) {
+                    await updateRecord(from, transfer.args.to, transfer.address, transferObj);
 
-                    if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                      alertedAddresses.push({
-                        address: transfer.args.to,
-                        timestamp: txEvent.timestamp,
-                      });
-                      await persistenceHelper.persist(
-                        alertedAddresses,
+                    // if there are multiple transfers to the same address, emit an alert
+                    if (transferObj[transfer.args.to].length > 3) {
+                      alertedAddresses = await persistenceHelper.load(
                         databaseKeys.alertedAddressesKey.concat("-", chainId)
                       );
 
-                      const anomalyScore = await calculateAlertRate(
-                        Number(chainId),
-                        BOT_ID,
-                        "PKC-1",
-                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                        ercTransferCount
-                      );
-                      findings.push(
-                        createFinding(
-                          hash,
-                          transferObj[transfer.args.to].map((el) => el.victimAddress),
-                          transfer.args.to,
-                          transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                          anomalyScore
-                        )
-                      );
+                      if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                        alertedAddresses.push({
+                          address: transfer.args.to,
+                          timestamp: txEvent.timestamp,
+                        });
+                        await persistenceHelper.persist(
+                          alertedAddresses,
+                          databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        );
+
+                        const anomalyScore = await calculateAlertRate(
+                          Number(chainId),
+                          BOT_ID,
+                          "PKC-1",
+                          isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                          ercTransferCount
+                        );
+                        findings.push(
+                          createFinding(
+                            hash,
+                            transferObj[transfer.args.to].map((el) => el.victimAddress),
+                            transfer.args.to,
+                            transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                            anomalyScore
+                          )
+                        );
+                      }
                     }
                   }
                 }
@@ -249,7 +265,8 @@ export default {
     networkManager,
     getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
-    DATABASE_OBJECT_KEYS
+    DATABASE_OBJECT_KEYS,
+    new MarketCapFetcher()
   ),
   handleTransaction: provideHandleTransaction(
     getEthersProvider(),
@@ -257,6 +274,7 @@ export default {
     new BalanceFetcher(getEthersProvider()),
     new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider()),
+    new MarketCapFetcher(),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS
   ),

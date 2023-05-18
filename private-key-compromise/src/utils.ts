@@ -28,6 +28,7 @@ export type AlertedAddress = {
 export const ERC20_TRANSFER_FUNCTION = "function transfer(address to, uint256 amount) public";
 
 export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
+export const SYMBOL_ABI = ["function symbol() external view returns (string)"];
 
 export const updateRecord = async (from: string, to: string, asset: string, transferObj: Transfer) => {
   /**
