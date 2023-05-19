@@ -1,3 +1,4 @@
+export const MAX_FINDINGS = 50;
 export const COMET_ABI = [
   "event Supply(address indexed from, address indexed dst, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",

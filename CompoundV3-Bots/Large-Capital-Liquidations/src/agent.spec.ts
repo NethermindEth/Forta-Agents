@@ -440,6 +440,7 @@ describe("Bot Test Suite", () => {
       cometContracts: [],
       lastHandledBlock: 0,
       initializationBlock: 0,
+      findingBuffer: [],
     };
 
     await Promise.all(

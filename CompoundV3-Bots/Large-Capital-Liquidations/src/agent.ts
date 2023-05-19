@@ -3,7 +3,7 @@ import Bottleneck from "bottleneck";
 import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agent-tools";
 
 import CONFIG, { DEBUG, DEBUG_CONFIG, DEBUG_CURRENT_BLOCK } from "./agent.config";
-import { COMET_ABI } from "./constants";
+import { COMET_ABI, MAX_FINDINGS } from "./constants";
 import {
   addPositionsToMonitoringList,
   AgentState,
@@ -163,8 +163,6 @@ export const provideHandleBlock = (
         ? Math.min(state.initializationBlock + 1, blockEvent.blockNumber)
         : blockEvent.blockNumber;
 
-    const findings: Finding[] = [];
-
     // asynchronously for each Comet contract
     await Promise.all(
       state.cometContracts.map(async ({ comet, multicallComet, threshold, monitoringListLength }) => {
@@ -185,7 +183,7 @@ export const provideHandleBlock = (
         // if there's a big absorption, emit a finding
         cometLogs.forEach((log) => {
           if (log.name === "AbsorbDebt" && (log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
-            findings.push(
+            state.findingBuffer.push(
               createAbsorbFinding(comet.address, log.args.absorber, log.args.borrower, log.args.basePaidOut, chainId)
             );
           }
@@ -233,7 +231,7 @@ export const provideHandleBlock = (
         // if an eligible borrow position is not collateralized, emit a finding and set its alert timestamp
         eligiblePositions.forEach((entry, idx) => {
           if (!borrowerStatuses[idx]) {
-            findings.push(
+            state.findingBuffer.push(
               createLiquidationRiskFinding(
                 comet.address,
                 entry.borrower,
@@ -247,7 +245,13 @@ export const provideHandleBlock = (
       })
     );
 
-    return findings;
+    if (state.findingBuffer.length > MAX_FINDINGS) {
+      console.warn(
+        `The finding limit for the block ${blockEvent.blockNumber} has been reached - some findings were stored and will be sent in future blocks`
+      );
+    }
+
+    return state.findingBuffer.splice(0, MAX_FINDINGS);
   };
 };
 
@@ -260,6 +264,7 @@ const state: AgentState = {
   cometContracts: [],
   lastHandledBlock: 0,
   initializationBlock: 0,
+  findingBuffer: [],
 };
 
 export default {

@@ -1,4 +1,4 @@
-import { LogDescription, ethers } from "forta-agent";
+import { Finding, LogDescription, ethers } from "forta-agent";
 import { MulticallContract, MulticallProvider } from "forta-agent-tools";
 
 export interface NetworkData {
@@ -32,6 +32,7 @@ export interface AgentState {
   }>;
   lastHandledBlock: number;
   initializationBlock: number;
+  findingBuffer: Finding[];
 }
 
 export type AgentConfig = Record<number, NetworkData>;
