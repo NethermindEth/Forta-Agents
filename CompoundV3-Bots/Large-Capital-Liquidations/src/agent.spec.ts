@@ -5,7 +5,7 @@ import { Log } from "@ethersproject/abstract-provider";
 
 import { provideInitialize, provideHandleBlock } from "./agent";
 import { AgentConfig, AgentState, NetworkData } from "./utils";
-import { COMET_ABI } from "./constants";
+import { COMET_ABI, MAX_FINDINGS } from "./constants";
 
 const addr = createChecksumAddress;
 const bn = ethers.BigNumber.from;
@@ -1132,6 +1132,91 @@ describe("Bot Test Suite", () => {
           presentValue(COMET[1].address, largePrincipals[1]),
           network,
           finalBlockNumber
+        ),
+      ].sort()
+    );
+  });
+
+  it("should buffer findings and send them in future blocks if necessary", async () => {
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber).setTimestamp(10);
+
+    const baseBorrowIndexes = { [COMET[0].address]: bn(10), [COMET[1].address]: bn(20) };
+    const baseIndexScales = { [COMET[0].address]: bn(2), [COMET[1].address]: bn(3) };
+    const principalValue = (comet: string, amount: ethers.BigNumberish) =>
+      baseIndexScales[comet].mul(amount).div(baseBorrowIndexes[comet]);
+    const presentValue = (comet: string, amount: ethers.BigNumberish) =>
+      baseBorrowIndexes[comet].mul(amount).div(baseIndexScales[comet]);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, baseBorrowIndexes[comet.address], "latest");
+        await setBaseIndexScale(comet.address, baseIndexScales[comet.address], "latest");
+      })
+    );
+
+    const largePrincipals = COMET.map((comet) => principalValue(comet.address, comet.baseLargeThreshold));
+    const users = new Array({ length: MAX_FINDINGS + 1 }).map((_, idx) => addr(`0xb${idx}`));
+
+    const interactions = users.map((user, idx) =>
+      withdraw(COMET[idx & 1].address, user, largePrincipals[idx & 1], "latest")
+    );
+
+    await Promise.all(
+      users.map(async (user, idx) => {
+        await setIsBorrowCollateralized(COMET[idx & 1].address, user, false, "latest");
+      })
+    );
+    await processInteractions(interactions);
+
+    const expectedFindings = users.map((user, idx) =>
+      createLiquidationRiskFinding(
+        COMET[idx & 1].address,
+        user,
+        presentValue(COMET[idx & 1].address, largePrincipals[idx & 1]),
+        network,
+        blockNumber
+      )
+    );
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings.sort()).toStrictEqual([...expectedFindings.slice(0, MAX_FINDINGS)].sort());
+
+    const nextBlockNumber = blockNumber + 1;
+    mockProvider.setLatestBlock(nextBlockNumber);
+    const nextBlockEvent = new TestBlockEvent()
+      .setNumber(nextBlockNumber)
+      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, baseBorrowIndexes[comet.address], "latest");
+        await setBaseIndexScale(comet.address, baseIndexScales[comet.address], "latest");
+      })
+    );
+
+    await Promise.all(
+      users.map(async (user, idx) => {
+        await setIsBorrowCollateralized(COMET[idx & 1].address, user, true, "latest");
+      })
+    );
+    await setIsBorrowCollateralized(COMET[0].address, users[0], false, "latest");
+
+    const nextFindings = await handleBlock(nextBlockEvent);
+    expect(nextFindings.sort()).toStrictEqual(
+      [
+        ...expectedFindings.slice(MAX_FINDINGS),
+        createLiquidationRiskFinding(
+          COMET[0].address,
+          users[0],
+          presentValue(COMET[0].address, largePrincipals[0]),
+          network,
+          nextBlockNumber
         ),
       ].sort()
     );
