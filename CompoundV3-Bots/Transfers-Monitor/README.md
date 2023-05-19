@@ -28,11 +28,10 @@ executed through `npm run test`, set up an Ethereum Mainnet RPC on your
 `forta.config.json` file and run:
 
 ````
-npm run tx
-```0x650fe00b758d9e8a3467bfbba7bed2035c03603080558d47973e6c0e6b80e45a
+npm run tx 0x650fe00b758d9e8a3467bfbba7bed2035c03603080558d47973e6c0e6b80e45a
+```
 
 This transaction is the execution of the [Initialize Compound III (USDC on Ethereum)](https://compound.finance/governance/proposals/116)
 proposal, which included the transfer of 500000 USDC as initial reserves. As
 expected, since there is no matching `Supply` or `BuyCollateral` event
 emission from the `cUSDCv3` contract, a finding is emitted.
-````
