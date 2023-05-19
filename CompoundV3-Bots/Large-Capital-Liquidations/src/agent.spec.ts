@@ -1070,20 +1070,22 @@ describe("Bot Test Suite", () => {
     await setIsBorrowCollateralized(COMET[0].address, addr("0xb5"), false, "latest");
 
     const nextFindings = await handleBlock(nextBlockEvent);
-    expect(nextFindings.sort()).toStrictEqual([
-      createLiquidationRiskFinding(
-        COMET[0].address,
-        addr("0xb2"),
-        presentValue(COMET[0].address, largePrincipals[0]),
-        network
-      ),
-      createLiquidationRiskFinding(
-        COMET[0].address,
-        addr("0xb5"),
-        presentValue(COMET[0].address, largePrincipals[0].add(1)),
-        network
-      ),
-    ]);
+    expect(nextFindings.sort()).toStrictEqual(
+      [
+        createLiquidationRiskFinding(
+          COMET[0].address,
+          addr("0xb2"),
+          presentValue(COMET[0].address, largePrincipals[0]),
+          network
+        ),
+        createLiquidationRiskFinding(
+          COMET[0].address,
+          addr("0xb5"),
+          presentValue(COMET[0].address, largePrincipals[0].add(1)),
+          network
+        ),
+      ].sort()
+    );
 
     const finalBlockNumber = blockNumber + 1;
     mockProvider.setLatestBlock(finalBlockNumber);
@@ -1106,19 +1108,21 @@ describe("Bot Test Suite", () => {
     await setIsBorrowCollateralized(COMET[0].address, addr("0xb5"), false, "latest");
 
     const finalFindings = await handleBlock(finalBlockEvent);
-    expect(finalFindings.sort()).toStrictEqual([
-      createLiquidationRiskFinding(
-        COMET[0].address,
-        addr("0xb0"),
-        presentValue(COMET[0].address, largePrincipals[0]),
-        network
-      ),
-      createLiquidationRiskFinding(
-        COMET[1].address,
-        addr("0xb1"),
-        presentValue(COMET[1].address, largePrincipals[1]),
-        network
-      ),
-    ]);
+    expect(finalFindings.sort()).toStrictEqual(
+      [
+        createLiquidationRiskFinding(
+          COMET[0].address,
+          addr("0xb0"),
+          presentValue(COMET[0].address, largePrincipals[0]),
+          network
+        ),
+        createLiquidationRiskFinding(
+          COMET[1].address,
+          addr("0xb1"),
+          presentValue(COMET[1].address, largePrincipals[1]),
+          network
+        ),
+      ].sort()
+    );
   });
 });
