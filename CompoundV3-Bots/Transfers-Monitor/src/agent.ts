@@ -1,11 +1,4 @@
-import {
-  Finding,
-  Initialize,
-  HandleTransaction,
-  TransactionEvent,
-  ethers,
-  getEthersProvider,
-} from "forta-agent";
+import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import { CometData, NetworkData, TransferLog } from "./utils";
 import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
@@ -23,9 +16,7 @@ export const provideInitialize = (
   };
 };
 
-export const provideHandleTransaction = (
-  networkManager: NetworkManager<NetworkData>
-): HandleTransaction => {
+export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const transferEvents: {
@@ -46,10 +37,7 @@ export const provideHandleTransaction = (
         const destinationComet = cometContracts.find(
           (comet) => comet.address.toLowerCase() === log.args.to.toLowerCase()
         );
-        if (
-          destinationComet &&
-          destinationComet.baseToken.toLowerCase() === log.address.toLowerCase()
-        ) {
+        if (destinationComet && destinationComet.baseToken.toLowerCase() === log.address.toLowerCase()) {
           transferEvents.push({
             destinationComet,
             from: log.args.from,
@@ -71,10 +59,7 @@ export const provideHandleTransaction = (
         for (const event of supplyBuyEvents) {
           if (!event.matched && event.address === cometAddress) {
             if (event.name === "Supply") {
-              if (
-                event.args.from === transfer.from &&
-                ethers.BigNumber.from(event.args.amount).eq(transfer.amount)
-              ) {
+              if (event.args.from === transfer.from && ethers.BigNumber.from(event.args.amount).eq(transfer.amount)) {
                 event.matched = true;
                 transferMatched = true;
                 break;

@@ -7,21 +7,14 @@ import {
   TransactionEvent,
   Network,
 } from "forta-agent";
-import {
-  MockEthersProvider,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/test";
+import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
 import { provideHandleTransaction, provideInitialize } from "./agent";
 import { AgentConfig, NetworkData } from "./utils";
 
-function createTransferFinding(
-  comet: string,
-  sender: string,
-  amount: ethers.BigNumberish
-): Finding {
+function createTransferFinding(comet: string, sender: string, amount: ethers.BigNumberish): Finding {
   return Finding.from({
     name: "Base token transfer on Comet contract",
     description:
@@ -48,12 +41,7 @@ const COMET_CONTRACTS = [
 const TEST_ADDRESSES = COMET_CONTRACTS.map((comet) => comet.address);
 const BASE_TOKENS = COMET_CONTRACTS.map((comet) => comet.baseToken);
 
-const TEST_USERS = [
-  createAddress("0x31"),
-  createAddress("0x32"),
-  createAddress("0x33"),
-  createAddress("0x34"),
-];
+const TEST_USERS = [createAddress("0x31"), createAddress("0x32"), createAddress("0x33"), createAddress("0x34")];
 
 const TRANSFER_IFACE = new Interface([TRANSFER_ABI]);
 const COMET_IFACE = new Interface([SUPPLY_ABI, BUY_COLLATERAL_ABI]);
@@ -118,33 +106,16 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
 
   it("returns empty findings if Transfer event was emitted with matching Supply event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        500,
-      ])
-      .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        500,
-      ]);
+      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [TEST_USERS[0], TEST_ADDRESSES[0], 500])
+      .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[0], [TEST_USERS[0], TEST_ADDRESSES[0], 500]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
   it("returns empty findings if Transfer event was emitted with matching BuyCollateral event", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        500,
-      ])
-      .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[0], [
-        TEST_USERS[0],
-        BASE_TOKENS[1],
-        500,
-        0,
-      ]);
+      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [TEST_USERS[0], TEST_ADDRESSES[0], 500])
+      .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[0], [TEST_USERS[0], BASE_TOKENS[1], 500, 0]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
@@ -163,16 +134,8 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
 
   it("returns a finding if Transfer event was emitted with matching Supply event but different amount", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        500,
-      ])
-      .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        200,
-      ]);
+      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [TEST_USERS[0], TEST_ADDRESSES[0], 500])
+      .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[0], [TEST_USERS[0], TEST_ADDRESSES[0], 200]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
@@ -181,17 +144,8 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
 
   it("returns a finding if Transfer event was emitted with matching BuyCollateral event but different amount", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent()
-      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [
-        TEST_USERS[0],
-        TEST_ADDRESSES[0],
-        500,
-      ])
-      .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[0], [
-        TEST_USERS[0],
-        BASE_TOKENS[1],
-        200,
-        0,
-      ]);
+      .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[0], [TEST_USERS[0], TEST_ADDRESSES[0], 500])
+      .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[0], [TEST_USERS[0], BASE_TOKENS[1], 200, 0]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
       createTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
@@ -201,42 +155,13 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   it("returns one finding when multiple transfers happen but one does not have a Supply/BuyCollateral matching event", async () => {
     for (let i = 0; i < TEST_ADDRESSES.length; i++) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[0],
-          TEST_ADDRESSES[i],
-          500,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[1],
-          TEST_ADDRESSES[i],
-          600,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[2],
-          TEST_ADDRESSES[i],
-          700,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[3],
-          TEST_ADDRESSES[i],
-          800,
-        ])
-        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [
-          TEST_USERS[0],
-          TEST_ADDRESSES[i],
-          500,
-        ])
-        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [
-          TEST_USERS[1],
-          TEST_ADDRESSES[i],
-          600,
-        ])
-        .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[i], [
-          TEST_USERS[2],
-          BASE_TOKENS[0],
-          700,
-          0,
-        ]);
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[0], TEST_ADDRESSES[i], 500])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[1], TEST_ADDRESSES[i], 600])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[2], TEST_ADDRESSES[i], 700])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[3], TEST_ADDRESSES[i], 800])
+        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [TEST_USERS[0], TEST_ADDRESSES[i], 500])
+        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [TEST_USERS[1], TEST_ADDRESSES[i], 600])
+        .addEventLog(COMET_IFACE.getEvent("BuyCollateral"), TEST_ADDRESSES[i], [TEST_USERS[2], BASE_TOKENS[0], 700, 0]);
 
       expect(await handleTransaction(txEvent)).toStrictEqual([
         createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[3], 800),
@@ -247,31 +172,11 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   it("returns multiple findings for different Transfer events", async () => {
     for (let i = 0; i < TEST_ADDRESSES.length; i++) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[0],
-          TEST_ADDRESSES[i],
-          500,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[0],
-          TEST_ADDRESSES[i],
-          500,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[2],
-          TEST_ADDRESSES[i],
-          700,
-        ])
-        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [
-          TEST_USERS[3],
-          TEST_ADDRESSES[i],
-          800,
-        ])
-        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [
-          TEST_USERS[0],
-          TEST_ADDRESSES[i],
-          500,
-        ]);
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[0], TEST_ADDRESSES[i], 500])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[0], TEST_ADDRESSES[i], 500])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[2], TEST_ADDRESSES[i], 700])
+        .addEventLog(TRANSFER_IFACE.getEvent("Transfer"), BASE_TOKENS[i], [TEST_USERS[3], TEST_ADDRESSES[i], 800])
+        .addEventLog(COMET_IFACE.getEvent("Supply"), TEST_ADDRESSES[i], [TEST_USERS[0], TEST_ADDRESSES[i], 500]);
 
       expect(await handleTransaction(txEvent)).toStrictEqual([
         createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[0], 500),
