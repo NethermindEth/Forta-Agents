@@ -25,7 +25,7 @@ function mockCreateTransferFinding(
   return Finding.from({
     name: "Base token transfer on Comet contract",
     description:
-      "A base token transfer was directed to a Comet contract, without a matching Supply, BuyCollateral event",
+      "A base token transfer was directed to a Comet contract without a matching Supply or BuyCollateral event",
     alertId: "COMP2-3",
     protocol: "Compound",
     type: FindingType.Info,
