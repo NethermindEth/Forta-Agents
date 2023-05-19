@@ -15,7 +15,8 @@ export function createAbsorbFinding(
   absorber: string,
   borrower: string,
   basePaidOut: ethers.BigNumberish,
-  chainId: number
+  chainId: number,
+  block: number
 ): Finding {
   return Finding.from({
     name: "Large borrow position absorption on Comet contract",
@@ -25,6 +26,7 @@ export function createAbsorbFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     metadata: {
+      block: block.toString(),
       chain: Network[chainId],
       comet,
       absorber,
@@ -39,7 +41,8 @@ export function createLiquidationRiskFinding(
   comet: string,
   borrower: string,
   positionSize: ethers.BigNumberish,
-  chainId: number
+  chainId: number,
+  block: number
 ): Finding {
   return Finding.from({
     name: "Large borrow position not collateralized on Comet contract",
@@ -49,6 +52,7 @@ export function createLiquidationRiskFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {
+      block: block.toString(),
       chain: Network[chainId],
       comet,
       borrower,
@@ -801,10 +805,10 @@ describe("Bot Test Suite", () => {
     const findings = await handleBlock(blockEvent);
     expect(findings.sort()).toStrictEqual(
       [
-        createAbsorbFinding(COMET[0].address, addr("0xa0"), addr("0xb0"), basePaidOuts[0], network),
-        createAbsorbFinding(COMET[1].address, addr("0xa0"), addr("0xb0"), basePaidOuts[1], network),
-        createAbsorbFinding(COMET[0].address, addr("0xa1"), addr("0xb1"), basePaidOuts[0].add(1), network),
-        createAbsorbFinding(COMET[1].address, addr("0xa2"), addr("0xb2"), basePaidOuts[1].add(1), network),
+        createAbsorbFinding(COMET[0].address, addr("0xa0"), addr("0xb0"), basePaidOuts[0], network, blockNumber),
+        createAbsorbFinding(COMET[1].address, addr("0xa0"), addr("0xb0"), basePaidOuts[1], network, blockNumber),
+        createAbsorbFinding(COMET[0].address, addr("0xa1"), addr("0xb1"), basePaidOuts[0].add(1), network, blockNumber),
+        createAbsorbFinding(COMET[1].address, addr("0xa2"), addr("0xb2"), basePaidOuts[1].add(1), network, blockNumber),
       ].sort()
     );
   });
@@ -1039,13 +1043,15 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb0"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network
+          network,
+          blockNumber
         ),
         createLiquidationRiskFinding(
           COMET[1].address,
           addr("0xb1"),
           presentValue(COMET[1].address, largePrincipals[1]),
-          network
+          network,
+          blockNumber
         ),
       ].sort()
     );
@@ -1077,13 +1083,15 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb2"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network
+          network,
+          nextBlockNumber
         ),
         createLiquidationRiskFinding(
           COMET[0].address,
           addr("0xb5"),
           presentValue(COMET[0].address, largePrincipals[0].add(1)),
-          network
+          network,
+          nextBlockNumber
         ),
       ].sort()
     );
@@ -1115,13 +1123,15 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb0"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network
+          network,
+          finalBlockNumber
         ),
         createLiquidationRiskFinding(
           COMET[1].address,
           addr("0xb1"),
           presentValue(COMET[1].address, largePrincipals[1]),
-          network
+          network,
+          finalBlockNumber
         ),
       ].sort()
     );

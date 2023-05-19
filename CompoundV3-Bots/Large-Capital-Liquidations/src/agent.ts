@@ -184,7 +184,14 @@ export const provideHandleBlock = (
         cometLogs.forEach((log) => {
           if (log.name === "AbsorbDebt" && (log.args.basePaidOut as ethers.BigNumber).gte(threshold)) {
             state.findingBuffer.push(
-              createAbsorbFinding(comet.address, log.args.absorber, log.args.borrower, log.args.basePaidOut, chainId)
+              createAbsorbFinding(
+                comet.address,
+                log.args.absorber,
+                log.args.borrower,
+                log.args.basePaidOut,
+                chainId,
+                blockEvent.blockNumber
+              )
             );
           }
         });
@@ -236,7 +243,8 @@ export const provideHandleBlock = (
                 comet.address,
                 entry.borrower,
                 presentValueBorrow(entry, baseBorrowIndex, baseIndexScale),
-                chainId
+                chainId,
+                blockEvent.blockNumber
               )
             );
             entry.alertedAt = blockEvent.block.timestamp;

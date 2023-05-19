@@ -5,7 +5,8 @@ export function createAbsorbFinding(
   absorber: string,
   borrower: string,
   basePaidOut: ethers.BigNumberish,
-  chainId: number
+  chainId: number,
+  block: number
 ): Finding {
   return Finding.from({
     name: "Large borrow position absorption on Comet contract",
@@ -15,6 +16,7 @@ export function createAbsorbFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     metadata: {
+      block: block.toString(),
       chain: Network[chainId] || chainId.toString(),
       comet: ethers.utils.getAddress(comet),
       absorber: ethers.utils.getAddress(absorber),
@@ -29,7 +31,8 @@ export function createLiquidationRiskFinding(
   comet: string,
   borrower: string,
   positionSize: ethers.BigNumberish,
-  chainId: number
+  chainId: number,
+  block: number
 ): Finding {
   return Finding.from({
     name: "Large borrow position not collateralized on Comet contract",
@@ -39,6 +42,7 @@ export function createLiquidationRiskFinding(
     type: FindingType.Info,
     severity: FindingSeverity.Info,
     metadata: {
+      block: block.toString(),
       chain: Network[chainId] || chainId.toString(),
       comet: ethers.utils.getAddress(comet),
       borrower: ethers.utils.getAddress(borrower),
