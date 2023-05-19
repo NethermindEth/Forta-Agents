@@ -13,8 +13,28 @@
     43114
   ],
   "chainSettings": {
-    "default": {
+    "1": {
+      "shards": 5,
+      "target": 3
+    },
+    "56": {
+      "shards": 9,
+      "target": 3
+    },
+    "137": {
+      "shards": 9,
+      "target": 3
+    },
+    "43114": {
+      "shards": 1,
+      "target": 3
+    },
+    "10": {
       "shards": 3,
+      "target": 3
+    },
+    "default": {
+      "shards": 2,
       "target": 2
     }
   },
@@ -40,7 +60,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.24",
+    "forta-agent": "^0.1.31",
     "lru-cache": "^7.14.1",
     "node-fetch": "^2.6.8",
     "dotenv": "^16.0.3"
