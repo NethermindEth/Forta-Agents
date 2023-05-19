@@ -17,7 +17,7 @@ import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
 
-function mockCreateTransferFinding(
+function createTransferFinding(
   comet: string,
   sender: string,
   amount: ethers.BigNumberish
@@ -157,7 +157,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
     );
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      mockCreateTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
+      createTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
     ]);
   });
 
@@ -175,7 +175,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
       ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      mockCreateTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
+      createTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
     ]);
   });
 
@@ -194,7 +194,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
       ]);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      mockCreateTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
+      createTransferFinding(TEST_ADDRESSES[0], TEST_USERS[0], 500),
     ]);
   });
 
@@ -239,7 +239,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
         ]);
 
       expect(await handleTransaction(txEvent)).toStrictEqual([
-        mockCreateTransferFinding(TEST_ADDRESSES[i], TEST_USERS[3], 800),
+        createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[3], 800),
       ]);
     }
   });
@@ -274,9 +274,9 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
         ]);
 
       expect(await handleTransaction(txEvent)).toStrictEqual([
-        mockCreateTransferFinding(TEST_ADDRESSES[i], TEST_USERS[0], 500),
-        mockCreateTransferFinding(TEST_ADDRESSES[i], TEST_USERS[2], 700),
-        mockCreateTransferFinding(TEST_ADDRESSES[i], TEST_USERS[3], 800),
+        createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[0], 500),
+        createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[2], 700),
+        createTransferFinding(TEST_ADDRESSES[i], TEST_USERS[3], 800),
       ]);
     }
   });
