@@ -1,6 +1,6 @@
 import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import { CometData, NetworkData, TransferLog } from "./utils";
+import { NetworkData } from "./utils";
 import { BUY_COLLATERAL_ABI, SUPPLY_ABI, TRANSFER_ABI } from "./constants";
 import CONFIG from "./agent.config";
 import { createTransferFinding } from "./finding";
@@ -19,72 +19,62 @@ export const provideInitialize = (
 export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const transferEvents: {
-      destinationComet: CometData;
-      from: string;
-      amount: ethers.BigNumberish;
-    }[] = [];
+
     const cometContracts = networkManager.get("cometContracts");
-    const cometAddresses = cometContracts.map((contract) => contract.address);
+    const cometAddresses = cometContracts.map((contract) => contract.address.toLowerCase());
+    const cometBaseTokens = cometContracts.map((contract) => contract.baseToken.toLowerCase());
 
-    // Filter the transaction logs for Transfer events in base tokens.
-    txEvent
-      .filterLog(
-        TRANSFER_ABI,
-        cometContracts.map((contract) => contract.baseToken)
-      )
-      .forEach((log) => {
-        const destinationComet = cometContracts.find(
-          (comet) => comet.address.toLowerCase() === log.args.to.toLowerCase()
-        );
-        if (destinationComet && destinationComet.baseToken.toLowerCase() === log.address.toLowerCase()) {
-          transferEvents.push({
-            destinationComet,
-            from: log.args.from,
-            amount: log.args.amount,
-          });
-        }
-      });
+    // filter the transaction logs for base tokens Transfer events
+    const transferEvents = txEvent
+      .filterLog(TRANSFER_ABI, cometBaseTokens)
+      .filter((log) => {
+        const cometIdx = cometAddresses.indexOf(log.args.to.toLowerCase());
 
-    if (transferEvents.length > 0) {
-      // get all Supply and BuyCollateral event logs
-      const supplyBuyEvents = txEvent
-        .filterLog([SUPPLY_ABI, BUY_COLLATERAL_ABI], cometAddresses)
-        .map((e1) => ({ ...e1, matched: false }));
+        return cometIdx !== -1 && cometBaseTokens[cometIdx] === log.address.toLowerCase();
+      })
+      .map((log) => ({
+        comet: log.args.to.toLowerCase(),
+        from: log.args.from.toLowerCase(),
+        amount: ethers.BigNumber.from(log.args.amount),
+      }));
 
-      transferEvents.forEach((transfer: TransferLog) => {
-        const cometAddress = transfer.destinationComet.address;
-        let transferMatched = false;
+    if (!transferEvents.length) return findings;
 
-        for (const event of supplyBuyEvents) {
-          if (!event.matched && event.address === cometAddress) {
-            if (event.name === "Supply") {
-              if (event.args.from === transfer.from && ethers.BigNumber.from(event.args.amount).eq(transfer.amount)) {
-                event.matched = true;
-                transferMatched = true;
-                break;
-              }
-            } else if (
-              event.args.buyer === transfer.from &&
-              ethers.BigNumber.from(event.args.baseAmount).eq(transfer.amount)
-            ) {
-              event.matched = true;
-              transferMatched = true;
-              break;
-            }
+    // filter Supply and BuyCollateral event logs
+    const supplyOrBuyLogs = txEvent
+      .filterLog([SUPPLY_ABI, BUY_COLLATERAL_ABI], cometAddresses)
+      .map((log) => ({ ...log, matched: false }));
+
+    transferEvents.forEach((transfer) => {
+      const comet = transfer.comet;
+
+      let transferMatched = false;
+
+      for (const log of supplyOrBuyLogs) {
+        if (log.matched || log.address.toLowerCase() !== comet) continue;
+
+        if (log.name === "Supply") {
+          if (transfer.from === log.args.from.toLowerCase() && transfer.amount.eq(log.args.amount)) {
+            log.matched = true;
+            transferMatched = true;
+            break;
+          }
+        } else if (log.name === "BuyCollateral") {
+          if (transfer.from === log.args.buyer.toLowerCase() && transfer.amount.eq(log.args.baseAmount)) {
+            log.matched = true;
+            transferMatched = true;
+            break;
           }
         }
-        if (!transferMatched)
-          findings.push(
-            createTransferFinding(
-              networkManager.getNetwork(),
-              transfer.destinationComet.address,
-              transfer.from,
-              transfer.amount
-            )
-          );
-      });
-    }
+      }
+
+      if (!transferMatched) {
+        findings.push(
+          createTransferFinding(networkManager.getNetwork(), transfer.comet, transfer.from, transfer.amount)
+        );
+      }
+    });
+
     return findings;
   };
 };
