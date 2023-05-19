@@ -84,10 +84,10 @@ const MULTICALL_IFACE = new ethers.utils.Interface([
 ]);
 const COMET_IFACE = new ethers.utils.Interface(COMET_ABI);
 
-const network = Network.MAINNET;
+const NETWORK = Network.MAINNET;
 
 const DEFAULT_CONFIG: AgentConfig = {
-  [network]: {
+  [NETWORK]: {
     cometContracts: COMET,
     alertInterval: 10,
     multicallSize: 10,
@@ -416,13 +416,13 @@ describe("Bot Test Suite", () => {
 
   beforeEach(async () => {
     mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+    mockProvider.setNetwork(NETWORK);
     mockProvider.setLatestBlock(10);
     generateMockProviderCall();
 
     provider = mockProvider as unknown as ethers.providers.JsonRpcProvider;
 
-    multicallProvider = new MulticallProvider(provider, network);
+    multicallProvider = new MulticallProvider(provider, NETWORK);
 
     userPrincipals = {};
     baseBorrowIndexes = {};
@@ -463,9 +463,9 @@ describe("Bot Test Suite", () => {
     await initialize();
     await initializationPromise;
 
-    expect(networkManager.getNetwork()).toStrictEqual(network);
+    expect(networkManager.getNetwork()).toStrictEqual(NETWORK);
 
-    Object.entries(DEFAULT_CONFIG[network]).forEach(([key, value]) => {
+    Object.entries(DEFAULT_CONFIG[NETWORK]).forEach(([key, value]) => {
       expect(networkManager.get(key as keyof NetworkData)).toStrictEqual(value);
     });
   });
@@ -805,10 +805,10 @@ describe("Bot Test Suite", () => {
     const findings = await handleBlock(blockEvent);
     expect(findings.sort()).toStrictEqual(
       [
-        createAbsorbFinding(COMET[0].address, addr("0xa0"), addr("0xb0"), basePaidOuts[0], network, blockNumber),
-        createAbsorbFinding(COMET[1].address, addr("0xa0"), addr("0xb0"), basePaidOuts[1], network, blockNumber),
-        createAbsorbFinding(COMET[0].address, addr("0xa1"), addr("0xb1"), basePaidOuts[0].add(1), network, blockNumber),
-        createAbsorbFinding(COMET[1].address, addr("0xa2"), addr("0xb2"), basePaidOuts[1].add(1), network, blockNumber),
+        createAbsorbFinding(COMET[0].address, addr("0xa0"), addr("0xb0"), basePaidOuts[0], NETWORK, blockNumber),
+        createAbsorbFinding(COMET[1].address, addr("0xa0"), addr("0xb0"), basePaidOuts[1], NETWORK, blockNumber),
+        createAbsorbFinding(COMET[0].address, addr("0xa1"), addr("0xb1"), basePaidOuts[0].add(1), NETWORK, blockNumber),
+        createAbsorbFinding(COMET[1].address, addr("0xa2"), addr("0xb2"), basePaidOuts[1].add(1), NETWORK, blockNumber),
       ].sort()
     );
   });
@@ -897,7 +897,7 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(nextBlockNumber);
     const nextBlockEvent = new TestBlockEvent()
       .setNumber(nextBlockNumber)
-      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
+      .setTimestamp(10 + DEFAULT_CONFIG[NETWORK].alertInterval - 1);
 
     await Promise.all(
       COMET.map(async (comet) => {
@@ -963,7 +963,7 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(nextBlockNumber);
     const nextBlockEvent = new TestBlockEvent()
       .setNumber(nextBlockNumber)
-      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
+      .setTimestamp(10 + DEFAULT_CONFIG[NETWORK].alertInterval - 1);
 
     await Promise.all(
       COMET.map(async (comet) => {
@@ -1043,14 +1043,14 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb0"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network,
+          NETWORK,
           blockNumber
         ),
         createLiquidationRiskFinding(
           COMET[1].address,
           addr("0xb1"),
           presentValue(COMET[1].address, largePrincipals[1]),
-          network,
+          NETWORK,
           blockNumber
         ),
       ].sort()
@@ -1060,7 +1060,7 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(nextBlockNumber);
     const nextBlockEvent = new TestBlockEvent()
       .setNumber(nextBlockNumber)
-      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval - 1);
+      .setTimestamp(10 + DEFAULT_CONFIG[NETWORK].alertInterval - 1);
 
     await Promise.all(
       COMET.map(async (comet) => {
@@ -1083,14 +1083,14 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb2"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network,
+          NETWORK,
           nextBlockNumber
         ),
         createLiquidationRiskFinding(
           COMET[0].address,
           addr("0xb5"),
           presentValue(COMET[0].address, largePrincipals[0].add(1)),
-          network,
+          NETWORK,
           nextBlockNumber
         ),
       ].sort()
@@ -1100,7 +1100,7 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(finalBlockNumber);
     const finalBlockEvent = new TestBlockEvent()
       .setNumber(finalBlockNumber)
-      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval);
+      .setTimestamp(10 + DEFAULT_CONFIG[NETWORK].alertInterval);
 
     await Promise.all(
       COMET.map(async (comet) => {
@@ -1123,14 +1123,14 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           addr("0xb0"),
           presentValue(COMET[0].address, largePrincipals[0]),
-          network,
+          NETWORK,
           finalBlockNumber
         ),
         createLiquidationRiskFinding(
           COMET[1].address,
           addr("0xb1"),
           presentValue(COMET[1].address, largePrincipals[1]),
-          network,
+          NETWORK,
           finalBlockNumber
         ),
       ].sort()
@@ -1178,7 +1178,7 @@ describe("Bot Test Suite", () => {
         COMET[idx & 1].address,
         user,
         presentValue(COMET[idx & 1].address, largePrincipals[idx & 1]),
-        network,
+        NETWORK,
         blockNumber
       )
     );
@@ -1191,7 +1191,7 @@ describe("Bot Test Suite", () => {
     mockProvider.setLatestBlock(nextBlockNumber);
     const nextBlockEvent = new TestBlockEvent()
       .setNumber(nextBlockNumber)
-      .setTimestamp(10 + DEFAULT_CONFIG[network].alertInterval);
+      .setTimestamp(10 + DEFAULT_CONFIG[NETWORK].alertInterval);
 
     await Promise.all(
       COMET.map(async (comet) => {
@@ -1215,7 +1215,7 @@ describe("Bot Test Suite", () => {
           COMET[0].address,
           users[0],
           presentValue(COMET[0].address, largePrincipals[0]),
-          network,
+          NETWORK,
           nextBlockNumber
         ),
       ].sort()
