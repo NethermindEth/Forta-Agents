@@ -7,7 +7,7 @@ import { keys } from "./keys";
 jest.setTimeout(200000);
 
 describe("Large Profit Bot test suite", () => {
-  it.only("tests performance", async () => {
+  it("tests performance", async () => {
     const realProvider = getEthersProvider();
     const handleRealTransaction = provideHandleTransaction(new Fetcher(realProvider, keys), realProvider);
     const largeProfitNoFindingTxReceipt = await realProvider.getTransactionReceipt(
@@ -139,11 +139,11 @@ describe("Large Profit Bot test suite", () => {
     //      local testing reveals an avg processing time of 350, which results in the following sharding config:
     //      Ethereum: 12s, 150 -> 80ms - 5
     //      BSC: 3s, 70 -> 43ms - 9
-    //      Polygon: 2s, 50 -> 40ms - 13
-    //      Avalanche: 2s, 5 -> 400ms - 2
-    //      Arbitrum: 1s, 5 -> 200ms - 3
-    //      Optimism: 24s, 150 -> 160ms - 4
-    //      Fantom: 1s, 5 -> 200ms - 3
+    //      Polygon: 2s, 50 -> 40ms - 9
+    //      Avalanche: 2s, 5 -> 400ms - 1
+    //      Arbitrum: 1s, 5 -> 200ms - 2
+    //      Optimism: 24s, 150 -> 160ms - 3
+    //      Fantom: 1s, 5 -> 200ms - 2
 
     const processingRuns = 15;
     let totalTimeLargeProfitNoFinding = 0;
