@@ -7,14 +7,14 @@ import {
   TransactionEvent,
   Network,
 } from "forta-agent";
-import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
-import { provideHandleTransaction, provideInitialize } from "./agent";
 import {
   MockEthersProvider,
   TestTransactionEvent,
 } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
 import { NetworkManager, createAddress } from "forta-agent-tools";
+import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import { AgentConfig, NetworkData } from "./utils";
 
 function createTransferFinding(
