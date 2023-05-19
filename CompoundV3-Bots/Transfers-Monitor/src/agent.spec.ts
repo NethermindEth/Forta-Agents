@@ -19,7 +19,7 @@ function createTransferFinding(comet: string, sender: string, amount: ethers.Big
     name: "Base token transfer on Comet contract",
     description:
       "A base token transfer was directed to a Comet contract without a matching Supply or BuyCollateral event",
-    alertId: "COMP2-3",
+    alertId: "COMP2-3-1",
     protocol: "Compound",
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
