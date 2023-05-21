@@ -2,34 +2,34 @@
 
 ## Description
 
-This bot detects large borrow positions liquidation risk and absorptions on
-Comet contracts.
+This bot detects large borrow positions liquidation risk and absorptions in
+Compound v3 Comet contracts.
 
 At startup, this bot filters all `Supply`, `Transfer`, `Withdraw` and
 `AbsorbDebt` events on the assigned Comet contracts, checks potential
 borrowers' principals and builds a list of the biggest borrowers. This process
-can take several minutes, especially considering there's some rate limiting
-on the log fetching to avoid problems with the bot runner provider limits.
+can take several minutes, especially considering rate limiting was added to
+the log fetching to avoid problems with the bot runner provider limits.
 This process is logged and should be available in the bot logs once it's
 running.
 
-Then, after this process is done, the bot handles block events. Filtering 
-principal-changing events, i.e. `Supply`, `Transfer`, `Withdraw` and
-`AbsorbDebt`, whenever one of those happens the potential borrower principal
-is fetched and it's added to the monitoring list. In the case of absorptions,
-if the absorbed amount is "large" then the associated finding is created.
+After the initialization process the bot will then handle block events. On
+each block:
 
-With this, all current "large" positions, based on the current borrow index
-and the principal, are then checked for borrow collateralization through
-calls to `isBorrowCollateralized`. If it's not, then a finding is emitted
-provided it has not been emitted shortly before (configurable through the
-`alertInterval` configuration field).
+* If there's a principal-changing event (`Supply`, `Transfer`, `Withdraw` and
+`AbsorbDebt`) happens the potential borrower principal is fetched and added
+to the monitoring list. In the case of absorptions, if the absorbed amount is
+"large" then the associated finding is directly created.
+* All the finding-eligible (based on the "large" threshold and alert cooldown)
+monitored positions are checked for borrow collateralization through calls to
+`isBorrowCollateralized`. For each uncollateralized borrow, a finding is
+emitted.
 
 The monitoring list has a size limit, but ideally its limit should not matter
 provided the "large" threshold users are all included in it and there's some
 buffer left. In the edge case that "large" users are potentially being ignored
 because all of them do not fit into the monitoring list, warning logs will be
-emitted.
+emitted and should be available in the bot logs.
 
 This is an overall safer approach than locally computing the borrow state
 because it does not require managing the collateral amounts locally, which can
@@ -46,7 +46,14 @@ configured in the `agent.config.ts` file.
 - Ethereum
 - Polygon
 
+More networks can easily be supported by adding the network parameters to
+`agent.config.ts` and the chain ID to the `chainIds` field in `package.json`!
+
 ## Alerts
+
+Below are the alerts that can be emitted from this bot. The title and
+description of the findings, as well as the severity and type, can be found
+and modified in the `src/finding.ts` file.
 
 - COMP2-4-1
   - Fired when there's a large debt absorption on a Comet contract
