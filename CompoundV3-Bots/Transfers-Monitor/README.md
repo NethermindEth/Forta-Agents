@@ -28,7 +28,7 @@ To test this bot against real data, beyond the unit tests, which can be
 executed through `npm run test`, set up an Ethereum Mainnet RPC on your
 `forta.config.json` file and run:
 
-````
+```
 npm run tx 0x650fe00b758d9e8a3467bfbba7bed2035c03603080558d47973e6c0e6b80e45a
 ```
 
