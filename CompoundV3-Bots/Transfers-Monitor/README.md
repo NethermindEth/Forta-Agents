@@ -12,14 +12,15 @@ This bot detects when a `Transfer` event on the base contract is directed to a C
 ## Alerts
 
 - COMP2-3-1
-  - Fired when a `Transfer` event is emitted on a base asset, directed to a comet contract, but there's no matching `BuyCollateral` or `Supply` event.
+  - Fired when a `Transfer` event is emitted on a base asset, directed to a
+  comet contract, but there's no matching `BuyCollateral` or `Supply` event.
   - Severity is always set to "Medium"
   - Type is always set to "Info"
   - Metadata:
-    - `chain`: Network ID or name.
-    - `cometContract`: address of the comet contract where the transfer is directed.
-    - `sender`: the first side of the transfer.
-    - `transferAmount`: amount that was transfered to the comet contract.
+    - `chain`: Network ID or name
+    - `comet`: Address of the comet contract that received the transfer
+    - `sender`: The sender of the transfer
+    - `transferAmount`: Amount that was transfered to the comet contract
 
 ## Test Data
 
