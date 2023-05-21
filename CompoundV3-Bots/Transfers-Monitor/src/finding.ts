@@ -1,7 +1,11 @@
-import { BigNumberish } from "ethers";
-import { Finding, FindingSeverity, FindingType, Network } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, Network } from "forta-agent";
 
-export function createTransferFinding(chainId: number, comet: string, sender: string, amount: BigNumberish): Finding {
+export function createTransferFinding(
+  chainId: number,
+  comet: string,
+  sender: string,
+  amount: ethers.BigNumberish
+): Finding {
   return Finding.from({
     name: "Base token transfer on Comet contract",
     description:
@@ -12,9 +16,10 @@ export function createTransferFinding(chainId: number, comet: string, sender: st
     severity: FindingSeverity.Medium,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
-      cometContract: comet,
-      sender,
+      cometContract: ethers.utils.getAddress(comet),
+      sender: ethers.utils.getAddress(sender),
       transferAmount: amount.toString(),
     },
+    addresses: [ethers.utils.getAddress(comet), ethers.utils.getAddress(sender)],
   });
 }
