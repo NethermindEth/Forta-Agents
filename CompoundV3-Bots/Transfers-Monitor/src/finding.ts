@@ -16,7 +16,7 @@ export function createTransferFinding(
     severity: FindingSeverity.Medium,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
-      cometContract: ethers.utils.getAddress(comet),
+      comet: ethers.utils.getAddress(comet),
       sender: ethers.utils.getAddress(sender),
       transferAmount: amount.toString(),
     },
