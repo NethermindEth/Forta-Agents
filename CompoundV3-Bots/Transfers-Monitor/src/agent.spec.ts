@@ -9,10 +9,12 @@ import {
 } from "forta-agent";
 import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { Interface } from "ethers/lib/utils";
-import { NetworkManager, createAddress } from "forta-agent-tools";
+import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { SUPPLY_ABI, TRANSFER_ABI, BUY_COLLATERAL_ABI } from "./constants";
 import { provideHandleTransaction, provideInitialize } from "./agent";
 import { AgentConfig, NetworkData } from "./utils";
+
+const addr = createChecksumAddress;
 
 function createTransferFinding(comet: string, sender: string, amount: ethers.BigNumberish): Finding {
   return Finding.from({
@@ -24,31 +26,32 @@ function createTransferFinding(comet: string, sender: string, amount: ethers.Big
     type: FindingType.Info,
     severity: FindingSeverity.Medium,
     metadata: {
-      chain: Network[network] || network.toString(),
-      cometContract: comet,
-      sender,
+      chain: Network[NETWORK],
+      comet: ethers.utils.getAddress(comet),
+      sender: ethers.utils.getAddress(sender),
       transferAmount: amount.toString(),
     },
+    addresses: [ethers.utils.getAddress(comet), ethers.utils.getAddress(sender)],
   });
 }
 
 const COMET_CONTRACTS = [
-  { address: createAddress("0x11a"), baseToken: createAddress("0x21f") },
-  { address: createAddress("0x12a"), baseToken: createAddress("0x22f") },
-  { address: createAddress("0x13a"), baseToken: createAddress("0x23F") },
-  { address: createAddress("0x14a"), baseToken: createAddress("0x24f") },
+  { address: addr("0x11a"), baseToken: addr("0x21f") },
+  { address: addr("0x12a"), baseToken: addr("0x22f") },
+  { address: addr("0x13a"), baseToken: addr("0x23F") },
+  { address: addr("0x14a"), baseToken: addr("0x24f") },
 ];
 const TEST_ADDRESSES = COMET_CONTRACTS.map((comet) => comet.address);
 const BASE_TOKENS = COMET_CONTRACTS.map((comet) => comet.baseToken);
 
-const TEST_USERS = [createAddress("0x31"), createAddress("0x32"), createAddress("0x33"), createAddress("0x34")];
+const TEST_USERS = [addr("0x31"), addr("0x32"), addr("0x33"), addr("0x34")];
 
 const TRANSFER_IFACE = new Interface([TRANSFER_ABI]);
 const COMET_IFACE = new Interface([SUPPLY_ABI, BUY_COLLATERAL_ABI]);
 
-const network = Network.MAINNET;
+const NETWORK = Network.MAINNET;
 const TEST_CONFIG: AgentConfig = {
-  [network]: { cometContracts: COMET_CONTRACTS },
+  [NETWORK]: { cometContracts: COMET_CONTRACTS },
 };
 
 describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
@@ -58,10 +61,10 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
 
   beforeEach(async () => {
     mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+    mockProvider.setNetwork(NETWORK);
 
     const provider = mockProvider as unknown as ethers.providers.Provider;
-    networkManager = new NetworkManager(TEST_CONFIG, network);
+    networkManager = new NetworkManager(TEST_CONFIG, NETWORK);
 
     const initialize = provideInitialize(networkManager, provider);
     handleTransaction = provideHandleTransaction(networkManager);
@@ -77,7 +80,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
   it("returns empty findings if Transfer happens in a non-baseToken contract", async () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       TRANSFER_IFACE.getEvent("Transfer"),
-      createAddress("0xffe"),
+      addr("0xffe"),
       [TEST_USERS[0], TEST_ADDRESSES[0], 200]
     );
 
@@ -98,7 +101,7 @@ describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
     const txEvent: TransactionEvent = new TestTransactionEvent().addEventLog(
       TRANSFER_IFACE.getEvent("Transfer"),
       BASE_TOKENS[0],
-      [TEST_USERS[0], createAddress("0xffa"), 200]
+      [TEST_USERS[0], addr("0xffa"), 200]
     );
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
