@@ -2,12 +2,17 @@
 
 ## Description
 
-This bot detects when a `Transfer` event on the base contract is directed to a Comet contract, but it's not associated with a `BuyCollateral` or `Supply` event.
+This bot detects when a `Transfer` event on the base contract is directed to a
+Compound v3 Comet contract, but it's not associated with a `BuyCollateral` or
+`Supply` event.
 
 ## Supported Chains
 
 - Ethereum
 - Polygon
+
+More networks can easily be supported by adding the network parameters to
+`agent.config.ts` and the chain ID to the `chainIds` field in `package.json`!
 
 ## Alerts
 
