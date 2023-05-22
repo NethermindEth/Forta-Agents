@@ -79,7 +79,7 @@ const CONFIG: AgentConfig = {
         address: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
         deploymentBlock: 39412367,
         baseLargeThreshold: "1000000000000000000",
-        monitoringListLength: 1000,
+        monitoringListLength: 100,
       },
     ],
   },
