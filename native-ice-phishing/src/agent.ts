@@ -8,6 +8,8 @@ import {
   getAlerts,
   HandleAlert,
   AlertEvent,
+  AlertQueryOptions,
+  AlertsResponse,
 } from "forta-agent";
 import { ScanCountType } from "bot-alert-rate";
 import calculateAlertRate from "bot-alert-rate";
@@ -37,10 +39,6 @@ import {
   WITHDRAWTO_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
-import {
-  AlertQueryOptions,
-  AlertsResponse,
-} from "forta-agent/dist/sdk/graphql/forta";
 
 let chainId: number = 0;
 let txWithInputDataCount = 0;

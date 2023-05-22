@@ -5,7 +5,10 @@ import {
   FindingType,
   HandleTransaction,
   Label,
+  createTransactionEvent,
   ethers,
+  getAlerts,
+  getEthersProvider,
 } from "forta-agent";
 import {
   TestTransactionEvent,
@@ -14,8 +17,19 @@ import {
 import { createAddress } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction, BOT_ID } from "./agent";
 import { when } from "jest-when";
-import { ScanCountType } from "bot-alert-rate";
+import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import { Data, Transfer, WITHDRAW_SIG } from "./utils";
+import DataFetcher from "./fetcher";
+import { keys } from "./keys";
+import { PersistenceHelper } from "./persistence.helper";
+
+jest.setTimeout(300000);
+
+const REAL_DATABASE_URL = "https://research.forta.network/database/bot/";
+const REAL_DATABASE_OBJECT_KEYS = {
+  transfersKey: "nm-native-icephishing-bot-objects-v7",
+  alertedAddressesKey: "nm-native-icephishing-bot-objects-v2-alerted",
+};
 
 let mockStoredData: Data = {
   nativeTransfers: {},
@@ -306,6 +320,457 @@ describe("Native Ice Phishing Bot test suite", () => {
       mockCalculateRate,
       mockStoredData
     );
+  });
+
+  it.only("tests performance", async () => {
+    const realProvider = getEthersProvider();
+    const realInitialize = provideInitialize(
+      realProvider,
+      new PersistenceHelper(REAL_DATABASE_URL),
+      mockStoredData,
+      REAL_DATABASE_OBJECT_KEYS,
+      getAlerts
+    );
+    await realInitialize();
+
+    const handleRealTransaction = provideHandleTransaction(
+      new DataFetcher(realProvider, keys),
+      realProvider,
+      new PersistenceHelper(REAL_DATABASE_URL),
+      REAL_DATABASE_OBJECT_KEYS,
+      calculateAlertRate,
+      mockStoredData
+    );
+
+    const nativeTransferTxReceipt = await realProvider.getTransactionReceipt(
+      "0xa8d52384592460c6a34ab0c08f17370f628e49d11f6f017ae22ea6ae1cb29b46"
+    );
+
+    const nativeTransferTx = await realProvider.getTransaction(
+      "0xa8d52384592460c6a34ab0c08f17370f628e49d11f6f017ae22ea6ae1cb29b46"
+    );
+
+    const nativeTransferTxEvent = createTransactionEvent({
+      transaction: {
+        hash: nativeTransferTxReceipt.transactionHash,
+        from: nativeTransferTxReceipt.from.toLowerCase(),
+        to: nativeTransferTxReceipt.to.toLowerCase(),
+        nonce: nativeTransferTx.nonce,
+        data: nativeTransferTx.data,
+        gas: "1",
+        gasPrice: nativeTransferTx.gasPrice!.toString(),
+        value: "0x1bbd9addfa6d0d4",
+        r: nativeTransferTx.r!,
+        s: nativeTransferTx.s!,
+        v: nativeTransferTx.v!.toFixed(),
+      },
+      block: {
+        number: nativeTransferTxReceipt.blockNumber,
+        hash: nativeTransferTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    const suspiciousNativeTransferTxReceipt =
+      await realProvider.getTransactionReceipt(
+        "0x5f53677abb9b2dedc24e81b65ba8bd782afedca4b55a4e2adae41bb19dce9c20"
+      );
+
+    const suspiciousNativeTransferTx = await realProvider.getTransaction(
+      "0x5f53677abb9b2dedc24e81b65ba8bd782afedca4b55a4e2adae41bb19dce9c20"
+    );
+
+    const suspiciousNativeTransferTxEvent = createTransactionEvent({
+      transaction: {
+        hash: suspiciousNativeTransferTxReceipt.transactionHash,
+        from: suspiciousNativeTransferTxReceipt.from.toLowerCase(),
+        to: suspiciousNativeTransferTxReceipt.to.toLowerCase(),
+        nonce: suspiciousNativeTransferTx.nonce,
+        data: suspiciousNativeTransferTx.data,
+        gas: "1",
+        gasPrice: suspiciousNativeTransferTx.gasPrice!.toString(),
+        value: "0xbafd6024f843",
+        r: suspiciousNativeTransferTx.r!,
+        s: suspiciousNativeTransferTx.s!,
+        v: suspiciousNativeTransferTx.v!.toFixed(),
+      },
+      block: {
+        number: suspiciousNativeTransferTxReceipt.blockNumber,
+        hash: suspiciousNativeTransferTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    const socialEngineeringEoaTxReceipt =
+      await realProvider.getTransactionReceipt(
+        "0x546d0c486b22590fe34ba7a8bf0896929fb4d9659fe130f2e0113e9fad45f4ad"
+      );
+
+    const socialEngineeringEoaTx = await realProvider.getTransaction(
+      "0x546d0c486b22590fe34ba7a8bf0896929fb4d9659fe130f2e0113e9fad45f4ad"
+    );
+
+    const socialEngineeringEoaTxEvent = createTransactionEvent({
+      transaction: {
+        hash: socialEngineeringEoaTxReceipt.transactionHash,
+        from: socialEngineeringEoaTxReceipt.from.toLowerCase(),
+        to: socialEngineeringEoaTxReceipt.to.toLowerCase(),
+        nonce: socialEngineeringEoaTx.nonce,
+        data: socialEngineeringEoaTx.data,
+        gas: "1",
+        gasPrice: socialEngineeringEoaTx.gasPrice!.toString(),
+        value: "0x0",
+        r: socialEngineeringEoaTx.r!,
+        s: socialEngineeringEoaTx.s!,
+        v: socialEngineeringEoaTx.v!.toFixed(),
+      },
+      block: {
+        number: socialEngineeringEoaTxReceipt.blockNumber,
+        hash: socialEngineeringEoaTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    const socialEngineeringContractTxReceipt =
+      await realProvider.getTransactionReceipt(
+        "0xe9fc809faa5b00555554baa623e3ebaee697f515983be1b1b67e5a8c603df35a"
+      );
+
+    const socialEngineeringContractTx = await realProvider.getTransaction(
+      "0xe9fc809faa5b00555554baa623e3ebaee697f515983be1b1b67e5a8c603df35a"
+    );
+
+    const socialEngineeringContractTxEvent = createTransactionEvent({
+      transaction: {
+        hash: socialEngineeringContractTxReceipt.transactionHash,
+        from: socialEngineeringContractTxReceipt.from.toLowerCase(),
+        to: socialEngineeringContractTxReceipt.to.toLowerCase(),
+        nonce: socialEngineeringContractTx.nonce,
+        data: socialEngineeringContractTx.data,
+        gas: "1",
+        gasPrice: socialEngineeringContractTx.gasPrice!.toString(),
+        value: "0x2e1a8be6b991436",
+        r: socialEngineeringContractTx.r!,
+        s: socialEngineeringContractTx.s!,
+        v: socialEngineeringContractTx.v!.toFixed(),
+      },
+      block: {
+        number: socialEngineeringContractTxReceipt.blockNumber,
+        hash: socialEngineeringContractTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    const ownerWithdrawalTxReceipt = await realProvider.getTransactionReceipt(
+      "0xc794fc867030f4402da18848578255142840fdcd71bfccc2b3a333090bc82fcf"
+    );
+
+    const ownerWithdrawalTx = await realProvider.getTransaction(
+      "0xc794fc867030f4402da18848578255142840fdcd71bfccc2b3a333090bc82fcf"
+    );
+
+    const ownerWithdrawalTxEvent = createTransactionEvent({
+      traces: [
+        {
+          action: {
+            callType: "call",
+            to: "0x4034964d809452a803b8151c4c9843e3282b936f",
+            input:
+              "0x12514bba0000000000000000000000000000000000000000000000000000000000000000",
+            from: "0xd9da38c311f0425bc104a0c8fef2a2e24deeb13e",
+            value: "0x0",
+            init: "undefined",
+            address: "undefined",
+            balance: "undefined",
+            refundAddress: "undefined",
+          },
+          blockHash:
+            "0x6a23a78f5e4dd4f7d9a35c2729c4318c6246ffcbdccf7f80cf176581a48de5f7",
+          blockNumber: 17314214,
+          result: {
+            gasUsed: "0x2558",
+            address: "undefined",
+            code: "undefined",
+            output: "0x",
+          },
+          subtraces: 1,
+          traceAddress: [],
+          transactionHash:
+            "0xc794fc867030f4402da18848578255142840fdcd71bfccc2b3a333090bc82fcf",
+          transactionPosition: 72,
+          type: "call",
+          error: "undefined",
+        },
+        {
+          action: {
+            callType: "call",
+            to: "0xd9da38c311f0425bc104a0c8fef2a2e24deeb13e",
+            input: "0x",
+            from: "0x4034964d809452a803b8151c4c9843e3282b936f",
+            value: "0x4e7d605039585d4",
+            init: "undefined",
+            address: "undefined",
+            balance: "undefined",
+            refundAddress: "undefined",
+          },
+          blockHash:
+            "0x6a23a78f5e4dd4f7d9a35c2729c4318c6246ffcbdccf7f80cf176581a48de5f7",
+          blockNumber: 17314214,
+          result: {
+            gasUsed: "0x0",
+            address: "undefined",
+            code: "undefined",
+            output: "0x",
+          },
+          subtraces: 0,
+          traceAddress: [0],
+          transactionHash:
+            "0xc794fc867030f4402da18848578255142840fdcd71bfccc2b3a333090bc82fcf",
+          transactionPosition: 72,
+          type: "call",
+          error: "undefined",
+        },
+      ],
+      transaction: {
+        hash: ownerWithdrawalTxReceipt.transactionHash,
+        from: ownerWithdrawalTxReceipt.from.toLowerCase(),
+        to: ownerWithdrawalTxReceipt.to.toLowerCase(),
+        nonce: ownerWithdrawalTx.nonce,
+        data: ownerWithdrawalTx.data,
+        gas: "1",
+        gasPrice: ownerWithdrawalTx.gasPrice!.toString(),
+        value: "0x0",
+        r: ownerWithdrawalTx.r!,
+        s: ownerWithdrawalTx.s!,
+        v: ownerWithdrawalTx.v!.toFixed(),
+      },
+      block: {
+        number: ownerWithdrawalTxReceipt.blockNumber,
+        hash: ownerWithdrawalTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    const phishingContractDeploymentTxReceipt =
+      await realProvider.getTransactionReceipt(
+        "0x93da8a297dc5561f5373b618a9de9368b03da51babf8a82b0b8c92d659a4830e"
+      );
+
+    const phishingContractDeploymentTx = await realProvider.getTransaction(
+      "0x93da8a297dc5561f5373b618a9de9368b03da51babf8a82b0b8c92d659a4830e"
+    );
+
+    const phishingContractDeploymentTxEvent = createTransactionEvent({
+      traces: [
+        {
+          action: {
+            callType: "undefined",
+            to: "undefined",
+            input: "undefined",
+            from: "0x060e1cd1652900b4536e14c0bb609f61d96ec9c5",
+            value: "0x0",
+            init: "0x608060405234801561001057600080fd5b50336000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555061023b806100606000396000f300608060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806312065fe0146100675780633158952e146100925780633ccfd60b1461009c578063893d20e8146100b3575b600080fd5b34801561007357600080fd5b5061007c61010a565b6040518082815260200191505060405180910390f35b61009a610129565b005b3480156100a857600080fd5b506100b161012b565b005b3480156100bf57600080fd5b506100c86101e6565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b60003073ffffffffffffffffffffffffffffffffffffffff1631905090565b565b3373ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561018657600080fd5b3373ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051600060405180830381858888f193505050501580156101e3573d6000803e3d6000fd5b50565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a72305820b55c1d463cd6e40fb05e74980dcc4e6bb183e5dc9fe55bba4e90a46c120634c60029",
+            address: "undefined",
+            balance: "undefined",
+            refundAddress: "undefined",
+          },
+          blockHash:
+            "0xbc1fa4eedb6f0f74f8bea954afc5ed589a6dbfe17a3879d9cdbdb430948e8439",
+          blockNumber: 17312521,
+          result: {
+            gasUsed: "0x2154d",
+            address: "0x8645d3b0109ea77db39f14a5496c11d181aed604",
+            code: "0x608060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806312065fe0146100675780633158952e146100925780633ccfd60b1461009c578063893d20e8146100b3575b600080fd5b34801561007357600080fd5b5061007c61010a565b6040518082815260200191505060405180910390f35b61009a610129565b005b3480156100a857600080fd5b506100b161012b565b005b3480156100bf57600080fd5b506100c86101e6565b604051808273ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200191505060405180910390f35b60003073ffffffffffffffffffffffffffffffffffffffff1631905090565b565b3373ffffffffffffffffffffffffffffffffffffffff166000809054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561018657600080fd5b3373ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051600060405180830381858888f193505050501580156101e3573d6000803e3d6000fd5b50565b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff169050905600a165627a7a72305820b55c1d463cd6e40fb05e74980dcc4e6bb183e5dc9fe55bba4e90a46c120634c60029",
+            output: "undefined",
+          },
+          subtraces: 0,
+          traceAddress: [],
+          transactionHash:
+            "0x93da8a297dc5561f5373b618a9de9368b03da51babf8a82b0b8c92d659a4830e",
+          transactionPosition: 146,
+          type: "create",
+          error: "undefined",
+        },
+      ],
+      transaction: {
+        hash: phishingContractDeploymentTxReceipt.transactionHash,
+        from: phishingContractDeploymentTxReceipt.from.toLowerCase(),
+        to: null,
+        nonce: phishingContractDeploymentTx.nonce,
+        data: phishingContractDeploymentTx.data,
+        gas: "1",
+        gasPrice: phishingContractDeploymentTx.gasPrice!.toString(),
+        value: "0x0",
+        r: phishingContractDeploymentTx.r!,
+        s: phishingContractDeploymentTx.s!,
+        v: phishingContractDeploymentTx.v!.toFixed(),
+      },
+      block: {
+        number: phishingContractDeploymentTxReceipt.blockNumber,
+        hash: phishingContractDeploymentTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: [],
+      contractAddress: null,
+    });
+
+    // E.g. ERC20 transfer
+    const otherTxReceipt = await realProvider.getTransactionReceipt(
+      "0x566d2409168739da54674b08e6e13e52d440aa8e55a2edbf00bbe7e73ea85f26"
+    );
+
+    const otherTx = await realProvider.getTransaction(
+      "0x566d2409168739da54674b08e6e13e52d440aa8e55a2edbf00bbe7e73ea85f26"
+    );
+
+    // Lowercase all addresses in logs to match the real txEvent logs
+    const lowerCaseLogs = otherTxReceipt.logs.map((log) => {
+      return {
+        ...log,
+        address: log.address.toLowerCase(),
+      };
+    });
+
+    const otherTxEvent = createTransactionEvent({
+      transaction: {
+        hash: otherTxReceipt.transactionHash,
+        from: otherTxReceipt.from.toLowerCase(),
+        to: otherTxReceipt.to.toLowerCase(),
+        nonce: otherTx.nonce,
+        data: otherTx.data,
+        gas: "1",
+        gasPrice: otherTx.gasPrice!.toString(),
+        value: "0x0",
+        r: otherTx.r!,
+        s: otherTx.s!,
+        v: otherTx.v!.toFixed(),
+      },
+      block: {
+        number: otherTxReceipt.blockNumber,
+        hash: otherTxReceipt.blockHash,
+        timestamp: 43534534,
+      },
+      logs: lowerCaseLogs,
+      contractAddress: null,
+    });
+
+    //     Chain: Blocktime, Number of Tx -> Avg processing time in ms target
+    //     Ethereum: 12s, 150 -> 80ms
+    //     BSC: 3s, 70 -> 43ms
+    //     Polygon: 2s, 50 -> 40ms
+    //     Avalanche: 2s, 5 -> 400ms
+    //     Arbitrum: 1s, 5 -> 200ms
+    //     Optimism: 24s, 150 -> 160ms
+    //     Fantom: 1s, 5 -> 200ms
+
+    //      local testing reveals an avg processing time of 350, which results in the following sharding config:
+    //      Ethereum: 12s, 150 -> 80ms - 5
+    //      BSC: 3s, 70 -> 43ms - 9
+    //      Polygon: 2s, 50 -> 40ms - 9
+    //      Avalanche: 2s, 5 -> 400ms - 1
+    //      Arbitrum: 1s, 5 -> 200ms - 2
+    //      Optimism: 24s, 150 -> 160ms - 3
+    //      Fantom: 1s, 5 -> 200ms - 2
+
+    const processingRuns = 15;
+
+    let totalTimeOtherTx = 0;
+    let totalTimeNativeTransferTx = 0;
+    let totalTimeSuspiciousNativeTransferTx = 0;
+    let totalTimePhishingContractDeploymentTx = 0;
+    let totalTimeOwnerWithdrawalTx = 0;
+    let totalTimeSocialEngineeringEoaTx = 0;
+    let totalTimeSocialEngineeringContractTx = 0;
+
+    for (let i = 0; i < processingRuns; i++) {
+      const startTimeOtherTx = performance.now();
+      await handleRealTransaction(otherTxEvent);
+      const endTimeOtherTx = performance.now();
+      totalTimeOtherTx += endTimeOtherTx - startTimeOtherTx;
+
+      const startTimeNativeTransferTx = performance.now();
+      await handleRealTransaction(nativeTransferTxEvent);
+      const endTimeNativeTransferTx = performance.now();
+      totalTimeNativeTransferTx +=
+        endTimeNativeTransferTx - startTimeNativeTransferTx;
+
+      const startTimeSuspiciousNativeTransferTx = performance.now();
+      await handleRealTransaction(suspiciousNativeTransferTxEvent);
+      const endTimeSuspiciousNativeTransferTx = performance.now();
+      totalTimeSuspiciousNativeTransferTx +=
+        endTimeSuspiciousNativeTransferTx - startTimeSuspiciousNativeTransferTx;
+
+      const startTimePhishingContractDeploymentTx = performance.now();
+      await handleRealTransaction(phishingContractDeploymentTxEvent);
+      const endTimePhishingContractDeploymentTx = performance.now();
+      totalTimePhishingContractDeploymentTx +=
+        endTimePhishingContractDeploymentTx -
+        startTimePhishingContractDeploymentTx;
+
+      const startTimeOwnerWithdrawalTx = performance.now();
+      await handleRealTransaction(ownerWithdrawalTxEvent);
+      const endTimeOwnerWithdrawalTx = performance.now();
+      totalTimeOwnerWithdrawalTx +=
+        endTimeOwnerWithdrawalTx - startTimeOwnerWithdrawalTx;
+
+      const startTimeSocialEngineeringEoaTx = performance.now();
+      await handleRealTransaction(socialEngineeringEoaTxEvent);
+      const endTimeSocialEngineeringEoaTx = performance.now();
+      totalTimeSocialEngineeringEoaTx +=
+        endTimeSocialEngineeringEoaTx - startTimeSocialEngineeringEoaTx;
+
+      const startTimeSocialEngineeringContractTx = performance.now();
+      await handleRealTransaction(socialEngineeringContractTxEvent);
+      const endTimeSocialEngineeringContractTx = performance.now();
+      totalTimeSocialEngineeringContractTx +=
+        endTimeSocialEngineeringContractTx -
+        startTimeSocialEngineeringContractTx;
+    }
+
+    const processingTimeOtherTx = totalTimeOtherTx / processingRuns;
+    const processingTimeNativeTransferTx =
+      totalTimeNativeTransferTx / processingRuns;
+    const processingTimeSuspiciousNativeTransferTx =
+      totalTimeSuspiciousNativeTransferTx / processingRuns;
+    const processingTimePhishingContractDeploymentTx =
+      totalTimePhishingContractDeploymentTx / processingRuns;
+    const processingTimeOwnerWithdrawalTx =
+      totalTimeOwnerWithdrawalTx / processingRuns;
+    const processingTimeSocialEngineeringEoaTx =
+      totalTimeSocialEngineeringEoaTx / processingRuns;
+    const processingTimeSocialEngineeringContractTx =
+      totalTimeSocialEngineeringContractTx / processingRuns;
+
+    console.log(
+      (processingTimeOtherTx * 0.5 +
+        processingTimeNativeTransferTx * 0.47 +
+        processingTimeSuspiciousNativeTransferTx * 0.01 +
+        processingTimePhishingContractDeploymentTx * 0.005 +
+        processingTimeOwnerWithdrawalTx * 0.005 +
+        processingTimeSocialEngineeringEoaTx * 0.005 +
+        processingTimeSocialEngineeringContractTx * 0.005) /
+        7
+    );
+    expect(
+      (processingTimeOtherTx * 0.5 +
+        processingTimeNativeTransferTx * 0.47 +
+        processingTimeSuspiciousNativeTransferTx * 0.01 +
+        processingTimePhishingContractDeploymentTx * 0.005 +
+        processingTimeOwnerWithdrawalTx * 0.005 +
+        processingTimeSocialEngineeringEoaTx * 0.005 +
+        processingTimeSocialEngineeringContractTx * 0.005) /
+        7
+    ).toBeLessThan(270);
   });
 
   it("Should return empty findings if the input data is not a function signature", async () => {

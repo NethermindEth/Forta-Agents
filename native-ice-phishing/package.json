@@ -13,8 +13,24 @@
     43114
   ],
   "chainSettings": {
+    "1": {
+      "shards": 4,
+      "target": 3
+    },
+    "56": {
+      "shards": 7,
+      "target": 3
+    },
+    "137": {
+      "shards": 7,
+      "target": 3
+    },
+    "43114": {
+      "shards": 1,
+      "target": 3
+    },
     "default": {
-      "shards": 6,
+      "shards": 2,
       "target": 3
     }
   },
@@ -39,10 +55,10 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "bot-alert-rate": "^0.0.3",
+    "bot-alert-rate": "^0.0.4",
     "dotenv": "^16.0.3",
     "evm": "^0.1.1",
-    "forta-agent": "^0.1.20",
+    "forta-agent": "^0.1.31",
     "lru-cache": "^7.18.3",
     "node-fetch": "^2.6.9"
   },
