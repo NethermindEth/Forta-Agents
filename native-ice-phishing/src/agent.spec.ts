@@ -5,6 +5,7 @@ import {
   FindingType,
   HandleTransaction,
   Label,
+  ethers,
 } from "forta-agent";
 import {
   TestTransactionEvent,
@@ -14,7 +15,7 @@ import { createAddress } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction, BOT_ID } from "./agent";
 import { when } from "jest-when";
 import { ScanCountType } from "bot-alert-rate";
-import { Data, Transfer } from "./utils";
+import { Data, Transfer, WITHDRAW_SIG } from "./utils";
 
 let mockStoredData: Data = {
   nativeTransfers: {},
@@ -163,6 +164,87 @@ const testCreateHighSeverityFinding = (
   });
 };
 
+const testCreateCriticalSeverityFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Contract deployed with characteristics indicative of a potential native ice phishing attack",
+    description: `${attacker} created contract with address ${address} to be possibly used in a native ice phishing attack`,
+    alertId: "NIP-5",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
+const testCreateWithdrawalFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  receiver: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Withdrawal transaction in a possible native ice phishing attack",
+    description: `${attacker} called withdraw function in contract: ${address} possibly used for a native ice phishing attack`,
+    alertId: "NIP-6",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      receiver,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: receiver,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
 const mockFetcher = {
   isEoa: jest.fn(),
   getCode: jest.fn(),
@@ -170,9 +252,15 @@ const mockFetcher = {
   getTransactions: jest.fn(),
   getNonce: jest.fn(),
   getFunctions: jest.fn(),
+  getEvents: jest.fn(),
   getAddressInfo: jest.fn(),
   getAddresses: jest.fn(),
   getLabel: jest.fn(),
+  getSourceCode: jest.fn(),
+  getOwner: jest.fn(),
+  getNumberOfLogs: jest.fn(),
+  hasValidEntries: jest.fn(),
+  isValueUnique: jest.fn(),
 };
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
@@ -277,6 +365,15 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.getSignature)
       .calledWith("0x12345678")
       .mockReturnValue("transfer(address,uint256)");
+
+    when(mockFetcher.isValueUnique)
+      .calledWith(
+        createAddress("0x01"),
+        1,
+        "0xabcd",
+        ethers.BigNumber.from("0x0bb").toString()
+      )
+      .mockReturnValue(true);
 
     when(mockCalculateRate)
       .calledWith(1, BOT_ID, "NIP-1", ScanCountType.TxWithInputDataCount, 0)
@@ -473,6 +570,158 @@ describe("Native Ice Phishing Bot test suite", () => {
     const findings: Finding[] = await handleTransaction(tx);
     expect(findings).toStrictEqual([
       testCreateHighSeverityFinding(to, 0.00000034234, transfers),
+    ]);
+  });
+
+  it("should return no findings if a contract is deployed but the contract code doesn't have native ice phishing characteristics", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(null)
+      .setNonce(23)
+      .setHash("0xabcd");
+    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
+    when(mockFetcher.getCode)
+      .calledWith(mockContractAddress)
+      .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
+    when(mockFetcher.getSourceCode)
+      .calledWith(mockContractAddress, 1)
+      .mockReturnValueOnce("Not Malicious Contract Code");
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return no findings if a contract is deployed, the contract code can't be fetched, but the bytecode doesn't code the withdraw function signature", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(null)
+      .setNonce(23)
+      .setHash("0xabcd");
+    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
+    when(mockFetcher.getCode)
+      .calledWith(mockContractAddress)
+      .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
+
+    when(mockFetcher.getSourceCode)
+      .calledWith(mockContractAddress, 1)
+      .mockReturnValueOnce("");
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("should return a finding if a contract is deployed and the contract code contains both a payable function and a withdraw-like function", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(null)
+      .setNonce(23)
+      .setHash("0xabcd");
+    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
+    when(mockFetcher.getCode)
+      .calledWith(mockContractAddress)
+      .mockReturnValueOnce("0xccc");
+    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
+
+    const sourceCode = `function random() payable {}
+    function withdraw() {
+      require(owner == msg.sender);
+      msg.sender.transfer(address(this).balance);
+    }`;
+    when(mockFetcher.getSourceCode)
+      .calledWith(mockContractAddress, 1)
+      .mockReturnValueOnce(sourceCode);
+
+    when(mockCalculateRate)
+      .calledWith(1, BOT_ID, "NIP-5", ScanCountType.ContractCreationCount, 0)
+      .mockReturnValue(0.0034231);
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([
+      testCreateCriticalSeverityFinding(
+        "0xabcd",
+        createAddress("0x0f"),
+        mockContractAddress,
+        0.0034231
+      ),
+    ]);
+  });
+
+  it("should return a finding if a contract is deployed, the source code can't be fetched, but the bytecode contains a withdraw function and a payable function which has already created an alert", async () => {
+    mockStoredData.alertedHashes.push("0xa9059cbb");
+
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(null)
+      .setNonce(23)
+      .setHash("0xabcd");
+    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
+    when(mockFetcher.getCode)
+      .calledWith(mockContractAddress)
+      .mockReturnValueOnce(`0xa9059cbb${WITHDRAW_SIG}`);
+    when(mockFetcher.getEvents)
+      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
+      .mockReturnValueOnce([]);
+    when(mockFetcher.getFunctions)
+      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
+      .mockReturnValueOnce([]);
+    when(mockFetcher.getSourceCode)
+      .calledWith(mockContractAddress, 1)
+      .mockReturnValueOnce("");
+
+    when(mockCalculateRate)
+      .calledWith(1, BOT_ID, "NIP-5", ScanCountType.ContractCreationCount, 0)
+      .mockReturnValueOnce(0.0034231);
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([
+      testCreateCriticalSeverityFinding(
+        "0xabcd",
+        createAddress("0x0f"),
+        mockContractAddress,
+        0.0034231
+      ),
+    ]);
+  });
+
+  it("should return a finding if there's a withdrawal from the owner of a contract used for native ice phishing attack", async () => {
+    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+    mockFetcher.getTransactions.mockReturnValueOnce([
+      { hash: "hash15" },
+      { hash: "hash25" },
+    ]);
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setFrom(createAddress("0x0f"))
+      .setTo(createAddress("0x01"))
+      .setData(
+        "0x00f714ce00000000000000000000000000000000000000000000000000128ed4154bf6b9000000000000000000000000bca7af384bc384f86d78e37516537b3fecb86bbc"
+      )
+      .setBlock(234)
+      .setHash("0xabcd");
+
+    when(mockFetcher.getOwner)
+      .calledWith(createAddress("0x01"), 234)
+      .mockResolvedValueOnce(createAddress("0x0f"));
+
+    when(mockFetcher.getNumberOfLogs)
+      .calledWith(createAddress("0x01"), 234, 1)
+      .mockResolvedValueOnce(1);
+
+    when(mockFetcher.hasValidEntries)
+      .calledWith(createAddress("0x01"), 1, "0xabcd")
+      .mockResolvedValueOnce(true);
+
+    when(mockCalculateRate)
+      .calledWith(1, BOT_ID, "NIP-6", ScanCountType.CustomScanCount, 1)
+      .mockReturnValueOnce(0.0134231);
+
+    const findings: Finding[] = await handleTransaction(tx);
+    const receiver = "0xbca7af384bc384f86d78e37516537b3fecb86bbc";
+    expect(findings).toStrictEqual([
+      testCreateWithdrawalFinding(
+        "0xabcd",
+        createAddress("0x0f"),
+        createAddress("0x01"),
+        receiver,
+        0.0134231
+      ),
     ]);
   });
 });

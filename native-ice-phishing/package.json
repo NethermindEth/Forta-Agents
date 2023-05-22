@@ -1,6 +1,6 @@
 {
   "name": "native-ice-phishing-detection-bot",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "Forta Bot that monitors native ice phishing attacks",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/native-ice-phishing",
   "chainIds": [
@@ -14,7 +14,7 @@
   ],
   "chainSettings": {
     "default": {
-      "shards": 4,
+      "shards": 6,
       "target": 3
     }
   },
@@ -51,7 +51,7 @@
     "@types/jest-when": "^2.7.3",
     "@types/node-fetch": "^2.6.2",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "3.2.6",
+    "forta-agent-tools": "3.2.7",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",

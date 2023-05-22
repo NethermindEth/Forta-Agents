@@ -148,6 +148,87 @@ export const createHighSeverityFinding = (
   });
 };
 
+export const createCriticalSeverityFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Contract deployed with characteristics indicative of a potential native ice phishing attack",
+    description: `${attacker} created contract with address ${address} to be possibly used in a native ice phishing attack`,
+    alertId: "NIP-5",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
+export const createWithdrawalFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  receiver: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Withdrawal transaction in a possible native ice phishing attack",
+    description: `${attacker} called withdraw function in contract: ${address} possibly used for a native ice phishing attack`,
+    alertId: "NIP-6",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      receiver,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: receiver,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
 export default {
   createFinding,
 };
