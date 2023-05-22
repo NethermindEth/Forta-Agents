@@ -54,6 +54,8 @@ jest.mock("forta-agent", () => {
   };
 });
 
+const mockGetAlerts = jest.fn();
+
 const DEFAULT_CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     threshold: "0.05",
@@ -196,8 +198,16 @@ describe("Detect Private Key Compromise", () => {
       mockDataFetcher as any,
       mockMarketCapFetcher as any,
       mockPersistenceHelper as any,
-      mockDBKeys
+      mockDBKeys,
+      mockGetAlerts
     );
+
+    mockGetAlerts.mockReturnValue({
+      alerts: [],
+      pageInfo: {
+        hasNextPage: false,
+      },
+    });
 
     delete process.env.LOCAL_NODE;
   });
