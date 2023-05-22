@@ -46,6 +46,10 @@ configured in the `agent.config.ts` file.
 - Ethereum
 - Polygon
 
+As proposed, this bot was designed with Ethereum in mind, so while Polygon and
+other chains besides Ethereum can be supported, the block rate needs to be
+considered when setting the bot parameters.
+
 More networks can easily be supported by adding the network parameters to
 `agent.config.ts` and the chain ID to the `chainIds` field in `package.json`!
 
