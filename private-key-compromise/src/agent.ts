@@ -5,6 +5,7 @@ import {
   updateRecord,
   TIME_PERIOD,
   AlertedAddress,
+  QueuedAddress,
   ERC20_TRANSFER_FUNCTION,
   deepMerge,
   MAX_OBJECT_SIZE,
@@ -26,6 +27,7 @@ const DATABASE_URL = "https://research.forta.network/database/bot/";
 const DATABASE_OBJECT_KEYS = {
   transfersKey: "nm-pk-comp-bot-key",
   alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key",
+  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key",
 };
 
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
@@ -33,6 +35,7 @@ const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea
 let chainId: string;
 let transferObj: Transfer = {};
 let alertedAddresses: AlertedAddress[] = [];
+let queuedAddresses: QueuedAddress[] = [];
 let isRelevantChain: boolean;
 let transfersCount = 0;
 let ercTransferCount = 0;
@@ -48,7 +51,7 @@ export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
-  databaseKeys: { transfersKey: string; alertedAddressesKey: string },
+  databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string },
   marketCapFetcher: MarketCapFetcher
 ): Initialize => {
   return async () => {
@@ -58,6 +61,7 @@ export const provideInitialize = (
 
     transferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
     alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+    queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
 
     //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
     isRelevantChain = [10, 250, 43114].includes(Number(chainId));
@@ -100,6 +104,7 @@ export const provideHandleTransaction =
       console.log(`Block processing time: ${et - st} ms`);
       const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
       alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+      queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
 
       transferObj = deepMerge(transferObj, loadedTransferObj);
 
@@ -172,6 +177,11 @@ export const provideHandleTransaction =
                     isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
                     transfersCount
                   );
+
+                  transferObj[to].forEach((el) => {
+                    queuedAddresses.push({ address: el.victimAddress, timestamp: timestamp, txHash: hash });
+                  });
+
                   findings.push(
                     createFinding(
                       hash,

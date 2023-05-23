@@ -28,6 +28,7 @@ const mockJwt = "MOCK_JWT";
 const mockDBKeys = {
   transfersKey: "mock-pk-comp-value-bot-key",
   alertedAddressesKey: "mock-pk-comp-bot-alerted-addresses-key",
+  queuedAddressesKey: "mock-pk-comp-bot-queued-addresses-key",
 };
 
 const mockpKCompValueTxns = {

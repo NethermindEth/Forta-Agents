@@ -24,7 +24,7 @@ export class PersistenceHelper {
           body: JSON.stringify(value),
         });
         if (response.ok) {
-          if (key.includes("alerted")) {
+          if (key.includes("alerted") || key.includes("queued")) {
             console.log("successfully persisted addresses to database");
           } else {
             console.log("successfully persisted transfers to database");
@@ -52,7 +52,7 @@ export class PersistenceHelper {
         if (response.ok) {
           const data: any = await response.json();
 
-          if (key.includes("alerted")) {
+          if (key.includes("alerted") || key.includes("queued")) {
             console.log("successfully fetched addresses from database");
           } else {
             console.log("successfully fetched transfers from database");
@@ -85,7 +85,7 @@ export class PersistenceHelper {
         // thus return zero to assign value to the variables
         // necessary
 
-        if (key.includes("alerted")) {
+        if (key.includes("alerted") || key.includes("queued")) {
           return [];
         }
         return {};

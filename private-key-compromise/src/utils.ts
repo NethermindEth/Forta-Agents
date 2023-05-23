@@ -25,6 +25,12 @@ export type AlertedAddress = {
   timestamp: number;
 };
 
+export type QueuedAddress = {
+  address: string;
+  timestamp: number;
+  txHash: string;
+};
+
 export const ERC20_TRANSFER_FUNCTION = "function transfer(address to, uint256 amount) public";
 
 export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
