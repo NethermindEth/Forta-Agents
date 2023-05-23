@@ -1,4 +1,4 @@
-import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider, BlockEvent } from "forta-agent";
+import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider, getAlerts } from "forta-agent";
 import {
   NetworkData,
   Transfer,
@@ -22,6 +22,7 @@ import CONFIG from "./bot.config";
 import { keys } from "./keys";
 import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
+import { AlertQueryOptions, AlertsResponse } from "forta-agent/dist/sdk/graphql/forta";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const DATABASE_OBJECT_KEYS = {
@@ -79,7 +80,8 @@ export const provideHandleTransaction =
     dataFetcher: DataFetcher,
     marketCapFetcher: MarketCapFetcher,
     persistenceHelper: PersistenceHelper,
-    databaseKeys: { transfersKey: string; alertedAddressesKey: string }
+    databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string },
+    getAlerts: (query: AlertQueryOptions) => Promise<AlertsResponse>
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
@@ -286,6 +288,7 @@ export default {
     new DataFetcher(getEthersProvider()),
     new MarketCapFetcher(),
     new PersistenceHelper(DATABASE_URL),
-    DATABASE_OBJECT_KEYS
+    DATABASE_OBJECT_KEYS,
+    getAlerts
   ),
 };
