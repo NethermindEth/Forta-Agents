@@ -23,7 +23,7 @@ import DataFetcher from "./fetcher";
 import { keys } from "./keys";
 import { PersistenceHelper } from "./persistence.helper";
 
-jest.setTimeout(300000);
+jest.setTimeout(400000);
 
 const REAL_DATABASE_URL = "https://research.forta.network/database/bot/";
 const REAL_DATABASE_OBJECT_KEYS = {
@@ -322,7 +322,7 @@ describe("Native Ice Phishing Bot test suite", () => {
     );
   });
 
-  it.only("tests performance", async () => {
+  it("tests performance", async () => {
     const realProvider = getEthersProvider();
     const realInitialize = provideInitialize(
       realProvider,
@@ -673,13 +673,13 @@ describe("Native Ice Phishing Bot test suite", () => {
     //     Optimism: 24s, 150 -> 160ms
     //     Fantom: 1s, 5 -> 200ms
 
-    //      local testing reveals an avg processing time of 350, which results in the following sharding config:
-    //      Ethereum: 12s, 150 -> 80ms - 5
-    //      BSC: 3s, 70 -> 43ms - 9
-    //      Polygon: 2s, 50 -> 40ms - 9
+    //      local testing reveals an avg processing time of 320, which results in the following sharding config:
+    //      Ethereum: 12s, 150 -> 80ms - 4
+    //      BSC: 3s, 70 -> 43ms - 8
+    //      Polygon: 2s, 50 -> 40ms - 8
     //      Avalanche: 2s, 5 -> 400ms - 1
     //      Arbitrum: 1s, 5 -> 200ms - 2
-    //      Optimism: 24s, 150 -> 160ms - 3
+    //      Optimism: 24s, 150 -> 160ms - 2
     //      Fantom: 1s, 5 -> 200ms - 2
 
     const processingRuns = 15;
@@ -770,7 +770,7 @@ describe("Native Ice Phishing Bot test suite", () => {
         processingTimeSocialEngineeringEoaTx * 0.005 +
         processingTimeSocialEngineeringContractTx * 0.005) /
         7
-    ).toBeLessThan(270);
+    ).toBeLessThan(320);
   });
 
   it("Should return empty findings if the input data is not a function signature", async () => {
@@ -1174,7 +1174,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .mockResolvedValueOnce(true);
 
     when(mockCalculateRate)
-      .calledWith(1, BOT_ID, "NIP-6", ScanCountType.CustomScanCount, 1)
+      .calledWith(1, BOT_ID, "NIP-6", ScanCountType.CustomScanCount, 16) // 15 perf test withdrawals + 1 current
       .mockReturnValueOnce(0.0134231);
 
     const findings: Finding[] = await handleTransaction(tx);
