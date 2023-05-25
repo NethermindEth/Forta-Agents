@@ -255,7 +255,7 @@ export const provideHandleBlock = (
     );
 
     if (state.findingBuffer.length > MAX_FINDINGS) {
-      console.warn(
+      log(
         `The finding limit for the block ${blockEvent.blockNumber} has been reached - some findings were stored and will be sent in future blocks`
       );
     }
