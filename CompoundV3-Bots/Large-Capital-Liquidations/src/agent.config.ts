@@ -1,6 +1,7 @@
 import { Network } from "forta-agent";
 import { AgentConfig } from "./utils";
 
+// Debug parameters - useful for quickly setting up real testing scenarios
 export const DEBUG = false;
 export const DEBUG_CURRENT_BLOCK = 15419040;
 export const DEBUG_CONFIG = {
