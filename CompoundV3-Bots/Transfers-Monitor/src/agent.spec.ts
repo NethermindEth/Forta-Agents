@@ -54,7 +54,7 @@ const TEST_CONFIG: AgentConfig = {
   [NETWORK]: { cometContracts: COMET_CONTRACTS },
 };
 
-describe("COMP2 - Transfers Monitor Bot Tests suite", () => {
+describe("COMP2-3 - Transfers Monitor Bot Test Suite", () => {
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
   let mockProvider: MockEthersProvider;
