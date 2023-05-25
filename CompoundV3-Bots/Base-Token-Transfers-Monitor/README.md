@@ -1,4 +1,4 @@
-# Base Assets Transfer Monitor Bot
+# Base Token Transfers Monitor Bot
 
 ## Description
 
