@@ -1,4 +1,4 @@
-# Base assets transfer Monitor
+# Base Assets Transfer Monitor Bot
 
 ## Description
 
