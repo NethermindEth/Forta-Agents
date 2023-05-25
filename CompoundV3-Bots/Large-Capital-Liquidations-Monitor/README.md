@@ -1,4 +1,4 @@
-# Large Capital Liquidations Bot
+# Large Capital Liquidations Monitor Bot
 
 ## Description
 

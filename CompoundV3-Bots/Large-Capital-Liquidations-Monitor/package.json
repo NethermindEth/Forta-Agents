@@ -2,7 +2,7 @@
   "name": "comp2-4",
   "version": "0.0.1",
   "description": "Forta bot that monitors some of the largest borrowers in a Compound v3 Comet contract for absorptions and liquidation risk",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Large-Capital-Liquidations",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Large-Capital-Liquidations-Monitor",
   "chainIds": [
     1,
     137
