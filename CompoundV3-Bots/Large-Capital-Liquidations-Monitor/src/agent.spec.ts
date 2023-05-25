@@ -163,7 +163,7 @@ function absorb(comet: string, absorber: string, borrower: string, blockTag: num
 
 type Interaction = SupplyInteraction | TransferInteraction | WithdrawInteraction | AbsorbInteraction;
 
-describe("Bot Test Suite", () => {
+describe("COMP2-4 - Large Capital Liquidations Monitor Bot Test Suite", () => {
   let provider: ethers.providers.JsonRpcProvider;
   let mockProvider: MockEthersProvider;
   let multicallProvider: MulticallProvider;
