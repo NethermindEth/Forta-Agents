@@ -78,15 +78,17 @@ and modified in the `src/finding.ts` file.
     - `chain`: Network chain ID or name
     - `comet`: Address of the related Comet contract
     - `borrower`: Address of the borrower
-    - `positionSize`: Base asset present value of the position, in the base asset scale
+    - `positionSize`: Base asset present value of the position, in the base asset
+    scale
 
 ## Test Data
 
-Besides unit tests, you can also test this bot with real data. First, set up
-an Ethereum Mainnet RPC in your `forta.config.json` file, then enable the
-debug mode in `agent.config.ts` by setting the `DEBUG` flag to `true`. This
-will mainly make it possible to test the initialization step. Now, run the
-following command to execute the bot in a block range:
+Besides unit tests, which can be executed through `npm run test`, you can also
+test this bot with real data. First, set up an Ethereum Mainnet RPC in your
+`forta.config.json` file, then enable the debug mode in `agent.config.ts` by
+setting the `DEBUG` flag to `true`. This will mainly make it possible to test
+the initialization step. Now, run the following command to execute the bot in a
+block range:
 
 ```
 npm run range 15419040..15419043
