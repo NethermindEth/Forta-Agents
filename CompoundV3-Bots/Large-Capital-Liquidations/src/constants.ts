@@ -6,7 +6,6 @@ export const COMET_ABI = [
   "event AbsorbDebt(address indexed absorber, address indexed borrower, uint basePaidOut, uint usdValue)",
   "function isBorrowCollateralized(address account) public view returns (bool)",
   "function baseIndexScale() external pure returns (uint64)",
-  "function factorScale() external pure returns (uint64)",
   {
     inputs: [],
     name: "totalsBasic",
