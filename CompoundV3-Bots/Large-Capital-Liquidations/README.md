@@ -38,6 +38,10 @@ used to call `isBorrowCollateralized` for multiple accounts at the same time,
 which really mitigates the issues of making this many calls at once in terms
 of network latency.
 
+Finally, each finding includes the associated block - this is because Forta
+agents have a limit of `50` findings per event, so if more findings are
+generated in a block, they are stored and sent on subsequent block events.
+
 The Comet deployment addresses for each network and other parameters can be
 configured in the `agent.config.ts` file.
 
@@ -64,6 +68,7 @@ and modified in the `src/finding.ts` file.
   - Severity is always set to "Medium"
   - Type is always set to "Info"
   - Metadata:
+    - `block`: Block in which the finding was generated
     - `chain`: Network chain ID or name
     - `comet`: Address of the related Comet contract
     - `absorber`: Address of the absorber
@@ -75,6 +80,7 @@ and modified in the `src/finding.ts` file.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata:
+    - `block`: Block in which the finding was generated
     - `chain`: Network chain ID or name
     - `comet`: Address of the related Comet contract
     - `borrower`: Address of the borrower
