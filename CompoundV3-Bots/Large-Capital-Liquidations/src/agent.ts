@@ -4,15 +4,16 @@ import { MulticallContract, MulticallProvider, NetworkManager } from "forta-agen
 
 import CONFIG, { DEBUG, DEBUG_CONFIG, DEBUG_CURRENT_BLOCK } from "./agent.config";
 import { COMET_ABI, MAX_FINDINGS } from "./constants";
+import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
 import {
-  addPositionsToMonitoringList,
   AgentState,
-  presentValueBorrow,
   NetworkData,
+  addPositionsToMonitoringList,
+  presentValueBorrow,
   getPotentialBorrowersFromLogs,
   multicallAll,
+  log,
 } from "./utils";
-import { createAbsorbFinding, createLiquidationRiskFinding } from "./finding";
 
 export const provideInitializeTask = (
   state: AgentState,
@@ -94,7 +95,7 @@ export const provideInitializeTask = (
               baseIndexScale
             );
 
-            console.log(
+            log(
               `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${
                 blockCursor + blockRange - 1
               }`
@@ -107,7 +108,7 @@ export const provideInitializeTask = (
     // update the initialization block to avoid any blocks being missed
     state.initializationBlock = currentBlock;
 
-    console.log("Finished initialize task");
+    log("Finished initialize task");
     state.initialized = true;
   };
 };

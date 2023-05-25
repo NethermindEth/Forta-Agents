@@ -37,6 +37,10 @@ export interface AgentState {
 
 export type AgentConfig = Record<number, NetworkData>;
 
+export function log(str: string) {
+  console.log(`[${new Date().toISOString()}]: ${str}`);
+}
+
 export function addPositionsToMonitoringList(
   state: AgentState,
   comet: string,
@@ -81,7 +85,7 @@ export function checkMonitoringListHealth(
   const minBalance = presentValueBorrow(monitoringList[monitoringList.length - 1], baseBorrowIndex, baseIndexScale);
 
   if (minBalance.gte(threshold)) {
-    console.warn(
+    log(
       `Monitoring list length ${monitoringListLength} is too short for the threshold ${threshold} for Comet ${comet}`
     );
   }
