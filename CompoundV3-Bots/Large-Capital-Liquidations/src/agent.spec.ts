@@ -415,6 +415,9 @@ describe("Bot Test Suite", () => {
   }
 
   beforeEach(async () => {
+    // hide logs
+    jest.spyOn(console, "log").mockImplementation(() => {});
+
     mockProvider = new MockEthersProvider();
     mockProvider.setNetwork(NETWORK);
     mockProvider.setLatestBlock(10);
