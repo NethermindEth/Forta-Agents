@@ -95,11 +95,7 @@ export const provideInitializeTask = (
               baseIndexScale
             );
 
-            log(
-              `Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${
-                blockCursor + blockRange - 1
-              }`
-            );
+            log(`Scanned withdrawals on Comet ${comet.address} from block ${blockCursor} to ${toBlock}`);
           }
         )
       );
