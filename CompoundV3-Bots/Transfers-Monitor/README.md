@@ -18,14 +18,14 @@ More networks can easily be supported by adding the network parameters to
 
 - COMP2-3-1
   - Fired when a `Transfer` event is emitted on a base asset, directed to a
-  comet contract, but there's no matching `BuyCollateral` or `Supply` event.
+  Comet contract, but there's no matching `BuyCollateral` or `Supply` event.
   - Severity is always set to "Medium"
   - Type is always set to "Info"
   - Metadata:
     - `chain`: Network ID or name
-    - `comet`: Address of the comet contract that received the transfer
+    - `comet`: Address of the Comet contract that received the transfer
     - `sender`: The sender of the transfer
-    - `transferAmount`: Amount that was transfered to the comet contract
+    - `transferAmount`: Amount that was transfered to the Comet contract
 
 ## Test Data
 
