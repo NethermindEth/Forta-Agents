@@ -229,7 +229,7 @@ export const provideHandleBlock = (
         });
 
         // get borrow position collateralization status for all eligible positions
-        const borrowerStatuses = await multicallAll(
+        const isBorrowCollateralized = await multicallAll(
           multicallProvider,
           eligiblePositions.map((entry) => multicallComet.isBorrowCollateralized(entry.borrower)),
           blockEvent.block.number,
@@ -238,7 +238,7 @@ export const provideHandleBlock = (
 
         // if an eligible borrow position is not collateralized, emit a finding and set its alert timestamp
         eligiblePositions.forEach((entry, idx) => {
-          if (!borrowerStatuses[idx]) {
+          if (!isBorrowCollateralized[idx]) {
             state.findingBuffer.push(
               createLiquidationRiskFinding(
                 comet.address,
