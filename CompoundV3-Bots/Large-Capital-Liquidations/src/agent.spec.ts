@@ -706,6 +706,137 @@ describe("Bot Test Suite", () => {
     });
   });
 
+  it("should not log warning about the monitoring list length if it's not full", async () => {
+    const log = jest.spyOn(console, "log");
+    const previousInteractions: Interaction[] = [withdraw(COMET[0].address, addr("0xb0"), 100, 0)];
+
+    await processInteractions(previousInteractions);
+
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 1, "latest");
+        await setBaseIndexScale(comet.address, 1, "latest");
+      })
+    );
+
+    const interactions = [
+      supply(COMET[0].address, addr("0xb1"), 100, "latest"),
+    ];
+
+    await processInteractions(interactions);
+    await handleBlock(blockEvent);
+
+    expect(log).not.toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Monitoring list length ${COMET[0].monitoringListLength} is too short for the threshold ${COMET[0].baseLargeThreshold} for Comet ${COMET[0].address}`
+      )
+    );
+  });
+
+  it("should not log warning about the monitoring list length if it contains all the desired borrowers", async () => {
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 100, "latest");
+        await setBaseIndexScale(comet.address, 10, "latest");
+      })
+    );
+
+    const principalValue = (amount: ethers.BigNumberish) => bn(10).mul(amount).div(100);
+
+    const log = jest.spyOn(console, "log");
+    const users = Array.from({ length: COMET[0].monitoringListLength - 1 }).map((_, idx) => addr("0x" + idx.toString()));
+    const previousInteractions: Interaction[] = users.map((user, idx) =>
+      withdraw(COMET[0].address, user, principalValue(bn(COMET[0].baseLargeThreshold).sub(1 + idx)), 0),
+    );
+
+    await processInteractions(previousInteractions);
+
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 100, "latest");
+        await setBaseIndexScale(comet.address, 10, "latest");
+      })
+    );
+
+    const interactions = [
+      supply(COMET[0].address, addr("0xb1"), principalValue(100), "latest"),
+    ];
+
+    await processInteractions(interactions);
+    await handleBlock(blockEvent);
+
+    expect(log).not.toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Monitoring list length ${COMET[0].monitoringListLength} is too short for the threshold ${COMET[0].baseLargeThreshold} for Comet ${COMET[0].address}`
+      )
+    );
+  });
+
+  it("should log warning about the monitoring list length if an large borrower is at risk of being removed from it", async () => {
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 100, "latest");
+        await setBaseIndexScale(comet.address, 10, "latest");
+      })
+    );
+
+    const principalValue = (amount: ethers.BigNumberish) => bn(10).mul(amount).div(100);
+
+    const log = jest.spyOn(console, "log");
+    const users = Array.from({ length: COMET[0].monitoringListLength - 1 }).map((_, idx) => addr("0x" + idx.toString()));
+    const previousInteractions: Interaction[] = users.map((user, idx) =>
+      withdraw(COMET[0].address, user, principalValue(bn(COMET[0].baseLargeThreshold).add(idx)), 0),
+    );
+
+    await processInteractions(previousInteractions);
+
+    await initialize();
+    await initializationPromise;
+
+    const blockNumber = (await provider.getBlockNumber()) + 1;
+    mockProvider.setLatestBlock(blockNumber);
+    const blockEvent = new TestBlockEvent().setNumber(blockNumber);
+
+    await Promise.all(
+      COMET.map(async (comet) => {
+        await setBaseBorrowIndex(comet.address, 100, "latest");
+        await setBaseIndexScale(comet.address, 10, "latest");
+      })
+    );
+
+    const interactions = [
+      withdraw(COMET[0].address, addr("0xb1"), principalValue(COMET[0].baseLargeThreshold), "latest"),
+    ];
+
+    await Promise.all(users.map(async user => {
+      await setIsBorrowCollateralized(COMET[0].address, user, true, "latest");
+    }));
+    await setIsBorrowCollateralized(COMET[0].address, addr("0xb1"), true, "latest");
+
+    await processInteractions(interactions);
+    await handleBlock(blockEvent);
+
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Monitoring list length ${COMET[0].monitoringListLength} is too short for the threshold ${COMET[0].baseLargeThreshold} for Comet ${COMET[0].address}`
+      )
+    );
+  });
+
   it("should not update users principals on the monitoring list if there's a relevant event from another contract on each block", async () => {
     const previousInteractions: Interaction[] = [withdraw(COMET[0].address, addr("0xb0"), 100, 0)];
 
