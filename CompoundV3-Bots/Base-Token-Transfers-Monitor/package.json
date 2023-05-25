@@ -2,7 +2,7 @@
   "name": "comp2-3",
   "version": "0.0.1",
   "description": "Forta bot that detects base token transfers to Compound v3 Comet contracts without matching Supply or BuyCollateral events",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Transfers-Monitor",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Base-Token-Transfers-Monitor",
   "chainIds": [
     1,
     137
