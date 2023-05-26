@@ -12,7 +12,7 @@ export const createFinding = (
       entity: victim,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: 0.6,
+      confidence: 0.3,
       remove: false,
     });
   });
@@ -21,7 +21,7 @@ export const createFinding = (
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
     alertId: "PKC-1",
-    severity: FindingSeverity.High,
+    severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
       attacker: to,
@@ -38,6 +38,46 @@ export const createFinding = (
         entity: txHash,
         entityType: EntityType.Transaction,
         label: "Attack",
+        confidence: 0.3,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: to,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.3,
+        remove: false,
+      }),
+      ...victims,
+    ],
+  });
+};
+
+export const createDelayedFinding = (
+  txHash: string,
+  from: string,
+  to: string,
+  asset: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Possible private key compromise",
+    description: `${from.toString()} transferred funds to ${to} and has been inactive for a week`,
+    alertId: "PKC-2",
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker: to,
+      victims: from.toString(),
+      transferredAsset: asset,
+      anomalyScore: anomalyScore.toString(),
+      txHash,
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
         confidence: 0.6,
         remove: false,
       }),
@@ -48,7 +88,13 @@ export const createFinding = (
         confidence: 0.6,
         remove: false,
       }),
-      ...victims,
+      Label.fromObject({
+        entity: from,
+        entityType: EntityType.Address,
+        label: "Victim",
+        confidence: 0.6,
+        remove: false,
+      }),
     ],
   });
 };
