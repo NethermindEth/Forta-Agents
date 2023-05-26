@@ -24,8 +24,10 @@ export class PersistenceHelper {
           body: JSON.stringify(value),
         });
         if (response.ok) {
-          if (key.includes("alerted") || key.includes("queued")) {
+          if (key.includes("alerted")) {
             console.log("successfully persisted addresses to database");
+          } else if (key.includes("queued")) {
+            console.log("successfully persisted queued addresses to database");
           } else {
             console.log("successfully persisted transfers to database");
           }
@@ -52,8 +54,10 @@ export class PersistenceHelper {
         if (response.ok) {
           const data: any = await response.json();
 
-          if (key.includes("alerted") || key.includes("queued")) {
+          if (key.includes("alerted")) {
             console.log("successfully fetched addresses from database");
+          } else if (key.includes("queued")) {
+            console.log("successfully fetched queued addresses from database");
           } else {
             console.log("successfully fetched transfers from database");
           }

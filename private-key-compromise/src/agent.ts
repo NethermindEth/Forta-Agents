@@ -11,7 +11,7 @@ import {
   MAX_OBJECT_SIZE,
 } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding } from "./findings";
+import { createFinding, createDelayedFinding } from "./findings";
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
@@ -93,18 +93,51 @@ export const provideHandleTransaction =
       blockNumber,
     } = txEvent;
 
-    // fetch top tokens list sorted by market cap in every 6 hours
-    if (blockNumber % 1800 == 0) {
-      topTokens = await marketCapFetcher.getTopMarketCap();
-    }
-
     // At the beginning of the block
     if (blockNumber != lastBlock) {
+      // fetch top tokens list sorted by market cap in every 6 hours
+      if (blockNumber % 1800 == 0) {
+        topTokens = await marketCapFetcher.getTopMarketCap();
+      }
+
+      // fetch queue daily to check if the possible victims have been active for the last week
+      if (blockNumber % 120 == 0) {
+        queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
+        await Promise.all(
+          queuedAddresses
+            .filter((queue) => timestamp - queue.timestamp > 300)
+            .map(async (el) => {
+              const isActive = await contractFetcher.getVictimInfo(el.transfer.from, Number(chainId), el.timestamp);
+
+              if (!isActive) {
+                const anomalyScore = await calculateAlertRate(
+                  Number(chainId),
+                  BOT_ID,
+                  "PKC-2",
+                  isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                  transfersCount
+                );
+                findings.push(
+                  createDelayedFinding(
+                    el.transfer.txHash,
+                    el.transfer.from,
+                    el.transfer.to,
+                    el.transfer.asset,
+                    anomalyScore
+                  )
+                );
+              }
+            })
+        );
+
+        // Remove processed logs from the queue which are older than 1 week
+        queuedAddresses = queuedAddresses.filter((address) => timestamp - address.timestamp < 604800);
+        await persistenceHelper.persist(queuedAddresses, databaseKeys.queuedAddressesKey.concat("-", chainId));
+      }
       const et = new Date().getTime();
       console.log(`Block processing time: ${et - st} ms`);
       const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
       alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
-      queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
 
       transferObj = deepMerge(transferObj, loadedTransferObj);
 
@@ -156,7 +189,7 @@ export const provideHandleTransaction =
 
             // if the account is drained
             if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
-              await updateRecord(from, to, networkManager.get("tokenName"), transferObj);
+              await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
 
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to].length > 3) {
@@ -178,9 +211,23 @@ export const provideHandleTransaction =
                     transfersCount
                   );
 
+                  // Add "from addresses" into the queue
                   transferObj[to].forEach((el) => {
-                    queuedAddresses.push({ address: el.victimAddress, timestamp: timestamp, txHash: hash });
+                    queuedAddresses.push({
+                      timestamp: timestamp,
+                      transfer: {
+                        from: el.victimAddress,
+                        to,
+                        txHash: el.txHash,
+                        asset: el.transferredAsset,
+                      },
+                    });
                   });
+
+                  await persistenceHelper.persist(
+                    queuedAddresses,
+                    databaseKeys.queuedAddressesKey.concat("-", chainId)
+                  );
 
                   findings.push(
                     createFinding(
@@ -222,7 +269,7 @@ export const provideHandleTransaction =
                   const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
 
                   if (balanceFrom.eq(0)) {
-                    await updateRecord(from, transfer.args.to, transfer.address, transferObj);
+                    await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
 
                     // if there are multiple transfers to the same address, emit an alert
                     if (transferObj[transfer.args.to].length > 3) {
@@ -247,6 +294,25 @@ export const provideHandleTransaction =
                           isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
                           ercTransferCount
                         );
+
+                        // Add from addresses into the queue
+                        transferObj[transfer.args.to].forEach((el) => {
+                          queuedAddresses.push({
+                            timestamp: timestamp,
+                            transfer: {
+                              from: el.victimAddress,
+                              to: transfer.args.to,
+                              txHash: el.txHash,
+                              asset: el.transferredAsset,
+                            },
+                          });
+                        });
+
+                        await persistenceHelper.persist(
+                          queuedAddresses,
+                          databaseKeys.queuedAddressesKey.concat("-", chainId)
+                        );
+
                         findings.push(
                           createFinding(
                             hash,
@@ -286,7 +352,6 @@ export default {
     new DataFetcher(getEthersProvider()),
     new MarketCapFetcher(),
     new PersistenceHelper(DATABASE_URL),
-    DATABASE_OBJECT_KEYS,
-    getAlerts
+    DATABASE_OBJECT_KEYS
   ),
 };
