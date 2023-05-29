@@ -178,7 +178,7 @@ const createDelayedFinding = (
   });
 };
 
-describe.only("Detect Private Key Compromise", () => {
+describe("Detect Private Key Compromise", () => {
   const mockPersistenceHelper = {
     persist: jest.fn(),
     load: jest.fn(),
