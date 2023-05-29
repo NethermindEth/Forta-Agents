@@ -68,7 +68,7 @@ export class PersistenceHelper {
           // the database will not have data to return,
           // thus return zero to assign value to the variables
           // necessary
-          if (key.includes("alerted")) {
+          if (key.includes("alerted") || key.includes("queued")) {
             return [];
           }
           return {};
