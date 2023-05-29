@@ -101,11 +101,11 @@ export const provideHandleTransaction =
       }
 
       // fetch queue daily to check if the possible victims have been active for the last week
-      if (blockNumber % 120 == 0) {
+      if (blockNumber % 7200 == 0) {
         queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
         await Promise.all(
           queuedAddresses
-            .filter((queue) => timestamp - queue.timestamp > 300)
+            .filter((queue) => timestamp - queue.timestamp > 604800)
             .map(async (el) => {
               const isActive = await contractFetcher.getVictimInfo(el.transfer.from, Number(chainId), el.timestamp);
 
