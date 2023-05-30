@@ -1,5 +1,4 @@
-import { getAddress } from "ethers/lib/utils";
-import { Finding, FindingSeverity, FindingType, LogDescription, Network } from "forta-agent";
+import { ethers, Finding, FindingSeverity, FindingType, LogDescription, Network } from "forta-agent";
 
 export function createProposalCreatedFinding(log: LogDescription, chainId: number, txHash: string): Finding {
   return Finding.from({
@@ -12,9 +11,9 @@ export function createProposalCreatedFinding(log: LogDescription, chainId: numbe
     severity: FindingSeverity.Info,
     metadata: {
       network: Network[chainId] || chainId.toString(),
-      bridgeReceiver: getAddress(log.address),
+      bridgeReceiver: ethers.utils.getAddress(log.address),
       proposalId: log.args.id.toString(),
-      fxChild: getAddress(log.args.rootMessageSender),
+      fxChild: ethers.utils.getAddress(log.args.rootMessageSender),
       txHash,
     },
   });
@@ -31,9 +30,9 @@ export function createSuspiciouscreateProposalCreatedFinding(log: LogDescription
     severity: FindingSeverity.High,
     metadata: {
       network: Network[chainId] || chainId.toString(),
-      bridgeReceiver: getAddress(log.address),
+      bridgeReceiver: ethers.utils.getAddress(log.address),
       proposalId: log.args.id.toString(),
-      fxChild: getAddress(log.args.rootMessageSender),
+      fxChild: ethers.utils.getAddress(log.args.rootMessageSender),
     },
   });
 }
