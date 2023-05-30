@@ -1,17 +1,7 @@
 import { getAddress } from "ethers/lib/utils";
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  LogDescription,
-  Network,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, LogDescription, Network } from "forta-agent";
 
-export function ProposalCreatedFinding(
-  log: LogDescription,
-  chainId: number,
-  txHash: string
-): Finding {
+export function ProposalCreatedFinding(log: LogDescription, chainId: number, txHash: string): Finding {
   return Finding.from({
     name: "Proposal created on BridgeReceiver contract",
     description:
@@ -30,10 +20,7 @@ export function ProposalCreatedFinding(
   });
 }
 
-export function SuspiciousProposalCreatedFinding(
-  log: LogDescription,
-  chainId: number
-): Finding {
+export function SuspiciousProposalCreatedFinding(log: LogDescription, chainId: number): Finding {
   return Finding.from({
     name: "A suspicious proposal was created on BridgeReceiver contract",
     description:

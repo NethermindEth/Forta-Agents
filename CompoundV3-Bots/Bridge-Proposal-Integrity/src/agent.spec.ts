@@ -1,19 +1,8 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  TransactionEvent,
-  Log,
-  Network,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, Log, Network } from "forta-agent";
 import { provideHandleTransaction, provideInitialize } from "./agent";
 import { createAddress } from "forta-agent-tools";
 
-import {
-  MockEthersProvider,
-  TestTransactionEvent,
-} from "forta-agent-tools/lib/test";
+import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
 import { Interface, formatBytes32String, getAddress } from "ethers/lib/utils";
 import {
   EXECUTE_TX_ABI,
@@ -79,18 +68,9 @@ function mockCreateSuspiciousProposalFinding(
   });
 }
 
-function encodeCallData(
-  dataArr: (string | number | string[] | number[])[],
-  receiverAddr: string
-) {
-  const data = ethers.utils.defaultAbiCoder.encode(
-    ["address[]", "uint256[]", "string[]", "bytes[]"],
-    dataArr
-  );
-  const calldata = SEND_MESSAGE_IFACE.encodeFunctionData("sendMessageToChild", [
-    receiverAddr,
-    data,
-  ]);
+function encodeCallData(dataArr: (string | number | string[] | number[])[], receiverAddr: string) {
+  const data = ethers.utils.defaultAbiCoder.encode(["address[]", "uint256[]", "string[]", "bytes[]"], dataArr);
+  const calldata = SEND_MESSAGE_IFACE.encodeFunctionData("sendMessageToChild", [receiverAddr, data]);
   return calldata;
 }
 
@@ -116,24 +96,13 @@ async function addLogsToProvider(
 const FX_CHILD = createAddress("0xab1");
 const LAST_MAINNET_BLOCK = 100;
 
-const PROPOSAL_TEST_DATA: [
-  string,
-  string,
-  string[],
-  number[],
-  string[],
-  string[],
-  number
-][] = [
+const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[], number][] = [
   [
     FX_CHILD,
     "1",
     [createAddress("0x11a"), createAddress("0x11b")],
     [30, 20],
-    [
-      "function func1() public returns (uint256)",
-      "function func2() public returns(uint)",
-    ],
+    ["function func1() public returns (uint256)", "function func2() public returns(uint)"],
     ["0x", "0x"],
     0,
   ],
@@ -142,22 +111,11 @@ const PROPOSAL_TEST_DATA: [
     "2",
     [createAddress("0x12a"), createAddress("0x12b")],
     [60, 20],
-    [
-      "function func1() public returns (uint256)",
-      "function func2() public returns(uint)",
-    ],
+    ["function func1() public returns (uint256)", "function func2() public returns(uint)"],
     ["0x", "0x"],
     0,
   ],
-  [
-    FX_CHILD,
-    "3",
-    [createAddress("0x13a")],
-    [30],
-    ["function func1() public returns (uint256)"],
-    ["0x"],
-    10,
-  ],
+  [FX_CHILD, "3", [createAddress("0x13a")], [30], ["function func1() public returns (uint256)"], ["0x"], 10],
 ];
 const DIFF_DATA = [
   FX_CHILD,
@@ -192,42 +150,21 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
 
-  async function addCallsToProvider(
-    mockProvider: MockEthersProvider,
-    blockNumber: string | number
-  ) {
-    mockProvider.addCallTo(
-      networkManager.get("bridgeReceiver"),
-      blockNumber,
-      RECEIVER_IFACE,
-      "fxChild",
-      {
-        inputs: [],
-        outputs: [fxChild],
-      }
-    );
+  async function addCallsToProvider(mockProvider: MockEthersProvider, blockNumber: string | number) {
+    mockProvider.addCallTo(networkManager.get("bridgeReceiver"), blockNumber, RECEIVER_IFACE, "fxChild", {
+      inputs: [],
+      outputs: [fxChild],
+    });
 
-    mockProvider.addCallTo(
-      networkManager.get("bridgeReceiver"),
-      blockNumber,
-      RECEIVER_IFACE,
-      "govTimelock",
-      {
-        inputs: [],
-        outputs: [timelock],
-      }
-    );
+    mockProvider.addCallTo(networkManager.get("bridgeReceiver"), blockNumber, RECEIVER_IFACE, "govTimelock", {
+      inputs: [],
+      outputs: [timelock],
+    });
 
-    mockProvider.addCallTo(
-      fxChild,
-      BLOCK_NUMBER,
-      new Interface([FX_ROOT_ABI]),
-      "fxRoot",
-      {
-        inputs: [],
-        outputs: [fxRoot],
-      }
-    );
+    mockProvider.addCallTo(fxChild, BLOCK_NUMBER, new Interface([FX_ROOT_ABI]), "fxRoot", {
+      inputs: [],
+      outputs: [fxRoot],
+    });
   }
 
   beforeEach(async () => {
@@ -244,15 +181,9 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     await initialize();
 
     const _getLogs = mockTimelockProvider.getLogs;
-    mockTimelockProvider.getLogs = jest.fn((...args) =>
-      Promise.resolve(_getLogs(...args))
-    );
+    mockTimelockProvider.getLogs = jest.fn((...args) => Promise.resolve(_getLogs(...args)));
 
-    handleTransaction = provideHandleTransaction(
-      networkManager,
-      provider,
-      mockTimelockProvider as any
-    );
+    handleTransaction = provideHandleTransaction(networkManager, provider, mockTimelockProvider as any);
 
     await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
@@ -266,28 +197,18 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   it("returns an Info finding if ProposalCreated event is emitted and corresponding ExecuteTransaction was found", async () => {
     const findings = [];
     for (const testData of PROPOSAL_TEST_DATA) {
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
-        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
-        [
-          formatBytes32String("hash1"),
-          fxRoot,
-          10,
-          "",
-          encodeCallData(
-            testData.slice(2, 6),
-            networkManager.get("bridgeReceiver")
-          ),
-          1,
-        ]
-      );
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
+        formatBytes32String("hash1"),
+        fxRoot,
+        10,
+        "",
+        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiver")),
+        1,
+      ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(
-          PROPOSAL_EVENT_ABI,
-          networkManager.get("bridgeReceiver"),
-          testData
-        );
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
       await addLogsToProvider(
         mockTimelockProvider,
@@ -318,11 +239,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(
-          PROPOSAL_EVENT_ABI,
-          networkManager.get("bridgeReceiver"),
-          testData
-        );
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
       await addLogsToProvider(mockTimelockProvider, 1, timelock, [], "");
       findings.push(await handleTransaction(txEvent));
@@ -330,12 +247,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
-          network,
-          networkManager.get("bridgeReceiver"),
-          data[1],
-          getAddress(data[0])
-        )
+        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
       )
     );
   });
@@ -345,26 +257,16 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(
-          PROPOSAL_EVENT_ABI,
-          networkManager.get("bridgeReceiver"),
-          testData
-        );
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
-        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
-        [
-          formatBytes32String("hash1"),
-          createAddress("0xd01"), // target is different from fxRoot
-          10,
-          "",
-          encodeCallData(
-            testData.slice(2, 6),
-            networkManager.get("bridgeReceiver")
-          ),
-          1,
-        ]
-      );
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
+        formatBytes32String("hash1"),
+        createAddress("0xd01"), // target is different from fxRoot
+        10,
+        "",
+        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiver")),
+        1,
+      ]);
 
       await addLogsToProvider(
         mockTimelockProvider,
@@ -379,12 +281,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
-          network,
-          networkManager.get("bridgeReceiver"),
-          data[1],
-          getAddress(data[0])
-        )
+        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
       )
     );
   });
@@ -394,26 +291,16 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(
-          PROPOSAL_EVENT_ABI,
-          networkManager.get("bridgeReceiver"),
-          testData
-        );
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(
-        EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"),
-        [
-          formatBytes32String("hash1"),
-          fxRoot,
-          10,
-          "",
-          encodeCallData(
-            DIFF_DATA.slice(2, 6),
-            networkManager.get("bridgeReceiver")
-          ), // data is different
-          1,
-        ]
-      );
+      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
+        formatBytes32String("hash1"),
+        fxRoot,
+        10,
+        "",
+        encodeCallData(DIFF_DATA.slice(2, 6), networkManager.get("bridgeReceiver")), // data is different
+        1,
+      ]);
 
       await addLogsToProvider(
         mockTimelockProvider,
@@ -428,12 +315,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
-          network,
-          networkManager.get("bridgeReceiver"),
-          data[1],
-          getAddress(data[0])
-        )
+        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
       )
     );
   });
@@ -465,9 +347,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
       };
 
       networkManager = new NetworkManager(config);
-      await networkManager.init(
-        mockTimelockProvider as unknown as ethers.providers.Provider
-      );
+      await networkManager.init(mockTimelockProvider as unknown as ethers.providers.Provider);
 
       handleTransaction = provideHandleTransaction(
         networkManager,
@@ -477,18 +357,12 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(
-          PROPOSAL_EVENT_ABI,
-          networkManager.get("bridgeReceiver"),
-          PROPOSAL_TEST_DATA[0]
-        );
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), PROPOSAL_TEST_DATA[0]);
 
       await handleTransaction(txEvent);
 
       expect(await mockTimelockProvider.getLogs).toBeCalledTimes(
-        Math.ceil(
-          networkManager.get("pastBlocks") / networkManager.get("blockChunk")
-        )
+        Math.ceil(networkManager.get("pastBlocks") / networkManager.get("blockChunk"))
       );
     }
   });
