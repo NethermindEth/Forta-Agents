@@ -9,6 +9,11 @@ checking if they were as expected from what was sent on Ethereum.
 
 - Polygon
 
+Currently the only supported chain is indeed Polygon. Some features were added
+to make it simpler to add other chains (i.e. network-specific configuration
+fields), but to do this same procedure in other chains it'd be necessary to know
+how the network bridge works.
+
 ## Alerts
 
 - COMP2-5-1
