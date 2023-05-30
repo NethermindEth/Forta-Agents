@@ -1,6 +1,6 @@
 import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersBatchProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
-import CONFIG from "./agent.config";
+import CONFIG, { DEBUG, DEBUG_LAST_BLOCK } from "./agent.config";
 import { NetworkData, encodePacked, getPastEventLogs } from "./utils";
 import {
   EXECUTE_TX_ABI,
@@ -66,8 +66,7 @@ export const provideHandleTransaction = (
       const govTimelock = new ethers.Contract(govTimelockAddress, EXECUTE_TX_IFACE, ethProvider);
 
       // Retrieve past events that match the filter and have a `target` that is equal to the expected value
-      const lastBlock = await ethProvider.getBlockNumber();
-
+      const lastBlock = !DEBUG ? await ethProvider.getBlockNumber() : DEBUG_LAST_BLOCK;
       const txExecutionLogs = await getPastEventLogs(
         govTimelock.filters.ExecuteTransaction(null, fxRoot),
         lastBlock,

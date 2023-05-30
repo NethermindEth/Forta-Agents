@@ -1,6 +1,9 @@
 import { Network } from "forta-agent";
 import { AgentConfig } from "./utils";
 
+export const DEBUG: boolean = false;
+export const DEBUG_LAST_BLOCK: number = 16769029;
+
 const CONFIG: AgentConfig = {
   // Ethereum RPC URL
   mainnetRpcEndpoint: "https://eth.llamarpc.com",
