@@ -8,10 +8,6 @@ import { ERC20_TRANSFER_EVENT } from "./utils";
 
 jest.mock("node-fetch");
 
-const mockLargeProfitTxns = 12;
-const mockAllTxns = 35;
-const mockChainId = 1;
-
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
 jest.mock("forta-agent", () => {
