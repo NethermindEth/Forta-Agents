@@ -355,7 +355,9 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
       await handleTransaction(txEvent);
 
-      expect(mockProvider.getLogs).toHaveBeenCalledTimes(batchCount);
+      expect(mockEthProvider.getLogs).toHaveBeenCalledTimes(
+        Math.ceil(networkManager.get("pastBlocks") / networkManager.get("blockChunk"))
+      );
     }
   });
 });
