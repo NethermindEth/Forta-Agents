@@ -36,7 +36,6 @@ export const provideHandleTransaction = (
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-    const abi = ethers.utils.defaultAbiCoder;
 
     // Listen to ProposalCreated events on BaseBridgeReciever contract
     const proposalLogs = txEvent.filterLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"));
@@ -57,7 +56,7 @@ export const provideHandleTransaction = (
       const fxRoot = ethers.utils.getAddress(await fxChildContract.fxRoot({ blockTag: txEvent.blockNumber }));
 
       for (let proposalLog of proposalLogs) {
-        const data = abi.encode(
+        const data = ethers.utils.defaultAbiCoder.encode(
           ["address[]", "uint256[]", "string[]", "bytes[]"],
           [proposalLog.args.targets, proposalLog.args[3], proposalLog.args.signatures, proposalLog.args.calldatas]
         );
