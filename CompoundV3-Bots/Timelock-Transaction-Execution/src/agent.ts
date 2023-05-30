@@ -44,11 +44,11 @@ export const provideHandleTransaction = (
       bridgeReceiverIface,
       provider
     );
-    const timelock = await bridgeReceiver.localTimelock({ blockTag: block });
+    const timelockAddress = await bridgeReceiver.localTimelock({ blockTag: block });
 
     // Filter ExecuteTransaction logs from the local timelock and ProposalExecuted logs from the bridge receiver
     const timelockExecutionLogs = executeTransactionLogs.filter(
-      (el) => el.address.toLowerCase() === timelock.toLowerCase()
+      (el) => el.address.toLowerCase() === timelockAddress.toLowerCase()
     );
     const proposalExecutedLogs = txEvent.filterLog(PROPOSAL_EXECUTED_ABI, bridgeReceiver.address);
 
@@ -132,11 +132,21 @@ export const provideHandleTransaction = (
 
       if (proposalExecution.calls.some((call) => !call.matched)) {
         findings.push(
-          createUnsuccessfulProposalExecutionFinding(bridgeReceiver.address, timelock, proposalExecution.id, chainId)
+          createUnsuccessfulProposalExecutionFinding(
+            bridgeReceiver.address,
+            timelockAddress,
+            proposalExecution.id,
+            chainId
+          )
         );
       } else {
         findings.push(
-          createSuccessfulProposalExecutionFinding(bridgeReceiver.address, timelock, proposalExecution.id, chainId)
+          createSuccessfulProposalExecutionFinding(
+            bridgeReceiver.address,
+            timelockAddress,
+            proposalExecution.id,
+            chainId
+          )
         );
       }
     });
@@ -146,7 +156,7 @@ export const provideHandleTransaction = (
         findings.push(
           createUnknownTimelockExecutionFinding(
             bridgeReceiver.address,
-            timelock,
+            timelockAddress,
             callExecution.txHash,
             callExecution.target,
             callExecution.value,
