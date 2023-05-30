@@ -26,14 +26,6 @@ export type AlertedAddress = {
   timestamp: number;
 };
 
-// export type QueuedAddress = {
-//   address: string;
-//   timestamp: number;
-//   txHash: string;
-//   to: string;
-//   asset: string;
-// };
-
 export type QueuedAddress = {
   timestamp: number;
   transfer: {

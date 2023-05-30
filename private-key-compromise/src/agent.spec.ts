@@ -243,7 +243,6 @@ describe("Detect Private Key Compromise", () => {
 
   beforeAll(() => {
     mockProvider = new MockEthersProviderExtension();
-    // mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
   });
 
@@ -259,11 +258,6 @@ describe("Detect Private Key Compromise", () => {
     );
     const mockEnv = {};
     Object.assign(process.env, mockEnv);
-
-    // mockFetchResponse = {
-    //   ok: true,
-    //   json: jest.fn().mockResolvedValue(Promise.resolve(mockpKCompValueTxns)),
-    // } as any as Response;
 
     mockCalculateAlertRate.mockResolvedValue("0.1");
     mockFetchJwt.mockResolvedValue(mockJwt);
