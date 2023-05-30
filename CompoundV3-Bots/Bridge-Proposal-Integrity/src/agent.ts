@@ -1,7 +1,7 @@
 import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersBatchProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { NetworkData, encodePacked } from "./utils";
+import { AgentConfig, NetworkData, encodePacked } from "./utils";
 import {
   EXECUTE_TX_ABI,
   FX_CHILD_ABI,
@@ -12,7 +12,7 @@ import {
 } from "./constants";
 import { ProposalCreatedFinding, SuspiciousProposalCreatedFinding } from "./finding";
 
-const networkManager = new NetworkManager(CONFIG);
+const networkManager = new NetworkManager(CONFIG.networkData);
 const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
 const EXECUTE_TX_IFACE = new ethers.utils.Interface([EXECUTE_TX_ABI]);
 
@@ -27,12 +27,13 @@ export const provideInitialize = (
 
 export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
+  config: AgentConfig,
   provider: ethers.providers.Provider,
   timelockProvider?: ethers.providers.Provider
 ): HandleTransaction => {
   const mainnetProvider = timelockProvider
     ? timelockProvider
-    : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
+    : new ethers.providers.JsonRpcProvider(config.mainnetRpcEndpoint);
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -115,5 +116,5 @@ const provider: ethers.providers.Provider = getEthersBatchProvider();
 
 export default {
   initialize: provideInitialize(networkManager, provider),
-  handleTransaction: provideHandleTransaction(networkManager, provider),
+  handleTransaction: provideHandleTransaction(networkManager, CONFIG, provider),
 };

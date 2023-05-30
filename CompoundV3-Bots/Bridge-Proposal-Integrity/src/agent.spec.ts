@@ -130,11 +130,13 @@ const DIFF_DATA = [
 const network = Network.MAINNET;
 
 const DEFAULT_CONFIG: AgentConfig = {
-  [network]: {
-    bridgeReceiver: createAddress("0xff1"),
-    blockChunk: 50,
-    pastBlocks: 100,
-    rpcEndpoint: "rpc-endpoint",
+  mainnetRpcEndpoint: "rpc-endpoint",
+  networkData: {
+    [network]: {
+      bridgeReceiver: createAddress("0xff1"),
+      blockChunk: 50,
+      pastBlocks: 100,
+    },
   },
 };
 
@@ -174,7 +176,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     mockProvider = new MockEthersProvider();
     mockProvider.setNetwork(network);
-    networkManager = new NetworkManager(DEFAULT_CONFIG);
+    networkManager = new NetworkManager(DEFAULT_CONFIG.networkData);
 
     const provider = mockProvider as unknown as ethers.providers.Provider;
     const initialize = provideInitialize(networkManager, provider);
@@ -183,7 +185,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     const _getLogs = mockTimelockProvider.getLogs;
     mockTimelockProvider.getLogs = jest.fn((...args) => Promise.resolve(_getLogs(...args)));
 
-    handleTransaction = provideHandleTransaction(networkManager, provider, mockTimelockProvider as any);
+    handleTransaction = provideHandleTransaction(networkManager, DEFAULT_CONFIG, provider, mockTimelockProvider as any);
 
     await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
@@ -335,22 +337,23 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
       mockTimelockProvider.setNetwork(network);
       mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
 
-      const config = {
-        [network]: {
-          bridgeReceiver: createAddress("0xff1"),
-          fxRoot: createAddress("0xff2"),
-          timeLock: createAddress("0xff3"),
-          blockChunk: blocksData[0],
-          pastBlocks: blocksData[1],
-          rpcEndpoint: "rpc-endpoint",
+      const config: AgentConfig = {
+        mainnetRpcEndpoint: "rpc-endpoint",
+        networkData: {
+          [network]: {
+            bridgeReceiver: createAddress("0xff1"),
+            blockChunk: blocksData[0],
+            pastBlocks: blocksData[1],
+          },
         },
       };
 
-      networkManager = new NetworkManager(config);
+      networkManager = new NetworkManager(config.networkData);
       await networkManager.init(mockTimelockProvider as unknown as ethers.providers.Provider);
 
       handleTransaction = provideHandleTransaction(
         networkManager,
+        config,
         mockProvider as unknown as ethers.providers.Provider,
         mockTimelockProvider as any
       );
