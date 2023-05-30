@@ -52,7 +52,7 @@ export const provideHandleTransaction = (
     const fxChildContract = new ethers.Contract(fxChild, [FX_ROOT_ABI], provider);
     const fxRoot = ethers.utils.getAddress(await fxChildContract.fxRoot({ blockTag: txEvent.blockNumber }));
 
-    for (let proposalLog of proposalLogs) {
+    for (const proposalLog of proposalLogs) {
       // encode bridged message
       const data = ethers.utils.defaultAbiCoder.encode(
         ["address[]", "uint256[]", "string[]", "bytes[]"],
@@ -87,10 +87,10 @@ export const provideHandleTransaction = (
       ).flat();
 
       let eventFound = false;
-      for (let log of txExecutionLogs) {
-        let decodedEvent = EXECUTE_TX_IFACE.decodeEventLog("ExecuteTransaction", log.data, log.topics);
+      for (const log of txExecutionLogs) {
+        const decodedEvent = EXECUTE_TX_IFACE.decodeEventLog("ExecuteTransaction", log.data, log.topics);
 
-        let callDataFromEvent =
+        const callDataFromEvent =
           decodedEvent.signature === "" ? decodedEvent.data : encodePacked(decodedEvent.signature, decodedEvent.data);
 
         if (callDataFromEvent === calldata) {
