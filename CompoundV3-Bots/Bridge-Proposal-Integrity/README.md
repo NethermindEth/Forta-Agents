@@ -5,6 +5,11 @@
 This bot monitors Compound v3 BaseBridgeReceiver contract for bridged proposals,
 checking if they were as expected from what was sent on Ethereum.
 
+This is done by monitoring `ProposalCreated` events on the Polygon
+BridgeReceiver contract and then trying to fetch the corresponding message
+passing that lead to this creation on Mainnet - in this case, a transaction
+execution from the Governor timelock to the Polygon bridge.
+
 ## Supported Chains
 
 - Polygon
