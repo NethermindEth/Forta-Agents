@@ -11,7 +11,6 @@ This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals
 ## Alerts
 
 - COMP2-5-1
-
   - Fired when `ProposalCreated` event was emitted on BridgeReceiver contract, and the corresponding transaction was found on mainnet.
   - Severity is always set to "Info"
   - Type is always set to "Info"
