@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 
 export interface NetworkData {
-  bridgeReceiver: string;
-  blockChunk: number;
-  pastBlocks: number;
+  bridgeReceiverAddress: string;
+  messagePassFetchingBlockStep: number;
+  messagePassFetchingBlockRange: number;
 }
 
 export interface AgentConfig {

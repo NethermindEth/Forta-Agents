@@ -33,12 +33,12 @@ export const provideHandleTransaction = (
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const proposalLogs = txEvent.filterLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"));
+    const proposalLogs = txEvent.filterLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"));
 
     if (!proposalLogs.length) return findings;
 
     const bridgeReceiver: ethers.Contract = new ethers.Contract(
-      networkManager.get("bridgeReceiver"),
+      networkManager.get("bridgeReceiverAddress"),
       [FX_CHILD_ABI, TIMELOCK_ABI],
       provider
     );
@@ -60,7 +60,7 @@ export const provideHandleTransaction = (
       );
 
       const calldata = SEND_MESSAGE_IFACE.encodeFunctionData("sendMessageToChild", [
-        networkManager.get("bridgeReceiver"),
+        networkManager.get("bridgeReceiverAddress"),
         data,
       ]);
 
@@ -72,8 +72,8 @@ export const provideHandleTransaction = (
       const txExecutionLogs = await getPastEventLogs(
         govTimelock.filters.ExecuteTransaction(null, fxRoot),
         lastBlock,
-        networkManager.get("pastBlocks"),
-        networkManager.get("blockChunk"),
+        networkManager.get("messagePassFetchingBlockRange"),
+        networkManager.get("messagePassFetchingBlockStep"),
         ethProvider
       );
 

@@ -22,7 +22,7 @@ const RECEIVER_IFACE = new Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
 
 function mockCreateProposalFinding(
   chainId: number,
-  bridgeReceiver: string,
+  bridgeReceiverAddress: string,
   id: string,
   fxChild: string,
   txHash: string
@@ -37,7 +37,7 @@ function mockCreateProposalFinding(
     severity: FindingSeverity.Info,
     metadata: {
       network: Network[chainId] || chainId.toString(),
-      bridgeReceiver,
+      bridgeReceiver: bridgeReceiverAddress,
       proposalId: id,
       fxChild,
       txHash,
@@ -47,7 +47,7 @@ function mockCreateProposalFinding(
 
 function mockCreateSuspiciousProposalFinding(
   chainId: number,
-  bridgeReceiver: string,
+  bridgeReceiverAddress: string,
   id: string,
   fxChild: string
 ): Finding {
@@ -61,7 +61,7 @@ function mockCreateSuspiciousProposalFinding(
     severity: FindingSeverity.High,
     metadata: {
       network: Network[chainId] || chainId.toString(),
-      bridgeReceiver,
+      bridgeReceiver: bridgeReceiverAddress,
       proposalId: id,
       fxChild,
     },
@@ -133,9 +133,9 @@ const DEFAULT_CONFIG: AgentConfig = {
   mainnetRpcEndpoint: "rpc-endpoint",
   networkData: {
     [network]: {
-      bridgeReceiver: createAddress("0xff1"),
-      blockChunk: 50,
-      pastBlocks: 100,
+      bridgeReceiverAddress: createAddress("0xff1"),
+      messagePassFetchingBlockStep: 50,
+      messagePassFetchingBlockRange: 100,
     },
   },
 };
@@ -156,12 +156,12 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   let networkManager: NetworkManager<NetworkData>;
 
   async function addCallsToProvider(mockProvider: MockEthersProvider, blockNumber: string | number) {
-    mockProvider.addCallTo(networkManager.get("bridgeReceiver"), blockNumber, RECEIVER_IFACE, "fxChild", {
+    mockProvider.addCallTo(networkManager.get("bridgeReceiverAddress"), blockNumber, RECEIVER_IFACE, "fxChild", {
       inputs: [],
       outputs: [fxChild],
     });
 
-    mockProvider.addCallTo(networkManager.get("bridgeReceiver"), blockNumber, RECEIVER_IFACE, "govTimelock", {
+    mockProvider.addCallTo(networkManager.get("bridgeReceiverAddress"), blockNumber, RECEIVER_IFACE, "govTimelock", {
       inputs: [],
       outputs: [timelock],
     });
@@ -210,13 +210,13 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         fxRoot,
         10,
         "",
-        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiver")),
+        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiverAddress")),
         1,
       ]);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       await addLogsToProvider(
         mockEthProvider,
@@ -233,7 +233,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
       PROPOSAL_TEST_DATA.map((data) =>
         mockCreateProposalFinding(
           network,
-          networkManager.get("bridgeReceiver"),
+          networkManager.get("bridgeReceiverAddress"),
           data[1],
           getAddress(data[0]),
           formatBytes32String("tx1")
@@ -247,7 +247,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       await addLogsToProvider(mockEthProvider, 1, timelock, [], "");
       findings.push(await handleTransaction(txEvent));
@@ -255,7 +255,12 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
+        mockCreateSuspiciousProposalFinding(
+          network,
+          networkManager.get("bridgeReceiverAddress"),
+          data[1],
+          getAddress(data[0])
+        )
       )
     );
   });
@@ -265,14 +270,14 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
         formatBytes32String("hash1"),
         createAddress("0xd01"), // target is different from fxRoot
         10,
         "",
-        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiver")),
+        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiverAddress")),
         1,
       ]);
 
@@ -283,7 +288,12 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
+        mockCreateSuspiciousProposalFinding(
+          network,
+          networkManager.get("bridgeReceiverAddress"),
+          data[1],
+          getAddress(data[0])
+        )
       )
     );
   });
@@ -293,14 +303,14 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
         formatBytes32String("hash1"),
         fxRoot,
         10,
         "",
-        encodeCallData(DIFF_DATA.slice(2, 6), networkManager.get("bridgeReceiver")), // data is different
+        encodeCallData(DIFF_DATA.slice(2, 6), networkManager.get("bridgeReceiverAddress")), // data is different
         1,
       ]);
 
@@ -311,7 +321,12 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(network, networkManager.get("bridgeReceiver"), data[1], getAddress(data[0]))
+        mockCreateSuspiciousProposalFinding(
+          network,
+          networkManager.get("bridgeReceiverAddress"),
+          data[1],
+          getAddress(data[0])
+        )
       )
     );
   });
@@ -337,9 +352,9 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         mainnetRpcEndpoint: "rpc-endpoint",
         networkData: {
           [network]: {
-            bridgeReceiver: createAddress("0xff1"),
-            blockChunk: blocksData[0],
-            pastBlocks: blocksData[1],
+            bridgeReceiverAddress: createAddress("0xff1"),
+            messagePassFetchingBlockStep: blocksData[0],
+            messagePassFetchingBlockRange: blocksData[1],
           },
         },
       };
@@ -351,12 +366,14 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), PROPOSAL_TEST_DATA[0]);
+        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), PROPOSAL_TEST_DATA[0]);
 
       await handleTransaction(txEvent);
 
       expect(mockEthProvider.getLogs).toHaveBeenCalledTimes(
-        Math.ceil(networkManager.get("pastBlocks") / networkManager.get("blockChunk"))
+        Math.ceil(
+          networkManager.get("messagePassFetchingBlockRange") / networkManager.get("messagePassFetchingBlockStep")
+        )
       );
     }
   });
