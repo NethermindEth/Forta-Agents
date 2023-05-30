@@ -30,13 +30,13 @@ export const provideHandleTransaction = (
   provider: ethers.providers.Provider,
   timelockProvider?: ethers.providers.Provider
 ): HandleTransaction => {
+  const mainnetProvider = timelockProvider
+  ? timelockProvider
+  : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
+
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
     const abi = ethers.utils.defaultAbiCoder;
-
-    const mainnetProvider = timelockProvider
-      ? timelockProvider
-      : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
 
     // Listen to ProposalCreated events on BaseBridgeReciever contract
     const proposalLogs = txEvent.filterLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"));
