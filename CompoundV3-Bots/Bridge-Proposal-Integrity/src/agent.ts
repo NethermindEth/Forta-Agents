@@ -1,7 +1,7 @@
 import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersBatchProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { AgentConfig, NetworkData, encodePacked } from "./utils";
+import { NetworkData, encodePacked } from "./utils";
 import {
   EXECUTE_TX_ABI,
   FX_CHILD_ABI,
