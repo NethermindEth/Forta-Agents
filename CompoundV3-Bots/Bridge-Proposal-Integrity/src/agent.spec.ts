@@ -191,7 +191,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     const _getLogs = mockEthProvider.getLogs;
     mockEthProvider.getLogs = jest.fn((...args) => Promise.resolve(_getLogs(...args)));
 
-    handleTransaction = provideHandleTransaction(networkManager, DEFAULT_CONFIG, provider, ethProvider);
+    handleTransaction = provideHandleTransaction(networkManager, provider, ethProvider);
 
     await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
@@ -347,7 +347,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
       networkManager = new NetworkManager(config.networkData);
       await networkManager.init(ethProvider);
 
-      handleTransaction = provideHandleTransaction(networkManager, config, provider, ethProvider);
+      handleTransaction = provideHandleTransaction(networkManager, provider, ethProvider);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)

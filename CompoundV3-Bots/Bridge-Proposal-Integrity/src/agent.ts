@@ -27,7 +27,6 @@ export const provideInitialize = (
 
 export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
-  config: AgentConfig,
   provider: ethers.providers.Provider,
   ethProvider: ethers.providers.Provider
 ): HandleTransaction => {
@@ -113,5 +112,5 @@ const ethProvider = new ethers.providers.JsonRpcProvider(CONFIG.mainnetRpcEndpoi
 
 export default {
   initialize: provideInitialize(networkManager, provider),
-  handleTransaction: provideHandleTransaction(networkManager, CONFIG, provider, ethProvider),
+  handleTransaction: provideHandleTransaction(networkManager, provider, ethProvider),
 };
