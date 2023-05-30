@@ -31,13 +31,12 @@ export const provideHandleTransaction = (
   timelockProvider?: ethers.providers.Provider
 ): HandleTransaction => {
   const mainnetProvider = timelockProvider
-  ? timelockProvider
-  : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
+    ? timelockProvider
+    : new ethers.providers.JsonRpcProvider(networkManager.get("rpcEndpoint"));
 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    // Listen to ProposalCreated events on BaseBridgeReciever contract
     const proposalLogs = txEvent.filterLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"));
 
     if (!proposalLogs.length) return findings;
@@ -47,6 +46,7 @@ export const provideHandleTransaction = (
       [FX_CHILD_ABI, TIMELOCK_ABI],
       provider
     );
+
     // fetch mainnet Timelock contract and FxRoot
     const [fxChild, govTimelock] = await Promise.all([
       bridgeReceiver.fxChild({ blockTag: txEvent.blockNumber }),
@@ -57,21 +57,18 @@ export const provideHandleTransaction = (
     const fxRoot = ethers.utils.getAddress(await fxChildContract.fxRoot({ blockTag: txEvent.blockNumber }));
 
     for (let proposalLog of proposalLogs) {
+      // encode bridged message
       const data = ethers.utils.defaultAbiCoder.encode(
         ["address[]", "uint256[]", "string[]", "bytes[]"],
         [proposalLog.args.targets, proposalLog.args[3], proposalLog.args.signatures, proposalLog.args.calldatas]
       );
 
-      // Encode call to sendMessageToChild
       const calldata = SEND_MESSAGE_IFACE.encodeFunctionData("sendMessageToChild", [
         networkManager.get("bridgeReceiver"),
         data,
       ]);
 
       const timeLockContract = new ethers.Contract(govTimelock, EXECUTE_TX_IFACE, mainnetProvider);
-
-      // ExecuteTransaction event filter
-      const eventFilter = timeLockContract.filters.ExecuteTransaction(null, fxRoot);
 
       // Retrieve past events that match the filter and have a `target` that is equal to the expected value
       const lastBlock = await mainnetProvider.getBlockNumber();
@@ -84,7 +81,7 @@ export const provideHandleTransaction = (
           }).map(async (_, idx) => {
             const fromBlock = Math.max(lastBlock - blockChunk * (idx + 1) + 1, 0);
             return await mainnetProvider.getLogs({
-              ...eventFilter,
+              ...timeLockContract.filters.ExecuteTransaction(null, fxRoot),
               fromBlock,
               // toBlock: Math.min(fromBlock + blockChunk - 1, lastBlock),
               toBlock: lastBlock - blockChunk * idx,
