@@ -12,7 +12,6 @@ import {
 } from "./constants";
 import { createProposalCreatedFinding, createSuspiciousProposalCreatedFinding } from "./finding";
 
-const networkManager = new NetworkManager(CONFIG.networkData);
 const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
 const EXECUTE_TX_IFACE = new ethers.utils.Interface([EXECUTE_TX_ABI]);
 
@@ -101,6 +100,7 @@ export const provideHandleTransaction = (
 };
 
 const provider = getEthersBatchProvider();
+const networkManager = new NetworkManager(CONFIG.networkData);
 const ethProvider = new ethers.providers.JsonRpcProvider(CONFIG.mainnetRpcEndpoint);
 
 export default {
