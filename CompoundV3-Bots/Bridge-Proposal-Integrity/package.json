@@ -1,7 +1,7 @@
 {
   "name": "comp2-5",
   "version": "0.0.1",
-  "description": "Forta bot that monitors Compound III BaseBridgeReceiver contract for bridged proposals",
+  "description": "Forta bot that monitors Compound v3 BaseBridgeReceiver contract for bridged proposals",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Bridge-Proposal-Integrity",
   "chainIds": [
     137

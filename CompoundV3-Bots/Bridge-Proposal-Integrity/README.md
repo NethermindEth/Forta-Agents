@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals. Checking if they were as expected from what was sent on Ethereum.
+This bot monitors Compound v3 BaseBridgeReceiver contract for bridged proposals. Checking if they were as expected from what was sent on Ethereum.
 
 ## Supported Chains
 
