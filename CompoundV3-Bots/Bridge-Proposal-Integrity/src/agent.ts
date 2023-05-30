@@ -1,7 +1,7 @@
 import { Finding, Initialize, HandleTransaction, TransactionEvent, ethers, getEthersBatchProvider } from "forta-agent";
 import { NetworkManager } from "forta-agent-tools";
 import CONFIG from "./agent.config";
-import { NetworkData, encodePacked } from "./utils";
+import { NetworkData, encodePacked, getPastEventLogs } from "./utils";
 import {
   EXECUTE_TX_ABI,
   FX_CHILD_ABI,
@@ -68,23 +68,14 @@ export const provideHandleTransaction = (
 
       // Retrieve past events that match the filter and have a `target` that is equal to the expected value
       const lastBlock = await ethProvider.getBlockNumber();
-      const blockChunk = networkManager.get("blockChunk");
 
-      const txExecutionLogs = (
-        await Promise.all(
-          Array.from({
-            length: Math.ceil(networkManager.get("pastBlocks") / blockChunk),
-          }).map(async (_, idx) => {
-            const fromBlock = Math.max(lastBlock - blockChunk * (idx + 1) + 1, 0);
-            return await ethProvider.getLogs({
-              ...timeLockContract.filters.ExecuteTransaction(null, fxRoot),
-              fromBlock,
-              // toBlock: Math.min(fromBlock + blockChunk - 1, lastBlock),
-              toBlock: lastBlock - blockChunk * idx,
-            });
-          })
-        )
-      ).flat();
+      const txExecutionLogs = await getPastEventLogs(
+        timeLockContract.filters.ExecuteTransaction(null, fxRoot),
+        lastBlock,
+        networkManager.get("pastBlocks"),
+        networkManager.get("blockChunk"),
+        ethProvider
+      );
 
       let eventFound = false;
       for (const log of txExecutionLogs) {
