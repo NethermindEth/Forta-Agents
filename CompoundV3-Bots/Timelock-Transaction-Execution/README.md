@@ -1,4 +1,4 @@
-# Governance Events Bot
+# Timelock Transaction Monitor Bot
 
 ## Description
 
