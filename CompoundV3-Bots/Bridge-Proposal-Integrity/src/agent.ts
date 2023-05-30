@@ -44,13 +44,13 @@ export const provideHandleTransaction = (
     );
 
     // fetch mainnet Timelock contract and FxRoot
-    const [fxChild, govTimelock] = await Promise.all([
+    const [fxChildAddress, govTimelockAddress] = await Promise.all([
       bridgeReceiver.fxChild({ blockTag: txEvent.blockNumber }),
       bridgeReceiver.govTimelock({ blockTag: txEvent.blockNumber }),
     ]);
 
-    const fxChildContract = new ethers.Contract(fxChild, [FX_ROOT_ABI], provider);
-    const fxRoot = ethers.utils.getAddress(await fxChildContract.fxRoot({ blockTag: txEvent.blockNumber }));
+    const fxChild = new ethers.Contract(fxChildAddress, [FX_ROOT_ABI], provider);
+    const fxRoot = ethers.utils.getAddress(await fxChild.fxRoot({ blockTag: txEvent.blockNumber }));
 
     for (const proposalLog of proposalLogs) {
       // encode bridged message
@@ -64,13 +64,13 @@ export const provideHandleTransaction = (
         data,
       ]);
 
-      const timeLockContract = new ethers.Contract(govTimelock, EXECUTE_TX_IFACE, ethProvider);
+      const govTimelock = new ethers.Contract(govTimelockAddress, EXECUTE_TX_IFACE, ethProvider);
 
       // Retrieve past events that match the filter and have a `target` that is equal to the expected value
       const lastBlock = await ethProvider.getBlockNumber();
 
       const txExecutionLogs = await getPastEventLogs(
-        timeLockContract.filters.ExecuteTransaction(null, fxRoot),
+        govTimelock.filters.ExecuteTransaction(null, fxRoot),
         lastBlock,
         networkManager.get("pastBlocks"),
         networkManager.get("blockChunk"),
