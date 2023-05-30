@@ -10,7 +10,7 @@ import {
   SEND_MESSAGE_ABI,
   TIMELOCK_ABI,
 } from "./constants";
-import { ProposalCreatedFinding, SuspiciousProposalCreatedFinding } from "./finding";
+import { createProposalCreatedFinding, createSuspiciouscreateProposalCreatedFinding } from "./finding";
 
 const networkManager = new NetworkManager(CONFIG.networkData);
 const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
@@ -86,12 +86,13 @@ export const provideHandleTransaction = (
 
         if (callDataFromEvent === calldata) {
           eventFound = true;
-          findings.push(ProposalCreatedFinding(proposalLog, networkManager.getNetwork(), log.transactionHash));
+          findings.push(createProposalCreatedFinding(proposalLog, networkManager.getNetwork(), log.transactionHash));
           break;
         }
       }
 
-      if (!eventFound) findings.push(SuspiciousProposalCreatedFinding(proposalLog, networkManager.getNetwork()));
+      if (!eventFound)
+        findings.push(createSuspiciouscreateProposalCreatedFinding(proposalLog, networkManager.getNetwork()));
     }
 
     return findings;

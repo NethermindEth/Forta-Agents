@@ -20,7 +20,7 @@ const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
 const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
 const RECEIVER_IFACE = new Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
 
-function mockCreateProposalFinding(
+function createProposalFinding(
   chainId: number,
   bridgeReceiverAddress: string,
   id: string,
@@ -45,7 +45,7 @@ function mockCreateProposalFinding(
   });
 }
 
-function mockCreateSuspiciousProposalFinding(
+function createSuspiciousProposalFinding(
   chainId: number,
   bridgeReceiverAddress: string,
   id: string,
@@ -231,7 +231,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateProposalFinding(
+        createProposalFinding(
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
@@ -255,7 +255,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
+        createSuspiciousProposalFinding(
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
@@ -288,7 +288,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
+        createSuspiciousProposalFinding(
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
@@ -321,7 +321,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
-        mockCreateSuspiciousProposalFinding(
+        createSuspiciousProposalFinding(
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
