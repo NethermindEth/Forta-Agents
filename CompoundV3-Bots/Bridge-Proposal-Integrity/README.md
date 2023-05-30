@@ -18,7 +18,7 @@ This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals
   - Metadata:
     - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
     - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
-    - `id`:
+    - `proposalId`: ID of the proposal.
     - `fxChild`: Address of the proposal creation message sender.
     - `txHash`: Mainnet transaction hash that originated in the proposal creation.
 
@@ -29,7 +29,7 @@ This bot monitors Compound III BaseBridgeReceiver contract for bridged proposals
   - Metadata:
     - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
     - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
-    - `id`:
+    - `proposalId`: ID of the proposal.
     - `fxChild`: Address of the proposal creation message sender.
 
 ## Test Data
