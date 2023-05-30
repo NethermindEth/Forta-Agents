@@ -29,12 +29,8 @@ export const provideHandleTransaction = (
   networkManager: NetworkManager<NetworkData>,
   config: AgentConfig,
   provider: ethers.providers.Provider,
-  timelockProvider?: ethers.providers.Provider
+  ethProvider: ethers.providers.Provider
 ): HandleTransaction => {
-  const mainnetProvider = timelockProvider
-    ? timelockProvider
-    : new ethers.providers.JsonRpcProvider(config.mainnetRpcEndpoint);
-
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -69,10 +65,10 @@ export const provideHandleTransaction = (
         data,
       ]);
 
-      const timeLockContract = new ethers.Contract(govTimelock, EXECUTE_TX_IFACE, mainnetProvider);
+      const timeLockContract = new ethers.Contract(govTimelock, EXECUTE_TX_IFACE, ethProvider);
 
       // Retrieve past events that match the filter and have a `target` that is equal to the expected value
-      const lastBlock = await mainnetProvider.getBlockNumber();
+      const lastBlock = await ethProvider.getBlockNumber();
       const blockChunk = networkManager.get("blockChunk");
 
       const txExecutionLogs = (
@@ -81,7 +77,7 @@ export const provideHandleTransaction = (
             length: Math.ceil(networkManager.get("pastBlocks") / blockChunk),
           }).map(async (_, idx) => {
             const fromBlock = Math.max(lastBlock - blockChunk * (idx + 1) + 1, 0);
-            return await mainnetProvider.getLogs({
+            return await ethProvider.getLogs({
               ...timeLockContract.filters.ExecuteTransaction(null, fxRoot),
               fromBlock,
               // toBlock: Math.min(fromBlock + blockChunk - 1, lastBlock),
@@ -113,8 +109,9 @@ export const provideHandleTransaction = (
 };
 
 const provider = getEthersBatchProvider();
+const ethProvider = new ethers.providers.JsonRpcProvider(CONFIG.mainnetRpcEndpoint);
 
 export default {
   initialize: provideInitialize(networkManager, provider),
-  handleTransaction: provideHandleTransaction(networkManager, CONFIG, provider),
+  handleTransaction: provideHandleTransaction(networkManager, CONFIG, provider, ethProvider),
 };

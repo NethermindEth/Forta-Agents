@@ -146,8 +146,11 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   const timelock = createAddress("0xaeff");
   const BLOCK_NUMBER = 1;
 
-  let mockTimelockProvider: MockEthersProvider;
+  let mockEthProvider: MockEthersProvider;
   let mockProvider: MockEthersProvider;
+
+  let ethProvider: ethers.providers.Provider;
+  let provider: ethers.providers.Provider;
 
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
@@ -170,22 +173,25 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
   }
 
   beforeEach(async () => {
-    mockTimelockProvider = new MockEthersProvider();
-    mockTimelockProvider.setNetwork(network);
-    mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+    mockEthProvider = new MockEthersProvider();
+    mockEthProvider.setNetwork(network);
+    mockEthProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+
+    ethProvider = mockEthProvider as unknown as ethers.providers.Provider;
 
     mockProvider = new MockEthersProvider();
     mockProvider.setNetwork(network);
     networkManager = new NetworkManager(DEFAULT_CONFIG.networkData);
 
-    const provider = mockProvider as unknown as ethers.providers.Provider;
+    provider = mockProvider as unknown as ethers.providers.Provider;
+
     const initialize = provideInitialize(networkManager, provider);
     await initialize();
 
-    const _getLogs = mockTimelockProvider.getLogs;
-    mockTimelockProvider.getLogs = jest.fn((...args) => Promise.resolve(_getLogs(...args)));
+    const _getLogs = mockEthProvider.getLogs;
+    mockEthProvider.getLogs = jest.fn((...args) => Promise.resolve(_getLogs(...args)));
 
-    handleTransaction = provideHandleTransaction(networkManager, DEFAULT_CONFIG, provider, mockTimelockProvider as any);
+    handleTransaction = provideHandleTransaction(networkManager, DEFAULT_CONFIG, provider, ethProvider);
 
     await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
@@ -213,7 +219,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
       await addLogsToProvider(
-        mockTimelockProvider,
+        mockEthProvider,
         1,
         timelock,
         transactionExecutedLog.topics,
@@ -243,7 +249,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         .setBlock(BLOCK_NUMBER)
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiver"), testData);
 
-      await addLogsToProvider(mockTimelockProvider, 1, timelock, [], "");
+      await addLogsToProvider(mockEthProvider, 1, timelock, [], "");
       findings.push(await handleTransaction(txEvent));
     }
 
@@ -270,13 +276,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         1,
       ]);
 
-      await addLogsToProvider(
-        mockTimelockProvider,
-        1,
-        timelock,
-        transactionExecutedLog.topics,
-        transactionExecutedLog.data
-      );
+      await addLogsToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
 
       findings.push(await handleTransaction(txEvent));
     }
@@ -304,13 +304,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
         1,
       ]);
 
-      await addLogsToProvider(
-        mockTimelockProvider,
-        1,
-        timelock,
-        transactionExecutedLog.topics,
-        transactionExecutedLog.data
-      );
+      await addLogsToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
 
       findings.push(await handleTransaction(txEvent));
     }
@@ -333,9 +327,11 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
     ];
 
     for (const blocksData of blockBatches) {
-      mockTimelockProvider = new MockEthersProvider();
-      mockTimelockProvider.setNetwork(network);
-      mockTimelockProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+      mockEthProvider = new MockEthersProvider();
+      mockEthProvider.setNetwork(network);
+      mockEthProvider.setLatestBlock(LAST_MAINNET_BLOCK);
+
+      ethProvider = mockEthProvider as unknown as ethers.providers.Provider;
 
       const config: AgentConfig = {
         mainnetRpcEndpoint: "rpc-endpoint",
@@ -349,14 +345,9 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
       };
 
       networkManager = new NetworkManager(config.networkData);
-      await networkManager.init(mockTimelockProvider as unknown as ethers.providers.Provider);
+      await networkManager.init(ethProvider);
 
-      handleTransaction = provideHandleTransaction(
-        networkManager,
-        config,
-        mockProvider as unknown as ethers.providers.Provider,
-        mockTimelockProvider as any
-      );
+      handleTransaction = provideHandleTransaction(networkManager, config, provider, ethProvider);
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
@@ -364,9 +355,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
 
       await handleTransaction(txEvent);
 
-      expect(await mockTimelockProvider.getLogs).toBeCalledTimes(
-        Math.ceil(networkManager.get("pastBlocks") / networkManager.get("blockChunk"))
-      );
+      expect(mockProvider.getLogs).toHaveBeenCalledTimes(batchCount);
     }
   });
 });
