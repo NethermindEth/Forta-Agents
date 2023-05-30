@@ -2,7 +2,8 @@
 
 ## Description
 
-This bot monitors Compound v3 BaseBridgeReceiver contract for bridged proposals. Checking if they were as expected from what was sent on Ethereum.
+This bot monitors Compound v3 BaseBridgeReceiver contract for bridged proposals,
+checking if they were as expected from what was sent on Ethereum.
 
 ## Supported Chains
 
@@ -11,23 +12,28 @@ This bot monitors Compound v3 BaseBridgeReceiver contract for bridged proposals.
 ## Alerts
 
 - COMP2-5-1
-  - Fired when `ProposalCreated` event was emitted on BridgeReceiver contract, and the corresponding transaction was found on mainnet.
+  - Fired when `ProposalCreated` event was emitted on BridgeReceiver contract,
+  and the corresponding transaction was found on mainnet.
   - Severity is always set to "Info"
   - Type is always set to "Info"
   - Metadata:
     - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
-    - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
+    - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the
+    proposal was created.
     - `proposalId`: ID of the proposal.
     - `fxChild`: Address of the proposal creation message sender.
-    - `txHash`: Mainnet transaction hash that originated in the proposal creation.
+    - `txHash`: Mainnet transaction hash that originated in the proposal
+    creation.
 
 - COMP2-5-2
-  - Fired when `ProposalCreated` event was emitted on BridgeReceiver contract, but no corresponding transaction was found on mainnet.
+  - Fired when `ProposalCreated` event was emitted on BridgeReceiver contract,
+  but no corresponding transaction was found on mainnet.
   - Severity is always set to "Suspicious"
   - Type is always set to "High"
   - Metadata:
     - `chain`: Network chain name or ID where `ProposalCreated` was emitted.
-    - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the proposal was created.
+    - `bridgeReceiver`: Address of `BaseBridgeReceiver` contract where the
+    proposal was created.
     - `proposalId`: ID of the proposal.
     - `fxChild`: Address of the proposal creation message sender.
 
