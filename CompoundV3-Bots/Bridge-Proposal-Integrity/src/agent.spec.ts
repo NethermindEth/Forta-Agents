@@ -49,7 +49,7 @@ function mockCreateProposalFinding(
     metadata: {
       network: Network[chainId] || chainId.toString(),
       bridgeReceiver,
-      id,
+      proposalId: id,
       fxChild,
       txHash,
     },
@@ -66,7 +66,6 @@ function mockCreateSuspiciousProposalFinding(
     name: "A suspicious proposal was created on BridgeReceiver contract",
     description:
       "A ProposalCreated event was emitted on BridgeReceiver contract, no corresponding creation message was found",
-
     alertId: "COMP2-5-2",
     protocol: "Compound",
     type: FindingType.Suspicious,
@@ -74,7 +73,7 @@ function mockCreateSuspiciousProposalFinding(
     metadata: {
       network: Network[chainId] || chainId.toString(),
       bridgeReceiver,
-      id,
+      proposalId: id,
       fxChild,
     },
   });

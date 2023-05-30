@@ -23,7 +23,7 @@ export function ProposalCreatedFinding(
     metadata: {
       network: Network[chainId] || chainId.toString(),
       bridgeReceiver: getAddress(log.address),
-      id: log.args.id.toString(),
+      proposalId: log.args.id.toString(),
       fxChild: getAddress(log.args.rootMessageSender),
       txHash,
     },
@@ -38,7 +38,6 @@ export function SuspiciousProposalCreatedFinding(
     name: "A suspicious proposal was created on BridgeReceiver contract",
     description:
       "A ProposalCreated event was emitted on BridgeReceiver contract, no corresponding creation message was found",
-
     alertId: "COMP2-5-2",
     protocol: "Compound",
     type: FindingType.Suspicious,
@@ -46,7 +45,7 @@ export function SuspiciousProposalCreatedFinding(
     metadata: {
       network: Network[chainId] || chainId.toString(),
       bridgeReceiver: getAddress(log.address),
-      id: log.args.id.toString(),
+      proposalId: log.args.id.toString(),
       fxChild: getAddress(log.args.rootMessageSender),
     },
   });
