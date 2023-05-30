@@ -81,10 +81,10 @@ export const provideHandleTransaction = (
       for (const log of txExecutionLogs) {
         const decodedEvent = EXECUTE_TX_IFACE.decodeEventLog("ExecuteTransaction", log.data, log.topics);
 
-        const callDataFromEvent =
+        const executedCalldata =
           decodedEvent.signature === "" ? decodedEvent.data : encodePacked(decodedEvent.signature, decodedEvent.data);
 
-        if (callDataFromEvent === calldata) {
+        if (executedCalldata === calldata) {
           eventFound = true;
           findings.push(createProposalCreatedFinding(proposalLog, networkManager.getNetwork(), log.transactionHash));
           break;
