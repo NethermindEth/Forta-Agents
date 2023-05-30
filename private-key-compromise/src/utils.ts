@@ -17,6 +17,7 @@ export type Transfer = Record<
   {
     victimAddress: string;
     transferredAsset: string;
+    txHash: string;
   }[]
 >;
 
@@ -25,11 +26,25 @@ export type AlertedAddress = {
   timestamp: number;
 };
 
-export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
+export type QueuedAddress = {
+  timestamp: number;
+  transfer: {
+    from: string;
+    to: string;
+    asset: string;
+    txHash: string;
+  };
+};
+
+export const ERC20_TRANSFER_FUNCTION = "function transfer(address to, uint256 amount) public";
 
 export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
+export const SYMBOL_ABI = [
+  "function symbol() external view returns (string)",
+  "function symbol() external view returns (bytes32)",
+];
 
-export const updateRecord = async (from: string, to: string, asset: string, transferObj: Transfer) => {
+export const updateRecord = async (from: string, to: string, asset: string, hash: string, transferObj: Transfer) => {
   /**
    * Logic is to persist data into transferObj as shown below
    *
@@ -42,12 +57,12 @@ export const updateRecord = async (from: string, to: string, asset: string, tran
 
   // if the attacker is already in transferObj and the victim is not, push the new victim address
   if (transferObj[to] && !transferObj[to].some((el) => el.victimAddress == from)) {
-    transferObj[to].push({ victimAddress: from, transferredAsset: asset });
+    transferObj[to].push({ victimAddress: from, transferredAsset: asset, txHash: hash });
   }
 
   // if the attacker is not in db, append it
   else if (!transferObj[to]) {
-    transferObj[to] = [{ victimAddress: from, transferredAsset: asset }];
+    transferObj[to] = [{ victimAddress: from, transferredAsset: asset, txHash: hash }];
   }
 };
 

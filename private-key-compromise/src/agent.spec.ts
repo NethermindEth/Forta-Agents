@@ -16,7 +16,7 @@ import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
-import { AgentConfig, NetworkData, ERC20_TRANSFER_EVENT, BALANCEOF_ABI } from "./utils";
+import { AgentConfig, NetworkData, ERC20_TRANSFER_FUNCTION, BALANCEOF_ABI } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
@@ -28,13 +28,60 @@ const mockJwt = "MOCK_JWT";
 const mockDBKeys = {
   transfersKey: "mock-pk-comp-value-bot-key",
   alertedAddressesKey: "mock-pk-comp-bot-alerted-addresses-key",
+  queuedAddressesKey: "mock-pk-comp-bot-queued-addresses-key",
 };
 
-const mockpKCompValueTxns = {
-  "0x0000000000000000000000000000000000000020": [createAddress("0x21")],
-};
+const senders = [
+  createAddress("0x1"),
+  createAddress("0x2"),
+  createAddress("0x3"),
+  createAddress("0x4"),
+  createAddress("0x5"),
+];
 
-const mockpKCompAlertedAddresses = [{ address: createAddress("0x21"), timestamp: 1 }];
+const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
+
+const mockpKCompValueTxns = {};
+
+const mockpKCompAlertedAddresses: any = [];
+const mockpKCompQueuedAddresses: any = [
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000001",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000002",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000003",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "0x0000000000000000000000000000000000000099",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000004",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+];
 
 // Mock calculateAlertRate function of the bot-alert-rate module
 const mockCalculateAlertRate = jest.fn();
@@ -74,15 +121,6 @@ class MockEthersProviderExtension extends MockEthersProvider {
     return this;
   }
 }
-const senders = [
-  createAddress("0x1"),
-  createAddress("0x2"),
-  createAddress("0x3"),
-  createAddress("0x4"),
-  createAddress("0x5"),
-];
-
-const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
 
 const createFinding = (txHash: string, from: string[], to: string, assets: string[], anomalyScore: number): Finding => {
   const victims = from.map((victim) => {
@@ -90,7 +128,7 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
       entity: victim,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: 0.6,
+      confidence: 0.3,
       remove: false,
     });
   });
@@ -99,7 +137,7 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
     alertId: "PKC-1",
-    severity: FindingSeverity.High,
+    severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
       attacker: to,
@@ -116,6 +154,46 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
         entity: txHash,
         entityType: EntityType.Transaction,
         label: "Attack",
+        confidence: 0.3,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: to,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.3,
+        remove: false,
+      }),
+      ...victims,
+    ],
+  });
+};
+
+const createDelayedFinding = (
+  txHash: string,
+  from: string,
+  to: string,
+  asset: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Possible private key compromise",
+    description: `${from.toString()} transferred funds to ${to} and has been inactive for a week`,
+    alertId: "PKC-2",
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker: to,
+      victims: from.toString(),
+      transferredAsset: asset,
+      anomalyScore: anomalyScore.toString(),
+      txHash,
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
         confidence: 0.6,
         remove: false,
       }),
@@ -126,7 +204,13 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
         confidence: 0.6,
         remove: false,
       }),
-      ...victims,
+      Label.fromObject({
+        entity: from,
+        entityType: EntityType.Address,
+        label: "Victim",
+        confidence: 0.6,
+        remove: false,
+      }),
     ],
   });
 };
@@ -135,6 +219,9 @@ describe("Detect Private Key Compromise", () => {
   const mockPersistenceHelper = {
     persist: jest.fn(),
     load: jest.fn(),
+  };
+  const mockMarketCapFetcher = {
+    getTopMarketCap: jest.fn(),
   };
   let mockProvider: MockEthersProviderExtension;
   let mockFetch = jest.mocked(fetch, true);
@@ -146,37 +233,50 @@ describe("Detect Private Key Compromise", () => {
 
   const mockContractFetcher = {
     getContractInfo: jest.fn(),
+    getVictimInfo: jest.fn(),
   };
 
   const mockDataFetcher = {
     isEoa: jest.fn(),
+    getSymbol: jest.fn(),
   };
 
   beforeAll(() => {
     mockProvider = new MockEthersProviderExtension();
-    // mockPersistenceHelper = new PersistenceHelper(mockDbUrl);
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
   });
 
   beforeEach(async () => {
     mockProvider.setNetwork(mockChainId);
 
-    initialize = provideInitialize(networkManager, mockProvider as any, mockPersistenceHelper as any, mockDBKeys);
+    initialize = provideInitialize(
+      networkManager,
+      mockProvider as any,
+      mockPersistenceHelper as any,
+      mockDBKeys,
+      mockMarketCapFetcher as any
+    );
     const mockEnv = {};
     Object.assign(process.env, mockEnv);
 
-    // mockFetchResponse = {
-    //   ok: true,
-    //   json: jest.fn().mockResolvedValue(Promise.resolve(mockpKCompValueTxns)),
-    // } as any as Response;
-
-    mockCalculateAlertRate.mockResolvedValueOnce("0.1");
+    mockCalculateAlertRate.mockResolvedValue("0.1");
     mockFetchJwt.mockResolvedValue(mockJwt);
     mockFetch.mockResolvedValue(mockFetchResponse);
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
 
+    when(mockPersistenceHelper.load)
+      .calledWith(mockDBKeys.transfersKey.concat("-", "1"))
+      .mockResolvedValue(mockpKCompValueTxns);
+
+    when(mockPersistenceHelper.load)
+      .calledWith(mockDBKeys.alertedAddressesKey.concat("-", "1"))
+      .mockResolvedValue(mockpKCompAlertedAddresses);
+
+    when(mockPersistenceHelper.load)
+      .calledWith(mockDBKeys.queuedAddressesKey.concat("-", "1"))
+      .mockResolvedValue(mockpKCompQueuedAddresses);
+
     await initialize();
-    mockPersistenceHelper.load.mockResolvedValue(mockpKCompValueTxns).mockResolvedValue(mockpKCompAlertedAddresses);
 
     handleTransaction = provideHandleTransaction(
       mockProvider as any,
@@ -184,6 +284,7 @@ describe("Detect Private Key Compromise", () => {
       mockBalanceFetcher,
       mockContractFetcher as any,
       mockDataFetcher as any,
+      mockMarketCapFetcher as any,
       mockPersistenceHelper as any,
       mockDBKeys
     );
@@ -203,6 +304,8 @@ describe("Detect Private Key Compromise", () => {
   };
 
   describe("Transaction handler test suite", () => {
+    when(mockMarketCapFetcher.getTopMarketCap).calledWith().mockReturnValue(["ABC", "DEF"]);
+
     it("returns empty findings if there is no native token transfers", async () => {
       const txEvent = new TestTransactionEvent();
 
@@ -234,11 +337,13 @@ describe("Detect Private Key Compromise", () => {
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
@@ -259,22 +364,27 @@ describe("Detect Private Key Compromise", () => {
 
       const txEvent2 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[1],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[1]);
 
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[0],
-          ethers.BigNumber.from("1000000"),
-        ]);
-
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
@@ -316,43 +426,53 @@ describe("Detect Private Key Compromise", () => {
       let findings;
       const txEvent = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[0],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[0]);
 
       const txEvent2 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[1],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[1]);
 
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
 
       const txEvent4 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[3],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[3]);
 
       const txEvent5 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[4],
-          receivers[1],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[4]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
@@ -360,6 +480,7 @@ describe("Detect Private Key Compromise", () => {
       setTokenBalance(createAddress("0x99"), 1, senders[3], "0");
 
       when(mockDataFetcher.isEoa).calledWith(receivers[1]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
@@ -392,15 +513,19 @@ describe("Detect Private Key Compromise", () => {
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
-        .addEventLog(ERC20_TRANSFER_EVENT, createAddress("0x99"), [
-          senders[2],
-          receivers[2],
-          ethers.BigNumber.from("1000000"),
-        ]);
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[2], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
+
       const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[2]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
       when(mockDataFetcher.isEoa).calledWith(receivers[2]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       txEvent.setValue("1");
       findings = await handleTransaction(txEvent);
@@ -423,6 +548,65 @@ describe("Detect Private Key Compromise", () => {
           ["ETH", createAddress("0x99")],
           0.1
         ),
+      ]);
+    });
+
+    it("returns delayed findings if a victim stays inactive for a week", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[3]).setBlock(1).setTimestamp(1);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[3]).setBlock(1).setTimestamp(1);
+      const txEvent3 = new TestTransactionEvent()
+        .setBlock(1)
+        .setTimestamp(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[3], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
+
+      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[3]).setBlock(1).setTimestamp(1);
+
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+      when(mockDataFetcher.isEoa).calledWith(receivers[3]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
+
+      txEvent.setValue("1");
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+
+      txEvent2.setValue("2");
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent3);
+      expect(findings).toStrictEqual([]);
+
+      txEvent4.setValue("4");
+      findings = await handleTransaction(txEvent4);
+      expect(findings).toStrictEqual([
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2], senders[3]],
+          receivers[3],
+          ["ETH", createAddress("0x99")],
+          0.1
+        ),
+      ]);
+
+      when(mockContractFetcher.getVictimInfo).calledWith(senders[0], 1, 1).mockResolvedValue(false);
+      when(mockContractFetcher.getVictimInfo).calledWith(senders[1], 1, 1).mockResolvedValue(false);
+      when(mockContractFetcher.getVictimInfo).calledWith(senders[2], 1, 1).mockResolvedValue(false);
+      when(mockContractFetcher.getVictimInfo).calledWith(senders[3], 1, 1).mockResolvedValue(false);
+      const txEvent5 = new TestTransactionEvent().setBlock(7200).setTimestamp(604900);
+      findings = await handleTransaction(txEvent5);
+
+      expect(findings).toStrictEqual([
+        createDelayedFinding("0x", senders[0], receivers[3], "ETH", 0.1),
+        createDelayedFinding("0x", senders[1], receivers[3], "ETH", 0.1),
+        createDelayedFinding("0x", senders[2], receivers[3], createAddress("0x99"), 0.1),
+        createDelayedFinding("0x", senders[3], receivers[3], "ETH", 0.1),
       ]);
     });
   });

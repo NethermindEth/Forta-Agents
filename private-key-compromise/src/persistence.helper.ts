@@ -26,6 +26,8 @@ export class PersistenceHelper {
         if (response.ok) {
           if (key.includes("alerted")) {
             console.log("successfully persisted addresses to database");
+          } else if (key.includes("queued")) {
+            console.log("successfully persisted queued addresses to database");
           } else {
             console.log("successfully persisted transfers to database");
           }
@@ -54,6 +56,8 @@ export class PersistenceHelper {
 
           if (key.includes("alerted")) {
             console.log("successfully fetched addresses from database");
+          } else if (key.includes("queued")) {
+            console.log("successfully fetched queued addresses from database");
           } else {
             console.log("successfully fetched transfers from database");
           }
@@ -64,7 +68,7 @@ export class PersistenceHelper {
           // the database will not have data to return,
           // thus return zero to assign value to the variables
           // necessary
-          if (key.includes("alerted")) {
+          if (key.includes("alerted") || key.includes("queued")) {
             return [];
           }
           return {};
@@ -85,7 +89,7 @@ export class PersistenceHelper {
         // thus return zero to assign value to the variables
         // necessary
 
-        if (key.includes("alerted")) {
+        if (key.includes("alerted") || key.includes("queued")) {
           return [];
         }
         return {};

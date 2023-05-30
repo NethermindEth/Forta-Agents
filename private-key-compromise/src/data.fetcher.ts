@@ -1,13 +1,22 @@
-import { providers } from "ethers";
+import { ethers } from "forta-agent";
+import { providers, Contract } from "ethers";
+import { Interface } from "ethers/lib/utils";
 import LRU from "lru-cache";
+import { SYMBOL_ABI } from "./utils";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
   private eoaCache: LRU<string, boolean>;
+  private symbolCache: LRU<string, string>;
+  private tokenContractString: Contract;
+  private tokenContractBytes32: Contract;
 
   constructor(provider: providers.Provider) {
     this.provider = provider;
     this.eoaCache = new LRU<string, boolean>({ max: 10000 });
+    this.symbolCache = new LRU<string, string>({ max: 10000 });
+    this.tokenContractString = new Contract("", new Interface([SYMBOL_ABI[0]]), this.provider);
+    this.tokenContractBytes32 = new Contract("", new Interface([SYMBOL_ABI[1]]), this.provider);
   }
 
   isEoa = async (address: string) => {
@@ -30,4 +39,34 @@ export default class DataFetcher {
     this.eoaCache.set(address, isEoa);
     return isEoa;
   };
+
+  public async getSymbol(tokenAddress: string, block: number): Promise<string> {
+    if (this.symbolCache.has(tokenAddress)) return this.symbolCache.get(tokenAddress) as string;
+
+    let symbol: string = "";
+
+    try {
+      const token = this.tokenContractString.attach(tokenAddress);
+
+      symbol = (
+        await token.symbol({
+          blockTag: block,
+        })
+      ).toLowerCase();
+    } catch (error) {
+      const token = this.tokenContractBytes32.attach(tokenAddress);
+
+      symbol = ethers.utils
+        .parseBytes32String(
+          await token.symbol({
+            blockTag: block,
+          })
+        )
+        .toLowerCase();
+    }
+
+    this.symbolCache.set(tokenAddress, symbol);
+
+    return symbol;
+  }
 }

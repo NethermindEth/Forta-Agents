@@ -28,7 +28,7 @@ The bot emits an alert under the following conditions:
 - PKC-1
 
   - Fired when a receiver address receives more than a certain amount of transfers in a certain time either native or ERC20 tokens.
-  - Severity is always set to "High".
+  - Severity is always set to "Low".
   - Type is always set to "Suspicious".
   - Metadata contains:
     - `attacker`: The attacker address
@@ -40,18 +40,49 @@ The bot emits an alert under the following conditions:
       - `entity`: The transaction's hash
       - `entityType`: The type of the entity, always set to "Transaction"
       - `label`: The type of the label, always set to "Suspicious"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.3`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 2:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: Receiver address of the funds
+      - `label`: The type of the label, always set to "Attacker"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.3`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 3:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: Sender addresses of the funds
+      - `label`: The type of the label, always set to "Victim"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.3`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+
+- PKC-2
+
+  - Fired when a receiver address from PKC-1 alert has been inactive for one week.
+  - Severity is always set to "High".
+  - Type is always set to "Suspicious".
+  - Metadata contains:
+    - `attacker`: The attacker address
+    - `victims`: The victims whose funds are transferred to the attacker
+    - `transferredAssets`: Addresses of assets that were transferred out
+    - `anomalyScore`: Score of how anomalous the alert is (0-1)
+    - `txHash`: Transaction hash which triggered the `PKC-1` alert
+  - Labels contain:
+    - Label 1:
+      - `entity`: The transaction's hash
+      - `entityType`: The type of the entity, always set to "Transaction"
+      - `label`: The type of the label, always set to "Suspicious"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
     - Label 2:
       - `entityType`: The type of the entity, always set to "Address"
-      - `entity`: Sender addresses of the funds
-      - `label`: The type of the label, always set to "Victim"
+      - `entity`: Receiver address of the funds
+      - `label`: The type of the label, always set to "Attacker"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
     - Label 3:
       - `entityType`: The type of the entity, always set to "Address"
-      - `entity`: Receiver address of the funds
-      - `label`: The type of the label, always set to "Attacker"
+      - `entity`: Sender addresses of the funds that was inactive for one week.
+      - `label`: The type of the label, always set to "Victim"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
 
