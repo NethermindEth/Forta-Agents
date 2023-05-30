@@ -16,6 +16,7 @@ export function createProposalCreatedFinding(log: LogDescription, chainId: numbe
       fxChild: ethers.utils.getAddress(log.args.rootMessageSender),
       txHash,
     },
+    addresses: [ethers.utils.getAddress(log.address), ethers.utils.getAddress(log.args.rootMessageSender)],
   });
 }
 
@@ -34,5 +35,6 @@ export function createSuspiciouscreateProposalCreatedFinding(log: LogDescription
       proposalId: log.args.id.toString(),
       fxChild: ethers.utils.getAddress(log.args.rootMessageSender),
     },
+    addresses: [ethers.utils.getAddress(log.address), ethers.utils.getAddress(log.args.rootMessageSender)],
   });
 }

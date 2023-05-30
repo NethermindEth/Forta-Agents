@@ -24,7 +24,7 @@ function createProposalFinding(
   chainId: number,
   bridgeReceiverAddress: string,
   id: string,
-  fxChild: string,
+  fxChildAddress: string,
   txHash: string
 ): Finding {
   return Finding.from({
@@ -39,9 +39,10 @@ function createProposalFinding(
       network: Network[chainId] || chainId.toString(),
       bridgeReceiver: bridgeReceiverAddress,
       proposalId: id,
-      fxChild,
+      fxChild: fxChildAddress,
       txHash,
     },
+    addresses: [bridgeReceiverAddress, fxChildAddress],
   });
 }
 
@@ -65,6 +66,7 @@ function createSuspiciousProposalFinding(
       proposalId: id,
       fxChild,
     },
+    addresses: [bridgeReceiverAddress, fxChild],
   });
 }
 
