@@ -213,6 +213,8 @@ export const provideHandleTransaction =
 
                   // Add "from addresses" into the queue
                   transferObj[to].forEach((el) => {
+                    queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
                     queuedAddresses.push({
                       timestamp: timestamp,
                       transfer: {
@@ -297,6 +299,8 @@ export const provideHandleTransaction =
 
                         // Add from addresses into the queue
                         transferObj[transfer.args.to].forEach((el) => {
+                          queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
                           queuedAddresses.push({
                             timestamp: timestamp,
                             transfer: {

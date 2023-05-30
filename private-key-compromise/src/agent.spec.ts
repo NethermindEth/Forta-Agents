@@ -44,7 +44,44 @@ const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("
 const mockpKCompValueTxns = {};
 
 const mockpKCompAlertedAddresses: any = [];
-const mockpKCompQueuedAddresses: any = [];
+const mockpKCompQueuedAddresses: any = [
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000001",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000002",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000003",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "0x0000000000000000000000000000000000000099",
+    },
+  },
+  {
+    timestamp: 1,
+    transfer: {
+      from: "0x0000000000000000000000000000000000000004",
+      to: "0x0000000000000000000000000000000000000014",
+      txHash: "0x",
+      asset: "ETH",
+    },
+  },
+];
 
 // Mock calculateAlertRate function of the bot-alert-rate module
 const mockCalculateAlertRate = jest.fn();
