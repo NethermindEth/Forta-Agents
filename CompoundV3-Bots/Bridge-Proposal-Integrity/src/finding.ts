@@ -20,7 +20,7 @@ export function createProposalCreatedFinding(log: LogDescription, chainId: numbe
   });
 }
 
-export function createSuspiciouscreateProposalCreatedFinding(log: LogDescription, chainId: number): Finding {
+export function createSuspiciousProposalCreatedFinding(log: LogDescription, chainId: number): Finding {
   return Finding.from({
     name: "A suspicious proposal was created on BridgeReceiver contract",
     description:
