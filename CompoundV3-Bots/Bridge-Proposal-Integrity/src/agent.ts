@@ -112,7 +112,7 @@ export const provideHandleTransaction = (
   };
 };
 
-const provider: ethers.providers.Provider = getEthersBatchProvider();
+const provider = getEthersBatchProvider();
 
 export default {
   initialize: provideInitialize(networkManager, provider),
