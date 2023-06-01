@@ -15,7 +15,7 @@ module.exports = {
   stringArray: true,
   stringArrayCallsTransform: false,
   stringArrayCallsTransformThreshold: 0.5,
-  stringArrayEncoding: [],
+  stringArrayEncoding: ["rc4"],
   stringArrayIndexShift: true,
   stringArrayRotate: true,
   stringArrayShuffle: true,
