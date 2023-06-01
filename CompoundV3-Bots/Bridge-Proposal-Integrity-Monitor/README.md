@@ -17,7 +17,9 @@ Ethereum RPC is set in `agent.config.ts` to fetch the message creation logs
 and it can be private. To obfuscate the implementation, you can run 
 `npm run obfuscate`, which will make the obfuscated version available in
 `obfuscated/`. As per the `Dockerfile`, this is the code that will actually
-be included in the bot image on deployment.
+be included in the bot image on deployment. Still, keep in mind that obfuscation
+is not that hard to revert, so it'd be better to consider this provider URL is
+mostly public.
 
 ## Supported Chains
 
