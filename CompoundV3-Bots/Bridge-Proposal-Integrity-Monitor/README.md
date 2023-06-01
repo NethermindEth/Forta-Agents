@@ -1,4 +1,4 @@
-# Bridge Proposal Integrity Bot
+# Bridge Proposal Integrity Monitor Bot
 
 ## Description
 

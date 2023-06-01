@@ -142,7 +142,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   },
 };
 
-describe("COMP2-5 - Bridge Proposal Integrity Bot Test suite", () => {
+describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
   const fxChild = createAddress("0xaefe");
   const fxRoot = createAddress("0xaefd");
   const timelock = createAddress("0xaeff");
