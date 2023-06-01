@@ -1,9 +1,17 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, TransactionEvent, Log, Network } from "forta-agent";
+import {
+  ethers,
+  FindingType,
+  FindingSeverity,
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  Log,
+  Network,
+} from "forta-agent";
+import { NetworkManager, createChecksumAddress } from "forta-agent-tools";
 import { provideHandleTransaction, provideInitialize } from "./agent";
-import { createAddress } from "forta-agent-tools";
 
 import { MockEthersProvider, TestTransactionEvent } from "forta-agent-tools/lib/test";
-import { Interface, formatBytes32String, getAddress } from "ethers/lib/utils";
 import {
   EXECUTE_TX_ABI,
   FX_CHILD_ABI,
@@ -12,13 +20,11 @@ import {
   SEND_MESSAGE_ABI,
   TIMELOCK_ABI,
 } from "./constants";
-import { ethers } from "ethers";
-import { NetworkManager } from "forta-agent-tools";
 import { AgentConfig, NetworkData } from "./utils";
 
-const EXECUTE_TX_IFACE = new Interface([EXECUTE_TX_ABI]);
-const SEND_MESSAGE_IFACE = new Interface([SEND_MESSAGE_ABI]);
-const RECEIVER_IFACE = new Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
+const EXECUTE_TX_IFACE = new ethers.utils.Interface([EXECUTE_TX_ABI]);
+const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
+const RECEIVER_IFACE = new ethers.utils.Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
 
 function createProposalFinding(
   chainId: number,
@@ -95,14 +101,16 @@ async function addLogToProvider(
   ] as Log[]);
 }
 
-const FX_CHILD = createAddress("0xab1");
+const addr = createChecksumAddress;
+
+const FX_CHILD = addr("0xab1");
 const LAST_MAINNET_BLOCK = 100;
 
 const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[], number][] = [
   [
     FX_CHILD,
     "1",
-    [createAddress("0x11a"), createAddress("0x11b")],
+    [addr("0x11a"), addr("0x11b")],
     [30, 20],
     ["function func1() public returns (uint256)", "function func2() public returns(uint)"],
     ["0x", "0x"],
@@ -111,23 +119,15 @@ const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[
   [
     FX_CHILD,
     "2",
-    [createAddress("0x12a"), createAddress("0x12b")],
+    [addr("0x12a"), addr("0x12b")],
     [60, 20],
     ["function func1() public returns (uint256)", "function func2() public returns(uint)"],
     ["0x", "0x"],
     0,
   ],
-  [FX_CHILD, "3", [createAddress("0x13a")], [30], ["function func1() public returns (uint256)"], ["0x"], 10],
+  [FX_CHILD, "3", [addr("0x13a")], [30], ["function func1() public returns (uint256)"], ["0x"], 10],
 ];
-const DIFF_DATA = [
-  FX_CHILD,
-  "4",
-  [createAddress("0x14a")],
-  [30],
-  ["function func1() public returns (uint256)"],
-  ["0x"],
-  10,
-];
+const DIFF_DATA = [FX_CHILD, "4", [addr("0x14a")], [30], ["function func1() public returns (uint256)"], ["0x"], 10];
 
 const network = Network.MAINNET;
 
@@ -135,7 +135,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   mainnetRpcEndpoint: "rpc-endpoint",
   networkData: {
     [network]: {
-      bridgeReceiverAddress: createAddress("0xff1"),
+      bridgeReceiverAddress: addr("0xff1"),
       messagePassFetchingBlockStep: 50,
       messagePassFetchingBlockRange: 100,
     },
@@ -143,9 +143,9 @@ const DEFAULT_CONFIG: AgentConfig = {
 };
 
 describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
-  const fxChild = createAddress("0xaefe");
-  const fxRoot = createAddress("0xaefd");
-  const timelock = createAddress("0xaeff");
+  const fxChild = addr("0xaefe");
+  const fxRoot = addr("0xaefd");
+  const timelock = addr("0xaeff");
   const BLOCK_NUMBER = 1;
 
   let mockEthProvider: MockEthersProvider;
@@ -168,7 +168,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
       outputs: [timelock],
     });
 
-    mockProvider.addCallTo(fxChild, BLOCK_NUMBER, new Interface([FX_ROOT_ABI]), "fxRoot", {
+    mockProvider.addCallTo(fxChild, BLOCK_NUMBER, new ethers.utils.Interface([FX_ROOT_ABI]), "fxRoot", {
       inputs: [],
       outputs: [fxRoot],
     });
@@ -208,7 +208,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     const findings = [];
     for (const testData of PROPOSAL_TEST_DATA) {
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        formatBytes32String("hash1"),
+        ethers.utils.formatBytes32String("hash1"),
         fxRoot,
         10,
         "",
@@ -226,7 +226,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         timelock,
         transactionExecutedLog.topics,
         transactionExecutedLog.data,
-        formatBytes32String("tx1")
+        ethers.utils.formatBytes32String("tx1")
       );
       findings.push(await handleTransaction(txEvent));
     }
@@ -237,8 +237,8 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
-          getAddress(data[0]),
-          formatBytes32String("tx1")
+          ethers.utils.getAddress(data[0]),
+          ethers.utils.formatBytes32String("tx1")
         )
       )
     );
@@ -261,7 +261,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
-          getAddress(data[0])
+          ethers.utils.getAddress(data[0])
         )
       )
     );
@@ -275,8 +275,8 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        formatBytes32String("hash1"),
-        createAddress("0xd01"), // target is different from fxRoot
+        ethers.utils.formatBytes32String("hash1"),
+        addr("0xd01"), // target is different from fxRoot
         10,
         "",
         encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiverAddress")),
@@ -294,7 +294,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
-          getAddress(data[0])
+          ethers.utils.getAddress(data[0])
         )
       )
     );
@@ -308,7 +308,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
       const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        formatBytes32String("hash1"),
+        ethers.utils.formatBytes32String("hash1"),
         fxRoot,
         10,
         "",
@@ -327,7 +327,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
           network,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
-          getAddress(data[0])
+          ethers.utils.getAddress(data[0])
         )
       )
     );
@@ -354,7 +354,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         mainnetRpcEndpoint: "rpc-endpoint",
         networkData: {
           [network]: {
-            bridgeReceiverAddress: createAddress("0xff1"),
+            bridgeReceiverAddress: addr("0xff1"),
             messagePassFetchingBlockStep: blocksData[0],
             messagePassFetchingBlockRange: blocksData[1],
           },
