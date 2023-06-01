@@ -215,6 +215,9 @@ describe("COMP2-06 - Timelock Transaction Executions Monitor Bot Test Suite", ()
   }
 
   beforeEach(async () => {
+    // hide logs
+    jest.spyOn(console, "log").mockImplementation(() => {});
+
     mockProvider = new MockEthersProvider();
     mockProvider.setNetwork(network);
 
@@ -342,7 +345,7 @@ describe("COMP2-06 - Timelock Transaction Executions Monitor Bot Test Suite", ()
   it("should add a warn log if the proposal creation event for executed proposals was not found", async () => {
     const calls = [proposalCall(addr("0xc014ac11"), bn(0), "methodA", [0], 0)];
 
-    const warnLogSpy = jest.spyOn(console, "warn");
+    const log = jest.spyOn(console, "log");
     const txEvent = new TestTransactionEvent().setBlock(1001);
     addTransactionExecutions(txEvent, TIMELOCK_ADDRESS, calls);
     addProposalExecution(txEvent, BRIDGE_RECEIVER_ADDRESS, 0);
@@ -352,10 +355,12 @@ describe("COMP2-06 - Timelock Transaction Executions Monitor Bot Test Suite", ()
 
     await handleTransaction(txEvent);
 
-    expect(warnLogSpy).toHaveBeenCalledWith(
-      "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
+      )
     );
-    expect(warnLogSpy).toHaveBeenCalledWith("Missed proposal IDs: 0, 1");
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("Missed proposal IDs: 0, 1"));
   });
 
   it("should emit a finding if an executed transaction could not be associated with any proposal", async () => {
