@@ -64,11 +64,11 @@ network can be configured in the `agent.config.ts` file.
     - `bridgeReceiver`: Address of the related bridge receiver contract
     - `timelock`: Address of the timelock associated with the bridge receiver
     - `txHash`: Timelock hash of the executed transaction
-    - `target`: Target of the transaction in question
-    - `value`: Value included in the transaction, in wei
-    - `signature`: Signature of the method being called
-    - `data`: Transaction call data
-    - `eta`: Transaction ETA
+    - `target`: Target of the executed transaction
+    - `value`: Value included in the executed transaction, in wei
+    - `signature`: Signature of the method called in the executed transaction
+    - `data`: Calldata of the executed transaction
+    - `eta`: ETA of the executed transaction
 
 ## Test Data
 
