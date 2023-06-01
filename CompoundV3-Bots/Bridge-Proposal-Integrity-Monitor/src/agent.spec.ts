@@ -76,7 +76,7 @@ function encodeCallData(dataArr: (string | number | string[] | number[])[], rece
   return calldata;
 }
 
-async function addLogsToProvider(
+async function addLogToProvider(
   mockTimelockProvider: MockEthersProvider,
   blockNumber: number,
   address: string,
@@ -220,7 +220,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         .setBlock(BLOCK_NUMBER)
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
-      await addLogsToProvider(
+      await addLogToProvider(
         mockEthProvider,
         1,
         timelock,
@@ -251,7 +251,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         .setBlock(BLOCK_NUMBER)
         .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
 
-      await addLogsToProvider(mockEthProvider, 1, timelock, [], "");
+      await addLogToProvider(mockEthProvider, 1, timelock, [], "");
       findings.push(await handleTransaction(txEvent));
     }
 
@@ -283,7 +283,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         1,
       ]);
 
-      await addLogsToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
+      await addLogToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
 
       findings.push(await handleTransaction(txEvent));
     }
@@ -316,7 +316,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         1,
       ]);
 
-      await addLogsToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
+      await addLogToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
 
       findings.push(await handleTransaction(txEvent));
     }
