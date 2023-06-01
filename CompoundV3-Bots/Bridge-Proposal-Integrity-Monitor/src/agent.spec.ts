@@ -25,6 +25,7 @@ import { AgentConfig, NetworkData } from "./utils";
 const EXECUTE_TX_IFACE = new ethers.utils.Interface([EXECUTE_TX_ABI]);
 const SEND_MESSAGE_IFACE = new ethers.utils.Interface([SEND_MESSAGE_ABI]);
 const RECEIVER_IFACE = new ethers.utils.Interface([FX_CHILD_ABI, TIMELOCK_ABI]);
+const IRRELEVANT_IFACE = new ethers.utils.Interface(["event SomeEvent()"]);
 
 function createProposalFinding(
   chainId: number,
@@ -82,30 +83,20 @@ function encodeCallData(dataArr: (string | number | string[] | number[])[], rece
   return calldata;
 }
 
-async function addLogToProvider(
-  mockTimelockProvider: MockEthersProvider,
-  blockNumber: number,
-  address: string,
-  topics: string[],
-  data: string,
-  txHash?: string
-) {
-  mockTimelockProvider.addLogs([
-    {
-      blockNumber,
-      data,
-      address,
-      topics,
-      transactionHash: txHash,
-    },
-  ] as Log[]);
-}
-
 const addr = createChecksumAddress;
+const bn = ethers.BigNumber.from;
+const hash = (str: string) => ethers.utils.keccak256(ethers.utils.formatBytes32String(str));
 
 const FX_CHILD = addr("0xab1");
 const LAST_MAINNET_BLOCK = 100;
+const BLOCK_NUMBER = 10;
 const NETWORK = Network.MAINNET;
+
+const FX_CHILD_ADDRESS = addr("0xaefe");
+const FX_ROOT_ADDRESS = addr("0xaefd");
+const TIMELOCK_ADDRESS = addr("0xaeff");
+const BRIDGE_RECEIVER_ADDRESS = addr("0xfff1");
+const IRRELEVANT_ADDRESS = addr("0x1773");
 
 const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[], number][] = [
   [
@@ -134,7 +125,7 @@ const DEFAULT_CONFIG: AgentConfig = {
   mainnetRpcEndpoint: "rpc-endpoint",
   networkData: {
     [NETWORK]: {
-      bridgeReceiverAddress: addr("0xff1"),
+      bridgeReceiverAddress: BRIDGE_RECEIVER_ADDRESS,
       messagePassFetchingBlockStep: 50,
       messagePassFetchingBlockRange: 100,
     },
@@ -142,11 +133,6 @@ const DEFAULT_CONFIG: AgentConfig = {
 };
 
 describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
-  const fxChild = addr("0xaefe");
-  const fxRoot = addr("0xaefd");
-  const timelock = addr("0xaeff");
-  const BLOCK_NUMBER = 1;
-
   let mockEthProvider: MockEthersProvider;
   let mockProvider: MockEthersProvider;
 
@@ -156,22 +142,50 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
 
-  async function addCallsToProvider(mockProvider: MockEthersProvider, blockNumber: string | number) {
-    mockProvider.addCallTo(networkManager.get("bridgeReceiverAddress"), blockNumber, RECEIVER_IFACE, "fxChild", {
+  const addCallsToProvider = async (mockProvider: MockEthersProvider, blockNumber: string | number) => {
+    mockProvider.addCallTo(BRIDGE_RECEIVER_ADDRESS, blockNumber, RECEIVER_IFACE, "fxChild", {
       inputs: [],
-      outputs: [fxChild],
+      outputs: [FX_CHILD_ADDRESS],
     });
 
-    mockProvider.addCallTo(networkManager.get("bridgeReceiverAddress"), blockNumber, RECEIVER_IFACE, "govTimelock", {
+    mockProvider.addCallTo(BRIDGE_RECEIVER_ADDRESS, blockNumber, RECEIVER_IFACE, "govTimelock", {
       inputs: [],
-      outputs: [timelock],
+      outputs: [TIMELOCK_ADDRESS],
     });
 
-    mockProvider.addCallTo(fxChild, BLOCK_NUMBER, new ethers.utils.Interface([FX_ROOT_ABI]), "fxRoot", {
+    mockProvider.addCallTo(FX_CHILD_ADDRESS, BLOCK_NUMBER, new ethers.utils.Interface([FX_ROOT_ABI]), "fxRoot", {
       inputs: [],
-      outputs: [fxRoot],
+      outputs: [FX_ROOT_ADDRESS],
     });
-  }
+  };
+
+  const addExecuteTransactionLog = (
+    target: string,
+    signature: string,
+    data: string,
+    block: number,
+    txHash: string,
+    timelock: string = TIMELOCK_ADDRESS
+  ) => {
+    mockEthProvider.addLogs([
+      {
+        ...EXECUTE_TX_IFACE.encodeEventLog("ExecuteTransaction", [hash("some"), target, bn(0), signature, data, 0]),
+        blockNumber: block,
+        address: timelock,
+        transactionHash: txHash,
+      },
+    ] as Log[]);
+  };
+
+  const addIrrelevantLog = (address: string, block: number, mockProvider: MockEthersProvider) => {
+    mockProvider.addLogs([
+      {
+        ...IRRELEVANT_IFACE.encodeEventLog("SomeEvent", []),
+        blockNumber: block,
+        address,
+      },
+    ] as Log[]);
+  };
 
   beforeEach(async () => {
     mockEthProvider = new MockEthersProvider();
@@ -197,139 +211,205 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     await addCallsToProvider(mockProvider, BLOCK_NUMBER);
   });
 
-  it("returns empty findings when no event is emitted", async () => {
+  it("should not emit any findings when no event is emitted", async () => {
     const txEvent = new TestTransactionEvent().setBlock(BLOCK_NUMBER);
 
     expect(await handleTransaction(txEvent)).toStrictEqual([]);
   });
 
-  it("returns an Info finding if ProposalCreated event is emitted and corresponding ExecuteTransaction was found", async () => {
-    const findings = [];
-    for (const testData of PROPOSAL_TEST_DATA) {
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        ethers.utils.formatBytes32String("hash1"),
-        fxRoot,
-        10,
-        "",
-        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiverAddress")),
-        1,
-      ]);
+  it("should not emit any findings when no ProposalCreated event is emitted", async () => {
+    const txEvent = new TestTransactionEvent()
+      .setBlock(BLOCK_NUMBER)
+      .addEventLog(IRRELEVANT_IFACE.getEvent("SomeEvent"), IRRELEVANT_ADDRESS, []);
 
+    expect(await handleTransaction(txEvent)).toStrictEqual([]);
+  });
+
+  it("should not emit any findings when a ProposalCreated event is emitted from a different contract", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(PROPOSAL_EVENT_ABI, IRRELEVANT_ADDRESS, testData);
+
+      expect(await handleTransaction(txEvent)).toStrictEqual([]);
+    }
+  });
+
+  it("should emit an info severity finding if a ProposalCreated event is emitted and a corresponding ExecuteTransaction was found", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
 
-      await addLogToProvider(
-        mockEthProvider,
-        1,
-        timelock,
-        transactionExecutedLog.topics,
-        transactionExecutedLog.data,
-        ethers.utils.formatBytes32String("tx1")
+      addExecuteTransactionLog(
+        FX_ROOT_ADDRESS,
+        "",
+        encodeCallData(testData.slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+        LAST_MAINNET_BLOCK,
+        hash("tx1")
       );
-      findings.push(await handleTransaction(txEvent));
-    }
 
-    expect(findings.flat()).toStrictEqual(
-      PROPOSAL_TEST_DATA.map((data) =>
+      expect(await handleTransaction(txEvent)).toStrictEqual([
         createProposalFinding(
           NETWORK,
-          networkManager.get("bridgeReceiverAddress"),
-          data[1],
-          ethers.utils.getAddress(data[0]),
-          ethers.utils.formatBytes32String("tx1")
-        )
-      )
-    );
-  });
-
-  it("returns a High Severity finding if ProposalCreated event is emitted and no ExecuteTransaction event was emitted", async () => {
-    const findings = [];
-    for (const testData of PROPOSAL_TEST_DATA) {
-      const txEvent: TransactionEvent = new TestTransactionEvent()
-        .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
-
-      await addLogToProvider(mockEthProvider, 1, timelock, [], "");
-      findings.push(await handleTransaction(txEvent));
-    }
-
-    expect(findings.flat()).toStrictEqual(
-      PROPOSAL_TEST_DATA.map((data) =>
-        createSuspiciousProposalFinding(
-          NETWORK,
-          networkManager.get("bridgeReceiverAddress"),
-          data[1],
-          ethers.utils.getAddress(data[0])
-        )
-      )
-    );
-  });
-
-  it("returns a High Severity finding if ProposalCreated event is emitted and no corresponding ExecuteTransaction event was found", async () => {
-    const findings = [];
-    for (const testData of PROPOSAL_TEST_DATA) {
-      const txEvent: TransactionEvent = new TestTransactionEvent()
-        .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
-
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        ethers.utils.formatBytes32String("hash1"),
-        addr("0xd01"), // target is different from fxRoot
-        10,
-        "",
-        encodeCallData(testData.slice(2, 6), networkManager.get("bridgeReceiverAddress")),
-        1,
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0]),
+          hash("tx1")
+        ),
       ]);
-
-      await addLogToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
-
-      findings.push(await handleTransaction(txEvent));
     }
-
-    expect(findings.flat()).toStrictEqual(
-      PROPOSAL_TEST_DATA.map((data) =>
-        createSuspiciousProposalFinding(
-          NETWORK,
-          networkManager.get("bridgeReceiverAddress"),
-          data[1],
-          ethers.utils.getAddress(data[0])
-        )
-      )
-    );
   });
 
-  it("returns a High Severity finding if ProposalCreated event is emitted and corresponding ExecuteTransaction event has different data", async () => {
-    const findings = [];
+  it("should emit a high severity finding if a ProposalCreated event is emitted and no ExecuteTransaction event was emitted", async () => {
     for (const testData of PROPOSAL_TEST_DATA) {
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), testData);
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
 
-      const transactionExecutedLog = EXECUTE_TX_IFACE.encodeEventLog(EXECUTE_TX_IFACE.getEvent("ExecuteTransaction"), [
-        ethers.utils.formatBytes32String("hash1"),
-        fxRoot,
-        10,
-        "",
-        encodeCallData(DIFF_DATA.slice(2, 6), networkManager.get("bridgeReceiverAddress")), // data is different
-        1,
-      ]);
+      addIrrelevantLog(TIMELOCK_ADDRESS, LAST_MAINNET_BLOCK, mockEthProvider);
 
-      await addLogToProvider(mockEthProvider, 1, timelock, transactionExecutedLog.topics, transactionExecutedLog.data);
-
-      findings.push(await handleTransaction(txEvent));
-    }
-
-    expect(findings.flat()).toStrictEqual(
-      PROPOSAL_TEST_DATA.map((data) =>
+      expect(await handleTransaction(txEvent)).toStrictEqual([
         createSuspiciousProposalFinding(
           NETWORK,
-          networkManager.get("bridgeReceiverAddress"),
-          data[1],
-          ethers.utils.getAddress(data[0])
-        )
-      )
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0])
+        ),
+      ]);
+    }
+  });
+
+  it("should emit a high severity finding if a ProposalCreated event is emitted and no ExecuteTransaction event was found", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
+
+      expect(await handleTransaction(txEvent)).toStrictEqual([
+        createSuspiciousProposalFinding(
+          NETWORK,
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0])
+        ),
+      ]);
+    }
+  });
+
+  it("should emit a high severity finding if a ProposalCreated event is emitted and the ExecuteTransaction target is not the same", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
+
+      addExecuteTransactionLog(
+        IRRELEVANT_ADDRESS,
+        "",
+        encodeCallData(testData.slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+        LAST_MAINNET_BLOCK,
+        hash("tx1")
+      );
+
+      expect(await handleTransaction(txEvent)).toStrictEqual([
+        createSuspiciousProposalFinding(
+          NETWORK,
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0])
+        ),
+      ]);
+    }
+  });
+
+  it("should emit a high severity finding if a ProposalCreated event is emitted and the ExecuteTransaction event was emitted by a different contract", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
+
+      addExecuteTransactionLog(
+        FX_ROOT_ADDRESS,
+        "",
+        encodeCallData(testData.slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+        LAST_MAINNET_BLOCK,
+        hash("tx1"),
+        IRRELEVANT_ADDRESS
+      );
+
+      expect(await handleTransaction(txEvent)).toStrictEqual([
+        createSuspiciousProposalFinding(
+          NETWORK,
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0])
+        ),
+      ]);
+    }
+  });
+
+  it("should emit a high severity finding if a ProposalCreated event is emitted and corresponding ExecuteTransaction event has different data", async () => {
+    for (const testData of PROPOSAL_TEST_DATA) {
+      const txEvent: TransactionEvent = new TestTransactionEvent()
+        .setBlock(BLOCK_NUMBER)
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, testData);
+
+      addExecuteTransactionLog(
+        FX_ROOT_ADDRESS,
+        "",
+        encodeCallData(DIFF_DATA.slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+        LAST_MAINNET_BLOCK,
+        hash("tx1")
+      );
+
+      expect(await handleTransaction(txEvent)).toStrictEqual([
+        createSuspiciousProposalFinding(
+          NETWORK,
+          BRIDGE_RECEIVER_ADDRESS,
+          testData[1],
+          ethers.utils.getAddress(testData[0])
+        ),
+      ]);
+    }
+  });
+
+  it("should be able to emit multiple findings per transaction", async () => {
+    const txEvent: TransactionEvent = new TestTransactionEvent()
+      .setBlock(BLOCK_NUMBER)
+      .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, PROPOSAL_TEST_DATA[0])
+      .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, PROPOSAL_TEST_DATA[1]);
+
+    addExecuteTransactionLog(
+      FX_ROOT_ADDRESS,
+      "",
+      encodeCallData(PROPOSAL_TEST_DATA[0].slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+      LAST_MAINNET_BLOCK,
+      hash("tx1")
     );
+
+    addExecuteTransactionLog(
+      FX_ROOT_ADDRESS,
+      "",
+      encodeCallData(DIFF_DATA.slice(2, 6), BRIDGE_RECEIVER_ADDRESS),
+      LAST_MAINNET_BLOCK,
+      hash("tx2")
+    );
+
+    expect(await handleTransaction(txEvent)).toStrictEqual([
+      createProposalFinding(
+        NETWORK,
+        BRIDGE_RECEIVER_ADDRESS,
+        PROPOSAL_TEST_DATA[0][1],
+        ethers.utils.getAddress(PROPOSAL_TEST_DATA[0][0]),
+        hash("tx1")
+      ),
+      createSuspiciousProposalFinding(
+        NETWORK,
+        BRIDGE_RECEIVER_ADDRESS,
+        PROPOSAL_TEST_DATA[1][1],
+        ethers.utils.getAddress(PROPOSAL_TEST_DATA[1][0])
+      ),
+    ]);
   });
 
   it("fetches blocks correctly using batches", async () => {
@@ -353,7 +433,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
         mainnetRpcEndpoint: "rpc-endpoint",
         networkData: {
           [NETWORK]: {
-            bridgeReceiverAddress: addr("0xff1"),
+            bridgeReceiverAddress: BRIDGE_RECEIVER_ADDRESS,
             messagePassFetchingBlockStep: blocksData[0],
             messagePassFetchingBlockRange: blocksData[1],
           },
@@ -367,7 +447,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
 
       const txEvent: TransactionEvent = new TestTransactionEvent()
         .setBlock(BLOCK_NUMBER)
-        .addEventLog(PROPOSAL_EVENT_ABI, networkManager.get("bridgeReceiverAddress"), PROPOSAL_TEST_DATA[0]);
+        .addEventLog(PROPOSAL_EVENT_ABI, BRIDGE_RECEIVER_ADDRESS, PROPOSAL_TEST_DATA[0]);
 
       await handleTransaction(txEvent);
 
