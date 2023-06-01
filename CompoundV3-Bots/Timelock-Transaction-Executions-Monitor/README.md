@@ -20,7 +20,8 @@ proposal execution call, which should be a really problematic scenario.
 In the case a proposal's parameters simply could not be found with the current
 parameters, since it requires fetching `ProposalCreated` entries from previous
 blocks, a bot log will be emitted for debugging, so in the case of a
-`COMP2-6-3` finding it would be desirable to check the bot logs.
+`COMP2-6-3` finding it would be desirable to check the bot logs. `COMP2-6-2`
+findings are omitted in this situation.
 
 The bridge receiver addresses, as well as additional parameters for each
 network can be configured in the `agent.config.ts` file.
