@@ -10,6 +10,15 @@ BridgeReceiver contract and then trying to fetch the corresponding message
 passing that lead to this creation on Mainnet - in this case, a transaction
 execution from the Governor timelock to the Polygon bridge.
 
+The bot parameters can be configured in `src/agent.config.ts`.
+
+**Important**: This bot is set to be deployed in its obfuscated version, as an
+Ethereum RPC is set in `agent.config.ts` to fetch the message creation logs
+and it can be private. To obfuscate the implementation, you can run 
+`npm run obfuscate`, which will make the obfuscated version available in
+`obfuscated/`. As per the `Dockerfile`, this is the code that will actually
+be included in the bot image on deployment.
+
 ## Supported Chains
 
 - Polygon
