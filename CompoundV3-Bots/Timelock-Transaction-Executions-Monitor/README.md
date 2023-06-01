@@ -6,6 +6,22 @@ This bot detects transaction executions from bridge receivers' timelocks and
 analyzes proposal data to both inform of proposal executions but also notify
 on possible suspicious actions.
 
+This is done by first monitoring `ExecuteTransaction` logs from the brige
+receiver's local timelock and then matching the executed transactions with
+proposal execution calls through `ProposalExecuted` logs in the same
+transaction and previous `ProposalCreated` logs.
+
+Findings are emitted on basically all cases - i.e. when a proposal was fully
+executed (all the expected calls were made), when a proposal was not fully
+executed (some call was not made, which should be a totally unexpected
+situation) and when an executed transaction could not be associated with any
+proposal execution call, which should be a really problematic scenario.
+
+In the case a proposal's parameters simply could not be found with the current
+parameters, since it requires fetching `ProposalCreated` entries from previous
+blocks, a bot log will be emitted for debugging, so in the case of a
+`COMP2-6-3` finding it would be desirable to check the bot logs.
+
 The bridge receiver addresses, as well as additional parameters for each
 network can be configured in the `agent.config.ts` file.
 
