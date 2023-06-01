@@ -2,7 +2,7 @@
   "name": "comp2-6",
   "version": "0.0.1",
   "description": "Forta bot that monitors and analyzes Compound v3 proposal executions on secondary networks",
-  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Timelock-Transaction-Execution",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/CompoundV3-Bots/Timelock-Transaction-Executions-Monitor",
   "chainIds": [
     137
   ],

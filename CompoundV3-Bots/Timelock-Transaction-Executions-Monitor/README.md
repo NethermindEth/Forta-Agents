@@ -1,4 +1,4 @@
-# Timelock Transaction Monitor Bot
+# Timelock Transaction Executions Monitor Bot
 
 ## Description
 

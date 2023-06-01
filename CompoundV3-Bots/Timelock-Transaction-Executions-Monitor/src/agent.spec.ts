@@ -166,7 +166,7 @@ function createProposal(id: ethers.BigNumberish, calls: ProposalCall[], eta: eth
   return { id: bn(id), eta: bn(eta), calls };
 }
 
-describe("Bot Test Suite", () => {
+describe("COMP2-06 - Timelock Transaction Executions Monitor Bot Test Suite", () => {
   let provider: ethers.providers.Provider;
   let mockProvider: MockEthersProvider;
   let networkManager: NetworkManager<NetworkData>;
