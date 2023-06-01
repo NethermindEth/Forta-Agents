@@ -13,8 +13,8 @@ const CONFIG: AgentConfig = {
       // Address of the BridgeReceiver contract
       bridgeReceiverAddress: "0x18281dfC4d00905DA1aaA6731414EABa843c468A",
 
-      // Maximum number of blocks checked from the current network block to find
-      // a matching proposal message
+      // Maximum number of Ethereum blocks checked from the current block to
+      // find a matching proposal message
       messagePassFetchingBlockRange: 10_000,
 
       // Block chunk size for log fetching (i.e. X blocks per getLogs call).
