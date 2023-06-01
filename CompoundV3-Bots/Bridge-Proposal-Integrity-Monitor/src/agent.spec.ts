@@ -105,6 +105,7 @@ const addr = createChecksumAddress;
 
 const FX_CHILD = addr("0xab1");
 const LAST_MAINNET_BLOCK = 100;
+const NETWORK = Network.MAINNET;
 
 const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[], number][] = [
   [
@@ -129,12 +130,10 @@ const PROPOSAL_TEST_DATA: [string, string, string[], number[], string[], string[
 ];
 const DIFF_DATA = [FX_CHILD, "4", [addr("0x14a")], [30], ["function func1() public returns (uint256)"], ["0x"], 10];
 
-const network = Network.MAINNET;
-
 const DEFAULT_CONFIG: AgentConfig = {
   mainnetRpcEndpoint: "rpc-endpoint",
   networkData: {
-    [network]: {
+    [NETWORK]: {
       bridgeReceiverAddress: addr("0xff1"),
       messagePassFetchingBlockStep: 50,
       messagePassFetchingBlockRange: 100,
@@ -176,13 +175,13 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
 
   beforeEach(async () => {
     mockEthProvider = new MockEthersProvider();
-    mockEthProvider.setNetwork(network);
+    mockEthProvider.setNetwork(NETWORK);
     mockEthProvider.setLatestBlock(LAST_MAINNET_BLOCK);
 
     ethProvider = mockEthProvider as unknown as ethers.providers.Provider;
 
     mockProvider = new MockEthersProvider();
-    mockProvider.setNetwork(network);
+    mockProvider.setNetwork(NETWORK);
     networkManager = new NetworkManager(DEFAULT_CONFIG.networkData);
 
     provider = mockProvider as unknown as ethers.providers.Provider;
@@ -234,7 +233,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         createProposalFinding(
-          network,
+          NETWORK,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
           ethers.utils.getAddress(data[0]),
@@ -258,7 +257,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         createSuspiciousProposalFinding(
-          network,
+          NETWORK,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
           ethers.utils.getAddress(data[0])
@@ -291,7 +290,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         createSuspiciousProposalFinding(
-          network,
+          NETWORK,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
           ethers.utils.getAddress(data[0])
@@ -324,7 +323,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
     expect(findings.flat()).toStrictEqual(
       PROPOSAL_TEST_DATA.map((data) =>
         createSuspiciousProposalFinding(
-          network,
+          NETWORK,
           networkManager.get("bridgeReceiverAddress"),
           data[1],
           ethers.utils.getAddress(data[0])
@@ -345,7 +344,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
 
     for (const blocksData of blockBatches) {
       mockEthProvider = new MockEthersProvider();
-      mockEthProvider.setNetwork(network);
+      mockEthProvider.setNetwork(NETWORK);
       mockEthProvider.setLatestBlock(LAST_MAINNET_BLOCK);
 
       ethProvider = mockEthProvider as unknown as ethers.providers.Provider;
@@ -353,7 +352,7 @@ describe("COMP2-5 - Bridge Proposal Integrity Monitor Bot Test suite", () => {
       const config: AgentConfig = {
         mainnetRpcEndpoint: "rpc-endpoint",
         networkData: {
-          [network]: {
+          [NETWORK]: {
             bridgeReceiverAddress: addr("0xff1"),
             messagePassFetchingBlockStep: blocksData[0],
             messagePassFetchingBlockRange: blocksData[1],
