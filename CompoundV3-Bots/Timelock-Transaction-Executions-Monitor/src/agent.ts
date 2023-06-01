@@ -7,7 +7,7 @@ import {
   createUnsuccessfulProposalExecutionFinding,
   createUnknownTimelockExecutionFinding,
 } from "./finding";
-import { ExecuteTransactionArgs, NetworkData, ProposalCreatedArgs, getPastEventLogs } from "./utils";
+import { ExecuteTransactionArgs, NetworkData, ProposalCreatedArgs, getPastEventLogs, log } from "./utils";
 
 const networkManager = new NetworkManager(CONFIG);
 
@@ -92,10 +92,10 @@ export const provideHandleTransaction = (
     });
 
     if (missedProposalIds.length) {
-      console.warn(
+      log(
         "Current creationFetchingBlockRange parameter is too low, so some proposal creations couldnt'be fetched. Please consider increasing it."
       );
-      console.warn(`Missed proposal IDs: ${missedProposalIds.map((id) => id.toString()).join(", ")}`);
+      log(`Missed proposal IDs: ${missedProposalIds.map((id) => id.toString()).join(", ")}`);
     }
 
     const timelockExecutionInfos = timelockExecutionLogs.map((log) => ({

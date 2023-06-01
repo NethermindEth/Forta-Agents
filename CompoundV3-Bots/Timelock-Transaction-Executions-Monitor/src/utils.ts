@@ -27,6 +27,10 @@ export interface ProposalCreatedArgs {
   eta: ethers.BigNumber;
 }
 
+export function log(str: string) {
+  console.log(`[${new Date().toISOString()}]: ${str}`);
+}
+
 function rangeChunks(from: number, to: number, chunkSize: number): Array<[from: number, to: number]> {
   const resp: Array<[from: number, to: number]> = [];
 
