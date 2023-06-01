@@ -4,7 +4,7 @@ export const PROPOSAL_EVENT_ABI =
 export const SEND_MESSAGE_ABI = "function sendMessageToChild(address _receiver, bytes calldata _data) public";
 
 export const EXECUTE_TX_ABI =
-  "event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature,  bytes data, uint eta)";
+  "event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta)";
 
 export const FX_CHILD_ABI = "function fxChild() public view returns (address)";
 
