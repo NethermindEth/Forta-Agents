@@ -5,7 +5,10 @@ export const DEBUG: boolean = false;
 export const DEBUG_LAST_BLOCK: number = 16769029;
 
 const CONFIG: AgentConfig = {
-  // Ethereum RPC URL
+  // Ethereum RPC URL. For simple log fetching, such as here, a public RPC works
+  // really well - the only thing to keep in mind is how many calls will be made
+  // at once, which is `ceil(blockRange / blockStep)` and that this provider
+  // must be able to handle that. This one already works.
   mainnetRpcEndpoint: "https://eth.llamarpc.com",
 
   networkData: {
