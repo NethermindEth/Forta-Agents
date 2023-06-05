@@ -1,6 +1,6 @@
 {
   "name": "victim-identifier",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Bot that identifies victims during the preparation or the exploitation stage of an attack",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-identifier",
   "chainIds": [
@@ -14,27 +14,27 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 7,
-      "target": 3
-    },
-    "56": {
       "shards": 12,
       "target": 3
     },
+    "56": {
+      "shards": 21,
+      "target": 3
+    },
     "137": {
-      "shards": 13,
+      "shards": 23,
       "target": 3
     },
     "43114": {
-      "shards": 2,
+      "shards": 3,
       "target": 3
     },
     "10": {
-      "shards": 4,
+      "shards": 6,
       "target": 3
     },
     "default": {
-      "shards": 3,
+      "shards": 5,
       "target": 3
     }
   },

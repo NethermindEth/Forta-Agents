@@ -175,7 +175,7 @@ describe("Victim Identifier bot test suite", () => {
   let handleTransaction: HandleTransaction = provideHandleTransaction(mockVictimIdentifer as any);
 
   describe("handleTransaction", () => {
-    it.only("tests performance", async () => {
+    it("tests performance", async () => {
       const realProvider = getEthersProvider();
       const handleRealTransaction = provideHandleTransaction(new VictimIdentifier(realProvider, keys));
 
@@ -308,30 +308,48 @@ describe("Victim Identifier bot test suite", () => {
       //     Optimism: 24s, 150 -> 160ms
       //     Fantom: 1s, 5 -> 200ms
 
-      //      local testing reveals an avg processing time of 500, which results in the following sharding config:
-      //      Ethereum: 12s, 150 -> 80ms - 7
-      //      BSC: 3s, 70 -> 43ms - 12
-      //      Polygon: 2s, 50 -> 40ms - 13
-      //      Avalanche: 2s, 5 -> 400ms - 2
-      //      Arbitrum: 1s, 5 -> 200ms - 3
-      //      Optimism: 24s, 150 -> 160ms - 4
-      //      Fantom: 1s, 5 -> 200ms - 3
+      //      local testing reveals an avg processing time of <900, which results in the following sharding config:
+      //      Ethereum: 12s, 150 -> 80ms - 12
+      //      BSC: 3s, 70 -> 43ms - 21
+      //      Polygon: 2s, 50 -> 40ms - 23
+      //      Avalanche: 2s, 5 -> 400ms - 3
+      //      Arbitrum: 1s, 5 -> 200ms - 5
+      //      Optimism: 24s, 150 -> 160ms - 6
+      //      Fantom: 1s, 5 -> 200ms - 5
 
-      const processingRuns = 15;
+      const processingRuns = 10;
       let totalTimeExploitationStageAttack = 0;
       let totalTimePreparationStageAttack = 0;
       let totalTimeNormalTx = 0;
+      let totalTimeFirstOfBlockNormalTx = 0;
+      let totalTimeFirstOfBlockExploitationStageAttack = 0;
+      let totalTimeFirstOfBlockPreparationStageAttack = 0;
+
       for (let i = 0; i < processingRuns; i++) {
+        const startTimeFirstOfBlockExpliotationStageAttack = performance.now();
+        await handleRealTransaction(exploitationTxEvent);
+        const endTimeFirstOfBlockExploitationStageAttack = performance.now();
+        totalTimeFirstOfBlockExploitationStageAttack +=
+          endTimeFirstOfBlockExploitationStageAttack - startTimeFirstOfBlockExpliotationStageAttack;
         const startTimeExploitationStageAttack = performance.now();
         await handleRealTransaction(exploitationTxEvent);
         const endTimeExploitationStageAttack = performance.now();
         totalTimeExploitationStageAttack += endTimeExploitationStageAttack - startTimeExploitationStageAttack;
 
+        const startTimeFirstOfBlockPreparationStageAttack = performance.now();
+        await handleRealTransaction(preparationStageTxEvent);
+        const endTimeFirstOfBlockPreparationStageAttack = performance.now();
+        totalTimeFirstOfBlockPreparationStageAttack +=
+          endTimeFirstOfBlockPreparationStageAttack - startTimeFirstOfBlockPreparationStageAttack;
         const startTimePreparationStageAttack = performance.now();
         await handleRealTransaction(preparationStageTxEvent);
         const endTimePreparationStageAttack = performance.now();
         totalTimePreparationStageAttack += endTimePreparationStageAttack - startTimePreparationStageAttack;
 
+        const startTimeFirstOfBlockNormalTx = performance.now();
+        await handleRealTransaction(normalTxEvent);
+        const endTimeFirstOfBlockNormalTx = performance.now();
+        totalTimeFirstOfBlockNormalTx += endTimeFirstOfBlockNormalTx - startTimeFirstOfBlockNormalTx;
         const startTimeNormalTx = performance.now();
         await handleRealTransaction(normalTxEvent);
         const endTimeNormalTx = performance.now();
@@ -340,18 +358,18 @@ describe("Victim Identifier bot test suite", () => {
       const processingTimeExploitationStage = totalTimeExploitationStageAttack / processingRuns;
       const processingTimePreparationStage = totalTimePreparationStageAttack / processingRuns;
       const processingTimeNormalTx = totalTimeNormalTx / processingRuns;
-      console.log(
-        (processingTimeExploitationStage * 0.07 +
-          processingTimePreparationStage * 0.01 +
-          processingTimeNormalTx * 0.92) /
-          3
-      );
+      const processingTimeFirstOfBlockNormalTx = totalTimeFirstOfBlockNormalTx / processingRuns;
+      const processingTimeFirstOfBlockExploitationStage = totalTimeFirstOfBlockExploitationStageAttack / processingRuns;
+      const processingTimeFirstOfBlockPreparationStage = totalTimeFirstOfBlockPreparationStageAttack / processingRuns;
+
       expect(
-        (processingTimeExploitationStage * 0.07 +
-          processingTimePreparationStage * 0.01 +
-          processingTimeNormalTx * 0.92) /
-          3
-      ).toBeLessThan(500);
+        processingTimeExploitationStage * 0.079 +
+          processingTimeFirstOfBlockExploitationStage * 0.001 +
+          processingTimePreparationStage * 0.009 +
+          processingTimeFirstOfBlockPreparationStage * 0.001 +
+          processingTimeFirstOfBlockNormalTx * 0.01 +
+          processingTimeNormalTx * 0.9
+      ).toBeLessThan(900);
     });
 
     it("returns empty findings if there are no victims", async () => {
