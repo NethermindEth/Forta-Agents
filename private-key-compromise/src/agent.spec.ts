@@ -234,6 +234,7 @@ describe("Detect Private Key Compromise", () => {
   const mockContractFetcher = {
     getContractInfo: jest.fn(),
     getVictimInfo: jest.fn(),
+    getFundInfo: jest.fn(),
   };
 
   const mockDataFetcher = {

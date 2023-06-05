@@ -189,7 +189,12 @@ export const provideHandleTransaction =
 
             // if the account is drained
             if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
-              await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+              // check if "from" address was funded by "to" address before.
+              const isFromFundedByTo = await contractFetcher.getFundInfo(from, to, Number(chainId));
+
+              if (!isFromFundedByTo) {
+                await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+              }
 
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to].length > 3) {
