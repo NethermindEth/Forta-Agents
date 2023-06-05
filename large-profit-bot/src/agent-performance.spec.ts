@@ -136,14 +136,14 @@ describe("Large Profit Bot test suite", () => {
     //     Optimism: 24s, 150 -> 160ms
     //     Fantom: 1s, 5 -> 200ms
 
-    //      local testing reveals an avg processing time of 350, which results in the following sharding config:
-    //      Ethereum: 12s, 150 -> 80ms - 5
-    //      BSC: 3s, 70 -> 43ms - 9
-    //      Polygon: 2s, 50 -> 40ms - 9
-    //      Avalanche: 2s, 5 -> 400ms - 1
-    //      Arbitrum: 1s, 5 -> 200ms - 2
-    //      Optimism: 24s, 150 -> 160ms - 3
-    //      Fantom: 1s, 5 -> 200ms - 2
+    //      local testing reveals an avg processing time of 960, which results in the following sharding config:
+    //      Ethereum: 12s, 150 -> 80ms - 12
+    //      BSC: 3s, 70 -> 43ms - 23
+    //      Polygon: 2s, 50 -> 40ms - 24
+    //      Avalanche: 2s, 5 -> 400ms - 2
+    //      Arbitrum: 1s, 5 -> 200ms - 5
+    //      Optimism: 24s, 150 -> 160ms - 6
+    //      Fantom: 1s, 5 -> 200ms - 5
 
     const processingRuns = 15;
     let totalTimeLargeProfitNoFinding = 0;
@@ -168,17 +168,11 @@ describe("Large Profit Bot test suite", () => {
     const processingTimeLargeProfitNoFinding = totalTimeLargeProfitNoFinding / processingRuns;
     const processingTimeLargeProfitFinding = totalTimeLargeProfitFinding / processingRuns;
     const processingTimeNormalTx = totalTimeNormalTx / processingRuns;
-    console.log(
-      (processingTimeLargeProfitNoFinding * 0.2 +
-        processingTimeLargeProfitFinding * 0.01 +
-        processingTimeNormalTx * 0.79) /
-        3
-    );
+
     expect(
-      (processingTimeLargeProfitNoFinding * 0.2 +
-        processingTimeLargeProfitFinding * 0.01 +
-        processingTimeNormalTx * 0.79) /
-        3
-    ).toBeLessThan(350);
+      processingTimeLargeProfitNoFinding * 0.15 +
+        processingTimeLargeProfitFinding * 0.005 +
+        processingTimeNormalTx * 0.845
+    ).toBeLessThan(960);
   });
 });

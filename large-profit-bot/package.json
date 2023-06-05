@@ -1,6 +1,6 @@
 {
   "name": "large-profit-bot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Forta bot that detects large profits",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-profit-bot",
   "chainIds": [
@@ -14,27 +14,27 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 5,
+      "shards": 12,
       "target": 3
     },
     "56": {
-      "shards": 9,
+      "shards": 23,
       "target": 3
     },
     "137": {
-      "shards": 9,
+      "shards": 24,
       "target": 3
     },
     "43114": {
-      "shards": 1,
+      "shards": 2,
       "target": 3
     },
     "10": {
-      "shards": 3,
+      "shards": 6,
       "target": 3
     },
     "default": {
-      "shards": 2,
+      "shards": 5,
       "target": 2
     }
   },
