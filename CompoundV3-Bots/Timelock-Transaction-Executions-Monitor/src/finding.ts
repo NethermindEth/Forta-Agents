@@ -57,6 +57,27 @@ export function createUnknownTimelockExecutionFinding(
   eta: ethers.BigNumber,
   chainId: number
 ): Finding {
+  // try decoding the arguments from the calldata, fallback to raw data
+  try {
+    const iface = new ethers.utils.Interface(["function " + signature]);
+    const { args } = iface.parseTransaction({
+      data: ethers.utils.hexConcat([iface.getSighash(iface.fragments[0]), data]),
+    });
+
+    const stringifyDecodedArgs = (args: any[]): any[] =>
+      args.map((arg: any) => {
+        if (Array.isArray(arg)) {
+          return stringifyDecodedArgs(arg);
+        } else {
+          return arg.toString();
+        }
+      });
+
+    data = JSON.stringify(stringifyDecodedArgs(args as any[]));
+  } catch {
+    // fallback to raw data
+  }
+
   return Finding.from({
     name: "Unknown transaction was executed through the Timelock contract",
     description:

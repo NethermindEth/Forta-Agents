@@ -68,7 +68,9 @@ network can be configured in the `agent.config.ts` file.
     - `target`: Target of the executed transaction
     - `value`: Value included in the executed transaction, in wei
     - `signature`: Signature of the method called in the executed transaction
-    - `data`: Calldata of the executed transaction
+    - `data`: Calldata of the executed transaction, either the decoded
+    arguments as a JSON stringified array or, as a fallback, the raw hex data
+    as a string. 
     - `eta`: ETA of the executed transaction
 
 ## Test Data
