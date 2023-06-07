@@ -198,53 +198,67 @@ export const provideHandleTransaction =
 
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to].length > 3) {
-                alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+                // check if the victims were initially funded by the same address
+                const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                  transferObj[to],
+                  Number(chainId)
+                );
 
-                if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                  alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
-
-                  await persistenceHelper.persist(
-                    alertedAddresses,
+                if (hasUniqueInitialFunders) {
+                  alertedAddresses = await persistenceHelper.load(
                     databaseKeys.alertedAddressesKey.concat("-", chainId)
                   );
 
-                  const anomalyScore = await calculateAlertRate(
-                    Number(chainId),
-                    BOT_ID,
-                    "PKC-1",
-                    isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                    transfersCount
-                  );
+                  if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                    alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
 
-                  // Add "from addresses" into the queue
-                  transferObj[to].forEach((el) => {
-                    queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+                    await persistenceHelper.persist(
+                      alertedAddresses,
+                      databaseKeys.alertedAddressesKey.concat("-", chainId)
+                    );
 
-                    queuedAddresses.push({
-                      timestamp: timestamp,
-                      transfer: {
-                        from: el.victimAddress,
-                        to,
-                        txHash: el.txHash,
-                        asset: el.transferredAsset,
-                      },
+                    const anomalyScore = await calculateAlertRate(
+                      Number(chainId),
+                      BOT_ID,
+                      "PKC-1",
+                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                      transfersCount
+                    );
+
+                    // Add "from addresses" into the queue
+                    transferObj[to].forEach((el) => {
+                      queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
+                      queuedAddresses.push({
+                        timestamp: timestamp,
+                        transfer: {
+                          from: el.victimAddress,
+                          to,
+                          txHash: el.txHash,
+                          asset: el.transferredAsset,
+                        },
+                      });
                     });
-                  });
 
-                  await persistenceHelper.persist(
-                    queuedAddresses,
-                    databaseKeys.queuedAddressesKey.concat("-", chainId)
-                  );
+                    await persistenceHelper.persist(
+                      queuedAddresses,
+                      databaseKeys.queuedAddressesKey.concat("-", chainId)
+                    );
 
-                  findings.push(
-                    createFinding(
-                      hash,
-                      transferObj[to].map((el) => el.victimAddress),
-                      to,
-                      transferObj[to].map((el) => el.transferredAsset),
-                      anomalyScore
-                    )
-                  );
+                    findings.push(
+                      createFinding(
+                        hash,
+                        transferObj[to].map((el) => el.victimAddress),
+                        to,
+                        transferObj[to].map((el) => el.transferredAsset),
+                        anomalyScore
+                      )
+                    );
+                  }
+                } else {
+                  // if it's FP, remove them from the db
+                  delete transferObj[to];
+                  await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
                 }
               }
             }

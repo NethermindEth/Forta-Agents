@@ -235,6 +235,7 @@ describe("Detect Private Key Compromise", () => {
     getContractInfo: jest.fn(),
     getVictimInfo: jest.fn(),
     getFundInfo: jest.fn(),
+    checkInitialFunder: jest.fn(),
   };
 
   const mockDataFetcher = {
@@ -264,6 +265,7 @@ describe("Detect Private Key Compromise", () => {
     mockFetchJwt.mockResolvedValue(mockJwt);
     mockFetch.mockResolvedValue(mockFetchResponse);
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
+    mockContractFetcher.checkInitialFunder.mockResolvedValue(true);
 
     when(mockPersistenceHelper.load)
       .calledWith(mockDBKeys.transfersKey.concat("-", "1"))

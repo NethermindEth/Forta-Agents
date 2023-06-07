@@ -33,10 +33,14 @@ export default class Fetcher {
     chainId: number,
     isToken: boolean,
     isQueue: boolean,
-    isFundQuery: boolean
+    isFundQuery: boolean,
+    isInitialFunderQuery: boolean
   ) => {
     const url = isToken ? etherscanApis[chainId].urlAccountToken : etherscanApis[chainId].urlAccount;
     const key = this.getBlockExplorerKey(chainId);
+
+    if (isInitialFunderQuery)
+      return `${url}&address=${address}&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${key}`;
 
     if (isFundQuery) return `${url}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
 
@@ -85,7 +89,9 @@ export default class Fetcher {
 
     let result;
 
-    result = await (await this.fetch(this.getEtherscanAddressUrl(contract, chainId, isToken, false, false))).json();
+    result = await (
+      await this.fetch(this.getEtherscanAddressUrl(contract, chainId, isToken, false, false, false))
+    ).json();
 
     if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
       console.log(`block explorer error occured; skipping check for ${contract}`);
@@ -100,7 +106,9 @@ export default class Fetcher {
   };
 
   public getVictimInfo = async (address: string, chainId: number, timestamp: number) => {
-    const result = await (await this.fetch(this.getEtherscanAddressUrl(address, chainId, false, true, false))).json();
+    const result = await (
+      await this.fetch(this.getEtherscanAddressUrl(address, chainId, false, true, false, false))
+    ).json();
 
     if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
       console.log(`block explorer error occured; skipping check for ${address}`);
@@ -114,9 +122,28 @@ export default class Fetcher {
   };
 
   public getFundInfo = async (from: string, to: string, chainId: number) => {
-    const result = await (await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true))).json();
+    const result = await (
+      await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true, false))
+    ).json();
 
     const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
     return isFromFundedByTo;
+  };
+
+  public checkInitialFunder = async (
+    txs: { victimAddress: string; transferredAsset: string; txHash: string }[],
+    chainId: number
+  ) => {
+    const victimFunders = await Promise.all(
+      txs.map(async (tx) => {
+        const result = await (
+          await this.fetch(this.getEtherscanAddressUrl(tx.victimAddress, chainId, false, false, false, true))
+        ).json();
+
+        return result.result[0].from;
+      })
+    );
+
+    return txs.length === new Set(victimFunders).size;
   };
 }
