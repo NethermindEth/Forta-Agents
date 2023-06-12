@@ -34,6 +34,7 @@ export type Data = {
   nativeTransfers: Record<string, Transfer[]>;
   alertedAddresses: string[];
   alertedHashes: string[];
+  alertedAddressesCritical: string[];
 };
 
 interface Transaction {

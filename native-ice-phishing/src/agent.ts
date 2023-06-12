@@ -10,11 +10,14 @@ import {
   AlertEvent,
   AlertQueryOptions,
   AlertsResponse,
+  BlockEvent,
+  Alert,
 } from "forta-agent";
 import { ScanCountType } from "bot-alert-rate";
 import calculateAlertRate from "bot-alert-rate";
 import DataFetcher from "./fetcher";
 import {
+  createCriticalNIPSeverityFinding,
   createCriticalSeverityFinding,
   createFinding,
   createHighSeverityFinding,
@@ -51,8 +54,12 @@ let storedData: Data = {
   nativeTransfers: {},
   alertedAddresses: [],
   alertedHashes: [],
+  alertedAddressesCritical: [],
 };
 
+let infoAlerts: { alerts: Alert[] } = {
+  alerts: [],
+};
 let transactions: ethers.providers.TransactionResponse[] = [];
 let transactionsProcessed = 0;
 let lastTimestamp = 0;
@@ -66,13 +73,44 @@ const DATABASE_URL = "https://research.forta.network/database/bot/";
 const DATABASE_OBJECT_KEYS = {
   transfersKey: "nm-native-icephishing-bot-objects-v7",
   alertedAddressesKey: "nm-native-icephishing-bot-objects-v2-alerted",
+  alertedAddressesCriticalKey:
+    "nm-native-icephishing-bot-objects-v3-alerted-critical",
+};
+
+const getPastAlertsOncePerDay = async () => {
+  const today = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 7);
+
+  const query: AlertQueryOptions = {
+    botIds: [
+      "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0",
+    ],
+    alertId: "NIP-4",
+    chainId,
+    blockDateRange: {
+      startDate: sevenDaysAgo,
+      endDate: sevenDaysAgo,
+    },
+    first: 100,
+  };
+
+  const alerts = await getAlerts(query);
+
+  alerts.alerts.forEach((alert) => {
+    infoAlerts.alerts.push(alert);
+  });
 };
 
 export const provideInitialize = (
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
   storedData: Data,
-  databaseKeys: { transfersKey: string; alertedAddressesKey: string },
+  databaseKeys: {
+    transfersKey: string;
+    alertedAddressesKey: string;
+    alertedAddressesCriticalKey: string;
+  },
   getAlerts: (query: AlertQueryOptions) => Promise<AlertsResponse>
 ): Initialize => {
   return async () => {
@@ -84,12 +122,16 @@ export const provideInitialize = (
 
     databaseKeys.transfersKey += `-${chainId}`;
     databaseKeys.alertedAddressesKey += `-${chainId}`;
+    databaseKeys.alertedAddressesCriticalKey += `-${chainId}`;
 
     storedData.nativeTransfers = await persistenceHelper.load(
       databaseKeys.transfersKey
     );
     storedData.alertedAddresses = await persistenceHelper.load(
       databaseKeys.alertedAddressesKey
+    );
+    storedData.alertedAddressesCritical = await persistenceHelper.load(
+      databaseKeys.alertedAddressesCriticalKey
     );
 
     // Force push an "address" in order to differentiate from a failed call that would return an empty string array
@@ -98,6 +140,14 @@ export const provideInitialize = (
       await persistenceHelper.persist(
         storedData.alertedAddresses,
         databaseKeys.alertedAddressesKey
+      );
+    }
+
+    if (!storedData.alertedAddressesCritical.length) {
+      storedData.alertedAddressesCritical.push("placeholderAddress");
+      await persistenceHelper.persist(
+        storedData.alertedAddressesCritical,
+        databaseKeys.alertedAddressesCriticalKey
       );
     }
 
@@ -121,7 +171,9 @@ export const provideInitialize = (
     }
 
     const query: AlertQueryOptions = {
-      botIds: [BOT_ID],
+      botIds: [
+        "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0",
+      ],
       alertId: "NIP-1",
       blockDateRange: {
         startDate: new Date(0, 0, 0),
@@ -145,13 +197,16 @@ export const provideInitialize = (
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes(sig)).substring(0, 10)
     );
 
+    getPastAlertsOncePerDay();
+    setInterval(getPastAlertsOncePerDay, 24 * 60 * 60 * 1000);
+
     return {
       alertConfig: {
         subscriptions: [
           {
             botId: BOT_ID,
             chainId: chainId,
-            alertIds: ["NIP-4"],
+            alertIds: ["NIP-4", "NIP-7"],
           },
         ],
       },
@@ -164,14 +219,28 @@ let st = 0;
 export const provideHandleAlert =
   (
     persistenceHelper: PersistenceHelper,
-    databaseKeys: { transfersKey: string; alertedAddressesKey: string }
+    databaseKeys: {
+      transfersKey: string;
+      alertedAddressesKey: string;
+      alertedAddressesCriticalKey: string;
+    }
   ): HandleAlert =>
   async (alertEvent: AlertEvent) => {
-    storedData.alertedAddresses.push(alertEvent.alert.metadata.attacker);
-    await persistenceHelper.persist(
-      storedData.alertedAddresses,
-      databaseKeys.alertedAddressesKey
-    );
+    if (alertEvent.alertId === "NIP-4") {
+      storedData.alertedAddresses.push(alertEvent.alert.metadata.attacker);
+      await persistenceHelper.persist(
+        storedData.alertedAddresses,
+        databaseKeys.alertedAddressesKey
+      );
+    } else if (alertEvent.alertId === "NIP-7") {
+      storedData.alertedAddressesCritical.push(
+        alertEvent.alert.metadata.attacker
+      );
+      await persistenceHelper.persist(
+        storedData.alertedAddressesCritical,
+        databaseKeys.alertedAddressesCriticalKey
+      );
+    }
     return [];
   };
 
@@ -180,13 +249,22 @@ export const provideHandleTransaction =
     dataFetcher: DataFetcher,
     provider: ethers.providers.Provider,
     persistenceHelper: PersistenceHelper,
-    databaseKeys: { transfersKey: string; alertedAddressesKey: string },
+    databaseKeys: {
+      transfersKey: string;
+      alertedAddressesKey: string;
+      alertedAddressesCriticalKey: string;
+    },
     calculateAlertRate: any,
     storedData: Data
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    let { nativeTransfers, alertedAddresses, alertedHashes } = storedData;
+    let {
+      nativeTransfers,
+      alertedAddresses,
+      alertedHashes,
+      alertedAddressesCritical,
+    } = storedData;
     const {
       hash,
       from,
@@ -242,6 +320,13 @@ export const provideHandleTransaction =
           alertedAddresses,
           databaseKeys.alertedAddressesKey
         );
+        alertedAddressesCritical = [];
+        alertedAddressesCritical.push("placeholderAddress");
+        await persistenceHelper.persist(
+          alertedAddressesCritical,
+          databaseKeys.alertedAddressesCriticalKey
+        );
+
         lastTimestamp = timestamp;
       }
 
@@ -564,140 +649,159 @@ export const provideHandleTransaction =
     ) {
       if (isRelevantChain) transfersCount++;
 
-      const fromNonce: number = await dataFetcher.getNonce(from);
-      if (fromNonce < fromTxCountThreshold) {
-        // if nativeTransfers[to] is already populated, we set the boolean values manually to avoid the extra call
-        let [isFirstInteraction, hasHighNumberOfTotalTxs] =
-          nativeTransfers[to] &&
-          nativeTransfers[to].length >= transfersThreshold / 3
-            ? [true, false]
-            : await dataFetcher.getAddressInfo(to, from, Number(chainId), hash);
+      // Check if the "victim" address has been involved in a transfer in the last 2 blocks
+      const isInvolved = await dataFetcher.isRecentlyInvolvedInTransfer(
+        from,
+        hash,
+        Number(chainId),
+        blockNumber
+      );
+      if (!isInvolved) {
+        const fromNonce: number = await dataFetcher.getNonce(from);
+        if (fromNonce < fromTxCountThreshold) {
+          // if nativeTransfers[to] is already populated, we set the boolean values manually to avoid the extra call
+          let [isFirstInteraction, hasHighNumberOfTotalTxs] =
+            nativeTransfers[to] &&
+            nativeTransfers[to].length >= transfersThreshold / 3
+              ? [true, false]
+              : await dataFetcher.getAddressInfo(
+                  to,
+                  from,
+                  Number(chainId),
+                  hash
+                );
 
-        if (isFirstInteraction && !hasHighNumberOfTotalTxs) {
-          // Get the address that originally funded the "from" address
-          const [fundingAddress, latestTo] = await dataFetcher.getAddresses(
-            from,
-            Number(chainId),
-            hash
-          );
-          if (fundingAddress) {
-            const bnValue = ethers.BigNumber.from(value);
-            const transfer = {
+          if (isFirstInteraction && !hasHighNumberOfTotalTxs) {
+            // Get the address that originally funded the "from" address
+            const [fundingAddress, latestTo] = await dataFetcher.getAddresses(
               from,
-              fromNonce,
-              fundingAddress,
-              latestTo,
-              value: bnValue.toString(),
-              timestamp,
-            };
-
-            if (!nativeTransfers[to]) nativeTransfers[to] = [];
-
-            const isTransferValueOutOfRangeForAtLeastOne = nativeTransfers[
-              to
-            ].some((existingTransfer) => {
-              const lowerBound = ethers.BigNumber.from(existingTransfer.value)
-                .mul(8)
-                .div(10); // 80% of existing value
-              const upperBound = ethers.BigNumber.from(existingTransfer.value)
-                .mul(12)
-                .div(10); // 120% of existing value
-              return bnValue.lt(lowerBound) || bnValue.gt(upperBound);
-            });
-
-            const isTransferValueUnique = nativeTransfers[to].every(
-              (existingTransfer) =>
-                !ethers.BigNumber.from(existingTransfer.value).eq(bnValue)
+              Number(chainId),
+              hash
             );
-            const isLatestToUnique = nativeTransfers[to].every(
-              (existingTransfer) => existingTransfer.latestTo !== latestTo
-            );
+            if (fundingAddress) {
+              const bnValue = ethers.BigNumber.from(value);
+              const transfer = {
+                from,
+                fromNonce,
+                fundingAddress,
+                latestTo,
+                value: bnValue.toString(),
+                timestamp,
+              };
 
-            if (
-              !nativeTransfers[to].length ||
-              (isTransferValueOutOfRangeForAtLeastOne &&
-                isTransferValueUnique &&
-                isLatestToUnique &&
-                timestamp >
-                  nativeTransfers[to][nativeTransfers[to].length - 1]
-                    .timestamp +
-                    480)
-            ) {
-              nativeTransfers[to].push(transfer);
-            }
-            nativeTransfers[to] = filterConflictingEntries(nativeTransfers[to]);
-            if (
-              nativeTransfers[to].length > transfersThreshold &&
-              !alertedAddresses.includes(to)
-            ) {
-              // Check that not all entries have the same nonce
-              const nonces = nativeTransfers[to].map(
-                (transfer) => transfer.fromNonce
+              if (!nativeTransfers[to]) nativeTransfers[to] = [];
+
+              const isTransferValueOutOfRangeForAtLeastOne = nativeTransfers[
+                to
+              ].some((existingTransfer) => {
+                const lowerBound = ethers.BigNumber.from(existingTransfer.value)
+                  .mul(8)
+                  .div(10); // 80% of existing value
+                const upperBound = ethers.BigNumber.from(existingTransfer.value)
+                  .mul(12)
+                  .div(10); // 120% of existing value
+                return bnValue.lt(lowerBound) || bnValue.gt(upperBound);
+              });
+
+              const isTransferValueUnique = nativeTransfers[to].every(
+                (existingTransfer) =>
+                  !ethers.BigNumber.from(existingTransfer.value).eq(bnValue)
+              );
+              const isLatestToUnique = nativeTransfers[to].every(
+                (existingTransfer) => existingTransfer.latestTo !== latestTo
               );
 
-              const nonceCounts = nonces.reduce(
-                (count: { [key: string]: number }, nonce) => {
-                  count[nonce] = (count[nonce] || 0) + 1;
-                  return count;
-                },
-                {}
+              if (
+                !nativeTransfers[to].length ||
+                (isTransferValueOutOfRangeForAtLeastOne &&
+                  isTransferValueUnique &&
+                  isLatestToUnique &&
+                  timestamp >
+                    nativeTransfers[to][nativeTransfers[to].length - 1]
+                      .timestamp +
+                      480)
+              ) {
+                nativeTransfers[to].push(transfer);
+              }
+              nativeTransfers[to] = filterConflictingEntries(
+                nativeTransfers[to]
               );
+              if (
+                nativeTransfers[to].length > transfersThreshold &&
+                !alertedAddresses.includes(to)
+              ) {
+                // Check that not all entries have the same nonce
+                const nonces = nativeTransfers[to].map(
+                  (transfer) => transfer.fromNonce
+                );
 
-              const isCommonNonce = Object.values(nonceCounts).some(
-                (count) => count > Math.ceil(nonces.length / 3)
-              );
+                const nonceCounts = nonces.reduce(
+                  (count: { [key: string]: number }, nonce) => {
+                    count[nonce] = (count[nonce] || 0) + 1;
+                    return count;
+                  },
+                  {}
+                );
 
-              if (!isCommonNonce) {
-                const fundingCounts: { [fundingAddress: string]: number } =
-                  nativeTransfers[to].reduce<{
-                    [fundingAddress: string]: number;
-                  }>((counts, t) => {
-                    counts[t.fundingAddress] =
-                      (counts[t.fundingAddress] || 0) + 1;
-                    return counts;
-                  }, {});
+                const isCommonNonce = Object.values(nonceCounts).some(
+                  (count) => count > Math.ceil(nonces.length / 3)
+                );
 
-                const maxCount = Math.max(...Object.values(fundingCounts));
+                if (!isCommonNonce) {
+                  const fundingCounts: { [fundingAddress: string]: number } =
+                    nativeTransfers[to].reduce<{
+                      [fundingAddress: string]: number;
+                    }>((counts, t) => {
+                      counts[t.fundingAddress] =
+                        (counts[t.fundingAddress] || 0) + 1;
+                      return counts;
+                    }, {});
 
-                if (maxCount < nativeTransfers[to].length / 2) {
-                  const label = await dataFetcher.getLabel(to, Number(chainId));
-                  if (
-                    !label ||
-                    ["xploit", "hish", "heist"].some((keyword) =>
-                      label.includes(keyword)
-                    )
-                  ) {
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "NIP-4",
-                      isRelevantChain
-                        ? ScanCountType.CustomScanCount
-                        : ScanCountType.TransferCount,
-                      transfersCount // No issue in passing 0 for non-relevant chains
+                  const maxCount = Math.max(...Object.values(fundingCounts));
+
+                  if (maxCount < nativeTransfers[to].length / 2) {
+                    const label = await dataFetcher.getLabel(
+                      to,
+                      Number(chainId)
                     );
-
-                    alertedAddresses.push(to);
-                    // Persist instantly in order to avoid duplicate alerts in case the last transaction of the block is dropped
-                    await persistenceHelper.persist(
-                      alertedAddresses,
-                      databaseKeys.alertedAddressesKey
-                    );
-                    findings.push(
-                      createHighSeverityFinding(
-                        to,
-                        anomalyScore,
-                        nativeTransfers[to]
+                    if (
+                      !label ||
+                      ["xploit", "hish", "heist"].some((keyword) =>
+                        label.includes(keyword)
                       )
-                    );
+                    ) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "NIP-4",
+                        isRelevantChain
+                          ? ScanCountType.CustomScanCount
+                          : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      alertedAddresses.push(to);
+                      // Persist instantly in order to avoid duplicate alerts in case the last transaction of the block is dropped
+                      await persistenceHelper.persist(
+                        alertedAddresses,
+                        databaseKeys.alertedAddressesKey
+                      );
+                      findings.push(
+                        createHighSeverityFinding(
+                          to,
+                          anomalyScore,
+                          nativeTransfers[to]
+                        )
+                      );
+                    }
                   }
                 }
+                delete nativeTransfers[to];
+                await persistenceHelper.persist(
+                  nativeTransfers,
+                  databaseKeys.transfersKey
+                );
               }
-              delete nativeTransfers[to];
-              await persistenceHelper.persist(
-                nativeTransfers,
-                databaseKeys.transfersKey
-              );
             }
           }
         }
@@ -808,6 +912,103 @@ export const provideHandleTransaction =
     return findings;
   };
 
+export const provideHandleBlock =
+  (
+    dataFetcher: DataFetcher,
+    persistenceHelper: PersistenceHelper,
+    storedData: Data,
+    databaseKeys: {
+      transfersKey: string;
+      alertedAddressesKey: string;
+      alertedAddressesCriticalKey: string;
+    },
+    infoAlerts: { alerts: Alert[] },
+    getAlerts: (query: AlertQueryOptions) => Promise<AlertsResponse>,
+    calculateAlertRate: any
+  ) =>
+  async (blockEvent: BlockEvent) => {
+    const findings: Finding[] = [];
+
+    if (infoAlerts.alerts.length > 0) {
+      let { alertedAddressesCritical } = storedData;
+
+      alertedAddressesCritical = await persistenceHelper.load(
+        databaseKeys.alertedAddressesCriticalKey
+      );
+
+      const query: AlertQueryOptions = {
+        botIds: [BOT_ID],
+        alertId: "NIP-7",
+        chainId,
+        blockNumberRange: {
+          startBlockNumber: blockEvent.blockNumber - 50,
+          endBlockNumber: blockEvent.blockNumber,
+        },
+        first: 100,
+      };
+
+      const criticalAlerts = await getAlerts(query);
+      criticalAlerts.alerts.forEach((alert) => {
+        if (!alertedAddressesCritical.includes(alert.metadata.attacker)) {
+          alertedAddressesCritical.push(alert.metadata.attacker);
+        }
+      });
+
+      for (const alert of infoAlerts.alerts) {
+        const attacker = alert.metadata.attacker;
+
+        // Skip processing if the attacker has already been processed
+        if (alertedAddressesCritical.includes(attacker)) {
+          continue;
+        }
+
+        const victims = Object.keys(alert.metadata)
+          .filter((key) => key.startsWith("victim"))
+          .map((key) => alert.metadata[key]);
+
+        const haveInteractedAgain = await dataFetcher.haveInteractedAgain(
+          attacker,
+          victims,
+          chainId
+        );
+
+        if (!haveInteractedAgain) {
+          // Avoid duplicate alerts
+          const alertedAddressesCriticalRecheck = await persistenceHelper.load(
+            databaseKeys.alertedAddressesCriticalKey
+          );
+          if (alertedAddressesCriticalRecheck.includes(attacker)) {
+            continue;
+          }
+
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-7",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.TransferCount,
+            transfersCount
+          );
+
+          findings.push(
+            createCriticalNIPSeverityFinding(attacker, victims, anomalyScore)
+          );
+
+          alertedAddressesCritical.push(attacker); // Add the processed attacker to the list
+          await persistenceHelper.persist(
+            Array.from(new Set(alertedAddressesCritical)),
+            databaseKeys.alertedAddressesCriticalKey
+          );
+        }
+      }
+    }
+
+    infoAlerts.alerts.splice(0, infoAlerts.alerts.length);
+
+    return findings;
+  };
+
 export default {
   initialize: provideInitialize(
     getEthersProvider(),
@@ -828,5 +1029,14 @@ export default {
   handleAlert: provideHandleAlert(
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS
+  ),
+  handleBlock: provideHandleBlock(
+    new DataFetcher(getEthersProvider(), keys),
+    new PersistenceHelper(DATABASE_URL),
+    storedData,
+    DATABASE_OBJECT_KEYS,
+    infoAlerts,
+    getAlerts,
+    calculateAlertRate
   ),
 };

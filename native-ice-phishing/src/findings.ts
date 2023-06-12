@@ -118,7 +118,7 @@ export const createHighSeverityFinding = (
       entity: to,
       entityType: EntityType.Address,
       label: "Attacker",
-      confidence: 0.7,
+      confidence: 0.5,
       remove: false,
     }),
   ];
@@ -131,7 +131,7 @@ export const createHighSeverityFinding = (
       entity: transfer.from,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: 0.7,
+      confidence: 0.5,
       remove: false,
     });
     labels.push(victimLabel);
@@ -226,6 +226,51 @@ export const createWithdrawalFinding = (
         remove: false,
       }),
     ],
+  });
+};
+
+export const createCriticalNIPSeverityFinding = (
+  attacker: string,
+  victims: string[],
+  anomalyScore: number
+): Finding => {
+  const metadata: { [key: string]: string } = {
+    attacker,
+    anomalyScore: anomalyScore.toString(),
+  };
+
+  const labels: Label[] = [
+    Label.fromObject({
+      entity: attacker,
+      entityType: EntityType.Address,
+      label: "Attacker",
+      confidence: 0.8,
+      remove: false,
+    }),
+  ];
+
+  victims.forEach((victim, index) => {
+    const victimName = `victim${index + 1}`;
+    metadata[victimName] = victim;
+
+    const victimLabel = Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.8,
+      remove: false,
+    });
+    labels.push(victimLabel);
+  });
+
+  return Finding.fromObject({
+    name: "Native Ice Phishing Attack",
+    description: `${attacker} received native tokens from 8+ different addresses, with no other interactions with the victims for a week`,
+    alertId: "NIP-7",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata,
+    labels,
   });
 };
 

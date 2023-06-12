@@ -311,6 +311,134 @@ export default class DataFetcher {
     return [isFirstInteraction, hasHighNumberOfTotalTxs];
   };
 
+  haveInteractedAgain = async (
+    attacker: string,
+    victims: string[],
+    chainId: number
+  ) => {
+    let hasInteractedAgain: boolean = false;
+
+    const maxRetries = 3;
+    let result: { message: string; result: any[] } = {
+      message: "",
+      result: [],
+    };
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getEtherscanAddressUrl(attacker, chainId, 9999))
+        ).json();
+
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(
+            `block explorer error occured (attempt ${attempt}); retrying check for ${attacker}`
+          );
+          if (attempt === maxRetries) {
+            console.log(
+              `block explorer error occured (final attempt); skipping check for ${attacker}`
+            );
+            hasInteractedAgain = true;
+            return hasInteractedAgain;
+          }
+        } else {
+          break;
+        }
+      } catch {
+        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
+        if (attempt === maxRetries) {
+          console.log(
+            `Error during fetch (final attempt); skipping check for ${attacker}`
+          );
+          hasInteractedAgain = true;
+          return hasInteractedAgain;
+        }
+      }
+    }
+
+    for (const victim of victims) {
+      let numberOfInteractions = 0;
+
+      for (let i = 0; i < result.result.length; i++) {
+        const tx = result.result[i];
+
+        if (tx.to === attacker && tx.from === victim) {
+          numberOfInteractions++;
+        }
+
+        if (numberOfInteractions > 1) {
+          hasInteractedAgain = true;
+          break;
+        }
+      }
+
+      if (hasInteractedAgain) {
+        break;
+      }
+    }
+
+    return hasInteractedAgain;
+  };
+
+  isRecentlyInvolvedInTransfer = async (
+    address: string,
+    hash: string,
+    chainId: number,
+    blockNumber: number
+  ) => {
+    const maxRetries = 3;
+    let result;
+    let isInvolved = false;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getEtherscanAddressUrl(address, chainId, 1000))
+        ).json();
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(
+            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(
+              `block explorer error occured (final attempt); skipping check for ${address}`
+            );
+            return true;
+          }
+        } else {
+          break;
+        }
+      } catch {
+        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
+        if (attempt === maxRetries) {
+          console.log(
+            `Error during fetch (final attempt); skipping check for ${address}`
+          );
+          return true;
+        }
+      }
+    }
+
+    result.result.forEach((tx: any) => {
+      if (
+        tx.hash !== hash &&
+        tx.value !== "0" &&
+        (tx.blockNumber === (blockNumber - 1).toString() ||
+          tx.blockNumber === (blockNumber - 2).toString())
+      ) {
+        isInvolved = true;
+      }
+    });
+
+    return isInvolved;
+  };
+
   hasValidEntries = async (address: string, chainId: number, hash: string) => {
     const maxRetries = 3;
     let result: Response = { message: "", status: "", result: [] };

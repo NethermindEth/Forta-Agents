@@ -109,12 +109,12 @@ This bot monitors:
         - `entity`: The transaction receiver address
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Attacker"
-        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.7
+        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.5
       - Label #:
         - `entity`: The victim address
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Victim"
-        - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.7
+        - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.5
 - NIP-5
   - Fired when a contract is deployed with characteristics indicative of a potential native ice phishing attack.
   - Severity is always set to "Critical"
@@ -159,6 +159,26 @@ This bot monitors:
       - `entityType`: The type of the entity, always set to "Address"
       - `label`: The type of the label, always set to "Attacker"
       - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
+  - NIP-7
+    - Fired when a suspicious EOA receives funds from an over a threshold number of different EOAs and has no other interactions with those EOAs for a week.
+    - Severity is always set to "Critical"
+    - Type is always set to "Suspicious"
+    - Metadata contains:
+      - `attacker`: The receiver of the transaction
+      - `victim`: The initiator of the transaction
+      - `funcSig`: The function signature in the transaction input
+      - `anomalyScore`: The anomaly score of the alert
+    - Labels contain:
+      - Label 1:
+        - `entity`: The transaction receiver address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.8
+      - Label #:
+        - `entity`: The victim address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Victim"
+        - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.8
 
 ## Test Data
 
