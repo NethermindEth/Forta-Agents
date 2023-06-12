@@ -451,6 +451,8 @@ export const provideHandleTransaction =
 
     if (to) {
       let owner = "";
+      let receiver = "";
+      let conditionMetCount = 0; //
       let numberOfLogs = 10; // Initialize with the number out of the expected range
       const data = txEvent.transaction.data;
       if (txEvent.traces.length) {
@@ -478,28 +480,27 @@ export const provideHandleTransaction =
                     hash
                   );
                   if (hasValidEntries) {
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "NIP-6",
-                      ScanCountType.CustomScanCount,
-                      withdrawalsCount // No issue in passing 0 for non-relevant chains
-                    );
-                    findings.push(
-                      createWithdrawalFinding(
-                        hash,
-                        from,
-                        to,
-                        trace.action.to,
-                        anomalyScore
-                      )
-                    );
+                    conditionMetCount++;
+                    receiver = trace.action.to;
                   }
                 }
               }
             }
           })
         );
+        // Ensure that the condition is met only once (i.e. there's only one withdrawal)
+        if (conditionMetCount === 1) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-6",
+            ScanCountType.CustomScanCount,
+            withdrawalsCount
+          );
+          findings.push(
+            createWithdrawalFinding(hash, from, to, receiver, anomalyScore)
+          );
+        }
       } else if (
         data === "0x" + WITHDRAW_SIG ||
         data.startsWith("0x" + WITHDRAWTO_SIG)
