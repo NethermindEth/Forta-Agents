@@ -83,9 +83,7 @@ const getPastAlertsOncePerDay = async () => {
   sevenDaysAgo.setDate(today.getDate() - 7);
 
   const query: AlertQueryOptions = {
-    botIds: [
-      "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0",
-    ],
+    botIds: [BOT_ID],
     alertId: "NIP-4",
     chainId,
     blockDateRange: {
@@ -171,9 +169,7 @@ export const provideInitialize = (
     }
 
     const query: AlertQueryOptions = {
-      botIds: [
-        "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0",
-      ],
+      botIds: [BOT_ID],
       alertId: "NIP-1",
       blockDateRange: {
         startDate: new Date(0, 0, 0),
