@@ -1,8 +1,10 @@
 import {
+  Alert,
   EntityType,
   Finding,
   FindingSeverity,
   FindingType,
+  HandleBlock,
   HandleTransaction,
   Label,
   createTransactionEvent,
@@ -13,9 +15,15 @@ import {
 import {
   TestTransactionEvent,
   MockEthersProvider,
+  TestBlockEvent,
 } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools";
-import { provideInitialize, provideHandleTransaction, BOT_ID } from "./agent";
+import {
+  provideInitialize,
+  provideHandleTransaction,
+  provideHandleBlock,
+  BOT_ID,
+} from "./agent";
 import { when } from "jest-when";
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import { Data, Transfer, WITHDRAW_SIG } from "./utils";
@@ -29,12 +37,15 @@ const REAL_DATABASE_URL = "https://research.forta.network/database/bot/";
 const REAL_DATABASE_OBJECT_KEYS = {
   transfersKey: "nm-native-icephishing-bot-objects-v7",
   alertedAddressesKey: "nm-native-icephishing-bot-objects-v2-alerted",
+  alertedAddressesCriticalKey:
+    "nm-native-icephishing-bot-objects-v3-alerted-critical",
 };
 
 let mockStoredData: Data = {
   nativeTransfers: {},
   alertedAddresses: [],
   alertedHashes: [],
+  alertedAddressesCritical: [],
 };
 
 const testCreateFinding = (
@@ -148,7 +159,7 @@ const testCreateHighSeverityFinding = (
       entity: to,
       entityType: EntityType.Address,
       label: "Attacker",
-      confidence: 0.7,
+      confidence: 0.5,
       remove: false,
     }),
   ];
@@ -161,7 +172,7 @@ const testCreateHighSeverityFinding = (
       entity: transfer.from,
       entityType: EntityType.Address,
       label: "Victim",
-      confidence: 0.7,
+      confidence: 0.5,
       remove: false,
     });
     labels.push(victimLabel);
@@ -259,6 +270,51 @@ const testCreateWithdrawalFinding = (
   });
 };
 
+const testCreateCriticalNIPSeverityFinding = (
+  attacker: string,
+  victims: string[],
+  anomalyScore: number
+): Finding => {
+  const metadata: { [key: string]: string } = {
+    attacker,
+    anomalyScore: anomalyScore.toString(),
+  };
+
+  const labels: Label[] = [
+    Label.fromObject({
+      entity: attacker,
+      entityType: EntityType.Address,
+      label: "Attacker",
+      confidence: 0.8,
+      remove: false,
+    }),
+  ];
+
+  victims.forEach((victim, index) => {
+    const victimName = `victim${index + 1}`;
+    metadata[victimName] = victim;
+
+    const victimLabel = Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.8,
+      remove: false,
+    });
+    labels.push(victimLabel);
+  });
+
+  return Finding.fromObject({
+    name: "Native Ice Phishing Attack",
+    description: `${attacker} received native tokens from 8+ different addresses, with no other interactions with the victims for a week`,
+    alertId: "NIP-7",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata,
+    labels,
+  });
+};
+
 const mockFetcher = {
   isEoa: jest.fn(),
   getCode: jest.fn(),
@@ -275,6 +331,8 @@ const mockFetcher = {
   getNumberOfLogs: jest.fn(),
   hasValidEntries: jest.fn(),
   isValueUnique: jest.fn(),
+  isRecentlyInvolvedInTransfer: jest.fn(),
+  haveInteractedAgain: jest.fn(),
 };
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
@@ -285,11 +343,14 @@ const mockPersistenceHelper = {
 const mockDatabaseObjectKeys = {
   transfersKey: "mock-nm-native-icephishing-bot-objects-v1",
   alertedAddressesKey: "mock-nm-native-icephishing-bot-objects-v1-alerted",
+  alertedAddressesCriticalKey:
+    "mock-nm-native-icephishing-bot-objects-v1-alerted-critical",
 };
 
 describe("Native Ice Phishing Bot test suite", () => {
   let initialize;
   let handleTransaction: HandleTransaction;
+  let handleBlock: HandleBlock;
   const mockProvider = new MockEthersProvider();
 
   beforeEach(async () => {
@@ -301,7 +362,10 @@ describe("Native Ice Phishing Bot test suite", () => {
       mockGetAlerts
     );
     mockProvider.setNetwork(1);
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+    mockPersistenceHelper.load
+      .mockReturnValueOnce({})
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([]);
 
     mockGetAlerts.mockReturnValue({
       alerts: [],
@@ -777,6 +841,7 @@ describe("Native Ice Phishing Bot test suite", () => {
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setTo(createAddress("0x01"))
       .setValue("0x0bb")
+      .setBlock(1234456)
       .setData("0x00");
 
     mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
@@ -792,6 +857,7 @@ describe("Native Ice Phishing Bot test suite", () => {
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setTo(createAddress("0x01"))
       .setValue("0x0bb")
+      .setBlock(121212)
       .setData("0x12345678");
     mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
@@ -811,6 +877,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setFrom(createAddress("0x0f"))
       .setTo(createAddress("0x01"))
       .setValue("0x0bb")
+      .setBlock(775577)
       .setData("0x12345678")
       .setHash("0xabcd");
 
@@ -862,8 +929,15 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setFrom(createAddress("0x0f"))
       .setTo(createAddress("0x01"))
       .setValue("0x0")
+      .setBlock(7755227)
       .setData("0x12345678")
       .setHash("0xabcd");
+
+    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+    mockFetcher.getTransactions.mockReturnValueOnce([
+      { hash: "hash15" },
+      { hash: "hash25" },
+    ]);
 
     when(mockFetcher.isEoa)
       .calledWith(createAddress("0x01"))
@@ -895,6 +969,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setFrom(createAddress("0x0f"))
       .setTo(createAddress("0x01"))
       .setValue("0x0bb")
+      .setBlock(88888)
       .setData("0xa9059cbb")
       .setHash("0xabcd");
 
@@ -1006,6 +1081,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setFrom(createAddress("0x0f"))
       .setTo(to)
       .setValue("0x0bb")
+      .setBlock(3232)
       .setTimestamp(6564564)
       .setHash("0xabcd");
 
@@ -1027,6 +1103,10 @@ describe("Native Ice Phishing Bot test suite", () => {
       { hash: "hash25" },
     ]);
 
+    when(mockFetcher.isRecentlyInvolvedInTransfer)
+      .calledWith(createAddress("0x0f"), "0xabcd", 1, 3232)
+      .mockReturnValue(false);
+
     when(mockCalculateRate)
       .calledWith(1, BOT_ID, "NIP-4", ScanCountType.TransferCount, 0)
       .mockReturnValue(0.00000034234);
@@ -1044,6 +1124,12 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setTo(null)
       .setNonce(23)
       .setHash("0xabcd");
+    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+    mockFetcher.getTransactions.mockReturnValueOnce([
+      { hash: "hash15" },
+      { hash: "hash25" },
+    ]);
+
     const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
     when(mockFetcher.getCode)
       .calledWith(mockContractAddress)
@@ -1187,6 +1273,41 @@ describe("Native Ice Phishing Bot test suite", () => {
         receiver,
         0.0134231
       ),
+    ]);
+  });
+
+  it("should return a Critical finding when a suspicious EOA receives funds from 8+ different EOAs and has no other interactions with those EOAs for a week", async () => {
+    const mockInfoAlerts: { alerts: Alert[] } = {
+      alerts: [
+        {
+          hasAddress: () => true,
+          metadata: {
+            attacker: "0x0f",
+            victim1: "0x01",
+            victim2: "0x02",
+          },
+        },
+      ],
+    };
+    handleBlock = provideHandleBlock(
+      mockFetcher as any,
+      mockPersistenceHelper as any,
+      mockStoredData,
+      mockDatabaseObjectKeys,
+      mockInfoAlerts,
+      mockGetAlerts,
+      mockCalculateRate
+    );
+
+    mockPersistenceHelper.load.mockReturnValueOnce([]).mockReturnValueOnce([]);
+    mockCalculateRate.mockReturnValueOnce(0.5134231);
+
+    const blockEvent: TestBlockEvent = new TestBlockEvent();
+
+    const findings = await handleBlock(blockEvent);
+
+    expect(findings).toStrictEqual([
+      testCreateCriticalNIPSeverityFinding("0x0f", ["0x01", "0x02"], 0.5134231),
     ]);
   });
 });
