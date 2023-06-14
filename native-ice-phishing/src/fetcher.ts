@@ -429,8 +429,8 @@ export default class DataFetcher {
       if (
         tx.hash !== hash &&
         tx.value !== "0" &&
-        (tx.blockNumber === (blockNumber - 1).toString() ||
-          tx.blockNumber === (blockNumber - 2).toString())
+        parseInt(tx.blockNumber) >= blockNumber - 10 &&
+        parseInt(tx.blockNumber) < blockNumber
       ) {
         isInvolved = true;
       }
