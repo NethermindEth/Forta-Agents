@@ -1,6 +1,14 @@
 import { Finding, FindingSeverity, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import LRU from "lru-cache";
-import { ERC20_TRANSFER_EVENT, WRAPPED_NATIVE_TOKEN_EVENTS, ZERO, createFinding, wrappedNativeTokens } from "./utils";
+import {
+  ERC20_TRANSFER_EVENT,
+  LOAN_CREATED_ABI,
+  WRAPPED_NATIVE_TOKEN_EVENTS,
+  ZERO,
+  createFinding,
+  nftCollateralizedLendingProtocols,
+  wrappedNativeTokens,
+} from "./utils";
 import Fetcher from "./fetcher";
 import { keys } from "./keys";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -26,7 +34,15 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
+    const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
+    if (loanCreatedEvents.length > 0) {
+      return findings;
+    }
+
     if (txEvent.to) {
+      if (nftCollateralizedLendingProtocols[txEvent.network].includes(txEvent.to.toLowerCase())) {
+        return findings;
+      }
       let isToAnEOA: boolean = false;
       let retries = 3;
       for (let i = 0; i < retries; i++) {
