@@ -317,6 +317,8 @@ describe("Victim Identifier bot test suite", () => {
       //      Optimism: 24s, 150 -> 160ms - 6
       //      Fantom: 1s, 5 -> 200ms - 5
 
+      // Note: Sharding has been manually configured to match the real performance of the bot
+
       const processingRuns = 10;
       let totalTimeExploitationStageAttack = 0;
       let totalTimePreparationStageAttack = 0;
