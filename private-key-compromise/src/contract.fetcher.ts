@@ -136,14 +136,37 @@ export default class Fetcher {
   ) => {
     const victimFunders = await Promise.all(
       txs.map(async (tx) => {
-        const result = await (
+        const txResult = await (
           await this.fetch(this.getEtherscanAddressUrl(tx.victimAddress, chainId, false, false, false, true))
         ).json();
 
-        return result.result[0].from;
+        return txResult.result[0].from;
       })
     );
 
-    return txs.length === new Set(victimFunders).size;
+    // if the funders in the first txns are not unique, return false
+    if (txs.length != new Set(victimFunders).size) return false;
+
+    // check internal transfers to see if the addresses were created by the same contract
+    let internalFunders = await Promise.all(
+      txs.map(async (tx) => {
+        const internalTxResult = await (
+          await this.fetch(
+            `${etherscanApis[chainId].urlAccount}internal&address=${
+              tx.victimAddress
+            }&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${this.getBlockExplorerKey(chainId)}`
+          )
+        ).json();
+
+        if (internalTxResult.result.length) {
+          return internalTxResult.result[0].from;
+        }
+      })
+    );
+
+    // remove addresses which don't have internal transactions
+    internalFunders = internalFunders.filter((el) => el);
+
+    return internalFunders.length === new Set(internalFunders).size;
   };
 }
