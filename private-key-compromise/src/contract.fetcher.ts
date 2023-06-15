@@ -147,7 +147,7 @@ export default class Fetcher {
     // if the funders in the first txns are not unique, return false
     if (txs.length != new Set(victimFunders).size) return false;
 
-    // check internal transfers to see if the addresses were created by the same contract
+    // check internal transfers to see if the addresses were funded by the same contract
     let internalFunders = await Promise.all(
       txs.map(async (tx) => {
         const internalTxResult = await (
