@@ -12,6 +12,7 @@ import {
   getTransactionReceipt,
   Receipt,
 } from "forta-agent";
+import { getCreatedContracts } from "forta-helpers";
 import { PersistenceHelper } from "./persistence.helper";
 
 let CHAIN_ID: string;
@@ -84,6 +85,12 @@ export function provideHandleTransaction(
       transactionsProcessed = 0;
     }
     transactionsProcessed += 1;
+
+    // Ignore transactions in which contracts are created
+    const createdContracts = getCreatedContracts(txEvent);
+    if (createdContracts.length > 0) {
+      return findings;
+    }
 
     const maxRetries = 2;
     let retryCount = 0;
