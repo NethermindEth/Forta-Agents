@@ -746,7 +746,7 @@ describe("Native Ice Phishing Bot test suite", () => {
     //      Optimism: 24s, 150 -> 160ms - 2
     //      Fantom: 1s, 5 -> 200ms - 2
 
-    // Note: Manually adding 2 more shards on each chain according to the real performance
+    // Note: Manually adding more shards on each chain according to the real performance
 
     const processingRuns = 15;
 
