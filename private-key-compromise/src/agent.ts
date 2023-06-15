@@ -189,57 +189,76 @@ export const provideHandleTransaction =
 
             // if the account is drained
             if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
-              await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+              // check if "from" address was funded by "to" address before.
+              const isFromFundedByTo = await contractFetcher.getFundInfo(from, to, Number(chainId));
+
+              if (!isFromFundedByTo) {
+                await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+              }
 
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to].length > 3) {
-                alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+                // check if the victims were initially funded by the same address
+                const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                  transferObj[to],
+                  Number(chainId)
+                );
 
-                if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                  alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
-
-                  await persistenceHelper.persist(
-                    alertedAddresses,
+                if (hasUniqueInitialFunders) {
+                  alertedAddresses = await persistenceHelper.load(
                     databaseKeys.alertedAddressesKey.concat("-", chainId)
                   );
 
-                  const anomalyScore = await calculateAlertRate(
-                    Number(chainId),
-                    BOT_ID,
-                    "PKC-1",
-                    isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                    transfersCount
-                  );
+                  if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                    alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
 
-                  // Add "from addresses" into the queue
-                  transferObj[to].forEach((el) => {
-                    queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+                    await persistenceHelper.persist(
+                      alertedAddresses,
+                      databaseKeys.alertedAddressesKey.concat("-", chainId)
+                    );
 
-                    queuedAddresses.push({
-                      timestamp: timestamp,
-                      transfer: {
-                        from: el.victimAddress,
-                        to,
-                        txHash: el.txHash,
-                        asset: el.transferredAsset,
-                      },
+                    const anomalyScore = await calculateAlertRate(
+                      Number(chainId),
+                      BOT_ID,
+                      "PKC-1",
+                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                      transfersCount
+                    );
+
+                    // Add "from addresses" into the queue
+                    transferObj[to].forEach((el) => {
+                      queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
+                      queuedAddresses.push({
+                        timestamp: timestamp,
+                        transfer: {
+                          from: el.victimAddress,
+                          to,
+                          txHash: el.txHash,
+                          asset: el.transferredAsset,
+                        },
+                      });
                     });
-                  });
 
-                  await persistenceHelper.persist(
-                    queuedAddresses,
-                    databaseKeys.queuedAddressesKey.concat("-", chainId)
-                  );
+                    await persistenceHelper.persist(
+                      queuedAddresses,
+                      databaseKeys.queuedAddressesKey.concat("-", chainId)
+                    );
 
-                  findings.push(
-                    createFinding(
-                      hash,
-                      transferObj[to].map((el) => el.victimAddress),
-                      to,
-                      transferObj[to].map((el) => el.transferredAsset),
-                      anomalyScore
-                    )
-                  );
+                    findings.push(
+                      createFinding(
+                        hash,
+                        transferObj[to].map((el) => el.victimAddress),
+                        to,
+                        transferObj[to].map((el) => el.transferredAsset),
+                        anomalyScore
+                      )
+                    );
+                  }
+                } else {
+                  // if it's FP, remove them from the db
+                  delete transferObj[to];
+                  await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
                 }
               }
             }
@@ -271,61 +290,78 @@ export const provideHandleTransaction =
                   const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
 
                   if (balanceFrom.eq(0)) {
-                    await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
+                    // check if "from" address was funded by "to" address before.
+                    const isFromFundedByTo = await contractFetcher.getFundInfo(from, transfer.args.to, Number(chainId));
+
+                    if (!isFromFundedByTo) {
+                      await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
+                    }
 
                     // if there are multiple transfers to the same address, emit an alert
                     if (transferObj[transfer.args.to].length > 3) {
-                      alertedAddresses = await persistenceHelper.load(
-                        databaseKeys.alertedAddressesKey.concat("-", chainId)
+                      // check if the victims were initially funded by the same address
+                      const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                        transferObj[transfer.args.to],
+                        Number(chainId)
                       );
 
-                      if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                        alertedAddresses.push({
-                          address: transfer.args.to,
-                          timestamp: txEvent.timestamp,
-                        });
-                        await persistenceHelper.persist(
-                          alertedAddresses,
+                      if (hasUniqueInitialFunders) {
+                        alertedAddresses = await persistenceHelper.load(
                           databaseKeys.alertedAddressesKey.concat("-", chainId)
                         );
 
-                        const anomalyScore = await calculateAlertRate(
-                          Number(chainId),
-                          BOT_ID,
-                          "PKC-1",
-                          isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                          ercTransferCount
-                        );
-
-                        // Add from addresses into the queue
-                        transferObj[transfer.args.to].forEach((el) => {
-                          queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
-
-                          queuedAddresses.push({
-                            timestamp: timestamp,
-                            transfer: {
-                              from: el.victimAddress,
-                              to: transfer.args.to,
-                              txHash: el.txHash,
-                              asset: el.transferredAsset,
-                            },
+                        if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                          alertedAddresses.push({
+                            address: transfer.args.to,
+                            timestamp: txEvent.timestamp,
                           });
-                        });
+                          await persistenceHelper.persist(
+                            alertedAddresses,
+                            databaseKeys.alertedAddressesKey.concat("-", chainId)
+                          );
 
-                        await persistenceHelper.persist(
-                          queuedAddresses,
-                          databaseKeys.queuedAddressesKey.concat("-", chainId)
-                        );
+                          const anomalyScore = await calculateAlertRate(
+                            Number(chainId),
+                            BOT_ID,
+                            "PKC-1",
+                            isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                            ercTransferCount
+                          );
 
-                        findings.push(
-                          createFinding(
-                            hash,
-                            transferObj[transfer.args.to].map((el) => el.victimAddress),
-                            transfer.args.to,
-                            transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                            anomalyScore
-                          )
-                        );
+                          // Add from addresses into the queue
+                          transferObj[transfer.args.to].forEach((el) => {
+                            queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
+                            queuedAddresses.push({
+                              timestamp: timestamp,
+                              transfer: {
+                                from: el.victimAddress,
+                                to: transfer.args.to,
+                                txHash: el.txHash,
+                                asset: el.transferredAsset,
+                              },
+                            });
+                          });
+
+                          await persistenceHelper.persist(
+                            queuedAddresses,
+                            databaseKeys.queuedAddressesKey.concat("-", chainId)
+                          );
+
+                          findings.push(
+                            createFinding(
+                              hash,
+                              transferObj[transfer.args.to].map((el) => el.victimAddress),
+                              transfer.args.to,
+                              transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                              anomalyScore
+                            )
+                          );
+                        }
+                      } else {
+                        // if it's FP, remove them from the db
+                        delete transferObj[transfer.args.to];
+                        await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
                       }
                     }
                   }
