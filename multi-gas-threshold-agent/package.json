@@ -14,19 +14,19 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 3,
+      "shards": 4,
       "target": 3
     },
     "56": {
-      "shards": 5,
+      "shards": 6,
       "target": 3
     },
     "137": {
-      "shards": 5,
+      "shards": 6,
       "target": 3
     },
     "default": {
-      "shards": 1,
+      "shards": 2,
       "target": 3
     }
   },
