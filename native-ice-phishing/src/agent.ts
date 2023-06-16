@@ -974,7 +974,6 @@ export const provideHandleBlock =
   ) =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-
     if (infoAlerts.alerts.length > 0) {
       let { alertedAddressesCritical } = storedData;
 
@@ -987,13 +986,30 @@ export const provideHandleBlock =
         alertId: "NIP-7",
         chainId,
         blockNumberRange: {
-          startBlockNumber: blockEvent.blockNumber - 2000,
+          startBlockNumber: blockEvent.blockNumber - 3000,
           endBlockNumber: blockEvent.blockNumber,
         },
-        first: 500,
+        first: 1000,
       };
 
-      const criticalAlerts = await getAlerts(query);
+      const maxRetries = 3;
+      let criticalAlerts;
+
+      for (let retry = 1; retry <= maxRetries; retry++) {
+        try {
+          criticalAlerts = await getAlerts(query);
+          break; // If the operation succeeds, exit the loop
+        } catch (error) {
+          console.error(
+            `Error occurred on attempt ${retry}. Retrying...`,
+            error
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+
+      if (!criticalAlerts) return findings;
+
       criticalAlerts.alerts.forEach((alert) => {
         if (!alertedAddressesCritical.includes(alert.metadata.attacker)) {
           alertedAddressesCritical.push(alert.metadata.attacker);
