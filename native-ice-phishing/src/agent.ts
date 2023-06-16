@@ -987,10 +987,10 @@ export const provideHandleBlock =
         alertId: "NIP-7",
         chainId,
         blockNumberRange: {
-          startBlockNumber: blockEvent.blockNumber - 50,
+          startBlockNumber: blockEvent.blockNumber - 2000,
           endBlockNumber: blockEvent.blockNumber,
         },
-        first: 100,
+        first: 500,
       };
 
       const criticalAlerts = await getAlerts(query);
