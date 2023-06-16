@@ -773,6 +773,7 @@ export const provideHandleTransaction =
           const code = await dataFetcher.getCode(to);
           if (!code) return findings;
           const sourceCode = await dataFetcher.getSourceCode(to, chainId);
+          // Remove ")" from the end of the signature
           const trimmedSigs = alertedSigsWithAddress.map((sig) =>
             sig.slice(0, -1)
           );
