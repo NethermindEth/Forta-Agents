@@ -284,17 +284,36 @@ export default class Fetcher {
     const { urlContractCreation } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
-    const result = await (await fetch(url)).json();
+    const maxRetries = 3;
 
-    if (
-      result.message.startsWith("NOTOK") ||
-      result.message.startsWith("No data") ||
-      result.message.startsWith("Query Timeout")
-    ) {
-      console.log(`block explorer error occured; skipping check for ${address}`);
-      return null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await (await fetch(url)).json();
+
+        if (
+          result.message.startsWith("NOTOK") ||
+          result.message.startsWith("No data") ||
+          result.message.startsWith("Query Timeout")
+        ) {
+          console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${address}`);
+          if (attempt === maxRetries) {
+            console.log(`Block explorer error occurred (final attempt); skipping check for ${address}`);
+            return null;
+          }
+        } else {
+          return result.result[0].contractCreator;
+        }
+      } catch (error) {
+        console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
+        if (attempt === maxRetries) {
+          console.error(`Error during fetch (final attempt); skipping check for ${address}`);
+          return null;
+        }
+      }
     }
-    return result.result[0].contractCreator;
+
+    console.error(`Failed to fetch contract creator for ${address} after ${maxRetries} retries`);
+    return null;
   };
 
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {

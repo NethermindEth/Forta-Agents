@@ -274,8 +274,8 @@ export const provideHandleTransaction =
                 const absValue = value![token];
                 if (absValue.gt(threshold)) {
                   // Filter out token mints (e.g. Uniswap LPs) to contract creators
-                  const wasTokenCreatedByInitiator = await fetcher.getContractCreator(token, Number(txEvent.network));
-                  if (wasTokenCreatedByInitiator === txEvent.from.toLowerCase()) {
+                  const tokenCreator = await fetcher.getContractCreator(token, Number(txEvent.network));
+                  if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
                     return;
                   }
                   let percentage: number;
