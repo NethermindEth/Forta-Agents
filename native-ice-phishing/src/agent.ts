@@ -56,6 +56,8 @@ let storedData: Data = {
   alertedHashes: [],
   alertedAddressesCritical: [],
 };
+let alertedSigsWithAddress: string[] = [];
+let alertedHashesWithAddress: string[] = [];
 
 let infoAlerts: { alerts: Alert[] } = {
   alerts: [],
@@ -190,6 +192,15 @@ export const provideInitialize = (
     );
 
     storedData.alertedHashes = alertedFuncSigs.map((sig) =>
+      ethers.utils.keccak256(ethers.utils.toUtf8Bytes(sig)).substring(0, 10)
+    );
+
+    alertedSigsWithAddress = alertedFuncSigs.map((sig) => {
+      const modifiedSig = sig.replace("()", "(address)");
+      return modifiedSig;
+    });
+
+    alertedHashesWithAddress = alertedSigsWithAddress.map((sig) =>
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes(sig)).substring(0, 10)
     );
 
@@ -858,6 +869,44 @@ export const provideHandleTransaction =
         }
       }
     } else if (value !== "0x0") {
+      for (const alertedHash of alertedHashesWithAddress) {
+        if (data.startsWith(alertedHash) && !data.includes(from.slice(2))) {
+          const code = await dataFetcher.getCode(to);
+          if (!code) return findings;
+          const sourceCode = await dataFetcher.getSourceCode(to, chainId);
+          // Remove ")" from the end of the signature
+          const trimmedSigs = alertedSigsWithAddress.map((sig) =>
+            sig.slice(0, -1)
+          );
+          const suspiciousFuncsCounts = trimmedSigs.filter((sig) =>
+            sourceCode.includes(sig)
+          ).length;
+          if (suspiciousFuncsCounts >= 4) {
+            let sig;
+            try {
+              sig = await dataFetcher.getSignature(alertedHash);
+            } catch {
+              sig = alertedHash;
+            }
+
+            const anomalyScore = await calculateAlertRate(
+              Number(chainId),
+              BOT_ID,
+              "NIP-3",
+              isRelevantChain
+                ? ScanCountType.CustomScanCount
+                : ScanCountType.TxWithInputDataCount,
+              txWithInputDataCount
+            );
+
+            findings.push(
+              createLowSeverityFinding(hash, from, to, sig, anomalyScore)
+            );
+            break;
+          }
+        }
+      }
+
       for (const alertedHash of alertedHashes) {
         if (data.startsWith(alertedHash)) {
           const code = await dataFetcher.getCode(to);
@@ -925,7 +974,6 @@ export const provideHandleBlock =
   ) =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
-
     if (infoAlerts.alerts.length > 0) {
       let { alertedAddressesCritical } = storedData;
 
@@ -938,13 +986,30 @@ export const provideHandleBlock =
         alertId: "NIP-7",
         chainId,
         blockNumberRange: {
-          startBlockNumber: blockEvent.blockNumber - 50,
+          startBlockNumber: blockEvent.blockNumber - 3000,
           endBlockNumber: blockEvent.blockNumber,
         },
-        first: 100,
+        first: 1000,
       };
 
-      const criticalAlerts = await getAlerts(query);
+      const maxRetries = 3;
+      let criticalAlerts;
+
+      for (let retry = 1; retry <= maxRetries; retry++) {
+        try {
+          criticalAlerts = await getAlerts(query);
+          break; // If the operation succeeds, exit the loop
+        } catch (error) {
+          console.error(
+            `Error occurred on attempt ${retry}. Retrying...`,
+            error
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+
+      if (!criticalAlerts) return findings;
+
       criticalAlerts.alerts.forEach((alert) => {
         if (!alertedAddressesCritical.includes(alert.metadata.attacker)) {
           alertedAddressesCritical.push(alert.metadata.attacker);
