@@ -253,6 +253,8 @@ describe("Large Profit Bot test suite", () => {
 
     when(mockFetcher.getCLandAS).calledWith(percentage, "totalSupply").mockReturnValue([1, 0.001]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue(mockTxFrom);
+    when(mockFetcher.getContractCreator).calledWith(TEST_TOKEN, 1).mockReturnValue("0x9876");
+
     const findings = await handleTransaction(txEvent);
 
     const addresses = [
