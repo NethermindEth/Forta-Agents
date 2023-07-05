@@ -122,6 +122,9 @@ const TRANSFER_IFACE = new Interface([ERC20_TRANSFER_EVENT]);
 
 const transferEvent = TRANSFER_IFACE.getEvent("Transfer");
 
+// used to avoid short logs filtering
+const randomEvent = new Interface(["event RandomEvent()"]).getEvent("RandomEvent");
+
 describe("Large Profit Bot test suite", () => {
   const mockProvider: MockEthersProviderExtended = new MockEthersProviderExtended();
   const mockFetcher = {
@@ -193,6 +196,7 @@ describe("Large Profit Bot test suite", () => {
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "12", TEST_TOKEN).mockReturnValue(0);
@@ -215,6 +219,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -239,6 +244,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(0);
@@ -275,6 +281,7 @@ describe("Large Profit Bot test suite", () => {
       .setFrom(mockTxFrom)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -298,6 +305,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -323,6 +331,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -349,6 +358,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -375,6 +385,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
@@ -401,6 +412,7 @@ describe("Large Profit Bot test suite", () => {
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
+      .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);

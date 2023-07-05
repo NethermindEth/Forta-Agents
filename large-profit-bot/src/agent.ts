@@ -34,6 +34,9 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
+    const numberOfEvents = txEvent.logs.length;
+    if (numberOfEvents < 2) return findings;
+
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     if (loanCreatedEvents.length > 0) {
       return findings;

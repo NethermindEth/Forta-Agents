@@ -1,6 +1,6 @@
 {
   "name": "large-profit-bot",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Forta bot that detects large profits",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-profit-bot",
   "chainIds": [
