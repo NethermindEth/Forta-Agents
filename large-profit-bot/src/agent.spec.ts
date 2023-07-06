@@ -134,6 +134,7 @@ describe("Large Profit Bot test suite", () => {
     getContractCreator: jest.fn(),
     getContractInfo: jest.fn(),
     isContractVerified: jest.fn(),
+    hasHighNumberOfHolders: jest.fn(),
   };
   const handleTransaction: HandleTransaction = provideHandleTransaction(mockFetcher as any, mockProvider as any);
 
@@ -257,6 +258,7 @@ describe("Large Profit Bot test suite", () => {
       .div(ethers.BigNumber.from("4424324324423423"))
       .toNumber();
 
+    when(mockFetcher.hasHighNumberOfHolders).calledWith(1, TEST_TOKEN).mockReturnValue(true);
     when(mockFetcher.getCLandAS).calledWith(percentage, "totalSupply").mockReturnValue([1, 0.001]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue(mockTxFrom);
     when(mockFetcher.getContractCreator).calledWith(TEST_TOKEN, 1).mockReturnValue("0x9876");

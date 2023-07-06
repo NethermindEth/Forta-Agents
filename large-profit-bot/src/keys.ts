@@ -1,4 +1,6 @@
 export const keys = {
+  ethplorerApiKeys: [],
+  chainbaseApiKeys: [],
   moralisApiKeys: [],
   etherscanApiKeys: [],
   optimisticEtherscanApiKeys: [],
