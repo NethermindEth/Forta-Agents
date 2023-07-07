@@ -33,6 +33,8 @@ const tokenAddress = createAddress("0xa2");
 const TOKEN_IFACE = new Interface(TOKEN_ABI);
 
 const testKeys = {
+  ethplorerApiKeys: ["Test2"],
+  chainbaseApiKeys: ["Test21"],
   moralisApiKeys: ["Test3"],
   etherscanApiKeys: ["Test4"],
   optimisticEtherscanApiKeys: ["Test5"],

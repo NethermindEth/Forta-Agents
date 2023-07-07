@@ -6,6 +6,8 @@ import { MAX_USD_VALUE, TOKEN_ABI } from "./utils";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./config";
 
 interface apiKeys {
+  ethplorerApiKeys: string[];
+  chainbaseApiKeys: string[];
   moralisApiKeys: string[];
   etherscanApiKeys: string[];
   optimisticEtherscanApiKeys: string[];
@@ -207,6 +209,14 @@ export default class Fetcher {
     const { urlAccount } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     return `${urlAccount}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+  };
+
+  private getEthplorerTopTokenHoldersUrl = (tokenAddress: string, key: string) => {
+    return `https://api.ethplorer.io/getTopTokenHolders/${tokenAddress}?apiKey=${key}&limit=1000`;
+  };
+
+  private getChainBaseTopTokenHoldersUrl = (tokenAddress: string, chainId: number) => {
+    return `https://api.chainbase.online/v1/token/holders?chain_id=${chainId}&contract_address=${tokenAddress}&page=1&limit=100`;
   };
 
   private getBlockExplorerKey = (chainId: number) => {
@@ -423,4 +433,39 @@ export default class Fetcher {
       }
     }
   };
+
+  public async hasHighNumberOfHolders(chainId: number, token: string): Promise<boolean> {
+    let response;
+    // Fantom is not supported by Chainbase
+    // For Ethereum we use Ethplorer
+    const retries = 2;
+    for (let i = 0; i < retries; i++) {
+      try {
+        if (![1, 250].includes(chainId)) {
+          response = await (
+            await fetch(this.getChainBaseTopTokenHoldersUrl(token, chainId), {
+              method: "GET",
+              headers: {
+                "x-api-key": this.apiKeys.chainbaseApiKeys[0],
+                accept: "application/json",
+              },
+            })
+          ).json();
+          return Boolean(response.next_page as number);
+        } else if (chainId === 1) {
+          response = (await (
+            await fetch(this.getEthplorerTopTokenHoldersUrl(token, this.apiKeys.ethplorerApiKeys[0]))
+          ).json()) as any;
+          return response.holders.length >= 100;
+        } else {
+          // Fantom is unsupported
+          return false;
+        }
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+
+    return false;
+  }
 }

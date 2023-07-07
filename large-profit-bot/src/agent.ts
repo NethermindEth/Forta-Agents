@@ -3,6 +3,8 @@ import LRU from "lru-cache";
 import {
   ERC20_TRANSFER_EVENT,
   LOAN_CREATED_ABI,
+  LargeProfitAddress,
+  UNISWAP_ROUTER_ADDRESSES,
   WRAPPED_NATIVE_TOKEN_EVENTS,
   ZERO,
   createFinding,
@@ -34,6 +36,9 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
+    const numberOfEvents = txEvent.logs.length;
+    if (numberOfEvents < 2) return findings;
+
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     if (loanCreatedEvents.length > 0) {
       return findings;
@@ -41,6 +46,9 @@ export const provideHandleTransaction =
 
     if (txEvent.to) {
       if (nftCollateralizedLendingProtocols[txEvent.network].includes(txEvent.to.toLowerCase())) {
+        return findings;
+      }
+      if (UNISWAP_ROUTER_ADDRESSES.includes(txEvent.to.toLowerCase())) {
         return findings;
       }
       let isToAnEOA: boolean = false;
@@ -229,13 +237,7 @@ export const provideHandleTransaction =
       }
       balanceChangesMapUsd.set(key, usdRecord);
     }
-    const largeProfitAddresses: {
-      address: string;
-      confidence: number;
-      anomalyScore: number;
-      isProfitInUsd: boolean;
-      profit: number;
-    }[] = [];
+    const largeProfitAddresses: LargeProfitAddress[] = [];
     balanceChangesMapUsd.forEach((record: Record<string, number>, address: string) => {
       const sum = Object.values(record).reduce((acc, value) => {
         return acc + value;
@@ -278,6 +280,12 @@ export const provideHandleTransaction =
                   if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
                     return;
                   }
+
+                  // Filter out tokens with <100 holders
+                  if (!(await fetcher.hasHighNumberOfHolders(Number(txEvent.network), token))) {
+                    return;
+                  }
+
                   let percentage: number;
                   try {
                     percentage = Math.min(absValue.mul(100).div(totalSupply).toNumber(), 100);
@@ -312,30 +320,16 @@ export const provideHandleTransaction =
     }
 
     // Filter out duplicate addresses, keeping the entry with the higher confidence level
-    const filteredLargeProfitAddresses = largeProfitAddresses.reduce(
-      (
-        acc: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
-        curr
-      ) => {
-        const existingIndex = acc.findIndex(
-          (item: {
-            address: string;
-            confidence: number;
-            anomalyScore: number;
-            isProfitInUsd: boolean;
-            profit: number;
-          }) => item.address === curr.address
-        );
-        if (existingIndex === -1) {
-          acc.push(curr);
-        } else if (acc[existingIndex].confidence < curr.confidence) {
-          acc[existingIndex].confidence = curr.confidence;
-          acc[existingIndex].anomalyScore = curr.anomalyScore;
-        }
-        return acc;
-      },
-      []
-    );
+    const filteredLargeProfitAddresses = largeProfitAddresses.reduce((acc: LargeProfitAddress[], curr) => {
+      const existingIndex = acc.findIndex((item: LargeProfitAddress) => item.address === curr.address);
+      if (existingIndex === -1) {
+        acc.push(curr);
+      } else if (acc[existingIndex].confidence < curr.confidence) {
+        acc[existingIndex].confidence = curr.confidence;
+        acc[existingIndex].anomalyScore = curr.anomalyScore;
+      }
+      return acc;
+    }, []);
 
     let wasCalledContractCreatedByInitiator = false;
     if (!txEvent.to) {
