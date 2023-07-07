@@ -140,12 +140,22 @@ export default class Fetcher {
           await this.fetch(this.getEtherscanAddressUrl(tx.victimAddress, chainId, false, false, false, true))
         ).json();
 
-        return txResult.result[0].from;
+        const date = new Date(Number(txResult.result[0].timeStamp) * 1000).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+
+        return { from: txResult.result[0].from, timestamp: date };
       })
     );
 
-    // if the funders in the first txns are not unique, return false
-    if (txs.length != new Set(victimFunders).size) return false;
+    // if the funders or dates in the first txns are not unique, return false
+    if (
+      txs.length != new Set(victimFunders.map((el) => el.from)).size ||
+      txs.length != new Set(victimFunders.map((el) => el.timestamp)).size
+    )
+      return false;
 
     // check internal transfers to see if the addresses were funded by the same contract
     let internalFunders = await Promise.all(
