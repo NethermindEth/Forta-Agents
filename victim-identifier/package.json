@@ -63,14 +63,14 @@
   },
   "dependencies": {
     "forta-agent": "^0.1.31",
-    "forta-agent-tools": "^3.2.6"
+    "forta-agent-tools": "^3.2.8"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^3.5.0",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
-    "nodemon": "^2.0.8",
+    "nodemon": "^3.0.1",
     "prettier": "^2.8.1",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
