@@ -768,39 +768,52 @@ export const provideHandleTransaction =
                   const maxCount = Math.max(...Object.values(fundingCounts));
 
                   if (maxCount < nativeTransfers[to].length / 2) {
-                    const label = await dataFetcher.getLabel(
-                      to,
-                      Number(chainId)
+                    const victims = nativeTransfers[to].map(
+                      (transfer) => transfer.from
                     );
-                    if (
-                      !label ||
-                      ["xploit", "hish", "heist"].some((keyword) =>
-                        label.includes(keyword)
-                      )
-                    ) {
-                      const anomalyScore = await calculateAlertRate(
-                        Number(chainId),
-                        BOT_ID,
-                        "NIP-4",
-                        isRelevantChain
-                          ? ScanCountType.CustomScanCount
-                          : ScanCountType.TransferCount,
-                        transfersCount
-                      );
 
-                      alertedAddresses.push(to);
-                      // Persist instantly in order to avoid duplicate alerts in case the last transaction of the block is dropped
-                      await persistenceHelper.persist(
-                        alertedAddresses,
-                        databaseKeys.alertedAddressesKey
+                    // Check if the majority of the "victims" have interacted with the same address
+                    const haveInteractedWithSameAddress =
+                      await dataFetcher.haveInteractedWithSameAddress(
+                        to,
+                        victims,
+                        chainId
                       );
-                      findings.push(
-                        createHighSeverityFinding(
-                          to,
-                          anomalyScore,
-                          nativeTransfers[to]
+                    if (!haveInteractedWithSameAddress) {
+                      const label = await dataFetcher.getLabel(
+                        to,
+                        Number(chainId)
+                      );
+                      if (
+                        !label ||
+                        ["xploit", "hish", "heist"].some((keyword) =>
+                          label.includes(keyword)
                         )
-                      );
+                      ) {
+                        const anomalyScore = await calculateAlertRate(
+                          Number(chainId),
+                          BOT_ID,
+                          "NIP-4",
+                          isRelevantChain
+                            ? ScanCountType.CustomScanCount
+                            : ScanCountType.TransferCount,
+                          transfersCount
+                        );
+
+                        alertedAddresses.push(to);
+                        // Persist instantly in order to avoid duplicate alerts in case the last transaction of the block is dropped
+                        await persistenceHelper.persist(
+                          alertedAddresses,
+                          databaseKeys.alertedAddressesKey
+                        );
+                        findings.push(
+                          createHighSeverityFinding(
+                            to,
+                            anomalyScore,
+                            nativeTransfers[to]
+                          )
+                        );
+                      }
                     }
                   }
                 }

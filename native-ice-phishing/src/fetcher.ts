@@ -185,7 +185,9 @@ export default class DataFetcher {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const response = await (await fetch(url)).json();
-        return response.events ? response.events[0]["label"]["label"] : "";
+        return response.events.length > 0
+          ? response.events[0]["label"]["label"]
+          : "";
       } catch (error) {
         console.log(`Error fetching label: ${error}`);
 
@@ -381,6 +383,95 @@ export default class DataFetcher {
     }
 
     return hasInteractedAgain;
+  };
+
+  haveInteractedWithSameAddress = async (
+    attacker: string,
+    victims: string[],
+    chainId: number
+  ) => {
+    let haveInteractedWithSameAddress: boolean = false;
+    let victimInteractions: Record<string, string[]> = {}; // key: victim, value: array of "to" addresses
+
+    await Promise.all(
+      victims.map(async (victim) => {
+        const maxRetries = 3;
+        let result: { message: string; result: any[] } = {
+          message: "",
+          result: [],
+        };
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            result = await (
+              await fetch(this.getEtherscanAddressUrl(victim, chainId, 100))
+            ).json();
+
+            if (
+              result.message.startsWith("NOTOK") ||
+              result.message.startsWith("Query Timeout")
+            ) {
+              console.log(
+                `block explorer error occured (attempt ${attempt}); retrying check for ${victim}`
+              );
+              if (attempt === maxRetries) {
+                console.log(
+                  `block explorer error occured (final attempt); skipping check for ${victim}`
+                );
+                haveInteractedWithSameAddress = true;
+                return haveInteractedWithSameAddress;
+              }
+            } else {
+              break;
+            }
+          } catch {
+            console.log(
+              `An error occurred during the fetch (attempt ${attempt}):`
+            );
+            if (attempt === maxRetries) {
+              console.log(
+                `Error during fetch (final attempt); skipping check for ${victim}`
+              );
+              haveInteractedWithSameAddress = true;
+              return haveInteractedWithSameAddress;
+            }
+          }
+        }
+
+        let toAddresses: string[] = [];
+        result.result.forEach((tx: any) => {
+          if (![attacker, victim].includes(tx.to)) {
+            toAddresses.push(tx.to);
+          }
+        });
+        victimInteractions[victim] = Array.from(new Set(toAddresses));
+      })
+    );
+
+    let frequencyMap: { [key: string]: string[] } = {}; // Map of address called -> array of "victims" who called it
+    for (const victim in victimInteractions) {
+      const toAddresses = victimInteractions[victim];
+
+      toAddresses.forEach((toAddress) => {
+        if (!frequencyMap[toAddress]) {
+          frequencyMap[toAddress] = [];
+        }
+        // Count victim once
+        if (!frequencyMap[toAddress].includes(victim)) {
+          frequencyMap[toAddress].push(victim);
+        }
+      });
+
+      const majorityThreshold = Math.ceil(victims.length / 2); // change as needed
+      for (const address in frequencyMap) {
+        if (frequencyMap[address].length >= majorityThreshold) {
+          haveInteractedWithSameAddress = true;
+          break;
+        }
+      }
+
+      return haveInteractedWithSameAddress;
+    }
   };
 
   isRecentlyInvolvedInTransfer = async (
