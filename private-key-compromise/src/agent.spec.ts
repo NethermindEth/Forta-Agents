@@ -16,11 +16,11 @@ import { createAddress, NetworkManager } from "forta-agent-tools";
 import { provideInitialize, provideHandleTransaction } from "./agent";
 import { when } from "jest-when";
 import fetch, { Response } from "node-fetch";
-import { AgentConfig, NetworkData, ERC20_TRANSFER_FUNCTION, BALANCEOF_ABI } from "./utils";
+import { AgentConfig, NetworkData, ERC20_TRANSFER_FUNCTION, TOKEN_ABI } from "./utils";
 import BalanceFetcher from "./balance.fetcher";
 
 jest.mock("node-fetch");
-const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
+const BALANCE_IFACE = new Interface([TOKEN_ABI[0]]);
 
 const mockChainId = 1;
 const mockJwt = "MOCK_JWT";
@@ -223,6 +223,9 @@ describe("Detect Private Key Compromise", () => {
   const mockMarketCapFetcher = {
     getTopMarketCap: jest.fn(),
   };
+  const mockPriceFetcher = {
+    getValueInUsd: jest.fn(),
+  };
   let mockProvider: MockEthersProviderExtension;
   let mockFetch = jest.mocked(fetch, true);
   let initialize: Initialize;
@@ -266,6 +269,7 @@ describe("Detect Private Key Compromise", () => {
     mockFetch.mockResolvedValue(mockFetchResponse);
     mockBalanceFetcher = new BalanceFetcher(mockProvider as any);
     mockContractFetcher.checkInitialFunder.mockResolvedValue(true);
+    mockPriceFetcher.getValueInUsd.mockResolvedValue(500);
 
     when(mockPersistenceHelper.load)
       .calledWith(mockDBKeys.transfersKey.concat("-", "1"))
@@ -288,6 +292,7 @@ describe("Detect Private Key Compromise", () => {
       mockContractFetcher as any,
       mockDataFetcher as any,
       mockMarketCapFetcher as any,
+      mockPriceFetcher as any,
       mockPersistenceHelper as any,
       mockDBKeys
     );
@@ -317,43 +322,38 @@ describe("Detect Private Key Compromise", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if there is 3 native transfers and 0 token transfers to an attacker address", async () => {
+    it("returns empty findings if there is 2 native transfers and 0 token transfers to an attacker address", async () => {
       let findings;
       const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
-      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[0]);
 
-      txEvent.setValue("1");
+      txEvent.setValue("110");
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
-      txEvent2.setValue("2");
+      txEvent2.setValue("200");
       findings = await handleTransaction(txEvent2);
-      expect(findings).toStrictEqual([]);
-      txEvent3.setValue("3");
-      findings = await handleTransaction(txEvent3);
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if there are 2 native transfers and 1 token transfer to an attacker address", async () => {
+    it("returns empty findings if there are 1 native transfers and 1 token transfer to an attacker address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
-      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
+
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
         .addTraces({
           to: createAddress("0x99"),
           function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[0], ethers.BigNumber.from("1000000")],
+          arguments: [receivers[2], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[2]);
 
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
+      when(mockDataFetcher.isEoa).calledWith(receivers[2]).mockReturnValue(true);
 
-      txEvent.setValue("1");
-      findings = await handleTransaction(txEvent);
-      expect(findings).toStrictEqual([]);
-      txEvent2.setValue("2");
+      txEvent2.setValue("200");
       findings = await handleTransaction(txEvent2);
       expect(findings).toStrictEqual([]);
 
@@ -361,14 +361,13 @@ describe("Detect Private Key Compromise", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns empty findings if there are 1 native transfers and 2 token transfer to an attacker address", async () => {
+    it("returns empty findings if there are 2 token transfers to an attacker address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
 
       const txEvent2 = new TestTransactionEvent()
         .setBlock(1)
         .addTraces({
-          to: createAddress("0x99"),
+          to: createAddress("0x98"),
           function: ERC20_TRANSFER_FUNCTION,
           arguments: [receivers[0], ethers.BigNumber.from("1000000")],
           output: [],
@@ -378,20 +377,18 @@ describe("Detect Private Key Compromise", () => {
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
         .addTraces({
-          to: createAddress("0x99"),
+          to: createAddress("0x98"),
           function: ERC20_TRANSFER_FUNCTION,
           arguments: [receivers[0], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[2]);
-      setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
-      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
 
-      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
+      setTokenBalance(createAddress("0x98"), 1, senders[1], "0");
+      setTokenBalance(createAddress("0x98"), 1, senders[2], "0");
 
-      txEvent.setValue("1");
-      findings = await handleTransaction(txEvent);
-      expect(findings).toStrictEqual([]);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x98"), 1).mockReturnValue("ABC");
+      when(mockDataFetcher.isEoa).calledWith(receivers[0]).mockReturnValue(true);
 
       findings = await handleTransaction(txEvent2);
       expect(findings).toStrictEqual([]);
@@ -400,32 +397,29 @@ describe("Detect Private Key Compromise", () => {
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns findings if there are more than 3 native transfers to a single address", async () => {
+    it("returns findings if there are more than 2 native transfers to a single address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[0]);
-      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[0]);
-      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[0]);
-      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[0]);
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[1]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[1]);
+      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[1]);
 
-      when(mockDataFetcher.isEoa).calledWith(receivers[0]).mockReturnValue(true);
+      when(mockDataFetcher.isEoa).calledWith(receivers[1]).mockReturnValue(true);
 
-      txEvent.setValue("1");
+      txEvent.setValue("110");
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
-      txEvent2.setValue("2");
+      txEvent2.setValue("200");
       findings = await handleTransaction(txEvent2);
       expect(findings).toStrictEqual([]);
-      txEvent3.setValue("3");
+      txEvent3.setValue("300");
       findings = await handleTransaction(txEvent3);
-      expect(findings).toStrictEqual([]);
-      txEvent4.setValue("4");
-      findings = await handleTransaction(txEvent4);
+
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2], senders[3]], receivers[0], ["ETH"], 0.1),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], ["ETH"], 0.1),
       ]);
     });
 
-    it("returns findings if there are more than 3 token transfers", async () => {
+    it("returns findings if there are more than 2 token transfers", async () => {
       let findings;
       const txEvent = new TestTransactionEvent()
         .setBlock(1)
@@ -467,16 +461,6 @@ describe("Detect Private Key Compromise", () => {
         })
         .setFrom(senders[3]);
 
-      const txEvent5 = new TestTransactionEvent()
-        .setBlock(1)
-        .addTraces({
-          to: createAddress("0x99"),
-          function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
-          output: [],
-        })
-        .setFrom(senders[4]);
-
       setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
@@ -492,27 +476,19 @@ describe("Detect Private Key Compromise", () => {
       expect(findings).toStrictEqual([]);
 
       findings = await handleTransaction(txEvent3);
-      expect(findings).toStrictEqual([]);
 
-      findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding(
-          "0x",
-          [senders[0], senders[1], senders[2], senders[3]],
-          receivers[1],
-          [createAddress("0x99")],
-          0.1
-        ),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], [createAddress("0x99")], 0.1),
       ]);
 
-      findings = await handleTransaction(txEvent5);
+      findings = await handleTransaction(txEvent4);
 
       expect(findings).toStrictEqual([]);
     });
 
-    it("returns findings if there are 3 native transfers and 1 token transfer to an attacker address", async () => {
+    it("returns findings if there are 2 native transfers and 1 token transfer to an attacker address", async () => {
       let findings;
-      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[2]);
+
       const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[2]);
       const txEvent3 = new TestTransactionEvent()
         .setBlock(1)
@@ -530,27 +506,17 @@ describe("Detect Private Key Compromise", () => {
       when(mockDataFetcher.isEoa).calledWith(receivers[2]).mockReturnValue(true);
       when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
-      txEvent.setValue("1");
-      findings = await handleTransaction(txEvent);
-      expect(findings).toStrictEqual([]);
-
-      txEvent2.setValue("2");
+      txEvent2.setValue("200");
       findings = await handleTransaction(txEvent2);
       expect(findings).toStrictEqual([]);
 
       findings = await handleTransaction(txEvent3);
       expect(findings).toStrictEqual([]);
 
-      txEvent4.setValue("4");
+      txEvent4.setValue("400");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding(
-          "0x",
-          [senders[0], senders[1], senders[2], senders[3]],
-          receivers[2],
-          ["ETH", createAddress("0x99")],
-          0.1
-        ),
+        createFinding("0x", [senders[1], senders[2], senders[3]], receivers[2], ["ETH", createAddress("0x99")], 0.1),
       ]);
     });
 
@@ -569,33 +535,22 @@ describe("Detect Private Key Compromise", () => {
         })
         .setFrom(senders[2]);
 
-      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[3]).setBlock(1).setTimestamp(1);
-
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
       when(mockDataFetcher.isEoa).calledWith(receivers[3]).mockReturnValue(true);
       when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
-      txEvent.setValue("1");
+      txEvent.setValue("110");
       findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
 
-      txEvent2.setValue("2");
+      txEvent2.setValue("200");
       findings = await handleTransaction(txEvent2);
       expect(findings).toStrictEqual([]);
 
       findings = await handleTransaction(txEvent3);
-      expect(findings).toStrictEqual([]);
 
-      txEvent4.setValue("4");
-      findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding(
-          "0x",
-          [senders[0], senders[1], senders[2], senders[3]],
-          receivers[3],
-          ["ETH", createAddress("0x99")],
-          0.1
-        ),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[3], ["ETH", createAddress("0x99")], 0.1),
       ]);
 
       when(mockContractFetcher.getVictimInfo).calledWith(senders[0], 1, 1).mockResolvedValue(false);
