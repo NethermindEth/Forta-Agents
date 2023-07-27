@@ -26,9 +26,9 @@ import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const DATABASE_OBJECT_KEYS = {
-  transfersKey: "nm-pkComp-bot-key",
-  alertedAddressesKey: "nm-pkComp-bot-alerted-addresses-key",
-  queuedAddressesKey: "nm-pkComp-bot-queued-addresses-key",
+  transfersKey: "nm-pk-comp-bot-key",
+  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key",
+  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key",
 };
 
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
