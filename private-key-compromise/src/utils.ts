@@ -38,10 +38,13 @@ export type QueuedAddress = {
 
 export const ERC20_TRANSFER_FUNCTION = "function transfer(address to, uint256 amount) public";
 
-export const BALANCEOF_ABI = ["function balanceOf(address account) external view returns (uint256)"];
-export const SYMBOL_ABI = [
+export const TOKEN_ABI = [
+  "function balanceOf(address account) external view returns (uint256)",
   "function symbol() external view returns (string)",
   "function symbol() external view returns (bytes32)",
+  "function name() public view returns (string)",
+  "function decimals() external view returns (uint8)",
+  "function totalSupply() external view returns (uint256)",
 ];
 
 export const updateRecord = async (from: string, to: string, asset: string, hash: string, transferObj: Transfer) => {

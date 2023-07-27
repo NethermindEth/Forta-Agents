@@ -2,7 +2,7 @@ import { ethers } from "forta-agent";
 import { providers, Contract } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import LRU from "lru-cache";
-import { SYMBOL_ABI } from "./utils";
+import { TOKEN_ABI } from "./utils";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
@@ -15,8 +15,8 @@ export default class DataFetcher {
     this.provider = provider;
     this.eoaCache = new LRU<string, boolean>({ max: 10000 });
     this.symbolCache = new LRU<string, string>({ max: 10000 });
-    this.tokenContractString = new Contract("", new Interface([SYMBOL_ABI[0]]), this.provider);
-    this.tokenContractBytes32 = new Contract("", new Interface([SYMBOL_ABI[1]]), this.provider);
+    this.tokenContractString = new Contract("", new Interface([TOKEN_ABI[1]]), this.provider);
+    this.tokenContractBytes32 = new Contract("", new Interface([TOKEN_ABI[2]]), this.provider);
   }
 
   isEoa = async (address: string) => {

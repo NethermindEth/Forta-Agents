@@ -17,8 +17,9 @@ import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
 import ContractFetcher from "./contract.fetcher";
 import MarketCapFetcher from "./marketcap.fetcher";
+import PriceFetcher from "./price.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
-import CONFIG from "./bot.config";
+import CONFIG, { priceThreshold } from "./bot.config";
 import { keys } from "./keys";
 import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
@@ -78,6 +79,7 @@ export const provideHandleTransaction =
     contractFetcher: ContractFetcher,
     dataFetcher: DataFetcher,
     marketCapFetcher: MarketCapFetcher,
+    priceFetcher: PriceFetcher,
     persistenceHelper: PersistenceHelper,
     databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string }
   ) =>
@@ -193,7 +195,17 @@ export const provideHandleTransaction =
               const isFromFundedByTo = await contractFetcher.getFundInfo(from, to, Number(chainId));
 
               if (!isFromFundedByTo) {
-                await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+                // check the amount in USD, if over 100$ update record
+                const price = await priceFetcher.getValueInUsd(
+                  txEvent.blockNumber,
+                  Number(chainId),
+                  value.toString(),
+                  "native"
+                );
+
+                if (price >= priceThreshold) {
+                  await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+                }
               }
 
               // if there are multiple transfers to the same address, emit an alert
@@ -294,7 +306,17 @@ export const provideHandleTransaction =
                     const isFromFundedByTo = await contractFetcher.getFundInfo(from, transfer.args.to, Number(chainId));
 
                     if (!isFromFundedByTo) {
-                      await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
+                      // check the amount in USD, if over 100$ update record
+                      const price = await priceFetcher.getValueInUsd(
+                        txEvent.blockNumber,
+                        Number(chainId),
+                        transfer.args.amount.toString(),
+                        transfer.address
+                      );
+
+                      if (price > priceThreshold) {
+                        await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
+                      }
                     }
 
                     // if there are multiple transfers to the same address, emit an alert
@@ -391,6 +413,7 @@ export default {
     new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider()),
     new MarketCapFetcher(),
+    new PriceFetcher(getEthersProvider()),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS
   ),
