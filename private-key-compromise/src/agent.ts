@@ -209,7 +209,7 @@ export const provideHandleTransaction =
               }
 
               // if there are multiple transfers to the same address, emit an alert
-              if (transferObj[to].length > 3) {
+              if (transferObj[to].length > 2) {
                 // check if the victims were initially funded by the same address
                 const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                   transferObj[to],
@@ -320,7 +320,7 @@ export const provideHandleTransaction =
                     }
 
                     // if there are multiple transfers to the same address, emit an alert
-                    if (transferObj[transfer.args.to].length > 3) {
+                    if (transferObj[transfer.args.to].length > 2) {
                       // check if the victims were initially funded by the same address
                       const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                         transferObj[transfer.args.to],
