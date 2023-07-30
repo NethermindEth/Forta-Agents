@@ -122,7 +122,14 @@ class MockEthersProviderExtension extends MockEthersProvider {
   }
 }
 
-const createFinding = (txHash: string, from: string[], to: string, assets: string[], anomalyScore: number): Finding => {
+const createFinding = (
+  txHash: string,
+  from: string[],
+  to: string,
+  assets: string[],
+  anomalyScore: number,
+  alertId: string
+): Finding => {
   const victims = from.map((victim) => {
     return Label.fromObject({
       entity: victim,
@@ -136,7 +143,7 @@ const createFinding = (txHash: string, from: string[], to: string, assets: strin
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
-    alertId: "PKC-1",
+    alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
@@ -415,7 +422,7 @@ describe("Detect Private Key Compromise", () => {
       findings = await handleTransaction(txEvent3);
 
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], ["ETH"], 0.1),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], ["ETH"], 0.1, "PKC-3"),
       ]);
     });
 
@@ -478,7 +485,7 @@ describe("Detect Private Key Compromise", () => {
       findings = await handleTransaction(txEvent3);
 
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], [createAddress("0x99")], 0.1),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], [createAddress("0x99")], 0.1, "PKC-3"),
       ]);
 
       findings = await handleTransaction(txEvent4);
@@ -516,7 +523,14 @@ describe("Detect Private Key Compromise", () => {
       txEvent4.setValue("400");
       findings = await handleTransaction(txEvent4);
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[1], senders[2], senders[3]], receivers[2], ["ETH", createAddress("0x99")], 0.1),
+        createFinding(
+          "0x",
+          [senders[1], senders[2], senders[3]],
+          receivers[2],
+          ["ETH", createAddress("0x99")],
+          0.1,
+          "PKC-3"
+        ),
       ]);
     });
 
@@ -550,7 +564,14 @@ describe("Detect Private Key Compromise", () => {
       findings = await handleTransaction(txEvent3);
 
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[3], ["ETH", createAddress("0x99")], 0.1),
+        createFinding(
+          "0x",
+          [senders[0], senders[1], senders[2]],
+          receivers[3],
+          ["ETH", createAddress("0x99")],
+          0.1,
+          "PKC-3"
+        ),
       ]);
 
       when(mockContractFetcher.getVictimInfo).calledWith(senders[0], 1, 1).mockResolvedValue(false);

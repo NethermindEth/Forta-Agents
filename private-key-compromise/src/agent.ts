@@ -203,9 +203,7 @@ export const provideHandleTransaction =
                   "native"
                 );
 
-                if (price >= priceThreshold) {
-                  await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
-                }
+                await updateRecord(from, to, networkManager.get("tokenName"), hash, price, transferObj);
               }
 
               // if there are multiple transfers to the same address, emit an alert
@@ -229,14 +227,6 @@ export const provideHandleTransaction =
                       databaseKeys.alertedAddressesKey.concat("-", chainId)
                     );
 
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "PKC-1",
-                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                      transfersCount
-                    );
-
                     // Add "from addresses" into the queue
                     transferObj[to].forEach((el) => {
                       queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
@@ -257,15 +247,49 @@ export const provideHandleTransaction =
                       databaseKeys.queuedAddressesKey.concat("-", chainId)
                     );
 
-                    findings.push(
-                      createFinding(
-                        hash,
-                        transferObj[to].map((el) => el.victimAddress),
-                        to,
-                        transferObj[to].map((el) => el.transferredAsset),
-                        anomalyScore
-                      )
-                    );
+                    const totalTransferValue = transferObj[to].reduce((accumulator, object) => {
+                      return accumulator + object.valueInUSD;
+                    }, 0);
+
+                    if (totalTransferValue > priceThreshold) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-3",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-3"
+                        )
+                      );
+                    } else {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-1",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-1"
+                        )
+                      );
+                    }
                   }
                 } else {
                   // if it's FP, remove them from the db
@@ -314,9 +338,7 @@ export const provideHandleTransaction =
                         transfer.address
                       );
 
-                      if (price > priceThreshold) {
-                        await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
-                      }
+                      await updateRecord(from, transfer.args.to, transfer.address, hash, price, transferObj);
                     }
 
                     // if there are multiple transfers to the same address, emit an alert
@@ -342,14 +364,6 @@ export const provideHandleTransaction =
                             databaseKeys.alertedAddressesKey.concat("-", chainId)
                           );
 
-                          const anomalyScore = await calculateAlertRate(
-                            Number(chainId),
-                            BOT_ID,
-                            "PKC-1",
-                            isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                            ercTransferCount
-                          );
-
                           // Add from addresses into the queue
                           transferObj[transfer.args.to].forEach((el) => {
                             queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
@@ -370,15 +384,49 @@ export const provideHandleTransaction =
                             databaseKeys.queuedAddressesKey.concat("-", chainId)
                           );
 
-                          findings.push(
-                            createFinding(
-                              hash,
-                              transferObj[transfer.args.to].map((el) => el.victimAddress),
-                              transfer.args.to,
-                              transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                              anomalyScore
-                            )
-                          );
+                          const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
+                            return accumulator + object.valueInUSD;
+                          }, 0);
+
+                          if (totalTransferValue > priceThreshold) {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-3",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
+
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-3"
+                              )
+                            );
+                          } else {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-1",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
+
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-1"
+                              )
+                            );
+                          }
                         }
                       } else {
                         // if it's FP, remove them from the db
