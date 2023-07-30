@@ -17,6 +17,7 @@ export type Transfer = Record<
   {
     victimAddress: string;
     transferredAsset: string;
+    valueInUSD: number;
     txHash: string;
   }[]
 >;
@@ -47,25 +48,50 @@ export const TOKEN_ABI = [
   "function totalSupply() external view returns (uint256)",
 ];
 
-export const updateRecord = async (from: string, to: string, asset: string, hash: string, transferObj: Transfer) => {
+export const updateRecord = async (
+  from: string,
+  to: string,
+  asset: string,
+  hash: string,
+  price: number,
+  transferObj: Transfer
+) => {
   /**
    * Logic is to persist data into transferObj as shown below
    *
    *  {
-   *    attacker1: [victim1, victim2..]
-   *    attacker2: [victim1, victim2, victim3..]
+   *    attacker1: [{
+   *                  victimAddress:   victim1
+   *                  transferredAsset: asset1
+   *                },
+   *                {
+   *                  victimAddress:   victim2
+   *                  transferredAsset: asset2
+   *                }]
+   *    attacker2: [{
+   *                  victimAddress:   victim1
+   *                  transferredAsset: asset1
+   *                },
+   *                {
+   *                  victimAddress:   victim2
+   *                  transferredAsset: asset2
+   *                },
+   *                {
+   *                  victimAddress:   victim3
+   *                  transferredAsset: asset3
+   *                }]
    *    ...
    *  }
    */
 
   // if the attacker is already in transferObj and the victim is not, push the new victim address
   if (transferObj[to] && !transferObj[to].some((el) => el.victimAddress == from)) {
-    transferObj[to].push({ victimAddress: from, transferredAsset: asset, txHash: hash });
+    transferObj[to].push({ victimAddress: from, transferredAsset: asset, valueInUSD: price, txHash: hash });
   }
 
   // if the attacker is not in db, append it
   else if (!transferObj[to]) {
-    transferObj[to] = [{ victimAddress: from, transferredAsset: asset, txHash: hash }];
+    transferObj[to] = [{ victimAddress: from, transferredAsset: asset, valueInUSD: price, txHash: hash }];
   }
 };
 
