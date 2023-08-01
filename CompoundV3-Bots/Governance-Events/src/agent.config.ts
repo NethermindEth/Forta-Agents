@@ -28,8 +28,8 @@ const CONFIG: AgentConfig = {
   11155111: {
     cometContracts: [
       {
-        address: "0x8b3fd6dd96da931f1d2ffe3b4660690b5e2420c6",
-        timelockGovernorAddress: "0x8b3fd6dd96da931f1d2ffe3b4660690b5e2420c6",
+        address: "0xf1EEc73FDae21Dc9A63Bb2FFA622D93992e270a9",
+        timelockGovernorAddress: "0xFDC72a9C74F938166a314679e6252D182293FBB4",
       },
     ],
   },
