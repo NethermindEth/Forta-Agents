@@ -66,7 +66,8 @@ function createWithdrawReservesFinding(
   });
 }
 
-function createApproveThisFinding(
+export function createApproveThisFinding(
+  timelock: string,
   comet: string,
   token: string,
   spender: string,
@@ -82,12 +83,18 @@ function createApproveThisFinding(
     severity: FindingSeverity.High,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
+      timelock: ethers.utils.getAddress(timelock),
       comet: ethers.utils.getAddress(comet),
       token: ethers.utils.getAddress(token),
       spender: ethers.utils.getAddress(spender),
       amount: amount.toString(),
     },
-    addresses: [ethers.utils.getAddress(token), ethers.utils.getAddress(comet), ethers.utils.getAddress(spender)],
+    addresses: [
+      ethers.utils.getAddress(token),
+      ethers.utils.getAddress(comet),
+      ethers.utils.getAddress(timelock),
+      ethers.utils.getAddress(spender),
+    ],
   });
 }
 
@@ -292,7 +299,7 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
     );
 
     expect(await handleTransaction(txEvent)).toStrictEqual([
-      createApproveThisFinding(comet, asset, manager, amount, NETWORK),
+      createApproveThisFinding(timelock, comet, asset, manager, amount, NETWORK),
     ]);
   });
 
@@ -330,8 +337,8 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
         createPauseActionFinding(comet, false, true, false, true, false, NETWORK),
         createWithdrawReservesFinding(comet, addr("0xdef1"), 1000, NETWORK),
         createWithdrawReservesFinding(comet, addr("0xf00d"), 2000, NETWORK),
-        createApproveThisFinding(comet, addr("0x10431"), addr("0xdef1"), 1000, NETWORK),
-        createApproveThisFinding(comet, addr("0x10432"), addr("0xdef2"), 2000, NETWORK),
+        createApproveThisFinding(timelock, comet, addr("0x10431"), addr("0xdef1"), 1000, NETWORK),
+        createApproveThisFinding(timelock, comet, addr("0x10432"), addr("0xdef2"), 2000, NETWORK),
       ].sort()
     );
   });
@@ -367,8 +374,22 @@ describe("COMP2-2 - Governance Events Bot Test Suite", () => {
         createPauseActionFinding(COMET_ADDRESSES[1], false, true, false, true, false, NETWORK),
         createWithdrawReservesFinding(COMET_ADDRESSES[1], addr("0xdef1"), 1000, NETWORK),
         createWithdrawReservesFinding(COMET_ADDRESSES[0], addr("0xf00d"), 2000, NETWORK),
-        createApproveThisFinding(COMET_ADDRESSES[0], addr("0x10431"), addr("0xdef1"), 1000, NETWORK),
-        createApproveThisFinding(COMET_ADDRESSES[1], addr("0x10432"), addr("0xdef2"), 2000, NETWORK),
+        createApproveThisFinding(
+          COMET_TIMELOCK_ADDRESSES[0],
+          COMET_ADDRESSES[0],
+          addr("0x10431"),
+          addr("0xdef1"),
+          1000,
+          NETWORK
+        ),
+        createApproveThisFinding(
+          COMET_TIMELOCK_ADDRESSES[1],
+          COMET_ADDRESSES[1],
+          addr("0x10432"),
+          addr("0xdef2"),
+          2000,
+          NETWORK
+        ),
       ].sort()
     );
   });

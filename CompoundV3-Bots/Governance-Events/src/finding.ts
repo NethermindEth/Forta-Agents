@@ -40,6 +40,7 @@ export function createWithdrawReservesFinding(log: LogDescription, chainId: numb
 }
 
 export function createApproveThisFinding(
+  timelock: string,
   comet: string,
   token: string,
   spender: string,
@@ -55,11 +56,17 @@ export function createApproveThisFinding(
     severity: FindingSeverity.High,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
+      timelock: ethers.utils.getAddress(timelock),
       comet: ethers.utils.getAddress(comet),
       token: ethers.utils.getAddress(token),
       spender: ethers.utils.getAddress(spender),
       amount: amount.toString(),
     },
-    addresses: [ethers.utils.getAddress(token), ethers.utils.getAddress(comet), ethers.utils.getAddress(spender)],
+    addresses: [
+      ethers.utils.getAddress(token),
+      ethers.utils.getAddress(comet),
+      ethers.utils.getAddress(timelock),
+      ethers.utils.getAddress(spender),
+    ],
   });
 }

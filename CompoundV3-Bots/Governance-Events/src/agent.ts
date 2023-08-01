@@ -46,7 +46,14 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
         );
 
         findings.push(
-          createApproveThisFinding(log.args.target, callArgs.asset, callArgs.manager, callArgs.amount, chainId)
+          createApproveThisFinding(
+            log.address,
+            log.args.target,
+            callArgs.asset,
+            callArgs.manager,
+            callArgs.amount,
+            chainId
+          )
         );
       });
 
