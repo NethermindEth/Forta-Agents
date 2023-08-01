@@ -39,7 +39,13 @@ export function createWithdrawReservesFinding(log: LogDescription, chainId: numb
   });
 }
 
-export function createApproveFinding(log: LogDescription, chainId: number): Finding {
+export function createApproveThisFinding(
+  comet: string,
+  token: string,
+  spender: string,
+  amount: ethers.BigNumberish,
+  chainId: number
+): Finding {
   return Finding.from({
     name: "Token approval from Comet contract",
     description: "A token approval was emitted from a Comet contract",
@@ -49,15 +55,11 @@ export function createApproveFinding(log: LogDescription, chainId: number): Find
     severity: FindingSeverity.High,
     metadata: {
       chain: Network[chainId] || chainId.toString(),
-      comet: ethers.utils.getAddress(log.args.owner),
-      token: ethers.utils.getAddress(log.address),
-      spender: ethers.utils.getAddress(log.args.spender),
-      amount: log.args.amount.toString(),
+      comet: ethers.utils.getAddress(comet),
+      token: ethers.utils.getAddress(token),
+      spender: ethers.utils.getAddress(spender),
+      amount: amount.toString(),
     },
-    addresses: [
-      ethers.utils.getAddress(log.address),
-      ethers.utils.getAddress(log.args.owner),
-      ethers.utils.getAddress(log.args.spender),
-    ],
+    addresses: [ethers.utils.getAddress(token), ethers.utils.getAddress(comet), ethers.utils.getAddress(spender)],
   });
 }
