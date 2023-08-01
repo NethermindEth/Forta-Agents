@@ -39,17 +39,18 @@ export function createWithdrawReservesFinding(log: LogDescription, chainId: numb
   });
 }
 
-export function createApproveThisFinding(
+export function createApproveThisQueueingFinding(
   timelock: string,
   comet: string,
   token: string,
   spender: string,
   amount: ethers.BigNumberish,
+  txHash: string,
   chainId: number
 ): Finding {
   return Finding.from({
-    name: "Token approval from Comet contract",
-    description: "A token approval was emitted from a Comet contract",
+    name: "Token approval from Comet contract was queued on timelock governor",
+    description: "An approveThis call to a Comet contract was queued",
     alertId: "COMP2-2-3",
     protocol: "Compound",
     type: FindingType.Info,
@@ -57,6 +58,41 @@ export function createApproveThisFinding(
     metadata: {
       chain: Network[chainId] || chainId.toString(),
       timelock: ethers.utils.getAddress(timelock),
+      txHash,
+      comet: ethers.utils.getAddress(comet),
+      token: ethers.utils.getAddress(token),
+      spender: ethers.utils.getAddress(spender),
+      amount: amount.toString(),
+    },
+    addresses: [
+      ethers.utils.getAddress(token),
+      ethers.utils.getAddress(comet),
+      ethers.utils.getAddress(timelock),
+      ethers.utils.getAddress(spender),
+    ],
+  });
+}
+
+export function createApproveThisExecutionFinding(
+  timelock: string,
+  comet: string,
+  token: string,
+  spender: string,
+  amount: ethers.BigNumberish,
+  txHash: string,
+  chainId: number
+): Finding {
+  return Finding.from({
+    name: "Token approval from Comet contract was executed on timelock governor",
+    description: "An approveThis to from a Comet contract was executed",
+    alertId: "COMP2-2-4",
+    protocol: "Compound",
+    type: FindingType.Info,
+    severity: FindingSeverity.High,
+    metadata: {
+      chain: Network[chainId] || chainId.toString(),
+      timelock: ethers.utils.getAddress(timelock),
+      txHash,
       comet: ethers.utils.getAddress(comet),
       token: ethers.utils.getAddress(token),
       spender: ethers.utils.getAddress(spender),

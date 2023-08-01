@@ -1,9 +1,20 @@
 import { ethers, Finding, getEthersProvider, Initialize, HandleTransaction, TransactionEvent } from "forta-agent";
 import CONFIG from "./agent.config";
-import { createApproveThisFinding, createPauseActionFinding, createWithdrawReservesFinding } from "./finding";
+import {
+  createApproveThisExecutionFinding,
+  createApproveThisQueueingFinding,
+  createPauseActionFinding,
+  createWithdrawReservesFinding,
+} from "./finding";
 import { NetworkData } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
-import { APPROVE_THIS_ABI, EXECUTE_TRANSACTION_ABI, PAUSE_ACTION_ABI, WITHDRAW_RESERVES_ABI } from "./constants";
+import {
+  APPROVE_THIS_ABI,
+  EXECUTE_TRANSACTION_ABI,
+  PAUSE_ACTION_ABI,
+  QUEUE_TRANSACTION_ABI,
+  WITHDRAW_RESERVES_ABI,
+} from "./constants";
 
 const networkManager = new NetworkManager(CONFIG);
 
@@ -32,7 +43,10 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
     const withdrawLogs = txEvent.filterLog(WITHDRAW_RESERVES_ABI, cometAddresses);
     withdrawLogs.forEach((log) => findings.push(createWithdrawReservesFinding(log, chainId)));
 
-    const approveThisExecutionLogs = txEvent.filterLog(EXECUTE_TRANSACTION_ABI, cometTimelockAddresses);
+    const approveThisExecutionLogs = txEvent.filterLog(
+      [EXECUTE_TRANSACTION_ABI, QUEUE_TRANSACTION_ABI],
+      cometTimelockAddresses
+    );
     approveThisExecutionLogs
       .filter(
         (log) =>
@@ -45,13 +59,17 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
           ethers.utils.hexConcat([approveThisIface.getSighash("approveThis"), log.args.data])
         );
 
+        const createFinding =
+          log.name === "ExecuteTransaction" ? createApproveThisExecutionFinding : createApproveThisQueueingFinding;
+
         findings.push(
-          createApproveThisFinding(
+          createFinding(
             log.address,
             log.args.target,
             callArgs.asset,
             callArgs.manager,
             callArgs.amount,
+            log.args.txHash,
             chainId
           )
         );
