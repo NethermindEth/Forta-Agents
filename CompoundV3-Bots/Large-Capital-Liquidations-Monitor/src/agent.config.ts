@@ -25,7 +25,7 @@ const CONFIG: AgentConfig = {
   [Network.MAINNET]: {
     // Minimum interval between two uncollateralized borrow alerts for the
     // same borrower.
-    alertInterval: 60 * 60, // seconds
+    alertInterval: 24 * 60 * 60, // seconds
     // Maximum calls in one multicall, used to check the borrow
     // collateralization status and user principals.
     // To change this the usual eth_call gas limits must be noticed.
@@ -71,7 +71,7 @@ const CONFIG: AgentConfig = {
   },
 
   [Network.POLYGON]: {
-    alertInterval: 60 * 60,
+    alertInterval: 24 * 60 * 60,
     multicallSize: 100,
     logFetchingBlockRange: 2000,
     logFetchingInterval: 2000,
