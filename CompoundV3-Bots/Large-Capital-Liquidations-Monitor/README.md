@@ -49,6 +49,7 @@ configured in the `agent.config.ts` file.
 
 - Ethereum
 - Polygon
+- Arbitrum
 
 As proposed, this bot was designed with Ethereum in mind, so while Polygon and
 other chains besides Ethereum can be supported, the block rate needs to be

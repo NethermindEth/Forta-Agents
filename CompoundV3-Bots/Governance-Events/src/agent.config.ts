@@ -24,6 +24,15 @@ const CONFIG: AgentConfig = {
     ],
   },
 
+  [Network.ARBITRUM]: {
+    cometContracts: [
+      {
+        address: "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+        timelockGovernorAddress: "0x3fB4d38ea7EC20D91917c09591490Eeda38Cf88A",
+      },
+    ],
+  },
+
   // Sepolia
   11155111: {
     cometContracts: [
