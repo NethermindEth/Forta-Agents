@@ -29,6 +29,7 @@ network can be configured in the `agent.config.ts` file.
 ## Supported Chains
 
 - Polygon
+- Arbitrum
 
 ## Alerts
 

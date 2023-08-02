@@ -26,6 +26,15 @@ const CONFIG: AgentConfig = {
       },
     ],
   },
+
+  [Network.ARBITRUM]: {
+    cometContracts: [
+      {
+        address: "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+        baseToken: "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+      },
+    ],
+  },
 };
 
 export default CONFIG;

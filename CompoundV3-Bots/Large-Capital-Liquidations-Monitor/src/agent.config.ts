@@ -44,7 +44,8 @@ const CONFIG: AgentConfig = {
       {
         // Address of the Comet contract.
         address: "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
-        // Deployment block of the contract (used for historical borrow fetching).
+        // Deployment block of the first implementation contract (used for
+        // historical borrow fetching).
         deploymentBlock: 15331586,
         // Lower threshold that defines whether a position is 'large',
         // denominated in the same scale as in the contract.
@@ -79,6 +80,21 @@ const CONFIG: AgentConfig = {
       {
         address: "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
         deploymentBlock: 39412367,
+        baseLargeThreshold: "1000000000000000000",
+        monitoringListLength: 100,
+      },
+    ],
+  },
+
+  [Network.ARBITRUM]: {
+    alertInterval: 24 * 60 * 60,
+    multicallSize: 100,
+    logFetchingBlockRange: 2000,
+    logFetchingInterval: 2000,
+    cometContracts: [
+      {
+        address: "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+        deploymentBlock: 87335299,
         baseLargeThreshold: "1000000000000000000",
         monitoringListLength: 100,
       },

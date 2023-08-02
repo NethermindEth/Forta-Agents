@@ -10,6 +10,7 @@ Compound v3 Comet contract, but it's not associated with a `BuyCollateral` or
 
 - Ethereum
 - Polygon
+- Arbitrum
 
 More networks can easily be supported by adding the network parameters to
 `agent.config.ts` and the chain ID to the `chainIds` field in `package.json`!

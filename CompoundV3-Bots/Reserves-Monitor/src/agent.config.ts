@@ -15,6 +15,11 @@ const CONFIG: AgentConfig = {
     alertInterval: 2 * 60 * 60, // every 2 hours
   },
 
+  [Network.ARBITRUM]: {
+    cometAddresses: ["0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA"],
+    alertInterval: 2 * 60 * 60, // every 2 hours
+  },
+
   // Sepolia
   11155111: {
     cometAddresses: ["0x61fFE3A3147386137C8CB9fCAF708687619cEBd3"],
