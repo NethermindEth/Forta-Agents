@@ -88,6 +88,10 @@ export const provideHandleTransaction =
     const balanceChangesMap: Map<string, Record<string, ethers.BigNumber>> = new Map();
 
     const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
+
+    // return if it's a single transfer or a single swap
+    if (erc20TransferEvents.length < 3) return findings;
+
     let events = erc20TransferEvents;
     if (txEvent.network in wrappedNativeTokens) {
       const wrappedTokenEvents = txEvent
