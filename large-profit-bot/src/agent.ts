@@ -36,8 +36,10 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
-    const numberOfEvents = txEvent.logs.length;
-    if (numberOfEvents < 2) return findings;
+    const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
+
+    // return if it's a single transfer or a single swap
+    if (erc20TransferEvents.length < 3) return findings;
 
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     if (loanCreatedEvents.length > 0) {
@@ -86,11 +88,6 @@ export const provideHandleTransaction =
     if (txCount > EOA_TRANSACTION_COUNT_THRESHOLD) return findings;
 
     const balanceChangesMap: Map<string, Record<string, ethers.BigNumber>> = new Map();
-
-    const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
-
-    // return if it's a single transfer or a single swap
-    if (erc20TransferEvents.length < 3) return findings;
 
     let events = erc20TransferEvents;
     if (txEvent.network in wrappedNativeTokens) {
