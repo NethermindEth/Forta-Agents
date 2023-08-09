@@ -10,6 +10,7 @@ import {
   createFinding,
   nftCollateralizedLendingProtocols,
   wrappedNativeTokens,
+  FUNCTION_ABIS,
 } from "./utils";
 import Fetcher from "./fetcher";
 import { keys } from "./keys";
@@ -35,6 +36,10 @@ export const provideHandleTransaction =
       transactionsProcessed = 0;
     }
     transactionsProcessed += 1;
+
+    if (txEvent.filterFunction(FUNCTION_ABIS).length) {
+      return findings;
+    }
 
     const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
 

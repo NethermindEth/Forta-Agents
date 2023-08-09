@@ -199,3 +199,8 @@ export interface LargeProfitAddress {
   isProfitInUsd: boolean;
   profit: number;
 }
+
+export const FUNCTION_ABIS = [
+  "function remove_liquidity(uint256 _amount, uint256[2] min_amounts)",
+  "function removeLiquidity(address _tokenA, address _tokenB)",
+];
