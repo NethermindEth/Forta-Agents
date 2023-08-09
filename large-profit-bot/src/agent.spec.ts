@@ -173,11 +173,16 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setBlock(10)
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(9999);
 
@@ -193,12 +198,17 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("12")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "12", TEST_TOKEN).mockReturnValue(0);
     when(mockFetcher.getTotalSupply).calledWith(10, TEST_TOKEN).mockReturnValue(ethers.BigNumber.from("20000"));
@@ -215,13 +225,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -240,13 +255,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(0);
     when(mockFetcher.getTotalSupply)
@@ -279,12 +299,17 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent: TestTransactionEventExtended = new TestTransactionEventExtended()
       .setFrom(mockTxFrom)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -302,13 +327,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -328,13 +358,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -355,13 +390,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -382,13 +422,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -409,13 +454,18 @@ describe("Large Profit Bot test suite", () => {
 
     const mockTransferFrom = createAddress("0x4444");
     const data = [mockTransferFrom, mockTxFrom, ethers.BigNumber.from("3424324324423423")];
+    // avoid single transfers or swaps
+    const data2 = [createAddress("0x1"), createAddress("0x2"), ethers.BigNumber.from("1")];
+    const data3 = [createAddress("0x3"), createAddress("0x4"), ethers.BigNumber.from("1")];
     const txEvent = new TestTransactionEvent()
       .setFrom(mockTxFrom)
       .setTo(mockTxTo)
       .setHash("0x1")
       .setBlock(10)
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
-      .addEventLog(transferEvent, TEST_TOKEN, data);
+      .addEventLog(transferEvent, TEST_TOKEN, data)
+      .addEventLog(transferEvent, TEST_TOKEN, data2)
+      .addEventLog(transferEvent, TEST_TOKEN, data3);
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
