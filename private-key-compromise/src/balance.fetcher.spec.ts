@@ -2,7 +2,7 @@ import { createAddress } from "forta-agent-tools";
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import { BigNumber } from "ethers";
 import BalanceFetcher from "./balance.fetcher";
-import { BALANCEOF_ABI } from "./utils";
+import { TOKEN_ABI } from "./utils";
 import { Interface } from "ethers/lib/utils";
 
 /// [blockNumber, balance]
@@ -16,7 +16,7 @@ const TEST_BALANCES: [number, BigNumber][] = [
 
 const victimAddress = createAddress("0xa1");
 const tokenAddress = createAddress("0xa2");
-const BALANCE_IFACE = new Interface(BALANCEOF_ABI);
+const BALANCE_IFACE = new Interface(TOKEN_ABI);
 
 describe("BalanceFetcher tests suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
@@ -36,11 +36,7 @@ describe("BalanceFetcher tests suite", () => {
         inputs: [victimAddress],
         outputs: [balance],
       });
-      const fetchedBalance = await fetcher.getBalanceOf(
-        victimAddress,
-        tokenAddress,
-        block
-      );
+      const fetchedBalance = await fetcher.getBalanceOf(victimAddress, tokenAddress, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
     expect(mockProvider.call).toBeCalledTimes(5);
@@ -48,11 +44,7 @@ describe("BalanceFetcher tests suite", () => {
     // clear mockProvider to use cache
     mockProvider.clear();
     for (let [block, balance] of TEST_BALANCES) {
-      const fetchedBalance = await fetcher.getBalanceOf(
-        victimAddress,
-        tokenAddress,
-        block
-      );
+      const fetchedBalance = await fetcher.getBalanceOf(victimAddress, tokenAddress, block);
       expect(fetchedBalance).toStrictEqual(balance);
     }
     expect(mockProvider.call).toBeCalledTimes(5);

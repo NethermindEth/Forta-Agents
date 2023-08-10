@@ -5,7 +5,8 @@ export const createFinding = (
   from: string[],
   to: string,
   assets: string[],
-  anomalyScore: number
+  anomalyScore: number,
+  alertId: string
 ): Finding => {
   const victims = from.map((victim) => {
     return Label.fromObject({
@@ -20,7 +21,7 @@ export const createFinding = (
   return Finding.fromObject({
     name: "Possible private key compromise",
     description: `${from.toString()} transferred funds to ${to}`,
-    alertId: "PKC-1",
+    alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {

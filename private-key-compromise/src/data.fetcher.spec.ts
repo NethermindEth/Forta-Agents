@@ -2,7 +2,7 @@ import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import DataFetcher from "./data.fetcher";
 import { createAddress } from "forta-agent-tools";
 import { when } from "jest-when";
-import { SYMBOL_ABI } from "./utils";
+import { TOKEN_ABI } from "./utils";
 import { Interface } from "ethers/lib/utils";
 
 jest.mock("node-fetch");
@@ -16,7 +16,7 @@ const TEST_RECEIVERS: [string, string, boolean][] = [
   ["0xccc", createAddress("0xa5"), false],
 ];
 
-const SYMBOL_IFACE = new Interface(SYMBOL_ABI);
+const SYMBOL_IFACE = new Interface(TOKEN_ABI);
 
 /// [symbol, blockNumber, tokenAddress]
 const TEST_SYMBOLS: [number, string, string][] = [

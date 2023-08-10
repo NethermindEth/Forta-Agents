@@ -17,17 +17,18 @@ import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
 import ContractFetcher from "./contract.fetcher";
 import MarketCapFetcher from "./marketcap.fetcher";
+import PriceFetcher from "./price.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
-import CONFIG from "./bot.config";
+import CONFIG, { priceThreshold } from "./bot.config";
 import { keys } from "./keys";
 import { ZETTABLOCK_API_KEY } from "./keys";
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 const DATABASE_OBJECT_KEYS = {
-  transfersKey: "nm-pkComp-bot-key",
-  alertedAddressesKey: "nm-pkComp-bot-alerted-addresses-key",
-  queuedAddressesKey: "nm-pkComp-bot-queued-addresses-key",
+  transfersKey: "nm-pk-comp-bot-key-1",
+  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1",
+  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1",
 };
 
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
@@ -78,6 +79,7 @@ export const provideHandleTransaction =
     contractFetcher: ContractFetcher,
     dataFetcher: DataFetcher,
     marketCapFetcher: MarketCapFetcher,
+    priceFetcher: PriceFetcher,
     persistenceHelper: PersistenceHelper,
     databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string }
   ) =>
@@ -193,11 +195,19 @@ export const provideHandleTransaction =
               const isFromFundedByTo = await contractFetcher.getFundInfo(from, to, Number(chainId));
 
               if (!isFromFundedByTo) {
-                await updateRecord(from, to, networkManager.get("tokenName"), hash, transferObj);
+                // check the amount in USD, if over 100$ update record
+                const price = await priceFetcher.getValueInUsd(
+                  txEvent.blockNumber,
+                  Number(chainId),
+                  value.toString(),
+                  "native"
+                );
+
+                await updateRecord(from, to, networkManager.get("tokenName"), hash, price, transferObj);
               }
 
               // if there are multiple transfers to the same address, emit an alert
-              if (transferObj[to].length > 3) {
+              if (transferObj[to].length > 2) {
                 // check if the victims were initially funded by the same address
                 const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                   transferObj[to],
@@ -215,14 +225,6 @@ export const provideHandleTransaction =
                     await persistenceHelper.persist(
                       alertedAddresses,
                       databaseKeys.alertedAddressesKey.concat("-", chainId)
-                    );
-
-                    const anomalyScore = await calculateAlertRate(
-                      Number(chainId),
-                      BOT_ID,
-                      "PKC-1",
-                      isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                      transfersCount
                     );
 
                     // Add "from addresses" into the queue
@@ -245,15 +247,49 @@ export const provideHandleTransaction =
                       databaseKeys.queuedAddressesKey.concat("-", chainId)
                     );
 
-                    findings.push(
-                      createFinding(
-                        hash,
-                        transferObj[to].map((el) => el.victimAddress),
-                        to,
-                        transferObj[to].map((el) => el.transferredAsset),
-                        anomalyScore
-                      )
-                    );
+                    const totalTransferValue = transferObj[to].reduce((accumulator, object) => {
+                      return accumulator + object.valueInUSD;
+                    }, 0);
+
+                    if (totalTransferValue > priceThreshold) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-3",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-3"
+                        )
+                      );
+                    } else {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-1",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-1"
+                        )
+                      );
+                    }
                   }
                 } else {
                   // if it's FP, remove them from the db
@@ -294,11 +330,19 @@ export const provideHandleTransaction =
                     const isFromFundedByTo = await contractFetcher.getFundInfo(from, transfer.args.to, Number(chainId));
 
                     if (!isFromFundedByTo) {
-                      await updateRecord(from, transfer.args.to, transfer.address, hash, transferObj);
+                      // check the amount in USD, if over 100$ update record
+                      const price = await priceFetcher.getValueInUsd(
+                        txEvent.blockNumber,
+                        Number(chainId),
+                        transfer.args.amount.toString(),
+                        transfer.address
+                      );
+
+                      await updateRecord(from, transfer.args.to, transfer.address, hash, price, transferObj);
                     }
 
                     // if there are multiple transfers to the same address, emit an alert
-                    if (transferObj[transfer.args.to].length > 3) {
+                    if (transferObj[transfer.args.to].length > 2) {
                       // check if the victims were initially funded by the same address
                       const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                         transferObj[transfer.args.to],
@@ -318,14 +362,6 @@ export const provideHandleTransaction =
                           await persistenceHelper.persist(
                             alertedAddresses,
                             databaseKeys.alertedAddressesKey.concat("-", chainId)
-                          );
-
-                          const anomalyScore = await calculateAlertRate(
-                            Number(chainId),
-                            BOT_ID,
-                            "PKC-1",
-                            isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                            ercTransferCount
                           );
 
                           // Add from addresses into the queue
@@ -348,15 +384,49 @@ export const provideHandleTransaction =
                             databaseKeys.queuedAddressesKey.concat("-", chainId)
                           );
 
-                          findings.push(
-                            createFinding(
-                              hash,
-                              transferObj[transfer.args.to].map((el) => el.victimAddress),
-                              transfer.args.to,
-                              transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                              anomalyScore
-                            )
-                          );
+                          const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
+                            return accumulator + object.valueInUSD;
+                          }, 0);
+
+                          if (totalTransferValue > priceThreshold) {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-3",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
+
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-3"
+                              )
+                            );
+                          } else {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-1",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
+
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-1"
+                              )
+                            );
+                          }
                         }
                       } else {
                         // if it's FP, remove them from the db
@@ -391,6 +461,7 @@ export default {
     new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider()),
     new MarketCapFetcher(),
+    new PriceFetcher(getEthersProvider()),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS
   ),
