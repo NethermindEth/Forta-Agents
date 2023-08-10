@@ -201,7 +201,6 @@ export interface LargeProfitAddress {
 }
 
 export const FUNCTION_ABIS = [
-  "function burn(int24 tickLower, int24 tickUpper, uint128 amount)",
   "function remove_liquidity(uint256 _amount, uint256[2] min_amounts)",
   "function removeLiquidity(address _tokenA, address _tokenB)",
   "function removeLiquidity(address tokenA, address tokenB, uint liquidity, uint amountAMin, uint amountBMin, address to, uint deadline)",
@@ -210,4 +209,5 @@ export const FUNCTION_ABIS = [
   "function removeLiquidityETHWithPermit(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)",
   "function removeLiquidityETHSupportingFeeOnTransferTokens(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline)",
   "function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)",
+  "function burn(int24 tickLower, int24 tickUpper, uint128 amount)",
 ];
