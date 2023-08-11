@@ -275,7 +275,8 @@ export default class DataFetcher {
 
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${txTo}`
@@ -334,7 +335,8 @@ export default class DataFetcher {
 
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${attacker}`
@@ -409,7 +411,8 @@ export default class DataFetcher {
 
             if (
               result.message.startsWith("NOTOK") ||
-              result.message.startsWith("Query Timeout")
+              result.message.startsWith("Query Timeout") ||
+              result.message.startsWith("No transactions found")
             ) {
               console.log(
                 `block explorer error occured (attempt ${attempt}); retrying check for ${victim}`
@@ -491,7 +494,8 @@ export default class DataFetcher {
         ).json();
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -544,7 +548,8 @@ export default class DataFetcher {
         ).json();
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -604,7 +609,8 @@ export default class DataFetcher {
 
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -657,7 +663,8 @@ export default class DataFetcher {
 
           if (
             result.message.startsWith("NOTOK") ||
-            result.message.startsWith("Query Timeout")
+            result.message.startsWith("Query Timeout") ||
+            result.message.startsWith("No transactions found")
           ) {
             console.log(
               `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -737,7 +744,8 @@ export default class DataFetcher {
 
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -781,7 +789,8 @@ export default class DataFetcher {
 
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
@@ -846,7 +855,8 @@ export default class DataFetcher {
         ).json();
         if (
           result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("No transactions found")
         ) {
           console.log(
             `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
