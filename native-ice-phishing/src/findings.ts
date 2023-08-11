@@ -66,10 +66,15 @@ export const createLowSeverityFinding = (
   funcSig: string,
   anomalyScore: number
 ): Finding => {
+  const alertId = "NIP-3";
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(from + to + funcSig + alertId)
+  );
+
   return Finding.fromObject({
     name: "Possible native ice phishing with social engineering component attack",
     description: `${from} sent funds to ${to} with ${funcSig} as input data`,
-    alertId: "NIP-3",
+    alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
@@ -101,6 +106,7 @@ export const createLowSeverityFinding = (
         remove: false,
       }),
     ],
+    uniqueKey,
   });
 };
 

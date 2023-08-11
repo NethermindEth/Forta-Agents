@@ -10,7 +10,7 @@ export const POLYGON_MATIC_ADDRESS =
   "0x0000000000000000000000000000000000001010";
 
 export const WITHDRAW_SIG = "3ccfd60b"; // withdraw();
-export const WITHDRAWTO_SIG = "00f714ce"; // withdraw(uint256, address);
+export const WITHDRAWTO_SIG = "f714ce"; // withdraw(uint256, address) without leading 0s;
 export const BALANCEOF_SIG = "70a08231";
 export const OWNER_ABI = [
   "function owner() public view returns (address)",

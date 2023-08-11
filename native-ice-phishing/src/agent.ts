@@ -297,7 +297,7 @@ export const provideHandleTransaction =
         }
       } else if (
         data === "0x" + WITHDRAW_SIG ||
-        data.startsWith("0x" + WITHDRAWTO_SIG)
+        data.startsWith("0x00" + WITHDRAWTO_SIG)
       ) {
         withdrawalsCount++;
         owner = await dataFetcher.getOwner(to, blockNumber);
@@ -322,7 +322,7 @@ export const provideHandleTransaction =
                 ScanCountType.CustomScanCount,
                 withdrawalsCount // No issue in passing 0 for non-relevant chains
               );
-              const receiver = data.startsWith("0x" + WITHDRAWTO_SIG)
+              const receiver = data.startsWith("0x00" + WITHDRAWTO_SIG)
                 ? "0x" + data.substring(data.length - 40)
                 : from;
               findings.push(
@@ -356,13 +356,47 @@ export const provideHandleTransaction =
         chainId
       );
       if (sourceCode) {
+        let withdrawToRecipient = false; // withdraw(uint256 amount, address recipient) case
+        let withdrawFound = false; // withdraw() case
+
         const payableString = "payable";
+        const payableMatches = sourceCode.match(new RegExp(payableString, "g"));
+
+        // withdraw(uint256 amount, address recipient)
+        const functionPattern =
+          /function withdraw\(\w+ (\w+), \w+ (\w+)\) public onlyOwner\s*\{([^\}]*)\}/s;
+        const match = sourceCode.match(functionPattern);
+        if (match) {
+          const amountVariableName = match[1];
+          const recipientVariableName = match[2];
+          const functionContent = match[3];
+
+          const transferPattern = new RegExp(
+            `payable\\(\\s*${recipientVariableName}\\s*\\)\\.transfer\\(\\s*${amountVariableName}\\s*\\);`
+          );
+          const callPattern = new RegExp(
+            `payable\\(\\s*${recipientVariableName}\\s*\\)\\.call\\{value:\\s*${amountVariableName}`
+          );
+
+          // Checking for more than one "payable" match, as there will be one in the scam "deposit" function and one in the withdraw (payable(recipient))
+          if (
+            (callPattern.test(functionContent) ||
+              transferPattern.test(functionContent)) &&
+            payableMatches &&
+            payableMatches.length > 1
+          ) {
+            withdrawToRecipient = true;
+          }
+        }
+
+        // withdraw()
         const withdrawRegex =
           /require\(owner == msg.sender\);\s*msg\.sender\.transfer\(address\(this\)\.balance\);/g;
-        if (
-          withdrawRegex.test(sourceCode) &&
-          sourceCode.includes(payableString)
-        ) {
+        if (withdrawRegex.test(sourceCode) && payableMatches) {
+          withdrawFound = true;
+        }
+
+        if (withdrawFound || withdrawToRecipient) {
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
@@ -381,12 +415,12 @@ export const provideHandleTransaction =
             )
           );
         }
-      } else if (code.includes(WITHDRAW_SIG)) {
+      } else if (code.includes(WITHDRAW_SIG) || code.includes(WITHDRAWTO_SIG)) {
         const hashesWithoutPrefix = alertedHashes.map((hash) => {
           return hash.substring(2);
         });
         const hasCodeWithoutPrefix = hashesWithoutPrefix.some(
-          (c) => c !== WITHDRAW_SIG && code.includes(c)
+          (c) => c !== WITHDRAW_SIG && c !== WITHDRAWTO_SIG && code.includes(c)
         );
         if (hasCodeWithoutPrefix) {
           const anomalyScore = await calculateAlertRate(
