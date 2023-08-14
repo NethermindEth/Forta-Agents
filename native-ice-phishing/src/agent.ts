@@ -6,8 +6,6 @@ import {
   FindingSeverity,
   Initialize,
   getAlerts,
-  HandleAlert,
-  AlertEvent,
   AlertQueryOptions,
   AlertsResponse,
   BlockEvent,
@@ -62,10 +60,9 @@ let alertedHashesWithAddress: string[] = [];
 let infoAlerts: { alerts: Alert[] } = {
   alerts: [],
 };
-let transactions: ethers.providers.TransactionResponse[] = [];
-let transactionsProcessed = 0;
+
 let lastTimestamp = 0;
-let lastBlock = 0;
+let lastExecutedMinute = 0;
 
 export const BOT_ID =
   "0x1a69f5ec8ef436e4093f9ec4ce1a55252b7a9a2d2c386e3f950b79d164bc99e0";
@@ -221,40 +218,9 @@ export const provideInitialize = (
   };
 };
 
-let st = 0;
-
-export const provideHandleAlert =
-  (
-    persistenceHelper: PersistenceHelper,
-    databaseKeys: {
-      transfersKey: string;
-      alertedAddressesKey: string;
-      alertedAddressesCriticalKey: string;
-    }
-  ): HandleAlert =>
-  async (alertEvent: AlertEvent) => {
-    if (alertEvent.alertId === "NIP-4") {
-      storedData.alertedAddresses.push(alertEvent.alert.metadata.attacker);
-      await persistenceHelper.persist(
-        storedData.alertedAddresses,
-        databaseKeys.alertedAddressesKey
-      );
-    } else if (alertEvent.alertId === "NIP-7") {
-      storedData.alertedAddressesCritical.push(
-        alertEvent.alert.metadata.attacker
-      );
-      await persistenceHelper.persist(
-        storedData.alertedAddressesCritical,
-        databaseKeys.alertedAddressesCriticalKey
-      );
-    }
-    return [];
-  };
-
 export const provideHandleTransaction =
   (
     dataFetcher: DataFetcher,
-    provider: ethers.providers.Provider,
     persistenceHelper: PersistenceHelper,
     databaseKeys: {
       transfersKey: string;
@@ -266,12 +232,7 @@ export const provideHandleTransaction =
   ) =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
-    let {
-      nativeTransfers,
-      alertedAddresses,
-      alertedHashes,
-      alertedAddressesCritical,
-    } = storedData;
+    let { nativeTransfers, alertedAddresses, alertedHashes } = storedData;
     const {
       hash,
       from,
@@ -281,180 +242,6 @@ export const provideHandleTransaction =
       logs,
       blockNumber,
     } = txEvent;
-
-    // At the beginning of the block
-    if (blockNumber != lastBlock) {
-      const et = new Date().getTime();
-      console.log(`Block processing time: ${et - st} ms`);
-      const fetchedTransfers: Record<string, Transfer[]> =
-        await persistenceHelper.load(databaseKeys.transfersKey);
-      if (Object.keys(fetchedTransfers).length > 0) {
-        const uniqueAndSortedTransfersRecord: Record<string, Transfer[]> = {};
-
-        Object.entries(fetchedTransfers).forEach(([key, transfers]) => {
-          uniqueAndSortedTransfersRecord[key] = transfers
-            .filter((transfer: Transfer, index: number, self: Transfer[]) => {
-              return (
-                index ===
-                self.findIndex((t: Transfer) => t.from === transfer.from)
-              );
-            })
-            .sort((a: Transfer, b: Transfer) => a.timestamp - b.timestamp);
-        });
-
-        nativeTransfers = uniqueAndSortedTransfersRecord;
-      }
-
-      console.log(
-        "Size of transfers object: ",
-        Buffer.from(JSON.stringify(nativeTransfers)).length
-      );
-
-      alertedAddresses = await persistenceHelper.load(
-        databaseKeys.alertedAddressesKey
-      );
-
-      console.log("Size of alerted addresses :", alertedAddresses.length);
-      transactions = (await dataFetcher.getTransactions(
-        provider,
-        blockNumber
-      )) as ethers.providers.TransactionResponse[];
-
-      if (timestamp - lastTimestamp > TIME_PERIOD) {
-        alertedAddresses = [];
-        alertedAddresses.push("placeholderAddress");
-        await persistenceHelper.persist(
-          alertedAddresses,
-          databaseKeys.alertedAddressesKey
-        );
-        alertedAddressesCritical = [];
-        alertedAddressesCritical.push("placeholderAddress");
-        await persistenceHelper.persist(
-          alertedAddressesCritical,
-          databaseKeys.alertedAddressesCriticalKey
-        );
-
-        lastTimestamp = timestamp;
-      }
-
-      lastBlock = blockNumber;
-      console.log(
-        `-----Transactions processed in block ${
-          blockNumber - 6
-        }: ${transactionsProcessed}-----`
-      );
-      transactionsProcessed = 0;
-      st = new Date().getTime();
-    }
-
-    transactionsProcessed += 1;
-
-    // Extract the persistence logic into a function as it's used twice
-    async function mergeAndPersistObjects() {
-      // Load the existing objects from the database
-      const persistedObj = await persistenceHelper.load(
-        databaseKeys.transfersKey
-      );
-      const existingAlertedAddresses = await persistenceHelper.load(
-        databaseKeys.alertedAddressesKey
-      );
-
-      // Merge the alertedAddresses array with the existing array and remove duplicates
-      const mergedAlertedAddresses = Array.from(
-        new Set([...existingAlertedAddresses, ...alertedAddresses])
-      );
-
-      // Remove the merged alerted addresses from the nativeTransfers and the persisted objects
-      mergedAlertedAddresses.forEach((address) => {
-        if (nativeTransfers[address]) {
-          delete nativeTransfers[address];
-        }
-        if (persistedObj[address]) {
-          delete persistedObj[address];
-        }
-      });
-
-      // Merge the persisted object with the new object
-      const mergedObj: Record<string, Transfer[]> = {
-        ...nativeTransfers,
-        ...persistedObj,
-      };
-
-      // Only save the merged alerted addresses to the database if their size is different from the existing array
-      if (
-        mergedAlertedAddresses.length !== existingAlertedAddresses.length &&
-        existingAlertedAddresses.length > 0
-      ) {
-        await persistenceHelper.persist(
-          mergedAlertedAddresses,
-          databaseKeys.alertedAddressesKey
-        );
-      }
-
-      // Iterate through the keys of the objects
-      for (const key of Object.keys(nativeTransfers)) {
-        const subArray = nativeTransfers[key];
-        const persistedSubArray = persistedObj[key] || [];
-
-        // Merge the two arrays
-        const mergedSubArray = [...subArray];
-        for (const obj of persistedSubArray) {
-          if (
-            !mergedSubArray.some(
-              (o) => JSON.stringify(o.from) === JSON.stringify(obj.from)
-            ) &&
-            !mergedSubArray.some(
-              (o) =>
-                JSON.stringify(o.fundingAddress) ===
-                JSON.stringify(obj.fundingAddress)
-            )
-          ) {
-            mergedSubArray.push(obj);
-          }
-        }
-
-        mergedObj[key] = mergedSubArray;
-      }
-
-      Object.entries(mergedObj).forEach(([key, transfers]) => {
-        mergedObj[key] = transfers.sort(
-          (a: Transfer, b: Transfer) => a.timestamp - b.timestamp
-        );
-      });
-
-      let objectSize = Buffer.from(JSON.stringify(mergedObj)).length;
-      while (objectSize > MAX_OBJECT_SIZE) {
-        console.log("Cleaning Object of size: ", objectSize);
-
-        // Sort and delete 1/4 of the keys as before
-        const sortedKeys = Object.keys(mergedObj).sort((a, b) => {
-          const latestTimestampA =
-            mergedObj[a][mergedObj[a].length - 1].timestamp;
-          const latestTimestampB =
-            mergedObj[b][mergedObj[b].length - 1].timestamp;
-          return latestTimestampA - latestTimestampB;
-        });
-        const indexToDelete = Math.floor(sortedKeys.length / 4);
-        for (let i = 0; i < indexToDelete; i++) {
-          delete mergedObj[sortedKeys[i]];
-        }
-
-        objectSize = Buffer.from(JSON.stringify(mergedObj)).length;
-        console.log("Object size after cleaning: ", objectSize);
-
-        storedData.nativeTransfers = mergedObj;
-      }
-
-      // Save the merged objects to the database
-      if (Object.keys(persistedObj).length > 0) {
-        await persistenceHelper.persist(mergedObj, databaseKeys.transfersKey);
-      }
-    }
-
-    // In the last transaction of the block
-    if (hash === transactions[transactions.length - 1].hash) {
-      await mergeAndPersistObjects();
-    }
 
     if (to) {
       let owner = "";
@@ -510,7 +297,7 @@ export const provideHandleTransaction =
         }
       } else if (
         data === "0x" + WITHDRAW_SIG ||
-        data.startsWith("0x" + WITHDRAWTO_SIG)
+        data.startsWith("0x00" + WITHDRAWTO_SIG)
       ) {
         withdrawalsCount++;
         owner = await dataFetcher.getOwner(to, blockNumber);
@@ -535,7 +322,7 @@ export const provideHandleTransaction =
                 ScanCountType.CustomScanCount,
                 withdrawalsCount // No issue in passing 0 for non-relevant chains
               );
-              const receiver = data.startsWith("0x" + WITHDRAWTO_SIG)
+              const receiver = data.startsWith("0x00" + WITHDRAWTO_SIG)
                 ? "0x" + data.substring(data.length - 40)
                 : from;
               findings.push(
@@ -569,13 +356,47 @@ export const provideHandleTransaction =
         chainId
       );
       if (sourceCode) {
+        let withdrawToRecipient = false; // withdraw(uint256 amount, address recipient) case
+        let withdrawFound = false; // withdraw() case
+
         const payableString = "payable";
+        const payableMatches = sourceCode.match(new RegExp(payableString, "g"));
+
+        // withdraw(uint256 amount, address recipient)
+        const functionPattern =
+          /function withdraw\(\w+ (\w+), \w+ (\w+)\) public onlyOwner\s*\{([^\}]*)\}/s;
+        const match = sourceCode.match(functionPattern);
+        if (match) {
+          const amountVariableName = match[1];
+          const recipientVariableName = match[2];
+          const functionContent = match[3];
+
+          const transferPattern = new RegExp(
+            `payable\\(\\s*${recipientVariableName}\\s*\\)\\.transfer\\(\\s*${amountVariableName}\\s*\\);`
+          );
+          const callPattern = new RegExp(
+            `payable\\(\\s*${recipientVariableName}\\s*\\)\\.call\\{value:\\s*${amountVariableName}`
+          );
+
+          // Checking for more than one "payable" match, as there will be one in the scam "deposit" function and one in the withdraw (payable(recipient))
+          if (
+            (callPattern.test(functionContent) ||
+              transferPattern.test(functionContent)) &&
+            payableMatches &&
+            payableMatches.length > 1
+          ) {
+            withdrawToRecipient = true;
+          }
+        }
+
+        // withdraw()
         const withdrawRegex =
           /require\(owner == msg.sender\);\s*msg\.sender\.transfer\(address\(this\)\.balance\);/g;
-        if (
-          withdrawRegex.test(sourceCode) &&
-          sourceCode.includes(payableString)
-        ) {
+        if (withdrawRegex.test(sourceCode) && payableMatches) {
+          withdrawFound = true;
+        }
+
+        if (withdrawFound || withdrawToRecipient) {
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
@@ -594,12 +415,12 @@ export const provideHandleTransaction =
             )
           );
         }
-      } else if (code.includes(WITHDRAW_SIG)) {
+      } else if (code.includes(WITHDRAW_SIG) || code.includes(WITHDRAWTO_SIG)) {
         const hashesWithoutPrefix = alertedHashes.map((hash) => {
           return hash.substring(2);
         });
         const hasCodeWithoutPrefix = hashesWithoutPrefix.some(
-          (c) => c !== WITHDRAW_SIG && code.includes(c)
+          (c) => c !== WITHDRAW_SIG && c !== WITHDRAWTO_SIG && code.includes(c)
         );
         if (hasCodeWithoutPrefix) {
           const anomalyScore = await calculateAlertRate(
@@ -963,11 +784,6 @@ export const provideHandleTransaction =
       }
     }
 
-    // In the last transaction of the block if the function has not already returned
-    if (hash === transactions[transactions.length - 1].hash) {
-      await mergeAndPersistObjects();
-    }
-
     return findings;
   };
 
@@ -987,6 +803,133 @@ export const provideHandleBlock =
   ) =>
   async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
+
+    let { nativeTransfers, alertedAddresses, alertedAddressesCritical } =
+      storedData;
+
+    const date = new Date();
+    const minutes = date.getMinutes();
+
+    if (minutes % 10 === 0 && lastExecutedMinute !== minutes) {
+      // Load the existing objects from the database
+      const persistedObj = await persistenceHelper.load(
+        databaseKeys.transfersKey
+      );
+      const existingAlertedAddresses = await persistenceHelper.load(
+        databaseKeys.alertedAddressesKey
+      );
+
+      // Merge the alertedAddresses array with the existing array and remove duplicates
+      const mergedAlertedAddresses = Array.from(
+        new Set([...existingAlertedAddresses, ...alertedAddresses])
+      );
+
+      // Remove the merged alerted addresses from the nativeTransfers and the persisted objects
+      mergedAlertedAddresses.forEach((address) => {
+        if (nativeTransfers[address]) {
+          delete nativeTransfers[address];
+        }
+        if (persistedObj[address]) {
+          delete persistedObj[address];
+        }
+      });
+
+      // Merge the persisted object with the new object
+      const mergedObj: Record<string, Transfer[]> = {
+        ...nativeTransfers,
+        ...persistedObj,
+      };
+
+      // Only save the merged alerted addresses to the database if their size is different from the existing array
+      if (
+        mergedAlertedAddresses.length !== existingAlertedAddresses.length &&
+        existingAlertedAddresses.length > 0
+      ) {
+        await persistenceHelper.persist(
+          mergedAlertedAddresses,
+          databaseKeys.alertedAddressesKey
+        );
+      }
+
+      // Iterate through the keys of the objects
+      for (const key of Object.keys(nativeTransfers)) {
+        const subArray = nativeTransfers[key];
+        const persistedSubArray = persistedObj[key] || [];
+
+        // Merge the two arrays
+        const mergedSubArray = [...subArray];
+        for (const obj of persistedSubArray) {
+          if (
+            !mergedSubArray.some(
+              (o) => JSON.stringify(o.from) === JSON.stringify(obj.from)
+            ) &&
+            !mergedSubArray.some(
+              (o) =>
+                JSON.stringify(o.fundingAddress) ===
+                JSON.stringify(obj.fundingAddress)
+            )
+          ) {
+            mergedSubArray.push(obj);
+          }
+        }
+
+        mergedObj[key] = mergedSubArray;
+      }
+
+      Object.entries(mergedObj).forEach(([key, transfers]) => {
+        mergedObj[key] = transfers.sort(
+          (a: Transfer, b: Transfer) => a.timestamp - b.timestamp
+        );
+      });
+
+      let objectSize = Buffer.from(JSON.stringify(mergedObj)).length;
+      while (objectSize > MAX_OBJECT_SIZE) {
+        console.log("Cleaning Object of size: ", objectSize);
+
+        // Sort and delete 1/4 of the keys as before
+        const sortedKeys = Object.keys(mergedObj).sort((a, b) => {
+          const latestTimestampA =
+            mergedObj[a][mergedObj[a].length - 1].timestamp;
+          const latestTimestampB =
+            mergedObj[b][mergedObj[b].length - 1].timestamp;
+          return latestTimestampA - latestTimestampB;
+        });
+        const indexToDelete = Math.floor(sortedKeys.length / 4);
+        for (let i = 0; i < indexToDelete; i++) {
+          delete mergedObj[sortedKeys[i]];
+        }
+
+        objectSize = Buffer.from(JSON.stringify(mergedObj)).length;
+        console.log("Object size after cleaning: ", objectSize);
+
+        storedData.nativeTransfers = mergedObj;
+      }
+
+      // Save the merged objects to the database
+      if (Object.keys(persistedObj).length > 0) {
+        await persistenceHelper.persist(mergedObj, databaseKeys.transfersKey);
+      }
+
+      if (blockEvent.block.timestamp - lastTimestamp > TIME_PERIOD) {
+        alertedAddresses = [];
+        alertedAddresses.push("placeholderAddress");
+        await persistenceHelper.persist(
+          alertedAddresses,
+          databaseKeys.alertedAddressesKey
+        );
+        alertedAddressesCritical = [];
+        alertedAddressesCritical.push("placeholderAddress");
+        await persistenceHelper.persist(
+          alertedAddressesCritical,
+          databaseKeys.alertedAddressesCriticalKey
+        );
+
+        lastTimestamp = blockEvent.block.timestamp;
+      }
+
+      lastExecutedMinute = minutes;
+    }
+
     if (infoAlerts.alerts.length > 0) {
       let { alertedAddressesCritical } = storedData;
 
@@ -1048,14 +991,6 @@ export const provideHandleBlock =
         );
 
         if (!haveInteractedAgain) {
-          // Avoid duplicate alerts
-          const alertedAddressesCriticalRecheck = await persistenceHelper.load(
-            databaseKeys.alertedAddressesCriticalKey
-          );
-          if (alertedAddressesCriticalRecheck.includes(attacker)) {
-            continue;
-          }
-
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
@@ -1095,15 +1030,10 @@ export default {
   provideInitialize,
   handleTransaction: provideHandleTransaction(
     new DataFetcher(getEthersProvider(), keys),
-    getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS,
     calculateAlertRate,
     storedData
-  ),
-  handleAlert: provideHandleAlert(
-    new PersistenceHelper(DATABASE_URL),
-    DATABASE_OBJECT_KEYS
   ),
   handleBlock: provideHandleBlock(
     new DataFetcher(getEthersProvider(), keys),

@@ -4,6 +4,7 @@ import {
   FindingType,
   Label,
   EntityType,
+  ethers,
 } from "forta-agent";
 import { Transfer } from "./utils";
 
@@ -65,10 +66,15 @@ export const createLowSeverityFinding = (
   funcSig: string,
   anomalyScore: number
 ): Finding => {
+  const alertId = "NIP-3";
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(from + to + funcSig + alertId)
+  );
+
   return Finding.fromObject({
     name: "Possible native ice phishing with social engineering component attack",
     description: `${from} sent funds to ${to} with ${funcSig} as input data`,
-    alertId: "NIP-3",
+    alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
@@ -100,6 +106,7 @@ export const createLowSeverityFinding = (
         remove: false,
       }),
     ],
+    uniqueKey,
   });
 };
 
@@ -108,6 +115,18 @@ export const createHighSeverityFinding = (
   anomalyScore: number,
   nativeTransfers: Transfer[]
 ): Finding => {
+  const alertId = "NIP-4";
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      to + alertId + currentDate + currentMonth + currentYear
+    )
+  );
+
   const metadata: { [key: string]: string } = {
     attacker: to,
     anomalyScore: anomalyScore.toString(),
@@ -140,11 +159,12 @@ export const createHighSeverityFinding = (
   return Finding.fromObject({
     name: "Possible native ice phishing attack",
     description: `${to} received native tokens from 8+ different addresses`,
-    alertId: "NIP-4",
+    alertId,
     severity: FindingSeverity.High,
     type: FindingType.Suspicious,
     metadata,
     labels,
+    uniqueKey,
   });
 };
 
@@ -234,6 +254,17 @@ export const createCriticalNIPSeverityFinding = (
   victims: string[],
   anomalyScore: number
 ): Finding => {
+  const alertId = "NIP-7";
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      attacker + alertId + currentDate + currentMonth + currentYear
+    )
+  );
   const metadata: { [key: string]: string } = {
     attacker,
     anomalyScore: anomalyScore.toString(),
@@ -266,11 +297,12 @@ export const createCriticalNIPSeverityFinding = (
   return Finding.fromObject({
     name: "Native Ice Phishing Attack",
     description: `${attacker} received native tokens from 8+ different addresses, with no other interactions with the victims for a week`,
-    alertId: "NIP-7",
+    alertId,
     severity: FindingSeverity.Critical,
     type: FindingType.Suspicious,
     metadata,
     labels,
+    uniqueKey,
   });
 };
 

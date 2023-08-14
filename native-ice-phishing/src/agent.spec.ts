@@ -106,10 +106,14 @@ const testCreateLowSeverityFinding = (
   funcSig: string,
   anomalyScore: number
 ): Finding => {
+  const alertId = "NIP-3";
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(from + to + funcSig + alertId)
+  );
   return Finding.fromObject({
     name: "Possible native ice phishing with social engineering component attack",
     description: `${from} sent funds to ${to} with ${funcSig} as input data`,
-    alertId: "NIP-3",
+    alertId,
     severity: FindingSeverity.Low,
     type: FindingType.Suspicious,
     metadata: {
@@ -141,6 +145,7 @@ const testCreateLowSeverityFinding = (
         remove: false,
       }),
     ],
+    uniqueKey,
   });
 };
 
@@ -149,6 +154,18 @@ const testCreateHighSeverityFinding = (
   anomalyScore: number,
   nativeTransfers: Transfer[]
 ): Finding => {
+  const alertId = "NIP-4";
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      to + alertId + currentDate + currentMonth + currentYear
+    )
+  );
+
   const metadata: { [key: string]: string } = {
     attacker: to,
     anomalyScore: anomalyScore.toString(),
@@ -186,6 +203,7 @@ const testCreateHighSeverityFinding = (
     type: FindingType.Suspicious,
     metadata,
     labels,
+    uniqueKey,
   });
 };
 
@@ -275,6 +293,18 @@ const testCreateCriticalNIPSeverityFinding = (
   victims: string[],
   anomalyScore: number
 ): Finding => {
+  const alertId = "NIP-7";
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      attacker + alertId + currentDate + currentMonth + currentYear
+    )
+  );
+
   const metadata: { [key: string]: string } = {
     attacker,
     anomalyScore: anomalyScore.toString(),
@@ -312,6 +342,7 @@ const testCreateCriticalNIPSeverityFinding = (
     type: FindingType.Suspicious,
     metadata,
     labels,
+    uniqueKey,
   });
 };
 
@@ -333,6 +364,7 @@ const mockFetcher = {
   isValueUnique: jest.fn(),
   isRecentlyInvolvedInTransfer: jest.fn(),
   haveInteractedAgain: jest.fn(),
+  haveInteractedWithSameAddress: jest.fn(),
 };
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
@@ -378,7 +410,6 @@ describe("Native Ice Phishing Bot test suite", () => {
 
     handleTransaction = provideHandleTransaction(
       mockFetcher as any,
-      mockProvider as any,
       mockPersistenceHelper as any,
       mockDatabaseObjectKeys,
       mockCalculateRate,
@@ -399,7 +430,6 @@ describe("Native Ice Phishing Bot test suite", () => {
 
     const handleRealTransaction = provideHandleTransaction(
       new DataFetcher(realProvider, keys),
-      realProvider,
       new PersistenceHelper(REAL_DATABASE_URL),
       REAL_DATABASE_OBJECT_KEYS,
       calculateAlertRate,
@@ -846,7 +876,6 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setBlock(1234456)
       .setData("0x00");
 
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -861,7 +890,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setValue("0x0bb")
       .setBlock(121212)
       .setData("0x12345678");
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -883,7 +912,6 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setData("0x12345678")
       .setHash("0xabcd");
 
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -935,7 +963,6 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setData("0x12345678")
       .setHash("0xabcd");
 
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -977,7 +1004,6 @@ describe("Native Ice Phishing Bot test suite", () => {
 
     mockStoredData.alertedHashes.push("0xa9059cbb");
 
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -1099,7 +1125,6 @@ describe("Native Ice Phishing Bot test suite", () => {
       .calledWith(to, 1)
       .mockReturnValue("Fake_Phishing");
 
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -1108,6 +1133,11 @@ describe("Native Ice Phishing Bot test suite", () => {
     when(mockFetcher.isRecentlyInvolvedInTransfer)
       .calledWith(createAddress("0x0f"), "0xabcd", 1, 3232)
       .mockReturnValue(false);
+
+    const victims = mockStoredData.nativeTransfers[to].map(
+      (transfer) => transfer.from
+    );
+    when(mockFetcher.haveInteractedWithSameAddress).calledWith(to, victims, 1);
 
     when(mockCalculateRate)
       .calledWith(1, BOT_ID, "NIP-4", ScanCountType.TransferCount, 0)
@@ -1126,7 +1156,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .setTo(null)
       .setNonce(23)
       .setHash("0xabcd");
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
+
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
@@ -1235,7 +1265,6 @@ describe("Native Ice Phishing Bot test suite", () => {
   });
 
   it("should return a finding if there's a withdrawal from the owner of a contract used for native ice phishing attack", async () => {
-    mockPersistenceHelper.load.mockReturnValueOnce({}).mockReturnValueOnce([]);
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
       { hash: "hash25" },
