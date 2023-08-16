@@ -1,11 +1,3 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
+import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
 
-describe("Victim & Loss Identifier Test Suite", () => {
-});
+describe("Victim & Loss Identifier Test Suite", () => {});
