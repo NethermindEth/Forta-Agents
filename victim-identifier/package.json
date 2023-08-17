@@ -1,7 +1,9 @@
 {
   "name": "victim-identifier",
+  "displayName": "Victim Identifier",
   "version": "0.0.8",
   "description": "Bot that identifies victims during the preparation or the exploitation stage of an attack",
+  "longDescription": "This bot is specifically aimed at identifying potential victims within the stages of attack preparation or exploitation. Its core function relies on utilizing the VictimIdentifier library from the General-Agents-Module. By integrating data from Moralis, Ethplorer, and block explorer APIs, the bot proactively identifies victims who might be targeted during these crucial attack stages.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-identifier",
   "chainIds": [
     1,
@@ -62,7 +64,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.31",
+    "forta-agent": "^0.1.36",
     "forta-agent-tools": "^3.2.8"
   },
   "devDependencies": {

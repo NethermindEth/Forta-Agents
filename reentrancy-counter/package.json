@@ -1,8 +1,10 @@
 {
   "name": "reentrancy-calls-detection-bot",
+  "displayName": "Reentrancy Calls Detection Bot",
   "version": "0.0.4",
   "agentId": "nethforta-25",
-  "description": "Reentrancy Monitoring",
+  "description": "This bot checks transactions for reentrancy.",
+  "longDescription": "The bot identifies instances of reentrancy within transactions. Its primary function revolves around closely monitoring the call stack within transaction traces, subsequently reporting the count of recursive calls. The bot assesses the severity of reentrancy based on predefined thresholds.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/reentrancy-counter",
   "chainIds": [
     1,
@@ -29,7 +31,7 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "forta-agent": "^0.1.17",
+    "forta-agent": "^0.1.36",
     "dotenv": "^16.0.3",
     "node-fetch": "^2.6.8"
   },
