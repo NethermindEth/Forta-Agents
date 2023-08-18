@@ -1,8 +1,10 @@
 {
   "name": "high-value-transaction",
+  "displayName": "High Value Transaction",
   "version": "0.2.2",
   "agentId": "nethforta-2",
   "description": "Forta bot that monitors transactions that have high value",
+  "longDescription": "The bot identifies transactions characterized by anomalous transaction values that surpass a predefined threshold. Its primary role involves actively monitoring transactional activities to pinpoint instances where the transaction value exceeds the established threshold. ",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/anomalous-tx-value",
   "chainIds": [
     1,
@@ -36,7 +38,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "forta-agent": "^0.1.17",
+    "forta-agent": "^0.1.36",
     "forta-agent-tools": "^3.1.2",
     "node-fetch": "^2.6.8",
     "bignumber.js": "^9.1.1"
