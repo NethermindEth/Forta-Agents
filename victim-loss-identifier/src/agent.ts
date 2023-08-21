@@ -5,77 +5,119 @@ import {
   HandleBlock,
   HandleAlert,
   AlertEvent,
-  FindingSeverity,
-  FindingType,
   getEthersProvider,
 } from "forta-agent";
 import { providers } from "ethers";
 import {
   SCAM_DETECTOR_BOT_ID,
   SCAM_DETECTOR_ALERT_IDS,
+  ONE_DAY,
   NINETY_DAYS,
   EXCHANGE_CONTRACT_ADDRESSES,
-  FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD_IN_WEI,
+  FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
 } from "./constants";
 import { ScammerInfo } from "./types";
+import { createFraudNftOrderFinding } from "./utils/findings";
 
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
-function getErc721Transfers(): any[] {
+// TODO: Add implementation
+function getErc721Transfers(scammerAddress: string, transferOccuranceTimeWindow: number): any[] {
   return [];
+}
+
+// TODO: Add implementation
+function isVictimAddressAssociatedWithScammer(addressOfInterest: string, scammerAddress: string): boolean {
+  return false;
+}
+
+// TODO: Add implementation
+function fetchNftCollectionFloorPrice(): number {
+  return 0;
 }
 
 async function processFraudulentNftOrders(alertEvent: AlertEvent, provider: providers.Provider): Promise<Finding[]> {
   const findings: Finding[] = [];
 
   const scammerAddress = alertEvent.alert.metadata["scammer_addresses"];
-  if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
-    // TODO: Figure out what to do in case the alert's blockNumber is `undefined`.
-    // Could the Scam Detector push such alerts?
-    if (alertEvent.blockNumber) {
-      scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber;
-    }
 
-    // TODO: Give this an actual defined type
-    const erc721Transfers: any[] = getErc721Transfers();
-
-    // TODO: Give this an actual defined type
-    erc721Transfers.map(async (erc721Transfer: any) => {
-      const {
-        tx_hash: txnHash,
-        from_address: fromAddress,
-        contract_address: contractAddress,
-        token_name: tokenName,
-        token_symbol: tokenSymbol,
-        token_id: tokenId,
-      } = erc721Transfer;
-
-      // TODO: Add logic to not proceed if `from`
-      // is associated with the scammer
-
-      const txnResponse = await provider.getTransaction(txnHash);
-      if (txnResponse.to != null) {
-        if (
-          Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse.to) &&
-          txnResponse.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD_IN_WEI)
-        ) {
-          // TODO: Fetch collection floor price
-          // and to add it to `tokenTotalUsdValue`
-          // for the current `tokenId`
-
-          scammersCurrentlyMonitored[scammerAddress].victims[fromAddress][txnHash].erc721 = {
-            [contractAddress]: {
-              tokenName,
-              tokenSymbol,
-              // TODO: This may override current
-              // victim's tokenIds. Fix.
-              tokenIds: tokenId,
-            },
-          };
-        }
-      }
-    });
+  if (alertEvent.blockNumber === undefined) {
+    return findings;
+  } else if (alertEvent.blockNumber) {
+    scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber;
   }
+
+  let erc721TransferTimeWindow: number;
+  if(!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+    if (alertEvent.alertId) {
+      scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance = alertEvent.alertId;
+    }
+    erc721TransferTimeWindow = NINETY_DAYS;
+  } else {
+    erc721TransferTimeWindow = ONE_DAY;
+  }
+
+  // TODO: Give this an actual defined type
+  const erc721Transfers: any[] = getErc721Transfers(scammerAddress, erc721TransferTimeWindow);
+
+  // TODO: Give this an actual defined type
+  erc721Transfers.map(async (erc721Transfer: any) => {
+    // TODO: Give this an actual defined type
+    const {
+      tx_hash: exploitTxnHash,
+      from_address: victimAddress,
+      contract_address: stolenTokenAddress,
+      token_name: stolenTokenName,
+      token_symbol: stolenTokenSymbol,
+      token_id: stolenTokenId,
+    } = erc721Transfer;
+
+    if (!Object.keys(scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions).includes(exploitTxnHash)) {
+      if (isVictimAddressAssociatedWithScammer(victimAddress, scammerAddress)) {
+        // TODO: Add logic to skip this particular set of info
+        // from this transfer
+      }
+
+      const txnResponse = await provider.getTransaction(exploitTxnHash);
+      if (
+        txnResponse.to != null &&
+        Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse.to) &&
+        txnResponse.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
+      ) {
+        const nftCollectionFloorPrice = fetchNftCollectionFloorPrice();
+
+        const { tokenIds: currentTokenIds, tokenTotalUsdValue: currentTokenTotalUsdValue } =
+          scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+            stolenTokenAddress
+          ];
+
+        scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+          stolenTokenAddress
+        ] = {
+          tokenName: stolenTokenName,
+          tokenSymbol: stolenTokenSymbol,
+          tokenIds: [...currentTokenIds, stolenTokenId],
+          tokenTotalUsdValue: currentTokenTotalUsdValue + nftCollectionFloorPrice,
+        };
+
+        findings.push(
+          createFraudNftOrderFinding(
+            victimAddress,
+            scammerAddress,
+            scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
+            scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].totalUsdValueAcrossAllTokens,
+            stolenTokenName,
+            stolenTokenAddress,
+            stolenTokenId,
+            scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+              stolenTokenAddress
+            ].tokenTotalUsdValue,
+            exploitTxnHash,
+            nftCollectionFloorPrice
+          )
+        );}
+    };
+  });
 
   return findings;
 }

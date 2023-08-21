@@ -3,7 +3,7 @@ export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER"];
 export const ONE_DAY = 60 * 60 * 24;
 export const NINETY_DAYS = ONE_DAY * 90;
 export const THIRTY_DAYS = ONE_DAY * 30;
-export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD_IN_WEI = 100;
+export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
 
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum
