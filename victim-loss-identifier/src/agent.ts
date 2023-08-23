@@ -1,12 +1,4 @@
-import {
-  BlockEvent,
-  Finding,
-  Initialize,
-  HandleBlock,
-  HandleAlert,
-  AlertEvent,
-  getEthersProvider,
-} from "forta-agent";
+import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
 import {
   SCAM_DETECTOR_BOT_ID,
@@ -22,13 +14,8 @@ import { createFraudNftOrderFinding } from "./utils/findings";
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 // TODO: Add implementation
-function getErc721Transfers(scammerAddress: string, transferOccuranceTimeWindow: number): any[] {
+function getErc721TransfersInvolvingScammer(scammerAddress: string, transferOccuranceTimeWindow: number): any[] {
   return [];
-}
-
-// TODO: Add implementation
-function isVictimAddressAssociatedWithScammer(addressOfInterest: string, scammerAddress: string): boolean {
-  return false;
 }
 
 // TODO: Add implementation
@@ -36,32 +23,18 @@ function fetchNftCollectionFloorPrice(): number {
   return 0;
 }
 
-async function processFraudulentNftOrders(alertEvent: AlertEvent, provider: providers.Provider): Promise<Finding[]> {
+async function processFraudulentNftOrders(
+  provider: providers.Provider,
+  scammerAddress: string,
+  erc721TransferTimeWindow: number
+): Promise<Finding[]> {
   const findings: Finding[] = [];
 
-  const scammerAddress = alertEvent.alert.metadata["scammer_addresses"];
-
-  if (alertEvent.blockNumber === undefined) {
-    return findings;
-  } else if (alertEvent.blockNumber) {
-    scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber;
-  }
-
-  let erc721TransferTimeWindow: number;
-  if(!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
-    if (alertEvent.alertId) {
-      scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance = alertEvent.alertId;
-    }
-    erc721TransferTimeWindow = NINETY_DAYS;
-  } else {
-    erc721TransferTimeWindow = ONE_DAY;
-  }
+  // TODO: Give this an actual defined type
+  const scammerErc721Transfers: any[] = getErc721TransfersInvolvingScammer(scammerAddress, erc721TransferTimeWindow);
 
   // TODO: Give this an actual defined type
-  const erc721Transfers: any[] = getErc721Transfers(scammerAddress, erc721TransferTimeWindow);
-
-  // TODO: Give this an actual defined type
-  erc721Transfers.map(async (erc721Transfer: any) => {
+  scammerErc721Transfers.map(async (erc721Transfer: any) => {
     // TODO: Give this an actual defined type
     const {
       tx_hash: exploitTxnHash,
@@ -72,12 +45,11 @@ async function processFraudulentNftOrders(alertEvent: AlertEvent, provider: prov
       token_id: stolenTokenId,
     } = erc721Transfer;
 
-    if (!Object.keys(scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions).includes(exploitTxnHash)) {
-      if (isVictimAddressAssociatedWithScammer(victimAddress, scammerAddress)) {
-        // TODO: Add logic to skip this particular set of info
-        // from this transfer
-      }
-
+    if (
+      !scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+        stolenTokenAddress
+      ].tokenIds.includes(stolenTokenId)
+    ) {
       const txnResponse = await provider.getTransaction(exploitTxnHash);
       if (
         txnResponse.to != null &&
@@ -94,6 +66,8 @@ async function processFraudulentNftOrders(alertEvent: AlertEvent, provider: prov
         scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
           stolenTokenAddress
         ] = {
+          // TODO: Would this be an issue if it
+          // overwrites the existing name and symbol?
           tokenName: stolenTokenName,
           tokenSymbol: stolenTokenSymbol,
           tokenIds: [...currentTokenIds, stolenTokenId],
@@ -115,8 +89,9 @@ async function processFraudulentNftOrders(alertEvent: AlertEvent, provider: prov
             exploitTxnHash,
             nftCollectionFloorPrice
           )
-        );}
-    };
+        );
+      }
+    }
   });
 
   return findings;
@@ -139,8 +114,14 @@ export function provideHandleAlert(provider: providers.Provider): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    if (alertEvent.alertId === "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER") {
-      findings.push(...(await processFraudulentNftOrders(alertEvent, provider)));
+    const scammerAddress = alertEvent.alert.metadata["scammer_addresses"];
+    if (
+      alertEvent.alertId === "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER" &&
+      !Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)
+    ) {
+      scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance = alertEvent.alertId!;
+      scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber!;
+      findings.push(...(await processFraudulentNftOrders(provider, scammerAddress, NINETY_DAYS)));
     }
 
     return findings;
@@ -150,6 +131,10 @@ export function provideHandleAlert(provider: providers.Provider): HandleAlert {
 export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
+
+    if(blockEvent.blockNumber) {
+
+    }
 
     return findings;
   };

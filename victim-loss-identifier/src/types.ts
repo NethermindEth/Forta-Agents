@@ -14,9 +14,10 @@ type Erc721Info = GeneralTokenInfo & {
 };
 
 type Erc1155Info = GeneralTokenInfo & {
-  tokenIds: { [key: number]: number };
+  tokenIds: { [key: number]: number }; // key: tokenId, value: tokenId amount
 };
 
+// key(s): token contract address
 type TransactionInfo = {
   erc20: { [key: string]: Erc20Info };
   erc721: { [key: string]: Erc721Info };
@@ -26,7 +27,7 @@ type TransactionInfo = {
 type VictimInfo = {
   totalUsdValueAcrossAllTokens: number;
   transactions: {
-    [key: string]: TransactionInfo;
+    [key: string]: TransactionInfo; // key: transaction hash
   };
 };
 
@@ -34,7 +35,7 @@ export type ScammerInfo = {
   mostRecentActivityByBlockNumber: number;
   firstAlertIdAppearance: string;
   victims: {
-    [key: string]: VictimInfo;
+    [key: string]: VictimInfo; // key: victim address
   };
 };
 
