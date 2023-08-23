@@ -39,6 +39,8 @@ export type ScammerInfo = {
   };
 };
 
+// TODO: Update based on what is actually
+// fetched from Zettablock
 export type Erc721Transfer = {
   tx_hash: string;
   from_address: string;

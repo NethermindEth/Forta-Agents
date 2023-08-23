@@ -1,9 +1,12 @@
 export const SCAM_DETECTOR_BOT_ID = "0x1d646c4045189991fdfd24a66b192a294158b839a6ec121d740474bdacb3ab23";
 export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER"];
+
 export const ONE_DAY = 60 * 60 * 24;
 export const NINETY_DAYS = ONE_DAY * 90;
 export const THIRTY_DAYS = ONE_DAY * 30;
 export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
+
+export const DATABASE_URL = "https://research.forta.network/database/bot/secrets.json";
 
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum

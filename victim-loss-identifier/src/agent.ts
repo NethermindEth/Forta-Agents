@@ -11,22 +11,22 @@ import {
 } from "./constants";
 import { ScammerInfo } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
-import { getBlocksInTimePeriodForChainId } from "./utils/utils";
+import { getBlocksInTimePeriodForChainId, fetchApiKey } from "./utils/utils";
+import { getErc721TransfersInvolvingScammer } from "./utils/transfer.fetcher";
 
 const provider: providers.Provider = getEthersProvider();
 let chainId: number;
+let apiKey: string;
 
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
-
-// TODO: Add implementation
-function getErc721TransfersInvolvingScammer(scammerAddress: string, transferOccuranceTimeWindow: number): any[] {
-  return [];
-}
 
 // TODO: Add implementation
 function fetchNftCollectionFloorPrice(): number {
   return 0;
 }
+
+// TODO: Add the ability to fetch the API key
+// from the secrets.json
 
 async function processFraudulentNftOrders(
   provider: providers.Provider,
@@ -36,7 +36,7 @@ async function processFraudulentNftOrders(
   const findings: Finding[] = [];
 
   // TODO: Give this an actual defined type
-  const scammerErc721Transfers: any[] = getErc721TransfersInvolvingScammer(scammerAddress, erc721TransferTimeWindow);
+  const scammerErc721Transfers: any[] = await getErc721TransfersInvolvingScammer(scammerAddress, erc721TransferTimeWindow, apiKey);
 
   // TODO: Give this an actual defined type
   scammerErc721Transfers.map(async (erc721Transfer: any) => {
@@ -105,6 +105,7 @@ async function processFraudulentNftOrders(
 export function provideInitialize(provider: providers.Provider): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
+    apiKey = await fetchApiKey();
 
     alertConfig: {
       subscriptions: [

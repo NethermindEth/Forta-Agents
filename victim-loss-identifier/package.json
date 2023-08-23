@@ -34,7 +34,8 @@
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "forta-agent": "^0.1.36"
+    "forta-agent": "^0.1.36",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
