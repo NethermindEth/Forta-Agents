@@ -7,9 +7,14 @@ import {
   NINETY_DAYS,
   EXCHANGE_CONTRACT_ADDRESSES,
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
+  THIRTY_DAYS,
 } from "./constants";
 import { ScammerInfo } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
+import { getBlocksInTimePeriodForChainId } from "./utils/utils";
+
+const provider: providers.Provider = getEthersProvider();
+let chainId: number;
 
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
@@ -97,8 +102,10 @@ async function processFraudulentNftOrders(
   return findings;
 }
 
-export function provideInitialize(): Initialize {
+export function provideInitialize(provider: providers.Provider): Initialize {
   return async () => {
+    chainId = (await provider.getNetwork()).chainId;
+
     alertConfig: {
       subscriptions: [
         {
@@ -115,13 +122,18 @@ export function provideHandleAlert(provider: providers.Provider): HandleAlert {
     const findings: Finding[] = [];
 
     const scammerAddress = alertEvent.alert.metadata["scammer_addresses"];
-    if (
-      alertEvent.alertId === "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER" &&
-      !Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)
-    ) {
+    if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
       scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance = alertEvent.alertId!;
       scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber!;
-      findings.push(...(await processFraudulentNftOrders(provider, scammerAddress, NINETY_DAYS)));
+
+      switch (alertEvent.alertId!) {
+        case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+          findings.push(...(await processFraudulentNftOrders(provider, scammerAddress, NINETY_DAYS)));
+          break;
+
+        default:
+          return findings;
+      }
     }
 
     return findings;
@@ -132,8 +144,34 @@ export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    if(blockEvent.blockNumber) {
+    const oneDayInChainBlocks = getBlocksInTimePeriodForChainId(ONE_DAY, chainId);
 
+    // TODO: This check could be changed to
+    // be more frequent than once a day
+    if (blockEvent.blockNumber % oneDayInChainBlocks === 0) {
+      Object.keys(scammersCurrentlyMonitored).map(async (scammerAddress: string) => {
+        const blocksSinceScammerLastActive =
+          blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber;
+        const fraudulentNftOrderFindings = await processFraudulentNftOrders(
+          provider,
+          scammerAddress,
+          blocksSinceScammerLastActive
+        );
+
+        findings.push(...fraudulentNftOrderFindings);
+
+        if (fraudulentNftOrderFindings.length > 0) {
+          scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = blockEvent.blockNumber;
+        }
+
+        const thirtyDaysInChainBlocks = getBlocksInTimePeriodForChainId(THIRTY_DAYS, chainId);
+        if (
+          blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
+          thirtyDaysInChainBlocks
+        ) {
+          delete scammersCurrentlyMonitored[scammerAddress];
+        }
+      });
     }
 
     return findings;
@@ -141,7 +179,7 @@ export function provideHandleBlock(): HandleBlock {
 }
 
 export default {
-  initialize: provideInitialize,
-  handleAlert: provideHandleAlert(getEthersProvider()),
+  initialize: provideInitialize(provider),
+  handleAlert: provideHandleAlert(provider),
   handleBlock: provideHandleBlock,
 };
