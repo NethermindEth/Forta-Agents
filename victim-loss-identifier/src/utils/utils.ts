@@ -30,20 +30,19 @@ export function getBlocksInTimePeriodForChainId(timePeriodInSecs: number, chainI
 // TODO: Update to work to fetch
 // more than just the API key
 export async function fetchApiKey(): Promise<string> {
-    const token = await fetchJwt({});
-    const headers = { Authorization: `Bearer ${token}` };
-    try {
-      const response = await fetch(`${DATABASE_URL}`, { headers });
-  
-      if (response.ok) {
-        const apiKey: string = await response.json();
-        return apiKey;
-      } else {
-        return "";
-      }
-    } catch (e) {
-      console.log("Error in fetching API key.");
-      throw e;
+  const token = await fetchJwt({});
+  const headers = { Authorization: `Bearer ${token}` };
+  try {
+    const response = await fetch(`${DATABASE_URL}`, { headers });
+
+    if (response.ok) {
+      const apiKey: string = await response.json();
+      return apiKey;
+    } else {
+      return "";
     }
+  } catch (e) {
+    console.log("Error in fetching API key.");
+    throw e;
   }
-  
+}

@@ -35,12 +35,14 @@
   "dependencies": {
     "axios": "^1.4.0",
     "forta-agent": "^0.1.36",
-    "node-fetch": "^3.3.2"
+    "forta-agent-tools": "^3.2.8",
+    "node-fetch": "^2.6.9"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
+    "jest-when": "^3.6.0",
     "nodemon": "^2.0.8",
     "prettier": "^3.0.2",
     "ts-jest": "^27.0.3",

@@ -12,9 +12,9 @@ import {
 import { ScammerInfo } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
 import { getBlocksInTimePeriodForChainId, fetchApiKey } from "./utils/utils";
-import { getErc721TransfersInvolvingScammer } from "./utils/transfer.fetcher";
+import { getErc721TransfersInvolvingAddress } from "./utils/transfer.fetcher";
 
-const provider: providers.Provider = getEthersProvider();
+const ethersProvider: providers.Provider = getEthersProvider();
 let chainId: number;
 let apiKey: string;
 
@@ -31,12 +31,21 @@ function fetchNftCollectionFloorPrice(): number {
 async function processFraudulentNftOrders(
   provider: providers.Provider,
   scammerAddress: string,
-  erc721TransferTimeWindow: number
+  erc721TransferTimeWindow: number,
+  getErc721TransfersInvolvingScammer: (
+    scammerAddress: string,
+    transferOccuranceTimeWindow: number,
+    apiKey: string
+  ) => Promise<any[]>
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
   // TODO: Give this an actual defined type
-  const scammerErc721Transfers: any[] = await getErc721TransfersInvolvingScammer(scammerAddress, erc721TransferTimeWindow, apiKey);
+  const scammerErc721Transfers: any[] = await getErc721TransfersInvolvingScammer(
+    scammerAddress,
+    erc721TransferTimeWindow,
+    apiKey
+  );
 
   // TODO: Give this an actual defined type
   scammerErc721Transfers.map(async (erc721Transfer: any) => {
@@ -50,11 +59,39 @@ async function processFraudulentNftOrders(
       token_id: stolenTokenId,
     } = erc721Transfer;
 
+    // TODO: Use TransactionReceipt from `ethers`
+    // to fetch the transaction logs and find
+    // address that first transferred the specific
+    // tokenId. As it is, we could incorrectly mark
+    // a middleman address as the victim
+    // Note: TransactionReceipt does not have a
+    // `value` property, so we have to use both
+    // TransactionResponse and TransactionReceipt
+
+    /*
+    NOTE: Original
     if (
-      !scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+      !scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions[exploitTxnHash].erc721[
         stolenTokenAddress
       ].tokenIds.includes(stolenTokenId)
+    )
+    */
+
+    /*
+    NOTE: Adding victim
+    console.log(`${JSON.stringify(scammersCurrentlyMonitored[scammerAddress].victims!)}`);
+
+    scammersCurrentlyMonitored[scammerAddress].victims[victimAddress] = {
+      
+    }
+    /*
+
+    /*
+    if (
+      !Object.keys(scammersCurrentlyMonitored[scammerAddress].victims!).includes(victimAddress)
     ) {
+      console.log(`inside stolenTokenId check`);
+      /*
       const txnResponse = await provider.getTransaction(exploitTxnHash);
       if (
         txnResponse.to != null &&
@@ -97,15 +134,16 @@ async function processFraudulentNftOrders(
         );
       }
     }
+    */
   });
 
   return findings;
 }
 
-export function provideInitialize(provider: providers.Provider): Initialize {
+export function provideInitialize(provider: providers.Provider, apiKeyFetcher: () => Promise<string>): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
-    apiKey = await fetchApiKey();
+    apiKey = await apiKeyFetcher();
 
     alertConfig: {
       subscriptions: [
@@ -118,18 +156,34 @@ export function provideInitialize(provider: providers.Provider): Initialize {
   };
 }
 
-export function provideHandleAlert(provider: providers.Provider): HandleAlert {
+export function provideHandleAlert(
+  provider: providers.Provider,
+  getErc721TransfersInvolvingScammer: (
+    scammerAddress: string,
+    transferOccuranceTimeWindow: number,
+    apiKey: string
+  ) => Promise<any[]>
+): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
     const scammerAddress = alertEvent.alert.metadata["scammer_addresses"];
     if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
-      scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance = alertEvent.alertId!;
-      scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = alertEvent.blockNumber!;
+      scammersCurrentlyMonitored[scammerAddress] = {
+        firstAlertIdAppearance: alertEvent.alertId!,
+        mostRecentActivityByBlockNumber: alertEvent.blockNumber!,
+      };
 
       switch (alertEvent.alertId!) {
         case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
-          findings.push(...(await processFraudulentNftOrders(provider, scammerAddress, NINETY_DAYS)));
+          findings.push(
+            ...(await processFraudulentNftOrders(
+              provider,
+              scammerAddress,
+              NINETY_DAYS,
+              getErc721TransfersInvolvingScammer
+            ))
+          );
           break;
 
         default:
@@ -141,10 +195,11 @@ export function provideHandleAlert(provider: providers.Provider): HandleAlert {
   };
 }
 
-export function provideHandleBlock(): HandleBlock {
+export function provideHandleBlock(provider: providers.Provider): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
+    /*
     const oneDayInChainBlocks = getBlocksInTimePeriodForChainId(ONE_DAY, chainId);
 
     // TODO: This check could be changed to
@@ -174,13 +229,16 @@ export function provideHandleBlock(): HandleBlock {
         }
       });
     }
-
+    */
     return findings;
   };
 }
 
 export default {
-  initialize: provideInitialize(provider),
-  handleAlert: provideHandleAlert(provider),
-  handleBlock: provideHandleBlock,
+  initialize: provideInitialize(ethersProvider, fetchApiKey),
+  handleAlert: provideHandleAlert(ethersProvider, getErc721TransfersInvolvingAddress),
+  handleBlock: provideHandleBlock(ethersProvider),
+  provideInitialize,
+  provideHandleAlert,
+  provideHandleBlock,
 };

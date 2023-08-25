@@ -34,7 +34,7 @@ type VictimInfo = {
 export type ScammerInfo = {
   mostRecentActivityByBlockNumber: number;
   firstAlertIdAppearance: string;
-  victims: {
+  victims?: {
     [key: string]: VictimInfo; // key: victim address
   };
 };
