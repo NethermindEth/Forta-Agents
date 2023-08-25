@@ -1,19 +1,20 @@
 import { Finding, FindingType, FindingSeverity, Label, EntityType } from "forta-agent";
+import { BigNumber } from "ethers";
 
 export function createFraudNftOrderFinding(
   victimAddress: string,
   scammerAddress: string,
   alertId: string,
-  totalUsdLost: number,
+  totalUsdLost: BigNumber,
   name: string,
   contractAddress: string,
   tokenId: number,
-  totalUsdLostInErc721s: number,
+  totalUsdLostInErc721s: BigNumber,
   exploitTransaction: string,
-  usdLostOnThisToken: number
+  usdLostOnThisToken: BigNumber
 ): Finding {
   return Finding.fromObject({
-    name: "",
+    name: `New victim identified: ${victimAddress}`,
     description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`,
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,

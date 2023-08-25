@@ -8,6 +8,7 @@ import {
   createTransactionEvent,
   ethers,
 } from "forta-agent";
+import { BigNumber } from "ethers";
 import { createAddress } from "forta-agent-tools";
 import { MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
@@ -17,25 +18,45 @@ import { TestAlertEvent } from "./mocks/mock.alert";
 const ONE_DAY = 60 * 60 * 24;
 const NINETY_DAYS = ONE_DAY * 90;
 
+class ExtendedMockEthersProvider extends MockEthersProvider {
+  public getTransaction: any;
+
+  constructor() {
+    super();
+    this.getTransaction = jest.fn();
+  }
+
+  public addTransactionResponse(txnHash: string, txnTo: string, txnValue: BigNumber) {
+    when(this.getTransaction).calledWith(txnHash).mockReturnValue({ to: txnTo, value: txnValue });
+  }
+}
+
 describe("Victim & Loss Identifier Test Suite", () => {
   describe("Fraudulent NFT Order Test Suite", () => {
     const mockBlock = new TestBlockEvent();
+    const mockTxnHash = createAddress("0x30");
     const mockScammerAddress = createAddress("0xdEaDBeEF");
+    const mockNftMarketPlaceAddress = "0x59728544B08AB483533076417FbBB2fD0B17CE3a";
+    const mockTxnValue = BigNumber.from(90);
     const mockChainId = 1;
     const mockApiKey = "ApIKeY-123";
+    const mockNftFloorPrice = ethers.utils.formatEther("100000000000000000");
 
-    const mockErc721Transfers = [{
-      tx_hash: createAddress("0x30"),
-      from_address: createAddress("0x31"),
-      contract_address: createAddress("0x32"),
-      token_name: "MockErc721Token",
-      token_symbol: "MOCK721",
-      token_id: 33,
-    }];
+    const mockErc721Transfers = [
+      {
+        tx_hash: mockTxnHash,
+        from_address: createAddress("0x31"),
+        contract_address: createAddress("0x32"),
+        token_name: "MockErc721Token",
+        token_symbol: "MOCK721",
+        token_id: 33,
+      },
+    ];
 
-    const mockProvider: MockEthersProvider = new MockEthersProvider();
+    const mockProvider: ExtendedMockEthersProvider = new ExtendedMockEthersProvider();
     const mockApiKeyFetcher = jest.fn();
     const mockErc721TransferFetcher = jest.fn();
+    const mockNftCollectionFloorPriceFetcher = jest.fn();
 
     let initialize: Initialize;
     let handleAlert: HandleAlert;
@@ -46,15 +67,21 @@ describe("Victim & Loss Identifier Test Suite", () => {
     });
 
     beforeEach(async () => {
+      mockProvider.addTransactionResponse(mockTxnHash, mockNftMarketPlaceAddress, mockTxnValue);
       when(mockApiKeyFetcher).calledWith().mockResolvedValue(mockApiKey);
       when(mockErc721TransferFetcher)
         .calledWith(mockScammerAddress, NINETY_DAYS, mockApiKey)
         .mockResolvedValue(mockErc721Transfers);
+      when(mockNftCollectionFloorPriceFetcher).calledWith().mockResolvedValue(mockNftFloorPrice);
 
       initialize = provideInitialize(mockProvider as any, mockApiKeyFetcher);
       await initialize();
 
-      handleAlert = provideHandleAlert(mockProvider as any, mockErc721TransferFetcher);
+      handleAlert = provideHandleAlert(
+        mockProvider as any,
+        mockErc721TransferFetcher,
+        mockNftCollectionFloorPriceFetcher
+      );
       handleBlock = provideHandleBlock(mockProvider as any);
     });
 

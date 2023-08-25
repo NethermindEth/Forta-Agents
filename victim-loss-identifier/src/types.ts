@@ -1,7 +1,9 @@
+import { BigNumber } from "ethers";
+
 type GeneralTokenInfo = {
   tokenName: string;
   tokenSymbol: string;
-  tokenTotalUsdValue: number;
+  tokenTotalUsdValue?: BigNumber;
 };
 
 type Erc20Info = GeneralTokenInfo & {
@@ -10,7 +12,7 @@ type Erc20Info = GeneralTokenInfo & {
 };
 
 type Erc721Info = GeneralTokenInfo & {
-  tokenIds: number[];
+  tokenIds?: number[];
 };
 
 type Erc1155Info = GeneralTokenInfo & {
@@ -19,14 +21,14 @@ type Erc1155Info = GeneralTokenInfo & {
 
 // key(s): token contract address
 type TransactionInfo = {
-  erc20: { [key: string]: Erc20Info };
-  erc721: { [key: string]: Erc721Info };
-  erc1155: { [key: string]: Erc1155Info };
+  erc20?: { [key: string]: Erc20Info };
+  erc721?: { [key: string]: Erc721Info };
+  erc1155?: { [key: string]: Erc1155Info };
 };
 
 type VictimInfo = {
-  totalUsdValueAcrossAllTokens: number;
-  transactions: {
+  totalUsdValueAcrossAllTokens?: BigNumber;
+  transactions?: {
     [key: string]: TransactionInfo; // key: transaction hash
   };
 };

@@ -1,5 +1,5 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
-import { providers } from "ethers";
+import { providers, BigNumber, utils } from "ethers";
 import {
   SCAM_DETECTOR_BOT_ID,
   SCAM_DETECTOR_ALERT_IDS,
@@ -21,8 +21,8 @@ let apiKey: string;
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 // TODO: Add implementation
-function fetchNftCollectionFloorPrice(): number {
-  return 0;
+function getNftCollectionFloorPrice(): BigNumber {
+  return BigNumber.from(0);
 }
 
 // TODO: Add the ability to fetch the API key
@@ -36,7 +36,8 @@ async function processFraudulentNftOrders(
     scammerAddress: string,
     transferOccuranceTimeWindow: number,
     apiKey: string
-  ) => Promise<any[]>
+  ) => Promise<any[]>,
+  fetchNftCollectionFloorPrice: () => BigNumber
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
@@ -48,94 +49,100 @@ async function processFraudulentNftOrders(
   );
 
   // TODO: Give this an actual defined type
-  scammerErc721Transfers.map(async (erc721Transfer: any) => {
-    // TODO: Give this an actual defined type
-    const {
-      tx_hash: exploitTxnHash,
-      from_address: victimAddress,
-      contract_address: stolenTokenAddress,
-      token_name: stolenTokenName,
-      token_symbol: stolenTokenSymbol,
-      token_id: stolenTokenId,
-    } = erc721Transfer;
+  await Promise.all(
+    scammerErc721Transfers.map(async (erc721Transfer: any) => {
+      // TODO: Give this an actual defined type
+      const {
+        tx_hash: exploitTxnHash,
+        from_address: victimAddress,
+        contract_address: stolenTokenAddress,
+        token_name: stolenTokenName,
+        token_symbol: stolenTokenSymbol,
+        token_id: stolenTokenId,
+      } = erc721Transfer;
 
-    // TODO: Use TransactionReceipt from `ethers`
-    // to fetch the transaction logs and find
-    // address that first transferred the specific
-    // tokenId. As it is, we could incorrectly mark
-    // a middleman address as the victim
-    // Note: TransactionReceipt does not have a
-    // `value` property, so we have to use both
-    // TransactionResponse and TransactionReceipt
+      // TODO: Use TransactionReceipt from `ethers`
+      // to fetch the transaction logs and find
+      // address that first transferred the specific
+      // tokenId. As it is, we could incorrectly mark
+      // a middleman address as the victim
+      // Note: TransactionReceipt does not have a
+      // `value` property, so we have to use both
+      // TransactionResponse and TransactionReceipt
 
-    /*
-    NOTE: Original
-    if (
-      !scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions[exploitTxnHash].erc721[
-        stolenTokenAddress
-      ].tokenIds.includes(stolenTokenId)
-    )
-    */
+      if (
+        scammersCurrentlyMonitored[scammerAddress].victims !== undefined &&
+        // Skip over this transfer if this tokenId
+        // transfer in this transaction for this
+        // victim has already been accounted for
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          stolenTokenAddress
+        ].tokenIds!.includes(stolenTokenId)
+      ) {
+        // TODO: Update to "skip" over this transfer
+        // in `scammerErc721Transfers`, instead of
+        // returning the findings, whic would conclude
+        // the logic execution
+        return findings;
+      }
 
-    /*
-    NOTE: Adding victim
-    console.log(`${JSON.stringify(scammersCurrentlyMonitored[scammerAddress].victims!)}`);
-
-    scammersCurrentlyMonitored[scammerAddress].victims[victimAddress] = {
-      
-    }
-    /*
-
-    /*
-    if (
-      !Object.keys(scammersCurrentlyMonitored[scammerAddress].victims!).includes(victimAddress)
-    ) {
-      console.log(`inside stolenTokenId check`);
-      /*
       const txnResponse = await provider.getTransaction(exploitTxnHash);
       if (
         txnResponse.to != null &&
         Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse.to) &&
         txnResponse.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
       ) {
-        const nftCollectionFloorPrice = fetchNftCollectionFloorPrice();
+        const nftCollectionFloorPrice = await fetchNftCollectionFloorPrice();
 
-        const { tokenIds: currentTokenIds, tokenTotalUsdValue: currentTokenTotalUsdValue } =
-          scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
-            stolenTokenAddress
-          ];
-
-        scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
-          stolenTokenAddress
-        ] = {
-          // TODO: Would this be an issue if it
-          // overwrites the existing name and symbol?
-          tokenName: stolenTokenName,
-          tokenSymbol: stolenTokenSymbol,
-          tokenIds: [...currentTokenIds, stolenTokenId],
-          tokenTotalUsdValue: currentTokenTotalUsdValue + nftCollectionFloorPrice,
+        scammersCurrentlyMonitored[scammerAddress].victims = {
+          [victimAddress]: {
+            totalUsdValueAcrossAllTokens: BigNumber.from("0"),
+            transactions: {
+              [exploitTxnHash]: {
+                erc721: {
+                  [stolenTokenAddress]: {
+                    // TODO: Would this be an issue if it
+                    // overwrites the existing name and symbol?
+                    tokenName: stolenTokenName,
+                    tokenSymbol: stolenTokenSymbol,
+                    tokenIds: [],
+                    tokenTotalUsdValue: BigNumber.from("0"),
+                  },
+                },
+              },
+            },
+          },
         };
+
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!.add(
+          utils.parseEther(nftCollectionFloorPrice.toString())
+        );
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          stolenTokenAddress
+        ].tokenIds!.push(stolenTokenId);
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          stolenTokenAddress
+        ].tokenTotalUsdValue!.add(utils.parseEther(nftCollectionFloorPrice.toString()));
 
         findings.push(
           createFraudNftOrderFinding(
             victimAddress,
             scammerAddress,
             scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
-            scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].totalUsdValueAcrossAllTokens,
+            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!,
             stolenTokenName,
             stolenTokenAddress,
             stolenTokenId,
-            scammersCurrentlyMonitored[scammerAddress].victims[victimAddress].transactions[exploitTxnHash].erc721[
+            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
               stolenTokenAddress
-            ].tokenTotalUsdValue,
+            ].tokenTotalUsdValue!,
             exploitTxnHash,
             nftCollectionFloorPrice
           )
         );
       }
-    }
-    */
-  });
+    })
+  );
 
   return findings;
 }
@@ -162,7 +169,8 @@ export function provideHandleAlert(
     scammerAddress: string,
     transferOccuranceTimeWindow: number,
     apiKey: string
-  ) => Promise<any[]>
+  ) => Promise<any[]>,
+  fetchNftCollectionFloorPrice: () => BigNumber
 ): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -181,7 +189,8 @@ export function provideHandleAlert(
               provider,
               scammerAddress,
               NINETY_DAYS,
-              getErc721TransfersInvolvingScammer
+              getErc721TransfersInvolvingScammer,
+              fetchNftCollectionFloorPrice
             ))
           );
           break;
@@ -190,6 +199,8 @@ export function provideHandleAlert(
           return findings;
       }
     }
+
+    console.log(JSON.stringify(findings));
 
     return findings;
   };
@@ -236,7 +247,7 @@ export function provideHandleBlock(provider: providers.Provider): HandleBlock {
 
 export default {
   initialize: provideInitialize(ethersProvider, fetchApiKey),
-  handleAlert: provideHandleAlert(ethersProvider, getErc721TransfersInvolvingAddress),
+  handleAlert: provideHandleAlert(ethersProvider, getErc721TransfersInvolvingAddress, getNftCollectionFloorPrice),
   handleBlock: provideHandleBlock(ethersProvider),
   provideInitialize,
   provideHandleAlert,
