@@ -1,55 +1,44 @@
-import {
-  Initialize,
-  HandleBlock,
-  HandleAlert,
-  FindingType,
-  FindingSeverity,
-  Finding,
-  createTransactionEvent,
-  ethers,
-} from "forta-agent";
+import { Initialize, HandleBlock, HandleAlert, FindingType, FindingSeverity, Finding, ethers } from "forta-agent";
 import { BigNumber } from "ethers";
 import { createAddress } from "forta-agent-tools";
-import { MockEthersProvider, TestBlockEvent } from "forta-agent-tools/lib/test";
+import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
 import { provideHandleAlert, provideHandleBlock, provideInitialize } from "./agent";
 import { TestAlertEvent } from "./mocks/mock.alert";
+import { ExtendedMockEthersProvider } from "./mocks/extended.mock.ethers";
+import { createTestingFraudNftOrderFinding } from "./mocks/testing.findings";
 
 const ONE_DAY = 60 * 60 * 24;
 const NINETY_DAYS = ONE_DAY * 90;
 
-class ExtendedMockEthersProvider extends MockEthersProvider {
-  public getTransaction: any;
-
-  constructor() {
-    super();
-    this.getTransaction = jest.fn();
-  }
-
-  public addTransactionResponse(txnHash: string, txnTo: string, txnValue: BigNumber) {
-    when(this.getTransaction).calledWith(txnHash).mockReturnValue({ to: txnTo, value: txnValue });
-  }
-}
-
 describe("Victim & Loss Identifier Test Suite", () => {
   describe("Fraudulent NFT Order Test Suite", () => {
+    const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
+
     const mockBlock = new TestBlockEvent();
-    const mockTxnHash = createAddress("0x30");
+
+    const mockExploitTxnHash = createAddress("0x30");
     const mockScammerAddress = createAddress("0xdEaDBeEF");
+    const mockVictimAddress = createAddress("0x31");
+    const mockStolenTokenAddress = createAddress("0x32");
+    const mockStolenTokenName = "MockErc721Token";
+    const mockStolenTokenSymbol = "MOCK721";
+    const mockStolenTokenId = 33;
+
     const mockNftMarketPlaceAddress = "0x59728544B08AB483533076417FbBB2fD0B17CE3a";
     const mockTxnValue = BigNumber.from(90);
     const mockChainId = 1;
     const mockApiKey = "ApIKeY-123";
-    const mockNftFloorPrice = ethers.utils.formatEther("100000000000000000");
+    const mockNftFloorPrice = 1000; // in USD
 
     const mockErc721Transfers = [
       {
-        tx_hash: mockTxnHash,
-        from_address: createAddress("0x31"),
-        contract_address: createAddress("0x32"),
-        token_name: "MockErc721Token",
-        token_symbol: "MOCK721",
-        token_id: 33,
+        tx_hash: mockExploitTxnHash,
+        from_address: mockVictimAddress,
+        contract_address: mockStolenTokenAddress,
+        token_name: mockStolenTokenName,
+        token_symbol: mockStolenTokenSymbol,
+        token_id: mockStolenTokenId,
       },
     ];
 
@@ -67,7 +56,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
     });
 
     beforeEach(async () => {
-      mockProvider.addTransactionResponse(mockTxnHash, mockNftMarketPlaceAddress, mockTxnValue);
+      mockProvider.addTransactionResponse(mockExploitTxnHash, mockNftMarketPlaceAddress, mockTxnValue);
       when(mockApiKeyFetcher).calledWith().mockResolvedValue(mockApiKey);
       when(mockErc721TransferFetcher)
         .calledWith(mockScammerAddress, NINETY_DAYS, mockApiKey)
@@ -89,7 +78,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       const blockNumber = 25;
       const mockAlert = new TestAlertEvent(
         [],
-        "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER",
+        FRAUD_NFT_ORDER_ALERT_ID,
         "",
         [],
         "",
@@ -116,17 +105,27 @@ describe("Victim & Loss Identifier Test Suite", () => {
         }
       );
 
-      handleAlert(mockAlert);
+      const findings = await handleAlert(mockAlert);
 
-      /*
-        const oneDayInMockChainBlocks = ONE_DAY / 12;
-        mockBlock.setNumber(oneDayInMockChainBlocks);
-
-        handleBlock(mockBlock);
-        */
+      expect(findings).toStrictEqual([
+        createTestingFraudNftOrderFinding(
+          mockVictimAddress,
+          mockScammerAddress,
+          FRAUD_NFT_ORDER_ALERT_ID,
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenName,
+          mockStolenTokenAddress,
+          mockStolenTokenId,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHash,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
     });
 
     it.skip("doesn't create an alert when Scam Detector emits a non-SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {});
+
+    it.skip("creates an alert for the first instance of a scammer appearing in scam detector alerts, then creates alerts for subsequent activity in block handler", async () => {});
 
     it.skip("doesn't create an alert when there is a legitimate sale/purchase of an NFT", async () => {});
 

@@ -21,8 +21,8 @@ let apiKey: string;
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 // TODO: Add implementation
-function getNftCollectionFloorPrice(): BigNumber {
-  return BigNumber.from(0);
+function getNftCollectionFloorPrice(): number {
+  return 0;
 }
 
 // TODO: Add the ability to fetch the API key
@@ -37,7 +37,7 @@ async function processFraudulentNftOrders(
     transferOccuranceTimeWindow: number,
     apiKey: string
   ) => Promise<any[]>,
-  fetchNftCollectionFloorPrice: () => BigNumber
+  fetchNftCollectionFloorPrice: () => number
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
@@ -81,7 +81,7 @@ async function processFraudulentNftOrders(
       ) {
         // TODO: Update to "skip" over this transfer
         // in `scammerErc721Transfers`, instead of
-        // returning the findings, whic would conclude
+        // returning the findings, which would conclude
         // the logic execution
         return findings;
       }
@@ -96,7 +96,7 @@ async function processFraudulentNftOrders(
 
         scammersCurrentlyMonitored[scammerAddress].victims = {
           [victimAddress]: {
-            totalUsdValueAcrossAllTokens: BigNumber.from("0"),
+            totalUsdValueAcrossAllTokens: 0,
             transactions: {
               [exploitTxnHash]: {
                 erc721: {
@@ -106,7 +106,7 @@ async function processFraudulentNftOrders(
                     tokenName: stolenTokenName,
                     tokenSymbol: stolenTokenSymbol,
                     tokenIds: [],
-                    tokenTotalUsdValue: BigNumber.from("0"),
+                    tokenTotalUsdValue: 0,
                   },
                 },
               },
@@ -114,15 +114,13 @@ async function processFraudulentNftOrders(
           },
         };
 
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!.add(
-          utils.parseEther(nftCollectionFloorPrice.toString())
-        );
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! += nftCollectionFloorPrice;
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
         ].tokenIds!.push(stolenTokenId);
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
-        ].tokenTotalUsdValue!.add(utils.parseEther(nftCollectionFloorPrice.toString()));
+        ].tokenTotalUsdValue! += nftCollectionFloorPrice;
 
         findings.push(
           createFraudNftOrderFinding(
@@ -170,7 +168,7 @@ export function provideHandleAlert(
     transferOccuranceTimeWindow: number,
     apiKey: string
   ) => Promise<any[]>,
-  fetchNftCollectionFloorPrice: () => BigNumber
+  fetchNftCollectionFloorPrice: () => number
 ): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
@@ -199,8 +197,6 @@ export function provideHandleAlert(
           return findings;
       }
     }
-
-    console.log(JSON.stringify(findings));
 
     return findings;
   };

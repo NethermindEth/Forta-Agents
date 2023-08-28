@@ -1,9 +1,7 @@
-import { BigNumber } from "ethers";
-
 type GeneralTokenInfo = {
   tokenName: string;
   tokenSymbol: string;
-  tokenTotalUsdValue?: BigNumber;
+  tokenTotalUsdValue?: number;
 };
 
 type Erc20Info = GeneralTokenInfo & {
@@ -27,7 +25,7 @@ type TransactionInfo = {
 };
 
 type VictimInfo = {
-  totalUsdValueAcrossAllTokens?: BigNumber;
+  totalUsdValueAcrossAllTokens?: number;
   transactions?: {
     [key: string]: TransactionInfo; // key: transaction hash
   };
