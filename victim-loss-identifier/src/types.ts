@@ -2,6 +2,17 @@ export type apiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];
   };
+  victimLossKeys: {
+    alchemyApiKey: string;
+  };
+};
+
+export type coinData = {
+  coins: {
+    "coingecko:ethereum": {
+      price: number;
+    };
+  };
 };
 
 export type Erc721Transfer = {
