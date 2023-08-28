@@ -8,7 +8,7 @@ export function createTestingFraudNftOrderFinding(
   totalUsdLost: BigNumber,
   name: string,
   contractAddress: string,
-  tokenId: number,
+  tokenId: string,
   totalUsdLostInErc721s: BigNumber,
   exploitTransaction: string,
   usdLostOnThisToken: BigNumber

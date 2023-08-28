@@ -9,7 +9,7 @@ import {
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
   THIRTY_DAYS,
 } from "./constants";
-import { ScammerInfo } from "./types";
+import { ScammerInfo, Erc721Transfer } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
 import { getBlocksInTimePeriodForChainId, fetchApiKey } from "./utils/utils";
 import { getErc721TransfersInvolvingAddress } from "./utils/transfer.fetcher";
@@ -41,25 +41,22 @@ async function processFraudulentNftOrders(
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
-  // TODO: Give this an actual defined type
-  const scammerErc721Transfers: any[] = await getErc721TransfersInvolvingScammer(
+  const scammerErc721Transfers: Erc721Transfer[] = await getErc721TransfersInvolvingScammer(
     scammerAddress,
     erc721TransferTimeWindow,
     apiKey
   );
 
-  // TODO: Give this an actual defined type
   await Promise.all(
-    scammerErc721Transfers.map(async (erc721Transfer: any) => {
-      // TODO: Give this an actual defined type
+    scammerErc721Transfers.map(async (erc721Transfer: Erc721Transfer) => {
       const {
-        tx_hash: exploitTxnHash,
+        transaction_hash: exploitTxnHash,
         from_address: victimAddress,
         contract_address: stolenTokenAddress,
-        token_name: stolenTokenName,
-        token_symbol: stolenTokenSymbol,
+        name: stolenTokenName,
+        symbol: stolenTokenSymbol,
         token_id: stolenTokenId,
-      } = erc721Transfer;
+      }: Erc721Transfer = erc721Transfer;
 
       // TODO: Use TransactionReceipt from `ethers`
       // to fetch the transaction logs and find
@@ -71,13 +68,27 @@ async function processFraudulentNftOrders(
       // TransactionResponse and TransactionReceipt
 
       if (
+        // TODO: With some of these properties being optional, we need checks to confirm
+        // they are not `undefined`. Is this the best way?
+        // (They're optional because a scammer could be added before certain data is found.
+        // e.g. an alert had a new scammer, but we haven't processed it yet for them to have
+        // victims, etc.)
         scammersCurrentlyMonitored[scammerAddress].victims !== undefined &&
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] !== undefined &&
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions !== undefined &&
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] !==
+          undefined &&
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721 !==
+          undefined &&
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          stolenTokenAddress
+        ] !== undefined &&
         // Skip over this transfer if this tokenId
         // transfer in this transaction for this
         // victim has already been accounted for
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
-        ].tokenIds!.includes(stolenTokenId)
+        ].tokenIds!.includes(Number(stolenTokenId))
       ) {
         // TODO: Update to "skip" over this transfer
         // in `scammerErc721Transfers`, instead of
@@ -94,15 +105,33 @@ async function processFraudulentNftOrders(
       ) {
         const nftCollectionFloorPrice = await fetchNftCollectionFloorPrice();
 
-        scammersCurrentlyMonitored[scammerAddress].victims = {
-          [victimAddress]: {
+        if (scammersCurrentlyMonitored[scammerAddress].victims === undefined) {
+          // The scammer has no victims yet
+          scammersCurrentlyMonitored[scammerAddress].victims = {
+            [victimAddress]: {
+              totalUsdValueAcrossAllTokens: 0,
+              transactions: {
+                [exploitTxnHash]: {
+                  erc721: {
+                    [stolenTokenAddress]: {
+                      tokenName: stolenTokenName,
+                      tokenSymbol: stolenTokenSymbol,
+                      tokenIds: [],
+                      tokenTotalUsdValue: 0,
+                    },
+                  },
+                },
+              },
+            },
+          };
+        } else if (scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] === undefined) {
+          // The scammer doesn't have this specific victim yet
+          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
             totalUsdValueAcrossAllTokens: 0,
             transactions: {
               [exploitTxnHash]: {
                 erc721: {
                   [stolenTokenAddress]: {
-                    // TODO: Would this be an issue if it
-                    // overwrites the existing name and symbol?
                     tokenName: stolenTokenName,
                     tokenSymbol: stolenTokenSymbol,
                     tokenIds: [],
@@ -111,13 +140,26 @@ async function processFraudulentNftOrders(
                 },
               },
             },
-          },
-        };
+          };
+        } else {
+          // This specific scammer victim doesn't have this specific transaction
+          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
+            erc721: {
+              [stolenTokenAddress]: {
+                tokenName: stolenTokenName,
+                tokenSymbol: stolenTokenSymbol,
+                tokenIds: [],
+                tokenTotalUsdValue: 0,
+              },
+            },
+          };
+        }
 
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! += nftCollectionFloorPrice;
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! +=
+          nftCollectionFloorPrice;
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
-        ].tokenIds!.push(stolenTokenId);
+        ].tokenIds!.push(Number(stolenTokenId));
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
         ].tokenTotalUsdValue! += nftCollectionFloorPrice;
@@ -202,41 +244,51 @@ export function provideHandleAlert(
   };
 }
 
-export function provideHandleBlock(provider: providers.Provider): HandleBlock {
+export function provideHandleBlock(
+  provider: providers.Provider,
+  getErc721TransfersInvolvingScammer: (
+    scammerAddress: string,
+    transferOccuranceTimeWindow: number,
+    apiKey: string
+  ) => Promise<any[]>,
+  fetchNftCollectionFloorPrice: () => number
+): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    /*
     const oneDayInChainBlocks = getBlocksInTimePeriodForChainId(ONE_DAY, chainId);
 
-    // TODO: This check could be changed to
-    // be more frequent than once a day
     if (blockEvent.blockNumber % oneDayInChainBlocks === 0) {
-      Object.keys(scammersCurrentlyMonitored).map(async (scammerAddress: string) => {
-        const blocksSinceScammerLastActive =
-          blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber;
-        const fraudulentNftOrderFindings = await processFraudulentNftOrders(
-          provider,
-          scammerAddress,
-          blocksSinceScammerLastActive
-        );
+      await Promise.all(
+        Object.keys(scammersCurrentlyMonitored).map(async (scammerAddress: string) => {
+          const blocksSinceScammerLastActive =
+            blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber;
 
-        findings.push(...fraudulentNftOrderFindings);
+          const fraudulentNftOrderFindings = await processFraudulentNftOrders(
+            provider,
+            scammerAddress,
+            blocksSinceScammerLastActive,
+            getErc721TransfersInvolvingScammer,
+            fetchNftCollectionFloorPrice
+          );
 
-        if (fraudulentNftOrderFindings.length > 0) {
-          scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = blockEvent.blockNumber;
-        }
+          findings.push(...fraudulentNftOrderFindings);
 
-        const thirtyDaysInChainBlocks = getBlocksInTimePeriodForChainId(THIRTY_DAYS, chainId);
-        if (
-          blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
-          thirtyDaysInChainBlocks
-        ) {
-          delete scammersCurrentlyMonitored[scammerAddress];
-        }
-      });
+          if (fraudulentNftOrderFindings.length > 0) {
+            scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = blockEvent.blockNumber;
+          }
+
+          const thirtyDaysInChainBlocks = getBlocksInTimePeriodForChainId(THIRTY_DAYS, chainId);
+          if (
+            blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
+            thirtyDaysInChainBlocks
+          ) {
+            delete scammersCurrentlyMonitored[scammerAddress];
+          }
+        })
+      );
     }
-    */
+
     return findings;
   };
 }
@@ -244,7 +296,7 @@ export function provideHandleBlock(provider: providers.Provider): HandleBlock {
 export default {
   initialize: provideInitialize(ethersProvider, fetchApiKey),
   handleAlert: provideHandleAlert(ethersProvider, getErc721TransfersInvolvingAddress, getNftCollectionFloorPrice),
-  handleBlock: provideHandleBlock(ethersProvider),
+  handleBlock: provideHandleBlock(ethersProvider, getErc721TransfersInvolvingAddress, getNftCollectionFloorPrice),
   provideInitialize,
   provideHandleAlert,
   provideHandleBlock,
