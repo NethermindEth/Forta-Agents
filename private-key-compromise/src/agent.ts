@@ -47,6 +47,8 @@ let lastBlock = 0;
 
 const networkManager = new NetworkManager<NetworkData>(CONFIG);
 let st = 0;
+let lastPersistenceTime = 0;
+let isPersistenceTime = false;
 
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
@@ -137,6 +139,14 @@ export const provideHandleTransaction =
         await persistenceHelper.persist(queuedAddresses, databaseKeys.queuedAddressesKey.concat("-", chainId));
       }
       const et = new Date().getTime();
+
+      if (et / 1000 - lastPersistenceTime > 300) {
+        isPersistenceTime = true;
+        lastPersistenceTime = et / 1000;
+      } else {
+        isPersistenceTime = false;
+      }
+
       console.log(`Block processing time: ${et - st} ms`);
       const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
       alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
@@ -173,7 +183,9 @@ export const provideHandleTransaction =
         console.log("Object size after cleaning: ", objectSize);
       }
 
-      await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+      if (isPersistenceTime) {
+        await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+      }
     }
     transactionsProcessed += 1;
 
@@ -222,10 +234,12 @@ export const provideHandleTransaction =
                   if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
                     alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
 
-                    await persistenceHelper.persist(
-                      alertedAddresses,
-                      databaseKeys.alertedAddressesKey.concat("-", chainId)
-                    );
+                    if (isPersistenceTime) {
+                      await persistenceHelper.persist(
+                        alertedAddresses,
+                        databaseKeys.alertedAddressesKey.concat("-", chainId)
+                      );
+                    }
 
                     // Add "from addresses" into the queue
                     transferObj[to].forEach((el) => {
@@ -242,10 +256,12 @@ export const provideHandleTransaction =
                       });
                     });
 
-                    await persistenceHelper.persist(
-                      queuedAddresses,
-                      databaseKeys.queuedAddressesKey.concat("-", chainId)
-                    );
+                    if (isPersistenceTime) {
+                      await persistenceHelper.persist(
+                        queuedAddresses,
+                        databaseKeys.queuedAddressesKey.concat("-", chainId)
+                      );
+                    }
 
                     const totalTransferValue = transferObj[to].reduce((accumulator, object) => {
                       return accumulator + object.valueInUSD;
@@ -294,7 +310,10 @@ export const provideHandleTransaction =
                 } else {
                   // if it's FP, remove them from the db
                   delete transferObj[to];
-                  await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+
+                  if (isPersistenceTime) {
+                    await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                  }
                 }
               }
             }
@@ -359,10 +378,13 @@ export const provideHandleTransaction =
                             address: transfer.args.to,
                             timestamp: txEvent.timestamp,
                           });
-                          await persistenceHelper.persist(
-                            alertedAddresses,
-                            databaseKeys.alertedAddressesKey.concat("-", chainId)
-                          );
+
+                          if (isPersistenceTime) {
+                            await persistenceHelper.persist(
+                              alertedAddresses,
+                              databaseKeys.alertedAddressesKey.concat("-", chainId)
+                            );
+                          }
 
                           // Add from addresses into the queue
                           transferObj[transfer.args.to].forEach((el) => {
@@ -379,10 +401,12 @@ export const provideHandleTransaction =
                             });
                           });
 
-                          await persistenceHelper.persist(
-                            queuedAddresses,
-                            databaseKeys.queuedAddressesKey.concat("-", chainId)
-                          );
+                          if (isPersistenceTime) {
+                            await persistenceHelper.persist(
+                              queuedAddresses,
+                              databaseKeys.queuedAddressesKey.concat("-", chainId)
+                            );
+                          }
 
                           const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
                             return accumulator + object.valueInUSD;
@@ -431,7 +455,10 @@ export const provideHandleTransaction =
                       } else {
                         // if it's FP, remove them from the db
                         delete transferObj[transfer.args.to];
-                        await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+
+                        if (isPersistenceTime) {
+                          await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                        }
                       }
                     }
                   }
