@@ -1,5 +1,6 @@
 import { fetchJwt } from "forta-agent";
 import { DATABASE_URL } from "../constants";
+import { apiKeys } from "../types";
 
 // TODO: Confirm these are the correct block times
 function getChainBlockTime(chainId: number): number {
@@ -27,19 +28,24 @@ export function getBlocksInTimePeriodForChainId(timePeriodInSecs: number, chainI
   return timePeriodInSecs / chainBlockTime;
 }
 
-// TODO: Update to work to fetch
-// more than just the API key
-export async function fetchApiKey(): Promise<string> {
+export async function fetchApiKeys(): Promise<apiKeys> {
   const token = await fetchJwt({});
   const headers = { Authorization: `Bearer ${token}` };
   try {
     const response = await fetch(`${DATABASE_URL}`, { headers });
 
     if (response.ok) {
-      const apiKey: string = await response.json();
+      const apiKey: apiKeys = await response.json();
       return apiKey;
     } else {
-      return "";
+      return {
+        generalApiKeys: {
+            ZETTABLOCK: [""]
+        },
+        victimLossKeys: {
+            alchemyApiKey: ""
+        }
+      };
     }
   } catch (e) {
     console.log("Error in fetching API key.");

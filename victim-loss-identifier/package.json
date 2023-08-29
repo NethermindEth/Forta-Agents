@@ -33,9 +33,11 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "alchemy-sdk": "^2.10.0",
     "axios": "^1.4.0",
     "forta-agent": "^0.1.36",
     "forta-agent-tools": "^3.2.8",
+    "lru-cache": "^10.0.1",
     "node-fetch": "^2.6.9"
   },
   "devDependencies": {

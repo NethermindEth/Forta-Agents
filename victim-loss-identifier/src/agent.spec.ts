@@ -489,7 +489,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
           token_id: mockStolenTokenIdFour,
           block_time: "string",
           to_address: "string",
-        }
+        },
       ];
 
       when(mockErc721TransferFetcher)
@@ -541,9 +541,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           mockExploitTxnHashFour,
           BigNumber.from(mockNftFloorPrice)
-        )
+        ),
       ]);
-
 
       const mockScammerAddressFive = createAddress("0xdEaDBeEFd");
 
@@ -622,490 +621,479 @@ describe("Victim & Loss Identifier Test Suite", () => {
     });
 
     it("creates multiple alerts for multiple victims as well as multiple scammers", async () => {
-        const mockScammerAddressFour = createAddress("0xdEaDBeEFc");
+      const mockScammerAddressFour = createAddress("0xdEaDBeEFc");
 
-        const mockVictimAddressFour = createAddress("0x60");
-  
-        const mockExploitTxnHashFour = createAddress("0x61");
-        const mockStolenTokenAddressFour = createAddress("0x62");
-        const mockStolenTokenNameFour = "MockErc721TokenSix";
-        const mockStolenTokenSymbolFour = "MOCK721-6";
-        const mockStolenTokenIdFour = "63";
-        const mockTxnValueFour = BigNumber.from(60);
+      const mockVictimAddressFour = createAddress("0x60");
 
+      const mockExploitTxnHashFour = createAddress("0x61");
+      const mockStolenTokenAddressFour = createAddress("0x62");
+      const mockStolenTokenNameFour = "MockErc721TokenSix";
+      const mockStolenTokenSymbolFour = "MOCK721-6";
+      const mockStolenTokenIdFour = "63";
+      const mockTxnValueFour = BigNumber.from(60);
 
-        const mockVictimAddressFive = createAddress("0x70");
-  
-        const mockExploitTxnHashFive = createAddress("0x71");
-        const mockStolenTokenAddressFive = createAddress("0x72");
-        const mockStolenTokenNameFive = "MockErc721TokenSeven";
-        const mockStolenTokenSymbolFive = "MOCK721-7";
-        const mockStolenTokenIdFive = "73";
-        const mockTxnValueFive = BigNumber.from(60);
-  
-        const mockAlertHandlerErc721TransfersFour: Erc721Transfer[] = [
-          {
-            transaction_hash: mockExploitTxnHashFour,
-            from_address: mockVictimAddressFour,
-            contract_address: mockStolenTokenAddressFour,
-            name: mockStolenTokenNameFour,
-            symbol: mockStolenTokenSymbolFour,
-            token_id: mockStolenTokenIdFour,
-            block_time: "string",
-            to_address: "string",
+      const mockVictimAddressFive = createAddress("0x70");
+
+      const mockExploitTxnHashFive = createAddress("0x71");
+      const mockStolenTokenAddressFive = createAddress("0x72");
+      const mockStolenTokenNameFive = "MockErc721TokenSeven";
+      const mockStolenTokenSymbolFive = "MOCK721-7";
+      const mockStolenTokenIdFive = "73";
+      const mockTxnValueFive = BigNumber.from(60);
+
+      const mockAlertHandlerErc721TransfersFour: Erc721Transfer[] = [
+        {
+          transaction_hash: mockExploitTxnHashFour,
+          from_address: mockVictimAddressFour,
+          contract_address: mockStolenTokenAddressFour,
+          name: mockStolenTokenNameFour,
+          symbol: mockStolenTokenSymbolFour,
+          token_id: mockStolenTokenIdFour,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockExploitTxnHashFive,
+          from_address: mockVictimAddressFive,
+          contract_address: mockStolenTokenAddressFive,
+          name: mockStolenTokenNameFive,
+          symbol: mockStolenTokenSymbolFive,
+          token_id: mockStolenTokenIdFive,
+          block_time: "string",
+          to_address: "string",
+        },
+      ];
+
+      when(mockErc721TransferFetcher)
+        .calledWith(mockScammerAddressFour, NINETY_DAYS, mockApiKey)
+        .mockResolvedValue(mockAlertHandlerErc721TransfersFour);
+
+      mockProvider.addTransactionResponse(mockExploitTxnHashFour, mockNftMarketPlaceAddress, mockTxnValueFour);
+      mockProvider.addTransactionResponse(mockExploitTxnHashFive, mockNftMarketPlaceAddress, mockTxnValueFive);
+
+      let mockAlert = new TestAlertEvent(
+        [],
+        FRAUD_NFT_ORDER_ALERT_ID,
+        "",
+        [],
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        "",
+        "",
+        [],
+        1,
+        [],
+        {
+          block: {
+            timestamp: "string",
+            chainId: 1,
+            hash: "",
+            number: mockAlertHandlerBlockNumber,
           },
-          {
-            transaction_hash: mockExploitTxnHashFive,
-            from_address: mockVictimAddressFive,
-            contract_address: mockStolenTokenAddressFive,
-            name: mockStolenTokenNameFive,
-            symbol: mockStolenTokenSymbolFive,
-            token_id: mockStolenTokenIdFive,
-            block_time: "string",
-            to_address: "string",
-          }
-        ];
-  
-        when(mockErc721TransferFetcher)
-          .calledWith(mockScammerAddressFour, NINETY_DAYS, mockApiKey)
-          .mockResolvedValue(mockAlertHandlerErc721TransfersFour);
-  
-        mockProvider.addTransactionResponse(mockExploitTxnHashFour, mockNftMarketPlaceAddress, mockTxnValueFour);
-        mockProvider.addTransactionResponse(mockExploitTxnHashFive, mockNftMarketPlaceAddress, mockTxnValueFive);
-  
-        let mockAlert = new TestAlertEvent(
-          [],
+        },
+        {
+          scammer_addresses: mockScammerAddressFour,
+        }
+      );
+
+      let findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressFour,
+          mockScammerAddressFour,
           FRAUD_NFT_ORDER_ALERT_ID,
-          "",
-          [],
-          "",
-          "",
-          "",
-          "",
-          "",
-          0,
-          "",
-          "",
-          [],
-          1,
-          [],
-          {
-            block: {
-              timestamp: "string",
-              chainId: 1,
-              hash: "",
-              number: mockAlertHandlerBlockNumber,
-            },
-          },
-          {
-            scammer_addresses: mockScammerAddressFour,
-          }
-        );
-  
-        let findings = await handleAlert(mockAlert);
-  
-        expect(findings).toStrictEqual([
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressFour,
-            mockScammerAddressFour,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameFour,
-            mockStolenTokenAddressFour,
-            mockStolenTokenIdFour,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashFour,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressFive,
-            mockScammerAddressFour,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameFive,
-            mockStolenTokenAddressFive,
-            mockStolenTokenIdFive,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashFive,
-            BigNumber.from(mockNftFloorPrice)
-          )
-        ]);
-  
-  
-        const mockScammerAddressFive = createAddress("0xdEaDBeEFd");
-
-
-        const mockVictimAddressSix = createAddress("0x80");
-  
-        const mockExploitTxnHashSix = createAddress("0x81");
-        const mockStolenTokenAddressSix = createAddress("0x82");
-        const mockStolenTokenNameSix = "MockErc721TokenEight";
-        const mockStolenTokenSymbolSix = "MOCK721-8";
-        const mockStolenTokenIdSix = "83";
-        const mockTxnValueSix = BigNumber.from(80);
-
-
-        const mockVictimAddressSeven = createAddress("0x90");
-  
-        const mockExploitTxnHashSeven = createAddress("0x91");
-        const mockStolenTokenAddressSeven = createAddress("0x92");
-        const mockStolenTokenNameSeven = "MockErc721TokenNine";
-        const mockStolenTokenSymbolSeven = "MOCK721-9";
-        const mockStolenTokenIdSeven = "93";
-        const mockTxnValueSeven = BigNumber.from(90);
-  
-        const mockAlertHandlerErc721TransfersFive: Erc721Transfer[] = [
-          {
-            transaction_hash: mockExploitTxnHashSix,
-            from_address: mockVictimAddressSix,
-            contract_address: mockStolenTokenAddressSix,
-            name: mockStolenTokenNameSix,
-            symbol: mockStolenTokenSymbolSix,
-            token_id: mockStolenTokenIdSix,
-            block_time: "string",
-            to_address: "string",
-          },
-          {
-            transaction_hash: mockExploitTxnHashSeven,
-            from_address: mockVictimAddressSeven,
-            contract_address: mockStolenTokenAddressSeven,
-            name: mockStolenTokenNameSeven,
-            symbol: mockStolenTokenSymbolSeven,
-            token_id: mockStolenTokenIdSeven,
-            block_time: "string",
-            to_address: "string",
-          },
-        ];
-  
-        when(mockErc721TransferFetcher)
-          .calledWith(mockScammerAddressFive, NINETY_DAYS, mockApiKey)
-          .mockResolvedValue(mockAlertHandlerErc721TransfersFive);
-  
-        mockProvider.addTransactionResponse(mockExploitTxnHashSix, mockNftMarketPlaceAddress, mockTxnValueSix);
-        mockProvider.addTransactionResponse(mockExploitTxnHashSeven, mockNftMarketPlaceAddress, mockTxnValueSeven);
-  
-        mockAlert = new TestAlertEvent(
-          [],
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameFour,
+          mockStolenTokenAddressFour,
+          mockStolenTokenIdFour,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashFour,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressFive,
+          mockScammerAddressFour,
           FRAUD_NFT_ORDER_ALERT_ID,
-          "",
-          [],
-          "",
-          "",
-          "",
-          "",
-          "",
-          0,
-          "",
-          "",
-          [],
-          1,
-          [],
-          {
-            block: {
-              timestamp: "string",
-              chainId: 1,
-              hash: "",
-              number: mockAlertHandlerBlockNumber,
-            },
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameFive,
+          mockStolenTokenAddressFive,
+          mockStolenTokenIdFive,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashFive,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
+
+      const mockScammerAddressFive = createAddress("0xdEaDBeEFd");
+
+      const mockVictimAddressSix = createAddress("0x80");
+
+      const mockExploitTxnHashSix = createAddress("0x81");
+      const mockStolenTokenAddressSix = createAddress("0x82");
+      const mockStolenTokenNameSix = "MockErc721TokenEight";
+      const mockStolenTokenSymbolSix = "MOCK721-8";
+      const mockStolenTokenIdSix = "83";
+      const mockTxnValueSix = BigNumber.from(80);
+
+      const mockVictimAddressSeven = createAddress("0x90");
+
+      const mockExploitTxnHashSeven = createAddress("0x91");
+      const mockStolenTokenAddressSeven = createAddress("0x92");
+      const mockStolenTokenNameSeven = "MockErc721TokenNine";
+      const mockStolenTokenSymbolSeven = "MOCK721-9";
+      const mockStolenTokenIdSeven = "93";
+      const mockTxnValueSeven = BigNumber.from(90);
+
+      const mockAlertHandlerErc721TransfersFive: Erc721Transfer[] = [
+        {
+          transaction_hash: mockExploitTxnHashSix,
+          from_address: mockVictimAddressSix,
+          contract_address: mockStolenTokenAddressSix,
+          name: mockStolenTokenNameSix,
+          symbol: mockStolenTokenSymbolSix,
+          token_id: mockStolenTokenIdSix,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockExploitTxnHashSeven,
+          from_address: mockVictimAddressSeven,
+          contract_address: mockStolenTokenAddressSeven,
+          name: mockStolenTokenNameSeven,
+          symbol: mockStolenTokenSymbolSeven,
+          token_id: mockStolenTokenIdSeven,
+          block_time: "string",
+          to_address: "string",
+        },
+      ];
+
+      when(mockErc721TransferFetcher)
+        .calledWith(mockScammerAddressFive, NINETY_DAYS, mockApiKey)
+        .mockResolvedValue(mockAlertHandlerErc721TransfersFive);
+
+      mockProvider.addTransactionResponse(mockExploitTxnHashSix, mockNftMarketPlaceAddress, mockTxnValueSix);
+      mockProvider.addTransactionResponse(mockExploitTxnHashSeven, mockNftMarketPlaceAddress, mockTxnValueSeven);
+
+      mockAlert = new TestAlertEvent(
+        [],
+        FRAUD_NFT_ORDER_ALERT_ID,
+        "",
+        [],
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        "",
+        "",
+        [],
+        1,
+        [],
+        {
+          block: {
+            timestamp: "string",
+            chainId: 1,
+            hash: "",
+            number: mockAlertHandlerBlockNumber,
           },
-          {
-            scammer_addresses: mockScammerAddressFive,
-          }
-        );
-  
-        findings = await handleAlert(mockAlert);
-  
-        expect(findings).toStrictEqual([
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressSix,
-            mockScammerAddressFive,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameSix,
-            mockStolenTokenAddressSix,
-            mockStolenTokenIdSix,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashSix,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressSeven,
-            mockScammerAddressFive,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameSeven,
-            mockStolenTokenAddressSeven,
-            mockStolenTokenIdSeven,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashSeven,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-        ]);
+        },
+        {
+          scammer_addresses: mockScammerAddressFive,
+        }
+      );
+
+      findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressSix,
+          mockScammerAddressFive,
+          FRAUD_NFT_ORDER_ALERT_ID,
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameSix,
+          mockStolenTokenAddressSix,
+          mockStolenTokenIdSix,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashSix,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressSeven,
+          mockScammerAddressFive,
+          FRAUD_NFT_ORDER_ALERT_ID,
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameSeven,
+          mockStolenTokenAddressSeven,
+          mockStolenTokenIdSeven,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashSeven,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
     });
 
     it.only("creates multiple alerts when there are multiple instances of a fraudulent NFT sales in a ERC721 transfer payload, even if there are sales above the threshold within the same payload", async () => {
-        const mockScammerAddressFour = createAddress("0xdEaDBeEFc");
+      const mockScammerAddressFour = createAddress("0xdEaDBeEFc");
 
-        const mockVictimAddressFour = createAddress("0x60");
-  
-        const mockExploitTxnHashFour = createAddress("0x61");
-        const mockStolenTokenAddressFour = createAddress("0x62");
-        const mockStolenTokenNameFour = "MockErc721TokenSix";
-        const mockStolenTokenSymbolFour = "MOCK721-6";
-        const mockStolenTokenIdFour = "63";
-        const mockTxnValueFour = BigNumber.from(60);
+      const mockVictimAddressFour = createAddress("0x60");
 
+      const mockExploitTxnHashFour = createAddress("0x61");
+      const mockStolenTokenAddressFour = createAddress("0x62");
+      const mockStolenTokenNameFour = "MockErc721TokenSix";
+      const mockStolenTokenSymbolFour = "MOCK721-6";
+      const mockStolenTokenIdFour = "63";
+      const mockTxnValueFour = BigNumber.from(60);
 
-        const mockSenderAddress = createAddress("0x10");
-  
-        const mockRegularTxnHash = createAddress("0x11");
-        const mockTokenAddress = createAddress("0x12");
-        const mockTokenName = "MockErc721TokenOne";
-        const mockTokenSymbol = "MOCK721-1";
-        const mockTokenId = "13";
-        const mockHighTxnValue = BigNumber.from(2000);
+      const mockSenderAddress = createAddress("0x10");
 
+      const mockRegularTxnHash = createAddress("0x11");
+      const mockTokenAddress = createAddress("0x12");
+      const mockTokenName = "MockErc721TokenOne";
+      const mockTokenSymbol = "MOCK721-1";
+      const mockTokenId = "13";
+      const mockHighTxnValue = BigNumber.from(2000);
 
-        const mockVictimAddressFive = createAddress("0x70");
-  
-        const mockExploitTxnHashFive = createAddress("0x71");
-        const mockStolenTokenAddressFive = createAddress("0x72");
-        const mockStolenTokenNameFive = "MockErc721TokenSeven";
-        const mockStolenTokenSymbolFive = "MOCK721-7";
-        const mockStolenTokenIdFive = "73";
-        const mockTxnValueFive = BigNumber.from(60);
-  
-        const mockAlertHandlerErc721TransfersFour: Erc721Transfer[] = [
-          {
-            transaction_hash: mockExploitTxnHashFour,
-            from_address: mockVictimAddressFour,
-            contract_address: mockStolenTokenAddressFour,
-            name: mockStolenTokenNameFour,
-            symbol: mockStolenTokenSymbolFour,
-            token_id: mockStolenTokenIdFour,
-            block_time: "string",
-            to_address: "string",
+      const mockVictimAddressFive = createAddress("0x70");
+
+      const mockExploitTxnHashFive = createAddress("0x71");
+      const mockStolenTokenAddressFive = createAddress("0x72");
+      const mockStolenTokenNameFive = "MockErc721TokenSeven";
+      const mockStolenTokenSymbolFive = "MOCK721-7";
+      const mockStolenTokenIdFive = "73";
+      const mockTxnValueFive = BigNumber.from(60);
+
+      const mockAlertHandlerErc721TransfersFour: Erc721Transfer[] = [
+        {
+          transaction_hash: mockExploitTxnHashFour,
+          from_address: mockVictimAddressFour,
+          contract_address: mockStolenTokenAddressFour,
+          name: mockStolenTokenNameFour,
+          symbol: mockStolenTokenSymbolFour,
+          token_id: mockStolenTokenIdFour,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockRegularTxnHash,
+          from_address: mockSenderAddress,
+          contract_address: mockTokenAddress,
+          name: mockTokenName,
+          symbol: mockTokenSymbol,
+          token_id: mockTokenId,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockExploitTxnHashFive,
+          from_address: mockVictimAddressFive,
+          contract_address: mockStolenTokenAddressFive,
+          name: mockStolenTokenNameFive,
+          symbol: mockStolenTokenSymbolFive,
+          token_id: mockStolenTokenIdFive,
+          block_time: "string",
+          to_address: "string",
+        },
+      ];
+
+      when(mockErc721TransferFetcher)
+        .calledWith(mockScammerAddressFour, NINETY_DAYS, mockApiKey)
+        .mockResolvedValue(mockAlertHandlerErc721TransfersFour);
+
+      mockProvider.addTransactionResponse(mockExploitTxnHashFour, mockNftMarketPlaceAddress, mockTxnValueFour);
+      mockProvider.addTransactionResponse(mockRegularTxnHash, mockNftMarketPlaceAddress, mockHighTxnValue);
+      mockProvider.addTransactionResponse(mockExploitTxnHashFive, mockNftMarketPlaceAddress, mockTxnValueFive);
+
+      let mockAlert = new TestAlertEvent(
+        [],
+        FRAUD_NFT_ORDER_ALERT_ID,
+        "",
+        [],
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        "",
+        "",
+        [],
+        1,
+        [],
+        {
+          block: {
+            timestamp: "string",
+            chainId: 1,
+            hash: "",
+            number: mockAlertHandlerBlockNumber,
           },
-          {
-            transaction_hash: mockRegularTxnHash,
-            from_address: mockSenderAddress,
-            contract_address: mockTokenAddress,
-            name: mockTokenName,
-            symbol: mockTokenSymbol,
-            token_id: mockTokenId,
-            block_time: "string",
-            to_address: "string",
-          },
-          {
-            transaction_hash: mockExploitTxnHashFive,
-            from_address: mockVictimAddressFive,
-            contract_address: mockStolenTokenAddressFive,
-            name: mockStolenTokenNameFive,
-            symbol: mockStolenTokenSymbolFive,
-            token_id: mockStolenTokenIdFive,
-            block_time: "string",
-            to_address: "string",
-          }
-        ];
-  
-        when(mockErc721TransferFetcher)
-          .calledWith(mockScammerAddressFour, NINETY_DAYS, mockApiKey)
-          .mockResolvedValue(mockAlertHandlerErc721TransfersFour);
-  
-        mockProvider.addTransactionResponse(mockExploitTxnHashFour, mockNftMarketPlaceAddress, mockTxnValueFour);
-        mockProvider.addTransactionResponse(mockRegularTxnHash, mockNftMarketPlaceAddress, mockHighTxnValue);
-        mockProvider.addTransactionResponse(mockExploitTxnHashFive, mockNftMarketPlaceAddress, mockTxnValueFive);
-  
-        let mockAlert = new TestAlertEvent(
-          [],
+        },
+        {
+          scammer_addresses: mockScammerAddressFour,
+        }
+      );
+
+      let findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressFour,
+          mockScammerAddressFour,
           FRAUD_NFT_ORDER_ALERT_ID,
-          "",
-          [],
-          "",
-          "",
-          "",
-          "",
-          "",
-          0,
-          "",
-          "",
-          [],
-          1,
-          [],
-          {
-            block: {
-              timestamp: "string",
-              chainId: 1,
-              hash: "",
-              number: mockAlertHandlerBlockNumber,
-            },
-          },
-          {
-            scammer_addresses: mockScammerAddressFour,
-          }
-        );
-  
-        let findings = await handleAlert(mockAlert);
-  
-        expect(findings).toStrictEqual([
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressFour,
-            mockScammerAddressFour,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameFour,
-            mockStolenTokenAddressFour,
-            mockStolenTokenIdFour,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashFour,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressFive,
-            mockScammerAddressFour,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameFive,
-            mockStolenTokenAddressFive,
-            mockStolenTokenIdFive,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashFive,
-            BigNumber.from(mockNftFloorPrice)
-          )
-        ]);
-  
-  
-        const mockScammerAddressFive = createAddress("0xdEaDBeEFd");
-
-
-        const mockVictimAddressSix = createAddress("0x80");
-  
-        const mockExploitTxnHashSix = createAddress("0x81");
-        const mockStolenTokenAddressSix = createAddress("0x82");
-        const mockStolenTokenNameSix = "MockErc721TokenEight";
-        const mockStolenTokenSymbolSix = "MOCK721-8";
-        const mockStolenTokenIdSix = "83";
-        const mockTxnValueSix = BigNumber.from(80);
-
-
-
-        const mockSenderAddressTwo = createAddress("0x10");
-  
-        const mockRegularTxnHashTwo = createAddress("0x11");
-        const mockTokenAddressTwo = createAddress("0x12");
-        const mockTokenNameTwo = "MockErc721TokenOne";
-        const mockTokenSymbolTwo = "MOCK721-1";
-        const mockTokenIdTwo = "13";
-        const mockHighTxnValueTwo = BigNumber.from(2000);
-
-
-        const mockVictimAddressSeven = createAddress("0x90");
-  
-        const mockExploitTxnHashSeven = createAddress("0x91");
-        const mockStolenTokenAddressSeven = createAddress("0x92");
-        const mockStolenTokenNameSeven = "MockErc721TokenNine";
-        const mockStolenTokenSymbolSeven = "MOCK721-9";
-        const mockStolenTokenIdSeven = "93";
-        const mockTxnValueSeven = BigNumber.from(90);
-  
-        const mockAlertHandlerErc721TransfersFive: Erc721Transfer[] = [
-          {
-            transaction_hash: mockExploitTxnHashSix,
-            from_address: mockVictimAddressSix,
-            contract_address: mockStolenTokenAddressSix,
-            name: mockStolenTokenNameSix,
-            symbol: mockStolenTokenSymbolSix,
-            token_id: mockStolenTokenIdSix,
-            block_time: "string",
-            to_address: "string",
-          },
-          {
-            transaction_hash: mockRegularTxnHashTwo,
-            from_address: mockSenderAddressTwo,
-            contract_address: mockTokenAddressTwo,
-            name: mockTokenNameTwo,
-            symbol: mockTokenSymbolTwo,
-            token_id: mockTokenIdTwo,
-            block_time: "string",
-            to_address: "string",
-          },
-          {
-            transaction_hash: mockExploitTxnHashSeven,
-            from_address: mockVictimAddressSeven,
-            contract_address: mockStolenTokenAddressSeven,
-            name: mockStolenTokenNameSeven,
-            symbol: mockStolenTokenSymbolSeven,
-            token_id: mockStolenTokenIdSeven,
-            block_time: "string",
-            to_address: "string",
-          },
-        ];
-  
-        when(mockErc721TransferFetcher)
-          .calledWith(mockScammerAddressFive, NINETY_DAYS, mockApiKey)
-          .mockResolvedValue(mockAlertHandlerErc721TransfersFive);
-  
-        mockProvider.addTransactionResponse(mockExploitTxnHashSix, mockNftMarketPlaceAddress, mockTxnValueSix);
-        mockProvider.addTransactionResponse(mockRegularTxnHashTwo, mockNftMarketPlaceAddress, mockHighTxnValueTwo);
-        mockProvider.addTransactionResponse(mockExploitTxnHashSeven, mockNftMarketPlaceAddress, mockTxnValueSeven);
-  
-        mockAlert = new TestAlertEvent(
-          [],
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameFour,
+          mockStolenTokenAddressFour,
+          mockStolenTokenIdFour,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashFour,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressFive,
+          mockScammerAddressFour,
           FRAUD_NFT_ORDER_ALERT_ID,
-          "",
-          [],
-          "",
-          "",
-          "",
-          "",
-          "",
-          0,
-          "",
-          "",
-          [],
-          1,
-          [],
-          {
-            block: {
-              timestamp: "string",
-              chainId: 1,
-              hash: "",
-              number: mockAlertHandlerBlockNumber,
-            },
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameFive,
+          mockStolenTokenAddressFive,
+          mockStolenTokenIdFive,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashFive,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
+
+      const mockScammerAddressFive = createAddress("0xdEaDBeEFd");
+
+      const mockVictimAddressSix = createAddress("0x80");
+
+      const mockExploitTxnHashSix = createAddress("0x81");
+      const mockStolenTokenAddressSix = createAddress("0x82");
+      const mockStolenTokenNameSix = "MockErc721TokenEight";
+      const mockStolenTokenSymbolSix = "MOCK721-8";
+      const mockStolenTokenIdSix = "83";
+      const mockTxnValueSix = BigNumber.from(80);
+
+      const mockSenderAddressTwo = createAddress("0x10");
+
+      const mockRegularTxnHashTwo = createAddress("0x11");
+      const mockTokenAddressTwo = createAddress("0x12");
+      const mockTokenNameTwo = "MockErc721TokenOne";
+      const mockTokenSymbolTwo = "MOCK721-1";
+      const mockTokenIdTwo = "13";
+      const mockHighTxnValueTwo = BigNumber.from(2000);
+
+      const mockVictimAddressSeven = createAddress("0x90");
+
+      const mockExploitTxnHashSeven = createAddress("0x91");
+      const mockStolenTokenAddressSeven = createAddress("0x92");
+      const mockStolenTokenNameSeven = "MockErc721TokenNine";
+      const mockStolenTokenSymbolSeven = "MOCK721-9";
+      const mockStolenTokenIdSeven = "93";
+      const mockTxnValueSeven = BigNumber.from(90);
+
+      const mockAlertHandlerErc721TransfersFive: Erc721Transfer[] = [
+        {
+          transaction_hash: mockExploitTxnHashSix,
+          from_address: mockVictimAddressSix,
+          contract_address: mockStolenTokenAddressSix,
+          name: mockStolenTokenNameSix,
+          symbol: mockStolenTokenSymbolSix,
+          token_id: mockStolenTokenIdSix,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockRegularTxnHashTwo,
+          from_address: mockSenderAddressTwo,
+          contract_address: mockTokenAddressTwo,
+          name: mockTokenNameTwo,
+          symbol: mockTokenSymbolTwo,
+          token_id: mockTokenIdTwo,
+          block_time: "string",
+          to_address: "string",
+        },
+        {
+          transaction_hash: mockExploitTxnHashSeven,
+          from_address: mockVictimAddressSeven,
+          contract_address: mockStolenTokenAddressSeven,
+          name: mockStolenTokenNameSeven,
+          symbol: mockStolenTokenSymbolSeven,
+          token_id: mockStolenTokenIdSeven,
+          block_time: "string",
+          to_address: "string",
+        },
+      ];
+
+      when(mockErc721TransferFetcher)
+        .calledWith(mockScammerAddressFive, NINETY_DAYS, mockApiKey)
+        .mockResolvedValue(mockAlertHandlerErc721TransfersFive);
+
+      mockProvider.addTransactionResponse(mockExploitTxnHashSix, mockNftMarketPlaceAddress, mockTxnValueSix);
+      mockProvider.addTransactionResponse(mockRegularTxnHashTwo, mockNftMarketPlaceAddress, mockHighTxnValueTwo);
+      mockProvider.addTransactionResponse(mockExploitTxnHashSeven, mockNftMarketPlaceAddress, mockTxnValueSeven);
+
+      mockAlert = new TestAlertEvent(
+        [],
+        FRAUD_NFT_ORDER_ALERT_ID,
+        "",
+        [],
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        "",
+        "",
+        [],
+        1,
+        [],
+        {
+          block: {
+            timestamp: "string",
+            chainId: 1,
+            hash: "",
+            number: mockAlertHandlerBlockNumber,
           },
-          {
-            scammer_addresses: mockScammerAddressFive,
-          }
-        );
-  
-        findings = await handleAlert(mockAlert);
-  
-        expect(findings).toStrictEqual([
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressSix,
-            mockScammerAddressFive,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameSix,
-            mockStolenTokenAddressSix,
-            mockStolenTokenIdSix,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashSix,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-          createTestingFraudNftOrderFinding(
-            mockVictimAddressSeven,
-            mockScammerAddressFive,
-            FRAUD_NFT_ORDER_ALERT_ID,
-            BigNumber.from(mockNftFloorPrice),
-            mockStolenTokenNameSeven,
-            mockStolenTokenAddressSeven,
-            mockStolenTokenIdSeven,
-            BigNumber.from(mockNftFloorPrice),
-            mockExploitTxnHashSeven,
-            BigNumber.from(mockNftFloorPrice)
-          ),
-        ]);
+        },
+        {
+          scammer_addresses: mockScammerAddressFive,
+        }
+      );
+
+      findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressSix,
+          mockScammerAddressFive,
+          FRAUD_NFT_ORDER_ALERT_ID,
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameSix,
+          mockStolenTokenAddressSix,
+          mockStolenTokenIdSix,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashSix,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+        createTestingFraudNftOrderFinding(
+          mockVictimAddressSeven,
+          mockScammerAddressFive,
+          FRAUD_NFT_ORDER_ALERT_ID,
+          BigNumber.from(mockNftFloorPrice),
+          mockStolenTokenNameSeven,
+          mockStolenTokenAddressSeven,
+          mockStolenTokenIdSeven,
+          BigNumber.from(mockNftFloorPrice),
+          mockExploitTxnHashSeven,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
     });
   });
 });
