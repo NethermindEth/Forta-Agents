@@ -26,6 +26,9 @@ type TransactionInfo = {
 
 type VictimInfo = {
   totalUsdValueAcrossAllTokens?: number;
+  totalUsdValueAcrossAllErc20Tokens?: number;
+  totalUsdValueAcrossAllErc721Tokens?: number;
+  totalUsdValueAcrossAllErc1155Tokens?: number;
   transactions?: {
     [key: string]: TransactionInfo; // key: transaction hash
   };

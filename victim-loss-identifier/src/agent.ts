@@ -110,6 +110,7 @@ async function processFraudulentNftOrders(
           scammersCurrentlyMonitored[scammerAddress].victims = {
             [victimAddress]: {
               totalUsdValueAcrossAllTokens: 0,
+              totalUsdValueAcrossAllErc721Tokens: 0,
               transactions: {
                 [exploitTxnHash]: {
                   erc721: {
@@ -128,6 +129,7 @@ async function processFraudulentNftOrders(
           // The scammer doesn't have this specific victim yet
           scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
             totalUsdValueAcrossAllTokens: 0,
+            totalUsdValueAcrossAllErc721Tokens: 0,
             transactions: {
               [exploitTxnHash]: {
                 erc721: {
@@ -157,12 +159,14 @@ async function processFraudulentNftOrders(
 
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! +=
           nftCollectionFloorPrice;
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ].tokenIds!.push(Number(stolenTokenId));
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens! +=
+          nftCollectionFloorPrice;
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
           stolenTokenAddress
         ].tokenTotalUsdValue! += nftCollectionFloorPrice;
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          stolenTokenAddress
+        ].tokenIds!.push(Number(stolenTokenId));
 
         findings.push(
           createFraudNftOrderFinding(
@@ -173,9 +177,7 @@ async function processFraudulentNftOrders(
             stolenTokenName,
             stolenTokenAddress,
             stolenTokenId,
-            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-              stolenTokenAddress
-            ].tokenTotalUsdValue!,
+            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens!,
             exploitTxnHash,
             nftCollectionFloorPrice
           )
