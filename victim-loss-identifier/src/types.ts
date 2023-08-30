@@ -57,8 +57,10 @@ export type apiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];
   };
-  victimLossKeys: {
-    alchemyApiKey: string;
+  apiKeys: {
+    victimLoss: {
+      alchemyApiKey: string;
+    };
   };
 };
 

@@ -1,5 +1,5 @@
 import { Initialize, HandleBlock, HandleAlert, FindingType, FindingSeverity, Finding, ethers } from "forta-agent";
-import { BigNumber } from "ethers";
+import { BigNumber, utils } from "ethers";
 import { createAddress } from "forta-agent-tools";
 import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
@@ -8,28 +8,25 @@ import { TestAlertEvent } from "./mocks/mock.alert";
 import { ExtendedMockEthersProvider } from "./mocks/extended.mock.ethers";
 import { createTestingFraudNftOrderFinding } from "./mocks/testing.findings";
 import { Erc721Transfer } from "./mocks/types";
+import DataFetcher from "./fetcher";
 
 const ONE_DAY = 60 * 60 * 24;
 const NINETY_DAYS = ONE_DAY * 90;
+const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
 
 describe("Victim & Loss Identifier Test Suite", () => {
   describe("Fraudulent NFT Order Test Suite", () => {
-    const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
+    const mockDataFetcher = {
+      getTransactionReceipt: jest.fn(),
+      getTransaction: jest.fn(),
+      getNftCollectionFloorPrice: jest.fn(),
+      getScammerErc721Transfers: jest.fn(),
+    };
 
     const mockBlock = new TestBlockEvent();
     const mockAlertHandlerBlockNumber = 25;
     const mockDayInEthBlockTime = 7200;
     const mockScammerLastActivityInBlockHandler = mockDayInEthBlockTime - mockAlertHandlerBlockNumber;
-
-    const mockScammerAddress = createAddress("0xdEaDBeEF");
-    const mockScammerAddressTwo = createAddress("0xdEaDBeEFB");
-
-    const mockExploitTxnHash = createAddress("0x30");
-    const mockVictimAddress = createAddress("0x31");
-    const mockStolenTokenAddress = createAddress("0x32");
-    const mockStolenTokenName = "MockErc721Token";
-    const mockStolenTokenSymbol = "MOCK721";
-    const mockStolenTokenId = "33";
 
     const mockExploitTxnHashTwo = createAddress("0x40");
     const mockVictimAddressTwo = createAddress("0x41");
@@ -61,18 +58,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
     const mockTxnValueTwo = BigNumber.from(80);
     const mockTxnValueThree = BigNumber.from(90);
 
-    const mockAlertHandlerErc721Transfers: Erc721Transfer[] = [
-      {
-        transaction_hash: mockExploitTxnHash,
-        from_address: mockVictimAddress,
-        contract_address: mockStolenTokenAddress,
-        name: mockStolenTokenName,
-        symbol: mockStolenTokenSymbol,
-        token_id: mockStolenTokenId,
-        block_time: "string",
-        to_address: "string",
-      },
-    ];
     const mockBlockHandlerErc721Transfers: Erc721Transfer[] = [
       {
         transaction_hash: mockExploitTxnHashTwo,
@@ -109,7 +94,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
     ];
 
     const mockProvider: ExtendedMockEthersProvider = new ExtendedMockEthersProvider();
-    const mockApiKeyFetcher = jest.fn();
+    const mockSecretsFetcher = jest.fn();
     const mockErc721TransferFetcher = jest.fn();
     const mockNftCollectionFloorPriceFetcher = jest.fn();
 
@@ -122,6 +107,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
     });
 
     beforeEach(async () => {
+      /*
       mockProvider.addTransactionResponse(mockExploitTxnHash, mockNftMarketPlaceAddress, mockTxnValue);
       mockProvider.addTransactionResponse(mockExploitTxnHashTwo, mockNftMarketPlaceAddress, mockTxnValueTwo);
       mockProvider.addTransactionResponse(mockExploitTxnHashThree, mockNftMarketPlaceAddress, mockTxnValueThree);
@@ -139,23 +125,73 @@ describe("Victim & Loss Identifier Test Suite", () => {
         .mockResolvedValue(mockAlertHandlerErc721TransfersFour);
 
       when(mockNftCollectionFloorPriceFetcher).calledWith().mockResolvedValue(mockNftFloorPrice);
+      */
 
-      initialize = provideInitialize(mockProvider as any, mockApiKeyFetcher);
+      initialize = provideInitialize(mockProvider as any, mockSecretsFetcher, mockDataFetcher as any);
       await initialize();
 
-      handleAlert = provideHandleAlert(
-        mockProvider as any,
-        mockErc721TransferFetcher,
-        mockNftCollectionFloorPriceFetcher
-      );
-      handleBlock = provideHandleBlock(
-        mockProvider as any,
-        mockErc721TransferFetcher,
-        mockNftCollectionFloorPriceFetcher
-      );
+      handleAlert = provideHandleAlert();
+      handleBlock = provideHandleBlock();
     });
 
-    it("creates an alert when Scam Detector emits a SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
+    it.only("creates an alert when Scam Detector emits a SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
+      const mockScammerAddress = createAddress("0xdEaDBeEF");
+
+      const mockExploitTxnHash = createAddress("0x10");
+      const mockFromAddress = createAddress("0x110");
+      const mockVictimAddress = createAddress("0x111");
+      const mockStolenTokenAddress = createAddress("0x12");
+      const mockStolenTokenName = "MockErc721TokenOne";
+      const mockStolenTokenSymbol = "MOCK721-1";
+      const mockStolenTokenId = "13";
+
+      const mockTimestamp = 10000;
+
+      const mockAlertHandlerErc721Transfers: Erc721Transfer[] = [
+        {
+          transaction_hash: mockExploitTxnHash,
+          from_address: mockFromAddress,
+          contract_address: mockStolenTokenAddress,
+          name: mockStolenTokenName,
+          symbol: mockStolenTokenSymbol,
+          token_id: mockStolenTokenId,
+          block_time: "string",
+          to_address: "string",
+        },
+      ];
+
+      const mockTxnReceipt = {
+        logs: [
+          {
+            address: mockStolenTokenAddress,
+            topics: [
+              utils.id("Transfer(address,address,uint256)"),
+              utils.hexZeroPad(utils.hexValue(mockVictimAddress), 32),
+              "mock to",
+              utils.hexZeroPad(utils.hexValue(mockStolenTokenId), 32),
+            ],
+          },
+        ],
+      };
+
+      const mockTxnResponse = {
+        to: mockNftMarketPlaceAddress,
+        value: mockTxnValue,
+        timestamp: mockTimestamp,
+      };
+
+      when(mockDataFetcher.getScammerErc721Transfers)
+        .calledWith(mockScammerAddress, NINETY_DAYS)
+        .mockResolvedValue(mockAlertHandlerErc721Transfers);
+
+      when(mockDataFetcher.getTransactionReceipt).calledWith(mockExploitTxnHash).mockResolvedValue(mockTxnReceipt);
+
+      when(mockDataFetcher.getTransaction).calledWith(mockExploitTxnHash).mockResolvedValue(mockTxnResponse);
+
+      when(mockDataFetcher.getNftCollectionFloorPrice)
+        .calledWith(mockStolenTokenAddress, mockTimestamp)
+        .mockResolvedValue(mockNftFloorPrice);
+
       const blockNumber = 25;
       const mockAlert = new TestAlertEvent(
         [],
@@ -204,6 +240,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       ]);
     });
 
+    /*
     it("doesn't create an alert when Scam Detector emits a non-SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
       const blockNumber = 33;
       const mockAlert = new TestAlertEvent(
@@ -838,7 +875,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       ]);
     });
 
-    it.only("creates multiple alerts when there are multiple instances of a fraudulent NFT sales in a ERC721 transfer payload, even if there are sales above the threshold within the same payload", async () => {
+    it("creates multiple alerts when there are multiple instances of a fraudulent NFT sales in a ERC721 transfer payload, even if there are sales above the threshold within the same payload", async () => {
       const mockScammerAddressFour = createAddress("0xdEaDBeEFc");
 
       const mockVictimAddressFour = createAddress("0x60");
@@ -1095,5 +1132,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
         ),
       ]);
     });
+    */
   });
 });

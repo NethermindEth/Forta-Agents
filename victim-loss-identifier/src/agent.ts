@@ -13,9 +13,11 @@ import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
 import { getBlocksInTimePeriodForChainId, fetchApiKeys } from "./utils/utils";
 import DataFetcher from "./fetcher";
+import { getSecrets } from "./storage";
 
 let chainId: number;
 let apiKeys: apiKeys;
+let dataFetcher: DataFetcher = {} as any;
 
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
@@ -26,7 +28,7 @@ async function processFraudulentNftOrders(
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
-  const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getErc721TransfersInvolvingScammer(
+  const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getScammerErc721Transfers(
     scammerAddress,
     erc721TransferTimeWindow
   );
@@ -180,13 +182,15 @@ async function processFraudulentNftOrders(
   return findings;
 }
 
-export function provideInitialize(provider: providers.Provider): Initialize {
+export function provideInitialize(
+  provider: providers.Provider,
+  getSecrets: () => Promise<object>,
+  dataFetcher: DataFetcher
+): Initialize {
   return async () => {
-    // TODO: Add the ability to fetch the API key
-    // from the secrets.json
-
     chainId = (await provider.getNetwork()).chainId;
-    apiKeys = await fetchApiKeys();
+    apiKeys = (await getSecrets()) as apiKeys;
+    dataFetcher = new DataFetcher(provider, apiKeys);
 
     alertConfig: {
       subscriptions: [
@@ -199,7 +203,7 @@ export function provideInitialize(provider: providers.Provider): Initialize {
   };
 }
 
-export function provideHandleAlert(dataFetcher: DataFetcher): HandleAlert {
+export function provideHandleAlert(): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -224,7 +228,7 @@ export function provideHandleAlert(dataFetcher: DataFetcher): HandleAlert {
   };
 }
 
-export function provideHandleBlock(dataFetcher: DataFetcher): HandleBlock {
+export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
@@ -264,9 +268,9 @@ export function provideHandleBlock(dataFetcher: DataFetcher): HandleBlock {
 }
 
 export default {
-  initialize: provideInitialize(getEthersProvider()),
-  handleAlert: provideHandleAlert(new DataFetcher(getEthersProvider(), apiKeys)),
-  handleBlock: provideHandleBlock(new DataFetcher(getEthersProvider(), apiKeys)),
+  initialize: provideInitialize(getEthersProvider(), getSecrets, dataFetcher),
+  handleAlert: provideHandleAlert(),
+  handleBlock: provideHandleBlock(),
   provideInitialize,
   provideHandleAlert,
   provideHandleBlock,

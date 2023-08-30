@@ -1,42 +1,43 @@
 import { providers } from "ethers";
-import { apiKeys, Erc721Transfer, coinData } from "./types";
 import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
+import { apiKeys, Erc721Transfer, coinData } from "./types";
 
 export default class DataFetcher {
   provider: providers.Provider;
   private apiKeys: apiKeys;
-  private alchemy: Alchemy;
+  alchemy: Alchemy;
   private ethPriceCache: LRUCache<number, number>;
-  private floorPriceCache: LRUCache<number, number>;
+  private floorPriceCache: LRUCache<string, number>;
+  private readonly MAX_TRIES: number; // Retries counter
 
   constructor(provider: providers.Provider, apiKeys: apiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.alchemy = new Alchemy({
-      apiKey: this.apiKeys.victimLossKeys.alchemyApiKey,
+      apiKey: this.apiKeys.apiKeys.victimLoss.alchemyApiKey,
       network: Network.ETH_MAINNET,
     });
     this.ethPriceCache = new LRUCache<number, number>({
       max: 1000,
     });
-    this.floorPriceCache = new LRUCache<number, number>({
+    this.floorPriceCache = new LRUCache<string, number>({
       max: 10000,
     });
+    this.MAX_TRIES = 3;
   }
 
   getTransactionReceipt = async (txHash: string) => {
     let receipt;
     let tries = 0;
-    const maxTries = 3;
 
-    while (tries < maxTries) {
+    while (tries < this.MAX_TRIES) {
       try {
         receipt = await this.provider.getTransactionReceipt(txHash);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
-        if (tries === maxTries) {
+        if (tries === this.MAX_TRIES) {
           throw err; // throw the error if maximum tries reached
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
@@ -48,15 +49,14 @@ export default class DataFetcher {
   getTransaction = async (txHash: string) => {
     let receipt;
     let tries = 0;
-    const maxTries = 3;
 
-    while (tries < maxTries) {
+    while (tries < this.MAX_TRIES) {
       try {
         receipt = await this.provider.getTransaction(txHash);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
-        if (tries === maxTries) {
+        if (tries === this.MAX_TRIES) {
           throw err; // throw the error if maximum tries reached
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
@@ -65,16 +65,16 @@ export default class DataFetcher {
     return receipt;
   };
 
-  private getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
+  getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
     if (this.ethPriceCache.has(timestamp)) {
-      console.log(`Using cached ETH price for timestamp: ${timestamp}`);
+      const price = this.ethPriceCache.get(timestamp);
+      console.log(`Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`);
       return this.ethPriceCache.get(timestamp);
     }
 
-    const maxTries = 3;
     let tries = 0;
 
-    while (tries < maxTries) {
+    while (tries < this.MAX_TRIES) {
       try {
         const url = `https://coins.llama.fi/prices/historical/${timestamp}/coingecko:ethereum`;
         const response = await fetch(url);
@@ -90,8 +90,8 @@ export default class DataFetcher {
         }
       } catch (e) {
         tries++;
-        console.log(`Error in fetching ETH price (attempt ${tries}):`, e);
-        if (tries === maxTries) {
+        console.log(`Error in fetching ETH price (attempt ${tries}): `, e);
+        if (tries === this.MAX_TRIES) {
           throw e;
         }
       }
@@ -103,11 +103,10 @@ export default class DataFetcher {
     return undefined;
   };
 
-  private getFloorPriceInEth = async (nftAddress: string): Promise<number> => {
-    const maxTries = 3;
+  getFloorPriceInEth = async (nftAddress: string): Promise<number> => {
     let tries = 0;
 
-    while (tries < maxTries) {
+    while (tries < this.MAX_TRIES) {
       try {
         const floorPrice: GetFloorPriceResponse = await this.alchemy.nft.getFloorPrice(nftAddress);
 
@@ -137,8 +136,8 @@ export default class DataFetcher {
         return latestEntry.floorPrice;
       } catch (e) {
         tries++;
-        console.error(`Error fetching floor price (attempt ${tries}):`, e);
-        if (tries === maxTries) {
+        console.error(`Error fetching floor price (attempt ${tries}): `, e);
+        if (tries === this.MAX_TRIES) {
           throw e;
         }
 
@@ -151,30 +150,32 @@ export default class DataFetcher {
   };
 
   getNftCollectionFloorPrice = async (nftAddress: string, timestamp: number): Promise<number> => {
-    if (this.floorPriceCache.has(timestamp)) {
-      return this.floorPriceCache.get(timestamp)!;
+    const key = `${nftAddress}-${timestamp}`;
+    if (this.floorPriceCache.has(key)) {
+      return this.floorPriceCache.get(key)!;
     }
 
-    const ethPrice = await this.getNativeTokenPrice(timestamp);
+    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp);
     const floorPriceInEth = await this.getFloorPriceInEth(nftAddress);
 
-    if (!ethPrice || !floorPriceInEth) {
+    if (!ethPriceInUsd || !floorPriceInEth) {
       return 0;
     }
 
-    const floorPrice = floorPriceInEth * ethPrice;
-    this.floorPriceCache.set(timestamp, floorPrice);
-    return floorPrice;
+    const floorPriceInUsd = floorPriceInEth * ethPriceInUsd;
+    this.floorPriceCache.set(key, floorPriceInUsd);
+    return floorPriceInUsd;
   };
 
-  getErc721TransfersInvolvingScammer = async (
+  getScammerErc721Transfers = async (
     scammerAddress: string,
     transferOccuranceTimeWindow: number
   ): Promise<Erc721Transfer[]> => {
     let erc721Transfers: Erc721Transfer[] = [];
 
     const currentTime = new Date();
-    const timeWindowInMs = transferOccuranceTimeWindow * 24 * 60 * 60 * 1000;
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const timeWindowInMs = transferOccuranceTimeWindow * oneDayInMs;
 
     const maxTimestamp = currentTime.toISOString();
     const minTimestamp = new Date(currentTime.getTime() - timeWindowInMs).toISOString();
@@ -214,9 +215,8 @@ export default class DataFetcher {
     });
 
     let tries = 0;
-    const maxTries = 3;
 
-    while (tries < maxTries) {
+    while (tries < this.MAX_TRIES) {
       try {
         const response = await fetch(
           "https://api.zettablock.com/api/v1/dataset/sq_8b63dd1011c54ac8a1af53542a96f583/graphql",
@@ -225,7 +225,7 @@ export default class DataFetcher {
             body,
             headers: {
               accept: "application/json",
-              "X-API-KEY": `${this.apiKeys["generalApiKeys"]["ZETTABLOCK"][0]}`,
+              "X-API-KEY": `${this.apiKeys.generalApiKeys.ZETTABLOCK[0]}`,
               "content-type": "application/json",
             },
           }
@@ -235,7 +235,7 @@ export default class DataFetcher {
         break; // exit the loop if successful
       } catch (err) {
         tries++;
-        if (tries === maxTries) {
+        if (tries === this.MAX_TRIES) {
           throw err;
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying

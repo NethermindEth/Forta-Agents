@@ -40,11 +40,13 @@ export async function fetchApiKeys(): Promise<apiKeys> {
     } else {
       return {
         generalApiKeys: {
-            ZETTABLOCK: [""]
+          ZETTABLOCK: [""],
         },
-        victimLossKeys: {
-            alchemyApiKey: ""
-        }
+        apiKeys: {
+          victimLoss: {
+            alchemyApiKey: "",
+          },
+        },
       };
     }
   } catch (e) {
