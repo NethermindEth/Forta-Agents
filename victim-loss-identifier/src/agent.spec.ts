@@ -1,5 +1,5 @@
 import { Initialize, HandleBlock, HandleAlert, FindingType, FindingSeverity, Finding, ethers } from "forta-agent";
-import { BigNumber, utils } from "ethers";
+import { BigNumber, utils, providers } from "ethers";
 import { createAddress } from "forta-agent-tools";
 import { TestBlockEvent } from "forta-agent-tools/lib/test";
 import { when } from "jest-when";
@@ -22,6 +22,10 @@ describe("Victim & Loss Identifier Test Suite", () => {
       getNftCollectionFloorPrice: jest.fn(),
       getScammerErc721Transfers: jest.fn(),
     };
+
+    async function mockDataFetcherCreator(provider: providers.Provider): Promise<DataFetcher> {
+      return mockDataFetcher as any;
+    }
 
     const mockBlock = new TestBlockEvent();
     const mockAlertHandlerBlockNumber = 25;
@@ -127,7 +131,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockNftCollectionFloorPriceFetcher).calledWith().mockResolvedValue(mockNftFloorPrice);
       */
 
-      initialize = provideInitialize(mockProvider as any, mockSecretsFetcher, mockDataFetcher as any);
+      initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator);
       await initialize();
 
       handleAlert = provideHandleAlert();
@@ -168,7 +172,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
               utils.id("Transfer(address,address,uint256)"),
               utils.hexZeroPad(utils.hexValue(mockVictimAddress), 32),
               "mock to",
-              utils.hexZeroPad(utils.hexValue(mockStolenTokenId), 32),
+              utils.hexZeroPad(utils.hexValue(Number(mockStolenTokenId)), 32),
             ],
           },
         ],

@@ -17,9 +17,14 @@ import { getSecrets } from "./storage";
 
 let chainId: number;
 let apiKeys: apiKeys;
-let dataFetcher: DataFetcher = {} as any;
+let dataFetcher: DataFetcher;
 
 const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
+
+async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
+  const apiKeys = (await getSecrets()) as apiKeys;
+  return new DataFetcher(provider, apiKeys);
+}
 
 async function processFraudulentNftOrders(
   scammerAddress: string,
@@ -47,11 +52,13 @@ async function processFraudulentNftOrders(
 
       const victimAddress = utils.hexDataSlice(
         txnReceipt!.logs.find((log) => {
-          log.address === stolenTokenAddress &&
+          return (
+            log.address === stolenTokenAddress &&
             log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
-            log.topics[3] === utils.hexZeroPad(utils.hexValue(stolenTokenId), 32);
+            log.topics[3] === utils.hexZeroPad(utils.hexValue(Number(stolenTokenId)), 32)
+          );
         })!.topics[1],
-        26
+        12
       );
 
       if (
@@ -184,13 +191,11 @@ async function processFraudulentNftOrders(
 
 export function provideInitialize(
   provider: providers.Provider,
-  getSecrets: () => Promise<object>,
-  dataFetcher: DataFetcher
+  dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>
 ): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
-    apiKeys = (await getSecrets()) as apiKeys;
-    dataFetcher = new DataFetcher(provider, apiKeys);
+    dataFetcher = await dataFetcherCreator(provider);
 
     alertConfig: {
       subscriptions: [
@@ -268,7 +273,7 @@ export function provideHandleBlock(): HandleBlock {
 }
 
 export default {
-  initialize: provideInitialize(getEthersProvider(), getSecrets, dataFetcher),
+  initialize: provideInitialize(getEthersProvider(), createNewDataFetcher),
   handleAlert: provideHandleAlert(),
   handleBlock: provideHandleBlock(),
   provideInitialize,
