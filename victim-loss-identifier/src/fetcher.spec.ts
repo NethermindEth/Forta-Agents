@@ -20,7 +20,7 @@ describe("DataFetcher tests suite", () => {
   beforeAll(() => {
     mockProvider = new ExtendedMockEthersProvider();
     const apiKeys = {
-      victimLossKeys: {
+      victimLoss: {
         alchemyApiKey: "alchemy",
       },
       generalApiKeys: {

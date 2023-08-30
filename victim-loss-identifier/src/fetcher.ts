@@ -20,7 +20,7 @@ export default class DataFetcher {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.alchemy = new Alchemy({
-      apiKey: this.apiKeys.victimLossKeys.alchemyApiKey,
+      apiKey: this.apiKeys.victimLoss.alchemyApiKey,
       network: Network.ETH_MAINNET,
     });
     this.ethPriceCache = new LRUCache<number, number>({
