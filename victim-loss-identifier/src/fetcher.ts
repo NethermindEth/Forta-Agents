@@ -20,7 +20,7 @@ export default class DataFetcher {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.alchemy = new Alchemy({
-      apiKey: this.apiKeys.victimLoss.alchemyApiKey,
+      apiKey: this.apiKeys.apiKeys.victimLoss.alchemyApiKey,
       network: Network.ETH_MAINNET,
     });
     this.ethPriceCache = new LRUCache<number, number>({
@@ -243,7 +243,7 @@ export default class DataFetcher {
             body,
             headers: {
               accept: "application/json",
-              "X-API-KEY": `${this.apiKeys["generalApiKeys"]["ZETTABLOCK"][0]}`,
+              "X-API-KEY": `${this.apiKeys.generalApiKeys.ZETTABLOCK[0]}`,
               "content-type": "application/json",
             },
           }
