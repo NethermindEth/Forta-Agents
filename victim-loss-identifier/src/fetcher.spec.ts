@@ -186,6 +186,7 @@ describe("DataFetcher tests suite", () => {
 
   it("should fetch NFT collection floor price", async () => {
     const nftAddress = "nftAddress";
+    const blockNumber = 123;
     const timestamp = 1693323468;
     const ethPriceInUsd = 1720.64;
     const floorPriceInEth = 42;
@@ -207,9 +208,13 @@ describe("DataFetcher tests suite", () => {
     fetcher.getNativeTokenPrice = mockGetNativeTokenPrice;
     fetcher.getFloorPriceInEth = mockGetFloorPriceInEth;
 
+    mockProvider.getBlock = jest.fn().mockResolvedValue({
+      timestamp: timestamp,
+    });
+
     const nftCollectionFloorPrice = await fetcher.getNftCollectionFloorPrice(
       nftAddress,
-      timestamp
+      blockNumber
     );
 
     const expectedFloorPriceInUsd = floorPriceInEth * ethPriceInUsd;
@@ -217,7 +222,7 @@ describe("DataFetcher tests suite", () => {
 
     // Test caching behavior
     const nftCollectionFloorPriceCached =
-      await fetcher.getNftCollectionFloorPrice(nftAddress, timestamp);
+      await fetcher.getNftCollectionFloorPrice(nftAddress, blockNumber);
     expect(nftCollectionFloorPriceCached).toStrictEqual(
       expectedFloorPriceInUsd
     );

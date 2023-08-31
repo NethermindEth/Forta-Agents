@@ -16,6 +16,7 @@ export default class DataFetcher {
   private floorPriceCache: LRUCache<string, number>;
   private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
   private txResponseCache: LRUCache<string, providers.TransactionResponse>;
+  private blockTimestampCache: LRUCache<number, number>;
   private readonly MAX_TRIES: number; // Retries counter
 
   constructor(provider: providers.Provider, apiKeys: apiKeys) {
@@ -37,8 +38,34 @@ export default class DataFetcher {
     this.txResponseCache = new LRUCache<string, providers.TransactionResponse>({
       max: 1000,
     });
+    this.blockTimestampCache = new LRUCache<number, number>({
+      max: 1000,
+    });
     this.MAX_TRIES = 3;
   }
+
+  private getTimestamp = async (blockNumber: number) => {
+    if (this.blockTimestampCache.has(blockNumber)) {
+      return this.blockTimestampCache.get(blockNumber);
+    }
+
+    let tries = 0;
+
+    while (tries < this.MAX_TRIES) {
+      try {
+        const block = await this.provider.getBlock(blockNumber);
+        const timestamp = block.timestamp;
+        this.blockTimestampCache.set(blockNumber, timestamp);
+        return timestamp;
+      } catch (err) {
+        tries++;
+        if (tries === this.MAX_TRIES) {
+          throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+      }
+    }
+  };
 
   getTransactionReceipt = async (txHash: string) => {
     if (this.txReceiptCache.has(txHash)) {
@@ -186,14 +213,16 @@ export default class DataFetcher {
 
   getNftCollectionFloorPrice = async (
     nftAddress: string,
-    timestamp: number
+    blockNumber: number
   ): Promise<number> => {
-    const key = `${nftAddress}-${timestamp}`;
+    const key = `${nftAddress}-${blockNumber}`;
     if (this.floorPriceCache.has(key)) {
       return this.floorPriceCache.get(key)!;
     }
 
-    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp);
+    const timestamp = await this.getTimestamp(blockNumber);
+
+    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp!);
     const floorPriceInEth = await this.getFloorPriceInEth(nftAddress);
 
     if (!ethPriceInUsd || !floorPriceInEth) {
