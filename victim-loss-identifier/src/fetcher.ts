@@ -243,7 +243,7 @@ export default class DataFetcher {
             body,
             headers: {
               accept: "application/json",
-              "X-API-KEY": `${this.apiKeys.generalApiKeys.ZETTABLOCK[0]}`,
+              "X-API-KEY": this.apiKeys.generalApiKeys.ZETTABLOCK[0],
               "content-type": "application/json",
             },
           }
