@@ -44,6 +44,9 @@ describe("DataFetcher tests suite", () => {
 
     expect(receipt).toStrictEqual({ status: 1 });
     expect(mockProvider.getTransactionReceipt).toHaveBeenCalledTimes(2);
+
+    await fetcher.getTransactionReceipt(txHash);
+    expect(mockProvider.getTransactionReceipt).toHaveBeenCalledTimes(2); // No extra call
   });
 
   it("should fetch transaction with retries", async () => {
@@ -58,6 +61,9 @@ describe("DataFetcher tests suite", () => {
 
     expect(transaction).toStrictEqual({ hash: "0x123abc" });
     expect(mockProvider.getTransaction).toHaveBeenCalledTimes(2);
+
+    await fetcher.getTransaction(txHash);
+    expect(mockProvider.getTransaction).toHaveBeenCalledTimes(2); // No extra call
   });
 
   it("should fetch native token price", async () => {

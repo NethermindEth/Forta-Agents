@@ -14,6 +14,8 @@ export default class DataFetcher {
   alchemy: Alchemy;
   private ethPriceCache: LRUCache<number, number>;
   private floorPriceCache: LRUCache<string, number>;
+  private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
+  private txResponseCache: LRUCache<string, providers.TransactionResponse>;
   private readonly MAX_TRIES: number; // Retries counter
 
   constructor(provider: providers.Provider, apiKeys: apiKeys) {
@@ -29,16 +31,29 @@ export default class DataFetcher {
     this.floorPriceCache = new LRUCache<string, number>({
       max: 10000,
     });
+    this.txReceiptCache = new LRUCache<string, providers.TransactionReceipt>({
+      max: 1000,
+    });
+    this.txResponseCache = new LRUCache<string, providers.TransactionResponse>({
+      max: 1000,
+    });
     this.MAX_TRIES = 3;
   }
 
   getTransactionReceipt = async (txHash: string) => {
+    if (this.txReceiptCache.has(txHash)) {
+      return this.txReceiptCache.get(txHash);
+    }
+
     let receipt;
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = await this.provider.getTransactionReceipt(txHash);
+        receipt = (await this.provider.getTransactionReceipt(
+          txHash
+        )) as providers.TransactionReceipt;
+        this.txReceiptCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
@@ -52,12 +67,19 @@ export default class DataFetcher {
   };
 
   getTransaction = async (txHash: string) => {
+    if (this.txResponseCache.has(txHash)) {
+      return this.txResponseCache.get(txHash);
+    }
+
     let receipt;
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = await this.provider.getTransaction(txHash);
+        receipt = (await this.provider.getTransaction(
+          txHash
+        )) as providers.TransactionResponse;
+        this.txResponseCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
