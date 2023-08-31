@@ -1,5 +1,10 @@
 import { providers } from "ethers";
-import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
+import {
+  Network,
+  Alchemy,
+  GetFloorPriceResponse,
+  FloorPriceMarketplace,
+} from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
 import { apiKeys, Erc721Transfer, coinData } from "./types";
 
@@ -9,6 +14,9 @@ export default class DataFetcher {
   alchemy: Alchemy;
   private ethPriceCache: LRUCache<number, number>;
   private floorPriceCache: LRUCache<string, number>;
+  private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
+  private txResponseCache: LRUCache<string, providers.TransactionResponse>;
+  private blockTimestampCache: LRUCache<number, number>;
   private readonly MAX_TRIES: number; // Retries counter
 
   constructor(provider: providers.Provider, apiKeys: apiKeys) {
@@ -24,16 +32,55 @@ export default class DataFetcher {
     this.floorPriceCache = new LRUCache<string, number>({
       max: 10000,
     });
+    this.txReceiptCache = new LRUCache<string, providers.TransactionReceipt>({
+      max: 1000,
+    });
+    this.txResponseCache = new LRUCache<string, providers.TransactionResponse>({
+      max: 1000,
+    });
+    this.blockTimestampCache = new LRUCache<number, number>({
+      max: 1000,
+    });
     this.MAX_TRIES = 3;
   }
 
+  private getTimestamp = async (blockNumber: number) => {
+    if (this.blockTimestampCache.has(blockNumber)) {
+      return this.blockTimestampCache.get(blockNumber);
+    }
+
+    let tries = 0;
+
+    while (tries < this.MAX_TRIES) {
+      try {
+        const block = await this.provider.getBlock(blockNumber);
+        const timestamp = block.timestamp;
+        this.blockTimestampCache.set(blockNumber, timestamp);
+        return timestamp;
+      } catch (err) {
+        tries++;
+        if (tries === this.MAX_TRIES) {
+          throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+      }
+    }
+  };
+
   getTransactionReceipt = async (txHash: string) => {
+    if (this.txReceiptCache.has(txHash)) {
+      return this.txReceiptCache.get(txHash);
+    }
+
     let receipt;
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = await this.provider.getTransactionReceipt(txHash);
+        receipt = (await this.provider.getTransactionReceipt(
+          txHash
+        )) as providers.TransactionReceipt;
+        this.txReceiptCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
@@ -47,12 +94,19 @@ export default class DataFetcher {
   };
 
   getTransaction = async (txHash: string) => {
+    if (this.txResponseCache.has(txHash)) {
+      return this.txResponseCache.get(txHash);
+    }
+
     let receipt;
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = await this.provider.getTransaction(txHash);
+        receipt = (await this.provider.getTransaction(
+          txHash
+        )) as providers.TransactionResponse;
+        this.txResponseCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
         tries++;
@@ -65,10 +119,14 @@ export default class DataFetcher {
     return receipt;
   };
 
-  getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
+  getNativeTokenPrice = async (
+    timestamp: number
+  ): Promise<number | undefined> => {
     if (this.ethPriceCache.has(timestamp)) {
       const price = this.ethPriceCache.get(timestamp);
-      console.log(`Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`);
+      console.log(
+        `Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`
+      );
       return this.ethPriceCache.get(timestamp);
     }
 
@@ -108,7 +166,8 @@ export default class DataFetcher {
 
     while (tries < this.MAX_TRIES) {
       try {
-        const floorPrice: GetFloorPriceResponse = await this.alchemy.nft.getFloorPrice(nftAddress);
+        const floorPrice: GetFloorPriceResponse =
+          await this.alchemy.nft.getFloorPrice(nftAddress);
 
         const latestEntry = Object.values(floorPrice).reduce(
           (latest: FloorPriceMarketplace | null, current) => {
@@ -116,7 +175,10 @@ export default class DataFetcher {
               return latest;
             }
 
-            if (!latest || new Date(current.retrievedAt) > new Date(latest.retrievedAt)) {
+            if (
+              !latest ||
+              new Date(current.retrievedAt) > new Date(latest.retrievedAt)
+            ) {
               return current;
             }
             return latest;
@@ -149,13 +211,18 @@ export default class DataFetcher {
     return 0;
   };
 
-  getNftCollectionFloorPrice = async (nftAddress: string, timestamp: number): Promise<number> => {
-    const key = `${nftAddress}-${timestamp}`;
+  getNftCollectionFloorPrice = async (
+    nftAddress: string,
+    blockNumber: number
+  ): Promise<number> => {
+    const key = `${nftAddress}-${blockNumber}`;
     if (this.floorPriceCache.has(key)) {
       return this.floorPriceCache.get(key)!;
     }
 
-    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp);
+    const timestamp = await this.getTimestamp(blockNumber);
+
+    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp!);
     const floorPriceInEth = await this.getFloorPriceInEth(nftAddress);
 
     if (!ethPriceInUsd || !floorPriceInEth) {
@@ -178,7 +245,9 @@ export default class DataFetcher {
     const timeWindowInMs = transferOccuranceTimeWindow * oneDayInMs;
 
     const maxTimestamp = currentTime.toISOString();
-    const minTimestamp = new Date(currentTime.getTime() - timeWindowInMs).toISOString();
+    const minTimestamp = new Date(
+      currentTime.getTime() - timeWindowInMs
+    ).toISOString();
 
     const query = `
       query GetErc721Transfers($scammerAddress: String!, $minTimestamp: String!, $maxTimestamp: String!) {
@@ -225,7 +294,7 @@ export default class DataFetcher {
             body,
             headers: {
               accept: "application/json",
-              "X-API-KEY": `${this.apiKeys.generalApiKeys.ZETTABLOCK[0]}`,
+              "X-API-KEY": this.apiKeys.generalApiKeys.ZETTABLOCK[0],
               "content-type": "application/json",
             },
           }

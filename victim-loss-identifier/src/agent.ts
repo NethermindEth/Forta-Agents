@@ -11,7 +11,7 @@ import {
 } from "./constants";
 import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
-import { getBlocksInTimePeriodForChainId, fetchApiKeys } from "./utils/utils";
+import { getBlocksInTimePeriodForChainId } from "./utils/utils";
 import DataFetcher from "./fetcher";
 import { getSecrets } from "./storage";
 
@@ -33,100 +33,62 @@ async function processFraudulentNftOrders(
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
+  // console.log(`erc721TransferTimeWindow: ${erc721TransferTimeWindow}`);
+
   const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getScammerErc721Transfers(
     scammerAddress,
     erc721TransferTimeWindow
   );
 
-  await Promise.all(
-    scammerErc721Transfers.map(async (erc721Transfer: Erc721Transfer) => {
-      const {
-        transaction_hash: exploitTxnHash,
-        contract_address: stolenTokenAddress,
-        name: stolenTokenName,
-        symbol: stolenTokenSymbol,
-        token_id: stolenTokenId,
-      }: Erc721Transfer = erc721Transfer;
+  for (const erc721Transfer of scammerErc721Transfers) {
+    const {
+      transaction_hash: exploitTxnHash,
+      contract_address: stolenTokenAddress,
+      name: stolenTokenName,
+      symbol: stolenTokenSymbol,
+      token_id: stolenTokenId,
+    }: Erc721Transfer = erc721Transfer;
 
-      const txnReceipt = await dataFetcher.getTransactionReceipt(exploitTxnHash);
+    const txnReceipt = await dataFetcher.getTransactionReceipt(exploitTxnHash);
 
-      const victimAddress = utils.hexDataSlice(
-        txnReceipt!.logs.find((log) => {
-          return (
-            log.address === stolenTokenAddress &&
-            log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
-            log.topics[3] === utils.hexZeroPad(utils.hexValue(Number(stolenTokenId)), 32)
-          );
-        })!.topics[1],
-        12
+    const victimAddress = utils.hexDataSlice(
+      txnReceipt!.logs.find((log) => {
+        return (
+          log.address.toLowerCase() === stolenTokenAddress &&
+          log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
+          Number(log.topics[3]) === Number(stolenTokenId)
+        );
+      })!.topics[1],
+      12
+    );
+
+    if (
+      // Skip over this transfer if this tokenId
+      // transfer in this transaction for this
+      // victim has already been accounted for
+      scammersCurrentlyMonitored[scammerAddress].victims?.[victimAddress]?.transactions?.[exploitTxnHash]?.erc721?.[
+        stolenTokenAddress
+      ]?.tokenIds?.includes(Number(stolenTokenId))
+    ) {
+      continue;
+    }
+
+    const txnResponse = await dataFetcher.getTransaction(exploitTxnHash);
+    if (
+      txnResponse!.to != null &&
+      Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse!.to) &&
+      txnResponse!.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
+    ) {
+      const nftCollectionFloorPrice = await dataFetcher.getNftCollectionFloorPrice(
+        stolenTokenAddress,
+        txnResponse!.blockNumber!
       );
 
-      if (
-        // With some of these properties being optional,
-        // we need checks to confirm they are not `undefined`.
-        scammersCurrentlyMonitored[scammerAddress].victims !== undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] !== undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions !== undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] !==
-          undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721 !==
-          undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ] !== undefined &&
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ].tokenIds !== undefined &&
-        // Skip over this transfer if this tokenId
-        // transfer in this transaction for this
-        // victim has already been accounted for
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ].tokenIds!.includes(Number(stolenTokenId))
-      ) {
-        // TODO: Update to "skip" over this transfer
-        // in `scammerErc721Transfers`, instead of
-        // returning the findings, which would conclude
-        // the logic execution
-        return findings;
-      }
-
-      const txnResponse = await dataFetcher.getTransaction(exploitTxnHash);
-      if (
-        txnResponse!.to != null &&
-        Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse!.to) &&
-        txnResponse!.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
-      ) {
-        const nftCollectionFloorPrice = await dataFetcher.getNftCollectionFloorPrice(
-          stolenTokenAddress,
-          txnResponse!.timestamp!
-        );
-
-        if (scammersCurrentlyMonitored[scammerAddress].victims === undefined) {
-          // The scammer has no victims yet,
-          // so add as a new victim
-          scammersCurrentlyMonitored[scammerAddress].victims = {
-            [victimAddress]: {
-              totalUsdValueAcrossAllTokens: 0,
-              totalUsdValueAcrossAllErc721Tokens: 0,
-              transactions: {
-                [exploitTxnHash]: {
-                  erc721: {
-                    [stolenTokenAddress]: {
-                      tokenName: stolenTokenName,
-                      tokenSymbol: stolenTokenSymbol,
-                      tokenIds: [],
-                      tokenTotalUsdValue: 0,
-                    },
-                  },
-                },
-              },
-            },
-          };
-        } else if (scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] === undefined) {
-          // The scammer doesn't have _this_ specific victim yet,
-          // so add as a new entry
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
+      if (scammersCurrentlyMonitored[scammerAddress].victims === undefined) {
+        // The scammer has no victims yet,
+        // so add as a new victim
+        scammersCurrentlyMonitored[scammerAddress].victims = {
+          [victimAddress]: {
             totalUsdValueAcrossAllTokens: 0,
             totalUsdValueAcrossAllErc721Tokens: 0,
             transactions: {
@@ -141,50 +103,69 @@ async function processFraudulentNftOrders(
                 },
               },
             },
-          };
-        } else {
-          // This specific scammer victim doesn't have this specific transaction,
-          // so add as new entry
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
-            erc721: {
-              [stolenTokenAddress]: {
-                tokenName: stolenTokenName,
-                tokenSymbol: stolenTokenSymbol,
-                tokenIds: [],
-                tokenTotalUsdValue: 0,
+          },
+        };
+      } else if (scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] === undefined) {
+        // The scammer doesn't have _this_ specific victim yet,
+        // so add as a new entry
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
+          totalUsdValueAcrossAllTokens: 0,
+          totalUsdValueAcrossAllErc721Tokens: 0,
+          transactions: {
+            [exploitTxnHash]: {
+              erc721: {
+                [stolenTokenAddress]: {
+                  tokenName: stolenTokenName,
+                  tokenSymbol: stolenTokenSymbol,
+                  tokenIds: [],
+                  tokenTotalUsdValue: 0,
+                },
               },
             },
-          };
-        }
-
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! +=
-          nftCollectionFloorPrice;
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens! +=
-          nftCollectionFloorPrice;
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ].tokenTotalUsdValue! += nftCollectionFloorPrice;
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-          stolenTokenAddress
-        ].tokenIds!.push(Number(stolenTokenId));
-
-        findings.push(
-          createFraudNftOrderFinding(
-            victimAddress,
-            scammerAddress,
-            scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
-            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!,
-            stolenTokenName,
-            stolenTokenAddress,
-            stolenTokenId,
-            scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens!,
-            exploitTxnHash,
-            nftCollectionFloorPrice
-          )
-        );
+          },
+        };
+      } else {
+        // This specific scammer victim doesn't have this specific transaction,
+        // so add as new entry
+        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
+          erc721: {
+            [stolenTokenAddress]: {
+              tokenName: stolenTokenName,
+              tokenSymbol: stolenTokenSymbol,
+              tokenIds: [],
+              tokenTotalUsdValue: 0,
+            },
+          },
+        };
       }
-    })
-  );
+
+      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! +=
+        nftCollectionFloorPrice;
+      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens! +=
+        nftCollectionFloorPrice;
+      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+        stolenTokenAddress
+      ].tokenTotalUsdValue! += nftCollectionFloorPrice;
+      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+        stolenTokenAddress
+      ].tokenIds!.push(Number(stolenTokenId));
+
+      findings.push(
+        createFraudNftOrderFinding(
+          victimAddress,
+          scammerAddress,
+          scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
+          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!,
+          stolenTokenName,
+          stolenTokenAddress,
+          stolenTokenId,
+          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens!,
+          exploitTxnHash,
+          nftCollectionFloorPrice
+        )
+      );
+    }
+  }
 
   return findings;
 }
@@ -197,14 +178,17 @@ export function provideInitialize(
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
 
-    alertConfig: {
-      subscriptions: [
-        {
-          botId: SCAM_DETECTOR_BOT_ID,
-          alertIds: SCAM_DETECTOR_ALERT_IDS,
-        },
-      ];
-    }
+    return {
+      alertConfig: {
+        subscriptions: [
+          {
+            botId: SCAM_DETECTOR_BOT_ID,
+            alertIds: SCAM_DETECTOR_ALERT_IDS,
+            chainId,
+          },
+        ],
+      },
+    };
   };
 }
 
@@ -262,7 +246,9 @@ export function provideHandleBlock(): HandleBlock {
             blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
             blocksInThirtyDays
           ) {
+            // console.log(`before delete. scammersCurrentlyMonitored: ${JSON.stringify(scammersCurrentlyMonitored)}`);
             delete scammersCurrentlyMonitored[scammerAddress];
+            // console.log(`after delete. scammersCurrentlyMonitored: ${JSON.stringify(scammersCurrentlyMonitored)}`);
           }
         })
       );

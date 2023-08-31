@@ -35,21 +35,21 @@ export function createFraudNftOrderFinding(
         entity: victimAddress,
         entityType: EntityType.Address,
         label: "Victim Address",
-        confidence: 0, // TODO: Pass from underlying alert confidence
+        confidence: 0.70,
         remove: false,
       }),
       Label.fromObject({
-        entity: contractAddress,
+        entity: tokenId + "," + contractAddress,
         entityType: EntityType.Address,
-        label: "Stolen token Address",
-        confidence: 0, // TODO: Pass from underlying alert confidence
+        label: "NFT",
+        confidence: 0.70,
         remove: false,
       }),
       Label.fromObject({
         entity: exploitTransactionHash,
         entityType: EntityType.Transaction,
         label: "Exploit transaction",
-        confidence: 0, // TODO: Pass from underlying alert confidence
+        confidence: 0.70,
         remove: false,
       }),
     ],
