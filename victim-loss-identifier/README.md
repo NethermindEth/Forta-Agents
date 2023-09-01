@@ -14,9 +14,18 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 
 ## 🔗 Alert Mapping
 
-| Underlying Bot's Name | Underlying Bot's Alert ID          | Victim & Loss Identifier's Alert ID          |
-| --------------------- | ---------------------------------- | -------------------------------------------- |
-| Scam Detector Feed    | SCAM-DETECTOR-FRAUDULENT-NFT-ORDER | VICTIM-LOSS-INFORMATION-FRAUDULENT-NFT-ORDER |
+<table>
+  <tr>
+    <th>Underlying Bot's Name</th>
+    <th>Underlying Bot's Alert ID</th>
+    <th>Victim & Loss Identifier's Alert ID</th>
+  </tr>
+  <tr>
+    <td>Scam Detector Feed</td>
+    <td>SCAM-DETECTOR-FRAUDULENT-NFT-ORDER</td>
+    <td>VICTIM-LOSS-INFORMATION-FRAUDULENT-NFT-ORDER</td>
+  </tr>
+</table>
 
 ## 🚨 Alerts
 
