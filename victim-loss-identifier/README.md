@@ -74,7 +74,7 @@ To verify the bot's behavior, you'll need to meet the following prerequisites.
 }
 ```
 
-2. Accuire a [Zettablock](https://www.zettablock.com/) API key and an [Alchemy](https://www.alchemy.com/) API key and then create a `secrets.json` in the root directory of the bot like this:
+2. Acquire a [Zettablock](https://www.zettablock.com/) API key and an [Alchemy](https://www.alchemy.com/) API key and then create a `secrets.json` in the root directory of the bot like this:
 
 ```json
 {
