@@ -1,10 +1,5 @@
 import { providers } from "ethers";
-import {
-  Network,
-  Alchemy,
-  GetFloorPriceResponse,
-  FloorPriceMarketplace,
-} from "alchemy-sdk";
+import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
 import { apiKeys, Erc721Transfer, coinData } from "./types";
 
@@ -77,9 +72,7 @@ export default class DataFetcher {
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = (await this.provider.getTransactionReceipt(
-          txHash
-        )) as providers.TransactionReceipt;
+        receipt = (await this.provider.getTransactionReceipt(txHash)) as providers.TransactionReceipt;
         this.txReceiptCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
@@ -103,9 +96,7 @@ export default class DataFetcher {
 
     while (tries < this.MAX_TRIES) {
       try {
-        receipt = (await this.provider.getTransaction(
-          txHash
-        )) as providers.TransactionResponse;
+        receipt = (await this.provider.getTransaction(txHash)) as providers.TransactionResponse;
         this.txResponseCache.set(txHash, receipt);
         break; // exit the loop if successful
       } catch (err) {
@@ -119,14 +110,10 @@ export default class DataFetcher {
     return receipt;
   };
 
-  getNativeTokenPrice = async (
-    timestamp: number
-  ): Promise<number | undefined> => {
+  getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
     if (this.ethPriceCache.has(timestamp)) {
       const price = this.ethPriceCache.get(timestamp);
-      console.log(
-        `Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`
-      );
+      console.log(`Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`);
       return this.ethPriceCache.get(timestamp);
     }
 
@@ -166,8 +153,7 @@ export default class DataFetcher {
 
     while (tries < this.MAX_TRIES) {
       try {
-        const floorPrice: GetFloorPriceResponse =
-          await this.alchemy.nft.getFloorPrice(nftAddress);
+        const floorPrice: GetFloorPriceResponse = await this.alchemy.nft.getFloorPrice(nftAddress);
 
         const latestEntry = Object.values(floorPrice).reduce(
           (latest: FloorPriceMarketplace | null, current) => {
@@ -175,10 +161,7 @@ export default class DataFetcher {
               return latest;
             }
 
-            if (
-              !latest ||
-              new Date(current.retrievedAt) > new Date(latest.retrievedAt)
-            ) {
+            if (!latest || new Date(current.retrievedAt) > new Date(latest.retrievedAt)) {
               return current;
             }
             return latest;
@@ -211,10 +194,7 @@ export default class DataFetcher {
     return 0;
   };
 
-  getNftCollectionFloorPrice = async (
-    nftAddress: string,
-    blockNumber: number
-  ): Promise<number> => {
+  getNftCollectionFloorPrice = async (nftAddress: string, blockNumber: number): Promise<number> => {
     const key = `${nftAddress}-${blockNumber}`;
     if (this.floorPriceCache.has(key)) {
       return this.floorPriceCache.get(key)!;
@@ -245,9 +225,7 @@ export default class DataFetcher {
     const timeWindowInMs = transferOccuranceTimeWindow * oneDayInMs;
 
     const maxTimestamp = currentTime.toISOString();
-    const minTimestamp = new Date(
-      currentTime.getTime() - timeWindowInMs
-    ).toISOString();
+    const minTimestamp = new Date(currentTime.getTime() - timeWindowInMs).toISOString();
 
     const query = `
       query GetErc721Transfers($scammerAddress: String!, $minTimestamp: String!, $maxTimestamp: String!) {

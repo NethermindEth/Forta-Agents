@@ -1,55 +1,52 @@
 import { Finding, FindingType, FindingSeverity, Label, EntityType } from "forta-agent";
 import { BigNumber } from "ethers";
+import { MockExploitInfo } from "./mock.types";
 
 export function createTestingFraudNftOrderFinding(
-  victimAddress: string,
+  mockExploitInstance: MockExploitInfo,
   scammerAddress: string,
   alertId: string,
   totalUsdLost: BigNumber,
-  name: string,
-  contractAddress: string,
-  tokenId: string,
   totalUsdLostInErc721s: BigNumber,
-  exploitTransaction: string,
   usdLostOnThisToken: BigNumber
 ): Finding {
   return Finding.fromObject({
-    name: `New victim identified: ${victimAddress}`,
-    description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`,
+    name: `New victim identified: ${mockExploitInstance.victimAddress}`,
+    description: `${mockExploitInstance.victimAddress} has fallen victim to scammer ${scammerAddress}`,
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
     // uniqueKey,
     // source: { chains: [{ chainId }] },
-    addresses: [victimAddress, scammerAddress],
+    addresses: [mockExploitInstance.victimAddress, scammerAddress],
     // protocol: ,
     metadata: {
       scam_detector_alert_id: alertId,
-      victim_address: victimAddress,
+      victim_address: mockExploitInstance.victimAddress,
       usd_lost: totalUsdLost.toString(),
       erc_721_usd_lost: totalUsdLostInErc721s.toString(),
-      erc_721_lost: `name: ${name} | contract: ${contractAddress} | token id: ${tokenId} | value USD: ${usdLostOnThisToken}`,
+      erc_721_lost: `name: ${mockExploitInstance.stolenTokenName} | contract: ${mockExploitInstance.stolenTokenAddress} | token id: ${mockExploitInstance.stolenTokenId} | value USD: ${usdLostOnThisToken}`,
     },
     labels: [
       Label.fromObject({
-        entity: victimAddress,
+        entity: mockExploitInstance.victimAddress,
         entityType: EntityType.Address,
         label: "Victim Address",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
       Label.fromObject({
-        entity: tokenId + "," + contractAddress,
+        entity: mockExploitInstance.stolenTokenId + "," + mockExploitInstance.stolenTokenAddress,
         entityType: EntityType.Address,
         label: "NFT",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
       Label.fromObject({
-        entity: exploitTransaction,
+        entity: mockExploitInstance.exploitTxnHash,
         entityType: EntityType.Transaction,
         label: "Exploit transaction",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
     ],

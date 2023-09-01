@@ -1,5 +1,4 @@
 import { Finding, FindingType, FindingSeverity, Label, EntityType } from "forta-agent";
-import { BigNumber } from "ethers";
 
 export function createFraudNftOrderFinding(
   victimAddress: string,
@@ -14,12 +13,12 @@ export function createFraudNftOrderFinding(
   usdLostOnThisToken: number
 ): Finding {
   return Finding.fromObject({
-    name: `New victim identified: ${victimAddress}`,
-    description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`,
+    name: `New victim identified: ${victimAddress}`, // TODO: Remove "new"
+    description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`, // TODO: txn hash
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    // uniqueKey,
+    // uniqueKey, // TODO: Make uniqueKey to prevent duplicate alerts
     // source: { chains: [{ chainId }] },
     addresses: [victimAddress, scammerAddress],
     // protocol: ,
@@ -35,21 +34,21 @@ export function createFraudNftOrderFinding(
         entity: victimAddress,
         entityType: EntityType.Address,
         label: "Victim Address",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
       Label.fromObject({
         entity: tokenId + "," + contractAddress,
         entityType: EntityType.Address,
         label: "NFT",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
       Label.fromObject({
         entity: exploitTransactionHash,
         entityType: EntityType.Transaction,
         label: "Exploit transaction",
-        confidence: 0.70,
+        confidence: 0.7,
         remove: false,
       }),
     ],

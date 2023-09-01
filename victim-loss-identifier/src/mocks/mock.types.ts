@@ -23,5 +23,17 @@ export type MockTxnReceipt = {
 export type MockTxnResponse = {
   to: string;
   value: BigNumber;
-  timestamp: number;
+  blockNumber: number;
+};
+
+export type MockExploitInfo = {
+  exploitTxnHash: string;
+  fromAddress: string;
+  victimAddress: string;
+  stolenTokenAddress: string;
+  stolenTokenName: string;
+  stolenTokenSymbol: string;
+  stolenTokenId: string;
+  txnValue: BigNumber;
+  blockNumber: number;
 };
