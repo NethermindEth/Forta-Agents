@@ -39,6 +39,7 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 
 - `scam_detector_alert_id`: The alert ID from Scam Detector
 - `victim_address`: The victim's address
+- `tx_hash`: The exploit transaction hash
 - `usd_lost`: Total USD lost by the victim
 - `erc_721_usd_lost`: Total USD lost in ERC-721 tokens
 - `erc_721_lost`: Details of the ERC-721 tokens lost
