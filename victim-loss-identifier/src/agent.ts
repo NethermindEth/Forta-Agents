@@ -49,9 +49,10 @@ async function processFraudulentNftOrders(
       token_id: stolenTokenId,
     }: Erc721Transfer = erc721Transfer;
     const txnReceipt = await dataFetcher.getTransactionReceipt(exploitTxnHash);
+    const txnLogs = txnReceipt!.logs;
 
     const victimAddress = utils.hexDataSlice(
-      txnReceipt!.logs.find((log) => {
+      txnLogs.find((log) => {
         return (
           log.address.toLowerCase() === stolenTokenAddress &&
           log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
@@ -60,6 +61,20 @@ async function processFraudulentNftOrders(
       })!.topics[1],
       12
     );
+
+    // Covers two FP cases:
+    // 1) Buyer paying in WETH/stablecoin instead of ETH
+    // 2) Transaction being a regular NFT trade
+    const hasBuyerTransferredToSeller = txnLogs.some((log) => {
+      return (
+        log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
+        log.topics[1].includes(scammerAddress.slice(2)) &&
+        log.topics[2].includes(victimAddress.slice(2))
+      );
+    });
+
+    // TODO: Add FP mitigation alert if the transaction is the one that generated the source alert
+    if (hasBuyerTransferredToSeller) continue;
 
     if (
       // Skip over this transfer if this tokenId
