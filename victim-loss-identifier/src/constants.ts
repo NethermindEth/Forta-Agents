@@ -6,8 +6,6 @@ export const NINETY_DAYS = ONE_DAY * 90;
 export const THIRTY_DAYS = ONE_DAY * 30;
 export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
 
-export const DATABASE_URL = "https://research.forta.network/database/bot/secrets.json";
-
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum
   LooksRare: "0x59728544B08AB483533076417FbBB2fD0B17CE3a", // LooksRare: Exchange
