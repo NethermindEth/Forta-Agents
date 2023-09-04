@@ -10,11 +10,19 @@ export function createFraudNftOrderFinding(
   tokenId: string,
   totalUsdLostInErc721s: number,
   exploitTransactionHash: string,
-  usdLostOnThisToken: number
+  usdLostOnThisToken: number,
+  assessmentPeriodDays: number
 ): Finding {
   const uniqueKey = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes(contractAddress + tokenId + exploitTransactionHash)
   );
+
+  const now: Date = new Date();
+  const endTimestamp: number = Math.floor(now.getTime() / 1000); // Convert to seconds
+
+  const startTimestampDate: Date = new Date(now);
+  startTimestampDate.setDate(now.getDate() - assessmentPeriodDays);
+  const startTimestamp: number = Math.floor(startTimestampDate.getTime() / 1000); // Convert to seconds
 
   return Finding.fromObject({
     name: `Victim identified: ${victimAddress}`,
@@ -25,6 +33,8 @@ export function createFraudNftOrderFinding(
     uniqueKey,
     addresses: [victimAddress, scammerAddress],
     metadata: {
+      start_timestamp: startTimestamp.toString(),
+      end_timestamp: endTimestamp.toString(),
       scam_detector_alert_id: alertId,
       victim_address: victimAddress,
       tx_hash: exploitTransactionHash,

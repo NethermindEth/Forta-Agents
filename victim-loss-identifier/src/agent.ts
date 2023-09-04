@@ -175,7 +175,8 @@ async function processFraudulentNftOrders(
           stolenTokenId,
           scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens!,
           exploitTxnHash,
-          nftCollectionFloorPrice
+          nftCollectionFloorPrice,
+          erc721TransferTimeWindow
         )
       );
     }
