@@ -18,6 +18,7 @@ import {
 let chainId: number;
 let apiKeys: apiKeys;
 let dataFetcher: DataFetcher;
+let lastPersistenceMinute: number;
 
 const dbKey = "nm-victim-loss-identifier-objects";
 
@@ -267,6 +268,16 @@ export function provideHandleBlock(): HandleBlock {
           delete scammersCurrentlyMonitored[scammerAddress];
         }
       }
+    }
+
+    const date = new Date();
+    const minutes = date.getMinutes();
+
+    if (minutes % 10 === 0 && lastPersistenceMinute !== minutes) {
+      const objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
+      console.log("Scammers Monitored Object Size:", objectSize);
+      await persist(scammersCurrentlyMonitored, dbKey);
+      lastPersistenceMinute = minutes;
     }
 
     return findings;

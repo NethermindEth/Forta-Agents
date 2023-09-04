@@ -35,13 +35,10 @@ const loadJson = async (key: string): Promise<object> => {
 export const persist = async (value: any, key: string) => {
   const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
   if (!hasLocalNode) {
-    const token = await fetchJwt({});
-
-    const headers = { Authorization: `Bearer ${token}` };
     try {
       const response = await fetch(`${botDB}${key}`, {
         method: "POST",
-        headers: headers,
+        headers: await getToken(),
         body: JSON.stringify(value),
       });
 
@@ -68,10 +65,8 @@ export const persist = async (value: any, key: string) => {
 export const load = async (key: string) => {
   const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
   if (!hasLocalNode) {
-    const token = await fetchJwt({});
-    const headers = { Authorization: `Bearer ${token}` };
     try {
-      const response = await fetch(`${botDB}${key}`, { headers });
+      const response = await fetch(`${botDB}${key}`, { headers: await getToken() });
 
       if (response.ok) {
         const data = await response.json();
