@@ -1,6 +1,6 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
 import { providers, utils } from "ethers";
-import { getBlocksInTimePeriodForChainId } from "./utils/utils";
+import { getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
 import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
 import { getSecrets, load, persist } from "./storage";
@@ -243,9 +243,12 @@ export function provideHandleBlock(): HandleBlock {
         const blocksSinceScammerLastActive =
           blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber;
 
+        const timePeriodInSecs = blocksSinceScammerLastActive * getChainBlockTime(chainId);
+        const daysSinceScammerLastActive = Math.ceil(timePeriodInSecs / (24 * 60 * 60));
+
         const fraudulentNftOrderFindings = await processFraudulentNftOrders(
           scammerAddress,
-          blocksSinceScammerLastActive,
+          daysSinceScammerLastActive,
           dataFetcher
         );
 
