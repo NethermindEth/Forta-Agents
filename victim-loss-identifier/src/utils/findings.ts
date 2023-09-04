@@ -1,4 +1,4 @@
-import { Finding, FindingType, FindingSeverity, Label, EntityType } from "forta-agent";
+import { Finding, FindingType, FindingSeverity, Label, EntityType, ethers } from "forta-agent";
 
 export function createFraudNftOrderFinding(
   victimAddress: string,
@@ -12,19 +12,22 @@ export function createFraudNftOrderFinding(
   exploitTransactionHash: string,
   usdLostOnThisToken: number
 ): Finding {
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(contractAddress + tokenId + exploitTransactionHash)
+  );
+
   return Finding.fromObject({
-    name: `New victim identified: ${victimAddress}`, // TODO: Remove "new"
+    name: `Victim identified: ${victimAddress}`,
     description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`, // TODO: txn hash
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    // uniqueKey, // TODO: Make uniqueKey to prevent duplicate alerts
-    // source: { chains: [{ chainId }] },
+    uniqueKey,
     addresses: [victimAddress, scammerAddress],
-    // protocol: ,
     metadata: {
       scam_detector_alert_id: alertId,
       victim_address: victimAddress,
+      tx_hash: exploitTransactionHash,
       usd_lost: totalUsdLost.toString(),
       erc_721_usd_lost: totalUsdLostInErc721s.toString(),
       erc_721_lost: `name: ${name} | contract: ${contractAddress} | token id: ${tokenId} | value USD: ${usdLostOnThisToken}`,

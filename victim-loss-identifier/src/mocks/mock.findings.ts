@@ -1,4 +1,4 @@
-import { Finding, FindingType, FindingSeverity, Label, EntityType } from "forta-agent";
+import { Finding, FindingType, FindingSeverity, Label, EntityType, ethers } from "forta-agent";
 import { BigNumber } from "ethers";
 import { MockExploitInfo } from "./mock.types";
 
@@ -10,19 +10,23 @@ export function createTestingFraudNftOrderFinding(
   totalUsdLostInErc721s: BigNumber,
   usdLostOnThisToken: BigNumber
 ): Finding {
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      mockExploitInstance.stolenTokenAddress + mockExploitInstance.stolenTokenId + mockExploitInstance.exploitTxnHash
+    )
+  );
   return Finding.fromObject({
-    name: `New victim identified: ${mockExploitInstance.victimAddress}`,
+    name: `Victim identified: ${mockExploitInstance.victimAddress}`,
     description: `${mockExploitInstance.victimAddress} has fallen victim to scammer ${scammerAddress}`,
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
-    // uniqueKey,
-    // source: { chains: [{ chainId }] },
+    uniqueKey,
     addresses: [mockExploitInstance.victimAddress, scammerAddress],
-    // protocol: ,
     metadata: {
       scam_detector_alert_id: alertId,
       victim_address: mockExploitInstance.victimAddress,
+      tx_hash: mockExploitInstance.exploitTxnHash,
       usd_lost: totalUsdLost.toString(),
       erc_721_usd_lost: totalUsdLostInErc721s.toString(),
       erc_721_lost: `name: ${mockExploitInstance.stolenTokenName} | contract: ${mockExploitInstance.stolenTokenAddress} | token id: ${mockExploitInstance.stolenTokenId} | value USD: ${usdLostOnThisToken}`,
