@@ -3,7 +3,7 @@ import { providers, utils } from "ethers";
 import { getBlocksInTimePeriodForChainId } from "./utils/utils";
 import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
-import { getSecrets } from "./storage";
+import { getSecrets, load, persist } from "./storage";
 import DataFetcher from "./fetcher";
 import {
   SCAM_DETECTOR_BOT_ID,
@@ -19,7 +19,9 @@ let chainId: number;
 let apiKeys: apiKeys;
 let dataFetcher: DataFetcher;
 
-const scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
+const dbKey = "nm-victim-loss-identifier-objects";
+
+let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
   const apiKeys = (await getSecrets()) as apiKeys;
@@ -174,6 +176,7 @@ export function provideInitialize(
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
+    scammersCurrentlyMonitored = await load(dbKey);
 
     return {
       alertConfig: {
