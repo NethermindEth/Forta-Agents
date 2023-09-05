@@ -1,6 +1,6 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
 import { providers, utils } from "ethers";
-import { getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
+import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
 import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
 import { createFraudNftOrderFinding } from "./utils/findings";
 import { getSecrets, load, persist } from "./storage";
@@ -13,6 +13,7 @@ import {
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
   THIRTY_DAYS_IN_MS,
   ONE_DAY_IN_MS,
+  MAX_OBJECT_SIZE,
 } from "./constants";
 
 let chainId: number;
@@ -274,8 +275,16 @@ export function provideHandleBlock(): HandleBlock {
     const minutes = date.getMinutes();
 
     if (minutes % 10 === 0 && lastPersistenceMinute !== minutes) {
-      const objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
+      let objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
       console.log("Scammers Monitored Object Size:", objectSize);
+
+      while (objectSize > MAX_OBJECT_SIZE) {
+        console.log("Cleaning Scammers Monitored Object of size: ", objectSize);
+        cleanObject(scammersCurrentlyMonitored);
+        objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
+        console.log("Scammers Monitored Object after cleaning: ", objectSize);
+      }
+
       await persist(scammersCurrentlyMonitored, dbKey);
       lastPersistenceMinute = minutes;
     }

@@ -7,6 +7,8 @@ export const NINETY_DAYS = 90;
 
 export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
 
+export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
+
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum
   LooksRare: "0x59728544B08AB483533076417FbBB2fD0B17CE3a", // LooksRare: Exchange
