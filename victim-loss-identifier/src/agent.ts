@@ -11,8 +11,8 @@ import {
   NINETY_DAYS,
   EXCHANGE_CONTRACT_ADDRESSES,
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
-  THIRTY_DAYS_IN_MS,
-  ONE_DAY_IN_MS,
+  THIRTY_DAYS_IN_SECS,
+  ONE_DAY_IN_SECS,
   MAX_OBJECT_SIZE,
 } from "./constants";
 
@@ -65,7 +65,7 @@ async function processFraudulentNftOrders(
     );
 
     // Covers two FP cases:
-    // 1) Buyer paying in WETH/stablecoin instead of ETH
+    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH
     // 2) Transaction being a regular NFT trade
     const hasBuyerTransferredToSeller = txnLogs.some((log) => {
       return (
@@ -239,15 +239,15 @@ export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY_IN_MS, chainId);
+    const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY_IN_SECS, chainId);
 
     if (blockEvent.blockNumber % blocksInOneDay === 0) {
       for (const scammerAddress of Object.keys(scammersCurrentlyMonitored)) {
         const blocksSinceScammerLastActive =
           blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber;
 
-        const timePeriodInSecs = blocksSinceScammerLastActive * getChainBlockTime(chainId);
-        const daysSinceScammerLastActive = Math.ceil(timePeriodInSecs / (24 * 60 * 60));
+        const scammerLastActiveInSecs = blocksSinceScammerLastActive * getChainBlockTime(chainId);
+        const daysSinceScammerLastActive = Math.ceil(scammerLastActiveInSecs / ONE_DAY_IN_SECS);
 
         const fraudulentNftOrderFindings = await processFraudulentNftOrders(
           scammerAddress,
@@ -261,7 +261,7 @@ export function provideHandleBlock(): HandleBlock {
 
         findings.push(...fraudulentNftOrderFindings);
 
-        const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS_IN_MS, chainId);
+        const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS_IN_SECS, chainId);
         if (
           blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
           blocksInThirtyDays
@@ -276,7 +276,7 @@ export function provideHandleBlock(): HandleBlock {
 
     if (minutes % 10 === 0 && lastPersistenceMinute !== minutes) {
       let objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
-      console.log("Scammers Monitored Object Size:", objectSize);
+      console.log("Scammers Monitored Object Size: ", objectSize);
 
       while (objectSize > MAX_OBJECT_SIZE) {
         console.log("Cleaning Scammers Monitored Object of size: ", objectSize);

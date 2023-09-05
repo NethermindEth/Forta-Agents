@@ -1,8 +1,9 @@
 export const SCAM_DETECTOR_BOT_ID = "0x1d646c4045189991fdfd24a66b192a294158b839a6ec121d740474bdacb3ab23";
 export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER"];
 
-export const ONE_DAY_IN_MS = 60 * 60 * 24;
-export const THIRTY_DAYS_IN_MS = ONE_DAY_IN_MS * 30;
+export const ONE_DAY_IN_SECS = 60 * 60 * 24;
+export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;
+
 export const NINETY_DAYS = 90;
 
 export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
