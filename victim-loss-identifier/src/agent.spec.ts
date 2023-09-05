@@ -24,7 +24,6 @@ const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
 
 describe("Victim & Loss Identifier Test Suite", () => {
   describe("Fraudulent NFT Order Test Suite", () => {
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~ mock DataFetcher ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     const mockProvider: MockEthersProvider = new MockEthersProvider();
 
     const mockDataFetcher = {
@@ -37,7 +36,10 @@ describe("Victim & Loss Identifier Test Suite", () => {
     async function mockDataFetcherCreator(provider: providers.Provider): Promise<DataFetcher> {
       return mockDataFetcher as any;
     }
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    async function mockDbLoader(key: string): Promise<any> {
+      return {};
+    }
 
     const mockChainId = 1;
     const mockAlertBlockNumber = 18053920;
@@ -145,7 +147,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         .calledWith(mockExploitSix.stolenTokenAddress, mockExploitSix.blockNumber)
         .mockResolvedValue(mockNftFloorPrice);
 
-      initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator);
+      initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
       await initialize();
 
       handleAlert = provideHandleAlert();
@@ -650,5 +652,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         ),
       ]);
     });
+
+    it("creates multiple alerts for fraudulent NFT orders that ocurred in the same transaction", async () => {});
   });
 });
