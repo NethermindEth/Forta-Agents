@@ -90,6 +90,7 @@ async function processFraudulentNftOrders(
     }
 
     const txnResponse = await dataFetcher.getTransaction(exploitTxnHash);
+    let isOrderInSameTxn: boolean;
     if (
       txnResponse!.to != null &&
       Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse!.to) &&
@@ -140,7 +141,7 @@ async function processFraudulentNftOrders(
             },
           },
         };
-      } else {
+      } else if(scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] === undefined) {
         // This specific scammer victim doesn't have this specific transaction,
         // so add as new entry
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
@@ -153,29 +154,45 @@ async function processFraudulentNftOrders(
             },
           },
         };
+      } else if(scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] != undefined) {
+        // Because if the txnHash check was `undefined`, a new entry
+        // would've been added in the previous `if` check, if it is
+        // NOT undefined, it means this is not first entry, and thus
+        // an additional fraudulent NFT order in the same transaction
+        isOrderInSameTxn = true;
+
+        if(scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![stolenTokenAddress] === undefined) {
+          // In the edge case a victim lose NFTs from different collections
+          // in the same transaction, add additional collection info that
+          // were taken in the same transaction
+          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![stolenTokenAddress] = {
+                tokenName: stolenTokenName,
+                tokenSymbol: stolenTokenSymbol,
+                tokenIds: [],
+                tokenTotalUsdValue: 0,
+          };
+        }
       }
 
-      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens! +=
-        nftCollectionFloorPrice;
-      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens! +=
-        nftCollectionFloorPrice;
-      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-        stolenTokenAddress
-      ].tokenTotalUsdValue! += nftCollectionFloorPrice;
-      scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-        stolenTokenAddress
-      ].tokenIds!.push(Number(stolenTokenId));
+      const victimInfo = scammersCurrentlyMonitored[scammerAddress].victims![victimAddress];
+      const victimErc721Info = victimInfo.transactions![exploitTxnHash].erc721![stolenTokenAddress];
+
+      victimInfo.totalUsdValueAcrossAllTokens! += nftCollectionFloorPrice;
+      victimInfo.totalUsdValueAcrossAllErc721Tokens! += nftCollectionFloorPrice;
+      victimErc721Info.tokenTotalUsdValue! += nftCollectionFloorPrice;
+
+      victimErc721Info.tokenIds!.push(Number(stolenTokenId));
 
       findings.push(
         createFraudNftOrderFinding(
           victimAddress,
           scammerAddress,
           scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllTokens!,
+          victimInfo.totalUsdValueAcrossAllTokens!,
           stolenTokenName,
           stolenTokenAddress,
           stolenTokenId,
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].totalUsdValueAcrossAllErc721Tokens!,
+          victimInfo.totalUsdValueAcrossAllErc721Tokens!,
           exploitTxnHash,
           nftCollectionFloorPrice,
           erc721TransferTimeWindow
@@ -189,12 +206,13 @@ async function processFraudulentNftOrders(
 
 export function provideInitialize(
   provider: providers.Provider,
-  dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>
+  dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>,
+  loadScammerMonitored: (key: string) => Promise<any>,
 ): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    scammersCurrentlyMonitored = await load(dbKey);
+    scammersCurrentlyMonitored = await loadScammerMonitored(dbKey);
 
     return {
       alertConfig: {
@@ -294,7 +312,7 @@ export function provideHandleBlock(): HandleBlock {
 }
 
 export default {
-  initialize: provideInitialize(getEthersProvider(), createNewDataFetcher),
+  initialize: provideInitialize(getEthersProvider(), createNewDataFetcher, load),
   handleAlert: provideHandleAlert(),
   handleBlock: provideHandleBlock(),
   provideInitialize,
