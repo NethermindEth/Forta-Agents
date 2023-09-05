@@ -1,4 +1,4 @@
-function getChainBlockTime(chainId: number): number {
+export function getChainBlockTime(chainId: number): number {
   switch (chainId) {
     case 10: // Optimism
       return 2;

@@ -8,11 +8,11 @@ import DataFetcher from "./fetcher";
 import {
   SCAM_DETECTOR_BOT_ID,
   SCAM_DETECTOR_ALERT_IDS,
-  ONE_DAY,
   NINETY_DAYS,
   EXCHANGE_CONTRACT_ADDRESSES,
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
-  THIRTY_DAYS,
+  THIRTY_DAYS_IN_MS,
+  ONE_DAY_IN_MS,
 } from "./constants";
 
 let chainId: number;
@@ -238,7 +238,7 @@ export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY, chainId);
+    const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY_IN_MS, chainId);
 
     if (blockEvent.blockNumber % blocksInOneDay === 0) {
       for (const scammerAddress of Object.keys(scammersCurrentlyMonitored)) {
@@ -260,7 +260,7 @@ export function provideHandleBlock(): HandleBlock {
 
         findings.push(...fraudulentNftOrderFindings);
 
-        const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS, chainId);
+        const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS_IN_MS, chainId);
         if (
           blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
           blocksInThirtyDays
