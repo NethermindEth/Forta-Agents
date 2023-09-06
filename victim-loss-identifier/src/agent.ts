@@ -104,7 +104,7 @@ async function processFraudulentNftOrders(
         txnResponse!.blockNumber!
       );
 
-      if (scammersCurrentlyMonitored[scammerAddress].victims === undefined) {
+      if (!scammersCurrentlyMonitored[scammerAddress].victims) {
         // The scammer has no victims yet,
         // so add as a new victim
         scammersCurrentlyMonitored[scammerAddress].victims = {
@@ -125,7 +125,7 @@ async function processFraudulentNftOrders(
             },
           },
         };
-      } else if (scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] === undefined) {
+      } else if (!scammersCurrentlyMonitored[scammerAddress].victims![victimAddress]) {
         // The scammer doesn't have _this_ specific victim yet,
         // so add as a new entry
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
@@ -144,9 +144,7 @@ async function processFraudulentNftOrders(
             },
           },
         };
-      } else if (
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] === undefined
-      ) {
+      } else if (!scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash]) {
         // This specific scammer victim doesn't have this specific transaction,
         // so add as new entry
         scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
@@ -159,9 +157,7 @@ async function processFraudulentNftOrders(
             },
           },
         };
-      } else if (
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] != undefined
-      ) {
+      } else {
         // Because if the txnHash check was `undefined`, a new entry
         // would've been added in the previous `if` check, if it is
         // NOT undefined, it means this is not first entry, and thus
@@ -169,9 +165,9 @@ async function processFraudulentNftOrders(
         isOrderInSameTxn = true;
 
         if (
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
+          !scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
             stolenTokenAddress
-          ] === undefined
+          ]
         ) {
           // In the edge case a victim lose NFTs from different collections
           // in the same transaction, add additional collection info that
