@@ -24,19 +24,27 @@ type TransactionInfo = {
   erc1155?: { [key: string]: Erc1155Info };
 };
 
-type VictimInfo = {
+type ScammedByInfo = {
+  totalUsdValueLostToScammer: number;
+  transactions: {
+    [key: string]: TransactionInfo; // key: transaction hash
+  };
+};
+
+export type VictimInfo = {
   totalUsdValueAcrossAllTokens?: number;
   totalUsdValueAcrossAllErc20Tokens?: number;
   totalUsdValueAcrossAllErc721Tokens?: number;
   totalUsdValueAcrossAllErc1155Tokens?: number;
-  transactions?: {
-    [key: string]: TransactionInfo; // key: transaction hash
+  scammedBy: {
+    [key: string]: ScammedByInfo; // key: scammer address
   };
 };
 
 export type ScammerInfo = {
   mostRecentActivityByBlockNumber: number;
   firstAlertIdAppearance: string;
+  totalUsdValueStolen: number;
   victims?: {
     [key: string]: VictimInfo; // key: victim address
   };
