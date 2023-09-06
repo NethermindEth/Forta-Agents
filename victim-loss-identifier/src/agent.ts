@@ -69,9 +69,12 @@ async function processFraudulentNftOrders(
     // 2) Transaction being a regular NFT trade
     const hasBuyerTransferredToSeller = txnLogs.some((log) => {
       return (
-        log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
-        log.topics[1].includes(scammerAddress.slice(2)) &&
-        log.topics[2].includes(victimAddress.slice(2))
+        (log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
+          log.topics[1].includes(scammerAddress.slice(2)) &&
+          log.topics[2].includes(victimAddress.slice(2))) ||
+        (log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)") &&
+          log.topics[2].includes(scammerAddress.slice(2)) &&
+          log.topics[3].includes(victimAddress.slice(2)))
       );
     });
 
