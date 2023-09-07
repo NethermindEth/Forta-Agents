@@ -165,7 +165,7 @@ async function processFraudulentNftOrders(
       ) {
         // In scenario a victim loses NFTs from different collections in the same
         // transaction, add additional collection info under the same transaction.
-        victims![victimAddress].scammedBy![scammerAddress].transactions![exploitTxnHash].erc721![stolenTokenAddress] = {
+        victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress] = {
           tokenName: stolenTokenName,
           tokenSymbol: stolenTokenSymbol,
           tokenIds: [],
@@ -192,7 +192,7 @@ async function processFraudulentNftOrders(
       currentVictim.scammedBy![scammerAddress].totalUsdValueLostToScammer += nftCollectionFloorPrice;
 
       const currentVictimStolenErc721Info =
-        currentVictim.scammedBy![scammerAddress].transactions![exploitTxnHash].erc721![stolenTokenAddress];
+        currentVictim.scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress];
       currentVictimStolenErc721Info.tokenTotalUsdValue! += nftCollectionFloorPrice;
       currentVictimStolenErc721Info.tokenIds!.push(Number(stolenTokenId));
 
