@@ -85,7 +85,7 @@ function createMockExploitInstance(instanceNumber: number): MockExploitInfo {
     stolenTokenName: `MockErc721Token${instanceNumber}`,
     stolenTokenSymbol: `MOCK721-${instanceNumber}`,
     stolenTokenId: `${instanceNumber}3`,
-    txnValue: BigNumber.from(10 * instanceNumber),
+    txnValue: BigNumber.from(instanceNumber),
     blockNumber: 10000 * instanceNumber,
   };
 }
