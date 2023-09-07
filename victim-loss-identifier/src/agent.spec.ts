@@ -8,15 +8,18 @@ import { createTestingFraudNftOrderFinding } from "./mocks/mock.findings";
 import { TestAlertEvent } from "./mocks/mock.alert";
 import DataFetcher from "./fetcher";
 import {
+  createMockTxnReceiptWithErc20TransferLog,
+  createMockTxnReceiptWithNftExchangeLogs,
   createMockScammerAddressBatch,
-  createMockTxnReceipt,
-  createMockTxnReceiptBatch,
-  createMockTxnResponse,
   createMockTxnResponseBatch,
+  createMockTxnReceiptBatch,
   createMockErc721Transfer,
   createMockExploitBatch,
+  createMockTxnResponse,
+  createMockTxnReceipt,
   createMockAlertEvent,
 } from "./mocks/mock.utils";
+import { createAddress } from "forta-agent-tools";
 
 const ONE_DAY = 1;
 const NINETY_DAYS = 90;
@@ -48,6 +51,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
 
     const mockNftMarketPlaceAddress = "0x59728544B08AB483533076417FbBB2fD0B17CE3a";
     const mockNftFloorPrice = 1000; // in USD
+    const mockErc20TokenAddress = createAddress("0x12345");
 
     let initialize: Initialize;
     let handleAlert: HandleAlert;
@@ -64,9 +68,11 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockScammerAddressSeven,
       mockScammerAddressEight,
       mockScammerAddressNine,
-    ]: string[] = createMockScammerAddressBatch(9);
+      mockScammerAddressTen,
+      mockScammerAddressEleven,
+    ]: string[] = createMockScammerAddressBatch(11);
 
-    const mockExploitBatch: MockExploitInfo[] = createMockExploitBatch(17);
+    const mockExploitBatch: MockExploitInfo[] = createMockExploitBatch(19);
     const [
       mockExploit,
       mockExploitTwo,
@@ -74,7 +80,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockExploitFour,
       mockExploitFive,
       mockExploitSix,
-      mockExploitSeven, //
+      mockExploitSeven,
       mockExploitEight,
       mockExploitNine,
       mockExploitTen,
@@ -85,6 +91,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockExploitFifteen,
       mockExploitSixteen,
       mockExploitSeventeen,
+      mockExploitEighteen,
+      mockExploitNineteen,
     ]: MockExploitInfo[] = mockExploitBatch;
 
     const [
@@ -105,7 +113,9 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnReceiptFifteen,
       mockTxnReceiptSixteen,
       mockTxnReceiptSeventeen,
-    ]: MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
+    ] // mockTxnReceiptEighteen,
+    // mockTxnReceiptNineteen,
+    : MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
     const [
       mockTxnResponse,
       mockTxnResponseTwo,
@@ -124,7 +134,9 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnResponseFifteen,
       mockTxnResponseSixteen,
       mockTxnResponseSeventeen,
-    ]: MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
+    ] // mockTxnResponseEighteen,
+    // mockTxnResponseNineteen,
+    : MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     beforeEach(async () => {
@@ -182,6 +194,14 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransactionReceipt)
         .calledWith(mockExploitSeventeen.exploitTxnHash)
         .mockResolvedValue(mockTxnReceiptSeventeen);
+      /*
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith(mockExploitEighteen.exploitTxnHash)
+        .mockResolvedValue(mockTxnReceiptEighteen);
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith(mockExploitNineteen.exploitTxnHash)
+        .mockResolvedValue(mockTxnReceiptNineteen);
+      */
 
       when(mockDataFetcher.getTransaction).calledWith(mockExploit.exploitTxnHash).mockResolvedValue(mockTxnResponse);
       when(mockDataFetcher.getTransaction)
@@ -232,6 +252,14 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransaction)
         .calledWith(mockExploitSeventeen.exploitTxnHash)
         .mockResolvedValue(mockTxnResponseSeventeen);
+      /*
+      when(mockDataFetcher.getTransaction)
+        .calledWith(mockExploitEighteen.exploitTxnHash)
+        .mockResolvedValue(mockTxnResponseEighteen);
+      when(mockDataFetcher.getTransaction)
+        .calledWith(mockExploitNineteen.exploitTxnHash)
+        .mockResolvedValue(mockTxnResponseNineteen);
+      */
 
       when(mockDataFetcher.getNftCollectionFloorPrice)
         .calledWith(mockExploit.stolenTokenAddress, mockExploit.blockNumber)
@@ -284,6 +312,14 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getNftCollectionFloorPrice)
         .calledWith(mockExploitSeventeen.stolenTokenAddress, mockExploitSeventeen.blockNumber)
         .mockResolvedValue(mockNftFloorPrice);
+      /*
+      when(mockDataFetcher.getNftCollectionFloorPrice)
+        .calledWith(mockExploitEighteen.stolenTokenAddress, mockExploitEighteen.blockNumber)
+        .mockResolvedValue(mockNftFloorPrice);
+      when(mockDataFetcher.getNftCollectionFloorPrice)
+        .calledWith(mockExploitNineteen.stolenTokenAddress, mockExploitNineteen.blockNumber)
+        .mockResolvedValue(mockNftFloorPrice);
+      */
 
       initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
       await initialize();
@@ -314,12 +350,13 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
     });
 
-    it("doesn't create an alert when Scam Detector emits a non-SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
+    it("doesn't create an alert when Scam Detector emits a non SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
       const mockAlert: TestAlertEvent = createMockAlertEvent(
         "NON-FRAUDULENT_ORDER_ALERT_ID",
         mockAlertBlockNumber,
@@ -356,7 +393,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
 
@@ -383,7 +421,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          ONE_DAY
+          ONE_DAY,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitFour,
@@ -392,7 +431,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          ONE_DAY
+          ONE_DAY,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
     });
@@ -498,7 +538,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitSixSameVictim,
@@ -507,7 +548,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice).add(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice).add(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice).add(mockNftFloorPrice)
         ),
       ]);
     });
@@ -534,7 +576,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
 
@@ -586,7 +629,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice).add(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice).add(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
     });
@@ -616,7 +660,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitNine,
@@ -625,7 +670,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
 
@@ -649,7 +695,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitEleven,
@@ -658,7 +705,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
     });
@@ -710,7 +758,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitFourteen,
@@ -719,7 +768,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
 
@@ -779,7 +829,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
           mockExploitSeventeen,
@@ -788,9 +839,64 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          NINETY_DAYS
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
         ),
       ]);
+    });
+
+    it("does not create an alert when a scammer 'pays' for an NFT with something other than ETH", async () => {
+      const mockAlertHandlerErc721Transfers: MockErc721Transfer[] = [createMockErc721Transfer(mockExploitEighteen)];
+      when(mockDataFetcher.getScammerErc721Transfers)
+        .calledWith(mockScammerAddressTen, NINETY_DAYS)
+        .mockResolvedValue(mockAlertHandlerErc721Transfers);
+
+      const txnRecipeitWithErc20Log = createMockTxnReceiptWithErc20TransferLog(
+        mockExploitEighteen,
+        mockScammerAddressTen,
+        mockErc20TokenAddress,
+        100
+      );
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith(mockExploitEighteen.exploitTxnHash)
+        .mockResolvedValue(txnRecipeitWithErc20Log);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        FRAUD_NFT_ORDER_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressTen
+      );
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("does not create an alert when a 'scammer' and 'victim' exchange NFTs with one another", async () => {
+      const mockAlertHandlerErc721Transfers: MockErc721Transfer[] = [createMockErc721Transfer(mockExploitNineteen)];
+      when(mockDataFetcher.getScammerErc721Transfers)
+        .calledWith(mockScammerAddressEleven, NINETY_DAYS)
+        .mockResolvedValue(mockAlertHandlerErc721Transfers);
+
+      const additionalNftTokenId = 225;
+      const txnRecipeitWithNftExchangeLogs = createMockTxnReceiptWithNftExchangeLogs(
+        mockExploitNineteen,
+        mockScammerAddressEleven,
+        additionalNftTokenId
+      );
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith(mockExploitNineteen.exploitTxnHash)
+        .mockResolvedValue(txnRecipeitWithNftExchangeLogs);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        FRAUD_NFT_ORDER_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressEleven
+      );
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([]);
     });
   });
 });

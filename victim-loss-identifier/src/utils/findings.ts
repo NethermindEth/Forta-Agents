@@ -11,7 +11,8 @@ export function createFraudNftOrderFinding(
   totalUsdLostInErc721s: number,
   exploitTransactionHash: string,
   usdLostOnThisToken: number,
-  assessmentPeriodDays: number
+  assessmentPeriodDays: number,
+  usdLostToThisScammer: number
 ): Finding {
   const uniqueKey = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes(contractAddress + tokenId + exploitTransactionHash)
@@ -26,7 +27,7 @@ export function createFraudNftOrderFinding(
 
   return Finding.fromObject({
     name: `Victim identified: ${victimAddress}`,
-    description: `${victimAddress} has fallen victim to scammer ${scammerAddress}`, // TODO: txn hash
+    description: `${victimAddress} has fallen victim to scammer ${scammerAddress} in transaction ${exploitTransactionHash}`,
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -39,6 +40,7 @@ export function createFraudNftOrderFinding(
       victim_address: victimAddress,
       tx_hash: exploitTransactionHash,
       usd_lost: totalUsdLost.toString(),
+      usd_lost_to_scammer: usdLostToThisScammer.toString(),
       erc_721_usd_lost: totalUsdLostInErc721s.toString(),
       erc_721_lost: `name: ${name} | contract: ${contractAddress} | token id: ${tokenId} | value USD: ${usdLostOnThisToken}`,
     },

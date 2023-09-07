@@ -21,7 +21,7 @@ let lastPersistenceMinute: number;
 
 const dbKey = "nm-victim-loss-identifier-objects";
 
-let victims: { [key: string]: VictimInfo } = {};
+let victimsScammed: { [key: string]: VictimInfo } = {};
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
@@ -32,12 +32,12 @@ async function createNewDataFetcher(provider: providers.Provider): Promise<DataF
 export function provideInitialize(
   provider: providers.Provider,
   dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>,
-  loadScammerMonitored: (key: string) => Promise<any>
+  loadScammersMonitored: (key: string) => Promise<any>
 ): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    scammersCurrentlyMonitored = await loadScammerMonitored(dbKey);
+    scammersCurrentlyMonitored = await loadScammersMonitored(dbKey);
 
     return {
       alertConfig: {
@@ -73,7 +73,7 @@ export function provideHandleAlert(): HandleAlert {
               NINETY_DAYS,
               dataFetcher,
               scammersCurrentlyMonitored,
-              victims
+              victimsScammed
             ))
           );
           break;
@@ -106,7 +106,7 @@ export function provideHandleBlock(): HandleBlock {
           daysSinceScammerLastActive,
           dataFetcher,
           scammersCurrentlyMonitored,
-          victims
+          victimsScammed
         );
 
         if (fraudulentNftOrderFindings.length > 0) {

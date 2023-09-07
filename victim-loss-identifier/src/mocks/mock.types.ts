@@ -11,13 +11,13 @@ export type MockErc721Transfer = {
   transaction_hash: string;
 };
 
+type Log = {
+  address: string;
+  topics: [string, string, string, string];
+};
+
 export type MockTxnReceipt = {
-  logs: [
-    {
-      address: string;
-      topics: [string, string, string, string];
-    },
-  ];
+  logs: Log[];
 };
 
 export type MockTxnResponse = {
