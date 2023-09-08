@@ -79,3 +79,8 @@ export type coinData = {
     };
   };
 };
+
+export type extractedFpTransaction = {
+  txHash: string;
+  nfts: string[];
+};
