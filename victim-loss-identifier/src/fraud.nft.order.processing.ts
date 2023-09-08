@@ -47,6 +47,7 @@ function addVictimInfoToVictims(
     // been documented, add them
     victims[victimAddress] = {
       mostRecentActivityByBlockNumber: transactionBlockNumber,
+      hasBeenAlerted: false,
       totalUsdValueAcrossAllTokens: 0,
       totalUsdValueAcrossAllErc721Tokens: 0,
       scammedBy: {
@@ -251,6 +252,8 @@ export async function processFraudulentNftOrders(
           victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
         )
       );
+
+      victims[victimAddress].hasBeenAlerted = true;
     }
   }
 

@@ -33,6 +33,7 @@ type ScammedByInfo = {
 
 export type VictimInfo = {
   mostRecentActivityByBlockNumber: number;
+  hasBeenAlerted: boolean;
   totalUsdValueAcrossAllTokens?: number;
   totalUsdValueAcrossAllErc20Tokens?: number;
   totalUsdValueAcrossAllErc721Tokens?: number;
