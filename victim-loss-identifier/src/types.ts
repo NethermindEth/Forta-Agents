@@ -80,7 +80,7 @@ export type coinData = {
   };
 };
 
-export type extractedFpTransaction = {
+export type fpTransaction = {
   txHash: string;
   nfts: string[];
 };
