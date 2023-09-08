@@ -1,16 +1,14 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
-import { providers, utils } from "ethers";
+import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
-import { ScammerInfo, Erc721Transfer, apiKeys } from "./types";
-import { createFraudNftOrderFinding } from "./utils/findings";
+import { ScammerInfo, VictimInfo, apiKeys } from "./types";
 import { getSecrets, load, persist } from "./storage";
 import DataFetcher from "./fetcher";
+import { processFraudulentNftOrders } from "./fraud.nft.order.processing";
 import {
   SCAM_DETECTOR_BOT_ID,
   SCAM_DETECTOR_ALERT_IDS,
   NINETY_DAYS,
-  EXCHANGE_CONTRACT_ADDRESSES,
-  FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
   THIRTY_DAYS_IN_SECS,
   ONE_DAY_IN_SECS,
   MAX_OBJECT_SIZE,
@@ -23,6 +21,7 @@ let lastPersistenceMinute: number;
 
 const dbKey = "nm-victim-loss-identifier-objects";
 
+let victimsScammed: { [key: string]: VictimInfo } = {};
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
@@ -30,205 +29,15 @@ async function createNewDataFetcher(provider: providers.Provider): Promise<DataF
   return new DataFetcher(provider, apiKeys);
 }
 
-async function processFraudulentNftOrders(
-  scammerAddress: string,
-  erc721TransferTimeWindow: number,
-  dataFetcher: DataFetcher
-): Promise<Finding[]> {
-  const findings: Finding[] = [];
-
-  const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getScammerErc721Transfers(
-    scammerAddress,
-    erc721TransferTimeWindow
-  );
-
-  for (const erc721Transfer of scammerErc721Transfers) {
-    const {
-      transaction_hash: exploitTxnHash,
-      contract_address: stolenTokenAddress,
-      name: stolenTokenName,
-      symbol: stolenTokenSymbol,
-      token_id: stolenTokenId,
-    }: Erc721Transfer = erc721Transfer;
-    const txnReceipt = await dataFetcher.getTransactionReceipt(exploitTxnHash);
-    const txnLogs = txnReceipt!.logs;
-
-    const victimAddress = utils.hexDataSlice(
-      txnLogs.find((log) => {
-        return (
-          log.address.toLowerCase() === stolenTokenAddress &&
-          log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
-          Number(log.topics[3]) === Number(stolenTokenId)
-        );
-      })!.topics[1],
-      12
-    );
-
-    // Covers two FP cases:
-    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH (either directly or via an exchange address)
-    // 2) Transaction being a regular NFT trade
-    const hasBuyerTransferredToSeller = txnLogs.some((log) => {
-      const isTransferEvent = log.topics[0] === utils.id("Transfer(address,address,uint256)");
-      const isTransferSingleEvent =
-        log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)");
-
-      return (
-        (isTransferEvent &&
-          (log.topics[1].includes(scammerAddress.slice(2)) ||
-            (Object.values(EXCHANGE_CONTRACT_ADDRESSES).some((exchangeAddress) =>
-              log.topics[1].includes(exchangeAddress.slice(2))
-            ) &&
-              log.topics[2].includes(victimAddress.slice(2))))) ||
-        (isTransferSingleEvent &&
-          log.topics[2].includes(scammerAddress.slice(2)) &&
-          log.topics[3].includes(victimAddress.slice(2)))
-      );
-    });
-
-    // TODO: Add FP mitigation alert if the transaction is the one that generated the source alert
-    if (hasBuyerTransferredToSeller) continue;
-
-    if (
-      // Skip over this transfer if this tokenId
-      // transfer in this transaction for this
-      // victim has already been accounted for
-      scammersCurrentlyMonitored[scammerAddress].victims?.[victimAddress]?.transactions?.[exploitTxnHash]?.erc721?.[
-        stolenTokenAddress
-      ]?.tokenIds?.includes(Number(stolenTokenId))
-    ) {
-      continue;
-    }
-
-    const txnResponse = await dataFetcher.getTransaction(exploitTxnHash);
-    let isOrderInSameTxn: boolean;
-    if (
-      txnResponse!.to != null &&
-      Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse!.to) &&
-      txnResponse!.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
-    ) {
-      const nftCollectionFloorPrice = await dataFetcher.getNftCollectionFloorPrice(
-        stolenTokenAddress,
-        txnResponse!.blockNumber!
-      );
-
-      if (!scammersCurrentlyMonitored[scammerAddress].victims) {
-        // The scammer has no victims yet,
-        // so add as a new victim
-        scammersCurrentlyMonitored[scammerAddress].victims = {
-          [victimAddress]: {
-            totalUsdValueAcrossAllTokens: 0,
-            totalUsdValueAcrossAllErc721Tokens: 0,
-            transactions: {
-              [exploitTxnHash]: {
-                erc721: {
-                  [stolenTokenAddress]: {
-                    tokenName: stolenTokenName,
-                    tokenSymbol: stolenTokenSymbol,
-                    tokenIds: [],
-                    tokenTotalUsdValue: 0,
-                  },
-                },
-              },
-            },
-          },
-        };
-      } else if (!scammersCurrentlyMonitored[scammerAddress].victims![victimAddress]) {
-        // The scammer doesn't have _this_ specific victim yet,
-        // so add as a new entry
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress] = {
-          totalUsdValueAcrossAllTokens: 0,
-          totalUsdValueAcrossAllErc721Tokens: 0,
-          transactions: {
-            [exploitTxnHash]: {
-              erc721: {
-                [stolenTokenAddress]: {
-                  tokenName: stolenTokenName,
-                  tokenSymbol: stolenTokenSymbol,
-                  tokenIds: [],
-                  tokenTotalUsdValue: 0,
-                },
-              },
-            },
-          },
-        };
-      } else if (!scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash]) {
-        // This specific scammer victim doesn't have this specific transaction,
-        // so add as new entry
-        scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash] = {
-          erc721: {
-            [stolenTokenAddress]: {
-              tokenName: stolenTokenName,
-              tokenSymbol: stolenTokenSymbol,
-              tokenIds: [],
-              tokenTotalUsdValue: 0,
-            },
-          },
-        };
-      } else {
-        // Because if the txnHash check was `undefined`, a new entry
-        // would've been added in the previous `if` check, if it is
-        // NOT undefined, it means this is not first entry, and thus
-        // an additional fraudulent NFT order in the same transaction
-        isOrderInSameTxn = true;
-
-        if (
-          !scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-            stolenTokenAddress
-          ]
-        ) {
-          // In the edge case a victim lose NFTs from different collections
-          // in the same transaction, add additional collection info that
-          // were taken in the same transaction
-          scammersCurrentlyMonitored[scammerAddress].victims![victimAddress].transactions![exploitTxnHash].erc721![
-            stolenTokenAddress
-          ] = {
-            tokenName: stolenTokenName,
-            tokenSymbol: stolenTokenSymbol,
-            tokenIds: [],
-            tokenTotalUsdValue: 0,
-          };
-        }
-      }
-
-      const victimInfo = scammersCurrentlyMonitored[scammerAddress].victims![victimAddress];
-      const victimErc721Info = victimInfo.transactions![exploitTxnHash].erc721![stolenTokenAddress];
-
-      victimInfo.totalUsdValueAcrossAllTokens! += nftCollectionFloorPrice;
-      victimInfo.totalUsdValueAcrossAllErc721Tokens! += nftCollectionFloorPrice;
-      victimErc721Info.tokenTotalUsdValue! += nftCollectionFloorPrice;
-
-      victimErc721Info.tokenIds!.push(Number(stolenTokenId));
-
-      findings.push(
-        createFraudNftOrderFinding(
-          victimAddress,
-          scammerAddress,
-          scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance,
-          victimInfo.totalUsdValueAcrossAllTokens!,
-          stolenTokenName,
-          stolenTokenAddress,
-          stolenTokenId,
-          victimInfo.totalUsdValueAcrossAllErc721Tokens!,
-          exploitTxnHash,
-          nftCollectionFloorPrice,
-          erc721TransferTimeWindow
-        )
-      );
-    }
-  }
-
-  return findings;
-}
-
 export function provideInitialize(
   provider: providers.Provider,
   dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>,
-  loadScammerMonitored: (key: string) => Promise<any>
+  loadScammersMonitored: (key: string) => Promise<any>
 ): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    scammersCurrentlyMonitored = await loadScammerMonitored(dbKey);
+    scammersCurrentlyMonitored = await loadScammersMonitored(dbKey);
 
     return {
       alertConfig: {
@@ -253,11 +62,20 @@ export function provideHandleAlert(): HandleAlert {
       scammersCurrentlyMonitored[scammerAddress] = {
         firstAlertIdAppearance: alertEvent.alertId!,
         mostRecentActivityByBlockNumber: alertEvent.blockNumber!,
+        totalUsdValueStolen: 0,
       };
 
       switch (alertEvent.alertId!) {
         case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
-          findings.push(...(await processFraudulentNftOrders(scammerAddress, NINETY_DAYS, dataFetcher)));
+          findings.push(
+            ...(await processFraudulentNftOrders(
+              scammerAddress,
+              NINETY_DAYS,
+              dataFetcher,
+              scammersCurrentlyMonitored,
+              victimsScammed
+            ))
+          );
           break;
 
         default:
@@ -286,7 +104,9 @@ export function provideHandleBlock(): HandleBlock {
         const fraudulentNftOrderFindings = await processFraudulentNftOrders(
           scammerAddress,
           daysSinceScammerLastActive,
-          dataFetcher
+          dataFetcher,
+          scammersCurrentlyMonitored,
+          victimsScammed
         );
 
         if (fraudulentNftOrderFindings.length > 0) {
