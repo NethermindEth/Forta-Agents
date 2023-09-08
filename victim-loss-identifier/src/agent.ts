@@ -65,14 +65,21 @@ async function processFraudulentNftOrders(
     );
 
     // Covers two FP cases:
-    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH
+    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH (either directly or via an exchange address)
     // 2) Transaction being a regular NFT trade
     const hasBuyerTransferredToSeller = txnLogs.some((log) => {
+      const isTransferEvent = log.topics[0] === utils.id("Transfer(address,address,uint256)");
+      const isTransferSingleEvent =
+        log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)");
+
       return (
-        (log.topics[0] === utils.id("Transfer(address,address,uint256)") &&
-          log.topics[1].includes(scammerAddress.slice(2)) &&
-          log.topics[2].includes(victimAddress.slice(2))) ||
-        (log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)") &&
+        (isTransferEvent &&
+          (log.topics[1].includes(scammerAddress.slice(2)) ||
+            (Object.values(EXCHANGE_CONTRACT_ADDRESSES).some((exchangeAddress) =>
+              log.topics[1].includes(exchangeAddress.slice(2))
+            ) &&
+              log.topics[2].includes(victimAddress.slice(2))))) ||
+        (isTransferSingleEvent &&
           log.topics[2].includes(scammerAddress.slice(2)) &&
           log.topics[3].includes(victimAddress.slice(2)))
       );
