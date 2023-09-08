@@ -112,9 +112,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnReceiptFourteen,
       mockTxnReceiptFifteen,
       mockTxnReceiptSixteen,
-      mockTxnReceiptSeventeen,
-    ] // mockTxnReceiptEighteen,
-    // mockTxnReceiptNineteen,
+      mockTxnReceiptSeventeen, // mockTxnReceiptEighteen,
+    ] // mockTxnReceiptNineteen,
     : MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
     const [
       mockTxnResponse,
@@ -133,9 +132,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnResponseFourteen,
       mockTxnResponseFifteen,
       mockTxnResponseSixteen,
-      mockTxnResponseSeventeen,
-    ] // mockTxnResponseEighteen,
-    // mockTxnResponseNineteen,
+      mockTxnResponseSeventeen, // mockTxnResponseEighteen,
+    ] // mockTxnResponseNineteen,
     : MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

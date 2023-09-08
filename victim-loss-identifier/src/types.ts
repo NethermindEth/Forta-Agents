@@ -10,7 +10,7 @@ type Erc20Info = GeneralTokenInfo & {
 };
 
 type Erc721Info = GeneralTokenInfo & {
-  tokenIds?: number[];
+  tokenIds: number[];
 };
 
 type Erc1155Info = GeneralTokenInfo & {
@@ -32,6 +32,7 @@ type ScammedByInfo = {
 };
 
 export type VictimInfo = {
+  mostRecentActivityByBlockNumber: number;
   totalUsdValueAcrossAllTokens?: number;
   totalUsdValueAcrossAllErc20Tokens?: number;
   totalUsdValueAcrossAllErc721Tokens?: number;

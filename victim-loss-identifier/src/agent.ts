@@ -12,6 +12,8 @@ import {
   THIRTY_DAYS_IN_SECS,
   ONE_DAY_IN_SECS,
   MAX_OBJECT_SIZE,
+  SCAMMERS_DB_KEY,
+  VICTIMS_DB_KEY,
 } from "./constants";
 
 let chainId: number;
@@ -19,10 +21,8 @@ let apiKeys: apiKeys;
 let dataFetcher: DataFetcher;
 let lastPersistenceMinute: number;
 
-const dbKey = "nm-victim-loss-identifier-objects";
-
-let victimsScammed: { [key: string]: VictimInfo } = {};
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
+let victimsScammed: { [key: string]: VictimInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
   const apiKeys = (await getSecrets()) as apiKeys;
@@ -32,12 +32,13 @@ async function createNewDataFetcher(provider: providers.Provider): Promise<DataF
 export function provideInitialize(
   provider: providers.Provider,
   dataFetcherCreator: (provider: providers.Provider) => Promise<DataFetcher>,
-  loadScammersMonitored: (key: string) => Promise<any>
+  loadObject: (key: string) => Promise<any>
 ): Initialize {
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    scammersCurrentlyMonitored = await loadScammersMonitored(dbKey);
+    victimsScammed = await loadObject(VICTIMS_DB_KEY);
+    scammersCurrentlyMonitored = await loadObject(SCAMMERS_DB_KEY);
 
     return {
       alertConfig: {
@@ -129,17 +130,30 @@ export function provideHandleBlock(): HandleBlock {
     const minutes = date.getMinutes();
 
     if (minutes % 10 === 0 && lastPersistenceMinute !== minutes) {
-      let objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
-      console.log("Scammers Monitored Object Size: ", objectSize);
+      let scammersObjectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
+      let victimsObjectSize = Buffer.from(JSON.stringify(victimsScammed)).length;
+      console.log(
+        `Scammers Monitored Object Size: ${scammersObjectSize} | Victims Scammed Object Size: ${victimsObjectSize}`
+      );
 
-      while (objectSize > MAX_OBJECT_SIZE) {
-        console.log("Cleaning Scammers Monitored Object of size: ", objectSize);
+      let largerObjectSize = scammersObjectSize < victimsObjectSize ? victimsObjectSize : scammersObjectSize;
+
+      while (largerObjectSize > MAX_OBJECT_SIZE) {
+        console.log("Cleaning Scammers Monitored Object of size: ", scammersObjectSize);
         cleanObject(scammersCurrentlyMonitored);
-        objectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
-        console.log("Scammers Monitored Object after cleaning: ", objectSize);
+        scammersObjectSize = Buffer.from(JSON.stringify(scammersCurrentlyMonitored)).length;
+        console.log("Scammers Monitored Object after cleaning: ", scammersObjectSize);
+
+        console.log("Cleaning Victims Scammed Object of size: ", victimsObjectSize);
+        cleanObject(victimsScammed);
+        victimsObjectSize = Buffer.from(JSON.stringify(victimsScammed)).length;
+        console.log("Victims Scammed Object after cleaning: ", victimsObjectSize);
+
+        largerObjectSize = scammersObjectSize < victimsObjectSize ? victimsObjectSize : scammersObjectSize;
       }
 
-      await persist(scammersCurrentlyMonitored, dbKey);
+      await persist(scammersCurrentlyMonitored, SCAMMERS_DB_KEY);
+      await persist(victimsScammed, VICTIMS_DB_KEY);
       lastPersistenceMinute = minutes;
     }
 
