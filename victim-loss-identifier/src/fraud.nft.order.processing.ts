@@ -19,7 +19,11 @@ function getSenderAddressFromTransferLogs(txnLogs: Log[], tokenAddress: string, 
   );
 }
 
-function hasBuyerTransferredToSeller(txnLogs: Log[], buyerAddress: string, sellerAddress: string): boolean {
+function hasBuyerOrNftExchangeTransferredToSeller(
+  txnLogs: Log[],
+  buyerAddress: string,
+  sellerAddress: string
+): boolean {
   return txnLogs.some((log) => {
     const isTransferEvent = log.topics[0] === utils.id("Transfer(address,address,uint256)");
     const isTransferSingleEvent = log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)");
@@ -186,7 +190,7 @@ export async function processFraudulentNftOrders(
     // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH
     // 2) Transaction being a regular NFT trade
     // TODO: Add FP mitigation alert if the transaction is the one that generated the source alert
-    if (hasBuyerTransferredToSeller(txnLogs, scammerAddress, victimAddress)) continue;
+    if (hasBuyerOrNftExchangeTransferredToSeller(txnLogs, scammerAddress, victimAddress)) continue;
 
     if (
       // Skip over this transfer if this tokenId
