@@ -25,7 +25,7 @@ let victimsScammed: { [key: string]: VictimInfo } = {};
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
-  const apiKeys = (await getSecrets()) as apiKeys;
+  const apiKeys = (await getSecrets()) as ApiKeys;
   return new DataFetcher(provider, apiKeys);
 }
 
