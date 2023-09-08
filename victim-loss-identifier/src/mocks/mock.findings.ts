@@ -9,7 +9,8 @@ export function createTestingFraudNftOrderFinding(
   totalUsdLost: BigNumber,
   totalUsdLostInErc721s: BigNumber,
   usdLostOnThisToken: BigNumber,
-  assessmentPeriodDays: number
+  assessmentPeriodDays: number,
+  usdLostToThisScammer: BigNumber
 ): Finding {
   const uniqueKey = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes(
@@ -26,7 +27,7 @@ export function createTestingFraudNftOrderFinding(
 
   return Finding.fromObject({
     name: `Victim identified: ${mockExploitInstance.victimAddress}`,
-    description: `${mockExploitInstance.victimAddress} has fallen victim to scammer ${scammerAddress}`,
+    description: `${mockExploitInstance.victimAddress} has fallen victim to scammer ${scammerAddress} in transaction ${mockExploitInstance.exploitTxnHash}`,
     alertId: "VICTIM-LOSS-INFORMATION",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
@@ -39,6 +40,7 @@ export function createTestingFraudNftOrderFinding(
       victim_address: mockExploitInstance.victimAddress,
       tx_hash: mockExploitInstance.exploitTxnHash,
       usd_lost: totalUsdLost.toString(),
+      usd_lost_to_scammer: usdLostToThisScammer.toString(),
       erc_721_usd_lost: totalUsdLostInErc721s.toString(),
       erc_721_lost: `name: ${mockExploitInstance.stolenTokenName} | contract: ${mockExploitInstance.stolenTokenAddress} | token id: ${mockExploitInstance.stolenTokenId} | value USD: ${usdLostOnThisToken}`,
     },

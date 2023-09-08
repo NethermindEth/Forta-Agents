@@ -29,6 +29,65 @@ export function createMockTxnReceipt(exploitInfoEntry: MockExploitInfo): MockTxn
   };
 }
 
+export function createMockTxnReceiptWithErc20TransferLog(
+  exploitInfoEntry: MockExploitInfo,
+  scammerAddress: string,
+  erc20Address: string,
+  erc20Amount: number
+): MockTxnReceipt {
+  return {
+    logs: [
+      {
+        address: exploitInfoEntry.stolenTokenAddress,
+        topics: [
+          utils.id("Transfer(address,address,uint256)"),
+          utils.hexZeroPad(utils.hexValue(exploitInfoEntry.victimAddress), 32),
+          "mock to",
+          utils.hexZeroPad(utils.hexValue(Number(exploitInfoEntry.stolenTokenId)), 32),
+        ],
+      },
+      {
+        address: erc20Address,
+        topics: [
+          utils.id("Transfer(address,address,uint256)"),
+          utils.hexZeroPad(utils.hexValue(scammerAddress), 32),
+          utils.hexZeroPad(utils.hexValue(exploitInfoEntry.victimAddress), 32),
+          utils.hexZeroPad(utils.hexValue(erc20Amount), 32),
+        ],
+      },
+    ],
+  };
+}
+
+export function createMockTxnReceiptWithNftExchangeLogs(
+  exploitInfoEntry: MockExploitInfo,
+  scammerAddress: string,
+  additionalErc721TokenId: number
+): MockTxnReceipt {
+  return {
+    logs: [
+      {
+        address: exploitInfoEntry.stolenTokenAddress,
+        topics: [
+          utils.id("Transfer(address,address,uint256)"),
+          utils.hexZeroPad(utils.hexValue(exploitInfoEntry.victimAddress), 32),
+          utils.hexZeroPad(utils.hexValue(scammerAddress), 32),
+          utils.hexZeroPad(utils.hexValue(Number(exploitInfoEntry.stolenTokenId)), 32),
+        ],
+      },
+      {
+        address: exploitInfoEntry.stolenTokenAddress,
+        topics: [
+          utils.id("Transfer(address,address,uint256)"),
+          utils.hexZeroPad(utils.hexValue(scammerAddress), 32),
+          utils.hexZeroPad(utils.hexValue(exploitInfoEntry.victimAddress), 32),
+          utils.hexZeroPad(utils.hexValue(additionalErc721TokenId), 32),
+        ],
+      },
+    ],
+  };
+}
+
 export function createMockTxnReceiptBatch(mockExploitBatch: MockExploitInfo[]): MockTxnReceipt[] {
   const mockTxnReceiptBatch: MockTxnReceipt[] = [];
 
@@ -85,7 +144,7 @@ function createMockExploitInstance(instanceNumber: number): MockExploitInfo {
     stolenTokenName: `MockErc721Token${instanceNumber}`,
     stolenTokenSymbol: `MOCK721-${instanceNumber}`,
     stolenTokenId: `${instanceNumber}3`,
-    txnValue: BigNumber.from(10 * instanceNumber),
+    txnValue: BigNumber.from(instanceNumber),
     blockNumber: 10000 * instanceNumber,
   };
 }
