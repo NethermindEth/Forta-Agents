@@ -1,4 +1,4 @@
-import { ScammerInfo } from "src/types";
+import { ScammerInfo, VictimInfo, fpTransaction } from "src/types";
 
 export function getChainBlockTime(chainId: number): number {
   switch (chainId) {
@@ -39,4 +39,71 @@ export function cleanObject(object: { [key: string]: ScammerInfo }) {
   for (let i = 0; i < indexToDelete; i++) {
     delete object[sortedKeys[i]];
   }
+}
+
+export function extractFpData(
+  scammerAddress: string,
+  scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
+  victims: { [key: string]: VictimInfo }
+) {
+  const fpData: fpTransaction[] = [];
+  const fpVictims: string[] = [];
+  const fpScammer = scammersCurrentlyMonitored[scammerAddress];
+
+  Object.keys(fpScammer.victims!).forEach((victimAddress) => {
+    const victimInfo = fpScammer.victims![victimAddress];
+    const scammedBy = victimInfo.scammedBy;
+
+    const transactions = scammedBy[scammerAddress].transactions;
+
+    Object.keys(transactions).forEach((txHash) => {
+      const transaction = transactions[txHash];
+      const extractedTransaction: fpTransaction = {
+        txHash,
+        nfts: [],
+      };
+
+      if (transaction.erc721) {
+        // Iterate through ERC721 tokens
+        Object.keys(transaction.erc721).forEach((tokenAddress) => {
+          const erc721TokenInfo = transaction.erc721![tokenAddress];
+          const tokenIds = erc721TokenInfo.tokenIds!;
+
+          // Format ERC721 data as "tokenId,tokenAddress"
+          tokenIds.forEach((tokenId) => {
+            extractedTransaction.nfts.push(`${tokenId},${tokenAddress}`);
+          });
+        });
+      }
+
+      // TODO: Remove ERC1155s?
+      if (transaction.erc1155) {
+        // Iterate through ERC1155 tokens in the transaction
+        Object.keys(transaction.erc1155).forEach((tokenAddress) => {
+          const erc1155TokenInfo = transaction.erc1155![tokenAddress];
+          const tokenIds = Object.keys(erc1155TokenInfo.tokenIds);
+
+          // Format ERC1155 data as "tokenId,amount,tokenAddress"
+          tokenIds.forEach((tokenId) => {
+            const amount = erc1155TokenInfo.tokenIds[Number(tokenId)];
+            extractedTransaction.nfts.push(`${tokenId},${amount},${tokenAddress}`);
+          });
+        });
+      }
+
+      fpData.push(extractedTransaction);
+    });
+
+    // Check if the victim has been "scammed" only by one (this) address
+    if (Object.keys(scammedBy).length === 1) {
+      fpVictims.push(victimAddress);
+      delete victims[victimAddress];
+    } else {
+      delete victims[victimAddress].scammedBy[scammerAddress];
+    }
+
+    delete scammersCurrentlyMonitored[scammerAddress];
+  });
+
+  return [fpVictims, fpData];
 }
