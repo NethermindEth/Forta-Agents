@@ -41,7 +41,7 @@ export function cleanObject(object: { [key: string]: ScammerInfo }) {
   }
 }
 
-export function extractFpData(
+export function extractFalsePositiveDataAndUpdateState(
   scammerAddress: string,
   scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
   victims: { [key: string]: VictimInfo }
@@ -107,3 +107,9 @@ export function extractFpData(
 
   return [fpVictims, fpData];
 }
+
+//TODO: Implementation
+export function isScammerFalsePositive(
+  scammerAddress: string,
+  scammersCurrentlyMonitored: { [key: string]: ScammerInfo }
+) {}
