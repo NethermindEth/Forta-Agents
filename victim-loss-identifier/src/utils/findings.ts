@@ -49,7 +49,7 @@ export function createFraudNftOrderFinding(
       Label.fromObject({
         entity: victimAddress,
         entityType: EntityType.Address,
-        label: "Victim Address",
+        label: "Victim",
         confidence: 0.7,
         remove: false,
       }),
@@ -63,7 +63,7 @@ export function createFraudNftOrderFinding(
       Label.fromObject({
         entity: exploitTransactionHash,
         entityType: EntityType.Transaction,
-        label: "Exploit transaction",
+        label: "Exploit",
         confidence: 0.7,
         remove: false,
       }),
@@ -92,7 +92,7 @@ export function createFpFinding(fpScammer: string, fpVictims: string[], fpData: 
       Label.fromObject({
         entity: fpVictim,
         entityType: EntityType.Address,
-        label: "Victim Address",
+        label: "Victim",
         confidence: 0.7,
         remove: true,
       })
@@ -110,7 +110,7 @@ export function createFpFinding(fpScammer: string, fpVictims: string[], fpData: 
       Label.fromObject({
         entity: txHash,
         entityType: EntityType.Transaction,
-        label: "Exploit transaction",
+        label: "Exploit",
         confidence: 0.7,
         remove: true,
       })

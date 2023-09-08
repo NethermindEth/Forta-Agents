@@ -48,7 +48,7 @@ export function createTestingFraudNftOrderFinding(
       Label.fromObject({
         entity: mockExploitInstance.victimAddress,
         entityType: EntityType.Address,
-        label: "Victim Address",
+        label: "Victim",
         confidence: 0.7,
         remove: false,
       }),
@@ -62,7 +62,7 @@ export function createTestingFraudNftOrderFinding(
       Label.fromObject({
         entity: mockExploitInstance.exploitTxnHash,
         entityType: EntityType.Transaction,
-        label: "Exploit transaction",
+        label: "Exploit",
         confidence: 0.7,
         remove: false,
       }),
