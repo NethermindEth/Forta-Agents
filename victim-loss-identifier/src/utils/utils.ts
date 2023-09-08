@@ -1,4 +1,4 @@
-import { ScammerInfo, VictimInfo, fpTransaction } from "src/types";
+import { ScammerInfo, VictimInfo, FpTransaction } from "src/types";
 
 export function getChainBlockTime(chainId: number): number {
   switch (chainId) {
@@ -46,7 +46,7 @@ export function extractFalsePositiveDataAndUpdateState(
   scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
   victims: { [key: string]: VictimInfo }
 ) {
-  const fpData: fpTransaction[] = [];
+  const fpData: FpTransaction[] = [];
   const fpVictims: string[] = [];
   const fpScammer = scammersCurrentlyMonitored[scammerAddress];
 
@@ -58,7 +58,7 @@ export function extractFalsePositiveDataAndUpdateState(
 
     Object.keys(transactions).forEach((txHash) => {
       const transaction = transactions[txHash];
-      const extractedTransaction: fpTransaction = {
+      const extractedTransaction: FpTransaction = {
         txHash,
         nfts: [],
       };

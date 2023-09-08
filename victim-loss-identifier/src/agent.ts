@@ -1,7 +1,7 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
-import { ScammerInfo, VictimInfo, apiKeys } from "./types";
+import { ScammerInfo, VictimInfo, ApiKeys } from "./types";
 import { getSecrets, load, persist } from "./storage";
 import DataFetcher from "./fetcher";
 import { processFraudulentNftOrders } from "./fraud.nft.order.processing";
@@ -15,11 +15,11 @@ import {
 } from "./constants";
 
 let chainId: number;
-let apiKeys: apiKeys;
+let apiKeys: ApiKeys;
 let dataFetcher: DataFetcher;
 let lastPersistenceMinute: number;
 
-const dbKey = "nm-victim-loss-identifier-objects";
+const dbKey = "nm-victim-loss-identifier-objects-v1.1";
 
 let victimsScammed: { [key: string]: VictimInfo } = {};
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};

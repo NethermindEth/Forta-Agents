@@ -1,11 +1,11 @@
 import { providers } from "ethers";
 import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
-import { apiKeys, Erc721Transfer, coinData } from "./types";
+import { ApiKeys, Erc721Transfer, CoinData } from "./types";
 
 export default class DataFetcher {
   provider: providers.Provider;
-  private apiKeys: apiKeys;
+  private apiKeys: ApiKeys;
   alchemy: Alchemy;
   private ethPriceCache: LRUCache<number, number>;
   private floorPriceCache: LRUCache<string, number>;
@@ -14,7 +14,7 @@ export default class DataFetcher {
   private blockTimestampCache: LRUCache<number, number>;
   private readonly MAX_TRIES: number; // Retries counter
 
-  constructor(provider: providers.Provider, apiKeys: apiKeys) {
+  constructor(provider: providers.Provider, apiKeys: ApiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.alchemy = new Alchemy({
@@ -123,7 +123,7 @@ export default class DataFetcher {
       try {
         const url = `https://coins.llama.fi/prices/historical/${timestamp}/coingecko:ethereum`;
         const response = await fetch(url);
-        const data = (await response.json()) as coinData;
+        const data = (await response.json()) as CoinData;
         const price = data.coins["coingecko:ethereum"]?.price;
 
         if (price == null) {

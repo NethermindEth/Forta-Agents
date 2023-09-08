@@ -1,5 +1,5 @@
 import { Finding, FindingType, FindingSeverity, Label, EntityType, ethers } from "forta-agent";
-import { fpTransaction } from "src/types";
+import { FpTransaction } from "src/types";
 
 export function createFraudNftOrderFinding(
   victimAddress: string,
@@ -71,7 +71,7 @@ export function createFraudNftOrderFinding(
   });
 }
 
-export function createFpFinding(fpScammer: string, fpVictims: string[], fpData: fpTransaction[]): Finding {
+export function createFpFinding(fpScammer: string, fpVictims: string[], fpData: FpTransaction[]): Finding {
   const uniqueFpNfts = new Set<string>();
   const uniqueFpTxHashes = new Set<string>();
 

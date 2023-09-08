@@ -61,7 +61,7 @@ export type Erc721Transfer = {
   transaction_hash: string;
 };
 
-export type apiKeys = {
+export type ApiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];
   };
@@ -79,7 +79,7 @@ export type apiKeys = {
   };
 };
 
-export type coinData = {
+export type CoinData = {
   coins: {
     "coingecko:ethereum": {
       price: number;
@@ -87,7 +87,7 @@ export type coinData = {
   };
 };
 
-export type fpTransaction = {
+export type FpTransaction = {
   txHash: string;
   nfts: string[];
 };
