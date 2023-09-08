@@ -53,7 +53,7 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 1. Victim Address
    - `entity`: The victim address
    - `entityType`: Address
-   - `label`: Victim Address
+   - `label`: Victim
    - `confidence`: 0.7
 2. NFT
    - `entity`: The stolen NFT ID and the NFT's contract address
@@ -63,7 +63,7 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 3. Exploit transaction
    - `entity`: The transaction's hash
    - `entityType`: Transaction
-   - `label`: Exploit transaction
+   - `label`: Exploit
    - `confidence`: 0.7
 
 ## 📊 Data Sources
