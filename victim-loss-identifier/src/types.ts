@@ -68,6 +68,13 @@ export type apiKeys = {
   apiKeys: {
     victimLoss: {
       alchemyApiKey: string;
+      etherscanApiKeys: string[];
+      optimisticEtherscanApiKeys: string[];
+      bscscanApiKeys: string[];
+      polygonscanApiKeys: string[];
+      fantomscanApiKeys: string[];
+      arbiscanApiKeys: string[];
+      snowtraceApiKeys: string[];
     };
   };
 };
