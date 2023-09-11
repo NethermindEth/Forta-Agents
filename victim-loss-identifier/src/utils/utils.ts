@@ -1,4 +1,11 @@
-import { ScammerInfo, VictimInfo, FpTransaction } from "src/types";
+import DataFetcher from "src/fetcher";
+import {
+  FP_MAX_VICTIMS_THRESHOLD,
+  FP_MIN_VICTIMS_THRESHOLD,
+  FP_PROFIT_THRESHOLD,
+  FP_SELLER_TO_BUYER_TXS_THRESHOLD,
+} from "../constants";
+import { ScammerInfo, VictimInfo, FpTransaction, EtherscanApisInterface } from "../types";
 
 export function getChainBlockTime(chainId: number): number {
   switch (chainId) {
@@ -108,8 +115,65 @@ export function extractFalsePositiveDataAndUpdateState(
   return [fpVictims, fpData];
 }
 
-//TODO: Implementation
-export function isScammerFalsePositive(
+export const etherscanApis: EtherscanApisInterface = {
+  1: {
+    tokenTx: "https://api.etherscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api.etherscan.io/api?module=account&action=tokennfttx",
+  },
+  10: {
+    tokenTx: "https://api-optimistic.etherscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api-optimistic.etherscan.io/api?module=account&action=tokennfttx",
+  },
+  56: {
+    tokenTx: "https://api.bscscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.bscscan.com/api?module=account&action=tokennfttx",
+  },
+  137: {
+    tokenTx: "https://api.polygonscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.polygonscan.com/api?module=account&action=tokennfttx",
+  },
+  250: {
+    tokenTx: "https://api.ftmscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.ftmscan.com/api?module=account&action=tokennfttx",
+  },
+  42161: {
+    tokenTx: "https://api.arbiscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api.arbiscan.io/api?module=account&action=tokennfttx",
+  },
+  43114: {
+    tokenTx: "https://api.snowtrace.io/api?module=account&action=tokentx",
+    nftTx: "https://api.snowtrace.io/api?module=account&action=tokennfttx",
+  },
+};
+
+export async function isScammerFalsePositive(
   scammerAddress: string,
-  scammersCurrentlyMonitored: { [key: string]: ScammerInfo }
-) {}
+  scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
+  dataFetcher: DataFetcher,
+  chainId: number,
+  blockNumber: number
+) {
+  const scammerInfo = scammersCurrentlyMonitored[scammerAddress];
+  const victims = scammerInfo.victims!;
+
+  if (
+    scammerInfo.totalUsdValueStolen > FP_PROFIT_THRESHOLD &&
+    Object.keys(victims).length > FP_MIN_VICTIMS_THRESHOLD &&
+    Object.keys(victims).length < FP_MAX_VICTIMS_THRESHOLD
+  ) {
+    return true;
+  }
+
+  Object.keys(victims).forEach((victimAddress) => {
+    const victimInfo = victims[victimAddress];
+    const transactions = Object.keys(victimInfo.scammedBy[scammerAddress].transactions);
+    if (transactions.length > FP_SELLER_TO_BUYER_TXS_THRESHOLD) {
+      return true;
+    }
+  });
+
+  if (await dataFetcher.hasBuyerTransferredTokenToSeller(scammerAddress, Object.keys(victims), chainId, blockNumber))
+    return true;
+
+  return false;
+}
