@@ -43,17 +43,13 @@ export const persist = async (value: any, key: string) => {
       });
 
       if (response.ok) {
-        if (key.includes("alerted")) {
-          console.log("successfully persisted addresses to database");
-        } else {
-          console.log("successfully persisted transfers to database");
-        }
-        return;
+        console.log("successfully persisted object to database");
       } else {
         console.log(response.status, response.statusText);
       }
+      return;
     } catch (e) {
-      console.log(`failed to persist value to database. Error: ${e}`);
+      console.log(`failed to persist object to database. Error: ${e}`);
     }
   } else {
     // Persist locally
@@ -70,11 +66,7 @@ export const load = async (key: string) => {
 
       if (response.ok) {
         const data = await response.json();
-        if (key.includes("alerted")) {
-          console.log("successfully fetched addresses from database");
-        } else {
-          console.log("successfully fetched transfers from database");
-        }
+        console.log("successfully fetched object from database");
         return data;
       } else {
         console.log(`${key} has no database entry`, response.status, response.statusText);
