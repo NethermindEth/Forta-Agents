@@ -17,7 +17,6 @@ import {
 } from "./constants";
 
 let chainId: number;
-let apiKeys: apiKeys;
 let dataFetcher: DataFetcher;
 let lastPersistenceMinute: number;
 
