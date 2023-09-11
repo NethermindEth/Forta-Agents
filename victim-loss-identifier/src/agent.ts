@@ -17,13 +17,8 @@ import {
 } from "./constants";
 
 let chainId: number;
-let apiKeys: ApiKeys;
 let dataFetcher: DataFetcher;
 let lastPersistenceMinute: number;
-
-const dbKey = "nm-victim-loss-identifier-objects-v1.1";
-
-let victimsScammed: { [key: string]: VictimInfo } = {};
 
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 let victimsScammed: { [key: string]: VictimInfo } = {};

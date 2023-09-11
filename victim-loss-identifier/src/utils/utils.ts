@@ -83,7 +83,6 @@ export function extractFalsePositiveDataAndUpdateState(
         });
       }
 
-      // TODO: Remove ERC1155s?
       if (transaction.erc1155) {
         // Iterate through ERC1155 tokens in the transaction
         Object.keys(transaction.erc1155).forEach((tokenAddress) => {
