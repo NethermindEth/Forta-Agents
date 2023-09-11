@@ -26,6 +26,7 @@ type TransactionInfo = {
 
 type ScammedByInfo = {
   totalUsdValueLostToScammer: number;
+  hasBeenAlerted: boolean;
   transactions: {
     [key: string]: TransactionInfo; // key: transaction hash
   };
@@ -33,7 +34,6 @@ type ScammedByInfo = {
 
 export type VictimInfo = {
   mostRecentActivityByBlockNumber: number;
-  hasBeenAlerted: boolean;
   totalUsdValueAcrossAllTokens?: number;
   totalUsdValueAcrossAllErc20Tokens?: number;
   totalUsdValueAcrossAllErc721Tokens?: number;
