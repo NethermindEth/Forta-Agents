@@ -84,13 +84,13 @@ export default class DataFetcher {
     }
   };
 
-  private getERC20TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
+  getERC20TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
     const { tokenTx } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     return `${tokenTx}&address=${address}&fromBlock=0&toBlock=${blockNumber}&page=1&offset=9999&apikey=${key}`;
   };
 
-  private getERC721TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
+  getERC721TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
     const { nftTx } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     return `${nftTx}&address=${address}&fromBlock=0&toBlock=${blockNumber}&page=1&offset=9999&apikey=${key}`;

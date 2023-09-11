@@ -1,6 +1,7 @@
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import { GetFloorPriceResponse } from "alchemy-sdk";
 import DataFetcher from "./fetcher";
+import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE } from "./constants";
 
 export class ExtendedMockEthersProvider extends MockEthersProvider {
   public getTransaction: any;
@@ -307,5 +308,97 @@ describe("DataFetcher tests suite", () => {
 
     expect(erc721Transfers).toStrictEqual(erc721TransfersMock);
     expect(fetchCallCount).toBe(2); // 2 calls: 1st failure + 1 retry success
+  });
+
+  it("should check if buyer has transferred token to seller using ERC20 transfers", async () => {
+    const buyerAddress = "0x1234";
+    const sellerAddresses = ["0x5678", "0x9abc"];
+    const chainId = 56;
+    const blockNumber = 12345;
+
+    // Mock ERC20 transfers
+    const erc20TransfersMock = [
+      { from: buyerAddress, to: sellerAddresses[0], contractAddress: "0xTokenA" },
+      { from: sellerAddresses[0], to: buyerAddress, contractAddress: "0xTokenB" }, // Will not be processed
+      { from: buyerAddress, to: sellerAddresses[1], contractAddress: "0xTokenC" },
+    ];
+
+    // Mock getErc20Price
+    fetcher.getErc20Price = jest
+      .fn()
+      .mockResolvedValueOnce(FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE - 1) // Mocking a price lower than the threshold for "0xTokenA"
+      .mockResolvedValueOnce(FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE + 1); // Mocking a price higher than the threshold for "0xTokenC"
+
+    fetcher.getERC20TransfersUrl = jest.fn().mockReturnValue("mock-erc20-url");
+    fetcher.getERC721TransfersUrl = jest.fn().mockReturnValue("mock-erc721-url");
+
+    // Mock fetch response
+    global.fetch = jest.fn(async (url) => {
+      if (url === "mock-erc20-url") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ message: "", result: erc20TransfersMock }),
+        }) as Promise<Response>;
+      } else if (url === "mock-erc721-url") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ message: "", result: [] }),
+        }) as Promise<Response>;
+      } else {
+        throw new Error(`Unexpected URL: ${url}`);
+      }
+    });
+
+    const result = await fetcher.hasBuyerTransferredTokenToSeller(buyerAddress, sellerAddresses, chainId, blockNumber);
+
+    expect(result).toBe(true); // Expecting true because ERC20 transfer amount is above the threshold
+    expect(fetcher.getERC20TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
+    expect(fetcher.getERC721TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenA", blockNumber);
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenC", blockNumber); // Previous price fetched was under threshold, so we're checking this as well
+  });
+
+  it("should check if buyer has transferred token to seller using ERC721 transfers", async () => {
+    const buyerAddress = "0x12345";
+    const sellerAddresses = ["0x45678", "0x89abc"];
+    const chainId = 1;
+    const blockNumber = 123456;
+
+    // Mock ERC721 transfers
+    const erc721TransfersMock = [
+      { from: buyerAddress, to: sellerAddresses[0], contractAddress: "0xNFTA" },
+      { from: sellerAddresses[0], to: buyerAddress, contractAddress: "0xNFTB" }, // Will not be processed
+      { from: buyerAddress, to: sellerAddresses[1], contractAddress: "0xNFTC" },
+    ];
+
+    //  Mock getNftCollectionFloorPrice
+    fetcher.getNftCollectionFloorPrice = jest
+      .fn()
+      .mockResolvedValueOnce(FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE - 1) // Mocking a price lower than the threshold for "0xNFTA"
+      .mockResolvedValueOnce(FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE + 1); // Mocking a price higher than the threshold for "0xNFTC"
+
+    fetcher.getERC20TransfersUrl = jest.fn().mockReturnValue("mock-erc20-url");
+    fetcher.getERC721TransfersUrl = jest.fn().mockReturnValue("mock-erc721-url");
+
+    // Mock fetch response
+    global.fetch = jest.fn(async (url) => {
+      if (url === "mock-erc20-url") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ message: "", result: [] }),
+        }) as Promise<Response>;
+      } else if (url === "mock-erc721-url") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ message: "", result: erc721TransfersMock }),
+        }) as Promise<Response>;
+      } else {
+        throw new Error(`Unexpected URL: ${url}`);
+      }
+    });
+
+    const result = await fetcher.hasBuyerTransferredTokenToSeller(buyerAddress, sellerAddresses, chainId, blockNumber);
+
+    expect(result).toBe(true); // Expecting true because ERC721 floor price is above the threshold
+    expect(fetcher.getERC20TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
+    expect(fetcher.getERC721TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
+    expect(fetcher.getNftCollectionFloorPrice).toHaveBeenCalledWith("0xNFTA", blockNumber);
+    expect(fetcher.getNftCollectionFloorPrice).toHaveBeenCalledWith("0xNFTC", blockNumber);
   });
 });
