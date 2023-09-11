@@ -100,3 +100,9 @@ export type EtherscanApisInterface = {
     nftTx: string;
   };
 };
+
+export type EtherscanApiResponse = {
+  from: string;
+  to: string;
+  contractAddress: string;
+};

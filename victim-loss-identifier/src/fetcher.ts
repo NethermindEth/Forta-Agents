@@ -1,294 +1,179 @@
-import { providers } from "ethers";
-import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
-import { LRUCache } from "lru-cache";
-import { ApiKeys, Erc721Transfer, CoinData } from "./types";
+import DataFetcher from "src/fetcher";
+import {
+  FP_MAX_VICTIMS_THRESHOLD,
+  FP_MIN_VICTIMS_THRESHOLD,
+  FP_PROFIT_THRESHOLD,
+  FP_SELLER_TO_BUYER_TXS_THRESHOLD,
+} from "../constants";
+import { ScammerInfo, VictimInfo, FpTransaction, EtherscanApisInterface } from "../types";
 
-export default class DataFetcher {
-  provider: providers.Provider;
-  private apiKeys: ApiKeys;
-  alchemy: Alchemy;
-  private ethPriceCache: LRUCache<number, number>;
-  private floorPriceCache: LRUCache<string, number>;
-  private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
-  private txResponseCache: LRUCache<string, providers.TransactionResponse>;
-  private blockTimestampCache: LRUCache<number, number>;
-  private readonly MAX_TRIES: number; // Retries counter
+export function getChainBlockTime(chainId: number): number {
+  switch (chainId) {
+    case 10: // Optimism
+      return 2;
+    case 56: // BNB Smart Chain
+      return 3;
+    case 137: // Polygon
+      return 2;
+    case 250: // Fantom
+      return 2;
+    case 42161: // Arbitrum
+      return 1;
+    case 43114: // Avalance
+      return 2;
+    default: // Ethereum
+      return 12;
+  }
+}
 
-  constructor(provider: providers.Provider, apiKeys: ApiKeys) {
-    this.apiKeys = apiKeys;
-    this.provider = provider;
-    this.alchemy = new Alchemy({
-      apiKey: this.apiKeys.apiKeys.victimLoss.alchemyApiKey,
-      network: Network.ETH_MAINNET,
+export function getBlocksInTimePeriodForChainId(timePeriodInSecs: number, chainId: number): number {
+  const chainBlockTime = getChainBlockTime(chainId);
+
+  return timePeriodInSecs / chainBlockTime;
+}
+
+export function cleanObject(object: { [key: string]: ScammerInfo } | { [key: string]: VictimInfo }) {
+  // Sort and delete 1/4 of the keys
+  const sortedKeys = Object.keys(object).sort((a, b) => {
+    const latestTimestampA = object[a].mostRecentActivityByBlockNumber;
+    const latestTimestampB = object[b].mostRecentActivityByBlockNumber;
+    return latestTimestampA - latestTimestampB;
+  });
+
+  // Ensure that at least one key will be deleted in the theoretical edge case where Math.floor(sortedKeys.length / 4) equals 0
+  const indexToDelete = Math.max(1, Math.floor(sortedKeys.length / 4));
+
+  for (let i = 0; i < indexToDelete; i++) {
+    delete object[sortedKeys[i]];
+  }
+}
+
+export function extractFalsePositiveDataAndUpdateState(
+  scammerAddress: string,
+  scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
+  victims: { [key: string]: VictimInfo }
+) {
+  const fpData: FpTransaction[] = [];
+  const fpVictims: string[] = [];
+  const fpScammer = scammersCurrentlyMonitored[scammerAddress];
+
+  Object.keys(fpScammer.victims!).forEach((victimAddress) => {
+    const victimInfo = fpScammer.victims![victimAddress];
+    const scammedBy = victimInfo.scammedBy;
+
+    const transactions = scammedBy[scammerAddress].transactions;
+
+    Object.keys(transactions).forEach((txHash) => {
+      const transaction = transactions[txHash];
+      const extractedTransaction: FpTransaction = {
+        txHash,
+        nfts: [],
+      };
+
+      if (transaction.erc721) {
+        // Iterate through ERC721 tokens
+        Object.keys(transaction.erc721).forEach((tokenAddress) => {
+          const erc721TokenInfo = transaction.erc721![tokenAddress];
+          const tokenIds = erc721TokenInfo.tokenIds!;
+
+          // Format ERC721 data as "tokenId,tokenAddress"
+          tokenIds.forEach((tokenId) => {
+            extractedTransaction.nfts.push(`${tokenId},${tokenAddress}`);
+          });
+        });
+      }
+
+      // TODO: Remove ERC1155s?
+      if (transaction.erc1155) {
+        // Iterate through ERC1155 tokens in the transaction
+        Object.keys(transaction.erc1155).forEach((tokenAddress) => {
+          const erc1155TokenInfo = transaction.erc1155![tokenAddress];
+          const tokenIds = Object.keys(erc1155TokenInfo.tokenIds);
+
+          // Format ERC1155 data as "tokenId,amount,tokenAddress"
+          tokenIds.forEach((tokenId) => {
+            const amount = erc1155TokenInfo.tokenIds[Number(tokenId)];
+            extractedTransaction.nfts.push(`${tokenId},${amount},${tokenAddress}`);
+          });
+        });
+      }
+
+      fpData.push(extractedTransaction);
     });
-    this.ethPriceCache = new LRUCache<number, number>({
-      max: 1000,
-    });
-    this.floorPriceCache = new LRUCache<string, number>({
-      max: 10000,
-    });
-    this.txReceiptCache = new LRUCache<string, providers.TransactionReceipt>({
-      max: 1000,
-    });
-    this.txResponseCache = new LRUCache<string, providers.TransactionResponse>({
-      max: 1000,
-    });
-    this.blockTimestampCache = new LRUCache<number, number>({
-      max: 1000,
-    });
-    this.MAX_TRIES = 3;
+
+    // Check if the victim has been "scammed" only by one (this) address
+    if (Object.keys(scammedBy).length === 1) {
+      fpVictims.push(victimAddress);
+      delete victims[victimAddress];
+    } else {
+      delete victims[victimAddress].scammedBy[scammerAddress];
+    }
+
+    delete scammersCurrentlyMonitored[scammerAddress];
+  });
+
+  return [fpVictims, fpData];
+}
+
+export const etherscanApis: EtherscanApisInterface = {
+  1: {
+    tokenTx: "https://api.etherscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api.etherscan.io/api?module=account&action=tokennfttx",
+  },
+  10: {
+    tokenTx: "https://api-optimistic.etherscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api-optimistic.etherscan.io/api?module=account&action=tokennfttx",
+  },
+  56: {
+    tokenTx: "https://api.bscscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.bscscan.com/api?module=account&action=tokennfttx",
+  },
+  137: {
+    tokenTx: "https://api.polygonscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.polygonscan.com/api?module=account&action=tokennfttx",
+  },
+  250: {
+    tokenTx: "https://api.ftmscan.com/api?module=account&action=tokentx",
+    nftTx: "https://api.ftmscan.com/api?module=account&action=tokennfttx",
+  },
+  42161: {
+    tokenTx: "https://api.arbiscan.io/api?module=account&action=tokentx",
+    nftTx: "https://api.arbiscan.io/api?module=account&action=tokennfttx",
+  },
+  43114: {
+    tokenTx: "https://api.snowtrace.io/api?module=account&action=tokentx",
+    nftTx: "https://api.snowtrace.io/api?module=account&action=tokennfttx",
+  },
+};
+
+export async function isScammerFalsePositive(
+  scammerAddress: string,
+  scammersCurrentlyMonitored: { [key: string]: ScammerInfo },
+  dataFetcher: DataFetcher,
+  chainId: number,
+  blockNumber: number
+) {
+  const scammerInfo = scammersCurrentlyMonitored[scammerAddress];
+  const victims = scammerInfo.victims!;
+
+  if (
+    scammerInfo.totalUsdValueStolen > FP_PROFIT_THRESHOLD &&
+    Object.keys(victims).length > FP_MIN_VICTIMS_THRESHOLD &&
+    Object.keys(victims).length < FP_MAX_VICTIMS_THRESHOLD
+  ) {
+    return true;
   }
 
-  private getTimestamp = async (blockNumber: number) => {
-    if (this.blockTimestampCache.has(blockNumber)) {
-      return this.blockTimestampCache.get(blockNumber);
+  Object.keys(victims).forEach((victimAddress) => {
+    const victimInfo = victims[victimAddress];
+    const transactions = Object.keys(victimInfo.scammedBy[scammerAddress].transactions);
+    if (transactions.length > FP_SELLER_TO_BUYER_TXS_THRESHOLD) {
+      return true;
     }
+  });
 
-    let tries = 0;
+  if (await dataFetcher.hasBuyerTransferredTokenToSeller(scammerAddress, Object.keys(victims), chainId, blockNumber))
+    return true;
 
-    while (tries < this.MAX_TRIES) {
-      try {
-        const block = await this.provider.getBlock(blockNumber);
-        const timestamp = block.timestamp;
-        this.blockTimestampCache.set(blockNumber, timestamp);
-        return timestamp;
-      } catch (err) {
-        tries++;
-        if (tries === this.MAX_TRIES) {
-          throw err;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
-      }
-    }
-  };
-
-  getTransactionReceipt = async (txHash: string) => {
-    if (this.txReceiptCache.has(txHash)) {
-      return this.txReceiptCache.get(txHash);
-    }
-
-    let receipt;
-    let tries = 0;
-
-    while (tries < this.MAX_TRIES) {
-      try {
-        receipt = (await this.provider.getTransactionReceipt(txHash)) as providers.TransactionReceipt;
-        this.txReceiptCache.set(txHash, receipt);
-        break; // exit the loop if successful
-      } catch (err) {
-        tries++;
-        if (tries === this.MAX_TRIES) {
-          throw err; // throw the error if maximum tries reached
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
-      }
-    }
-    return receipt;
-  };
-
-  getTransaction = async (txHash: string) => {
-    if (this.txResponseCache.has(txHash)) {
-      return this.txResponseCache.get(txHash);
-    }
-
-    let receipt;
-    let tries = 0;
-
-    while (tries < this.MAX_TRIES) {
-      try {
-        receipt = (await this.provider.getTransaction(txHash)) as providers.TransactionResponse;
-        this.txResponseCache.set(txHash, receipt);
-        break; // exit the loop if successful
-      } catch (err) {
-        tries++;
-        if (tries === this.MAX_TRIES) {
-          throw err; // throw the error if maximum tries reached
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
-      }
-    }
-    return receipt;
-  };
-
-  getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
-    if (this.ethPriceCache.has(timestamp)) {
-      const price = this.ethPriceCache.get(timestamp);
-      console.log(`Using cached ETH price for timestamp: ${timestamp}. Price is: ${price}.`);
-      return this.ethPriceCache.get(timestamp);
-    }
-
-    let tries = 0;
-
-    while (tries < this.MAX_TRIES) {
-      try {
-        const url = `https://coins.llama.fi/prices/historical/${timestamp}/coingecko:ethereum`;
-        const response = await fetch(url);
-        const data = (await response.json()) as CoinData;
-        const price = data.coins["coingecko:ethereum"]?.price;
-
-        if (price == null) {
-          tries++; // Increment tries counter for null price
-          console.log(`Fetched price is null (attempt ${tries})`);
-        } else {
-          this.ethPriceCache.set(timestamp, price);
-          return price;
-        }
-      } catch (e) {
-        tries++;
-        console.log(`Error in fetching ETH price (attempt ${tries}): `, e);
-        if (tries === this.MAX_TRIES) {
-          throw e;
-        }
-      }
-
-      // Wait for 1 second before retrying
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    return undefined;
-  };
-
-  getFloorPriceInEth = async (nftAddress: string): Promise<number> => {
-    let tries = 0;
-
-    while (tries < this.MAX_TRIES) {
-      try {
-        const floorPrice: GetFloorPriceResponse = await this.alchemy.nft.getFloorPrice(nftAddress);
-
-        const latestEntry = Object.values(floorPrice).reduce(
-          (latest: FloorPriceMarketplace | null, current) => {
-            if ("error" in current) {
-              return latest;
-            }
-
-            if (!latest || new Date(current.retrievedAt) > new Date(latest.retrievedAt)) {
-              return current;
-            }
-            return latest;
-          },
-          {
-            floorPrice: 0,
-            priceCurrency: "",
-            collectionUrl: "",
-            retrievedAt: "2000-01-01T00:00:00.000Z",
-          }
-        );
-
-        if (latestEntry.priceCurrency !== "ETH") {
-          return 0;
-        }
-
-        return latestEntry.floorPrice;
-      } catch (e) {
-        tries++;
-        console.error(`Error fetching floor price (attempt ${tries}): `, e);
-        if (tries === this.MAX_TRIES) {
-          throw e;
-        }
-
-        // Wait for 1 second before retrying
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    }
-
-    return 0;
-  };
-
-  getNftCollectionFloorPrice = async (nftAddress: string, blockNumber: number): Promise<number> => {
-    const key = `${nftAddress}-${blockNumber}`;
-    if (this.floorPriceCache.has(key)) {
-      return this.floorPriceCache.get(key)!;
-    }
-
-    const timestamp = await this.getTimestamp(blockNumber);
-
-    const ethPriceInUsd = await this.getNativeTokenPrice(timestamp!);
-    const floorPriceInEth = await this.getFloorPriceInEth(nftAddress);
-
-    if (!ethPriceInUsd || !floorPriceInEth) {
-      return 0;
-    }
-
-    const floorPriceInUsd = floorPriceInEth * ethPriceInUsd;
-    this.floorPriceCache.set(key, floorPriceInUsd);
-    return floorPriceInUsd;
-  };
-
-  getScammerErc721Transfers = async (
-    scammerAddress: string,
-    transferOccuranceTimeWindow: number
-  ): Promise<Erc721Transfer[]> => {
-    let erc721Transfers: Erc721Transfer[] = [];
-
-    const currentTime = new Date();
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const timeWindowInMs = transferOccuranceTimeWindow * oneDayInMs;
-
-    const maxTimestamp = currentTime.toISOString();
-    const minTimestamp = new Date(currentTime.getTime() - timeWindowInMs).toISOString();
-
-    const query = `
-      query GetErc721Transfers($scammerAddress: String!, $minTimestamp: String!, $maxTimestamp: String!) {
-        records(
-          filter: {
-            block_time: {
-              min: $minTimestamp,
-              max: $maxTimestamp
-            },
-          },
-          to_address: $scammerAddress
-        ) {
-          transaction_hash
-          contract_address
-          from_address
-          to_address
-          token_id
-          symbol
-          name
-          block_time
-        }
-      }
-    `;
-
-    const variables = {
-      scammerAddress,
-      minTimestamp,
-      maxTimestamp,
-    };
-
-    const body = JSON.stringify({
-      query,
-      variables,
-    });
-
-    let tries = 0;
-
-    while (tries < this.MAX_TRIES) {
-      try {
-        const response = await fetch(
-          "https://api.zettablock.com/api/v1/dataset/sq_8b63dd1011c54ac8a1af53542a96f583/graphql",
-          {
-            method: "POST",
-            body,
-            headers: {
-              accept: "application/json",
-              "X-API-KEY": this.apiKeys.generalApiKeys.ZETTABLOCK[0],
-              "content-type": "application/json",
-            },
-          }
-        );
-        const data = await response.json();
-        erc721Transfers = data.data.records;
-        break; // exit the loop if successful
-      } catch (err) {
-        tries++;
-        if (tries === this.MAX_TRIES) {
-          throw err;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
-      }
-    }
-
-    return erc721Transfers;
-  };
+  return false;
 }
