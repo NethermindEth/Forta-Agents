@@ -3,10 +3,16 @@ export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER"];
 
 export const ONE_DAY_IN_SECS = 60 * 60 * 24;
 export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;
+export const EIGHTY_DAYS_IN_MS = ONE_DAY_IN_SECS * 80 * 1000; // Max value that returns alert query results after testing
 
 export const NINETY_DAYS = 90;
 
 export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
+export const FP_PROFIT_THRESHOLD = 500_000; // In USD
+export const FP_MIN_VICTIMS_THRESHOLD = 1;
+export const FP_MAX_VICTIMS_THRESHOLD = 20;
+export const FP_SELLER_TO_BUYER_TXS_THRESHOLD = 3;
+export const FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE = 10; // In USD
 
 export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
 

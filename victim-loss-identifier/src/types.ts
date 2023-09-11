@@ -81,7 +81,7 @@ export type ApiKeys = {
 
 export type CoinData = {
   coins: {
-    "coingecko:ethereum": {
+    [key: string]: {
       price: number;
     };
   };
@@ -90,4 +90,11 @@ export type CoinData = {
 export type FpTransaction = {
   txHash: string;
   nfts: string[];
+};
+
+export type EtherscanApisInterface = {
+  [key: number]: {
+    tokenTx: string;
+    nftTx: string;
+  };
 };
