@@ -29,11 +29,11 @@ function hasBuyerOrNftExchangeTransferredToSeller(
     const isTransferSingleEvent = log.topics[0] === utils.id("TransferSingle(address,address,address,uint256,uint256)");
     return (
       (isTransferEvent &&
+        log.topics[2].includes(sellerAddress.slice(2)) &&
         (log.topics[1].includes(buyerAddress.slice(2)) ||
-          (Object.values(EXCHANGE_CONTRACT_ADDRESSES).some((exchangeAddress) =>
+          Object.values(EXCHANGE_CONTRACT_ADDRESSES).some((exchangeAddress) =>
             log.topics[1].includes(exchangeAddress.slice(2))
-          ) &&
-            log.topics[2].includes(sellerAddress.slice(2))))) ||
+          ))) ||
       (isTransferSingleEvent &&
         log.topics[2].includes(buyerAddress.slice(2)) &&
         log.topics[3].includes(sellerAddress.slice(2)))
