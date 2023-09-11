@@ -48,12 +48,15 @@ function addVictimInfoToVictims(
   exploitTxnHash: string,
   stolenTokenAddress: string,
   stolenTokenName: string,
-  stolenTokenSymbol: string
+  stolenTokenSymbol: string,
+  transactionBlockNumber: number
 ) {
   if (!victims[victimAddress]) {
     // If victim has not previously
     // been documented, add them
     victims[victimAddress] = {
+      mostRecentActivityByBlockNumber: transactionBlockNumber,
+      hasBeenAlerted: false,
       totalUsdValueAcrossAllTokens: 0,
       totalUsdValueAcrossAllErc721Tokens: 0,
       scammedBy: {
@@ -92,6 +95,8 @@ function addVictimInfoToVictims(
         },
       },
     };
+    // Update its most recent block
+    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
   } else if (!victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash]) {
     // If victim, having been already scammed by this scammer,
     // doesn't have _this_ specific transaction, add as new entry
@@ -105,6 +110,8 @@ function addVictimInfoToVictims(
         },
       },
     };
+    // Update its most recent block
+    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
   } else if (
     !victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress]
   ) {
@@ -116,6 +123,8 @@ function addVictimInfoToVictims(
       tokenIds: [],
       tokenTotalUsdValue: 0,
     };
+    // Update its most recent block
+    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
   }
 }
 
@@ -221,7 +230,8 @@ export async function processFraudulentNftOrders(
         exploitTxnHash,
         stolenTokenAddress,
         stolenTokenName,
-        stolenTokenSymbol
+        stolenTokenSymbol,
+        txnResponse!.blockNumber!
       );
       linkScammerToItsVictim(scammers, scammerAddress, victims, victimAddress);
       increaseStolenUsdAmounts(
@@ -251,6 +261,8 @@ export async function processFraudulentNftOrders(
           victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
         )
       );
+
+      victims[victimAddress].hasBeenAlerted = true;
     }
   }
 

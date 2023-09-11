@@ -25,7 +25,7 @@ export function getBlocksInTimePeriodForChainId(timePeriodInSecs: number, chainI
   return timePeriodInSecs / chainBlockTime;
 }
 
-export function cleanObject(object: { [key: string]: ScammerInfo }) {
+export function cleanObject(object: { [key: string]: ScammerInfo } | { [key: string]: VictimInfo }) {
   // Sort and delete 1/4 of the keys
   const sortedKeys = Object.keys(object).sort((a, b) => {
     const latestTimestampA = object[a].mostRecentActivityByBlockNumber;

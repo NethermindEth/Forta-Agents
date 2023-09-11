@@ -112,10 +112,9 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnReceiptFourteen,
       mockTxnReceiptFifteen,
       mockTxnReceiptSixteen,
-      mockTxnReceiptSeventeen,
-    ] // mockTxnReceiptEighteen,
-    // mockTxnReceiptNineteen,
-    : MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
+      mockTxnReceiptSeventeen, // mockTxnReceiptEighteen,
+      // mockTxnReceiptNineteen,
+    ]: MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
     const [
       mockTxnResponse,
       mockTxnResponseTwo,
@@ -133,10 +132,9 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnResponseFourteen,
       mockTxnResponseFifteen,
       mockTxnResponseSixteen,
-      mockTxnResponseSeventeen,
-    ] // mockTxnResponseEighteen,
-    // mockTxnResponseNineteen,
-    : MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
+      mockTxnResponseSeventeen, // mockTxnResponseEighteen,
+      // mockTxnResponseNineteen,
+    ]: MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     beforeEach(async () => {

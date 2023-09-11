@@ -16,6 +16,9 @@ export const FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE = 10; // In USD
 
 export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
 
+export const VICTIMS_DB_KEY = "nm-victim-loss-identifier-victims-object";
+export const SCAMMERS_DB_KEY = "nm-victim-loss-identifier-scammers-object";
+
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum
   LooksRare: "0x59728544B08AB483533076417FbBB2fD0B17CE3a", // LooksRare: Exchange
