@@ -106,6 +106,44 @@ describe("DataFetcher tests suite", () => {
     expect(global.fetch).toHaveBeenCalledTimes(2); // No extra calls, cached value used
   });
 
+  it("should fetch ERC20 token price", async () => {
+    const WETH = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+    let fetchCallCount = 0;
+
+    global.fetch = jest.fn(() => {
+      fetchCallCount++;
+      if (fetchCallCount === 1) {
+        return Promise.reject(new Error("First fetch intentionally failed"));
+      }
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            coins: {
+              "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2": {
+                decimals: 18,
+                symbol: "WETH",
+                price: 3381.798048538271,
+                timestamp: 1648680228,
+              },
+            },
+          }),
+      }) as Promise<Response>;
+    });
+
+    mockProvider.getBlock = jest.fn().mockResolvedValue({
+      timestamp: 1648680228,
+    });
+
+    const wethPrice = await fetcher.getErc20Price(WETH, 1234);
+    expect(wethPrice).toStrictEqual(3381.798048538271);
+
+    expect(global.fetch).toHaveBeenCalledTimes(2); // 2 calls: 1st failure + 1 retry success
+
+    const wethPriceCached = await fetcher.getErc20Price(WETH, 1234);
+    expect(wethPriceCached).toStrictEqual(3381.798048538271);
+    expect(global.fetch).toHaveBeenCalledTimes(2); // No extra calls, cached value used
+  });
+
   it("should fetch floor price in ETH correctly", async () => {
     let fetchCallCount = 0;
 
