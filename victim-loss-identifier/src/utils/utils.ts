@@ -57,9 +57,12 @@ export function extractFalsePositiveDataAndUpdateState(
   const fpVictims: string[] = [];
   const fpScammer = scammersCurrentlyMonitored[scammerAddress];
 
-  Object.keys(fpScammer.victims!).forEach((victimAddress) => {
+  for (const victimAddress of Object.keys(fpScammer.victims!)) {
     const victimInfo = fpScammer.victims![victimAddress];
     const scammedBy = victimInfo.scammedBy;
+
+    const hasBeenAlerted = scammedBy[scammerAddress].hasBeenAlerted;
+    if (!hasBeenAlerted) continue;
 
     const transactions = scammedBy[scammerAddress].transactions;
 
@@ -74,8 +77,11 @@ export function extractFalsePositiveDataAndUpdateState(
         // Iterate through ERC721 tokens
         Object.keys(transaction.erc721).forEach((tokenAddress) => {
           const erc721TokenInfo = transaction.erc721![tokenAddress];
-          const tokenIds = erc721TokenInfo.tokenIds!;
+          const tokenIds = erc721TokenInfo.tokenIds;
 
+          if (victims[victimAddress].totalUsdValueAcrossAllErc721Tokens) {
+            victims[victimAddress].totalUsdValueAcrossAllErc721Tokens! -= erc721TokenInfo.tokenTotalUsdValue!;
+          }
           // Format ERC721 data as "tokenId,tokenAddress"
           tokenIds.forEach((tokenId) => {
             extractedTransaction.nfts.push(`${tokenId},${tokenAddress}`);
@@ -89,6 +95,9 @@ export function extractFalsePositiveDataAndUpdateState(
           const erc1155TokenInfo = transaction.erc1155![tokenAddress];
           const tokenIds = Object.keys(erc1155TokenInfo.tokenIds);
 
+          if (victims[victimAddress].totalUsdValueAcrossAllErc1155Tokens) {
+            victims[victimAddress].totalUsdValueAcrossAllErc1155Tokens! -= erc1155TokenInfo.tokenTotalUsdValue!;
+          }
           // Format ERC1155 data as "tokenId,amount,tokenAddress"
           tokenIds.forEach((tokenId) => {
             const amount = erc1155TokenInfo.tokenIds[Number(tokenId)];
@@ -103,13 +112,14 @@ export function extractFalsePositiveDataAndUpdateState(
     // Check if the victim has been "scammed" only by one (this) address
     if (Object.keys(scammedBy).length === 1) {
       fpVictims.push(victimAddress);
-      delete victims[victimAddress];
-    } else {
+      if (victims[victimAddress]) delete victims[victimAddress];
+    } else if (victims[victimAddress]) {
+      victims[victimAddress].totalUsdValueAcrossAllTokens! -= scammedBy[scammerAddress].totalUsdValueLostToScammer;
       delete victims[victimAddress].scammedBy[scammerAddress];
     }
 
     delete scammersCurrentlyMonitored[scammerAddress];
-  });
+  }
 
   return [fpVictims, fpData];
 }

@@ -166,7 +166,7 @@ function increaseStolenUsdAmounts(
   const currentVictimStolenErc721Info =
     currentVictim.scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress];
   currentVictimStolenErc721Info.tokenTotalUsdValue! += nftCollectionFloorPrice;
-  currentVictimStolenErc721Info.tokenIds!.push(Number(stolenTokenId));
+  currentVictimStolenErc721Info.tokenIds.push(Number(stolenTokenId));
 }
 
 export async function processFraudulentNftOrders(
