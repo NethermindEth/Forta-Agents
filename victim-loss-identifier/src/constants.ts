@@ -33,3 +33,5 @@ export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   BlurMarketplace3: "0xb2ecfe4e4d61f8790bbb9de2d1259b9e2410cea5",
   GhostMarketEth: "0xfb2f452639cbb0850b46b20d24de7b0a9ccb665f",
 };
+
+export const BLUR_POOL_TOKEN = "0x0000000000a39bb272e79075ade125fd351887ac";
