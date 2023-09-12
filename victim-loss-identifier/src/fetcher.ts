@@ -1,20 +1,23 @@
 import { providers } from "ethers";
 import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
-import { apiKeys, Erc721Transfer, coinData } from "./types";
+import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse } from "./types";
+import { etherscanApis } from "./utils/utils";
+import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE } from "./constants";
 
 export default class DataFetcher {
   provider: providers.Provider;
-  private apiKeys: apiKeys;
+  private apiKeys: ApiKeys;
   alchemy: Alchemy;
   private ethPriceCache: LRUCache<number, number>;
   private floorPriceCache: LRUCache<string, number>;
+  private erc20PriceCache: LRUCache<string, number>;
   private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
   private txResponseCache: LRUCache<string, providers.TransactionResponse>;
   private blockTimestampCache: LRUCache<number, number>;
   private readonly MAX_TRIES: number; // Retries counter
 
-  constructor(provider: providers.Provider, apiKeys: apiKeys) {
+  constructor(provider: providers.Provider, apiKeys: ApiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.alchemy = new Alchemy({
@@ -25,6 +28,9 @@ export default class DataFetcher {
       max: 1000,
     });
     this.floorPriceCache = new LRUCache<string, number>({
+      max: 10000,
+    });
+    this.erc20PriceCache = new LRUCache<string, number>({
       max: 10000,
     });
     this.txReceiptCache = new LRUCache<string, providers.TransactionReceipt>({
@@ -38,6 +44,57 @@ export default class DataFetcher {
     });
     this.MAX_TRIES = 3;
   }
+
+  private getBlockExplorerKey = (chainId: number) => {
+    const blockExplorerKeys = this.apiKeys.apiKeys.victimLoss;
+
+    switch (chainId) {
+      case 10:
+        return blockExplorerKeys.optimisticEtherscanApiKeys.length > 0
+          ? blockExplorerKeys.optimisticEtherscanApiKeys[
+              Math.floor(Math.random() * blockExplorerKeys.optimisticEtherscanApiKeys.length)
+            ]
+          : "YourApiKeyToken";
+      case 56:
+        return blockExplorerKeys.bscscanApiKeys.length > 0
+          ? blockExplorerKeys.bscscanApiKeys[Math.floor(Math.random() * blockExplorerKeys.bscscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 137:
+        return blockExplorerKeys.polygonscanApiKeys.length > 0
+          ? blockExplorerKeys.polygonscanApiKeys[
+              Math.floor(Math.random() * blockExplorerKeys.polygonscanApiKeys.length)
+            ]
+          : "YourApiKeyToken";
+      case 250:
+        return blockExplorerKeys.fantomscanApiKeys.length > 0
+          ? blockExplorerKeys.fantomscanApiKeys[Math.floor(Math.random() * blockExplorerKeys.fantomscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 42161:
+        return blockExplorerKeys.arbiscanApiKeys.length > 0
+          ? blockExplorerKeys.arbiscanApiKeys[Math.floor(Math.random() * blockExplorerKeys.arbiscanApiKeys.length)]
+          : "YourApiKeyToken";
+      case 43114:
+        return blockExplorerKeys.snowtraceApiKeys.length > 0
+          ? blockExplorerKeys.snowtraceApiKeys[Math.floor(Math.random() * blockExplorerKeys.snowtraceApiKeys.length)]
+          : "YourApiKeyToken";
+      default:
+        return blockExplorerKeys.etherscanApiKeys.length > 0
+          ? blockExplorerKeys.etherscanApiKeys[Math.floor(Math.random() * blockExplorerKeys.etherscanApiKeys.length)]
+          : "YourApiKeyToken";
+    }
+  };
+
+  getERC20TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
+    const { tokenTx } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${tokenTx}&address=${address}&fromBlock=0&toBlock=${blockNumber}&page=1&offset=9999&apikey=${key}`;
+  };
+
+  getERC721TransfersUrl = (address: string, blockNumber: number, chainId: number) => {
+    const { nftTx } = etherscanApis[chainId];
+    const key = this.getBlockExplorerKey(chainId);
+    return `${nftTx}&address=${address}&fromBlock=0&toBlock=${blockNumber}&page=1&offset=9999&apikey=${key}`;
+  };
 
   private getTimestamp = async (blockNumber: number) => {
     if (this.blockTimestampCache.has(blockNumber)) {
@@ -110,6 +167,43 @@ export default class DataFetcher {
     return receipt;
   };
 
+  getErc20Price = async (tokenAddress: string, blockNumber: number): Promise<number | undefined> => {
+    const timestamp = await this.getTimestamp(blockNumber);
+
+    const key = `${tokenAddress}-${timestamp}`;
+    if (this.erc20PriceCache.has(key)) {
+      return this.erc20PriceCache.get(key);
+    }
+
+    let tries = 0;
+
+    while (tries < this.MAX_TRIES) {
+      try {
+        const url = `https://coins.llama.fi/prices/historical/${timestamp}/ethereum:${tokenAddress}`;
+        const response = await fetch(url);
+        const data = (await response.json()) as CoinData;
+        const price = data.coins[`ethereum:${tokenAddress}`]?.price;
+
+        if (price == null) {
+          tries++; // Increment tries counter for null price
+          console.log(`Fetched price for token ${tokenAddress} is null (attempt ${tries})`);
+        } else {
+          this.erc20PriceCache.set(key, price);
+          return price;
+        }
+      } catch (e) {
+        tries++;
+        console.log(`Error in fetching ETH price (attempt ${tries}): `, e);
+        if (tries === this.MAX_TRIES) {
+          throw e;
+        }
+      }
+      // Wait for 1 second before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    return undefined;
+  };
+
   getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
     if (this.ethPriceCache.has(timestamp)) {
       const price = this.ethPriceCache.get(timestamp);
@@ -123,12 +217,12 @@ export default class DataFetcher {
       try {
         const url = `https://coins.llama.fi/prices/historical/${timestamp}/coingecko:ethereum`;
         const response = await fetch(url);
-        const data = (await response.json()) as coinData;
+        const data = (await response.json()) as CoinData;
         const price = data.coins["coingecko:ethereum"]?.price;
 
         if (price == null) {
           tries++; // Increment tries counter for null price
-          console.log(`Fetched price is null (attempt ${tries})`);
+          console.log(`Fetched ETH price is null (attempt ${tries})`);
         } else {
           this.ethPriceCache.set(timestamp, price);
           return price;
@@ -290,5 +384,67 @@ export default class DataFetcher {
     }
 
     return erc721Transfers;
+  };
+
+  hasBuyerTransferredTokenToSeller = async (
+    buyerAddress: string,
+    sellerAddresses: string[],
+    chainId: number,
+    blockNumber: number
+  ) => {
+    const fetchWithRetry = async (url: string) => {
+      let tries = 0;
+      while (tries < this.MAX_TRIES) {
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.message.startsWith("NOTOK") || data.message.startsWith("Query Timeout")) {
+            tries++;
+            console.log(`block explorer error occured (attempt ${tries})`);
+            if (tries === this.MAX_TRIES) {
+              console.log(`block explorer error occured (final attempt); skipping check.`);
+              return [];
+            }
+          } else {
+            return data.result;
+          }
+        } catch (e) {
+          tries++;
+          console.log(`Error in fetching data (attempt ${tries}): `, e);
+          if (tries === this.MAX_TRIES) {
+            throw e;
+          }
+        }
+        // Wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    };
+
+    const erc20Url = this.getERC20TransfersUrl(buyerAddress, blockNumber, chainId);
+    const erc721Url = this.getERC721TransfersUrl(buyerAddress, blockNumber, chainId);
+
+    const erc20Transfers = (await fetchWithRetry(erc20Url)) as EtherscanApiResponse[];
+    const erc721Transfers = (await fetchWithRetry(erc721Url)) as EtherscanApiResponse[];
+
+    for (const transfer of erc20Transfers) {
+      if (transfer.from === buyerAddress && sellerAddresses.includes(transfer.to)) {
+        const price = await this.getErc20Price(transfer.contractAddress, blockNumber);
+        if (price && price > FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE) {
+          return true;
+        }
+      }
+    }
+
+    for (const transfer of erc721Transfers) {
+      if (transfer.from === buyerAddress && sellerAddresses.includes(transfer.to)) {
+        const price = await this.getNftCollectionFloorPrice(transfer.contractAddress, blockNumber);
+        if (price > FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   };
 }

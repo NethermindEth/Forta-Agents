@@ -34,6 +34,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       getTransaction: jest.fn(),
       getNftCollectionFloorPrice: jest.fn(),
       getScammerErc721Transfers: jest.fn(),
+      hasBuyerTransferredTokenToSeller: jest.fn(),
     };
 
     async function mockDataFetcherCreator(provider: providers.Provider): Promise<DataFetcher> {
@@ -318,7 +319,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         .calledWith(mockExploitNineteen.stolenTokenAddress, mockExploitNineteen.blockNumber)
         .mockResolvedValue(mockNftFloorPrice);
       */
-
+      mockDataFetcher.hasBuyerTransferredTokenToSeller.mockResolvedValue(false);
       initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
       await initialize();
 

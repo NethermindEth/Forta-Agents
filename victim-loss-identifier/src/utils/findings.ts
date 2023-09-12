@@ -1,4 +1,5 @@
 import { Finding, FindingType, FindingSeverity, Label, EntityType, ethers } from "forta-agent";
+import { FpTransaction } from "src/types";
 
 export function createFraudNftOrderFinding(
   victimAddress: string,
@@ -48,7 +49,7 @@ export function createFraudNftOrderFinding(
       Label.fromObject({
         entity: victimAddress,
         entityType: EntityType.Address,
-        label: "Victim Address",
+        label: "Victim",
         confidence: 0.7,
         remove: false,
       }),
@@ -62,10 +63,67 @@ export function createFraudNftOrderFinding(
       Label.fromObject({
         entity: exploitTransactionHash,
         entityType: EntityType.Transaction,
-        label: "Exploit transaction",
+        label: "Exploit",
         confidence: 0.7,
         remove: false,
       }),
     ],
+  });
+}
+
+export function createFpFinding(fpScammer: string, fpVictims: string[], fpData: FpTransaction[]): Finding {
+  const uniqueFpNfts = new Set<string>();
+  const uniqueFpTxHashes = new Set<string>();
+
+  fpData.forEach((fp) => {
+    fp.nfts.forEach((nft) => uniqueFpNfts.add(nft));
+    uniqueFpTxHashes.add(fp.txHash);
+  });
+
+  const labels: Label[] = [
+    Label.fromObject({
+      entity: fpScammer,
+      entityType: EntityType.Address,
+      label: "Benign",
+      confidence: 0.7,
+      remove: false,
+    }),
+    ...fpVictims.map((fpVictim) =>
+      Label.fromObject({
+        entity: fpVictim,
+        entityType: EntityType.Address,
+        label: "Victim",
+        confidence: 0.7,
+        remove: true,
+      })
+    ),
+    ...Array.from(uniqueFpNfts).map((nft) =>
+      Label.fromObject({
+        entity: nft,
+        entityType: EntityType.Address,
+        label: "NFT",
+        confidence: 0.7,
+        remove: true,
+      })
+    ),
+    ...Array.from(uniqueFpTxHashes).map((txHash) =>
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Exploit",
+        confidence: 0.7,
+        remove: true,
+      })
+    ),
+  ];
+
+  return Finding.fromObject({
+    name: "Incorrectly identified address detected - False Positive Alert",
+    description: `${fpScammer} is likely not associated with a scam. Emitting FP labels.`,
+    alertId: "VICTIM-LOSS-INFORMATION-FALSE-POSITIVE",
+    severity: FindingSeverity.Low,
+    type: FindingType.Info,
+    metadata: {},
+    labels,
   });
 }

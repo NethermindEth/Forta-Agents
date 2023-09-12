@@ -63,21 +63,46 @@ export type Erc721Transfer = {
   transaction_hash: string;
 };
 
-export type apiKeys = {
+export type ApiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];
   };
   apiKeys: {
     victimLoss: {
       alchemyApiKey: string;
+      etherscanApiKeys: string[];
+      optimisticEtherscanApiKeys: string[];
+      bscscanApiKeys: string[];
+      polygonscanApiKeys: string[];
+      fantomscanApiKeys: string[];
+      arbiscanApiKeys: string[];
+      snowtraceApiKeys: string[];
     };
   };
 };
 
-export type coinData = {
+export type CoinData = {
   coins: {
-    "coingecko:ethereum": {
+    [key: string]: {
       price: number;
     };
   };
+};
+
+export type FpTransaction = {
+  txHash: string;
+  nfts: string[];
+};
+
+export type EtherscanApisInterface = {
+  [key: number]: {
+    tokenTx: string;
+    nftTx: string;
+  };
+};
+
+export type EtherscanApiResponse = {
+  from: string;
+  to: string;
+  contractAddress: string;
 };

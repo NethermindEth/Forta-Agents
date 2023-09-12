@@ -1,7 +1,7 @@
 import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
 import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
-import { ScammerInfo, VictimInfo, apiKeys } from "./types";
+import { ScammerInfo, VictimInfo, ApiKeys } from "./types";
 import { getSecrets, load, persist } from "./storage";
 import DataFetcher from "./fetcher";
 import { processFraudulentNftOrders } from "./fraud.nft.order.processing";
@@ -24,7 +24,7 @@ let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 let victimsScammed: { [key: string]: VictimInfo } = {};
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
-  const apiKeys = (await getSecrets()) as apiKeys;
+  const apiKeys = (await getSecrets()) as ApiKeys;
   return new DataFetcher(provider, apiKeys);
 }
 
@@ -73,7 +73,9 @@ export function provideHandleAlert(): HandleAlert {
               NINETY_DAYS,
               dataFetcher,
               scammersCurrentlyMonitored,
-              victimsScammed
+              victimsScammed,
+              chainId,
+              alertEvent.blockNumber!
             ))
           );
           break;
@@ -106,7 +108,9 @@ export function provideHandleBlock(): HandleBlock {
           daysSinceScammerLastActive,
           dataFetcher,
           scammersCurrentlyMonitored,
-          victimsScammed
+          victimsScammed,
+          chainId,
+          blockEvent.blockNumber
         );
 
         if (fraudulentNftOrderFindings.length > 0) {
