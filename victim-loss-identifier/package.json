@@ -2,14 +2,20 @@
   "name": "victim-loss-identifier",
   "displayName": "Victim & Loss Identifier",
   "version": "0.0.1",
-  "description": "",
-  "longDescription": "",
+  "description": "This bot identifies victims of end-user attacks and calculates their losses.",
+  "longDescription": "The bot's functionality revolves around monitoring alerts from the Scam Detector Feed bot. When it receives an alert, the bot extracts information related to the scammer's addresses and threat category. Subsequently, it provides answers to questions about who the victims of the scammer are and what digital assets have been transferred from these victims to the scammer.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-loss-identifier",
-  "licenseUrl": "https://github.com/forta-network/forta-bot-sdk/blob/master/starter-project/LICENSE.md",
+  "licenseUrl": "https://github.com/NethermindEth/Forta-Agents/victim-loss-identifier/blob/main/LICENSE.md",
   "promoUrl": "",
   "chainIds": [
     1
   ],
+  "chainSettings": {
+    "default": {
+      "shards": 1,
+      "target": 3
+    }
+  },
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -29,16 +35,24 @@
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
     "stake": "forta-agent stake",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.36"
+    "alchemy-sdk": "^2.10.0",
+    "dotenv": "^16.3.1",
+    "forta-agent": "^0.1.36",
+    "forta-agent-tools": "^3.2.8",
+    "lru-cache": "^10.0.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
+    "@types/jest-when": "^3.5.2",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
-    "nodemon": "^2.0.8",
+    "jest-when": "^3.6.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
