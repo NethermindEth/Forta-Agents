@@ -29,7 +29,7 @@ export function getChainBlockTime(chainId: number): number {
 export function getBlocksInTimePeriodForChainId(timePeriodInSecs: number, chainId: number): number {
   const chainBlockTime = getChainBlockTime(chainId);
 
-  return timePeriodInSecs / chainBlockTime;
+  return Math.floor(timePeriodInSecs / chainBlockTime);
 }
 
 export function cleanObject(object: { [key: string]: ScammerInfo } | { [key: string]: VictimInfo }) {
