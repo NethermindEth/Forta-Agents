@@ -62,6 +62,9 @@ export function extractFalsePositiveDataAndUpdateState(
     const scammedBy = victimInfo.scammedBy;
 
     const hasBeenAlerted = scammedBy[scammerAddress].hasBeenAlerted;
+    // Looking for victim's scammers that have had alerts
+    // emitted to create an FP alert to "undo" the first one.
+    // If they have no existing alert to "undo", skip.
     if (!hasBeenAlerted) continue;
 
     const transactions = scammedBy[scammerAddress].transactions;

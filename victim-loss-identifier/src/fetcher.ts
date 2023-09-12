@@ -249,30 +249,22 @@ export default class DataFetcher {
       try {
         const floorPrice: GetFloorPriceResponse = await this.alchemy.nft.getFloorPrice(nftAddress);
 
-        const latestEntry = Object.values(floorPrice).reduce(
-          (latest: FloorPriceMarketplace | null, current) => {
-            if ("error" in current) {
-              return latest;
-            }
-
-            if (!latest || new Date(current.retrievedAt) > new Date(latest.retrievedAt)) {
-              return current;
-            }
-            return latest;
-          },
-          {
-            floorPrice: 0,
-            priceCurrency: "",
-            collectionUrl: "",
-            retrievedAt: "2000-01-01T00:00:00.000Z",
+        const previousEntry = Object.values(floorPrice).reduce((previous: FloorPriceMarketplace | null, current) => {
+          if ("error" in current) {
+            return previous;
           }
-        );
 
-        if (latestEntry.priceCurrency !== "ETH") {
+          if (!previous || new Date(current.retrievedAt) > new Date(previous.retrievedAt)) {
+            return current;
+          }
+          return previous;
+        });
+
+        if (previousEntry && previousEntry.priceCurrency !== "ETH") {
           return 0;
         }
 
-        return latestEntry.floorPrice;
+        return previousEntry ? previousEntry.floorPrice : 0;
       } catch (e) {
         tries++;
         console.error(`Error fetching floor price (attempt ${tries}): `, e);

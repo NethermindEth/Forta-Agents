@@ -207,10 +207,10 @@ export async function processFraudulentNftOrders(
 
     const victimAddress = getSenderAddressFromTransferLogs(txnLogs, stolenTokenAddress, stolenTokenId);
 
-    // Covers two FP cases:
-    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH
-    // 2) Transaction being a regular NFT trade
-    // TODO: Add FP mitigation alert if the transaction is the one that generated the source alert
+    // Covers three FP cases:
+    // 1) Scammer (i.e. buyer) "paying" in WETH/stablecoin instead of ETH (either directly or indirectly through an NFT exchange contract)
+    // 2) Transaction being a regular NFT (ERC721 or ERC1155) trade
+    // 3) Buyer paying by burning specific tokens (e.g. Blur Pool Token)
     if (hasBuyerOrNftExchangeTransferredToSeller(txnLogs, scammerAddress, victimAddress)) continue;
 
     if (
