@@ -9,7 +9,10 @@ import {
   toTxCountThreshold,
   Response,
 } from "./utils";
+import ErrorCache from "./error.cache";
+import * as util from "util";
 import { ethers } from "forta-agent";
+import { createErrorAlert } from "./findings";
 
 interface apiKeys {
   etherscanApiKeys: string[];
@@ -144,10 +147,16 @@ export default class DataFetcher {
       try {
         code = await this.provider.getCode(address);
         break; // exit the loop if successful
-      } catch (err) {
+      } catch (err: any) {
         tries++;
         if (tries === maxTries) {
-          throw err; // throw the error if maximum tries reached
+          const stackTrace = util.inspect(err, {
+            showHidden: false,
+            depth: null,
+          });
+          ErrorCache.add(
+            createErrorAlert(err.toString(), "fetcher.getCode", stackTrace)
+          );
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
       }
@@ -213,10 +222,16 @@ export default class DataFetcher {
         nonce = await this.provider.getTransactionCount(address);
         this.nonceCache.set(address, nonce);
         break; // exit the loop if successful
-      } catch (err) {
+      } catch (err: any) {
         tries++;
         if (tries === maxTries) {
-          throw err; // throw the error if maximum tries reached
+          const stackTrace = util.inspect(err, {
+            showHidden: false,
+            depth: null,
+          });
+          ErrorCache.add(
+            createErrorAlert(err.toString(), "fetcher.getNonce", stackTrace)
+          );
         }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
       }
@@ -706,30 +721,6 @@ export default class DataFetcher {
     const evm = new EVM(code);
     const events = evm.getEvents();
     return events;
-  };
-
-  getTransactions = async (
-    provider: ethers.providers.Provider,
-    blockNumber: number
-  ) => {
-    let retries = 2;
-    for (let i = 0; i <= retries; i++) {
-      try {
-        const { transactions } = await provider.getBlockWithTransactions(
-          blockNumber
-        );
-        return transactions; // Exit the loop if successful
-      } catch {
-        if (i === retries) {
-          // Handle error after all retries
-          throw new Error(`All retry attempts to fetch transactions failed`);
-        } else {
-          // Handle error and retry
-          console.log(`Retry attempt ${i + 1} to fetch transactions failed`);
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-    }
   };
 
   getSourceCode = async (address: string, chainId: number) => {
