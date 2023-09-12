@@ -2,9 +2,10 @@ import { Finding } from "forta-agent";
 import { Log } from "@ethersproject/abstract-provider";
 import { utils } from "ethers";
 import { EXCHANGE_CONTRACT_ADDRESSES, FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD } from "./constants";
-import { createFraudNftOrderFinding } from "./utils/findings";
-import { Erc721Transfer, ScammerInfo, VictimInfo } from "./types";
+import { createFpFinding, createFraudNftOrderFinding } from "./utils/findings";
+import { Erc721Transfer, FpTransaction, ScammerInfo, VictimInfo } from "./types";
 import DataFetcher from "./fetcher";
+import { extractFalsePositiveDataAndUpdateState, isScammerFalsePositive } from "./utils/utils";
 
 function getSenderAddressFromTransferLogs(txnLogs: Log[], tokenAddress: string, tokenId: string): string {
   return utils.hexDataSlice(
@@ -174,7 +175,9 @@ export async function processFraudulentNftOrders(
   erc721TransferTimeWindow: number,
   dataFetcher: DataFetcher,
   scammers: { [key: string]: ScammerInfo },
-  victims: { [key: string]: VictimInfo }
+  victims: { [key: string]: VictimInfo },
+  chainId: number,
+  blockNumber: number
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
 
@@ -246,22 +249,27 @@ export async function processFraudulentNftOrders(
         nftCollectionFloorPrice
       );
 
-      findings.push(
-        createFraudNftOrderFinding(
-          victimAddress,
-          scammerAddress,
-          scammers[scammerAddress].firstAlertIdAppearance,
-          victims[victimAddress].totalUsdValueAcrossAllTokens!,
-          stolenTokenName,
-          stolenTokenAddress,
-          stolenTokenId,
-          victims[victimAddress].totalUsdValueAcrossAllErc721Tokens!,
-          exploitTxnHash,
-          nftCollectionFloorPrice,
-          erc721TransferTimeWindow,
-          victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
-        )
-      );
+      if (await isScammerFalsePositive(scammerAddress, scammers, dataFetcher, chainId, blockNumber)) {
+        const { fpVictims, fpData } = extractFalsePositiveDataAndUpdateState(scammerAddress, scammers, victims);
+        findings.push(createFpFinding(scammerAddress, fpVictims, fpData));
+      } else {
+        findings.push(
+          createFraudNftOrderFinding(
+            victimAddress,
+            scammerAddress,
+            scammers[scammerAddress].firstAlertIdAppearance,
+            victims[victimAddress].totalUsdValueAcrossAllTokens!,
+            stolenTokenName,
+            stolenTokenAddress,
+            stolenTokenId,
+            victims[victimAddress].totalUsdValueAcrossAllErc721Tokens!,
+            exploitTxnHash,
+            nftCollectionFloorPrice,
+            erc721TransferTimeWindow,
+            victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
+          )
+        );
+      }
 
       victims[victimAddress].scammedBy[scammerAddress].hasBeenAlerted = true;
     }

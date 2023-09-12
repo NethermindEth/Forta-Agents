@@ -121,7 +121,10 @@ export function extractFalsePositiveDataAndUpdateState(
     delete scammersCurrentlyMonitored[scammerAddress];
   }
 
-  return [fpVictims, fpData];
+  return {
+    fpVictims,
+    fpData,
+  };
 }
 
 export const etherscanApis: EtherscanApisInterface = {

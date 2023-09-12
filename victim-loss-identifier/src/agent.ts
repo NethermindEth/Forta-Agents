@@ -73,7 +73,9 @@ export function provideHandleAlert(): HandleAlert {
               NINETY_DAYS,
               dataFetcher,
               scammersCurrentlyMonitored,
-              victimsScammed
+              victimsScammed,
+              chainId,
+              alertEvent.blockNumber!
             ))
           );
           break;
@@ -106,7 +108,9 @@ export function provideHandleBlock(): HandleBlock {
           daysSinceScammerLastActive,
           dataFetcher,
           scammersCurrentlyMonitored,
-          victimsScammed
+          victimsScammed,
+          chainId,
+          blockEvent.blockNumber
         );
 
         if (fraudulentNftOrderFindings.length > 0) {
