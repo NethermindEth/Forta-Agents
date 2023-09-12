@@ -34,14 +34,18 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 - **Description**: Fired when an end-user attack victim and their losses are identified.
 - **Severity**: Info
 - **Type**: Info
+- **Addressess**: An array containing the victim's address and the scammer's address.
 
 **Metadata**:
 
+- `start_timestamp`: The timestamp marking the beginning of the assessment period
+- `end_timestamp`: The timestamp marking the conclusion of the assessment period
 - `scam_detector_alert_id`: The alert ID from Scam Detector
 - `victim_address`: The victim's address
 - `tx_hash`: The exploit transaction hash
-- `usd_lost`: Total USD lost by the victim
-- `erc_721_usd_lost`: Total USD lost in ERC-721 tokens
+- `usd_lost`: Total USD lost by the victim up to the point of the alert
+- `usd_lost_to_scammer: Total amount in USD lost by the victim specifically to the scammer involved in the transaction up to the point of the alert.
+- `erc_721_usd_lost`: Total USD lost in ERC-721 tokens up to the point of the alert
 - `erc_721_lost`: Details of the ERC-721 tokens lost
   - `name`: Name of the token
   - `contract`: Contract address
