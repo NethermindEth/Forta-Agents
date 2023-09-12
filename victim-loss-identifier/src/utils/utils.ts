@@ -112,9 +112,13 @@ export function extractFalsePositiveDataAndUpdateState(
     // Check if the victim has been "scammed" only by one (this) address
     if (Object.keys(scammedBy).length === 1) {
       fpVictims.push(victimAddress);
-      if (victims[victimAddress]) delete victims[victimAddress];
+      if (victims[victimAddress]) {
+        console.log("Deleting FP victim from victims: ", victimAddress);
+        delete victims[victimAddress];
+      }
     } else if (victims[victimAddress]) {
       victims[victimAddress].totalUsdValueAcrossAllTokens! -= scammedBy[scammerAddress].totalUsdValueLostToScammer;
+      console.log(`Deleting FP scammer (${scammerAddress}) from victims of victim address:  ${victimAddress}`);
       delete victims[victimAddress].scammedBy[scammerAddress];
     }
   }

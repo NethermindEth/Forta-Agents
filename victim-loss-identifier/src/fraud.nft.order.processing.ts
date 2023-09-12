@@ -284,6 +284,7 @@ export async function processFraudulentNftOrders(
     }
   }
   if (fpAlerted) {
+    console.log("Deleting FP scammer from state: ", scammerAddress);
     delete scammers[scammerAddress];
   }
   return findings;

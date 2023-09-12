@@ -124,6 +124,7 @@ export function provideHandleBlock(): HandleBlock {
           blockEvent.blockNumber - scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber >
           blocksInThirtyDays
         ) {
+          console.log("Deleting inactive scammer from scammersCurrentlyMonitored object: ", scammerAddress);
           delete scammersCurrentlyMonitored[scammerAddress];
         }
       }
