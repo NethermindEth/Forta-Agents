@@ -1,7 +1,11 @@
 import { Finding } from "forta-agent";
 import { Log } from "@ethersproject/abstract-provider";
 import { utils, constants } from "ethers";
-import { BLUR_POOL_TOKEN, EXCHANGE_CONTRACT_ADDRESSES, FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD } from "./constants";
+import {
+  TOKENS_BURNED_AS_PAYMENT,
+  EXCHANGE_CONTRACT_ADDRESSES,
+  FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
+} from "./constants";
 import { createFpFinding, createFraudNftOrderFinding } from "./utils/findings";
 import { Erc721Transfer, FpTransaction, ScammerInfo, VictimInfo } from "./types";
 import DataFetcher from "./fetcher";
@@ -32,7 +36,8 @@ function hasBuyerOrNftExchangeTransferredToSeller(
     return (
       (isTransferEvent &&
         (log.topics[2].includes(sellerAddress.slice(2)) ||
-          (log.topics[2].includes(constants.AddressZero) && log.address.toLowerCase() === BLUR_POOL_TOKEN)) &&
+          (log.topics[2].includes(constants.AddressZero) &&
+            Object.values(TOKENS_BURNED_AS_PAYMENT).includes(log.address.toLowerCase()))) &&
         (log.topics[1].includes(buyerAddress.slice(2)) ||
           Object.values(EXCHANGE_CONTRACT_ADDRESSES).some((exchangeAddress) =>
             log.topics[1].includes(exchangeAddress.slice(2))

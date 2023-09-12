@@ -16,8 +16,8 @@ export const FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE = 10; // In USD
 
 export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
 
-export const VICTIMS_DB_KEY = "nm-victim-loss-identifier-victims-object";
-export const SCAMMERS_DB_KEY = "nm-victim-loss-identifier-scammers-object";
+export const VICTIMS_DB_KEY = "nm-victim-loss-identifier-victims-object-v2";
+export const SCAMMERS_DB_KEY = "nm-victim-loss-identifier-scammers-object-v2";
 
 export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   // Ethereum
@@ -34,4 +34,7 @@ export const EXCHANGE_CONTRACT_ADDRESSES: Record<string, string> = {
   GhostMarketEth: "0xfb2f452639cbb0850b46b20d24de7b0a9ccb665f",
 };
 
-export const BLUR_POOL_TOKEN = "0x0000000000a39bb272e79075ade125fd351887ac";
+export const TOKENS_BURNED_AS_PAYMENT: Record<string, string> = {
+  //Ethereum
+  BlurPool: "0x0000000000a39bb272e79075ade125fd351887ac",
+};
