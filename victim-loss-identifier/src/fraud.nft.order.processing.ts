@@ -179,7 +179,7 @@ function increaseStolenUsdAmounts(
 
 export async function processFraudulentNftOrders(
   scammerAddress: string,
-  erc721TransferTimeWindow: number,
+  erc721TransferTimeWindowInDays: number,
   dataFetcher: DataFetcher,
   scammers: { [key: string]: ScammerInfo },
   victims: { [key: string]: VictimInfo },
@@ -191,7 +191,7 @@ export async function processFraudulentNftOrders(
 
   const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getScammerErc721Transfers(
     scammerAddress,
-    erc721TransferTimeWindow
+    erc721TransferTimeWindowInDays
   );
 
   for (const erc721Transfer of scammerErc721Transfers) {
@@ -275,7 +275,7 @@ export async function processFraudulentNftOrders(
             victims[victimAddress].totalUsdValueAcrossAllErc721Tokens!,
             exploitTxnHash,
             nftCollectionFloorPrice,
-            erc721TransferTimeWindow,
+            erc721TransferTimeWindowInDays,
             victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
           )
         );

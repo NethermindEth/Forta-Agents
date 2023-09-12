@@ -3,7 +3,7 @@ import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "
 import { LRUCache } from "lru-cache";
 import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse } from "./types";
 import { etherscanApis } from "./utils/utils";
-import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE } from "./constants";
+import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE, ONE_DAY_IN_SECS } from "./constants";
 
 export default class DataFetcher {
   provider: providers.Provider;
@@ -310,16 +310,16 @@ export default class DataFetcher {
 
   getScammerErc721Transfers = async (
     scammerAddress: string,
-    transferOccuranceTimeWindow: number
+    transferOccuranceTimeWindowInDays: number
   ): Promise<Erc721Transfer[]> => {
     let erc721Transfers: Erc721Transfer[] = [];
 
     const currentTime = new Date();
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const timeWindowInMs = transferOccuranceTimeWindow * oneDayInMs;
+    const oneDayInMs = ONE_DAY_IN_SECS * 1000;
+    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * oneDayInMs;
 
     const maxTimestamp = currentTime.toISOString();
-    const minTimestamp = new Date(currentTime.getTime() - timeWindowInMs).toISOString();
+    const minTimestamp = new Date(currentTime.getTime() - daysTimeWindowInMs).toISOString();
 
     const query = `
       query GetErc721Transfers($scammerAddress: String!, $minTimestamp: String!, $maxTimestamp: String!) {
