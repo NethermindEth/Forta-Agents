@@ -1,11 +1,10 @@
 import { fetchJwt } from "forta-agent";
 import { existsSync, readFileSync, writeFileSync } from "fs";
+import { OWNER_DB, BOT_DB } from "./constants";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
-const ownerDB = "https://research.forta.network/database/owner/";
-const botDB = "https://research.forta.network/database/bot/";
 
 const getToken = async () => {
   const tk = await fetchJwt({});
@@ -18,7 +17,7 @@ const loadJson = async (key: string): Promise<object> => {
     return JSON.parse(data);
   } else {
     try {
-      const response = await fetch(`${ownerDB}${key}`, {
+      const response = await fetch(`${OWNER_DB}${key}`, {
         headers: await getToken(),
       });
       if (response.ok) {
@@ -36,7 +35,7 @@ export const persist = async (value: any, key: string) => {
   const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
   if (!hasLocalNode) {
     try {
-      const response = await fetch(`${botDB}${key}`, {
+      const response = await fetch(`${BOT_DB}${key}`, {
         method: "POST",
         headers: await getToken(),
         body: JSON.stringify(value),
@@ -62,7 +61,7 @@ export const load = async (key: string) => {
   const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
   if (!hasLocalNode) {
     try {
-      const response = await fetch(`${botDB}${key}`, { headers: await getToken() });
+      const response = await fetch(`${BOT_DB}${key}`, { headers: await getToken() });
 
       if (response.ok) {
         const data = await response.json();

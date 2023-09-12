@@ -16,6 +16,9 @@ export const FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE = 10; // In USD
 
 export const MAX_OBJECT_SIZE = 4 * 1024 * 1024; // 4 MB
 
+export const OWNER_DB = "https://research.forta.network/database/owner/";
+export const BOT_DB = "https://research.forta.network/database/bot/";
+
 export const VICTIMS_DB_KEY = "nm-victim-loss-identifier-victims-object-v2";
 export const SCAMMERS_DB_KEY = "nm-victim-loss-identifier-scammers-object-v2";
 
