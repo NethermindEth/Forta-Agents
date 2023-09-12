@@ -7,7 +7,7 @@ import {
   FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD,
 } from "./constants";
 import { createFpFinding, createFraudNftOrderFinding } from "./utils/findings";
-import { Erc721Transfer, FpTransaction, ScammerInfo, VictimInfo } from "./types";
+import { Erc721Transfer, ScammerInfo, VictimInfo } from "./types";
 import DataFetcher from "./fetcher";
 import { extractFalsePositiveDataAndUpdateState, isScammerFalsePositive } from "./utils/utils";
 
