@@ -117,8 +117,6 @@ export function extractFalsePositiveDataAndUpdateState(
       victims[victimAddress].totalUsdValueAcrossAllTokens! -= scammedBy[scammerAddress].totalUsdValueLostToScammer;
       delete victims[victimAddress].scammedBy[scammerAddress];
     }
-
-    delete scammersCurrentlyMonitored[scammerAddress];
   }
 
   return {

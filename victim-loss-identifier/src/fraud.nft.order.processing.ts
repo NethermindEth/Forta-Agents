@@ -180,6 +180,7 @@ export async function processFraudulentNftOrders(
   blockNumber: number
 ): Promise<Finding[]> {
   const findings: Finding[] = [];
+  let fpAlerted = false;
 
   const scammerErc721Transfers: Erc721Transfer[] = await dataFetcher.getScammerErc721Transfers(
     scammerAddress,
@@ -252,6 +253,8 @@ export async function processFraudulentNftOrders(
       if (await isScammerFalsePositive(scammerAddress, scammers, dataFetcher, chainId, blockNumber)) {
         const { fpVictims, fpData } = extractFalsePositiveDataAndUpdateState(scammerAddress, scammers, victims);
         findings.push(createFpFinding(scammerAddress, fpVictims, fpData));
+        fpAlerted = true;
+        break;
       } else {
         findings.push(
           createFraudNftOrderFinding(
@@ -269,11 +272,12 @@ export async function processFraudulentNftOrders(
             victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
           )
         );
+        victims[victimAddress].scammedBy[scammerAddress].hasBeenAlerted = true;
       }
-
-      victims[victimAddress].scammedBy[scammerAddress].hasBeenAlerted = true;
     }
   }
-
+  if (fpAlerted) {
+    delete scammers[scammerAddress];
+  }
   return findings;
 }
