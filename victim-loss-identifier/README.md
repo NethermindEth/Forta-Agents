@@ -158,12 +158,12 @@ The example alert is for the following transaction:
 
 Screenshot of the findings after running the command:
 
-<img src="https://raw.githubusercontent.com/NethermindEth/Forta-Agents/972687193977affaee93ed98a6e08b4d6c727b81/victim-loss-identifier/assets/alert-findings.png" width="1134" height="741">
+<img src="https://raw.githubusercontent.com/NethermindEth/Forta-Agents/main/victim-loss-identifier/assets/alert-findings.png" width="1134" height="741">
 
 ## 📜 License
 
 The bot is released under the [Forta Bot License](https://github.com/NethermindEth/Forta-Agents/victim-loss-identifier/blob/main/LICENSE.md).
 
-## <img src="https://nethermind.io/wp-content/uploads/2023/07/logo-icon.svg" width="37.5" height="18.75"> About Us
+## <img src="https://nethermind.io/wp-content/uploads/2023/07/logo-icon.svg" width="35.625" height="17.8125"> About Us
 
 Nethermind is a blockchain research and software engineering company empowering enterprises and developers worldwide to work with and build on decentralized networks. We are a leading contributor to critical infrastructure and developer tooling for blockchain ecosystems, focused on upholding the core ethos of decentralization and security. The Nethermind execution layer client plays an important role in advancing the network, and we actively collaborate with the broader Ethereum community. Furthering Ethereum scalability through Starknet, we deliver infrastructure and developer resources, including a node implementation and a block explorer and data analytics platform.
