@@ -256,6 +256,7 @@ export async function processFraudulentNftOrders(
         stolenTokenId,
         nftCollectionFloorPrice
       );
+      scammers[scammerAddress].mostRecentActivityByBlockNumber = txnResponse!.blockNumber!;
 
       if (await isScammerFalsePositive(scammerAddress, scammers, dataFetcher, chainId, blockNumber)) {
         const { fpVictims, fpData } = extractFalsePositiveDataAndUpdateState(scammerAddress, scammers, victims);
