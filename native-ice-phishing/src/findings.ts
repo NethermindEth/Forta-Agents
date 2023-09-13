@@ -313,7 +313,7 @@ export const createErrorAlert = (
 ) => {
   return Finding.fromObject({
     name: "Native Ice Phishing Bot Error",
-    description: `Error: ${errorDescription}`,
+    description: `${errorDescription}`,
     alertId: "NATIVE-ICE-PHISHING-BOT-ERROR",
     severity: FindingSeverity.Info,
     type: FindingType.Info,
