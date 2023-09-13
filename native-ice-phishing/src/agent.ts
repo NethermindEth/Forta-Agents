@@ -40,6 +40,7 @@ import {
   WITHDRAWTO_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
+import ErrorCache from "./error.cache";
 
 let chainId: number = 0;
 let txWithInputDataCount = 0;
@@ -928,6 +929,12 @@ export const provideHandleBlock =
       }
 
       lastExecutedMinute = minutes;
+    }
+
+    if (ErrorCache.len() > 0) {
+      console.log(`Pushing ${ErrorCache.len()} errors to findings`);
+      findings.push(...ErrorCache.getAll());
+      ErrorCache.clear();
     }
 
     if (infoAlerts.alerts.length > 0) {

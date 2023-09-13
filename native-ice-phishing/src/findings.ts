@@ -306,6 +306,24 @@ export const createCriticalNIPSeverityFinding = (
   });
 };
 
+export const createErrorAlert = (
+  errorDescription: string,
+  errorSource: string,
+  errorStacktrace: string
+) => {
+  return Finding.fromObject({
+    name: "Native Ice Phishing Bot Error",
+    description: `${errorDescription}`,
+    alertId: "NATIVE-ICE-PHISHING-BOT-ERROR",
+    severity: FindingSeverity.Info,
+    type: FindingType.Info,
+    metadata: {
+      errorSource,
+      errorStacktrace,
+    },
+  });
+};
+
 export default {
   createFinding,
 };
