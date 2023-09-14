@@ -142,7 +142,7 @@ export default class Fetcher {
         await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
       ).json()) as any;
 
-      if (response.usdPrice) {
+      if (response.usdPrice && response.tokenAddress.toLowerCase() === token.toLowerCase()) {
         return response.usdPrice;
       } else if (response.message && !response.message.startsWith("No pools found")) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -153,23 +153,23 @@ export default class Fetcher {
   };
 
   private getTokenPriceUrl = (chain: string, token: string) => {
-    return `https://api.coingecko.com/api/v3/simple/token_price/${chain}?contract_addresses=${token}&vs_currencies=usd`;
+    return `https://coins.llama.fi/prices/current/${chain}:${token}`;
   };
 
   private getChainByChainId = (chainId: number) => {
     switch (Number(chainId)) {
       case 10:
-        return "optimistic-ethereum";
+        return "optimism";
       case 56:
-        return "binance-smart-chain";
+        return "bsc";
       case 137:
-        return "polygon-pos";
+        return "polygon";
       case 250:
         return "fantom";
       case 42161:
-        return "arbitrum-one";
+        return "arbitrum";
       case 43114:
-        return "avalanche";
+        return "avax";
       default:
         return "ethereum";
     }
@@ -363,8 +363,8 @@ export default class Fetcher {
         for (let i = 0; i < retryCount; i++) {
           try {
             response = (await (await fetch(this.getTokenPriceUrl(chain, token))).json()) as any;
-            if (response && response[token]) {
-              usdPrice = response[token].usd;
+            if (response && response["coins"][`${chain}:${token}`]) {
+              usdPrice = response["coins"][`${chain}:${token}`]["price"];
               break;
             } else {
               throw new Error("Error: Can't fetch USD price on CoinGecko");
