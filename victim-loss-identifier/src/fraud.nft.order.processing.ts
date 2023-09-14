@@ -228,7 +228,7 @@ export async function processFraudulentNftOrders(
     if (
       txnResponse!.to != null &&
       Object.values(EXCHANGE_CONTRACT_ADDRESSES).includes(txnResponse!.to.toLowerCase()) &&
-      txnResponse!.value.lte(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
+      txnResponse!.value.lt(FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD)
     ) {
       const nftCollectionFloorPrice = await dataFetcher.getNftCollectionFloorPrice(
         stolenTokenAddress,
