@@ -88,6 +88,10 @@ export function provideHandleAlert(): HandleAlert {
             ))
           );
           break;
+        
+        case "SCAM-DETECTOR-ICE-PHISHING":
+          findings.push();
+          break;
 
         default:
           return findings;
