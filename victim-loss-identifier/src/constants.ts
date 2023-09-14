@@ -8,7 +8,7 @@ export const EIGHTY_DAYS_IN_MS = ONE_DAY_IN_SECS * 80 * 1000; // Max value that 
 
 export const NINETY_DAYS = 90;
 
-export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
+export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 1000000000000; // In Wei  (0,000001 ETH)
 export const FP_PROFIT_THRESHOLD = 500_000; // In USD
 export const FP_MIN_VICTIMS_THRESHOLD = 1;
 export const FP_MAX_VICTIMS_THRESHOLD = 20;
