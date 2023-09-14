@@ -145,7 +145,7 @@ function createMockExploitInstance(instanceNumber: number): MockExploitInfo {
     stolenTokenSymbol: `MOCK721-${instanceNumber}`,
     stolenTokenId: `${instanceNumber}3`,
     txnValue: BigNumber.from(instanceNumber),
-    blockNumber: 10000 * instanceNumber,
+    blockNumber: 18000000 + instanceNumber,
   };
 }
 

@@ -2,12 +2,13 @@ export const SCAM_DETECTOR_BOT_ID = "0x1d646c4045189991fdfd24a66b192a294158b839a
 export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER"];
 
 export const ONE_DAY_IN_SECS = 60 * 60 * 24;
+export const TWENTY_FIVE_DAYS_IN_SECS = ONE_DAY_IN_SECS * 25;
 export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;
 export const EIGHTY_DAYS_IN_MS = ONE_DAY_IN_SECS * 80 * 1000; // Max value that returns alert query results after testing
 
 export const NINETY_DAYS = 90;
 
-export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 100; // In Wei
+export const FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD = 1000000000000; // In Wei  (0,000001 ETH)
 export const FP_PROFIT_THRESHOLD = 500_000; // In USD
 export const FP_MIN_VICTIMS_THRESHOLD = 1;
 export const FP_MAX_VICTIMS_THRESHOLD = 20;

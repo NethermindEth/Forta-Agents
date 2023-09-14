@@ -8,9 +8,10 @@ import { processFraudulentNftOrders } from "./fraud.nft.order.processing";
 import {
   SCAM_DETECTOR_BOT_ID,
   SCAM_DETECTOR_ALERT_IDS,
-  NINETY_DAYS,
-  THIRTY_DAYS_IN_SECS,
   ONE_DAY_IN_SECS,
+  TWENTY_FIVE_DAYS_IN_SECS,
+  THIRTY_DAYS_IN_SECS,
+  NINETY_DAYS,
   MAX_OBJECT_SIZE,
   SCAMMERS_DB_KEY,
   VICTIMS_DB_KEY,
@@ -59,9 +60,17 @@ export function provideHandleAlert(): HandleAlert {
 
     const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
     if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+    const blocksInTwentyFiveDays = getBlocksInTimePeriodForChainId(TWENTY_FIVE_DAYS_IN_SECS, chainId);
+
       scammersCurrentlyMonitored[scammerAddress] = {
         firstAlertIdAppearance: alertEvent.alertId!,
-        mostRecentActivityByBlockNumber: alertEvent.blockNumber!,
+        // Default to twenty five days ago in case Zettablock
+        // doesn't return as expected. Value to be overwritten
+        // downstream in the logic if returned values are usable.
+        // Twenty five specifically because the block handler
+        // removes scammers that haven't been active in thirty days,
+        // and this gives a couple of days to find transfers for the scammer.
+        mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
         totalUsdValueStolen: 0,
       };
 
@@ -112,10 +121,6 @@ export function provideHandleBlock(): HandleBlock {
           chainId,
           blockEvent.blockNumber
         );
-
-        if (fraudulentNftOrderFindings.length > 0) {
-          scammersCurrentlyMonitored[scammerAddress].mostRecentActivityByBlockNumber = blockEvent.blockNumber;
-        }
 
         findings.push(...fraudulentNftOrderFindings);
 

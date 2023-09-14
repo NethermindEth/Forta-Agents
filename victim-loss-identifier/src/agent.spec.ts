@@ -21,7 +21,6 @@ import {
 } from "./mocks/mock.utils";
 import { createAddress } from "forta-agent-tools";
 
-const ONE_DAY = 1;
 const NINETY_DAYS = 90;
 const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
 
@@ -403,9 +402,10 @@ describe("Victim & Loss Identifier Test Suite", () => {
       ];
 
       const mockBlockNumber = mockAlertBlockNumber + 3680; // Block number divisible by eth blocks per day
+      const eightDaysSinceScammerLastActive = 8;
 
       when(mockDataFetcher.getScammerErc721Transfers)
-        .calledWith(mockScammerAddressTwo, 1)
+        .calledWith(mockScammerAddressTwo, eightDaysSinceScammerLastActive)
         .mockResolvedValue(mockBlockHandlerErc721Transfers);
 
       mockBlock.setNumber(mockBlockNumber);
@@ -420,7 +420,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          ONE_DAY,
+          eightDaysSinceScammerLastActive,
           BigNumber.from(mockNftFloorPrice)
         ),
         createTestingFraudNftOrderFinding(
@@ -430,7 +430,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
           BigNumber.from(mockNftFloorPrice),
-          ONE_DAY,
+          eightDaysSinceScammerLastActive,
           BigNumber.from(mockNftFloorPrice)
         ),
       ]);
@@ -445,7 +445,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitFive.stolenTokenName,
         stolenTokenSymbol: mockExploitFive.stolenTokenSymbol,
         stolenTokenId: mockExploitFive.stolenTokenId,
-        txnValue: BigNumber.from(40000), // High Txn Value
+        txnValue: BigNumber.from(2000000000000), // High Txn Value
         blockNumber: mockExploitFive.blockNumber,
       };
 
@@ -719,7 +719,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitThirteen.stolenTokenName,
         stolenTokenSymbol: mockExploitThirteen.stolenTokenSymbol,
         stolenTokenId: mockExploitThirteen.stolenTokenId,
-        txnValue: BigNumber.from(40000), // High Txn Value
+        txnValue: BigNumber.from(1000000000001), // High Txn Value
         blockNumber: mockExploitThirteen.blockNumber,
       };
 
@@ -780,7 +780,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitSixteen.stolenTokenName,
         stolenTokenSymbol: mockExploitSixteen.stolenTokenSymbol,
         stolenTokenId: mockExploitSixteen.stolenTokenId,
-        txnValue: BigNumber.from(50000), // High Txn Value
+        txnValue: BigNumber.from(1000000000002), // High Txn Value
         blockNumber: mockExploitSixteen.blockNumber,
       };
 
