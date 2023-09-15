@@ -1,29 +1,45 @@
 {
-  "name": "forta-agent-starter",
-  "version": "0.1.0",
-  "agentId": "nethforta-4",
-  "description": "Forta Agent Typescript starter project",
+  "name": "ownership-transfer-detection",
+  "displayName": "Ownership Transfer Detection",
+  "version": "0.2.0",
+  "description": "Forta bot that detects when the ownership transfers",
+  "longDescription": "This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address",
+  "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ownership-transfer-agent",
+  "chainIds": [
+    1
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
-    "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec 'npm run build && forta-agent run'",
+    "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec \"npm run build && forta-agent run\"",
     "start:prod": "forta-agent run --prod",
-    "tx": "forta-agent run --tx",
-    "block": "forta-agent run --block",
-    "range": "forta-agent run --range",
-    "file": "forta-agent run --file",
+    "tx": "npm run build && forta-agent run --tx",
+    "block": "npm run build && forta-agent run --block",
+    "range": "npm run build && forta-agent run --range",
+    "alert": "npm run build && forta-agent run --alert",
+    "sequence": "npm run build && forta-agent run --sequence",
+    "file": "npm run build && forta-agent run --file",
     "publish": "forta-agent publish",
-    "test": "jest"
+    "info": "forta-agent info",
+    "logs": "forta-agent logs",
+    "push": "forta-agent push",
+    "disable": "forta-agent disable",
+    "enable": "forta-agent enable",
+    "keyfile": "forta-agent keyfile",
+    "test": "jest --detectOpenHandles",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.10"
+    "forta-agent": "^0.1.40"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
+    "forta-agent-tools": "^3.2.10",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
+    "prettier": "^2.8.7",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.4"
   }
