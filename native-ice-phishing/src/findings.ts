@@ -204,6 +204,42 @@ export const createCriticalSeverityFinding = (
   });
 };
 
+export const createMulticallPhishingCriticalSeverityFinding = (
+  txHash: string,
+  attacker: string,
+  address: string,
+  anomalyScore: number
+): Finding => {
+  return Finding.fromObject({
+    name: "Contract deployed with characteristics indicative of a potential erc20 & native ice phishing attack",
+    description: `${attacker} created contract with address ${address} to be possibly used in an erc20 & native ice phishing attack`,
+    alertId: "NIP-8",
+    severity: FindingSeverity.Critical,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker,
+      address,
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.9,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: attacker,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.9,
+        remove: false,
+      }),
+    ],
+  });
+};
+
 export const createWithdrawalFinding = (
   txHash: string,
   attacker: string,

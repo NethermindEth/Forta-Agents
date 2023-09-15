@@ -20,6 +20,7 @@ import {
   createFinding,
   createHighSeverityFinding,
   createLowSeverityFinding,
+  createMulticallPhishingCriticalSeverityFinding,
   createWithdrawalFinding,
 } from "./findings";
 import { ZETTABLOCK_API_KEY } from "./key";
@@ -38,6 +39,7 @@ import {
   BALANCEOF_SIG,
   checkRoundValue,
   WITHDRAWTO_SIG,
+  MULTICALL_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -442,6 +444,58 @@ export const provideHandleTransaction =
             )
           );
         }
+      } else if (code.includes(MULTICALL_SIG)) {
+        const initialStorageSlot = await dataFetcher.getStorageSlot(
+          createdContractAddress,
+          0,
+          blockNumber
+        );
+        if (
+          !initialStorageSlot ||
+          !initialStorageSlot.startsWith("0x000000000000000000000000")
+        ) {
+          return findings;
+        }
+
+        const ethAddressFromStorage = "0x" + initialStorageSlot.slice(-40);
+        const secondaryStorageSlot = await dataFetcher.getStorageSlot(
+          ethAddressFromStorage,
+          0,
+          blockNumber
+        );
+
+        if (
+          !secondaryStorageSlot ||
+          !secondaryStorageSlot.startsWith("0x000000000000000000000000")
+        ) {
+          return findings;
+        }
+
+        const finalAddress = "0x" + secondaryStorageSlot.slice(-40);
+
+        const code = await dataFetcher.getCode(finalAddress);
+        if (
+          code &&
+          (code.includes(WITHDRAW_SIG) || code.includes(WITHDRAWTO_SIG))
+        ) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-5",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createMulticallPhishingCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        }
       }
     }
 
@@ -748,7 +802,7 @@ export const provideHandleTransaction =
           if (!code) return findings;
 
           const funcs = await dataFetcher.getFunctions(code);
-          if (funcs.length > 4) {
+          if (funcs.length > 5) {
             return findings;
           }
 

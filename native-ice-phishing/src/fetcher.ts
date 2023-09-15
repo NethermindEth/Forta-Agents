@@ -167,6 +167,44 @@ export default class DataFetcher {
     return code;
   };
 
+  getStorageSlot = async (
+    address: string,
+    slot: number,
+    blockNumber: number
+  ) => {
+    let storageSlot;
+    let tries = 0;
+    const maxTries = 3;
+
+    while (tries < maxTries) {
+      try {
+        storageSlot = await this.provider.getStorageAt(
+          address,
+          slot,
+          blockNumber
+        );
+        break; // exit the loop if successful
+      } catch (err: any) {
+        tries++;
+        if (tries === maxTries) {
+          const stackTrace = util.inspect(err, {
+            showHidden: false,
+            depth: null,
+          });
+          ErrorCache.add(
+            createErrorAlert(
+              err.toString(),
+              "fetcher.getStorageSlot",
+              stackTrace
+            )
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+      }
+    }
+    return storageSlot;
+  };
+
   isEoa = async (address: string) => {
     if (this.eoaCache.has(address))
       return this.eoaCache.get(address) as boolean;
