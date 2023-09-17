@@ -179,6 +179,25 @@ This bot monitors:
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Victim"
         - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.8
+  - NIP-8
+    - Fired when a contract is deployed with characteristics indicative of a potential native & erc20/erc71 ice phishing attack (Using a Multicall and a Fallback function).
+    - Severity is always set to "Critical"
+    - Type is always set to "Suspicious"
+    - Metadata contains:
+      - `attacker`: The contract creator address
+      - `address`: The created contract address
+      - `anomalyScore`: The anomaly score of the alert
+    - Labels contain:
+      - Label 1:
+        - `entity`: The transaction's hash
+        - `entityType`: The type of the entity, always set to "Transaction"
+        - `label`: The type of the label, always set to "Attack"
+        - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
+      - Label 2:
+        - `entity`: The contract creator address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
 
 ## Test Data
 
