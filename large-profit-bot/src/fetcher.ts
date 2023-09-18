@@ -5,27 +5,33 @@ import fetch from "node-fetch";
 import { MAX_USD_VALUE, TOKEN_ABI } from "./utils";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./config";
 
-interface apiKeys {
-  ethplorerApiKeys: string[];
-  chainbaseApiKeys: string[];
-  moralisApiKeys: string[];
-  etherscanApiKeys: string[];
-  optimisticEtherscanApiKeys: string[];
-  bscscanApiKeys: string[];
-  polygonscanApiKeys: string[];
-  fantomscanApiKeys: string[];
-  arbiscanApiKeys: string[];
-  snowtraceApiKeys: string[];
-}
+export type ApiKeys = {
+  generalApiKeys: {
+    MORALIS: string;
+  };
+  apiKeys: {
+    largeProfit: {
+      ethplorerApiKeys: string[];
+      chainbaseApiKeys: string[];
+      etherscanApiKeys: string[];
+      optimisticEtherscanApiKeys: string[];
+      bscscanApiKeys: string[];
+      polygonscanApiKeys: string[];
+      fantomscanApiKeys: string[];
+      arbiscanApiKeys: string[];
+      snowtraceApiKeys: string[];
+    };
+  };
+};
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
   private cache: LRU<string, BigNumber | number | string>;
   private tokenContract: Contract;
   private tokensPriceCache: LRU<string, number>;
-  private apiKeys: apiKeys;
+  private apiKeys: ApiKeys;
 
-  constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: apiKeys) {
+  constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: ApiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
@@ -128,8 +134,7 @@ export default class Fetcher {
   };
 
   private getUniswapPrice = async (chainId: number, token: string) => {
-    if (!(this.apiKeys.moralisApiKeys.length > 0)) return 0;
-    const moralisApiKey = this.apiKeys.moralisApiKeys[Math.floor(Math.random() * this.apiKeys.moralisApiKeys.length)];
+    const moralisApiKey = this.apiKeys.generalApiKeys.MORALIS;
     const options = {
       method: "GET",
       params: { chain: this.getMoralisChainByChainId(chainId) },
@@ -222,34 +227,46 @@ export default class Fetcher {
   private getBlockExplorerKey = (chainId: number) => {
     switch (chainId) {
       case 10:
-        return this.apiKeys.optimisticEtherscanApiKeys.length > 0
-          ? this.apiKeys.optimisticEtherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.optimisticEtherscanApiKeys.length)
+        return this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys.length)
             ]
           : "YourApiKeyToken";
       case 56:
-        return this.apiKeys.bscscanApiKeys.length > 0
-          ? this.apiKeys.bscscanApiKeys[Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.bscscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.bscscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.bscscanApiKeys.length)
+            ]
           : "YourApiKeyToken";
       case 137:
-        return this.apiKeys.polygonscanApiKeys.length > 0
-          ? this.apiKeys.polygonscanApiKeys[Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys.length)
+            ]
           : "YourApiKeyToken";
       case 250:
-        return this.apiKeys.fantomscanApiKeys.length > 0
-          ? this.apiKeys.fantomscanApiKeys[Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys.length)
+            ]
           : "YourApiKeyToken";
       case 42161:
-        return this.apiKeys.arbiscanApiKeys.length > 0
-          ? this.apiKeys.arbiscanApiKeys[Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys.length)
+            ]
           : "YourApiKeyToken";
       case 43114:
-        return this.apiKeys.snowtraceApiKeys.length > 0
-          ? this.apiKeys.snowtraceApiKeys[Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys.length)
+            ]
           : "YourApiKeyToken";
       default:
-        return this.apiKeys.etherscanApiKeys.length > 0
-          ? this.apiKeys.etherscanApiKeys[Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)]
+        return this.apiKeys.apiKeys.largeProfit.etherscanApiKeys.length > 0
+          ? this.apiKeys.apiKeys.largeProfit.etherscanApiKeys[
+              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.etherscanApiKeys.length)
+            ]
           : "YourApiKeyToken";
     }
   };
@@ -446,7 +463,7 @@ export default class Fetcher {
             await fetch(this.getChainBaseTopTokenHoldersUrl(token, chainId), {
               method: "GET",
               headers: {
-                "x-api-key": this.apiKeys.chainbaseApiKeys[0],
+                "x-api-key": this.apiKeys.apiKeys.largeProfit.chainbaseApiKeys[0],
                 accept: "application/json",
               },
             })
@@ -454,7 +471,9 @@ export default class Fetcher {
           return Boolean(response.next_page as number);
         } else if (chainId === 1) {
           response = (await (
-            await fetch(this.getEthplorerTopTokenHoldersUrl(token, this.apiKeys.ethplorerApiKeys[0]))
+            await fetch(
+              this.getEthplorerTopTokenHoldersUrl(token, this.apiKeys.apiKeys.largeProfit.ethplorerApiKeys[0])
+            )
           ).json()) as any;
           return response.holders.length >= 100;
         } else {

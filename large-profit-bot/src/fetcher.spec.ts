@@ -33,16 +33,22 @@ const tokenAddress = createAddress("0xa2");
 const TOKEN_IFACE = new Interface(TOKEN_ABI);
 
 const testKeys = {
-  ethplorerApiKeys: ["Test2"],
-  chainbaseApiKeys: ["Test21"],
-  moralisApiKeys: ["Test3"],
-  etherscanApiKeys: ["Test4"],
-  optimisticEtherscanApiKeys: ["Test5"],
-  bscscanApiKeys: ["Test6"],
-  polygonscanApiKeys: ["Test7"],
-  fantomscanApiKeys: ["Test8"],
-  arbiscanApiKeys: ["Test9"],
-  snowtraceApiKeys: ["Test10"],
+  generalApiKeys: {
+    MORALIS: "TestMoralis",
+  },
+  apiKeys: {
+    largeProfit: {
+      ethplorerApiKeys: ["TestEthplorer"],
+      chainbaseApiKeys: ["TestChainbase"],
+      etherscanApiKeys: ["TestEtherscan"],
+      optimisticEtherscanApiKeys: ["TestOptimisticEtherscan"],
+      bscscanApiKeys: ["TestBscscan"],
+      polygonscanApiKeys: ["TestPolygonscan"],
+      fantomscanApiKeys: ["TestFantomscan"],
+      arbiscanApiKeys: ["TestArbiscan"],
+      snowtraceApiKeys: ["TestSnowtrace"],
+    },
+  },
 };
 
 describe("TokenInfoFetcher tests suite", () => {

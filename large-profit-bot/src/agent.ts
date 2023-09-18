@@ -1,4 +1,12 @@
-import { Finding, FindingSeverity, HandleTransaction, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import {
+  Finding,
+  FindingSeverity,
+  HandleTransaction,
+  Initialize,
+  TransactionEvent,
+  ethers,
+  getEthersProvider,
+} from "forta-agent";
 import LRU from "lru-cache";
 import {
   ERC20_TRANSFER_EVENT,
@@ -12,12 +20,14 @@ import {
   wrappedNativeTokens,
   FUNCTION_ABIS,
 } from "./utils";
-import Fetcher from "./fetcher";
+import Fetcher, { ApiKeys } from "./fetcher";
 import { keys } from "./keys";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
+import { getSecrets } from "./storage";
 
 let transactionsProcessed = 0;
 let lastBlock = 0;
+let fetcher: Fetcher;
 
 const TX_COUNT_THRESHOLD = 70;
 
@@ -25,8 +35,22 @@ const contractsCache = new LRU<string, boolean>({
   max: 10000,
 });
 
+export async function createNewFetcher(provider: ethers.providers.JsonRpcProvider): Promise<Fetcher> {
+  const apiKeys = (await getSecrets()) as ApiKeys;
+  return new Fetcher(provider, apiKeys);
+}
+
+export function provideInitialize(
+  provider: ethers.providers.JsonRpcProvider,
+  fetcherCreator: (provider: ethers.providers.JsonRpcProvider) => Promise<Fetcher>
+): Initialize {
+  return async () => {
+    fetcher = await fetcherCreator(provider);
+  };
+}
+
 export const provideHandleTransaction =
-  (fetcher: Fetcher, provider: ethers.providers.Provider): HandleTransaction =>
+  (provider: ethers.providers.Provider): HandleTransaction =>
   async (txEvent: TransactionEvent) => {
     const findings: Finding[] = [];
 
@@ -249,78 +273,84 @@ export const provideHandleTransaction =
         return acc + value;
       }, 0);
 
-      // If the sum of the values is more than 10000 USD, add the address to the large profit addresses list
-      if (sum > 10000) {
+      const hasZeroValue = Object.values(record).some((value) => value === 0);
+
+      // If the sum of the values is more than 10000 USD and, there's no token with an unknown price, add the address to the large profit addresses list
+      if (sum > 10000 && !hasZeroValue) {
         const [confidence, anomalyScore] = fetcher.getCLandAS(sum, "usdValue") as number[];
         largeProfitAddresses.push({ address, confidence, anomalyScore, isProfitInUsd: true, profit: sum });
       }
     });
 
-    // For tokens with no USD value fetched, check if the balance change is greater than 5% of the total supply
+    // For tokens with no USD value fetched, check if the balance change is greater than 5% of the total supply (only in the case of an initiator not sending other tokens away)
     await Promise.all(
       Array.from(balanceChangesMapUsd.entries()).map(async ([address, record]) => {
-        return Promise.all(
-          Object.keys(record).map(async (token) => {
-            const usdValue = record[token];
-            if (usdValue === 0 && token !== "native") {
-              // Filter out token mints from new token contracts
-              if (!txEvent.to) {
-                const nonce = txEvent.transaction.nonce;
-                const createdContractAddress = ethers.utils.getContractAddress({ from: txEvent.from, nonce: nonce });
-                if (token === createdContractAddress.toLowerCase()) {
-                  return;
-                }
-                // Filter out token transfers to the token contract itself
-              } else if (txEvent.to.toLowerCase() === token) {
+        const balancheChanges = balances.get(address);
+
+        // Check if "balancheChanges" has more than one key (token) for the current address
+        if (Object.keys(balancheChanges!).length > 1) {
+          return;
+        }
+
+        const token = Object.keys(record)[0];
+        const usdValue = record[token];
+        if (usdValue === 0 && token !== "native") {
+          // Filter out token mints from new token contracts
+          if (!txEvent.to) {
+            const nonce = txEvent.transaction.nonce;
+            const createdContractAddress = ethers.utils.getContractAddress({ from: txEvent.from, nonce: nonce });
+            if (token === createdContractAddress.toLowerCase()) {
+              return;
+            }
+            // Filter out token transfers to the token contract itself
+          } else if (txEvent.to.toLowerCase() === token) {
+            return;
+          }
+
+          if (!balancheChanges![token].isNegative()) {
+            const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token);
+            const threshold = totalSupply.div(20); // 5%
+            const absValue = balancheChanges![token];
+            if (absValue.gt(threshold)) {
+              // Filter out token mints (e.g. Uniswap LPs) to contract creators
+              const tokenCreator = await fetcher.getContractCreator(token, Number(txEvent.network));
+              if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
                 return;
               }
 
-              const value = balances.get(address);
-              if (!value![token].isNegative()) {
-                const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token);
-                const threshold = totalSupply.div(20); // 5%
-                const absValue = value![token];
-                if (absValue.gt(threshold)) {
-                  // Filter out token mints (e.g. Uniswap LPs) to contract creators
-                  const tokenCreator = await fetcher.getContractCreator(token, Number(txEvent.network));
-                  if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
-                    return;
-                  }
+              // Filter out tokens with <100 holders
+              if (!(await fetcher.hasHighNumberOfHolders(Number(txEvent.network), token))) {
+                return;
+              }
 
-                  // Filter out tokens with <100 holders
-                  if (!(await fetcher.hasHighNumberOfHolders(Number(txEvent.network), token))) {
-                    return;
+              let percentage: number;
+              try {
+                percentage = Math.min(absValue.mul(100).div(totalSupply).toNumber(), 100);
+              } catch (err) {
+                if (err instanceof Error) {
+                  if (err.message.startsWith("overflow")) {
+                    percentage = 100;
+                  } else {
+                    percentage = 0;
                   }
-
-                  let percentage: number;
-                  try {
-                    percentage = Math.min(absValue.mul(100).div(totalSupply).toNumber(), 100);
-                  } catch (err) {
-                    if (err instanceof Error) {
-                      if (err.message.startsWith("overflow")) {
-                        percentage = 100;
-                      } else {
-                        percentage = 0;
-                      }
-                    } else {
-                      percentage = 0;
-                    }
-                  }
-                  const [confidence, anomalyScore] = fetcher.getCLandAS(percentage, "totalSupply") as number[];
-                  largeProfitAddresses.push({
-                    address,
-                    confidence,
-                    anomalyScore,
-                    isProfitInUsd: false,
-                    profit: percentage,
-                  });
+                } else {
+                  percentage = 0;
                 }
               }
+              const [confidence, anomalyScore] = fetcher.getCLandAS(percentage, "totalSupply") as number[];
+              largeProfitAddresses.push({
+                address,
+                confidence,
+                anomalyScore,
+                isProfitInUsd: false,
+                profit: percentage,
+              });
             }
-          })
-        );
+          }
+        }
       })
     );
+
     if (!(largeProfitAddresses.length > 0)) {
       return findings;
     }
@@ -403,6 +433,7 @@ export const provideHandleTransaction =
   };
 
 export default {
-  handleTransaction: provideHandleTransaction(new Fetcher(getEthersProvider(), keys), getEthersProvider()),
+  handleTransaction: provideHandleTransaction(getEthersProvider()),
   provideHandleTransaction,
+  initialize: provideInitialize(getEthersProvider(), createNewFetcher),
 };

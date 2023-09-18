@@ -1,5 +1,5 @@
 import { getEthersProvider, createTransactionEvent } from "forta-agent";
-import { provideHandleTransaction } from "./agent";
+import { createNewFetcher, provideHandleTransaction, provideInitialize } from "./agent";
 
 import Fetcher from "./fetcher";
 import { keys } from "./keys";
@@ -9,7 +9,11 @@ jest.setTimeout(200000);
 describe("Large Profit Bot test suite", () => {
   it("tests performance", async () => {
     const realProvider = getEthersProvider();
-    const handleRealTransaction = provideHandleTransaction(new Fetcher(realProvider, keys), realProvider);
+
+    const initialize = provideInitialize(realProvider, createNewFetcher);
+    await initialize();
+
+    const handleRealTransaction = provideHandleTransaction(realProvider);
     const largeProfitNoFindingTxReceipt = await realProvider.getTransactionReceipt(
       "0x566d2409168739da54674b08e6e13e52d440aa8e55a2edbf00bbe7e73ea85f26"
     );

@@ -1,5 +1,5 @@
 import { FindingType, FindingSeverity, Finding, HandleTransaction, ethers, Label, EntityType } from "forta-agent";
-import { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction, provideInitialize } from "./agent";
 import { when } from "jest-when";
 import { Interface } from "ethers/lib/utils";
 import { createAddress } from "forta-agent-tools";
@@ -136,7 +136,15 @@ describe("Large Profit Bot test suite", () => {
     isContractVerified: jest.fn(),
     hasHighNumberOfHolders: jest.fn(),
   };
-  const handleTransaction: HandleTransaction = provideHandleTransaction(mockFetcher as any, mockProvider as any);
+  async function mockDataFetcherCreator() {
+    return mockFetcher as any;
+  }
+  const handleTransaction: HandleTransaction = provideHandleTransaction(mockProvider as any);
+
+  beforeEach(async () => {
+    let initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator);
+    await initialize();
+  });
 
   it("should return empty findings if the receiver of the transaction is an EOA", async () => {
     const mockTxTo = createAddress("0x5678");
