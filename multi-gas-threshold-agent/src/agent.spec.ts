@@ -10,6 +10,7 @@ import {
   EntityType,
 } from "forta-agent";
 import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import { createAddress } from "forta-agent-tools";
 import fetch, { Response } from "node-fetch";
 import {
   provideInitialize,
@@ -24,6 +25,7 @@ jest.mock("node-fetch");
 
 const mockDetectedMediumGasAlerts = 23;
 const mockDetectedHighGasAlerts = 12;
+const mockDetectedInfoGasAlerts = 2;
 const mockDetectedTotalGasAlerts = 35;
 
 const mockChainId = 123;
@@ -31,6 +33,7 @@ const mockDbUrl = "databaseurl.com/";
 const mockJwt = "MOCK_JWT";
 const mockMedGasKey = "mock-medium-gas-key";
 const mockHighGasKey = "mock-high-gas-key";
+const mockInfoGasKey = "mock-info-gas-key";
 const mockAllGasKey = "mock-all-gas-key";
 
 // Mock the fetchJwt function of the forta-agent module
@@ -65,6 +68,7 @@ describe("multi gas threshold agent", () => {
       mockPersistenceHelper,
       mockMedGasKey,
       mockHighGasKey,
+      mockInfoGasKey,
       mockAllGasKey
     );
     const mockEnv = {};
@@ -76,6 +80,7 @@ describe("multi gas threshold agent", () => {
         .fn()
         .mockResolvedValueOnce(Promise.resolve(mockDetectedMediumGasAlerts.toString()))
         .mockResolvedValueOnce(Promise.resolve(mockDetectedHighGasAlerts.toString()))
+        .mockResolvedValueOnce(Promise.resolve(mockDetectedInfoGasAlerts.toString()))
         .mockResolvedValueOnce(Promise.resolve(mockDetectedTotalGasAlerts.toString())),
     } as any as Response;
 
@@ -85,7 +90,13 @@ describe("multi gas threshold agent", () => {
     await initialize();
 
     handleTransaction = provideHandleTransaction(mockGetTransactionReceipt);
-    handleBlock = provideHandleBlock(mockPersistenceHelper, mockMedGasKey, mockHighGasKey, mockAllGasKey);
+    handleBlock = provideHandleBlock(
+      mockPersistenceHelper,
+      mockMedGasKey,
+      mockHighGasKey,
+      mockInfoGasKey,
+      mockAllGasKey
+    );
     delete process.env.LOCAL_NODE;
   });
 
@@ -106,7 +117,7 @@ describe("multi gas threshold agent", () => {
       const mockAnomalyScore = (mockDetectedMediumGasAlerts + 1) / (mockDetectedTotalGasAlerts + 1);
 
       const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234");
-      mockGetTransactionReceipt.mockReturnValue({ gasUsed: MEDIUM_GAS_THRESHOLD });
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: MEDIUM_GAS_THRESHOLD, status: true });
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
@@ -145,7 +156,7 @@ describe("multi gas threshold agent", () => {
       const mockAnomalyScore = (mockDetectedHighGasAlerts + 1) / (mockDetectedTotalGasAlerts + 1);
 
       const txEvent: TransactionEvent = new TestTransactionEvent().setHash("0x1234");
-      mockGetTransactionReceipt.mockReturnValue({ gasUsed: HIGH_GAS_THRESHOLD });
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: HIGH_GAS_THRESHOLD, status: true });
 
       const findings: Finding[] = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([
@@ -179,6 +190,65 @@ describe("multi gas threshold agent", () => {
         }),
       ]);
     });
+
+    it("Returns finding with severity Info if there's a potential airdrop", async () => {
+      const mockAnomalyScore = (mockDetectedInfoGasAlerts + 1) / (mockDetectedTotalGasAlerts + 1);
+      const transferEvent = "event Transfer(address indexed from, address indexed to, uint256 value)";
+      const mockAirdroppedTokenAddress = createAddress("0x1010");
+      const mockAirdropSender = createAddress("0x2020");
+
+      let txEvent: TestTransactionEvent = new TestTransactionEvent().setHash("0x1234");
+
+      let numberOfReceivers = 200;
+
+      for (let i = 0; i < numberOfReceivers; i++) {
+        const receiver = createAddress(`0x${i}`);
+        const data = [mockAirdropSender, receiver, mockAirdroppedTokenAddress];
+        txEvent.addEventLog(transferEvent, mockAirdroppedTokenAddress, data);
+      }
+
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: MEDIUM_GAS_THRESHOLD, status: true });
+
+      const findings: Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([
+        Finding.fromObject({
+          name: "High Gas Use Detection - Potential Airdrop",
+          description: `Gas used by Transaction`,
+          alertId: "NETHFORTA-1-INFO",
+          severity: FindingSeverity.Info,
+          type: FindingType.Info,
+          metadata: {
+            gas: MEDIUM_GAS_THRESHOLD,
+            anomalyScore:
+              mockAnomalyScore.toFixed(2) === "0.00" ? mockAnomalyScore.toString() : mockAnomalyScore.toFixed(2),
+          },
+          labels: [
+            Label.fromObject({
+              entityType: EntityType.Transaction,
+              entity: "0x1234",
+              label: "Suspicious",
+              confidence: 0.7,
+              remove: false,
+            }),
+            Label.fromObject({
+              entityType: EntityType.Address,
+              entity: txEvent.from,
+              label: "Attacker",
+              confidence: 0.1,
+              remove: false,
+            }),
+          ],
+        }),
+      ]);
+    });
+
+    it("Returns no findings for failed transactions", async () => {
+      const txEvent: TransactionEvent = new TestTransactionEvent();
+      mockGetTransactionReceipt.mockReturnValue({ gasUsed: MEDIUM_GAS_THRESHOLD, status: false });
+
+      const findings: Finding[] = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+    });
   });
 
   describe("block handler test suite", () => {
@@ -187,9 +257,9 @@ describe("multi gas threshold agent", () => {
 
       await handleBlock(mockBlockEvent);
 
-      // Only the three times for the initialize
-      expect(mockFetchJwt).toHaveBeenCalledTimes(3);
-      expect(mockFetchResponse.json).toHaveBeenCalledTimes(3);
+      // Only the four times for the initialize
+      expect(mockFetchJwt).toHaveBeenCalledTimes(4);
+      expect(mockFetchResponse.json).toHaveBeenCalledTimes(4);
     });
 
     it("should persist the value in a block evenly divisible by 240", async () => {
@@ -201,24 +271,30 @@ describe("multi gas threshold agent", () => {
 
       expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockDetectedMediumGasAlerts} to database`);
       expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockDetectedHighGasAlerts} to database`);
-      expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockDetectedHighGasAlerts} to database`);
-      expect(mockFetchJwt).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
-      expect(mockFetch).toHaveBeenCalledTimes(6); // Three during initialization, three in block handler
+      expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockDetectedInfoGasAlerts} to database`);
+      expect(spy).toHaveBeenCalledWith(`successfully persisted ${mockDetectedTotalGasAlerts} to database`);
+      expect(mockFetchJwt).toHaveBeenCalledTimes(8); // Four during initialization, four in block handler
+      expect(mockFetch).toHaveBeenCalledTimes(8); // Four during initialization, four in block handler
 
-      expect(mockFetch.mock.calls[3][0]).toEqual(`${mockDbUrl}${mockMedGasKey.concat("-", mockChainId.toString())}`);
-      expect(mockFetch.mock.calls[3][1]!.method).toEqual("POST");
-      expect(mockFetch.mock.calls[3][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-      expect(mockFetch.mock.calls[3][1]!.body).toEqual(JSON.stringify(mockDetectedMediumGasAlerts));
-
-      expect(mockFetch.mock.calls[4][0]).toEqual(`${mockDbUrl}${mockHighGasKey.concat("-", mockChainId.toString())}`);
+      expect(mockFetch.mock.calls[4][0]).toEqual(`${mockDbUrl}${mockMedGasKey.concat("-", mockChainId.toString())}`);
       expect(mockFetch.mock.calls[4][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[4][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-      expect(mockFetch.mock.calls[4][1]!.body).toEqual(JSON.stringify(mockDetectedHighGasAlerts));
+      expect(mockFetch.mock.calls[4][1]!.body).toEqual(JSON.stringify(mockDetectedMediumGasAlerts));
 
-      expect(mockFetch.mock.calls[5][0]).toEqual(`${mockDbUrl}${mockAllGasKey.concat("-", mockChainId.toString())}`);
+      expect(mockFetch.mock.calls[5][0]).toEqual(`${mockDbUrl}${mockHighGasKey.concat("-", mockChainId.toString())}`);
       expect(mockFetch.mock.calls[5][1]!.method).toEqual("POST");
       expect(mockFetch.mock.calls[5][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
-      expect(mockFetch.mock.calls[5][1]!.body).toEqual(JSON.stringify(mockDetectedTotalGasAlerts));
+      expect(mockFetch.mock.calls[5][1]!.body).toEqual(JSON.stringify(mockDetectedHighGasAlerts));
+
+      expect(mockFetch.mock.calls[6][0]).toEqual(`${mockDbUrl}${mockInfoGasKey.concat("-", mockChainId.toString())}`);
+      expect(mockFetch.mock.calls[6][1]!.method).toEqual("POST");
+      expect(mockFetch.mock.calls[6][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
+      expect(mockFetch.mock.calls[6][1]!.body).toEqual(JSON.stringify(mockDetectedInfoGasAlerts));
+
+      expect(mockFetch.mock.calls[7][0]).toEqual(`${mockDbUrl}${mockAllGasKey.concat("-", mockChainId.toString())}`);
+      expect(mockFetch.mock.calls[7][1]!.method).toEqual("POST");
+      expect(mockFetch.mock.calls[7][1]!.headers).toEqual({ Authorization: `Bearer ${mockJwt}` });
+      expect(mockFetch.mock.calls[7][1]!.body).toEqual(JSON.stringify(mockDetectedTotalGasAlerts));
     });
   });
 });
