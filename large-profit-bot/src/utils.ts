@@ -211,3 +211,7 @@ export const FUNCTION_ABIS = [
   "function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)",
   "function burn(int24 tickLower, int24 tickUpper, uint128 amount)",
 ];
+
+export const EVENTS_ABIS = [
+  "event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)",
+];
