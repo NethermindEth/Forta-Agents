@@ -75,7 +75,10 @@ export const provideHandleTransaction =
     }
 
     if (txEvent.to) {
-      if (nftCollateralizedLendingProtocols[txEvent.network].includes(txEvent.to.toLowerCase())) {
+      if (
+        nftCollateralizedLendingProtocols[txEvent.network] &&
+        nftCollateralizedLendingProtocols[txEvent.network].includes(txEvent.to.toLowerCase())
+      ) {
         return findings;
       }
       if (UNISWAP_ROUTER_ADDRESSES.includes(txEvent.to.toLowerCase())) {
