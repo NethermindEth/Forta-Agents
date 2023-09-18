@@ -19,6 +19,7 @@ import {
   nftCollateralizedLendingProtocols,
   wrappedNativeTokens,
   FUNCTION_ABIS,
+  EVENTS_ABIS,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -61,6 +62,10 @@ export const provideHandleTransaction =
     transactionsProcessed += 1;
 
     if (txEvent.filterFunction(FUNCTION_ABIS).length) {
+      return findings;
+    }
+
+    if (txEvent.filterLog(EVENTS_ABIS).length) {
       return findings;
     }
 
