@@ -1,9 +1,6 @@
 import { getEthersProvider, createTransactionEvent } from "forta-agent";
 import { createNewFetcher, provideHandleTransaction, provideInitialize } from "./agent";
 
-import Fetcher from "./fetcher";
-import { keys } from "./keys";
-
 jest.setTimeout(200000);
 
 describe("Large Profit Bot test suite", () => {

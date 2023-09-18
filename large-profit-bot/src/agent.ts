@@ -21,7 +21,6 @@ import {
   FUNCTION_ABIS,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
-import { keys } from "./keys";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
 import { getSecrets } from "./storage";
 
