@@ -157,6 +157,7 @@ describe("TokenInfoFetcher tests suite", () => {
           result: [
             {
               from: mockTxFrom,
+              hash: "txEventHash",
             },
           ],
         })
@@ -166,6 +167,7 @@ describe("TokenInfoFetcher tests suite", () => {
     const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
       PROTOCOL_ADDRESS,
       mockTxFrom,
+      "txEventHash",
       chainId
     );
     expect([isFirstInteraction, hasHighNumberOfTotalTxs]).toStrictEqual([true, false]);

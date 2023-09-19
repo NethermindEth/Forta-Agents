@@ -393,6 +393,7 @@ export const provideHandleTransaction =
               const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
                 txEvent.to!,
                 txEvent.from,
+                txEvent.hash,
                 Number(txEvent.network)
               );
               if (isFirstInteraction) {
