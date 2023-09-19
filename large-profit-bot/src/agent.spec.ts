@@ -388,7 +388,7 @@ describe("Large Profit Bot test suite", () => {
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
-    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([true, false]); // First Interaction
+    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, "0x1", 1).mockReturnValue([true, false]); // First Interaction
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -419,7 +419,7 @@ describe("Large Profit Bot test suite", () => {
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
-    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, false]); // Not high number of past transactions
+    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, "0x1", 1).mockReturnValue([false, false]); // Not high number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
     const findings = await handleTransaction(txEvent);
 
@@ -451,7 +451,7 @@ describe("Large Profit Bot test suite", () => {
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
-    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, true]); // High number of past transactions
+    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, "0x1", 1).mockReturnValue([false, true]); // High number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
     const findings = await handleTransaction(txEvent);
 
@@ -483,7 +483,7 @@ describe("Large Profit Bot test suite", () => {
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
-    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, false]);
+    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, "0x1", 1).mockReturnValue([false, false]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
     const findings = await handleTransaction(txEvent);
 
@@ -515,7 +515,7 @@ describe("Large Profit Bot test suite", () => {
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreator).calledWith(mockTxTo, 1).mockReturnValue("0x4545");
-    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 1).mockReturnValue([false, true]);
+    when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, "0x1", 1).mockReturnValue([false, true]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
     const findings = await handleTransaction(txEvent);
 

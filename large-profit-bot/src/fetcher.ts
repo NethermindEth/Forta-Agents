@@ -284,7 +284,7 @@ export default class Fetcher {
     return isVerified;
   };
 
-  public getContractInfo = async (contract: string, txFrom: string, chainId: number) => {
+  public getContractInfo = async (contract: string, txFrom: string, txHash: string, chainId: number) => {
     let result;
 
     result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
@@ -296,12 +296,12 @@ export default class Fetcher {
 
     let numberOfInteractions: number = 0;
     result.result.forEach((tx: any) => {
-      if (tx.from === txFrom) {
+      if (tx.from === txFrom && tx.hash !== txHash) {
         numberOfInteractions++;
       }
     });
 
-    const isFirstInteraction = numberOfInteractions <= 1;
+    const isFirstInteraction = numberOfInteractions === 0;
     const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
 
     return [isFirstInteraction, hasHighNumberOfTotalTxs];
