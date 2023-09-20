@@ -23,6 +23,14 @@ export const provideHandleTransaction = (): HandleTransaction => {
               from: log.args.previousOwner,
               to: log.args.newOwner,
             },
+            addresses: [
+              ...new Set([
+                txEvent.from,
+                txEvent.to,
+                log.args.previousOwner.toLowerCase(),
+                log.args.newOwner.toLowerCase(),
+              ]),
+            ],
           })
         );
       }

@@ -66,6 +66,7 @@ describe("trasnferred ownership agent", () => {
             from: createAddress("0x1"),
             to: createAddress("0x2"),
           },
+          addresses: [createAddress("0x0"), createAddress("0x1"), createAddress("0x2")],
         }),
       ]);
     });
