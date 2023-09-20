@@ -1,4 +1,12 @@
-import { Finding, HandleTransaction, TransactionEvent, FindingSeverity, FindingType, ethers } from "forta-agent";
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent,
+  FindingSeverity,
+  FindingType,
+  Label,
+  EntityType,
+} from "forta-agent";
 import { isZeroAddress } from "ethereumjs-util";
 
 export const OWNERSHIP_TRANSFERRED_ABI: string =
@@ -30,6 +38,36 @@ export const provideHandleTransaction = (): HandleTransaction => {
                 log.args.previousOwner.toLowerCase(),
                 log.args.newOwner.toLowerCase(),
               ]),
+            ],
+            labels: [
+              Label.fromObject({
+                entity: txEvent.transaction.hash,
+                entityType: EntityType.Transaction,
+                label: "Ownership Transfer",
+                confidence: 0.6,
+                remove: false,
+              }),
+              Label.fromObject({
+                entity: txEvent.from,
+                entityType: EntityType.Address,
+                label: "Initiator",
+                confidence: 0.6,
+                remove: false,
+              }),
+              Label.fromObject({
+                entity: log.args.previousOwner,
+                entityType: EntityType.Address,
+                label: "Previous Owner",
+                confidence: 0.6,
+                remove: false,
+              }),
+              Label.fromObject({
+                entity: log.args.newOwner,
+                entityType: EntityType.Address,
+                label: "New Owner",
+                confidence: 0.6,
+                remove: false,
+              }),
             ],
           })
         );

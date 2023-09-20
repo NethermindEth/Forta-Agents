@@ -1,4 +1,12 @@
-import { Finding, FindingSeverity, FindingType, HandleTransaction, TransactionEvent } from "forta-agent";
+import {
+  Finding,
+  FindingSeverity,
+  FindingType,
+  HandleTransaction,
+  TransactionEvent,
+  Label,
+  EntityType,
+} from "forta-agent";
 
 import { zeroAddress } from "ethereumjs-util";
 import { provideHandleTransaction } from "./agent";
@@ -55,6 +63,37 @@ describe("trasnferred ownership agent", () => {
 
       const findings = await handleTransaction(txEvent);
 
+      const labels = [
+        Label.fromObject({
+          entity: txEvent.transaction.hash,
+          entityType: EntityType.Transaction,
+          label: "Ownership Transfer",
+          confidence: 0.6,
+          remove: false,
+        }),
+        Label.fromObject({
+          entity: txEvent.from,
+          entityType: EntityType.Address,
+          label: "Initiator",
+          confidence: 0.6,
+          remove: false,
+        }),
+        Label.fromObject({
+          entity: createAddress("0x1"),
+          entityType: EntityType.Address,
+          label: "Previous Owner",
+          confidence: 0.6,
+          remove: false,
+        }),
+        Label.fromObject({
+          entity: createAddress("0x2"),
+          entityType: EntityType.Address,
+          label: "New Owner",
+          confidence: 0.6,
+          remove: false,
+        }),
+      ];
+
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Ownership Transfer Detection",
@@ -67,6 +106,7 @@ describe("trasnferred ownership agent", () => {
             to: createAddress("0x2"),
           },
           addresses: [createAddress("0x0"), createAddress("0x1"), createAddress("0x2")],
+          labels,
         }),
       ]);
     });
