@@ -19,6 +19,15 @@ const OWNERSHIP_TRANSFERRED_ABI: string =
 
 const testContract = createAddress("0x1234");
 
+const mockCalculateAlertRate = jest.fn();
+jest.mock("bot-alert-rate", () => ({
+  ...jest.requireActual("bot-alert-rate"),
+  __esModule: true,
+  default: () => mockCalculateAlertRate(),
+}));
+
+mockCalculateAlertRate.mockResolvedValue("0.1");
+
 describe("trasnferred ownership agent", () => {
   let handleTransaction: HandleTransaction;
 
@@ -104,6 +113,7 @@ describe("trasnferred ownership agent", () => {
           metadata: {
             from: createAddress("0x1"),
             to: createAddress("0x2"),
+            anomalyScore: "0.1",
           },
           addresses: [createAddress("0x0"), createAddress("0x1"), createAddress("0x2")],
           labels,

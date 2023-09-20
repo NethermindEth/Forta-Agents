@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
+    "bot-alert-rate": "^0.0.4",
     "forta-agent": "^0.1.40"
   },
   "devDependencies": {
