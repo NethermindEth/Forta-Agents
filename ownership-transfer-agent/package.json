@@ -6,7 +6,13 @@
   "longDescription": "This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ownership-transfer-agent",
   "chainIds": [
-    1
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
   ],
   "scripts": {
     "build": "tsc",
