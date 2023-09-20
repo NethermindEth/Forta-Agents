@@ -1,25 +1,62 @@
-## Ownership Transfer
+# Ownership Transfer
 
-### Overview
+## Description
 
-This agent report when the OwnerTransferred event is emitted and the `from` address is a non zero address.
+This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address.
 
-## Installation
+## Supported Chains
+
+- Ethereum
+- Optimism
+- BNB Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Avalanche
+
+## Alerts
+
+- NETHFORTA-4
+
+  - Fired when OwnershipTransferred event is emitted when the `from` address is a non zero address
+  - Severity is always set to "High".
+  - Type is always set to "Suspicious".
+  - Metadata contains:
+    - `from`: The previous owner
+    - `to`: The new owner
+    - `anomalyScore`: Score of how anomalous the alert is (0-1)
+  - Labels contain:
+    - Label 1:
+      - `entityType`: The type of the entity, always set to "Transaction"
+      - `entity`: The transaction's hash
+      - `label`: The type of the label, always set to "Ownership Transfer"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 2:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: The tx initiator's address
+      - `label`: The type of the label, always set to "Initiator"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 2:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: Previous owner address
+      - `label`: The type of the label, always set to "Previous Owner"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+    - Label 3:
+      - `entityType`: The type of the entity, always set to "Address"
+      - `entity`: New owner address
+      - `label`: The type of the label, always set to "New Owner"
+      - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
+      - `remove`: Boolean indicating whether the label is removed. Always set to `false`
+
+## Test Data
+
+The bot behaviour can be verified with the following command:
+
+On Ethereum:
 
 ```
-npm install
-```
-
-## Run
-
-Before run the agent to see how it works with real data, specify the `JSON-RPC` provider in the forta.config.json file. Uncomment the `jsonRpcUrl` property and set it to a websocket provider (e.g. `wss://mainnet.infura.io/ws/v3/`) if deploying in production, else use HTTP provider if testing with jest. Then ready to run the agent.
-
-```
-npm start
-```
-
-## Test
-
-```
-npm test
+npm run tx 0x1e27044e3bfaba75ea95207e692da407ca325cb4c8a5602cb1943bf6cc0fd356
 ```
