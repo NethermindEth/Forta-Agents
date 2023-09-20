@@ -10,7 +10,7 @@ import {
   ethers,
   Initialize,
 } from "forta-agent";
-import { isZeroAddress } from "ethereumjs-util";
+
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import { ZETTABLOCK_API_KEY } from "./keys";
 
@@ -43,7 +43,7 @@ export const provideHandleTransaction = (): HandleTransaction => {
 
     await Promise.all(
       logs.map(async (log) => {
-        if (!isZeroAddress(log.args.previousOwner)) {
+        if (ethers.constants.AddressZero != log.args.previousOwner) {
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,

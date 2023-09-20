@@ -8,7 +8,6 @@ import {
   EntityType,
 } from "forta-agent";
 
-import { zeroAddress } from "ethereumjs-util";
 import { provideHandleTransaction } from "./agent";
 
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
@@ -56,7 +55,7 @@ describe("trasnferred ownership agent", () => {
 
     it("Returns empty findings if there is ownership transfer event from a zero address", async () => {
       const txEvent = new TestTransactionEvent().addEventLog(OWNERSHIP_TRANSFERRED_ABI, testContract, [
-        zeroAddress(),
+        createAddress("0x0"),
         createAddress("0x2"),
       ]);
 
