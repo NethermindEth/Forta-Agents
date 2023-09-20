@@ -29,25 +29,25 @@ This bot reports when the OwnershipTransferred event is emitted and the `from` a
     - Label 1:
       - `entityType`: The type of the entity, always set to "Transaction"
       - `entity`: The transaction's hash
-      - `label`: The type of the label, always set to "Ownership Transfer"
+      - `label`: The type of the label, always set to "Attack"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
     - Label 2:
       - `entityType`: The type of the entity, always set to "Address"
       - `entity`: The tx initiator's address
-      - `label`: The type of the label, always set to "Initiator"
+      - `label`: The type of the label, always set to "Attacker"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
     - Label 2:
       - `entityType`: The type of the entity, always set to "Address"
       - `entity`: Previous owner address
-      - `label`: The type of the label, always set to "Previous Owner"
+      - `label`: The type of the label, always set to "Victim"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
     - Label 3:
       - `entityType`: The type of the entity, always set to "Address"
       - `entity`: New owner address
-      - `label`: The type of the label, always set to "New Owner"
+      - `label`: The type of the label, always set to "Attacker"
       - `confidence`: The confidence level of the transaction being suspicious (0-1). Always set to `0.6`
       - `remove`: Boolean indicating whether the label is removed. Always set to `false`
 
