@@ -414,7 +414,7 @@ export default class Fetcher {
           if (!usdPrice) {
             const newCacheEntry = {
               timestamp: Date.now(),
-              value: usdPrice,
+              value: 0,
             };
             this.tokensPriceCache.set(key, newCacheEntry);
             console.log("Setting 0 as the price of token:", token);
