@@ -24,11 +24,17 @@ export type ApiKeys = {
   };
 };
 
+type TokenPriceCacheEntry = {
+  timestamp: number; // Timestamp when the cache entry was created
+  value: number; // Cached value (USD price)
+};
+
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
   private cache: LRU<string, BigNumber | number | string>;
   private tokenContract: Contract;
-  private tokensPriceCache: LRU<string, number>;
+  private tokensPriceCache: LRU<string, TokenPriceCacheEntry>;
+  private priceCacheExpirationTime: number;
   private apiKeys: ApiKeys;
 
   constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: ApiKeys) {
@@ -38,7 +44,8 @@ export default class Fetcher {
     this.cache = new LRU<string, BigNumber | number | string>({
       max: 10000,
     });
-    this.tokensPriceCache = new LRU<string, number>({ max: 10000 });
+    this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
+    this.priceCacheExpirationTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
   }
 
   public async getTotalSupply(block: number, tokenAddress: string): Promise<BigNumber> {
@@ -346,13 +353,17 @@ export default class Fetcher {
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {
     let response, usdPrice;
     let foundInCache = false;
+    const key = `usdPrice-${token}`;
 
-    for (let i = block - 9; i <= block; i++) {
-      const key = `usdPrice-${token}-${i}`;
-      if (this.tokensPriceCache.has(key)) {
-        usdPrice = this.tokensPriceCache.get(key);
+    if (this.tokensPriceCache.has(key)) {
+      const cacheEntry = this.tokensPriceCache.get(key)!;
+
+      if (cacheEntry.timestamp + this.priceCacheExpirationTime > Date.now()) {
+        usdPrice = cacheEntry.value;
         foundInCache = true;
-        break;
+      } else {
+        // Cache entry has expired, remove it from the cache
+        this.tokensPriceCache.delete(key);
       }
     }
 
@@ -401,14 +412,22 @@ export default class Fetcher {
           }
           usdPrice = await this.getUniswapPrice(chainId, token);
           if (!usdPrice) {
-            this.tokensPriceCache.set(`usdPrice-${token}-${block}`, 0);
+            const newCacheEntry = {
+              timestamp: Date.now(),
+              value: usdPrice,
+            };
+            this.tokensPriceCache.set(key, newCacheEntry);
             console.log("Setting 0 as the price of token:", token);
             return 0;
           }
         }
       }
 
-      this.tokensPriceCache.set(`usdPrice-${token}-${block}`, usdPrice);
+      const newCacheEntry = {
+        timestamp: Date.now(),
+        value: usdPrice,
+      };
+      this.tokensPriceCache.set(key, newCacheEntry);
     }
 
     let tokenAmount;
