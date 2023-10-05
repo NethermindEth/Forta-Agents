@@ -125,7 +125,6 @@ export function provideHandleAlert(): HandleAlert {
               dataFetcher.getTransactionReceipt(underlyingAlertLastTxHash),
             ]);
 
-            const scammerAddresses: string[] = [];
             extractScammerAddresses(firstTxReceipt!, scammerAddresses);
             extractScammerAddresses(lastTxReceipt!, scammerAddresses);
           }
