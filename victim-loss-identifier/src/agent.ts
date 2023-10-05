@@ -130,7 +130,6 @@ export function provideHandleAlert(): HandleAlert {
             extractScammerAddresses(lastTxReceipt!, scammerAddresses);
           }
         } else if (sourceAlertBotId === BLOCKSEC_ICE_PHISHING_BOT && !description!.includes("approve")) {
-          const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
           // Checking if scammer address exists as there exist alerts about phishing urls and not EOAs, where the property is empty.
           if (scammerAddress) scammerAddresses.push(scammerAddress);
         }
