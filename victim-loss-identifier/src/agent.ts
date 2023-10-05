@@ -1,5 +1,14 @@
-import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
-import { providers } from "ethers";
+import {
+  BlockEvent,
+  Finding,
+  Initialize,
+  HandleBlock,
+  HandleAlert,
+  AlertEvent,
+  getEthersProvider,
+  getAlerts,
+} from "forta-agent";
+import { providers, utils } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
 import { ScammerInfo, VictimInfo, ApiKeys } from "./types";
 import { getSecrets, load, persist } from "./storage";
@@ -15,7 +24,11 @@ import {
   MAX_OBJECT_SIZE,
   SCAMMERS_DB_KEY,
   VICTIMS_DB_KEY,
+  NETHERMIND_ICE_PHISHING_BOT,
+  BLOCKSEC_ICE_PHISHING_BOT,
+  ICE_PHISHING_ALERT_IDS,
 } from "./constants";
+import { extractScammerAddresses } from "./ice.phishing.processing";
 
 let chainId: number;
 let dataFetcher: DataFetcher;
@@ -57,25 +70,23 @@ export function provideInitialize(
 export function provideHandleAlert(): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
-
-    const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
-    if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
     const blocksInTwentyFiveDays = getBlocksInTimePeriodForChainId(TWENTY_FIVE_DAYS_IN_SECS, chainId);
+    const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
 
-      scammersCurrentlyMonitored[scammerAddress] = {
-        firstAlertIdAppearance: alertEvent.alertId!,
-        // Default to twenty five days ago in case Zettablock
-        // doesn't return as expected. Value to be overwritten
-        // downstream in the logic if returned values are usable.
-        // Twenty five specifically because the block handler
-        // removes scammers that haven't been active in thirty days,
-        // and this gives a couple of days to find transfers for the scammer.
-        mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
-        totalUsdValueStolen: 0,
-      };
-
-      switch (alertEvent.alertId!) {
-        case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+    switch (alertEvent.alertId!) {
+      case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+        if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+          scammersCurrentlyMonitored[scammerAddress] = {
+            firstAlertIdAppearance: alertEvent.alertId!,
+            // Default to twenty five days ago in case Zettablock
+            // doesn't return as expected. Value to be overwritten
+            // downstream in the logic if returned values are usable.
+            // Twenty five specifically because the block handler
+            // removes scammers that haven't been active in thirty days,
+            // and this gives a couple of days to find transfers for the scammer.
+            mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
+            totalUsdValueStolen: 0,
+          };
           findings.push(
             ...(await processFraudulentNftOrders(
               scammerAddress,
@@ -87,15 +98,58 @@ export function provideHandleAlert(): HandleAlert {
               alertEvent.blockNumber!
             ))
           );
-          break;
-        
-        case "SCAM-DETECTOR-ICE-PHISHING":
-          findings.push();
-          break;
+        }
+        break;
 
-        default:
-          return findings;
-      }
+      case "SCAM-DETECTOR-ICE-PHISHING":
+        const { botId: sourceAlertBotId, hash: sourceAlertHash } = alertEvent.alert.source!.sourceAlert!;
+        const underlyingAlert = (await getAlerts({ alertHash: sourceAlertHash })).alerts[0];
+
+        // E.g. npm run alert 0xd5222709dfb9a6291296cf71bf5a2aec661e8950ef1ea257edf3e9d3af8899ec
+        if (!underlyingAlert) break;
+
+        const { alertId: underlyingAlertID, metadata, description } = underlyingAlert;
+
+        if (!ICE_PHISHING_ALERT_IDS.includes(underlyingAlertID!)) break;
+
+        const scammerAddresses: string[] = [];
+
+        if (sourceAlertBotId === NETHERMIND_ICE_PHISHING_BOT) {
+          if (underlyingAlertID !== "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS") {
+            scammerAddresses.push(scammerAddress);
+          } else {
+            const underlyingAlertFirstTxHash = metadata["firstTxHash"];
+            const underlyingAlertLastTxHash = metadata["lastTxHash"];
+            const [firstTxReceipt, lastTxReceipt] = await Promise.all([
+              dataFetcher.getTransactionReceipt(underlyingAlertFirstTxHash),
+              dataFetcher.getTransactionReceipt(underlyingAlertLastTxHash),
+            ]);
+
+            const scammerAddresses: string[] = [];
+            extractScammerAddresses(firstTxReceipt!, scammerAddresses);
+            extractScammerAddresses(lastTxReceipt!, scammerAddresses);
+          }
+        } else if (sourceAlertBotId === BLOCKSEC_ICE_PHISHING_BOT && !description!.includes("approve")) {
+          const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
+          // Checking if scammer address exists as there exist alerts about phishing urls and not EOAs, where the property is empty.
+          if (scammerAddress) scammerAddresses.push(scammerAddress);
+        }
+
+        const uniqueScammerAddresses = [...new Set(scammerAddresses)];
+        uniqueScammerAddresses.forEach((scammerAddress) => {
+          if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+            scammersCurrentlyMonitored[scammerAddress] = {
+              firstAlertIdAppearance: alertEvent.alertId!,
+              mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
+              totalUsdValueStolen: 0,
+            };
+          }
+          //  findings.push(..)
+        });
+        break;
+
+      default:
+        return findings;
     }
 
     return findings;
@@ -177,7 +231,7 @@ export function provideHandleBlock(): HandleBlock {
 export default {
   initialize: provideInitialize(getEthersProvider(), createNewDataFetcher, load),
   handleAlert: provideHandleAlert(),
-  handleBlock: provideHandleBlock(),
+  // handleBlock: provideHandleBlock(),
   provideInitialize,
   provideHandleAlert,
   provideHandleBlock,

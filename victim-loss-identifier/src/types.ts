@@ -63,6 +63,15 @@ export type Erc721Transfer = {
   transaction_hash: string;
 };
 
+export type Erc20Transfer = {
+  transaction_hash: string;
+  contract_address: string;
+  from_address: string;
+  to_address: string;
+  symbol: string;
+  block_time: string;
+};
+
 export type ApiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];
