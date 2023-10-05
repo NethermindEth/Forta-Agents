@@ -11,19 +11,19 @@ export const extractScammerAddresses = (txReceipt: providers.TransactionReceipt,
 
   if (!transferLogs) return;
 
-  for (const log of transferLogs) {
-    const { topics } = log;
-    const addressToCheck = topics[2];
+  for (const transferLog of transferLogs) {
+    const { topics } = transferLog;
+    const recipientAddressToCheck = topics[2];
 
-    // Check if topics[2] doesn't exist as topics[1] in any of the other logs
-    const isNotScammer = transferLogs.some((otherLog) => {
-      const otherTopics = otherLog.topics;
-      return otherTopics[0] === topics[0] && otherTopics[1] === addressToCheck;
+    // Check if topics[2] (i.e. recipient) doesn't appear as topics[1] (i.e. sender) in any of the other `Transfer` logs
+    const isNotScammer = transferLogs.some((otherTransferLog) => {
+      const senderAddress = otherTransferLog.topics[1];
+      return senderAddress === recipientAddressToCheck;
     });
 
     // If topics[2] is not found as topics[1] in any other logs, add it to the scammerAddresses array
-    if (!isNotScammer && addressToCheck) {
-      scammerAddresses.push(utils.hexDataSlice(addressToCheck, 12));
+    if (!isNotScammer && recipientAddressToCheck) {
+      scammerAddresses.push(utils.hexDataSlice(recipientAddressToCheck, 12));
     }
   }
 };
