@@ -74,6 +74,7 @@ export type IcePhishingTransfer = {
   decimals: number;
   value: string;
   block_time: string;
+  block_number: number;
 };
 
 export type ApiKeys = {

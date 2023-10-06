@@ -446,6 +446,7 @@ export default class DataFetcher {
           decimals
           value
           block_time
+          block_number
         }
       }
     `;
@@ -466,7 +467,7 @@ export default class DataFetcher {
     while (tries < this.MAX_TRIES) {
       try {
         const response = await fetch(
-          "https://api.zettablock.com/api/v1/dataset/sq_182d8fbb68e141f5a62f2a4c1929dc83/graphql",
+          "https://api.zettablock.com/api/v1/dataset/sq_7fafe25f14f442ca9ddebae5e2bacfbb/graphql",
           {
             method: "POST",
             body,
