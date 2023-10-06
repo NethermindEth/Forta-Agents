@@ -63,12 +63,16 @@ export type Erc721Transfer = {
   transaction_hash: string;
 };
 
-export type Erc20Transfer = {
+export type IcePhishingTransfer = {
   transaction_hash: string;
   contract_address: string;
   from_address: string;
   to_address: string;
   symbol: string;
+  name: string;
+  token_id: string;
+  decimals: number;
+  value: string;
   block_time: string;
 };
 
