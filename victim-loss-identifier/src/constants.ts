@@ -52,3 +52,5 @@ export const ICE_PHISHING_ALERT_IDS = [
   "ICE-PHISHING-SUSPICIOUS-TRANSFER",
   "Ice-phishing",
 ];
+
+export const ERC20_TOKEN_NAME_ABI = "function name() public view returns (string)";
