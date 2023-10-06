@@ -8,7 +8,13 @@
   "licenseUrl": "https://github.com/NethermindEth/Forta-Agents/victim-loss-identifier/blob/main/LICENSE.md",
   "promoUrl": "",
   "chainIds": [
-    1
+    1,
+    56,
+    10,
+    137,
+    42161,
+    250,
+    43114
   ],
   "chainSettings": {
     "default": {
