@@ -2,7 +2,7 @@ import { providers } from "ethers";
 import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
 import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse, IcePhishingTransfer } from "./types";
-import { etherscanApis } from "./utils/utils";
+import { etherscanApis, getChainByChainId } from "./utils/utils";
 import { ERC20_TOKEN_NAME_ABI, FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE, ONE_DAY_IN_SECS } from "./constants";
 import { ethers } from "forta-agent";
 import { Interface } from "ethers/lib/utils";
@@ -197,19 +197,20 @@ export default class DataFetcher {
     return receipt;
   };
 
-  getErc20Price = async (tokenAddress: string, blockNumber: number): Promise<number | undefined> => {
+  getErc20Price = async (tokenAddress: string, blockNumber: number, chainId: number): Promise<number> => {
+    const chain = getChainByChainId(chainId);
     const timestamp = await this.getTimestamp(blockNumber);
 
     const key = `${tokenAddress}-${timestamp}`;
     if (this.erc20PriceCache.has(key)) {
-      return this.erc20PriceCache.get(key);
+      return this.erc20PriceCache.get(key)!;
     }
 
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        const url = `https://coins.llama.fi/prices/historical/${timestamp}/ethereum:${tokenAddress}`;
+        const url = `https://coins.llama.fi/prices/historical/${timestamp}/${chain}:${tokenAddress}`;
         const response = await fetch(url);
         const data = (await response.json()) as CoinData;
         const price = data.coins[`ethereum:${tokenAddress}`]?.price;
@@ -231,7 +232,7 @@ export default class DataFetcher {
       // Wait for 1 second before retrying
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    return undefined;
+    return 0;
   };
 
   getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
@@ -272,12 +273,18 @@ export default class DataFetcher {
     return undefined;
   };
 
-  // getValueInUsd = (block: number, chainId: number, amount: string, token: string): Promise<number> => {
-  //   const decimals = await this.getDecimals(block, token);
-  //   let tokenAmount = ethers.utils.formatUnits(amount, decimals);
+  getValueInUsd = async (
+    block: number,
+    chainId: number,
+    amount: string,
+    token: string,
+    decimals: number
+  ): Promise<number> => {
+    const usdPrice = await this.getErc20Price(token, block, chainId);
+    let tokenAmount = ethers.utils.formatUnits(amount, decimals);
 
-  //   return Number(tokenAmount) * usdPrice;
-  // };
+    return Number(tokenAmount) * usdPrice;
+  };
 
   getFloorPriceInEth = async (nftAddress: string): Promise<number> => {
     let tries = 0;
@@ -536,7 +543,7 @@ export default class DataFetcher {
 
     for (const transfer of erc20Transfers) {
       if (transfer.from === buyerAddress && sellerAddresses.includes(transfer.to)) {
-        const price = await this.getErc20Price(transfer.contractAddress, blockNumber);
+        const price = await this.getErc20Price(transfer.contractAddress, blockNumber, chainId);
         if (price && price > FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE) {
           return true;
         }
