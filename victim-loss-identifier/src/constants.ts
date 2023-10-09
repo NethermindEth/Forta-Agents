@@ -4,6 +4,18 @@ export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER", "S
 export const NETHERMIND_ICE_PHISHING_BOT = "0x8badbf2ad65abc3df5b1d9cc388e419d9255ef999fb69aac6bf395646cf01c14";
 export const BLOCKSEC_ICE_PHISHING_BOT = "0x9ba66b24eb2113ca3217c5e02ac6671182247c354327b27f645abb7c8a3e4534";
 
+export const DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS = {
+  START: 0,
+  END: 999999999,
+};
+
+export const ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID: Record<number, string> = {
+  1: "sq_7fafe25f14f442ca9ddebae5e2bacfbb",
+  56: "sq_6f668a69560c459e83bdd926b2795acc",
+  137: "sq_1605af24f1ca4cdb8bd14e612bb851c8",
+  43114: "sq_60f3587d4ed54be9be0900a91aff3dbc",
+};
+
 export const ONE_DAY_IN_SECS = 60 * 60 * 24;
 export const TWENTY_FIVE_DAYS_IN_SECS = ONE_DAY_IN_SECS * 25;
 export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;

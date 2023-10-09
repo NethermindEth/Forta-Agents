@@ -3,7 +3,12 @@ import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "
 import { LRUCache } from "lru-cache";
 import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse, IcePhishingTransfer } from "./types";
 import { etherscanApis, getChainByChainId } from "./utils/utils";
-import { ERC20_TOKEN_NAME_ABI, FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE, ONE_DAY_IN_SECS } from "./constants";
+import {
+  ERC20_TOKEN_NAME_ABI,
+  FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE,
+  ONE_DAY_IN_SECS,
+  ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID,
+} from "./constants";
 import { ethers } from "forta-agent";
 import { Interface } from "ethers/lib/utils";
 
@@ -422,7 +427,11 @@ export default class DataFetcher {
     return erc721Transfers;
   };
 
-  getScammerIcePhishingTransfers = async (scammerAddress: string, transferOccuranceTimeWindowInDays: number) => {
+  getScammerIcePhishingTransfers = async (
+    scammerAddress: string,
+    transferOccuranceTimeWindowInDays: number,
+    chainId: number
+  ) => {
     let icePhishingTransfers: IcePhishingTransfer[] = [];
 
     const currentTime = new Date();
@@ -474,7 +483,7 @@ export default class DataFetcher {
     while (tries < this.MAX_TRIES) {
       try {
         const response = await fetch(
-          "https://api.zettablock.com/api/v1/dataset/sq_7fafe25f14f442ca9ddebae5e2bacfbb/graphql",
+          `https://api.zettablock.com/api/v1/dataset/${ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID[chainId]}/graphql`,
           {
             method: "POST",
             body,
