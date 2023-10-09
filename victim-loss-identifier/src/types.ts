@@ -69,10 +69,10 @@ export type IcePhishingTransfer = {
   from_address: string;
   to_address: string;
   symbol: string;
-  name: string;
-  token_id: string;
-  decimals: number;
-  value: string;
+  name: string | null;
+  token_id: string | null;
+  decimals: number | null;
+  value: string | null;
   block_time: string;
   block_number: number;
 };
