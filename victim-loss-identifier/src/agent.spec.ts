@@ -112,8 +112,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnReceiptFourteen,
       mockTxnReceiptFifteen,
       mockTxnReceiptSixteen,
-      mockTxnReceiptSeventeen, // mockTxnReceiptEighteen,
-      // mockTxnReceiptNineteen,
+      mockTxnReceiptSeventeen,
     ]: MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
     const [
       mockTxnResponse,
@@ -132,8 +131,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       mockTxnResponseFourteen,
       mockTxnResponseFifteen,
       mockTxnResponseSixteen,
-      mockTxnResponseSeventeen, // mockTxnResponseEighteen,
-      // mockTxnResponseNineteen,
+      mockTxnResponseSeventeen,
     ]: MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -192,14 +190,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransactionReceipt)
         .calledWith(mockExploitSeventeen.exploitTxnHash)
         .mockResolvedValue(mockTxnReceiptSeventeen);
-      /*
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitEighteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptEighteen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitNineteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptNineteen);
-      */
 
       when(mockDataFetcher.getTransaction).calledWith(mockExploit.exploitTxnHash).mockResolvedValue(mockTxnResponse);
       when(mockDataFetcher.getTransaction)
@@ -250,14 +240,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransaction)
         .calledWith(mockExploitSeventeen.exploitTxnHash)
         .mockResolvedValue(mockTxnResponseSeventeen);
-      /*
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitEighteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseEighteen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitNineteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseNineteen);
-      */
 
       when(mockDataFetcher.getNftCollectionFloorPrice)
         .calledWith(mockExploit.stolenTokenAddress, mockExploit.blockNumber)
@@ -310,14 +292,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getNftCollectionFloorPrice)
         .calledWith(mockExploitSeventeen.stolenTokenAddress, mockExploitSeventeen.blockNumber)
         .mockResolvedValue(mockNftFloorPrice);
-      /*
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitEighteen.stolenTokenAddress, mockExploitEighteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitNineteen.stolenTokenAddress, mockExploitNineteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      */
+
       mockDataFetcher.hasBuyerTransferredTokenToSeller.mockResolvedValue(false);
       initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
       await initialize();
