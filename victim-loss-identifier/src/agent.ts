@@ -8,7 +8,7 @@ import {
   getEthersProvider,
   getAlerts,
 } from "forta-agent";
-import { providers, utils } from "ethers";
+import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
 import { ScammerInfo, VictimInfo, ApiKeys } from "./types";
 import { getSecrets, load, persist } from "./storage";
@@ -27,8 +27,9 @@ import {
   NETHERMIND_ICE_PHISHING_BOT,
   BLOCKSEC_ICE_PHISHING_BOT,
   ICE_PHISHING_ALERT_IDS,
+  DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS,
 } from "./constants";
-import { extractScammerAddresses } from "./ice.phishing.processing";
+import { extractScammerAddresses, processIcePhishingTransfers } from "./ice.phishing.processing";
 
 let chainId: number;
 let dataFetcher: DataFetcher;
@@ -36,6 +37,9 @@ let lastPersistenceMinute: number;
 
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 let victimsScammed: { [key: string]: VictimInfo } = {};
+
+const findingsCache: Finding[] = [];
+const scammersInvolvedInMultipleScamTypes: string[] = [];
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
   const apiKeys = (await getSecrets()) as ApiKeys;
@@ -69,7 +73,6 @@ export function provideInitialize(
 
 export function provideHandleAlert(): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
     const blocksInTwentyFiveDays = getBlocksInTimePeriodForChainId(TWENTY_FIVE_DAYS_IN_SECS, chainId);
     const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
 
@@ -87,7 +90,7 @@ export function provideHandleAlert(): HandleAlert {
             mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
             totalUsdValueStolen: 0,
           };
-          findings.push(
+          findingsCache.push(
             ...(await processFraudulentNftOrders(
               scammerAddress,
               NINETY_DAYS,
@@ -98,12 +101,33 @@ export function provideHandleAlert(): HandleAlert {
               alertEvent.blockNumber!
             ))
           );
+        } else if (
+          // Tentative logic to keep track of scammers involved in multiple scam types
+          scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance !== alertEvent.alertId! &&
+          !scammersInvolvedInMultipleScamTypes.includes(scammerAddress)
+        ) {
+          scammersInvolvedInMultipleScamTypes.push(scammerAddress);
+          console.log(`Scammer ${scammerAddress} has been involved in multiple scam types`);
         }
         break;
 
       case "SCAM-DETECTOR-ICE-PHISHING":
-        const { botId: sourceAlertBotId, hash: sourceAlertHash } = alertEvent.alert.source!.sourceAlert!;
-        const underlyingAlert = (await getAlerts({ alertHash: sourceAlertHash })).alerts[0];
+        const sourceAlertBotId = alertEvent.alert.source?.sourceAlert?.botId;
+        const sourceAlertHash = alertEvent.alert.source?.sourceAlert?.hash;
+        const underlyingAlert = sourceAlertHash
+          ? (
+              await getAlerts({
+                alertHash: sourceAlertHash,
+                blockNumberRange: {
+                  // Requires blockNumberRange to be set to fetch the alert successfully
+                  startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+                  endBlockNumber: alertEvent.blockNumber
+                    ? alertEvent.blockNumber
+                    : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+                },
+              })
+            ).alerts[0]
+          : undefined;
 
         // E.g. npm run alert 0xd5222709dfb9a6291296cf71bf5a2aec661e8950ef1ea257edf3e9d3af8899ec
         if (!underlyingAlert) break;
@@ -134,29 +158,47 @@ export function provideHandleAlert(): HandleAlert {
         }
 
         const uniqueScammerAddresses = [...new Set(scammerAddresses)];
-        uniqueScammerAddresses.forEach((scammerAddress) => {
+        for (const scammerAddress of uniqueScammerAddresses) {
           if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
             scammersCurrentlyMonitored[scammerAddress] = {
               firstAlertIdAppearance: alertEvent.alertId!,
               mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
               totalUsdValueStolen: 0,
             };
+
+            findingsCache.push(
+              ...(await processIcePhishingTransfers(
+                scammerAddress,
+                NINETY_DAYS,
+                dataFetcher,
+                scammersCurrentlyMonitored,
+                victimsScammed,
+                chainId,
+                alertEvent.blockNumber!
+              ))
+            );
+          } else if (
+            // Tentative logic to keep track of scammers involved in multiple scam types
+            scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance !== alertEvent.alertId! &&
+            !scammersInvolvedInMultipleScamTypes.includes(scammerAddress)
+          ) {
+            scammersInvolvedInMultipleScamTypes.push(scammerAddress);
+            console.log(`Scammer ${scammerAddress} has been involved in multiple scam types`);
           }
-          //  findings.push(..)
-        });
-        break;
 
-      default:
-        return findings;
+          break;
+        }
     }
-
-    return findings;
+    return findingsCache.splice(0, 15);
   };
 }
 
 export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    // Tentative logic to keep track of scammers involved in multiple scam types
+    if (blockEvent.blockNumber % 100 === 0 && scammersInvolvedInMultipleScamTypes.length > 0) {
+      console.log("Scammers involved in multiple scam types: ", scammersInvolvedInMultipleScamTypes);
+    }
 
     const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY_IN_SECS, chainId);
 
@@ -168,17 +210,32 @@ export function provideHandleBlock(): HandleBlock {
         const scammerLastActiveInSecs = blocksSinceScammerLastActive * getChainBlockTime(chainId);
         const daysSinceScammerLastActive = Math.ceil(scammerLastActiveInSecs / ONE_DAY_IN_SECS);
 
-        const fraudulentNftOrderFindings = await processFraudulentNftOrders(
-          scammerAddress,
-          daysSinceScammerLastActive,
-          dataFetcher,
-          scammersCurrentlyMonitored,
-          victimsScammed,
-          chainId,
-          blockEvent.blockNumber
-        );
-
-        findings.push(...fraudulentNftOrderFindings);
+        switch (scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance) {
+          case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+            const fraudulentNftOrderFindings = await processFraudulentNftOrders(
+              scammerAddress,
+              daysSinceScammerLastActive,
+              dataFetcher,
+              scammersCurrentlyMonitored,
+              victimsScammed,
+              chainId,
+              blockEvent.blockNumber
+            );
+            findingsCache.push(...fraudulentNftOrderFindings);
+            break;
+          case "SCAM-DETECTOR-ICE-PHISHING":
+            const icePhishingFindings = await processIcePhishingTransfers(
+              scammerAddress,
+              daysSinceScammerLastActive,
+              dataFetcher,
+              scammersCurrentlyMonitored,
+              victimsScammed,
+              chainId,
+              blockEvent.blockNumber
+            );
+            findingsCache.push(...icePhishingFindings);
+            break;
+        }
 
         const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS_IN_SECS, chainId);
         if (
@@ -222,14 +279,14 @@ export function provideHandleBlock(): HandleBlock {
       lastPersistenceMinute = minutes;
     }
 
-    return findings;
+    return findingsCache.splice(0, 15);
   };
 }
 
 export default {
   initialize: provideInitialize(getEthersProvider(), createNewDataFetcher, load),
   handleAlert: provideHandleAlert(),
-  // handleBlock: provideHandleBlock(),
+  handleBlock: provideHandleBlock(),
   provideInitialize,
   provideHandleAlert,
   provideHandleBlock,
