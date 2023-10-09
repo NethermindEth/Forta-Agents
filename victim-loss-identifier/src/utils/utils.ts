@@ -132,6 +132,130 @@ export function extractFalsePositiveDataAndUpdateState(
   };
 }
 
+export function linkScammerToItsVictim(
+  scammers: { [key: string]: ScammerInfo },
+  scammerAddress: string,
+  victims: { [key: string]: VictimInfo },
+  victimAddress: string
+) {
+  if (!scammers[scammerAddress].victims) {
+    // If scammer has no victims, add first victim
+    scammers[scammerAddress].victims = {
+      [victimAddress]: victims[victimAddress],
+    };
+  } else if (!scammers[scammerAddress].victims![victimAddress]) {
+    // If scammer doesn't have _this_ specific victim, add victim
+    scammers[scammerAddress].victims![victimAddress] = victims[victimAddress];
+  }
+}
+
+export function addVictimInfoToVictims(
+  victimAddress: string,
+  victims: { [key: string]: VictimInfo },
+  scammerAddress: string,
+  exploitTxnHash: string,
+  stolenTokenAddress: string,
+  stolenTokenName: string,
+  stolenTokenSymbol: string,
+  stolenTokenDecimals: number | null,
+  transactionBlockNumber: number
+) {
+  if (!victims[victimAddress]) {
+    // If victim has not previously
+    // been documented, add them
+    victims[victimAddress] = {
+      mostRecentActivityByBlockNumber: transactionBlockNumber,
+      totalUsdValueAcrossAllTokens: 0,
+      totalUsdValueAcrossAllErc721Tokens: 0,
+      totalUsdValueAcrossAllErc20Tokens: 0,
+      scammedBy: {
+        [scammerAddress]: {
+          totalUsdValueLostToScammer: 0,
+          hasBeenAlerted: false,
+          transactions: {},
+        },
+      },
+    };
+  }
+
+  if (!victims[victimAddress].scammedBy[scammerAddress]) {
+    // If victim has not previously been documented to have
+    // been scammed by this scammer, add them as an entry
+    victims[victimAddress].scammedBy[scammerAddress] = {
+      totalUsdValueLostToScammer: 0,
+      hasBeenAlerted: false,
+      transactions: {},
+    };
+  }
+
+  if (!victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash]) {
+    // If victim, having been already scammed by this scammer,
+    // doesn't have _this_ specific transaction, add as new entry
+    victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash] = {};
+  }
+
+  const transaction = victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash];
+
+  if (stolenTokenDecimals === null) {
+    // ERC721 Transaction
+    transaction.erc721 = {
+      [stolenTokenAddress]: {
+        tokenName: stolenTokenName,
+        tokenSymbol: stolenTokenSymbol,
+        tokenIds: [],
+        tokenTotalUsdValue: 0,
+      },
+    };
+  } else {
+    // ERC20 Transaction
+    transaction.erc20 = {
+      [stolenTokenAddress]: {
+        tokenName: stolenTokenName,
+        tokenSymbol: stolenTokenSymbol,
+        tokenAmount: 0,
+        tokenTotalUsdValue: 0,
+        tokenDecimal: stolenTokenDecimals,
+      },
+    };
+  }
+
+  // Update its most recent block
+  victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
+}
+
+export function increaseStolenUsdAmounts(
+  scammers: { [key: string]: ScammerInfo },
+  scammerAddress: string,
+  victims: { [key: string]: VictimInfo },
+  victimAddress: string,
+  exploitTxnHash: string,
+  stolenTokenAddress: string,
+  stolenTokenId: string | null,
+  isTokenErc20: boolean,
+  stolenTokenValue: string,
+  usdPrice: number
+) {
+  scammers[scammerAddress].totalUsdValueStolen += usdPrice;
+
+  const currentVictim = victims[victimAddress];
+  currentVictim.totalUsdValueAcrossAllTokens! += usdPrice;
+  currentVictim.scammedBy[scammerAddress].totalUsdValueLostToScammer += usdPrice;
+
+  if (isTokenErc20) {
+    currentVictim.totalUsdValueAcrossAllErc20Tokens! += usdPrice;
+    const currentVictimStolenErc20Info =
+      currentVictim.scammedBy[scammerAddress].transactions[exploitTxnHash].erc20![stolenTokenAddress];
+    currentVictimStolenErc20Info.tokenAmount += Number(stolenTokenValue);
+    currentVictimStolenErc20Info.tokenTotalUsdValue! += usdPrice;
+  } else {
+    currentVictim.totalUsdValueAcrossAllErc721Tokens! += usdPrice;
+    const currentVictimStolenErc721Info =
+      currentVictim.scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress];
+    currentVictimStolenErc721Info.tokenTotalUsdValue! += usdPrice;
+    currentVictimStolenErc721Info.tokenIds.push(Number(stolenTokenId));
+  }
+}
+
 export const etherscanApis: EtherscanApisInterface = {
   1: {
     tokenTx: "https://api.etherscan.io/api?module=account&action=tokentx",
@@ -161,6 +285,25 @@ export const etherscanApis: EtherscanApisInterface = {
     tokenTx: "https://api.snowtrace.io/api?module=account&action=tokentx",
     nftTx: "https://api.snowtrace.io/api?module=account&action=tokennfttx",
   },
+};
+
+export const getChainByChainId = (chainId: number) => {
+  switch (Number(chainId)) {
+    case 10:
+      return "optimism";
+    case 56:
+      return "bsc";
+    case 137:
+      return "polygon";
+    case 250:
+      return "fantom";
+    case 42161:
+      return "arbitrum";
+    case 43114:
+      return "avax";
+    default:
+      return "ethereum";
+  }
 };
 
 export async function isScammerFalsePositive(
