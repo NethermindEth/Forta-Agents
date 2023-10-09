@@ -54,8 +54,12 @@ export function provideInitialize(
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    victimsScammed = await loadObject(VICTIMS_DB_KEY);
-    scammersCurrentlyMonitored = await loadObject(SCAMMERS_DB_KEY);
+
+    const victimsKey = VICTIMS_DB_KEY + "-" + chainId;
+    const scammersKey = SCAMMERS_DB_KEY + "-" + chainId;
+
+    victimsScammed = await loadObject(victimsKey);
+    scammersCurrentlyMonitored = await loadObject(scammersKey);
 
     return {
       alertConfig: {
