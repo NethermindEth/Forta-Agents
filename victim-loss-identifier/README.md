@@ -84,7 +84,7 @@ The bot continues its assessment of victims and losses on a daily basis, with th
    - `label`: Exploit
    - `confidence`: 0.7
 
-> "\*" Optional propery
+> "\*" Optional property
 
 ### VICTIM-LOSS-INFORMATION-FALSE-POSITIVE
 
