@@ -135,12 +135,12 @@ describe("DataFetcher tests suite", () => {
       timestamp: 1648680228,
     });
 
-    const wethPrice = await fetcher.getErc20Price(WETH, 1234);
+    const wethPrice = await fetcher.getErc20Price(WETH, 1234, 1);
     expect(wethPrice).toStrictEqual(3381.798048538271);
 
     expect(global.fetch).toHaveBeenCalledTimes(2); // 2 calls: 1st failure + 1 retry success
 
-    const wethPriceCached = await fetcher.getErc20Price(WETH, 1234);
+    const wethPriceCached = await fetcher.getErc20Price(WETH, 1234, 1);
     expect(wethPriceCached).toStrictEqual(3381.798048538271);
     expect(global.fetch).toHaveBeenCalledTimes(2); // No extra calls, cached value used
   });
@@ -352,8 +352,8 @@ describe("DataFetcher tests suite", () => {
     expect(result).toBe(true); // Expecting true because ERC20 transfer amount is above the threshold
     expect(fetcher.getERC20TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
     expect(fetcher.getERC721TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
-    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenA", blockNumber);
-    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenC", blockNumber); // Previous price fetched was under threshold, so we're checking this as well
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenA", blockNumber, 56);
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenC", blockNumber, 56); // Previous price fetched was under threshold, so we're checking this as well
   });
 
   it("should check if buyer has transferred token to seller using ERC721 transfers", async () => {
