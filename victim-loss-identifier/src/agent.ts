@@ -129,7 +129,6 @@ export function provideHandleAlert(): HandleAlert {
             ).alerts[0]
           : undefined;
 
-        // E.g. npm run alert 0xd5222709dfb9a6291296cf71bf5a2aec661e8950ef1ea257edf3e9d3af8899ec
         if (!underlyingAlert) break;
 
         const { alertId: underlyingAlertID, metadata, description } = underlyingAlert;
