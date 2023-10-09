@@ -1,10 +1,15 @@
-// import { Finding } from "forta-agent";
-// import { EXCHANGE_CONTRACT_ADDRESSES, FRAUD_NFT_SALE_VALUE_UPPER_THRESHOLD } from "./constants";
-// import DataFetcher from "./fetcher";
-// import { Erc20Transfer, Erc721Transfer, ScammerInfo, VictimInfo } from "./types";
-// import { createFpFinding, createFraudNftOrderFinding } from "./utils/findings";
-// import { isScammerFalsePositive, extractFalsePositiveDataAndUpdateState } from "./utils/utils";
+import { Finding } from "forta-agent";
+import DataFetcher from "./fetcher";
+import { IcePhishingTransfer, ScammerInfo, VictimInfo } from "./types";
 import { utils, providers } from "ethers";
+import {
+  addVictimInfoToVictims,
+  extractFalsePositiveDataAndUpdateState,
+  increaseStolenUsdAmounts,
+  isScammerFalsePositive,
+  linkScammerToItsVictim,
+} from "./utils/utils";
+import { createFpFinding, createIcePhishingFinding } from "./utils/findings";
 
 export const extractScammerAddresses = (txReceipt: providers.TransactionReceipt, scammerAddresses: string[]) => {
   const transferLogs = txReceipt.logs.filter((log) => log.topics[0] === utils.id("Transfer(address,address,uint256)"));
@@ -28,85 +33,116 @@ export const extractScammerAddresses = (txReceipt: providers.TransactionReceipt,
   }
 };
 
-// export async function processErc20IcePhishingTransfers(
-//   scammerAddress: string,
-//   erc721TransferTimeWindowInDays: number,
-//   dataFetcher: DataFetcher,
-//   scammers: { [key: string]: ScammerInfo },
-//   victims: { [key: string]: VictimInfo },
-//   chainId: number,
-//   blockNumber: number
-// ): Promise<Finding[]> {
-//   const findings: Finding[] = [];
-//   let fpAlerted = false;
+export async function processIcePhishingTransfers(
+  scammerAddress: string,
+  icePhishingTransferTimeWindowInDays: number,
+  dataFetcher: DataFetcher,
+  scammers: { [key: string]: ScammerInfo },
+  victims: { [key: string]: VictimInfo },
+  chainId: number,
+  alertBlockNumber: number
+): Promise<Finding[]> {
+  const findings: Finding[] = [];
+  let fpAlerted = false;
 
-//   const scammerErc20Transfers: Erc20Transfer[] = await dataFetcher.getScammerErc20IcePhishingTransfers(
-//     scammerAddress,
-//     erc721TransferTimeWindowInDays
-//   );
+  const scammerIcePhishingTransfers: IcePhishingTransfer[] = await dataFetcher.getScammerIcePhishingTransfers(
+    scammerAddress,
+    icePhishingTransferTimeWindowInDays,
+    chainId
+  );
 
-//   for (const erc20Transfer of scammerErc20Transfers) {
-//     const {
-//       transaction_hash: exploitTxnHash,
-//       contract_address: stolenTokenAddress,
-//       from_address: victimAddress,
-//       symbol: stolenTokenSymbol,
-//     }: Erc20Transfer = erc20Transfer;
-//     const txnReceipt = await dataFetcher.getTransactionReceipt(exploitTxnHash);
-//     const txnLogs = txnReceipt!.logs;
+  for (const icePhishingTransfer of scammerIcePhishingTransfers) {
+    const {
+      transaction_hash: exploitTxnHash,
+      contract_address: stolenTokenAddress,
+      from_address: victimAddress,
+      symbol: stolenTokenSymbol,
+      name: originalStolenTokenName,
+      token_id: stolenTokenId,
+      decimals: stolenTokenDecimals,
+      value: stolenTokenValue,
+      block_number: blockNumber,
+    }: IcePhishingTransfer = icePhishingTransfer;
+    // Zettablock doesn't return token name for ERC20s
+    let stolenTokenName = originalStolenTokenName;
+    if (!originalStolenTokenName) {
+      stolenTokenName = await dataFetcher.getTokenName(stolenTokenAddress, blockNumber);
+    }
 
-//     addVictimInfoToVictims(
-//       victimAddress,
-//       victims,
-//       scammerAddress,
-//       exploitTxnHash,
-//       stolenTokenAddress,
-//       stolenTokenName,
-//       stolenTokenSymbol,
-//       txnResponse!.blockNumber!
-//     );
-//     linkScammerToItsVictim(scammers, scammerAddress, victims, victimAddress);
-//     increaseStolenUsdAmounts(
-//       scammers,
-//       scammerAddress,
-//       victims,
-//       victimAddress,
-//       exploitTxnHash,
-//       stolenTokenAddress,
-//       stolenTokenId,
-//       nftCollectionFloorPrice
-//     );
-//     scammers[scammerAddress].mostRecentActivityByBlockNumber = txnResponse!.blockNumber!;
+    let nftCollectionFloorPrice: number | null = null;
+    let stolenTokenUsdValue: number | null = null;
 
-//     if (await isScammerFalsePositive(scammerAddress, scammers, dataFetcher, chainId, blockNumber)) {
-//       const { fpVictims, fpData } = extractFalsePositiveDataAndUpdateState(scammerAddress, scammers, victims);
-//       findings.push(createFpFinding(scammerAddress, fpVictims, fpData));
-//       fpAlerted = true;
-//       break;
-//     } else {
-//       findings.push(
-//         createFraudNftOrderFinding(
-//           victimAddress,
-//           scammerAddress,
-//           scammers[scammerAddress].firstAlertIdAppearance,
-//           victims[victimAddress].totalUsdValueAcrossAllTokens!,
-//           stolenTokenName,
-//           stolenTokenAddress,
-//           stolenTokenId,
-//           victims[victimAddress].totalUsdValueAcrossAllErc721Tokens!,
-//           exploitTxnHash,
-//           nftCollectionFloorPrice,
-//           erc721TransferTimeWindowInDays,
-//           victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
-//         )
-//       );
-//       victims[victimAddress].scammedBy[scammerAddress].hasBeenAlerted = true;
-//     }
-//     // }
-//   }
-//   if (fpAlerted) {
-//     console.log("Deleting FP scammer from state: ", scammerAddress);
-//     delete scammers[scammerAddress];
-//   }
-//   return findings;
-// }
+    if (!stolenTokenDecimals) {
+      nftCollectionFloorPrice = await dataFetcher.getNftCollectionFloorPrice(stolenTokenAddress, blockNumber);
+    } else {
+      stolenTokenUsdValue = await dataFetcher.getValueInUsd(
+        blockNumber,
+        chainId,
+        stolenTokenValue!,
+        stolenTokenAddress,
+        stolenTokenDecimals
+      );
+    }
+
+    addVictimInfoToVictims(
+      victimAddress,
+      victims,
+      scammerAddress,
+      exploitTxnHash,
+      stolenTokenAddress,
+      stolenTokenName!,
+      stolenTokenSymbol,
+      stolenTokenDecimals,
+      blockNumber
+    );
+    linkScammerToItsVictim(scammers, scammerAddress, victims, victimAddress);
+
+    increaseStolenUsdAmounts(
+      scammers,
+      scammerAddress,
+      victims,
+      victimAddress,
+      exploitTxnHash,
+      stolenTokenAddress,
+      stolenTokenId,
+      stolenTokenDecimals ? true : false,
+      stolenTokenDecimals ? stolenTokenValue! : "0",
+      stolenTokenDecimals ? stolenTokenUsdValue! : nftCollectionFloorPrice!
+    );
+    scammers[scammerAddress].mostRecentActivityByBlockNumber = blockNumber;
+
+    if (await isScammerFalsePositive(scammerAddress, scammers, dataFetcher, chainId, alertBlockNumber)) {
+      const { fpVictims, fpData } = extractFalsePositiveDataAndUpdateState(scammerAddress, scammers, victims);
+      findings.push(createFpFinding(scammerAddress, fpVictims, fpData));
+      fpAlerted = true;
+      break;
+    } else {
+      findings.push(
+        createIcePhishingFinding(
+          victimAddress,
+          scammerAddress,
+          scammers[scammerAddress].firstAlertIdAppearance,
+          victims[victimAddress].totalUsdValueAcrossAllTokens!,
+          stolenTokenName!,
+          stolenTokenAddress,
+          stolenTokenId,
+          stolenTokenValue,
+          stolenTokenDecimals
+            ? victims[victimAddress].totalUsdValueAcrossAllErc20Tokens!
+            : victims[victimAddress].totalUsdValueAcrossAllErc721Tokens!,
+          exploitTxnHash,
+          stolenTokenDecimals ? true : false,
+          stolenTokenDecimals ? stolenTokenUsdValue! : nftCollectionFloorPrice!,
+          icePhishingTransferTimeWindowInDays,
+          victims[victimAddress].scammedBy![scammerAddress].totalUsdValueLostToScammer
+        )
+      );
+      victims[victimAddress].scammedBy[scammerAddress].hasBeenAlerted = true;
+    }
+  }
+  if (fpAlerted) {
+    console.log("Deleting FP scammer from state: ", scammerAddress);
+    delete scammers[scammerAddress];
+  }
+  return findings;
+}
