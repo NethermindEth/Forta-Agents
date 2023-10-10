@@ -123,8 +123,8 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 
 ## 📊 Data Sources
 
-- Zettablock (ERC721 Transfer events)
-- DefiLlama (ETH price)
+- Zettablock (ERC721/ERC20 Transfer events)
+- DefiLlama (ETH/ERC20 prices)
 - Alchemy (NFT collection floor price)
 
 ## 🧪 Test Data
