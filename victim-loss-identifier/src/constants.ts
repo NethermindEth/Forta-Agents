@@ -60,10 +60,10 @@ export const TOKENS_BURNED_AS_PAYMENT: Record<string, string> = {
 };
 
 export const ICE_PHISHING_ALERT_IDS = [
-  "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS",
-  "ICE-PHISHING-PERMITTED-ERC20-TRANSFER",
-  "ICE-PHISHING-SUSPICIOUS-TRANSFER",
-  "Ice-phishing",
+  "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS", // Nethermind
+  "ICE-PHISHING-SUSPICIOUS-TRANSFER", // Nethermind
+  "Ice-phishing", // Blocksec
+  "omitted", // Blocksec
 ];
 
 export const ERC20_TOKEN_NAME_ABI = "function name() public view returns (string)";
