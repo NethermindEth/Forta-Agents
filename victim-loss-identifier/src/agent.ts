@@ -278,8 +278,8 @@ export function provideHandleBlock(): HandleBlock {
         largerObjectSize = scammersObjectSize < victimsObjectSize ? victimsObjectSize : scammersObjectSize;
       }
 
-      await persist(scammersCurrentlyMonitored, SCAMMERS_DB_KEY);
-      await persist(victimsScammed, VICTIMS_DB_KEY);
+      await persist(scammersCurrentlyMonitored, SCAMMERS_DB_KEY + "-" + chainId);
+      await persist(victimsScammed, VICTIMS_DB_KEY + "-" + chainId);
       lastPersistenceMinute = minutes;
     }
 
