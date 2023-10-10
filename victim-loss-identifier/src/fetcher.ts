@@ -6,7 +6,7 @@ import { etherscanApis, getChainByChainId } from "./utils/utils";
 import {
   ERC20_TOKEN_NAME_ABI,
   FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE,
-  ONE_DAY_IN_SECS,
+  ONE_DAY_IN_MS,
   ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID,
 } from "./constants";
 import { ethers } from "forta-agent";
@@ -218,7 +218,7 @@ export default class DataFetcher {
         const url = `https://coins.llama.fi/prices/historical/${timestamp}/${chain}:${tokenAddress}`;
         const response = await fetch(url);
         const data = (await response.json()) as CoinData;
-        const price = data.coins[`ethereum:${tokenAddress}`]?.price;
+        const price = data.coins[`${chain}:${tokenAddress}`]?.price;
 
         if (price == null) {
           tries++; // Increment tries counter for null price
@@ -356,8 +356,7 @@ export default class DataFetcher {
     let erc721Transfers: Erc721Transfer[] = [];
 
     const currentTime = new Date();
-    const oneDayInMs = ONE_DAY_IN_SECS * 1000;
-    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * oneDayInMs;
+    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * ONE_DAY_IN_MS;
 
     const maxTimestamp = currentTime.toISOString();
     const minTimestamp = new Date(currentTime.getTime() - daysTimeWindowInMs).toISOString();
@@ -435,8 +434,7 @@ export default class DataFetcher {
     let icePhishingTransfers: IcePhishingTransfer[] = [];
 
     const currentTime = new Date();
-    const oneDayInMs = ONE_DAY_IN_SECS * 1000;
-    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * oneDayInMs;
+    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * ONE_DAY_IN_MS;
 
     const maxTimestamp = currentTime.toISOString();
     const minTimestamp = new Date(currentTime.getTime() - daysTimeWindowInMs).toISOString();

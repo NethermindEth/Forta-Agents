@@ -121,6 +121,7 @@ export function provideHandleAlert(): HandleAlert {
         const underlyingAlert = sourceAlertHash
           ? (
               await getAlerts({
+                botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
                 alertHash: sourceAlertHash,
                 blockNumberRange: {
                   // Requires blockNumberRange to be set to fetch the alert successfully
@@ -135,14 +136,14 @@ export function provideHandleAlert(): HandleAlert {
 
         if (!underlyingAlert) break;
 
-        const { alertId: underlyingAlertID, metadata, description } = underlyingAlert;
+        const { alertId: underlyingAlertId, metadata, description } = underlyingAlert;
 
-        if (!ICE_PHISHING_ALERT_IDS.includes(underlyingAlertID!)) break;
+        if (!ICE_PHISHING_ALERT_IDS.includes(underlyingAlertId!)) break;
 
         const scammerAddresses: string[] = [];
 
         if (sourceAlertBotId === NETHERMIND_ICE_PHISHING_BOT) {
-          if (underlyingAlertID !== "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS") {
+          if (underlyingAlertId !== "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS") {
             scammerAddresses.push(scammerAddress);
           } else {
             const underlyingAlertFirstTxHash = metadata["firstTxHash"];

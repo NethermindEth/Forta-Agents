@@ -17,6 +17,7 @@ export const ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID: Record<number, string> 
 };
 
 export const ONE_DAY_IN_SECS = 60 * 60 * 24;
+export const ONE_DAY_IN_MS = ONE_DAY_IN_SECS * 1000;
 export const TWENTY_FIVE_DAYS_IN_SECS = ONE_DAY_IN_SECS * 25;
 export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;
 export const EIGHTY_DAYS_IN_MS = ONE_DAY_IN_SECS * 80 * 1000; // Max value that returns alert query results after testing

@@ -64,10 +64,9 @@ export async function processIcePhishingTransfers(
       block_number: blockNumber,
     }: IcePhishingTransfer = icePhishingTransfer;
     // Zettablock doesn't return token name for ERC20s
-    let stolenTokenName = originalStolenTokenName;
-    if (!originalStolenTokenName) {
-      stolenTokenName = await dataFetcher.getTokenName(stolenTokenAddress, blockNumber);
-    }
+    const stolenTokenName = !originalStolenTokenName
+      ? await dataFetcher.getTokenName(stolenTokenAddress, blockNumber)
+      : originalStolenTokenName;
 
     let nftCollectionFloorPrice: number | null = null;
     let stolenTokenUsdValue: number | null = null;
