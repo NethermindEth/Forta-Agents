@@ -5,12 +5,12 @@ import { TOKEN_ABI } from "./utils";
 
 export default class BalanceFetcher {
   readonly provider: providers.Provider;
-  private cache: LRU<string, Promise<BigNumber>>;
+  private cache: LRU<string, BigNumber>;
   private tokenContract: Contract;
 
   constructor(provider: providers.Provider) {
     this.provider = provider;
-    this.cache = new LRU<string, Promise<BigNumber>>({
+    this.cache = new LRU<string, BigNumber>({
       max: 10000,
     });
     this.tokenContract = new Contract("", new Interface([TOKEN_ABI[0]]), this.provider);
@@ -21,14 +21,20 @@ export default class BalanceFetcher {
 
     const key: string = `${tokenAddress}-${victimAddress}-${block}`;
 
-    if (this.cache.has(key)) return this.cache.get(key) as Promise<BigNumber>;
+    const cachedBalance = this.cache.get(key);
+    if (cachedBalance) return cachedBalance;
 
-    const balance = await token.balanceOf(victimAddress, {
-      blockTag: block,
-    });
+    try {
+      const balance = await token.balanceOf(victimAddress, {
+        blockTag: block,
+      });
 
-    this.cache.set(key, balance);
+      this.cache.set(key, balance);
 
-    return balance;
+      return balance;
+    } catch (error) {
+      console.error("Failed to fetch balance:", error);
+      throw error;
+    }
   }
 }
