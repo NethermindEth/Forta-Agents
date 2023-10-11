@@ -1,7 +1,7 @@
 {
   "name": "private-key-compromise",
   "displayName": "Private Key Compromise",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Bot that identifies possible private key compromises",
   "longDescription": "This bot detects potential instances of compromised private keys. Its core functionality involves a comprehensive analysis of both native transfers and ERC20 token transfers. By closely examining the receiver addresses, the bot identifies situations where these addresses receive an unusually high number of transfers within a specific timeframe. This analytical approach aids in the proactive identification of potential private key compromises.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/private-key-compromise",
@@ -16,11 +16,11 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 10,
+      "shards": 13,
       "target": 3
     },
     "56": {
-      "shards": 10,
+      "shards": 13,
       "target": 3
     },
     "137": {
