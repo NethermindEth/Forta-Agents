@@ -1,10 +1,16 @@
 import { TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { Initialize, HandleBlock, HandleAlert } from "forta-agent";
 import { when, resetAllWhenMocks } from "jest-when";
-import { BigNumber, providers } from "ethers";
-import { MockErc721Transfer, MockExploitInfo, MockTxnReceipt, MockTxnResponse } from "./mocks/mock.types";
+import { BigNumber, providers, utils } from "ethers";
+import {
+  MockErc721Transfer,
+  MockExploitInfo,
+  MockIcePhishingTransfer,
+  MockTxnReceipt,
+  MockTxnResponse,
+} from "./mocks/mock.types";
 import { provideHandleAlert, provideHandleBlock, provideInitialize } from "./agent";
-import { createTestingFraudNftOrderFinding } from "./mocks/mock.findings";
+import { createTestingFraudNftOrderFinding, createTestingIcePhishingFinding } from "./mocks/mock.findings";
 import { TestAlertEvent } from "./mocks/mock.alert";
 import DataFetcher from "./fetcher";
 import {
@@ -14,292 +20,263 @@ import {
   createMockTxnResponseBatch,
   createMockTxnReceiptBatch,
   createMockErc721Transfer,
-  createMockExploitBatch,
   createMockTxnResponse,
   createMockTxnReceipt,
   createMockAlertEvent,
+  createMockErc721ExploitBatch,
+  createMockErc20ExploitBatch,
+  createMockIcePhishingTransfer,
 } from "./mocks/mock.utils";
 import { createAddress } from "forta-agent-tools";
+import {
+  BLOCKSEC_ICE_PHISHING_BOT,
+  DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS,
+  NETHERMIND_ICE_PHISHING_BOT,
+  SCAM_DETECTOR_ALERT_IDS,
+} from "./constants";
 
 const NINETY_DAYS = 90;
-const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
+const FRAUD_NFT_ORDER_ALERT_ID = SCAM_DETECTOR_ALERT_IDS[0];
+const ICE_PHISHING_ALERT_ID = SCAM_DETECTOR_ALERT_IDS[1];
 
 describe("Victim & Loss Identifier Test Suite", () => {
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
+  const mockGetAlerts = jest.fn();
+  const mockNftFloorPrice = 1000; // in USD
+  const mockAlertBlockNumber = 18053920;
+  const mockNftMarketPlaceAddress = "0x59728544B08AB483533076417FbBB2fD0B17CE3a";
+  const mockErc20TokenAddress = createAddress("0x12345");
+  const mockChainId = 1;
+
+  const mockDataFetcher = {
+    getTransactionReceipt: jest.fn(),
+    getTransaction: jest.fn(),
+    getNftCollectionFloorPrice: jest.fn().mockResolvedValue(mockNftFloorPrice),
+    getScammerErc721Transfers: jest.fn(),
+    hasBuyerTransferredTokenToSeller: jest.fn(),
+    getScammerIcePhishingTransfers: jest.fn(),
+    getValueInUsd: jest.fn().mockResolvedValue(12),
+  };
+
+  async function mockDataFetcherCreator(provider: providers.Provider): Promise<DataFetcher> {
+    return mockDataFetcher as any;
+  }
+
+  async function mockDbLoader(key: string): Promise<any> {
+    return {};
+  }
+
+  let initialize: Initialize;
+  let handleAlert: HandleAlert;
+  let handleBlock: HandleBlock;
+
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~ mock exploit info ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  const [
+    mockScammerAddress,
+    mockScammerAddressTwo,
+    mockScammerAddressThree,
+    mockScammerAddressFour,
+    mockScammerAddressFive,
+    mockScammerAddressSix,
+    mockScammerAddressSeven,
+    mockScammerAddressEight,
+    mockScammerAddressNine,
+    mockScammerAddressTen,
+    mockScammerAddressEleven,
+  ]: string[] = createMockScammerAddressBatch(11);
+
+  const mockErc721ExploitBatch: MockExploitInfo[] = createMockErc721ExploitBatch(20);
+  const [
+    mockExploit,
+    mockExploitTwo,
+    mockExploitThree,
+    mockExploitFour,
+    mockExploitFive,
+    mockExploitSix,
+    mockExploitSeven,
+    mockExploitEight,
+    mockExploitNine,
+    mockExploitTen,
+    mockExploitEleven,
+    mockExploitTwelve,
+    mockExploitThirteen,
+    mockExploitFourteen,
+    mockExploitFifteen,
+    mockExploitSixteen,
+    mockExploitSeventeen,
+    mockExploitEighteen,
+    mockExploitNineteen,
+    mockExploitTwenty,
+  ]: MockExploitInfo[] = mockErc721ExploitBatch;
+
+  const mockErc20ExploitBatch: MockExploitInfo[] = createMockErc20ExploitBatch(3);
+  const [mockErc20Exploit, mockErc20ExploitTwo, mockErc20ExploitThree]: MockExploitInfo[] = mockErc20ExploitBatch;
+
+  const [
+    mockTxnReceipt,
+    mockTxnReceiptTwo,
+    mockTxnReceiptThree,
+    mockTxnReceiptFour,
+    mockTxnReceiptFive,
+    mockTxnReceiptSix,
+    mockTxnReceiptSeven,
+    mockTxnReceiptEight,
+    mockTxnReceiptNine,
+    mockTxnReceiptTen,
+    mockTxnReceiptEleven,
+    mockTxnReceiptTwelve,
+    mockTxnReceiptThirteen,
+    mockTxnReceiptFourteen,
+    mockTxnReceiptFifteen,
+    mockTxnReceiptSixteen,
+    mockTxnReceiptSeventeen,
+  ]: MockTxnReceipt[] = createMockTxnReceiptBatch(mockErc721ExploitBatch);
+  const [
+    mockTxnResponse,
+    mockTxnResponseTwo,
+    mockTxnResponseThree,
+    mockTxnResponseFour,
+    mockTxnResponseFive,
+    mockTxnResponseSix,
+    mockTxnResponseSeven,
+    mockTxnResponseEight,
+    mockTxnResponseNine,
+    mockTxnResponseTen,
+    mockTxnResponseEleven,
+    mockTxnResponseTwelve,
+    mockTxnResponseThirteen,
+    mockTxnResponseFourteen,
+    mockTxnResponseFifteen,
+    mockTxnResponseSixteen,
+    mockTxnResponseSeventeen,
+  ]: MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockErc721ExploitBatch);
+  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  beforeEach(async () => {
+    resetAllWhenMocks();
+    mockProvider.setNetwork(mockChainId);
+
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploit.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceipt);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitTwo.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptTwo);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitThree.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptThree);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitFour.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptFour);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitFive.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptFive);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitSix.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptSix);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitSeven.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptSeven);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitEight.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptEight);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitNine.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptNine);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitTen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptTen);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitEleven.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptEleven);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitTwelve.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptTwelve);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitThirteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptThirteen);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitFourteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptFourteen);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitFifteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptFifteen);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitSixteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptSixteen);
+    when(mockDataFetcher.getTransactionReceipt)
+      .calledWith(mockExploitSeventeen.exploitTxnHash)
+      .mockResolvedValue(mockTxnReceiptSeventeen);
+
+    when(mockDataFetcher.getTransaction).calledWith(mockExploit.exploitTxnHash).mockResolvedValue(mockTxnResponse);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitTwo.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseTwo);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitThree.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseThree);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitFour.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseFour);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitFive.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseFive);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitSix.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseSix);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitSeven.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseSeven);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitEight.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseEight);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitNine.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseNine);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitTen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseTen);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitEleven.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseEleven);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitTwelve.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseTwelve);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitThirteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseThirteen);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitFourteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseFourteen);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitFifteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseFifteen);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitSixteen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseSixteen);
+    when(mockDataFetcher.getTransaction)
+      .calledWith(mockExploitSeventeen.exploitTxnHash)
+      .mockResolvedValue(mockTxnResponseSeventeen);
+
+    mockDataFetcher.hasBuyerTransferredTokenToSeller.mockResolvedValue(false);
+
+    initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
+    handleAlert = provideHandleAlert(mockGetAlerts);
+    handleBlock = provideHandleBlock();
+
+    await initialize();
+  });
+
+  it("doesn't create an alert when Scam Detector emits a not monitored alert", async () => {
+    const mockAlert: TestAlertEvent = createMockAlertEvent("NOT-MONITORED_ALERT_ID", 32, mockScammerAddress);
+
+    const findings = await handleAlert(mockAlert);
+
+    expect(findings).toStrictEqual([]);
+  });
+
   describe("Fraudulent NFT Order Test Suite", () => {
-    const mockProvider: MockEthersProvider = new MockEthersProvider();
-
-    const mockDataFetcher = {
-      getTransactionReceipt: jest.fn(),
-      getTransaction: jest.fn(),
-      getNftCollectionFloorPrice: jest.fn(),
-      getScammerErc721Transfers: jest.fn(),
-      hasBuyerTransferredTokenToSeller: jest.fn(),
-    };
-
-    async function mockDataFetcherCreator(provider: providers.Provider): Promise<DataFetcher> {
-      return mockDataFetcher as any;
-    }
-
-    async function mockDbLoader(key: string): Promise<any> {
-      return {};
-    }
-
-    const mockChainId = 1;
-    const mockAlertBlockNumber = 18053920;
-
     const mockBlock = new TestBlockEvent();
-
-    const mockNftMarketPlaceAddress = "0x59728544B08AB483533076417FbBB2fD0B17CE3a";
-    const mockNftFloorPrice = 1000; // in USD
-    const mockErc20TokenAddress = createAddress("0x12345");
-
-    let initialize: Initialize;
-    let handleAlert: HandleAlert;
-    let handleBlock: HandleBlock;
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~ mock exploit info ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    const [
-      mockScammerAddress,
-      mockScammerAddressTwo,
-      mockScammerAddressThree,
-      mockScammerAddressFour,
-      mockScammerAddressFive,
-      mockScammerAddressSix,
-      mockScammerAddressSeven,
-      mockScammerAddressEight,
-      mockScammerAddressNine,
-      mockScammerAddressTen,
-      mockScammerAddressEleven,
-    ]: string[] = createMockScammerAddressBatch(11);
-
-    const mockExploitBatch: MockExploitInfo[] = createMockExploitBatch(19);
-    const [
-      mockExploit,
-      mockExploitTwo,
-      mockExploitThree,
-      mockExploitFour,
-      mockExploitFive,
-      mockExploitSix,
-      mockExploitSeven,
-      mockExploitEight,
-      mockExploitNine,
-      mockExploitTen,
-      mockExploitEleven,
-      mockExploitTwelve,
-      mockExploitThirteen,
-      mockExploitFourteen,
-      mockExploitFifteen,
-      mockExploitSixteen,
-      mockExploitSeventeen,
-      mockExploitEighteen,
-      mockExploitNineteen,
-    ]: MockExploitInfo[] = mockExploitBatch;
-
-    const [
-      mockTxnReceipt,
-      mockTxnReceiptTwo,
-      mockTxnReceiptThree,
-      mockTxnReceiptFour,
-      mockTxnReceiptFive,
-      mockTxnReceiptSix,
-      mockTxnReceiptSeven,
-      mockTxnReceiptEight,
-      mockTxnReceiptNine,
-      mockTxnReceiptTen,
-      mockTxnReceiptEleven,
-      mockTxnReceiptTwelve,
-      mockTxnReceiptThirteen,
-      mockTxnReceiptFourteen,
-      mockTxnReceiptFifteen,
-      mockTxnReceiptSixteen,
-      mockTxnReceiptSeventeen,
-    ]: MockTxnReceipt[] = createMockTxnReceiptBatch(mockExploitBatch);
-    const [
-      mockTxnResponse,
-      mockTxnResponseTwo,
-      mockTxnResponseThree,
-      mockTxnResponseFour,
-      mockTxnResponseFive,
-      mockTxnResponseSix,
-      mockTxnResponseSeven,
-      mockTxnResponseEight,
-      mockTxnResponseNine,
-      mockTxnResponseTen,
-      mockTxnResponseEleven,
-      mockTxnResponseTwelve,
-      mockTxnResponseThirteen,
-      mockTxnResponseFourteen,
-      mockTxnResponseFifteen,
-      mockTxnResponseSixteen,
-      mockTxnResponseSeventeen,
-    ]: MockTxnResponse[] = createMockTxnResponseBatch(mockNftMarketPlaceAddress, mockExploitBatch);
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    beforeEach(async () => {
-      resetAllWhenMocks();
-      mockProvider.setNetwork(mockChainId);
-
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploit.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceipt);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitTwo.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptTwo);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitThree.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptThree);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitFour.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptFour);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitFive.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptFive);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitSix.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptSix);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitSeven.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptSeven);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitEight.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptEight);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitNine.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptNine);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitTen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptTen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitEleven.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptEleven);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitTwelve.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptTwelve);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitThirteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptThirteen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitFourteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptFourteen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitFifteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptFifteen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitSixteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptSixteen);
-      when(mockDataFetcher.getTransactionReceipt)
-        .calledWith(mockExploitSeventeen.exploitTxnHash)
-        .mockResolvedValue(mockTxnReceiptSeventeen);
-
-      when(mockDataFetcher.getTransaction).calledWith(mockExploit.exploitTxnHash).mockResolvedValue(mockTxnResponse);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitTwo.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseTwo);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitThree.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseThree);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitFour.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseFour);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitFive.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseFive);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitSix.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseSix);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitSeven.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseSeven);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitEight.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseEight);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitNine.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseNine);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitTen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseTen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitEleven.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseEleven);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitTwelve.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseTwelve);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitThirteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseThirteen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitFourteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseFourteen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitFifteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseFifteen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitSixteen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseSixteen);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitSeventeen.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseSeventeen);
-
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploit.stolenTokenAddress, mockExploit.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitTwo.stolenTokenAddress, mockExploitTwo.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitThree.stolenTokenAddress, mockExploitThree.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitFour.stolenTokenAddress, mockExploitFour.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitFive.stolenTokenAddress, mockExploitFive.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSix.stolenTokenAddress, mockExploitSix.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSeven.stolenTokenAddress, mockExploitSeven.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitEight.stolenTokenAddress, mockExploitEight.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitNine.stolenTokenAddress, mockExploitNine.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitTen.stolenTokenAddress, mockExploitTen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitEleven.stolenTokenAddress, mockExploitEleven.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitTwelve.stolenTokenAddress, mockExploitTwelve.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitThirteen.stolenTokenAddress, mockExploitThirteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitFourteen.stolenTokenAddress, mockExploitFourteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitFifteen.stolenTokenAddress, mockExploitFifteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSixteen.stolenTokenAddress, mockExploitSixteen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSeventeen.stolenTokenAddress, mockExploitSeventeen.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
-
-      mockDataFetcher.hasBuyerTransferredTokenToSeller.mockResolvedValue(false);
-      initialize = provideInitialize(mockProvider as any, mockDataFetcherCreator, mockDbLoader);
-      await initialize();
-
-      handleAlert = provideHandleAlert();
-      handleBlock = provideHandleBlock();
-    });
 
     it("creates an alert when Scam Detector emits a SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
       const mockAlertHandlerErc721Transfers: MockErc721Transfer[] = [createMockErc721Transfer(mockExploit)];
@@ -329,22 +306,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       ]);
     });
 
-    it("doesn't create an alert when Scam Detector emits a non SCAM-DETECTOR-FRAUDULENT-NFT-ORDER alert", async () => {
-      const mockAlert: TestAlertEvent = createMockAlertEvent(
-        "NON-FRAUDULENT_ORDER_ALERT_ID",
-        mockAlertBlockNumber,
-        mockScammerAddress
-      );
-
-      const findings = await handleAlert(mockAlert);
-
-      expect(findings).toStrictEqual([]);
-    });
-
     it("creates an alert for the first instance of a scammer appearing in scam detector alerts, then creates alerts for subsequent activity in block handler", async () => {
-      // Clear state for mockScammerAddress
-      when(mockDataFetcher.getScammerErc721Transfers).calledWith(mockScammerAddress, 1).mockResolvedValue([]);
-
       const mockAlertHandlerErc721Transfers: MockErc721Transfer[] = [createMockErc721Transfer(mockExploitTwo)];
       when(mockDataFetcher.getScammerErc721Transfers)
         .calledWith(mockScammerAddressTwo, NINETY_DAYS)
@@ -420,6 +382,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitFive.stolenTokenName,
         stolenTokenSymbol: mockExploitFive.stolenTokenSymbol,
         stolenTokenId: mockExploitFive.stolenTokenId,
+        stolenTokenAmount: mockExploitFive.stolenTokenAmount,
+        stolenTokenDecimals: mockExploitFive.stolenTokenDecimals,
         txnValue: BigNumber.from(40000), // High Txn Value
         blockNumber: mockExploitFive.blockNumber,
       };
@@ -464,6 +428,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitSix.stolenTokenName,
         stolenTokenSymbol: mockExploitSix.stolenTokenSymbol,
         stolenTokenId: mockExploitSix.stolenTokenId,
+        stolenTokenAmount: mockExploitSix.stolenTokenAmount,
+        stolenTokenDecimals: mockExploitSix.stolenTokenDecimals,
         txnValue: mockExploitSix.txnValue,
         blockNumber: mockExploitSix.blockNumber,
       };
@@ -491,10 +457,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransaction)
         .calledWith(mockExploitSixSameVictim.exploitTxnHash)
         .mockResolvedValue(mockTxnResponseTwo);
-
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSixSameVictim.stolenTokenAddress, mockExploitSixSameVictim.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
 
       const mockAlert: TestAlertEvent = createMockAlertEvent(
         FRAUD_NFT_ORDER_ALERT_ID,
@@ -563,6 +525,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitSeven.stolenTokenName,
         stolenTokenSymbol: mockExploitSeven.stolenTokenSymbol,
         stolenTokenId: mockExploitSeven.stolenTokenId,
+        stolenTokenAmount: mockExploitSeven.stolenTokenAmount,
+        stolenTokenDecimals: mockExploitSeven.stolenTokenDecimals,
         txnValue: mockExploitSeven.txnValue,
         blockNumber: mockExploitSeven.blockNumber,
       };
@@ -586,10 +550,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransaction)
         .calledWith(mockExploitSevenSameVictim.exploitTxnHash)
         .mockResolvedValue(mockTxnResponseTwo);
-
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitSevenSameVictim.stolenTokenAddress, mockExploitSevenSameVictim.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
 
       mockAlert = createMockAlertEvent(FRAUD_NFT_ORDER_ALERT_ID, mockAlertBlockNumber, mockScammerAddressFive);
 
@@ -694,6 +654,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitThirteen.stolenTokenName,
         stolenTokenSymbol: mockExploitThirteen.stolenTokenSymbol,
         stolenTokenId: mockExploitThirteen.stolenTokenId,
+        stolenTokenAmount: mockExploitThirteen.stolenTokenAmount,
+        stolenTokenDecimals: mockExploitThirteen.stolenTokenDecimals,
         txnValue: BigNumber.from(40000), // High Txn Value
         blockNumber: mockExploitThirteen.blockNumber,
       };
@@ -755,6 +717,8 @@ describe("Victim & Loss Identifier Test Suite", () => {
         stolenTokenName: mockExploitSixteen.stolenTokenName,
         stolenTokenSymbol: mockExploitSixteen.stolenTokenSymbol,
         stolenTokenId: mockExploitSixteen.stolenTokenId,
+        stolenTokenAmount: mockExploitSixteen.stolenTokenAmount,
+        stolenTokenDecimals: mockExploitSixteen.stolenTokenDecimals,
         txnValue: BigNumber.from(50000), // High Txn Value
         blockNumber: mockExploitSixteen.blockNumber,
       };
@@ -773,15 +737,6 @@ describe("Victim & Loss Identifier Test Suite", () => {
       when(mockDataFetcher.getTransactionReceipt)
         .calledWith(mockExploitSixteenHighTxnValue.exploitTxnHash)
         .mockResolvedValue(mockTxnReceiptFive);
-
-      const mockTxnResponseFour: MockTxnResponse = createMockTxnResponse(mockNftMarketPlaceAddress, mockExploitFour);
-      when(mockDataFetcher.getTransaction)
-        .calledWith(mockExploitFour.exploitTxnHash)
-        .mockResolvedValue(mockTxnResponseFour);
-
-      when(mockDataFetcher.getNftCollectionFloorPrice)
-        .calledWith(mockExploitFour.stolenTokenAddress, mockExploitFour.blockNumber)
-        .mockResolvedValue(mockNftFloorPrice);
 
       const mockTxnResponseFive: MockTxnResponse = createMockTxnResponse(
         mockNftMarketPlaceAddress,
@@ -825,7 +780,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
         .calledWith(mockScammerAddressTen, NINETY_DAYS)
         .mockResolvedValue(mockAlertHandlerErc721Transfers);
 
-      const txnRecipeitWithErc20Log = createMockTxnReceiptWithErc20TransferLog(
+      const txnReceiptWithErc20Log = createMockTxnReceiptWithErc20TransferLog(
         mockExploitEighteen,
         mockScammerAddressTen,
         mockErc20TokenAddress,
@@ -833,7 +788,7 @@ describe("Victim & Loss Identifier Test Suite", () => {
       );
       when(mockDataFetcher.getTransactionReceipt)
         .calledWith(mockExploitEighteen.exploitTxnHash)
-        .mockResolvedValue(txnRecipeitWithErc20Log);
+        .mockResolvedValue(txnReceiptWithErc20Log);
 
       const mockAlert: TestAlertEvent = createMockAlertEvent(
         FRAUD_NFT_ORDER_ALERT_ID,
@@ -871,6 +826,307 @@ describe("Victim & Loss Identifier Test Suite", () => {
       const findings = await handleAlert(mockAlert);
 
       expect(findings).toStrictEqual([]);
+    });
+  });
+
+  describe("Ice Phishing Test Suite", () => {
+    it("creates an alert when Scam Detector emits a SCAM-DETECTOR-ICE-PHISHING alert when source bot is Nethermind's, alert is not HIGH-NUM-APPROVED-TRANSFERS, and the stolen asset is ERC721", async () => {
+      const mockAlertHandlerErc721Transfers: MockIcePhishingTransfer[] = [
+        createMockIcePhishingTransfer(mockExploitTwenty),
+      ];
+      when(mockDataFetcher.getScammerIcePhishingTransfers)
+        .calledWith(mockScammerAddress, NINETY_DAYS, mockChainId)
+        .mockResolvedValue(mockAlertHandlerErc721Transfers);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        ICE_PHISHING_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddress,
+        { hash: "0xsourceHash", botId: NETHERMIND_ICE_PHISHING_BOT }
+      );
+
+      when(mockGetAlerts)
+        .calledWith({
+          botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+          alertHash: "0xsourceHash",
+          blockNumberRange: {
+            startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+            endBlockNumber: mockAlert.blockNumber ? mockAlert.blockNumber : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+          },
+        })
+        .mockResolvedValueOnce({
+          alerts: [
+            {
+              alertId: "ICE-PHISHING-SUSPICIOUS-TRANSFER",
+              description: "Transfer",
+              metadata: { scammerAddress: mockScammerAddress },
+            },
+          ],
+        });
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingIcePhishingFinding(
+          mockExploitTwenty,
+          mockScammerAddress,
+          ICE_PHISHING_ALERT_ID,
+          false,
+          BigNumber.from(mockNftFloorPrice),
+          BigNumber.from(mockNftFloorPrice),
+          BigNumber.from(mockNftFloorPrice),
+          NINETY_DAYS,
+          BigNumber.from(mockNftFloorPrice)
+        ),
+      ]);
+    });
+
+    it("creates an alert when Scam Detector emits a SCAM-DETECTOR-ICE-PHISHING alert when source bot is Nethermind's, alert is HIGH-NUM-APPROVED-TRANSFERS, and the stolen asset is ERC20", async () => {
+      const mockAlertHandlerErc20Transfers: MockIcePhishingTransfer[] = [
+        createMockIcePhishingTransfer(mockErc20Exploit),
+      ];
+
+      when(mockDataFetcher.getScammerIcePhishingTransfers)
+        .calledWith(mockScammerAddressTwo, NINETY_DAYS, mockChainId)
+        .mockResolvedValue(mockAlertHandlerErc20Transfers);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        ICE_PHISHING_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressTwo,
+        { hash: "0xsourceHash2", botId: NETHERMIND_ICE_PHISHING_BOT }
+      );
+
+      when(mockGetAlerts)
+        .calledWith({
+          botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+          alertHash: "0xsourceHash2",
+          blockNumberRange: {
+            startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+            endBlockNumber: mockAlert.blockNumber ? mockAlert.blockNumber : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+          },
+        })
+        .mockResolvedValueOnce({
+          alerts: [
+            {
+              alertId: "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS",
+              description: "Transfer",
+              metadata: {
+                firstTxHash: "0xfirstTxHash",
+                lastTxHash: "0xlastTxHash",
+              },
+            },
+          ],
+        });
+
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith("0xfirstTxHash")
+        .mockResolvedValue({
+          logs: [
+            {
+              address: mockErc20TokenAddress,
+              topics: [
+                utils.id("Transfer(address,address,uint256)"),
+                utils.hexZeroPad(utils.hexValue(mockErc20Exploit.victimAddress), 32),
+                utils.hexZeroPad(utils.hexValue(mockScammerAddressTwo), 32),
+                utils.hexZeroPad(utils.hexValue(Number(mockErc20Exploit.stolenTokenAmount)), 32),
+              ],
+            },
+          ],
+        });
+
+      when(mockDataFetcher.getTransactionReceipt)
+        .calledWith("0xlastTxHash")
+        .mockResolvedValue({
+          logs: [
+            {
+              address: mockErc20TokenAddress,
+              topics: [
+                utils.id("Transfer(address,address,uint256)"),
+                utils.hexZeroPad(utils.hexValue(mockErc20Exploit.victimAddress), 32),
+                utils.hexZeroPad(utils.hexValue(mockScammerAddressTwo), 32),
+                utils.hexZeroPad(utils.hexValue(Number(mockErc20Exploit.stolenTokenAmount)), 32),
+              ],
+            },
+          ],
+        });
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingIcePhishingFinding(
+          mockErc20Exploit,
+          mockScammerAddressTwo,
+          ICE_PHISHING_ALERT_ID,
+          true,
+          BigNumber.from(12),
+          BigNumber.from(12),
+          BigNumber.from(12),
+          NINETY_DAYS,
+          BigNumber.from(12)
+        ),
+      ]);
+    });
+
+    it("creates an alert when Scam Detector emits a SCAM-DETECTOR-ICE-PHISHING alert when source bot is Blocksec's", async () => {
+      const mockAlertHandlerErc20Transfers: MockIcePhishingTransfer[] = [
+        createMockIcePhishingTransfer(mockErc20ExploitTwo),
+      ];
+
+      when(mockDataFetcher.getScammerIcePhishingTransfers)
+        .calledWith(mockScammerAddressThree, NINETY_DAYS, mockChainId)
+        .mockResolvedValue(mockAlertHandlerErc20Transfers);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        ICE_PHISHING_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressThree,
+        { hash: "0xsourceHash3", botId: BLOCKSEC_ICE_PHISHING_BOT }
+      );
+
+      when(mockGetAlerts)
+        .calledWith({
+          botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+          alertHash: "0xsourceHash3",
+          blockNumberRange: {
+            startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+            endBlockNumber: mockAlert.blockNumber ? mockAlert.blockNumber : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+          },
+        })
+        .mockResolvedValueOnce({
+          alerts: [
+            {
+              alertId: "Ice-phishing",
+              description: "Transfer",
+              metadata: { scammerAddress: mockScammerAddressThree },
+            },
+          ],
+        });
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingIcePhishingFinding(
+          mockErc20ExploitTwo,
+          mockScammerAddressThree,
+          ICE_PHISHING_ALERT_ID,
+          true,
+          BigNumber.from(12),
+          BigNumber.from(12),
+          BigNumber.from(12),
+          NINETY_DAYS,
+          BigNumber.from(12)
+        ),
+      ]);
+    });
+
+    it("doesn't create an alert when Scam Detector emits a SCAM-DETECTOR-ICE-PHISHING alert when source alert is from Blocksec's bot for a token approval", async () => {
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        ICE_PHISHING_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressThree,
+        { hash: "0xsourceHash4", botId: BLOCKSEC_ICE_PHISHING_BOT }
+      );
+
+      when(mockGetAlerts)
+        .calledWith({
+          botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+          alertHash: "0xsourceHash4",
+          blockNumberRange: {
+            startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+            endBlockNumber: mockAlert.blockNumber ? mockAlert.blockNumber : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+          },
+        })
+        .mockResolvedValueOnce({
+          alerts: [
+            {
+              alertId: "Ice-phishing",
+              description: "approve", // Approval
+              metadata: { scammerAddress: mockScammerAddressThree },
+            },
+          ],
+        });
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([]);
+    });
+
+    it("creates multiple alerts for multiple Ice Phishing victims", async () => {
+      const mockErc20ExploitSameScammer: MockExploitInfo = {
+        exploitTxnHash: utils.hexZeroPad(`0x31320`, 32),
+        fromAddress: createAddress(`0x343110`),
+        victimAddress: createAddress(`0x343110`),
+        stolenTokenAddress: createAddress(`0x311`),
+        stolenTokenName: "MockIcePhishingToken3",
+        stolenTokenSymbol: "MOCK20-3",
+        stolenTokenId: null,
+        stolenTokenDecimals: 18,
+        stolenTokenAmount: "1000000000000003",
+        txnValue: BigNumber.from(3),
+        blockNumber: 18000000 + 3,
+      };
+      const mockAlertHandlerErc20Transfers: MockIcePhishingTransfer[] = [
+        createMockIcePhishingTransfer(mockErc20ExploitThree),
+        createMockIcePhishingTransfer(mockErc20ExploitSameScammer),
+      ];
+
+      when(mockDataFetcher.getScammerIcePhishingTransfers)
+        .calledWith(mockScammerAddressFour, NINETY_DAYS, mockChainId)
+        .mockResolvedValue(mockAlertHandlerErc20Transfers);
+
+      const mockAlert: TestAlertEvent = createMockAlertEvent(
+        ICE_PHISHING_ALERT_ID,
+        mockAlertBlockNumber,
+        mockScammerAddressFour,
+        { hash: "0xsourceHash5", botId: BLOCKSEC_ICE_PHISHING_BOT }
+      );
+
+      when(mockGetAlerts)
+        .calledWith({
+          botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+          alertHash: "0xsourceHash5",
+          blockNumberRange: {
+            startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+            endBlockNumber: mockAlert.blockNumber ? mockAlert.blockNumber : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+          },
+        })
+        .mockResolvedValueOnce({
+          alerts: [
+            {
+              alertId: "Ice-phishing",
+              description: "Transfer",
+              metadata: { scammerAddress: mockScammerAddressFour },
+            },
+          ],
+        });
+
+      const findings = await handleAlert(mockAlert);
+
+      expect(findings).toStrictEqual([
+        createTestingIcePhishingFinding(
+          mockErc20ExploitThree,
+          mockScammerAddressFour,
+          ICE_PHISHING_ALERT_ID,
+          true,
+          BigNumber.from(12),
+          BigNumber.from(12),
+          BigNumber.from(12),
+          NINETY_DAYS,
+          BigNumber.from(12)
+        ),
+        createTestingIcePhishingFinding(
+          mockErc20ExploitSameScammer,
+          mockScammerAddressFour,
+          ICE_PHISHING_ALERT_ID,
+          true,
+          BigNumber.from(12),
+          BigNumber.from(12),
+          BigNumber.from(12),
+          NINETY_DAYS,
+          BigNumber.from(12)
+        ),
+      ]);
     });
   });
 });
