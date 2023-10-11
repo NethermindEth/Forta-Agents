@@ -7,6 +7,7 @@ import {
   AlertEvent,
   getEthersProvider,
   getAlerts,
+  GetAlerts,
 } from "forta-agent";
 import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
@@ -75,7 +76,7 @@ export function provideInitialize(
   };
 }
 
-export function provideHandleAlert(): HandleAlert {
+export function provideHandleAlert(getAlerts: GetAlerts): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
     const blocksInTwentyFiveDays = getBlocksInTimePeriodForChainId(TWENTY_FIVE_DAYS_IN_SECS, chainId);
     const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
@@ -289,7 +290,7 @@ export function provideHandleBlock(): HandleBlock {
 
 export default {
   initialize: provideInitialize(getEthersProvider(), createNewDataFetcher, load),
-  handleAlert: provideHandleAlert(),
+  handleAlert: provideHandleAlert(getAlerts),
   handleBlock: provideHandleBlock(),
   provideInitialize,
   provideHandleAlert,
