@@ -75,47 +75,61 @@ export default class Fetcher {
     const key: string = `${contract}`;
     if (this.cache.has(key)) return this.cache.get(key) as boolean;
 
-    let result;
+    try {
+      const result = await (
+        await this.fetch(this.getEtherscanAddressUrl(contract, chainId, isToken, false, false, false))
+      ).json();
 
-    result = await (
-      await this.fetch(this.getEtherscanAddressUrl(contract, chainId, isToken, false, false, false))
-    ).json();
+      if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
+        console.log(`block explorer error occured; skipping check for ${contract}`);
 
-    if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
-      console.log(`block explorer error occured; skipping check for ${contract}`);
+        return true;
+      }
 
-      return [null, null];
+      const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+
+      this.cache.set(key, hasHighNumberOfTotalTxs);
+      return hasHighNumberOfTotalTxs;
+    } catch (error) {
+      console.error(`Error fetching data for contract ${contract}:`, error);
+
+      return true;
     }
-
-    const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
-
-    this.cache.set(key, hasHighNumberOfTotalTxs);
-    return hasHighNumberOfTotalTxs;
   };
 
   public getVictimInfo = async (address: string, chainId: number, timestamp: number) => {
-    const result = await (
-      await this.fetch(this.getEtherscanAddressUrl(address, chainId, false, true, false, false))
-    ).json();
+    try {
+      const result = await (
+        await this.fetch(this.getEtherscanAddressUrl(address, chainId, false, true, false, false))
+      ).json();
 
-    if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
-      console.log(`block explorer error occured; skipping check for ${address}`);
+      if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
+        console.log(`block explorer error occured; skipping check for ${address}`);
 
-      return [null, null];
+        return true;
+      }
+
+      const isActive = result.result[0].timeStamp > timestamp;
+
+      return isActive;
+    } catch (error) {
+      console.error(`Error fetching victim info ${address}:`, error);
+      return true;
     }
-
-    const isActive = result.result[0].timeStamp > timestamp;
-
-    return isActive;
   };
 
   public getFundInfo = async (from: string, to: string, chainId: number) => {
-    const result = await (
-      await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true, false))
-    ).json();
+    try {
+      const result = await (
+        await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true, false))
+      ).json();
 
-    const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
-    return isFromFundedByTo;
+      const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
+      return isFromFundedByTo;
+    } catch (error) {
+      console.error(`Error fetching fund info ${from}:`, error);
+      return true;
+    }
   };
 
   public checkInitialFunder = async (
@@ -124,40 +138,48 @@ export default class Fetcher {
   ) => {
     const victimFunders = await Promise.all(
       txs.map(async (tx) => {
-        const txResult = await (
-          await this.fetch(this.getEtherscanAddressUrl(tx.victimAddress, chainId, false, false, false, true))
-        ).json();
+        try {
+          const txResult = await (
+            await this.fetch(this.getEtherscanAddressUrl(tx.victimAddress, chainId, false, false, false, true))
+          ).json();
 
-        const date = new Date(Number(txResult.result[0].timeStamp) * 1000).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        });
+          const date = new Date(Number(txResult.result[0].timeStamp) * 1000).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          });
 
-        return { from: txResult.result[0].from, timestamp: date };
+          return { from: txResult.result[0].from, timestamp: date };
+        } catch (error) {
+          console.error(`Error fetching initial funder ${tx.victimAddress}:`, error);
+        }
       })
     );
 
     // if the funders or dates in the first txns are not unique, return false
     if (
-      txs.length != new Set(victimFunders.map((el) => el.from)).size ||
-      txs.length != new Set(victimFunders.map((el) => el.timestamp)).size
+      txs.length != new Set(victimFunders.map((el) => el?.from)).size ||
+      txs.length != new Set(victimFunders.map((el) => el?.timestamp)).size
     )
       return false;
 
     // check internal transfers to see if the addresses were funded by the same contract
     let internalFunders = await Promise.all(
       txs.map(async (tx) => {
-        const internalTxResult = await (
-          await this.fetch(
-            `${etherscanApis[chainId].urlAccount}internal&address=${
-              tx.victimAddress
-            }&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${this.getBlockExplorerKey(chainId)}`
-          )
-        ).json();
+        try {
+          const internalTxResult = await (
+            await this.fetch(
+              `${etherscanApis[chainId].urlAccount}internal&address=${
+                tx.victimAddress
+              }&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${this.getBlockExplorerKey(chainId)}`
+            )
+          ).json();
 
-        if (internalTxResult.result.length) {
-          return internalTxResult.result[0].from;
+          if (internalTxResult.result.length) {
+            return internalTxResult.result[0].from;
+          }
+        } catch (error) {
+          console.error(`Error fetching internal transfers ${tx.victimAddress}:`, error);
         }
       })
     );
