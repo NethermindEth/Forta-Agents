@@ -12,6 +12,10 @@ interface apiKeys {
   snowtraceApiKeys: string[];
 }
 
+const getApiKey = (keys: string[]) => {
+  return keys.length > 0 ? keys[Math.floor(Math.random() * keys.length)] : "YourApiKeyToken";
+};
+
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
   fetch: any;
@@ -51,35 +55,19 @@ export default class Fetcher {
   private getBlockExplorerKey = (chainId: number) => {
     switch (chainId) {
       case 10:
-        return this.apiKeys.optimisticEtherscanApiKeys.length > 0
-          ? this.apiKeys.optimisticEtherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.optimisticEtherscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.optimisticEtherscanApiKeys);
       case 56:
-        return this.apiKeys.bscscanApiKeys.length > 0
-          ? this.apiKeys.bscscanApiKeys[Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.bscscanApiKeys);
       case 137:
-        return this.apiKeys.polygonscanApiKeys.length > 0
-          ? this.apiKeys.polygonscanApiKeys[Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.polygonscanApiKeys);
       case 250:
-        return this.apiKeys.fantomscanApiKeys.length > 0
-          ? this.apiKeys.fantomscanApiKeys[Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.fantomscanApiKeys);
       case 42161:
-        return this.apiKeys.arbiscanApiKeys.length > 0
-          ? this.apiKeys.arbiscanApiKeys[Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.arbiscanApiKeys);
       case 43114:
-        return this.apiKeys.snowtraceApiKeys.length > 0
-          ? this.apiKeys.snowtraceApiKeys[Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.snowtraceApiKeys);
       default:
-        return this.apiKeys.etherscanApiKeys.length > 0
-          ? this.apiKeys.etherscanApiKeys[Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)]
-          : "YourApiKeyToken";
+        return getApiKey(this.apiKeys.etherscanApiKeys);
     }
   };
 
