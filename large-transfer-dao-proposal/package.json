@@ -2,7 +2,7 @@
   "name": "large-transfer-dao-proposal",
   "displayName": "Large Transfer DAO Proposal",
   "version": "0.0.1",
-  "description": "Forta bot to detect DAO proposal for transferring large native token amounts",
+  "description": "Forta bot detecting DAO proposals for transferring large native token amounts",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-transfer-dao-proposal/src",
   "licenseUrl": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-transfer-dao-proposal/LICENSE.md",
   "promoUrl": "https://www.nethermind.io/real-time-monitoring",
