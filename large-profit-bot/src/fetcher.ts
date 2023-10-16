@@ -31,7 +31,7 @@ type TokenPriceCacheEntry = {
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
-  private cache: LRU<string, BigNumber | number | string>;
+  private cache: LRU<string, BigNumber | number | string | boolean>;
   private tokenContract: Contract;
   private tokensPriceCache: LRU<string, TokenPriceCacheEntry>;
   private priceCacheExpirationTime: number;
@@ -41,7 +41,7 @@ export default class Fetcher {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
-    this.cache = new LRU<string, BigNumber | number | string>({
+    this.cache = new LRU<string, BigNumber | number | string | boolean>({
       max: 10000,
     });
     this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
@@ -254,6 +254,9 @@ export default class Fetcher {
   };
 
   public isContractVerified = async (address: string, chainId: number) => {
+    const key: string = `isContractVerified-${address}-${chainId}`;
+    if (this.cache.has(key)) return this.cache.get(key) as boolean;
+
     try {
       const result = await (await fetch(this.getEtherscanContractUrl(address, chainId))).json();
 
@@ -262,6 +265,11 @@ export default class Fetcher {
         return null;
       }
       const isVerified = result.status === "1";
+
+      if (isVerified) {
+        this.cache.set(key, isVerified);
+      }
+
       return isVerified;
     } catch (error) {
       console.error(`Error verifying contract ${address}: `, error);
@@ -296,6 +304,9 @@ export default class Fetcher {
   };
 
   public getContractCreator = async (address: string, chainId: number) => {
+    const cacheKey: string = `contractCreator-${address}-${chainId}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey) as string;
+
     const { urlContractCreation } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
@@ -316,6 +327,7 @@ export default class Fetcher {
             return null;
           }
         } else {
+          this.cache.set(cacheKey, result.result[0].contractCreator);
           return result.result[0].contractCreator;
         }
       } catch (error) {
