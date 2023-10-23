@@ -31,7 +31,7 @@ type TokenPriceCacheEntry = {
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
-  private cache: LRU<string, BigNumber | number | string>;
+  private cache: LRU<string, BigNumber | number | string | boolean>;
   private tokenContract: Contract;
   private tokensPriceCache: LRU<string, TokenPriceCacheEntry>;
   private priceCacheExpirationTime: number;
@@ -41,7 +41,7 @@ export default class Fetcher {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
-    this.cache = new LRU<string, BigNumber | number | string>({
+    this.cache = new LRU<string, BigNumber | number | string | boolean>({
       max: 10000,
     });
     this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
@@ -232,89 +232,81 @@ export default class Fetcher {
   };
 
   private getBlockExplorerKey = (chainId: number) => {
+    const getKey = (keys: string[]) =>
+      keys.length > 0 ? keys[Math.floor(Math.random() * keys.length)] : "YourApiKeyToken";
+
     switch (chainId) {
       case 10:
-        return this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.optimisticEtherscanApiKeys);
       case 56:
-        return this.apiKeys.apiKeys.largeProfit.bscscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.bscscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.bscscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.bscscanApiKeys);
       case 137:
-        return this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.polygonscanApiKeys);
       case 250:
-        return this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.fantomscanApiKeys);
       case 42161:
-        return this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.arbiscanApiKeys);
       case 43114:
-        return this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.snowtraceApiKeys);
       default:
-        return this.apiKeys.apiKeys.largeProfit.etherscanApiKeys.length > 0
-          ? this.apiKeys.apiKeys.largeProfit.etherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.apiKeys.largeProfit.etherscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
+        return getKey(this.apiKeys.apiKeys.largeProfit.etherscanApiKeys);
     }
   };
 
   public isContractVerified = async (address: string, chainId: number) => {
-    let result;
+    const key: string = `isContractVerified-${address}-${chainId}`;
+    if (this.cache.has(key)) return this.cache.get(key) as boolean;
 
-    result = await (await fetch(this.getEtherscanContractUrl(address, chainId))).json();
+    try {
+      const result = await (await fetch(this.getEtherscanContractUrl(address, chainId))).json();
 
-    if (result.message.startsWith("NOTOK") && result.result !== "Contract source code not verified") {
-      console.log(`block explorer error occured; skipping check for ${address}`);
-      return null;
+      if (result.message.startsWith("NOTOK") && result.result !== "Contract source code not verified") {
+        console.log(`block explorer error occured; skipping check for ${address}`);
+        return null;
+      }
+      const isVerified = result.status === "1";
+
+      if (isVerified) {
+        this.cache.set(key, isVerified);
+      }
+
+      return isVerified;
+    } catch (error) {
+      console.error(`Error verifying contract ${address}: `, error);
+      return true;
     }
-    const isVerified = result.status === "1";
-    return isVerified;
   };
 
   public getContractInfo = async (contract: string, txFrom: string, txHash: string, chainId: number) => {
-    let result;
+    try {
+      const result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
 
-    result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
-
-    if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
-      console.log(`block explorer error occured; skipping check for ${contract}`);
-      return [null, null];
-    }
-
-    let numberOfInteractions: number = 0;
-    result.result.forEach((tx: any) => {
-      if (tx.from === txFrom && tx.hash !== txHash) {
-        numberOfInteractions++;
+      if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
+        console.log(`block explorer error occured; skipping check for ${contract}`);
+        return [null, null];
       }
-    });
 
-    const isFirstInteraction = numberOfInteractions === 0;
-    const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+      let numberOfInteractions: number = 0;
+      result.result.forEach((tx: any) => {
+        if (tx.from === txFrom && tx.hash !== txHash) {
+          numberOfInteractions++;
+        }
+      });
 
-    return [isFirstInteraction, hasHighNumberOfTotalTxs];
+      const isFirstInteraction = numberOfInteractions === 0;
+      const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+
+      return [isFirstInteraction, hasHighNumberOfTotalTxs];
+    } catch (error) {
+      console.error(`Error getting contract info ${contract}: `, error);
+      return [false, true];
+    }
   };
 
   public getContractCreator = async (address: string, chainId: number) => {
+    const cacheKey: string = `contractCreator-${address}-${chainId}`;
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey) as string;
+
     const { urlContractCreation } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
@@ -335,6 +327,7 @@ export default class Fetcher {
             return null;
           }
         } else {
+          this.cache.set(cacheKey, result.result[0].contractCreator);
           return result.result[0].contractCreator;
         }
       } catch (error) {

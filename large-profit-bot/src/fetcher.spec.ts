@@ -141,7 +141,7 @@ describe("TokenInfoFetcher tests suite", () => {
 
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ message: "OK", status: "0" })));
 
-    const isVerified2 = await fetcher.isContractVerified(PROTOCOL_ADDRESS, chainId);
+    const isVerified2 = await fetcher.isContractVerified(createAddress("0xb1"), chainId);
     expect(isVerified2).toStrictEqual(false);
   });
 
