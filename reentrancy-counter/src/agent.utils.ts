@@ -4,6 +4,10 @@ export interface Counter {
   [key: string]: number;
 }
 
+export type TraceAddressInstances = {
+  [key: string]: number[][];
+};
+
 export const reentrancyLevel = (
   reentrancyCount: number,
   thresholds: [number, FindingSeverity][]
@@ -64,17 +68,19 @@ export const createFinding = (
   anomalyScore: number,
   confidenceLevel: number,
   txHash: string,
-  txFrom: string
+  txFrom: string,
+  traceAddressInstances: number[][]
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentrancyCount} calls to the same contract occured`,
+    description: `Calls to ${addr} occurred ${reentrancyCount} times`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,
     metadata: {
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
+      traceAddressInstances: JSON.stringify(traceAddressInstances),
       anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
     },
     labels: [

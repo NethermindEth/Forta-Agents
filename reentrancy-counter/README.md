@@ -23,6 +23,7 @@ This bot checks transactions for reentrancy by watching the call stack in a tran
   - The metadata includes:
   - `address`: The contract address reentered
   - `reentrancyCount`: A reentrancy counter based on how many times it occurred
+  - `traceAddressInstances`: Array of indeces of calls to the reentered contract in the transaction's trace tree. For more info on how to read the `traceAddress` in a transaction, check this post by Alchemy [here](https://docs.alchemy.com/reference/what-are-evm-traces#how-to-read-traceaddress).
   - `anomalyScore`: Score of how anomalous the alert is (0-1)
     - Score is calculated by finding amount of `NETHFORTA-25` alerts out of the total number of transactions that contained traces processed by this bot. This differs by chain.
   - Labels:
