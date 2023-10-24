@@ -1,10 +1,4 @@
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  Label,
-  EntityType,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, Label, EntityType } from "forta-agent";
 
 export interface Counter {
   [key: string]: number;
@@ -14,10 +8,7 @@ export const reentrancyLevel = (
   reentrancyCount: number,
   thresholds: [number, FindingSeverity][]
 ): [Boolean, FindingSeverity] => {
-  let isDangerousAndSeverity: [boolean, FindingSeverity] = [
-    false,
-    FindingSeverity.Unknown,
-  ];
+  let isDangerousAndSeverity: [boolean, FindingSeverity] = [false, FindingSeverity.Unknown];
   for (let i: number = 0; i < thresholds.length; i++) {
     const [threshold, severity] = thresholds[i];
     if (reentrancyCount < threshold) return isDangerousAndSeverity;
@@ -84,10 +75,7 @@ export const createFinding = (
     metadata: {
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
-      anomalyScore:
-        anomalyScore.toFixed(2) === "0.00"
-          ? anomalyScore.toString()
-          : anomalyScore.toFixed(2),
+      anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
     },
     labels: [
       Label.fromObject({

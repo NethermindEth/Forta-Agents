@@ -9,19 +9,11 @@ import {
   BlockEvent,
   Initialize,
 } from "forta-agent";
-import {
-  Counter,
-  reentrancyLevel,
-  createFinding,
-  getAnomalyScore,
-  getConfidenceLevel,
-} from "./agent.utils";
+import { Counter, reentrancyLevel, createFinding, getAnomalyScore, getConfidenceLevel } from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
 
-const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string =
-  "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
-const TOTAL_TXS_WITH_TRACES_KEY: string =
-  "nm-reentrancy-counter-total-txs-with-traces-key";
+const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
+const TOTAL_TXS_WITH_TRACES_KEY: string = "nm-reentrancy-counter-total-txs-with-traces-key";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
 
@@ -53,18 +45,12 @@ const provideInitialize = (
   return async () => {
     chainId = (await provider.getNetwork()).chainId.toString();
 
-    totalTxsWithTraces = (await persistenceHelper.load(
-      totalTxsKey.concat("-", chainId)
-    )) as number;
-    reentrantCallsPerSeverity = (await persistenceHelper.load(
-      detectReentrantCallsKey.concat("-", chainId)
-    )) as Counter;
+    totalTxsWithTraces = (await persistenceHelper.load(totalTxsKey.concat("-", chainId))) as number;
+    reentrantCallsPerSeverity = (await persistenceHelper.load(detectReentrantCallsKey.concat("-", chainId))) as Counter;
   };
 };
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
+const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
   const maxReentrancyNumber: Counter = {};
@@ -81,6 +67,8 @@ const handleTransaction: HandleTransaction = async (
     addresses.push(trace.action.to);
   });
   addresses.forEach((addr: string) => {
+    // TODO: Issue is this overwrites
+    // existing entry for a given address?
     maxReentrancyNumber[addr] = 1;
     currentCounter[addr] = 0;
   });
@@ -97,10 +85,7 @@ const handleTransaction: HandleTransaction = async (
     }
     const to: string = trace.action.to;
     currentCounter[to] += 1;
-    maxReentrancyNumber[to] = Math.max(
-      maxReentrancyNumber[to],
-      currentCounter[to]
-    );
+    maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
     stack.push(to);
   });
 
@@ -109,24 +94,10 @@ const handleTransaction: HandleTransaction = async (
     const maxCount: number = maxReentrancyNumber[addr];
     const [report, severity] = reentrancyLevel(maxCount, thresholds);
     if (report) {
-      let anomalyScore = getAnomalyScore(
-        reentrantCallsPerSeverity,
-        totalTxsWithTraces,
-        severity
-      );
+      let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
       anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
-      findings.push(
-        createFinding(
-          addr,
-          maxCount,
-          severity,
-          anomalyScore,
-          confidenceLevel,
-          txEvent.hash,
-          txEvent.from
-        )
-      );
+      findings.push(createFinding(addr, maxCount, severity, anomalyScore, confidenceLevel, txEvent.hash, txEvent.from));
     }
   }
   return findings;
@@ -140,14 +111,8 @@ const provideHandleBlock = (
   return async (blockEvent: BlockEvent) => {
     const findings: Finding[] = [];
     if (blockEvent.blockNumber % 240 === 0) {
-      await persistenceHelper.persist(
-        reentrantCallsPerSeverity,
-        detectReentrantCallsKey.concat("-", chainId)
-      );
-      await persistenceHelper.persist(
-        totalTxsWithTraces,
-        totalTxsKey.concat("-", chainId)
-      );
+      await persistenceHelper.persist(reentrantCallsPerSeverity, detectReentrantCallsKey.concat("-", chainId));
+      await persistenceHelper.persist(totalTxsWithTraces, totalTxsKey.concat("-", chainId));
     }
 
     return findings;
