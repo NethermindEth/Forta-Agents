@@ -9,7 +9,14 @@ import {
   BlockEvent,
   Initialize,
 } from "forta-agent";
-import { Counter, reentrancyLevel, createFinding, getAnomalyScore, getConfidenceLevel } from "./agent.utils";
+import {
+  Counter,
+  reentrancyLevel,
+  createFinding,
+  getAnomalyScore,
+  getConfidenceLevel,
+  TraceAddressInstances,
+} from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
 
 const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
@@ -55,6 +62,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   const maxReentrancyNumber: Counter = {};
   const currentCounter: Counter = {};
+  const contractTraceAddressInstances: TraceAddressInstances = {};
 
   // Update the total number of transactions with traces counter
   if (txEvent.traces.length > 0) {
@@ -67,10 +75,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     addresses.push(trace.action.to);
   });
   addresses.forEach((addr: string) => {
-    // TODO: Issue is this overwrites
-    // existing entry for a given address?
     maxReentrancyNumber[addr] = 1;
     currentCounter[addr] = 0;
+    contractTraceAddressInstances[addr] = [];
   });
 
   const stack: string[] = [];
@@ -86,18 +93,31 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     const to: string = trace.action.to;
     currentCounter[to] += 1;
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
+    contractTraceAddressInstances[to].push(curStack);
     stack.push(to);
   });
 
   // Create findings if needed
   for (const addr in maxReentrancyNumber) {
     const maxCount: number = maxReentrancyNumber[addr];
+    const addrTraceAddressInstances: number[][] = contractTraceAddressInstances[addr];
     const [report, severity] = reentrancyLevel(maxCount, thresholds);
     if (report) {
       let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
       anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
-      findings.push(createFinding(addr, maxCount, severity, anomalyScore, confidenceLevel, txEvent.hash, txEvent.from));
+      findings.push(
+        createFinding(
+          addr,
+          maxCount,
+          severity,
+          anomalyScore,
+          confidenceLevel,
+          txEvent.hash,
+          txEvent.from,
+          addrTraceAddressInstances
+        )
+      );
     }
   }
   return findings;
