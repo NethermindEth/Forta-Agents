@@ -100,18 +100,39 @@ describe("Reentrancy counter agent tests suite", () => {
         { to: "0x1", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       );
+    // false, FindingSeverity.Unknown
     const [report0x1, severity0x1] = reentrancyLevel(1, thresholds);
+    // true, FindingSeverity.Info
     const [report0x2, severity0x2] = reentrancyLevel(3, thresholds);
+    // true, FindingSeverity.Low
     const [report0x4, severity0x4] = reentrancyLevel(5, thresholds);
+
     const expected: Finding[] = [];
-    if (report0x1) expected.push(createFinding("0x1", 1, severity0x1, 0.0, 0, "0x2222", "0x9876")); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
+    if (report0x1)
+      expected.push(
+        createFinding("0x1", 1, severity0x1, 0.0, 0, "0x2222", "0x9876", [[0], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]])
+      ); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
     if (report0x2) {
       const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
-      expected.push(createFinding("0x2", 3, severity0x2, mockAnomalyScore, 0.3, "0x2222", "0x9876"));
+      expected.push(
+        createFinding("0x2", 3, severity0x2, mockAnomalyScore, 0.3, "0x2222", "0x9876", [
+          [0, 0],
+          [0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0],
+        ])
+      );
     }
     if (report0x4) {
       const mockAnomalyScore = (mockReentrantCalls.Low + 1) / (mockTotalTxsWithTraces + 1);
-      expected.push(createFinding("0x4", 5, severity0x4, mockAnomalyScore, 0.4, "0x2222", "0x9876"));
+      expected.push(
+        createFinding("0x4", 5, severity0x4, mockAnomalyScore, 0.4, "0x2222", "0x9876", [
+          [0, 1],
+          [0, 1, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ])
+      );
     }
 
     const findings: Finding[] = await handleTransaction(tx);
