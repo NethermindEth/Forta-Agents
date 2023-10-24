@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot checks transactions for reentrancy. This is done by the bot watching the call stack in transaction traces. It then reports the number of recurrent calls with varying severity based on various thresholds.
+This bot checks transactions for reentrancy by watching the call stack in a transaction's traces. It then reports the number of recurrent calls with its severity based on which threshold is reached and surpassed.
 
 ## Supported Chains
 
@@ -18,13 +18,13 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
 
 - NETHFORTA-25
   - Fired when multiple nested calls occur to the same contract in a transaction (Reentrancy)
-  - It reports all possible severities based on different call volume thresholds.
+  - The severity assigned depends on different call volume thresholds.
   - Type is always set to "suspicious"
   - The metadata includes:
-  - `address`: The contract address where the reentrancy occurred
+  - `address`: The contract address reentered
   - `reentrancyCount`: A reentrancy counter based on how many times it occurred
   - `anomalyScore`: Score of how anomalous the alert is (0-1)
-    - Score calculated by finding amount of either `NETHFORTA-25` alerts out of the total number of transactions that contained traces processed by this bot and differs based on chain.
+    - Score is calculated by finding amount of `NETHFORTA-25` alerts out of the total number of transactions that contained traces processed by this bot. This differs by chain.
   - Labels:
     - Label 1:
       - `entity`: The transaction's hash
