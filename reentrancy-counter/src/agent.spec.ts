@@ -139,6 +139,22 @@ describe("Reentrancy counter agent tests suite", () => {
     expect(findings).toEqual(expect.arrayContaining(expected));
     expect(findings.length).toEqual(expected.length);
   });
+
+  it.only("is for iterating", async () => {
+    // 0x4 called 5 times
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x4", traceAddress: [0, 1] },
+        { to: "0x4", traceAddress: [0, 1, 0, 0, 0] }/*,
+        { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] }*/
+      );
+
+    const findings: Finding[] = await handleTransaction(tx);
+  });
 });
 
 describe("Block handler test suite", () => {

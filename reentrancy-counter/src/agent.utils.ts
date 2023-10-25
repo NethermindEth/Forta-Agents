@@ -75,6 +75,7 @@ export const createFinding = (
     name: "Reentrancy calls detected",
     description: `Calls to ${addr} occurred ${reentrancyCount} times`,
     alertId: "NETHFORTA-25",
+    protocol: "N/A",
     type: FindingType.Suspicious,
     severity: severity,
     metadata: {
