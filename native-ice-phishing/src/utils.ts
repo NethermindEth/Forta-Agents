@@ -25,6 +25,10 @@ export const MULTICALL_ABI = [
 export const TRANSFER_FROM_ABI = [
   "function transferFrom(address sender, address recipient, uint256 amount)",
 ];
+export const TRANSFER_EVENT_ABI = [
+  "event Transfer(address indexed from, address indexed to, uint value)",
+];
+
 export const toTxCountThreshold = 2000;
 export const fromTxCountThreshold = 9999;
 export const transfersThreshold = 7;

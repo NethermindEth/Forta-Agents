@@ -44,6 +44,7 @@ import {
   MULTICALL_ABI,
   TRANSFER_FROM_ABI,
   TRANSFER_FROM_SIG,
+  TRANSFER_EVENT_ABI,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -53,7 +54,7 @@ let txWithInputDataCount = 0;
 let transfersCount = 0;
 let contractCreationsCount = 0;
 let withdrawalsCount = 0;
-let multicallsCount = 0;
+let erc20TransfersCount = 0;
 let isRelevantChain: boolean;
 
 let storedData: Data = {
@@ -290,10 +291,13 @@ export const provideHandleTransaction =
       blockNumber,
     } = txEvent;
 
+    if (isRelevantChain) {
+      erc20TransfersCount += txEvent.filterLog(TRANSFER_EVENT_ABI).length;
+    }
+
     const multicalls = txEvent.filterFunction(MULTICALL_ABI);
 
     if (multicalls.length) {
-      multicallsCount++;
       let fundRecipients: string[] = [];
       let fundSenders: string[] = [];
 
@@ -325,8 +329,10 @@ export const provideHandleTransaction =
             Number(chainId),
             BOT_ID,
             "NIP-9",
-            ScanCountType.CustomScanCount,
-            multicallsCount
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ErcTransferCount,
+            erc20TransfersCount // No issue in passing 0 for non-relevant chains
           );
           const attackers = [txEvent.from, ...fundRecipients];
           findings.push(
