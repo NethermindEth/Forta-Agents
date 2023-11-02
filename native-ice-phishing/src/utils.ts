@@ -13,11 +13,18 @@ export const WITHDRAW_SIG = "3ccfd60b"; // withdraw();
 export const WITHDRAWTO_SIG = "f714ce"; // withdraw(uint256, address) without leading 0s;
 export const BALANCEOF_SIG = "70a08231";
 export const MULTICALL_SIG = "caa5c23f"; // multicall((address,bytes)[])
+export const TRANSFER_FROM_SIG = "0x23b872dd"; // transferFrom(address,address,uint256)
 export const OWNER_ABI = [
   "function owner() public view returns (address)",
   "function getOwner() public view returns (address)",
 ];
 
+export const MULTICALL_ABI = [
+  "function multicall(tuple(address target, bytes callData)[] calls)",
+];
+export const TRANSFER_FROM_ABI = [
+  "function transferFrom(address sender, address recipient, uint256 amount)",
+];
 export const toTxCountThreshold = 2000;
 export const fromTxCountThreshold = 9999;
 export const transfersThreshold = 7;

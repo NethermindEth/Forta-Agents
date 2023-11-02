@@ -21,6 +21,7 @@ import {
   createHighSeverityFinding,
   createLowSeverityFinding,
   createMulticallPhishingCriticalSeverityFinding,
+  createMulticallPhishingFinding,
   createWithdrawalFinding,
 } from "./findings";
 import { ZETTABLOCK_API_KEY } from "./key";
@@ -40,6 +41,9 @@ import {
   checkRoundValue,
   WITHDRAWTO_SIG,
   MULTICALL_SIG,
+  MULTICALL_ABI,
+  TRANSFER_FROM_ABI,
+  TRANSFER_FROM_SIG,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -49,6 +53,7 @@ let txWithInputDataCount = 0;
 let transfersCount = 0;
 let contractCreationsCount = 0;
 let withdrawalsCount = 0;
+let multicallsCount = 0;
 let isRelevantChain: boolean;
 
 let storedData: Data = {
@@ -63,6 +68,9 @@ let alertedHashesWithAddress: string[] = [];
 let infoAlerts: { alerts: Alert[] } = {
   alerts: [],
 };
+
+let multicallScamContracts: string[] = [];
+let isInitialized = false;
 
 let lastTimestamp = 0;
 let lastExecutedMinute = 0;
@@ -83,8 +91,12 @@ const getPastAlertsOncePerDay = async () => {
   const today = new Date();
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(today.getDate() - 7);
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(today.getDate() - 1);
+  const twoHundredDaysAgo = new Date();
+  twoHundredDaysAgo.setDate(today.getDate() - 200);
 
-  const query: AlertQueryOptions = {
+  const nip4Query: AlertQueryOptions = {
     botIds: [BOT_ID],
     alertId: "NIP-4",
     chainId,
@@ -95,11 +107,38 @@ const getPastAlertsOncePerDay = async () => {
     first: 100,
   };
 
-  const alerts = await getAlerts(query);
+  const nip8Query: AlertQueryOptions = {
+    botIds: [BOT_ID],
+    alertId: "NIP-8",
+    chainId,
+    blockDateRange: {
+      startDate: isInitialized ? oneDayAgo : twoHundredDaysAgo,
+      endDate: today,
+    },
+    first: 200,
+  };
 
-  alerts.alerts.forEach((alert) => {
+  const [nip4Alerts, nip8Alerts] = await Promise.all([
+    getAlerts(nip4Query),
+    getAlerts(nip8Query),
+  ]);
+
+  nip4Alerts.alerts.forEach((alert) => {
     infoAlerts.alerts.push(alert);
   });
+
+  nip8Alerts.alerts.forEach((alert) => {
+    const {
+      metadata: { address },
+    } = alert;
+    if (!multicallScamContracts.includes(address)) {
+      multicallScamContracts.push(address);
+    }
+  });
+
+  if (!isInitialized) {
+    isInitialized = true;
+  }
 };
 
 export const provideInitialize = (
@@ -204,8 +243,13 @@ export const provideInitialize = (
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes(sig)).substring(0, 10)
     );
 
-    getPastAlertsOncePerDay();
-    setInterval(getPastAlertsOncePerDay, 24 * 60 * 60 * 1000);
+    const initializeAndGetPastAlerts = async () => {
+      await getPastAlertsOncePerDay();
+    };
+
+    // Call the function once to await it
+    await initializeAndGetPastAlerts();
+    setInterval(initializeAndGetPastAlerts, 24 * 60 * 60 * 1000);
 
     return {
       alertConfig: {
@@ -245,6 +289,52 @@ export const provideHandleTransaction =
       logs,
       blockNumber,
     } = txEvent;
+
+    const multicalls = txEvent.filterFunction(MULTICALL_ABI);
+
+    if (multicalls.length) {
+      multicallsCount++;
+      let fundRecipients: string[] = [];
+      let fundSenders: string[] = [];
+
+      const isScamContract = multicallScamContracts
+        .map((contractAddress) => contractAddress.toLowerCase())
+        .includes(txEvent.to!.toLowerCase());
+
+      if (isScamContract) {
+        multicalls.forEach((invocation) => {
+          const { args }: { args: ethers.utils.Result } = invocation;
+
+          args[0].forEach((call: any) => {
+            if (call.callData.startsWith(TRANSFER_FROM_SIG)) {
+              const iface = new ethers.utils.Interface(TRANSFER_FROM_ABI);
+              const data = iface.decodeFunctionData(
+                "transferFrom",
+                call.callData
+              );
+              const { recipient, sender } = data;
+              if (!fundRecipients.includes(recipient))
+                fundRecipients.push(recipient);
+              if (!fundSenders.includes(sender)) fundSenders.push(sender);
+            }
+          });
+        });
+
+        if (fundRecipients.length) {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-9",
+            ScanCountType.CustomScanCount,
+            multicallsCount
+          );
+          const attackers = [txEvent.from, ...fundRecipients];
+          findings.push(
+            createMulticallPhishingFinding(attackers, fundSenders, anomalyScore)
+          );
+        }
+      }
+    }
 
     if (to) {
       let owner = "";
