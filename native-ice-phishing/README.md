@@ -135,6 +135,7 @@ This bot monitors:
       - `label`: The type of the label, always set to "Attacker"
       - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
 - NIP-6
+
   - Fired when there's a withdrawal from the owner of a contract used for a native ice phishing attack.
   - Severity is always set to "Critical"
   - Type is always set to "Suspicious"
@@ -180,6 +181,7 @@ This bot monitors:
         - `label`: The type of the label, always set to "Victim"
         - `confidence`^: The confidence level of the address being a victim (0-1), always set to 0.8
   - NIP-8
+
     - Fired when a contract is deployed with characteristics indicative of a potential native & erc20/erc71 ice phishing attack (Using a Multicall and a Fallback function).
     - Severity is always set to "Critical"
     - Type is always set to "Suspicious"
@@ -199,6 +201,32 @@ This bot monitors:
         - `label`: The type of the label, always set to "Attacker"
         - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
 
+  - NIP-9
+
+    - Fired when a multicall is executed stealing ERC20 funds in a known scammer contract.
+    - Severity is always set to "Info"
+    - Type is always set to "Suspicious"
+    - Metadata contains:
+      - `attacker#`: The transaction initiator and the fund recipient(s)
+      - `victim#`: The fund sender(s)
+      - `anomalyScore`: The anomaly score of the alert
+    - Labels contain:
+      - Label 1:
+        - `entity`: The initiator address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
+      - Label 2-#:
+        - `entity`: The recipient(s) address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
+      - last Label(s):
+        - `entity`: The victim(s) address
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
+
 ## Test Data
 
 The bot behaviour can be verified with the following transactions on Ethereum Mainnet:
@@ -206,3 +234,4 @@ The bot behaviour can be verified with the following transactions on Ethereum Ma
 - [0x28aec33f80d6d62965e524f9f97660cc0efff6aff1ebe4902c7849b06070f3cc](https://etherscan.io/tx/0x28aec33f80d6d62965e524f9f97660cc0efff6aff1ebe4902c7849b06070f3cc) (NIP-1 alert)
 - [0x80bb173bed260691b72117849f198fbf467238e6001e6ff772412c3179d2b2c6](https://etherscan.io/tx/0x80bb173bed260691b72117849f198fbf467238e6001e6ff772412c3179d2b2c6) (NIP-2 alert)
 - [0xa2df4630ee827040207d41e17daa371e2ae86ae191ff558284ac01a96abfb4e6](https://etherscan.io/tx/0xa2df4630ee827040207d41e17daa371e2ae86ae191ff558284ac01a96abfb4e6) (NIP-5 alert)
+- [0x4329c267d03999dc8f9f2f879a9e969381d926fddd802e4eadab8133780fe3c1](https://etherscan.io/tx/0x4329c267d03999dc8f9f2f879a9e969381d926fddd802e4eadab8133780fe3c1) (NIP-9 alert)

@@ -342,6 +342,71 @@ export const createCriticalNIPSeverityFinding = (
   });
 };
 
+export const createMulticallPhishingFinding = (
+  attackers: string[],
+  victims: string[],
+  anomalyScore: number
+): Finding => {
+  const alertId = "NIP-9";
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+
+  const attackersString = attackers.join(",");
+
+  const uniqueKey = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(
+      attackersString + alertId + currentDate + currentMonth + currentYear
+    )
+  );
+
+  let labels: Label[] = [];
+
+  const metadata: { [key: string]: string } = {
+    anomalyScore: anomalyScore.toString(),
+  };
+
+  attackers.forEach((attacker, index) => {
+    const attackerName = `attacker${index + 1}`;
+    metadata[attackerName] = attacker;
+
+    const attackerLabel = Label.fromObject({
+      entity: attacker,
+      entityType: EntityType.Address,
+      label: "Attacker",
+      confidence: 0.9,
+      remove: false,
+    });
+    labels.push(attackerLabel);
+  });
+
+  victims.forEach((victim, index) => {
+    const victimName = `victim${index + 1}`;
+    metadata[victimName] = victim;
+
+    const victimLabel = Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.9,
+      remove: false,
+    });
+    labels.push(victimLabel);
+  });
+
+  return Finding.fromObject({
+    name: "Multicall ERC20 Ice Phishing Attack",
+    description: `${attackers[0]} stole funds through a Multicall ERC20 Ice Phishing Attack`,
+    alertId,
+    severity: FindingSeverity.Info,
+    type: FindingType.Suspicious,
+    metadata,
+    labels,
+    uniqueKey,
+  });
+};
+
 export const createErrorAlert = (
   errorDescription: string,
   errorSource: string,
