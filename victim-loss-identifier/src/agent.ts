@@ -1,4 +1,14 @@
-import { BlockEvent, Finding, Initialize, HandleBlock, HandleAlert, AlertEvent, getEthersProvider } from "forta-agent";
+import {
+  BlockEvent,
+  Finding,
+  Initialize,
+  HandleBlock,
+  HandleAlert,
+  AlertEvent,
+  getEthersProvider,
+  getAlerts,
+  GetAlerts,
+} from "forta-agent";
 import { providers } from "ethers";
 import { cleanObject, getBlocksInTimePeriodForChainId, getChainBlockTime } from "./utils/utils";
 import { ScammerInfo, VictimInfo, ApiKeys } from "./types";
@@ -15,7 +25,12 @@ import {
   MAX_OBJECT_SIZE,
   SCAMMERS_DB_KEY,
   VICTIMS_DB_KEY,
+  NETHERMIND_ICE_PHISHING_BOT,
+  BLOCKSEC_ICE_PHISHING_BOT,
+  ICE_PHISHING_ALERT_IDS,
+  DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS,
 } from "./constants";
+import { extractScammerAddresses, processIcePhishingTransfers } from "./ice.phishing.processing";
 
 let chainId: number;
 let dataFetcher: DataFetcher;
@@ -23,6 +38,9 @@ let lastPersistenceMinute: number;
 
 let scammersCurrentlyMonitored: { [key: string]: ScammerInfo } = {};
 let victimsScammed: { [key: string]: VictimInfo } = {};
+
+const findingsCache: Finding[] = [];
+const scammersInvolvedInMultipleScamTypes: string[] = [];
 
 async function createNewDataFetcher(provider: providers.Provider): Promise<DataFetcher> {
   const apiKeys = (await getSecrets()) as ApiKeys;
@@ -37,8 +55,12 @@ export function provideInitialize(
   return async () => {
     chainId = (await provider.getNetwork()).chainId;
     dataFetcher = await dataFetcherCreator(provider);
-    victimsScammed = await loadObject(VICTIMS_DB_KEY);
-    scammersCurrentlyMonitored = await loadObject(SCAMMERS_DB_KEY);
+
+    const victimsKey = VICTIMS_DB_KEY + "-" + chainId;
+    const scammersKey = SCAMMERS_DB_KEY + "-" + chainId;
+
+    victimsScammed = await loadObject(victimsKey);
+    scammersCurrentlyMonitored = await loadObject(scammersKey);
 
     return {
       alertConfig: {
@@ -54,29 +76,26 @@ export function provideInitialize(
   };
 }
 
-export function provideHandleAlert(): HandleAlert {
+export function provideHandleAlert(getAlerts: GetAlerts): HandleAlert {
   return async (alertEvent: AlertEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
-
-    const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
-    if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
     const blocksInTwentyFiveDays = getBlocksInTimePeriodForChainId(TWENTY_FIVE_DAYS_IN_SECS, chainId);
+    const scammerAddress = alertEvent.alert.metadata["scammerAddresses"];
 
-      scammersCurrentlyMonitored[scammerAddress] = {
-        firstAlertIdAppearance: alertEvent.alertId!,
-        // Default to twenty five days ago in case Zettablock
-        // doesn't return as expected. Value to be overwritten
-        // downstream in the logic if returned values are usable.
-        // Twenty five specifically because the block handler
-        // removes scammers that haven't been active in thirty days,
-        // and this gives a couple of days to find transfers for the scammer.
-        mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
-        totalUsdValueStolen: 0,
-      };
-
-      switch (alertEvent.alertId!) {
-        case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
-          findings.push(
+    switch (alertEvent.alertId!) {
+      case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+        if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+          scammersCurrentlyMonitored[scammerAddress] = {
+            firstAlertIdAppearance: alertEvent.alertId!,
+            // Default to twenty five days ago in case Zettablock
+            // doesn't return as expected. Value to be overwritten
+            // downstream in the logic if returned values are usable.
+            // Twenty five specifically because the block handler
+            // removes scammers that haven't been active in thirty days,
+            // and this gives a couple of days to find transfers for the scammer.
+            mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
+            totalUsdValueStolen: 0,
+          };
+          findingsCache.push(
             ...(await processFraudulentNftOrders(
               scammerAddress,
               NINETY_DAYS,
@@ -87,24 +106,104 @@ export function provideHandleAlert(): HandleAlert {
               alertEvent.blockNumber!
             ))
           );
-          break;
-        
-        case "SCAM-DETECTOR-ICE-PHISHING":
-          findings.push();
-          break;
+        } else if (
+          // Tentative logic to keep track of scammers involved in multiple scam types
+          scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance !== alertEvent.alertId! &&
+          !scammersInvolvedInMultipleScamTypes.includes(scammerAddress)
+        ) {
+          scammersInvolvedInMultipleScamTypes.push(scammerAddress);
+          console.log(`Scammer ${scammerAddress} has been involved in multiple scam types`);
+        }
+        break;
 
-        default:
-          return findings;
-      }
+      case "SCAM-DETECTOR-ICE-PHISHING":
+        const sourceAlertBotId = alertEvent.alert.source?.sourceAlert?.botId;
+        const sourceAlertHash = alertEvent.alert.source?.sourceAlert?.hash;
+        const underlyingAlert = sourceAlertHash
+          ? (
+              await getAlerts({
+                botIds: [NETHERMIND_ICE_PHISHING_BOT, BLOCKSEC_ICE_PHISHING_BOT],
+                alertHash: sourceAlertHash,
+                blockNumberRange: {
+                  // Requires blockNumberRange to be set to fetch the alert successfully
+                  startBlockNumber: DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.START,
+                  endBlockNumber: alertEvent.blockNumber
+                    ? alertEvent.blockNumber
+                    : DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS.END,
+                },
+              })
+            ).alerts[0]
+          : undefined;
+
+        if (!underlyingAlert) break;
+
+        const { alertId: underlyingAlertId, metadata, description } = underlyingAlert;
+
+        if (!ICE_PHISHING_ALERT_IDS.includes(underlyingAlertId!)) break;
+
+        const scammerAddresses: string[] = [];
+
+        if (sourceAlertBotId === NETHERMIND_ICE_PHISHING_BOT) {
+          if (underlyingAlertId !== "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS") {
+            scammerAddresses.push(scammerAddress);
+          } else {
+            const underlyingAlertFirstTxHash = metadata["firstTxHash"];
+            const underlyingAlertLastTxHash = metadata["lastTxHash"];
+            const [firstTxReceipt, lastTxReceipt] = await Promise.all([
+              dataFetcher.getTransactionReceipt(underlyingAlertFirstTxHash),
+              dataFetcher.getTransactionReceipt(underlyingAlertLastTxHash),
+            ]);
+
+            extractScammerAddresses(firstTxReceipt!, scammerAddresses);
+            extractScammerAddresses(lastTxReceipt!, scammerAddresses);
+          }
+        } else if (sourceAlertBotId === BLOCKSEC_ICE_PHISHING_BOT && !description!.includes("approve")) {
+          // Checking if scammer address exists as there exist alerts about phishing urls and not EOAs, where the property is empty.
+          if (scammerAddress) scammerAddresses.push(scammerAddress);
+        }
+
+        const uniqueScammerAddresses = [...new Set(scammerAddresses)];
+        for (const scammerAddress of uniqueScammerAddresses) {
+          if (!Object.keys(scammersCurrentlyMonitored).includes(scammerAddress)) {
+            scammersCurrentlyMonitored[scammerAddress] = {
+              firstAlertIdAppearance: alertEvent.alertId!,
+              mostRecentActivityByBlockNumber: alertEvent.blockNumber! - blocksInTwentyFiveDays,
+              totalUsdValueStolen: 0,
+            };
+
+            findingsCache.push(
+              ...(await processIcePhishingTransfers(
+                scammerAddress,
+                NINETY_DAYS,
+                dataFetcher,
+                scammersCurrentlyMonitored,
+                victimsScammed,
+                chainId,
+                alertEvent.blockNumber!
+              ))
+            );
+          } else if (
+            // Tentative logic to keep track of scammers involved in multiple scam types
+            scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance !== alertEvent.alertId! &&
+            !scammersInvolvedInMultipleScamTypes.includes(scammerAddress)
+          ) {
+            scammersInvolvedInMultipleScamTypes.push(scammerAddress);
+            console.log(`Scammer ${scammerAddress} has been involved in multiple scam types`);
+          }
+
+          break;
+        }
     }
-
-    return findings;
+    return findingsCache.splice(0, 15);
   };
 }
 
 export function provideHandleBlock(): HandleBlock {
   return async (blockEvent: BlockEvent): Promise<Finding[]> => {
-    const findings: Finding[] = [];
+    // Tentative logic to keep track of scammers involved in multiple scam types
+    if (blockEvent.blockNumber % 100 === 0 && scammersInvolvedInMultipleScamTypes.length > 0) {
+      console.log("Scammers involved in multiple scam types: ", scammersInvolvedInMultipleScamTypes);
+    }
 
     const blocksInOneDay = getBlocksInTimePeriodForChainId(ONE_DAY_IN_SECS, chainId);
 
@@ -116,17 +215,32 @@ export function provideHandleBlock(): HandleBlock {
         const scammerLastActiveInSecs = blocksSinceScammerLastActive * getChainBlockTime(chainId);
         const daysSinceScammerLastActive = Math.ceil(scammerLastActiveInSecs / ONE_DAY_IN_SECS);
 
-        const fraudulentNftOrderFindings = await processFraudulentNftOrders(
-          scammerAddress,
-          daysSinceScammerLastActive,
-          dataFetcher,
-          scammersCurrentlyMonitored,
-          victimsScammed,
-          chainId,
-          blockEvent.blockNumber
-        );
-
-        findings.push(...fraudulentNftOrderFindings);
+        switch (scammersCurrentlyMonitored[scammerAddress].firstAlertIdAppearance) {
+          case "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER":
+            const fraudulentNftOrderFindings = await processFraudulentNftOrders(
+              scammerAddress,
+              daysSinceScammerLastActive,
+              dataFetcher,
+              scammersCurrentlyMonitored,
+              victimsScammed,
+              chainId,
+              blockEvent.blockNumber
+            );
+            findingsCache.push(...fraudulentNftOrderFindings);
+            break;
+          case "SCAM-DETECTOR-ICE-PHISHING":
+            const icePhishingFindings = await processIcePhishingTransfers(
+              scammerAddress,
+              daysSinceScammerLastActive,
+              dataFetcher,
+              scammersCurrentlyMonitored,
+              victimsScammed,
+              chainId,
+              blockEvent.blockNumber
+            );
+            findingsCache.push(...icePhishingFindings);
+            break;
+        }
 
         const blocksInThirtyDays = getBlocksInTimePeriodForChainId(THIRTY_DAYS_IN_SECS, chainId);
         if (
@@ -165,18 +279,18 @@ export function provideHandleBlock(): HandleBlock {
         largerObjectSize = scammersObjectSize < victimsObjectSize ? victimsObjectSize : scammersObjectSize;
       }
 
-      await persist(scammersCurrentlyMonitored, SCAMMERS_DB_KEY);
-      await persist(victimsScammed, VICTIMS_DB_KEY);
+      await persist(scammersCurrentlyMonitored, SCAMMERS_DB_KEY + "-" + chainId);
+      await persist(victimsScammed, VICTIMS_DB_KEY + "-" + chainId);
       lastPersistenceMinute = minutes;
     }
 
-    return findings;
+    return findingsCache.splice(0, 15);
   };
 }
 
 export default {
   initialize: provideInitialize(getEthersProvider(), createNewDataFetcher, load),
-  handleAlert: provideHandleAlert(),
+  handleAlert: provideHandleAlert(getAlerts),
   handleBlock: provideHandleBlock(),
   provideInitialize,
   provideHandleAlert,

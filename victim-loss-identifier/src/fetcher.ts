@@ -1,9 +1,16 @@
 import { providers } from "ethers";
 import { Network, Alchemy, GetFloorPriceResponse, FloorPriceMarketplace } from "alchemy-sdk";
 import { LRUCache } from "lru-cache";
-import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse } from "./types";
-import { etherscanApis } from "./utils/utils";
-import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE, ONE_DAY_IN_SECS } from "./constants";
+import { ApiKeys, Erc721Transfer, CoinData, EtherscanApiResponse, IcePhishingTransfer } from "./types";
+import { etherscanApis, getChainByChainId } from "./utils/utils";
+import {
+  ERC20_TOKEN_NAME_ABI,
+  FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE,
+  ONE_DAY_IN_MS,
+  ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID,
+} from "./constants";
+import { ethers } from "forta-agent";
+import { Interface } from "ethers/lib/utils";
 
 export default class DataFetcher {
   provider: providers.Provider;
@@ -14,7 +21,9 @@ export default class DataFetcher {
   private erc20PriceCache: LRUCache<string, number>;
   private txReceiptCache: LRUCache<string, providers.TransactionReceipt>;
   private txResponseCache: LRUCache<string, providers.TransactionResponse>;
+  private tokenNameCache: LRUCache<string, string>;
   private blockTimestampCache: LRUCache<number, number>;
+  private tokenContract: ethers.Contract;
   private readonly MAX_TRIES: number; // Retries counter
 
   constructor(provider: providers.Provider, apiKeys: ApiKeys) {
@@ -42,8 +51,34 @@ export default class DataFetcher {
     this.blockTimestampCache = new LRUCache<number, number>({
       max: 1000,
     });
+    this.tokenNameCache = new LRUCache<string, string>({ max: 10000 });
+    this.tokenContract = new ethers.Contract("", new Interface([ERC20_TOKEN_NAME_ABI]), this.provider);
     this.MAX_TRIES = 3;
   }
+
+  getTokenName = async (tokenAddress: string, block: number): Promise<string> => {
+    if (this.tokenNameCache.has(tokenAddress)) return this.tokenNameCache.get(tokenAddress) as string;
+
+    let name: string = "";
+    let tries = 0;
+
+    while (tries < this.MAX_TRIES) {
+      try {
+        const token = this.tokenContract.attach(tokenAddress);
+        name = await token.name({ blockTag: block });
+        this.tokenNameCache.set(tokenAddress, name);
+        return name;
+      } catch (err) {
+        tries++;
+        if (tries === this.MAX_TRIES) {
+          return name;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+      }
+    }
+
+    return name;
+  };
 
   private getBlockExplorerKey = (chainId: number) => {
     const blockExplorerKeys = this.apiKeys.apiKeys.victimLoss;
@@ -167,22 +202,23 @@ export default class DataFetcher {
     return receipt;
   };
 
-  getErc20Price = async (tokenAddress: string, blockNumber: number): Promise<number | undefined> => {
+  getErc20Price = async (tokenAddress: string, blockNumber: number, chainId: number): Promise<number> => {
+    const chain = getChainByChainId(chainId);
     const timestamp = await this.getTimestamp(blockNumber);
 
     const key = `${tokenAddress}-${timestamp}`;
     if (this.erc20PriceCache.has(key)) {
-      return this.erc20PriceCache.get(key);
+      return this.erc20PriceCache.get(key)!;
     }
 
     let tries = 0;
 
     while (tries < this.MAX_TRIES) {
       try {
-        const url = `https://coins.llama.fi/prices/historical/${timestamp}/ethereum:${tokenAddress}`;
+        const url = `https://coins.llama.fi/prices/historical/${timestamp}/${chain}:${tokenAddress}`;
         const response = await fetch(url);
         const data = (await response.json()) as CoinData;
-        const price = data.coins[`ethereum:${tokenAddress}`]?.price;
+        const price = data.coins[`${chain}:${tokenAddress}`]?.price;
 
         if (price == null) {
           tries++; // Increment tries counter for null price
@@ -201,7 +237,7 @@ export default class DataFetcher {
       // Wait for 1 second before retrying
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    return undefined;
+    return 0;
   };
 
   getNativeTokenPrice = async (timestamp: number): Promise<number | undefined> => {
@@ -240,6 +276,19 @@ export default class DataFetcher {
     }
 
     return undefined;
+  };
+
+  getValueInUsd = async (
+    block: number,
+    chainId: number,
+    amount: string,
+    token: string,
+    decimals: number
+  ): Promise<number> => {
+    const usdPrice = await this.getErc20Price(token, block, chainId);
+    let tokenAmount = ethers.utils.formatUnits(amount, decimals);
+
+    return Number(tokenAmount) * usdPrice;
   };
 
   getFloorPriceInEth = async (nftAddress: string): Promise<number> => {
@@ -307,8 +356,7 @@ export default class DataFetcher {
     let erc721Transfers: Erc721Transfer[] = [];
 
     const currentTime = new Date();
-    const oneDayInMs = ONE_DAY_IN_SECS * 1000;
-    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * oneDayInMs;
+    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * ONE_DAY_IN_MS;
 
     const maxTimestamp = currentTime.toISOString();
     const minTimestamp = new Date(currentTime.getTime() - daysTimeWindowInMs).toISOString();
@@ -378,6 +426,87 @@ export default class DataFetcher {
     return erc721Transfers;
   };
 
+  getScammerIcePhishingTransfers = async (
+    scammerAddress: string,
+    transferOccuranceTimeWindowInDays: number,
+    chainId: number
+  ) => {
+    let icePhishingTransfers: IcePhishingTransfer[] = [];
+
+    const currentTime = new Date();
+    const daysTimeWindowInMs = transferOccuranceTimeWindowInDays * ONE_DAY_IN_MS;
+
+    const maxTimestamp = currentTime.toISOString();
+    const minTimestamp = new Date(currentTime.getTime() - daysTimeWindowInMs).toISOString();
+
+    const query = `
+      query GetErc20IcePhishingTransfers($scammerAddress: String!, $minTimestamp: String!, $maxTimestamp: String!) {
+        records(
+          filter: {
+            block_time: {
+              min: $minTimestamp,
+              max: $maxTimestamp
+            },
+          },
+          to_address: $scammerAddress
+        ) {
+          transaction_hash
+          contract_address
+          from_address
+          to_address
+          symbol
+          name
+          token_id
+          decimals
+          value
+          block_time
+          block_number
+        }
+      }
+    `;
+
+    const variables = {
+      scammerAddress,
+      minTimestamp,
+      maxTimestamp,
+    };
+
+    const body = JSON.stringify({
+      query,
+      variables,
+    });
+
+    let tries = 0;
+
+    while (tries < this.MAX_TRIES) {
+      try {
+        const response = await fetch(
+          `https://api.zettablock.com/api/v1/dataset/${ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID[chainId]}/graphql`,
+          {
+            method: "POST",
+            body,
+            headers: {
+              accept: "application/json",
+              "X-API-KEY": this.apiKeys.generalApiKeys.ZETTABLOCK[0],
+              "content-type": "application/json",
+            },
+          }
+        );
+        const data = await response.json();
+        icePhishingTransfers = data.data.records;
+        break; // exit the loop if successful
+      } catch (err) {
+        tries++;
+        if (tries === this.MAX_TRIES) {
+          throw err;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
+      }
+    }
+
+    return icePhishingTransfers;
+  };
+
   hasBuyerTransferredTokenToSeller = async (
     buyerAddress: string,
     sellerAddresses: string[],
@@ -421,7 +550,7 @@ export default class DataFetcher {
 
     for (const transfer of erc20Transfers) {
       if (transfer.from === buyerAddress && sellerAddresses.includes(transfer.to)) {
-        const price = await this.getErc20Price(transfer.contractAddress, blockNumber);
+        const price = await this.getErc20Price(transfer.contractAddress, blockNumber, chainId);
         if (price && price > FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE) {
           return true;
         }

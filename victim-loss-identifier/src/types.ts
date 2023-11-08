@@ -63,6 +63,20 @@ export type Erc721Transfer = {
   transaction_hash: string;
 };
 
+export type IcePhishingTransfer = {
+  transaction_hash: string;
+  contract_address: string;
+  from_address: string;
+  to_address: string;
+  symbol: string;
+  name: string | null;
+  token_id: string | null;
+  decimals: number | null;
+  value: string | null;
+  block_time: string;
+  block_number: number;
+};
+
 export type ApiKeys = {
   generalApiKeys: {
     ZETTABLOCK: string[];

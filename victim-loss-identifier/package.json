@@ -1,14 +1,17 @@
 {
   "name": "victim-loss-identifier",
   "displayName": "Victim & Loss Identifier",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "This bot identifies victims of end-user attacks and calculates their losses.",
   "longDescription": "The bot's functionality revolves around monitoring alerts from the Scam Detector Feed bot. When it receives an alert, the bot extracts information related to the scammer's addresses and threat category. Subsequently, it provides answers to questions about who the victims of the scammer are and what digital assets have been transferred from these victims to the scammer.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/victim-loss-identifier",
   "licenseUrl": "https://github.com/NethermindEth/Forta-Agents/victim-loss-identifier/blob/main/LICENSE.md",
   "promoUrl": "",
   "chainIds": [
-    1
+    1,
+    56,
+    137,
+    43114
   ],
   "chainSettings": {
     "default": {

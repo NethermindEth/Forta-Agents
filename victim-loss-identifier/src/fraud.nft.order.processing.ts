@@ -9,7 +9,13 @@ import {
 import { createFpFinding, createFraudNftOrderFinding } from "./utils/findings";
 import { Erc721Transfer, ScammerInfo, VictimInfo } from "./types";
 import DataFetcher from "./fetcher";
-import { extractFalsePositiveDataAndUpdateState, isScammerFalsePositive } from "./utils/utils";
+import {
+  addVictimInfoToVictims,
+  extractFalsePositiveDataAndUpdateState,
+  increaseStolenUsdAmounts,
+  isScammerFalsePositive,
+  linkScammerToItsVictim,
+} from "./utils/utils";
 
 function getSenderAddressFromTransferLogs(txnLogs: Log[], tokenAddress: string, tokenId: string): string {
   return utils.hexDataSlice(
@@ -47,134 +53,6 @@ function hasBuyerOrNftExchangeTransferredToSeller(
         log.topics[3].includes(sellerAddress.slice(2)))
     );
   });
-}
-
-function addVictimInfoToVictims(
-  victimAddress: string,
-  victims: { [key: string]: VictimInfo },
-  scammerAddress: string,
-  exploitTxnHash: string,
-  stolenTokenAddress: string,
-  stolenTokenName: string,
-  stolenTokenSymbol: string,
-  transactionBlockNumber: number
-) {
-  if (!victims[victimAddress]) {
-    // If victim has not previously
-    // been documented, add them
-    victims[victimAddress] = {
-      mostRecentActivityByBlockNumber: transactionBlockNumber,
-      totalUsdValueAcrossAllTokens: 0,
-      totalUsdValueAcrossAllErc721Tokens: 0,
-      scammedBy: {
-        [scammerAddress]: {
-          totalUsdValueLostToScammer: 0,
-          hasBeenAlerted: false,
-          transactions: {
-            [exploitTxnHash]: {
-              erc721: {
-                [stolenTokenAddress]: {
-                  tokenName: stolenTokenName,
-                  tokenSymbol: stolenTokenSymbol,
-                  tokenIds: [],
-                  tokenTotalUsdValue: 0,
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-  } else if (!victims[victimAddress].scammedBy[scammerAddress]) {
-    // If victim has not previously been documented to have
-    // been scammed by this scammer, add them as an entry
-    victims[victimAddress].scammedBy[scammerAddress] = {
-      totalUsdValueLostToScammer: 0,
-      hasBeenAlerted: false,
-      transactions: {
-        [exploitTxnHash]: {
-          erc721: {
-            [stolenTokenAddress]: {
-              tokenName: stolenTokenName,
-              tokenSymbol: stolenTokenSymbol,
-              tokenIds: [],
-              tokenTotalUsdValue: 0,
-            },
-          },
-        },
-      },
-    };
-    // Update its most recent block
-    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
-  } else if (!victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash]) {
-    // If victim, having been already scammed by this scammer,
-    // doesn't have _this_ specific transaction, add as new entry
-    victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash] = {
-      erc721: {
-        [stolenTokenAddress]: {
-          tokenName: stolenTokenName,
-          tokenSymbol: stolenTokenSymbol,
-          tokenIds: [],
-          tokenTotalUsdValue: 0,
-        },
-      },
-    };
-    // Update its most recent block
-    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
-  } else if (
-    !victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress]
-  ) {
-    // Scenario in which a victim loses NFTs from different collections in the same
-    // transaction, add additional collection info under the same transaction.
-    victims[victimAddress].scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress] = {
-      tokenName: stolenTokenName,
-      tokenSymbol: stolenTokenSymbol,
-      tokenIds: [],
-      tokenTotalUsdValue: 0,
-    };
-    // Update its most recent block
-    victims[victimAddress].mostRecentActivityByBlockNumber = transactionBlockNumber;
-  }
-}
-
-function linkScammerToItsVictim(
-  scammers: { [key: string]: ScammerInfo },
-  scammerAddress: string,
-  victims: { [key: string]: VictimInfo },
-  victimAddress: string
-) {
-  if (!scammers[scammerAddress].victims) {
-    // If scammer has no victims, add first victim
-    scammers[scammerAddress].victims = {
-      [victimAddress]: victims[victimAddress],
-    };
-  } else if (!scammers[scammerAddress].victims![victimAddress]) {
-    // If scammer doesn't have _this_ specific victim, add victim
-    scammers[scammerAddress].victims![victimAddress] = victims[victimAddress];
-  }
-}
-
-function increaseStolenUsdAmounts(
-  scammers: { [key: string]: ScammerInfo },
-  scammerAddress: string,
-  victims: { [key: string]: VictimInfo },
-  victimAddress: string,
-  exploitTxnHash: string,
-  stolenTokenAddress: string,
-  stolenTokenId: string,
-  nftCollectionFloorPrice: number
-) {
-  scammers[scammerAddress].totalUsdValueStolen += nftCollectionFloorPrice;
-
-  const currentVictim = victims[victimAddress];
-  currentVictim.totalUsdValueAcrossAllTokens! += nftCollectionFloorPrice;
-  currentVictim.totalUsdValueAcrossAllErc721Tokens! += nftCollectionFloorPrice;
-  currentVictim.scammedBy![scammerAddress].totalUsdValueLostToScammer += nftCollectionFloorPrice;
-
-  const currentVictimStolenErc721Info =
-    currentVictim.scammedBy[scammerAddress].transactions[exploitTxnHash].erc721![stolenTokenAddress];
-  currentVictimStolenErc721Info.tokenTotalUsdValue! += nftCollectionFloorPrice;
-  currentVictimStolenErc721Info.tokenIds.push(Number(stolenTokenId));
 }
 
 export async function processFraudulentNftOrders(
@@ -243,6 +121,7 @@ export async function processFraudulentNftOrders(
         stolenTokenAddress,
         stolenTokenName,
         stolenTokenSymbol,
+        null,
         txnResponse!.blockNumber!
       );
       linkScammerToItsVictim(scammers, scammerAddress, victims, victimAddress);
@@ -254,6 +133,8 @@ export async function processFraudulentNftOrders(
         exploitTxnHash,
         stolenTokenAddress,
         stolenTokenId,
+        false,
+        "0",
         nftCollectionFloorPrice
       );
       scammers[scammerAddress].mostRecentActivityByBlockNumber = txnResponse!.blockNumber!;

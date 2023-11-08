@@ -1,7 +1,10 @@
 import { MockEthersProvider } from "forta-agent-tools/lib/test";
 import { GetFloorPriceResponse } from "alchemy-sdk";
 import DataFetcher from "./fetcher";
-import { FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE } from "./constants";
+import { ERC20_TOKEN_NAME_ABI, FP_BUYER_TO_SELLER_MIN_TRANSFERRED_TOKEN_VALUE } from "./constants";
+import { Interface } from "ethers/lib/utils";
+import { createAddress } from "forta-agent-tools/lib/utils";
+import { Erc721Transfer, IcePhishingTransfer } from "./types";
 
 export class ExtendedMockEthersProvider extends MockEthersProvider {
   public getTransaction: any;
@@ -13,6 +16,15 @@ export class ExtendedMockEthersProvider extends MockEthersProvider {
     this.getTransactionReceipt = jest.fn();
   }
 }
+
+// [blockNumber, name, tokenAddress]
+const TEST_NAMES: [number, string, string][] = [
+  [10, "aaaa", createAddress("0xa1")],
+  [20, "bbbb", createAddress("0xa2")],
+  [30, "cccc", createAddress("0xa3")],
+  [40, "dddd", createAddress("0xa4")],
+  [50, "eeee", createAddress("0xa5")],
+];
 
 describe("DataFetcher tests suite", () => {
   let mockProvider: ExtendedMockEthersProvider;
@@ -135,12 +147,12 @@ describe("DataFetcher tests suite", () => {
       timestamp: 1648680228,
     });
 
-    const wethPrice = await fetcher.getErc20Price(WETH, 1234);
+    const wethPrice = await fetcher.getErc20Price(WETH, 1234, 1);
     expect(wethPrice).toStrictEqual(3381.798048538271);
 
     expect(global.fetch).toHaveBeenCalledTimes(2); // 2 calls: 1st failure + 1 retry success
 
-    const wethPriceCached = await fetcher.getErc20Price(WETH, 1234);
+    const wethPriceCached = await fetcher.getErc20Price(WETH, 1234, 1);
     expect(wethPriceCached).toStrictEqual(3381.798048538271);
     expect(global.fetch).toHaveBeenCalledTimes(2); // No extra calls, cached value used
   });
@@ -266,7 +278,7 @@ describe("DataFetcher tests suite", () => {
   it("should fetch scammer's ERC721 transfers", async () => {
     const scammerAddress = "0xScammer";
     const transferOccurrenceTimeWindow = 90;
-    const erc721TransfersMock = [
+    const erc721TransfersMock: Erc721Transfer[] = [
       {
         block_time: "2023-08-30T12:00:00.000Z",
         contract_address: "0x1234",
@@ -308,6 +320,85 @@ describe("DataFetcher tests suite", () => {
 
     expect(erc721Transfers).toStrictEqual(erc721TransfersMock);
     expect(fetchCallCount).toBe(2); // 2 calls: 1st failure + 1 retry success
+  });
+
+  it("shoud fetch scammer's ice phishing ERC20 and ERC721 transfers", async () => {
+    const scammerAddress = "0xScammer";
+    const transferOccurrenceTimeWindow = 90;
+    const icePhishingTransfersMock: IcePhishingTransfer[] = [
+      {
+        block_time: "2023-08-30T12:00:00.000Z",
+        block_number: 2312312,
+        contract_address: "0x1234",
+        from_address: "0xaabb",
+        name: "CryptoKitties",
+        symbol: "CK",
+        decimals: null,
+        to_address: "0x1122",
+        token_id: "12",
+        transaction_hash: "0xabcde",
+        value: null,
+      },
+      {
+        block_time: "2023-08-29T10:30:00.000Z",
+        block_number: 2312313,
+        contract_address: "0x9876a",
+        from_address: "0xaabbccdd",
+        name: null,
+        symbol: "notUSD",
+        decimals: 18,
+        to_address: "0x778899",
+        token_id: null,
+        transaction_hash: "0x987654",
+        value: "2939329",
+      },
+    ];
+
+    let fetchCallCount = 0;
+
+    // Mock fetch response
+    global.fetch = jest.fn(async () => {
+      fetchCallCount++;
+
+      if (fetchCallCount === 1) {
+        throw new Error("First fetch intentionally failed");
+      }
+
+      return Promise.resolve({
+        json: () => Promise.resolve({ data: { records: icePhishingTransfersMock } }),
+      }) as Promise<Response>;
+    });
+
+    const icePhishingTransfers = await fetcher.getScammerIcePhishingTransfers(
+      scammerAddress,
+      transferOccurrenceTimeWindow,
+      1
+    );
+
+    expect(icePhishingTransfers).toStrictEqual(icePhishingTransfersMock);
+    expect(fetchCallCount).toBe(2); // 2 calls: 1st failure + 1 retry success
+  });
+
+  it("should fetch token name and use cache correctly", async () => {
+    const TOKEN_IFACE = new Interface([ERC20_TOKEN_NAME_ABI]);
+
+    for (let [block, name, tokenAddress] of TEST_NAMES) {
+      mockProvider.addCallTo(tokenAddress, block, TOKEN_IFACE, "name", {
+        inputs: [],
+        outputs: [name],
+      });
+      const fetchedBalance = await fetcher.getTokenName(tokenAddress, block);
+      expect(fetchedBalance).toStrictEqual(name);
+    }
+    expect(mockProvider.call).toBeCalledTimes(5);
+
+    // clear mockProvider to use cache
+    mockProvider.clear();
+    for (let [block, name, tokenAddress] of TEST_NAMES) {
+      const fetchedName = await fetcher.getTokenName(tokenAddress, block);
+      expect(fetchedName).toStrictEqual(name);
+    }
+    expect(mockProvider.call).toBeCalledTimes(5);
   });
 
   it("should check if buyer has transferred token to seller using ERC20 transfers", async () => {
@@ -352,8 +443,8 @@ describe("DataFetcher tests suite", () => {
     expect(result).toBe(true); // Expecting true because ERC20 transfer amount is above the threshold
     expect(fetcher.getERC20TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
     expect(fetcher.getERC721TransfersUrl).toHaveBeenCalledWith(buyerAddress, blockNumber, chainId);
-    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenA", blockNumber);
-    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenC", blockNumber); // Previous price fetched was under threshold, so we're checking this as well
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenA", blockNumber, 56);
+    expect(fetcher.getErc20Price).toHaveBeenCalledWith("0xTokenC", blockNumber, 56); // Previous price fetched was under threshold, so we're checking this as well
   });
 
   it("should check if buyer has transferred token to seller using ERC721 transfers", async () => {

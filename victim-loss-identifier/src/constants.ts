@@ -1,7 +1,23 @@
 export const SCAM_DETECTOR_BOT_ID = "0x1d646c4045189991fdfd24a66b192a294158b839a6ec121d740474bdacb3ab23";
 export const SCAM_DETECTOR_ALERT_IDS = ["SCAM-DETECTOR-FRAUDULENT-NFT-ORDER", "SCAM-DETECTOR-ICE-PHISHING"];
 
+export const NETHERMIND_ICE_PHISHING_BOT = "0x8badbf2ad65abc3df5b1d9cc388e419d9255ef999fb69aac6bf395646cf01c14";
+export const BLOCKSEC_ICE_PHISHING_BOT = "0x9ba66b24eb2113ca3217c5e02ac6671182247c354327b27f645abb7c8a3e4534";
+
+export const DEFAULT_FORTA_API_QUERY_BLOCK_NUMBERS = {
+  START: 0,
+  END: 999999999,
+};
+
+export const ZETTABLOCK_ICE_PHISHING_QUERY_PER_CHAIN_ID: Record<number, string> = {
+  1: "sq_7fafe25f14f442ca9ddebae5e2bacfbb",
+  56: "sq_6f668a69560c459e83bdd926b2795acc",
+  137: "sq_1605af24f1ca4cdb8bd14e612bb851c8",
+  43114: "sq_60f3587d4ed54be9be0900a91aff3dbc",
+};
+
 export const ONE_DAY_IN_SECS = 60 * 60 * 24;
+export const ONE_DAY_IN_MS = ONE_DAY_IN_SECS * 1000;
 export const TWENTY_FIVE_DAYS_IN_SECS = ONE_DAY_IN_SECS * 25;
 export const THIRTY_DAYS_IN_SECS = ONE_DAY_IN_SECS * 30;
 export const EIGHTY_DAYS_IN_MS = ONE_DAY_IN_SECS * 80 * 1000; // Max value that returns alert query results after testing
@@ -42,3 +58,12 @@ export const TOKENS_BURNED_AS_PAYMENT: Record<string, string> = {
   //Ethereum
   BlurPool: "0x0000000000a39bb272e79075ade125fd351887ac",
 };
+
+export const ICE_PHISHING_ALERT_IDS = [
+  "ICE-PHISHING-HIGH-NUM-APPROVED-TRANSFERS", // Nethermind
+  "ICE-PHISHING-SUSPICIOUS-TRANSFER", // Nethermind
+  "Ice-phishing", // Blocksec
+  "omitted", // Blocksec
+];
+
+export const ERC20_TOKEN_NAME_ABI = "function name() public view returns (string)";

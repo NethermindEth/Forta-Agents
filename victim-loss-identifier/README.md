@@ -11,6 +11,9 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 ## 🌐 Supported Chains
 
 - Ethereum
+- BNB Chain
+- Polygon
+- Avalanche
 
 ## 🔗 Alert Mapping
 
@@ -23,7 +26,12 @@ The bot continues its assessment of victims and losses on a daily basis, with th
   <tr>
     <td>Scam Detector Feed</td>
     <td>SCAM-DETECTOR-FRAUDULENT-NFT-ORDER</td>
-    <td>VICTIM-LOSS-INFORMATION-FRAUDULENT-NFT-ORDER</td>
+    <td>VICTIM-LOSS-INFORMATION</td>
+  </tr>
+  <tr>
+    <td>Scam Detector Feed</td>
+    <td>SCAM-DETECTOR-ICE-PHISHING</td>
+    <td>VICTIM-LOSS-INFORMATION</td>
   </tr>
 </table>
 
@@ -45,11 +53,17 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 - `tx_hash`: The exploit transaction hash
 - `usd_lost`: Total USD lost by the victim up to the point of the alert
 - `usd_lost_to_scammer`: Total amount in USD lost by the victim specifically to the scammer involved in the transaction up to the point of the alert.
-- `erc_721_usd_lost`: Total USD lost in ERC-721 tokens up to the point of the alert
-- `erc_721_lost`: Details of the ERC-721 tokens lost
+- `erc_721_usd_lost`\*: Total USD lost in ERC-721 tokens up to the point of the alert
+- `erc_721_lost`\*: Details of the ERC-721 tokens lost
   - `name`: Name of the token
   - `contract`: Contract address
   - `token_id`: Token ID
+  - `value USD`: USD value lost on this token
+- `erc_20_usd_lost`\*: Total USD lost in ERC-20 tokens up to the point of the alert
+- `erc_20_lost`\*: Details of the ERC-20 tokens lost:
+  - `name`: Name of the token
+  - `contract`: Contract address
+  - `value`: Amount of tokens
   - `value USD`: USD value lost on this token
 
 **Labels**:
@@ -59,7 +73,7 @@ The bot continues its assessment of victims and losses on a daily basis, with th
    - `entityType`: Address
    - `label`: Victim
    - `confidence`: 0.7
-2. NFT
+2. NFT\*
    - `entity`: The stolen NFT ID and the NFT's contract address
    - `entityType`: Address
    - `label`: NFT
@@ -69,6 +83,8 @@ The bot continues its assessment of victims and losses on a daily basis, with th
    - `entityType`: Transaction
    - `label`: Exploit
    - `confidence`: 0.7
+
+> "\*" Optional property
 
 ### VICTIM-LOSS-INFORMATION-FALSE-POSITIVE
 
@@ -107,8 +123,8 @@ The bot continues its assessment of victims and losses on a daily basis, with th
 
 ## 📊 Data Sources
 
-- Zettablock (ERC721 Transfer events)
-- DefiLlama (ETH price)
+- Zettablock (ERC721/ERC20 Transfer events)
+- DefiLlama (ETH/ERC20 prices)
 - Alchemy (NFT collection floor price)
 
 ## 🧪 Test Data
