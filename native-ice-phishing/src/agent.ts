@@ -45,6 +45,8 @@ import {
   TRANSFER_FROM_ABI,
   TRANSFER_FROM_SIG,
   TRANSFER_EVENT_ABI,
+  TRANSFER_SIG,
+  TRANSFER_ABI,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -320,6 +322,12 @@ export const provideHandleTransaction =
               if (!fundRecipients.includes(recipient))
                 fundRecipients.push(recipient);
               if (!fundSenders.includes(sender)) fundSenders.push(sender);
+            } else if (call.callData.startsWith(TRANSFER_SIG)) {
+              const iface = new ethers.utils.Interface(TRANSFER_ABI);
+              const data = iface.decodeFunctionData("transfer", call.callData);
+              const { recipient } = data;
+              if (!fundRecipients.includes(recipient))
+                fundRecipients.push(recipient);
             }
           });
         });
@@ -335,6 +343,7 @@ export const provideHandleTransaction =
             erc20TransfersCount // No issue in passing 0 for non-relevant chains
           );
           const attackers = [txEvent.from, ...fundRecipients];
+          // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
           findings.push(
             createMulticallPhishingFinding(attackers, fundSenders, anomalyScore)
           );
