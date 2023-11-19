@@ -208,7 +208,7 @@ This bot monitors:
     - Type is always set to "Suspicious"
     - Metadata contains:
       - `attacker#`: The transaction initiator and the fund recipient(s)
-      - `victim#`: The fund sender(s)
+      - `victim#`: The fund sender(s) (Only if known)
       - `anomalyScore`: The anomaly score of the alert
     - Labels contain:
       - Label 1:
@@ -222,7 +222,7 @@ This bot monitors:
         - `label`: The type of the label, always set to "Attacker"
         - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
       - last Label(s):
-        - `entity`: The victim(s) address
+        - `entity`: The victim(s) address (only if known)
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Attacker"
         - `confidence`^: The confidence level of the receiver being an attacker (0-1), always set to 0.9
