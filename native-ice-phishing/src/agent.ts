@@ -345,7 +345,9 @@ export const provideHandleTransaction =
               : ScanCountType.ErcTransferCount,
             erc20TransfersCount // No issue in passing 0 for non-relevant chains
           );
-          const attackers_to_alert = [txEvent.from, ...attackers];
+          const attackers_to_alert = Array.from(
+            new Set([txEvent.from, ...attackers])
+          );
           // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
           findings.push(
             createMulticallPhishingFinding(
