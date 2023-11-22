@@ -207,16 +207,26 @@ This bot monitors:
     - Severity is always set to "Info"
     - Type is always set to "Suspicious"
     - Metadata contains:
-      - `attacker#`: The transaction initiator and the fund recipient(s)
+      - `attacker#`: The transaction initiator, the address that initiated the multicall, the contract that contains the multicall, and the fund recipient(s)
       - `victim#`: The fund sender(s) (Only if known)
       - `anomalyScore`: The anomaly score of the alert
     - Labels contain:
       - Label 1:
-        - `entity`: The initiator address
+        - `entity`: The transaction initiator address
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Attacker"
         - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
-      - Label 2-#:
+      - Label 2:
+        - `entity`: The address that invoked the multicall
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
+      - Label 3:
+        - `entity`: The contract that contained the multicall
+        - `entityType`: The type of the entity, always set to "Address"
+        - `label`: The type of the label, always set to "Attacker"
+        - `confidence`: The confidence level of the transaction being an attack (0-1), always set to 0.9
+      - Label 4-#:
         - `entity`: The recipient(s) address
         - `entityType`: The type of the entity, always set to "Address"
         - `label`: The type of the label, always set to "Attacker"

@@ -300,14 +300,19 @@ export const provideHandleTransaction =
     const multicalls = txEvent.filterFunction(MULTICALL_ABI);
 
     if (multicalls.length) {
-      let fundRecipients: string[] = [];
-      let fundSenders: string[] = [];
+      let attackers: string[] = [];
+      let victims: string[] = [];
 
       const isScamContract = multicallScamContracts
         .map((contractAddress) => contractAddress.toLowerCase())
         .includes(txEvent.to!.toLowerCase());
 
       if (isScamContract) {
+        txEvent.traces.forEach((trace) => {
+          if (trace.action.input?.startsWith(`0x${MULTICALL_SIG}`)) {
+            attackers.push(trace.action.from, trace.action.to);
+          }
+        });
         multicalls.forEach((invocation) => {
           const { args }: { args: ethers.utils.Result } = invocation;
 
@@ -319,20 +324,18 @@ export const provideHandleTransaction =
                 call.callData
               );
               const { recipient, sender } = data;
-              if (!fundRecipients.includes(recipient))
-                fundRecipients.push(recipient);
-              if (!fundSenders.includes(sender)) fundSenders.push(sender);
+              if (!attackers.includes(recipient)) attackers.push(recipient);
+              if (!victims.includes(sender)) victims.push(sender);
             } else if (call.callData.startsWith(TRANSFER_SIG)) {
               const iface = new ethers.utils.Interface(TRANSFER_ABI);
               const data = iface.decodeFunctionData("transfer", call.callData);
               const { recipient } = data;
-              if (!fundRecipients.includes(recipient))
-                fundRecipients.push(recipient);
+              if (!attackers.includes(recipient)) attackers.push(recipient);
             }
           });
         });
 
-        if (fundRecipients.length) {
+        if (attackers.length) {
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
@@ -342,10 +345,16 @@ export const provideHandleTransaction =
               : ScanCountType.ErcTransferCount,
             erc20TransfersCount // No issue in passing 0 for non-relevant chains
           );
-          const attackers = [txEvent.from, ...fundRecipients];
+          const attackers_to_alert = Array.from(
+            new Set([txEvent.from, ...attackers])
+          );
           // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
           findings.push(
-            createMulticallPhishingFinding(attackers, fundSenders, anomalyScore)
+            createMulticallPhishingFinding(
+              attackers_to_alert,
+              victims,
+              anomalyScore
+            )
           );
         }
       }
