@@ -512,22 +512,21 @@ export default class DataFetcher {
         if (!frequencyMap[toAddress]) {
           frequencyMap[toAddress] = [];
         }
-        // Count victim once
         if (!frequencyMap[toAddress].includes(victim)) {
           frequencyMap[toAddress].push(victim);
         }
       });
-
-      const majorityThreshold = Math.ceil(victims.length / 2); // change as needed
-      for (const address in frequencyMap) {
-        if (frequencyMap[address].length >= majorityThreshold) {
-          haveInteractedWithSameAddress = true;
-          break;
-        }
-      }
-
-      return haveInteractedWithSameAddress;
     }
+
+    const majorityThreshold = Math.ceil(victims.length / 2);
+    for (const address in frequencyMap) {
+      if (frequencyMap[address].length >= majorityThreshold) {
+        haveInteractedWithSameAddress = true;
+        break;
+      }
+    }
+
+    return haveInteractedWithSameAddress;
   };
 
   isRecentlyInvolvedInTransfer = async (
