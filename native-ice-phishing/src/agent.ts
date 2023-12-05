@@ -21,6 +21,7 @@ import {
   createHighSeverityFinding,
   createLowSeverityFinding,
   createMulticallPhishingCriticalSeverityFinding,
+  createNoWithdrawMulticallPhishingCriticalSeverityFinding,
   createMulticallPhishingFinding,
   createWithdrawalFinding,
 } from "./findings";
@@ -40,8 +41,8 @@ import {
   BALANCEOF_SIG,
   checkRoundValue,
   WITHDRAWTO_SIG,
-  MULTICALL_SIG,
-  MULTICALL_ABI,
+  MULTICALL_SIGS,
+  MULTICALL_ABIS,
   TRANSFER_FROM_ABI,
   TRANSFER_FROM_SIG,
   TRANSFER_EVENT_ABI,
@@ -134,6 +135,7 @@ const getPastAlertsOncePerDay = async () => {
     const {
       metadata: { address },
     } = alert;
+    // Unused as of Dec 5 2023
     if (!multicallScamContracts.includes(address)) {
       multicallScamContracts.push(address);
     }
@@ -297,66 +299,64 @@ export const provideHandleTransaction =
       erc20TransfersCount += txEvent.filterLog(TRANSFER_EVENT_ABI).length;
     }
 
-    const multicalls = txEvent.filterFunction(MULTICALL_ABI);
+    const multicalls = txEvent.filterFunction(MULTICALL_ABIS);
 
     if (multicalls.length) {
       let attackers: string[] = [];
       let victims: string[] = [];
 
-      const isScamContract = multicallScamContracts
-        .map((contractAddress) => contractAddress.toLowerCase())
-        .includes(txEvent.to!.toLowerCase());
+      txEvent.traces.forEach((trace) => {
+        if (
+          MULTICALL_SIGS.some((sig) =>
+            trace.action.input?.startsWith(`0x${sig}`)
+          )
+        ) {
+          attackers.push(trace.action.from, trace.action.to);
+        }
+      });
+      multicalls.forEach((invocation) => {
+        const { args }: { args: ethers.utils.Result } = invocation;
 
-      if (isScamContract) {
-        txEvent.traces.forEach((trace) => {
-          if (trace.action.input?.startsWith(`0x${MULTICALL_SIG}`)) {
-            attackers.push(trace.action.from, trace.action.to);
+        args[0].forEach((call: any) => {
+          if (call.callData.startsWith(TRANSFER_FROM_SIG)) {
+            const iface = new ethers.utils.Interface(TRANSFER_FROM_ABI);
+            const data = iface.decodeFunctionData(
+              "transferFrom",
+              call.callData
+            );
+            const { recipient, sender } = data;
+            if (!attackers.includes(recipient)) attackers.push(recipient);
+            if (!victims.includes(sender)) victims.push(sender);
+          } else if (call.callData.startsWith(TRANSFER_SIG)) {
+            const iface = new ethers.utils.Interface(TRANSFER_ABI);
+            const data = iface.decodeFunctionData("transfer", call.callData);
+            const { recipient } = data;
+            if (!attackers.includes(recipient)) attackers.push(recipient);
           }
         });
-        multicalls.forEach((invocation) => {
-          const { args }: { args: ethers.utils.Result } = invocation;
+      });
 
-          args[0].forEach((call: any) => {
-            if (call.callData.startsWith(TRANSFER_FROM_SIG)) {
-              const iface = new ethers.utils.Interface(TRANSFER_FROM_ABI);
-              const data = iface.decodeFunctionData(
-                "transferFrom",
-                call.callData
-              );
-              const { recipient, sender } = data;
-              if (!attackers.includes(recipient)) attackers.push(recipient);
-              if (!victims.includes(sender)) victims.push(sender);
-            } else if (call.callData.startsWith(TRANSFER_SIG)) {
-              const iface = new ethers.utils.Interface(TRANSFER_ABI);
-              const data = iface.decodeFunctionData("transfer", call.callData);
-              const { recipient } = data;
-              if (!attackers.includes(recipient)) attackers.push(recipient);
-            }
-          });
-        });
-
-        if (attackers.length) {
-          const anomalyScore = await calculateAlertRate(
-            Number(chainId),
-            BOT_ID,
-            "NIP-9",
-            isRelevantChain
-              ? ScanCountType.CustomScanCount
-              : ScanCountType.ErcTransferCount,
-            erc20TransfersCount // No issue in passing 0 for non-relevant chains
-          );
-          const attackers_to_alert = Array.from(
-            new Set([txEvent.from, ...attackers])
-          );
-          // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
-          findings.push(
-            createMulticallPhishingFinding(
-              attackers_to_alert,
-              victims,
-              anomalyScore
-            )
-          );
-        }
+      if (attackers.length) {
+        const anomalyScore = await calculateAlertRate(
+          Number(chainId),
+          BOT_ID,
+          "NIP-9",
+          isRelevantChain
+            ? ScanCountType.CustomScanCount
+            : ScanCountType.ErcTransferCount,
+          erc20TransfersCount // No issue in passing 0 for non-relevant chains
+        );
+        const attackers_to_alert = Array.from(
+          new Set([txEvent.from, ...attackers])
+        );
+        // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
+        findings.push(
+          createMulticallPhishingFinding(
+            attackers_to_alert,
+            victims,
+            anomalyScore
+          )
+        );
       }
     }
 
@@ -558,7 +558,7 @@ export const provideHandleTransaction =
             )
           );
         }
-      } else if (code.includes(MULTICALL_SIG)) {
+      } else if (MULTICALL_SIGS.some((sig) => code.includes(sig))) {
         const initialStorageSlot = await dataFetcher.getStorageSlot(
           createdContractAddress,
           0,
@@ -595,7 +595,7 @@ export const provideHandleTransaction =
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
-            "NIP-5",
+            "NIP-8",
             isRelevantChain
               ? ScanCountType.CustomScanCount
               : ScanCountType.ContractCreationCount,
@@ -603,6 +603,24 @@ export const provideHandleTransaction =
           );
           findings.push(
             createMulticallPhishingCriticalSeverityFinding(
+              hash,
+              from,
+              createdContractAddress,
+              anomalyScore
+            )
+          );
+        } else {
+          const anomalyScore = await calculateAlertRate(
+            Number(chainId),
+            BOT_ID,
+            "NIP-TEST",
+            isRelevantChain
+              ? ScanCountType.CustomScanCount
+              : ScanCountType.ContractCreationCount,
+            contractCreationsCount // No issue in passing 0 for non-relevant chains
+          );
+          findings.push(
+            createNoWithdrawMulticallPhishingCriticalSeverityFinding(
               hash,
               from,
               createdContractAddress,
