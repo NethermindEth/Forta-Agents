@@ -13,16 +13,7 @@ import ErrorCache from "./error.cache";
 import * as util from "util";
 import { ethers } from "forta-agent";
 import { createErrorAlert } from "./findings";
-
-interface apiKeys {
-  etherscanApiKeys: string[];
-  optimisticEtherscanApiKeys: string[];
-  bscscanApiKeys: string[];
-  polygonscanApiKeys: string[];
-  fantomscanApiKeys: string[];
-  arbiscanApiKeys: string[];
-  snowtraceApiKeys: string[];
-}
+import { apiKeys } from "./storage";
 
 export default class DataFetcher {
   provider: providers.Provider;
@@ -46,52 +37,24 @@ export default class DataFetcher {
   }
 
   private getBlockExplorerKey = (chainId: number) => {
-    switch (chainId) {
-      case 10:
-        return this.apiKeys.optimisticEtherscanApiKeys.length > 0
-          ? this.apiKeys.optimisticEtherscanApiKeys[
-              Math.floor(
-                Math.random() * this.apiKeys.optimisticEtherscanApiKeys.length
-              )
-            ]
-          : "YourApiKeyToken";
-      case 56:
-        return this.apiKeys.bscscanApiKeys.length > 0
-          ? this.apiKeys.bscscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 137:
-        return this.apiKeys.polygonscanApiKeys.length > 0
-          ? this.apiKeys.polygonscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 250:
-        return this.apiKeys.fantomscanApiKeys.length > 0
-          ? this.apiKeys.fantomscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 42161:
-        return this.apiKeys.arbiscanApiKeys.length > 0
-          ? this.apiKeys.arbiscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 43114:
-        return this.apiKeys.snowtraceApiKeys.length > 0
-          ? this.apiKeys.snowtraceApiKeys[
-              Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      default:
-        return this.apiKeys.etherscanApiKeys.length > 0
-          ? this.apiKeys.etherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-    }
+    const apiKeysMap: Record<number, string[]> = {
+      1: this.apiKeys.apiKeys.nativeIcePhishing.etherscanApiKeys,
+      10: this.apiKeys.apiKeys.nativeIcePhishing.optimisticEtherscanApiKeys,
+      56: this.apiKeys.apiKeys.nativeIcePhishing.bscscanApiKeys,
+      137: this.apiKeys.apiKeys.nativeIcePhishing.polygonscanApiKeys,
+      250: this.apiKeys.apiKeys.nativeIcePhishing.fantomscanApiKeys,
+      42161: this.apiKeys.apiKeys.nativeIcePhishing.arbiscanApiKeys,
+      43114: this.apiKeys.apiKeys.nativeIcePhishing.snowtraceApiKeys,
+    };
+
+    const selectedApiKeys = apiKeysMap[chainId];
+    return this.getRandomApiKey(selectedApiKeys);
+  };
+
+  private getRandomApiKey = (apiKeys: string[]) => {
+    return apiKeys.length > 0
+      ? apiKeys[Math.floor(Math.random() * apiKeys.length)]
+      : "YourApiKeyToken";
   };
 
   // Fetches transactions in descending order (newest first)

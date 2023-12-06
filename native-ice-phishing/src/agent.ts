@@ -25,8 +25,6 @@ import {
   createMulticallPhishingFinding,
   createWithdrawalFinding,
 } from "./findings";
-import { ZETTABLOCK_API_KEY } from "./key";
-import { keys } from "./keys";
 import {
   toTxCountThreshold,
   fromTxCountThreshold,
@@ -51,6 +49,7 @@ import {
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
+import { getSecrets, apiKeys } from "./storage";
 
 let chainId: number = 0;
 let txWithInputDataCount = 0;
@@ -146,6 +145,15 @@ const getPastAlertsOncePerDay = async () => {
   }
 };
 
+let dataFetcher: DataFetcher;
+
+export async function createNewDataFetcher(
+  provider: ethers.providers.Provider
+): Promise<DataFetcher> {
+  const apiKeys = (await getSecrets()) as apiKeys;
+  return new DataFetcher(provider, apiKeys);
+}
+
 export const provideInitialize = (
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
@@ -155,9 +163,17 @@ export const provideInitialize = (
     alertedAddressesKey: string;
     alertedAddressesCriticalKey: string;
   },
-  getAlerts: (query: AlertQueryOptions) => Promise<AlertsResponse>
+  getAlerts: (query: AlertQueryOptions) => Promise<AlertsResponse>,
+  dataFetcherCreator: (
+    provider: ethers.providers.Provider
+  ) => Promise<DataFetcher>
 ): Initialize => {
   return async () => {
+    dataFetcher = await dataFetcherCreator(provider);
+
+    const ZETTABLOCK_API_KEY = ((await getSecrets()) as apiKeys).generalApiKeys
+      .ZETTABLOCK[0];
+
     process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
     ({ chainId } = await provider.getNetwork());
 
@@ -272,7 +288,6 @@ export const provideInitialize = (
 
 export const provideHandleTransaction =
   (
-    dataFetcher: DataFetcher,
     persistenceHelper: PersistenceHelper,
     databaseKeys: {
       transfersKey: string;
@@ -976,7 +991,6 @@ export const provideHandleTransaction =
 
 export const provideHandleBlock =
   (
-    dataFetcher: DataFetcher,
     persistenceHelper: PersistenceHelper,
     storedData: Data,
     databaseKeys: {
@@ -1218,18 +1232,17 @@ export default {
     new PersistenceHelper(DATABASE_URL),
     storedData,
     DATABASE_OBJECT_KEYS,
-    getAlerts
+    getAlerts,
+    createNewDataFetcher
   ),
   provideInitialize,
   handleTransaction: provideHandleTransaction(
-    new DataFetcher(getEthersProvider(), keys),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS,
     calculateAlertRate,
     storedData
   ),
   handleBlock: provideHandleBlock(
-    new DataFetcher(getEthersProvider(), keys),
     new PersistenceHelper(DATABASE_URL),
     storedData,
     DATABASE_OBJECT_KEYS,
