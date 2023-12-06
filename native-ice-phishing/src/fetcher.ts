@@ -496,44 +496,12 @@ export default class DataFetcher {
     address: string,
     hash: string,
     chainId: number,
-    blockNumber: number
+    blockNumber: number,
+    transactions = null
   ) => {
-    const maxRetries = 3;
-    let result;
+    let result =
+      transactions || (await this.fetchTransactions(address, chainId));
     let isInvolved = false;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        result = await (
-          await fetch(this.getEtherscanAddressUrl(address, chainId, 1000))
-        ).json();
-        if (
-          result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout") ||
-          result.message.startsWith("No transactions found")
-        ) {
-          console.log(
-            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
-          );
-          if (attempt === maxRetries) {
-            console.log(
-              `block explorer error occured (final attempt); skipping check for ${address}`
-            );
-            return true;
-          }
-        } else {
-          break;
-        }
-      } catch {
-        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
-        if (attempt === maxRetries) {
-          console.log(
-            `Error during fetch (final attempt); skipping check for ${address}`
-          );
-          return true;
-        }
-      }
-    }
 
     result.result.forEach((tx: any) => {
       if (
@@ -547,6 +515,65 @@ export default class DataFetcher {
     });
 
     return isInvolved;
+  };
+
+  isMajorityNativeTransfers = async (
+    address: string,
+    chainId: number,
+    transactions = null
+  ) => {
+    let result =
+      transactions || (await this.fetchTransactions(address, chainId));
+
+    if (!result) return true;
+
+    const outboundTransactions = result.result.filter(
+      (tx: any) => tx.from === address
+    );
+    const outboundEthTransfers = outboundTransactions.filter(
+      (tx: any) => tx.value !== "0"
+    ).length;
+
+    return (
+      outboundTransactions.length >= 5 &&
+      outboundEthTransfers > 0.75 * outboundTransactions.length
+    );
+  };
+
+  fetchTransactions = async (address: string, chainId: number) => {
+    const maxRetries = 3;
+    let result: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getEtherscanAddressUrl(address, chainId, 1000))
+        ).json();
+        if (
+          ["NOTOK", "Query Timeout", "No transactions found"].some((msg) =>
+            result.message.startsWith(msg)
+          )
+        ) {
+          console.log(
+            `block explorer error occurred (attempt ${attempt}); retrying for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(`final attempt failed; skipping ${address}`);
+            return null;
+          }
+        } else {
+          return result; // Successfully fetched data
+        }
+      } catch (error) {
+        console.log(
+          `An error occurred during the fetch (attempt ${attempt}): ${error}`
+        );
+        if (attempt === maxRetries) {
+          console.log(`Error during final attempt; skipping ${address}`);
+          return null;
+        }
+      }
+    }
   };
 
   hasValidEntries = async (address: string, chainId: number, hash: string) => {

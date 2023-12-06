@@ -680,14 +680,27 @@ export const provideHandleTransaction =
     ) {
       if (isRelevantChain) transfersCount++;
 
+      const transactions = await dataFetcher.fetchTransactions(
+        from,
+        Number(chainId)
+      );
+
       // Check if the "victim" address has been involved in a transfer in the last 2 blocks
       const isInvolved = await dataFetcher.isRecentlyInvolvedInTransfer(
         from,
         hash,
         Number(chainId),
-        blockNumber
+        blockNumber,
+        transactions
       );
-      if (!isInvolved) {
+
+      const areMostOutboundTransfersNativeTransfers =
+        await dataFetcher.isMajorityNativeTransfers(
+          from,
+          Number(chainId),
+          transactions
+        );
+      if (!isInvolved && !areMostOutboundTransfersNativeTransfers) {
         const fromNonce: number = await dataFetcher.getNonce(from);
         if (fromNonce < fromTxCountThreshold) {
           // if nativeTransfers[to] is already populated, we set the boolean values manually to avoid the extra call
