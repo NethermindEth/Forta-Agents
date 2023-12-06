@@ -501,7 +501,10 @@ export default class DataFetcher {
   ) => {
     let result =
       transactions || (await this.fetchTransactions(address, chainId));
-    let isInvolved = false;
+
+    if (!result) {
+      return true;
+    }
 
     result.result.forEach((tx: any) => {
       if (
@@ -510,11 +513,11 @@ export default class DataFetcher {
         parseInt(tx.blockNumber) >= blockNumber - 10 &&
         parseInt(tx.blockNumber) < blockNumber
       ) {
-        isInvolved = true;
+        return true;
       }
     });
 
-    return isInvolved;
+    return false;
   };
 
   isMajorityNativeTransfers = async (
