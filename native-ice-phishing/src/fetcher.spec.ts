@@ -3,6 +3,7 @@ import DataFetcher from "./fetcher";
 import { createAddress } from "forta-agent-tools";
 import fetch from "node-fetch";
 import { when } from "jest-when";
+import { apiKeys } from "./storage";
 
 jest.mock("node-fetch");
 const { Response } = jest.requireActual("node-fetch");
@@ -24,14 +25,21 @@ const TEST_SIGNATURES: [string, string][] = [
   ["0x12345672", "burn(address,uint256)"],
 ];
 
-const testKeys = {
-  etherscanApiKeys: ["Test4"],
-  optimisticEtherscanApiKeys: ["Test5"],
-  bscscanApiKeys: ["Test6"],
-  polygonscanApiKeys: ["Test7"],
-  fantomscanApiKeys: ["Test8"],
-  arbiscanApiKeys: ["Test9"],
-  snowtraceApiKeys: ["Test10"],
+const testKeys: apiKeys = {
+  apiKeys: {
+    nativeIcePhishing: {
+      etherscanApiKeys: ["Test4"],
+      optimisticEtherscanApiKeys: ["Test5"],
+      bscscanApiKeys: ["Test6"],
+      polygonscanApiKeys: ["Test7"],
+      fantomscanApiKeys: ["Test8"],
+      arbiscanApiKeys: ["Test9"],
+      snowtraceApiKeys: ["Test10"],
+    },
+  },
+  generalApiKeys: {
+    ZETTABLOCK: ["Test11"],
+  },
 };
 
 class MockEthersProviderExtended extends MockEthersProvider {
