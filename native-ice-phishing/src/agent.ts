@@ -46,6 +46,7 @@ import {
   TRANSFER_EVENT_ABI,
   TRANSFER_SIG,
   TRANSFER_ABI,
+  isKeywordPresent,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -816,15 +817,16 @@ export const provideHandleTransaction =
                         chainId
                       );
                     if (!haveInteractedWithSameAddress) {
-                      const label = await dataFetcher.getLabel(
-                        to,
-                        Number(chainId)
-                      );
+                      const label = await dataFetcher.getLabel(to, chainId);
+                      let etherscanLabels: string[] = [];
+                      if (!label && chainId === 1) {
+                        etherscanLabels =
+                          await dataFetcher.getLabelFromEtherscan(to);
+                      }
+
                       if (
-                        !label ||
-                        ["xploit", "hish", "heist"].some((keyword) =>
-                          label.includes(keyword)
-                        )
+                        (!label && !etherscanLabels.length) ||
+                        isKeywordPresent([label, ...etherscanLabels])
                       ) {
                         const anomalyScore = await calculateAlertRate(
                           Number(chainId),

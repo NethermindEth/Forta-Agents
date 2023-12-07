@@ -38,7 +38,8 @@ const testKeys: apiKeys = {
     },
   },
   generalApiKeys: {
-    ZETTABLOCK: ["Test11"],
+    ETHERSCAN_METADATA_TOKEN: "Test11",
+    ZETTABLOCK: ["Test12"],
   },
 };
 

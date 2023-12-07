@@ -19,6 +19,7 @@ export type apiKeys = {
     };
   };
   generalApiKeys: {
+    ETHERSCAN_METADATA_TOKEN: string;
     ZETTABLOCK: string[];
   };
 };

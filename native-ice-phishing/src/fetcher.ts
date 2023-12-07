@@ -209,6 +209,33 @@ export default class DataFetcher {
     return "";
   };
 
+  getLabelFromEtherscan = async (address: string): Promise<string[]> => {
+    const url = `https://api-metadata.etherscan.io/v1/api.ashx?module=nametag&action=getaddresstag&address=${address}&apikey=${this.apiKeys.generalApiKeys.ETHERSCAN_METADATA_TOKEN}`;
+    const maxRetries = 3;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await (await fetch(url)).json();
+        if (!response || !response.result.length) return [];
+        let { nametag, labels, labels_slug } = response.result[0];
+        return [
+          ...new Set(
+            [nametag, ...labels, ...labels_slug].map((label) =>
+              label.toLowerCase()
+            )
+          ),
+        ];
+      } catch (error) {
+        console.log(`Error fetching label from Etherscan: ${error}`);
+
+        // wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+
+    return [];
+  };
+
   getNonce = async (address: string) => {
     if (this.nonceCache.has(address)) {
       return this.nonceCache.get(address) as number;
