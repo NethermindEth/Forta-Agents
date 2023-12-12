@@ -23,12 +23,12 @@ import {
   provideHandleTransaction,
   provideHandleBlock,
   BOT_ID,
+  createNewDataFetcher,
 } from "./agent";
 import { when } from "jest-when";
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import { Data, Transfer, WITHDRAW_SIG } from "./utils";
 import DataFetcher from "./fetcher";
-import { keys } from "./keys";
 import { PersistenceHelper } from "./persistence.helper";
 
 jest.setTimeout(400000);
@@ -365,7 +365,14 @@ const mockFetcher = {
   isRecentlyInvolvedInTransfer: jest.fn(),
   haveInteractedAgain: jest.fn(),
   haveInteractedWithSameAddress: jest.fn(),
+  fetchTransactions: jest.fn(),
+  isMajorityNativeTransfers: jest.fn(),
 };
+async function mockDataFetcherCreator(
+  provider: ethers.providers.Provider
+): Promise<DataFetcher> {
+  return mockFetcher as any;
+}
 const mockGetAlerts = jest.fn();
 const mockCalculateRate = jest.fn();
 const mockPersistenceHelper = {
@@ -391,7 +398,8 @@ describe("Native Ice Phishing Bot test suite", () => {
       mockPersistenceHelper as any,
       mockStoredData,
       mockDatabaseObjectKeys,
-      mockGetAlerts
+      mockGetAlerts,
+      mockDataFetcherCreator
     );
     mockProvider.setNetwork(1);
     mockPersistenceHelper.load
@@ -409,7 +417,6 @@ describe("Native Ice Phishing Bot test suite", () => {
     await initialize();
 
     handleTransaction = provideHandleTransaction(
-      mockFetcher as any,
       mockPersistenceHelper as any,
       mockDatabaseObjectKeys,
       mockCalculateRate,
@@ -424,12 +431,12 @@ describe("Native Ice Phishing Bot test suite", () => {
       new PersistenceHelper(REAL_DATABASE_URL),
       mockStoredData,
       REAL_DATABASE_OBJECT_KEYS,
-      getAlerts
+      getAlerts,
+      createNewDataFetcher
     );
     await realInitialize();
 
     const handleRealTransaction = provideHandleTransaction(
-      new DataFetcher(realProvider, keys),
       new PersistenceHelper(REAL_DATABASE_URL),
       REAL_DATABASE_OBJECT_KEYS,
       calculateAlertRate,
@@ -1130,8 +1137,16 @@ describe("Native Ice Phishing Bot test suite", () => {
       { hash: "hash25" },
     ]);
 
+    when(mockFetcher.fetchTransactions)
+      .calledWith(createAddress("0x0f"), 1)
+      .mockReturnValue({});
+
     when(mockFetcher.isRecentlyInvolvedInTransfer)
-      .calledWith(createAddress("0x0f"), "0xabcd", 1, 3232)
+      .calledWith(createAddress("0x0f"), "0xabcd", 1, 3232, {})
+      .mockReturnValue(false);
+
+    when(mockFetcher.isMajorityNativeTransfers)
+      .calledWith(createAddress("0x0f"), 1, {})
       .mockReturnValue(false);
 
     const victims = mockStoredData.nativeTransfers[to].map(
@@ -1321,7 +1336,6 @@ describe("Native Ice Phishing Bot test suite", () => {
       ],
     };
     handleBlock = provideHandleBlock(
-      mockFetcher as any,
       mockPersistenceHelper as any,
       mockStoredData,
       mockDatabaseObjectKeys,

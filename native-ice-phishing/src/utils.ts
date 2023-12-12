@@ -127,3 +127,20 @@ export const checkRoundValue = (num: ethers.BigNumber): boolean => {
   const quotient = num.div(divisor);
   return quotient.mul(divisor).eq(num);
 };
+
+export const isKeywordPresent = (labels: string[]) => {
+  const keywords = [
+    "attack",
+    "xploit",
+    "phish",
+    "hack",
+    "drain",
+    "scam",
+    "fraud",
+    "heist",
+    ".eth",
+  ];
+  return labels.some((label) =>
+    keywords.some((keyword) => label.toLowerCase().includes(keyword))
+  );
+};

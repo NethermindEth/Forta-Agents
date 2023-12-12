@@ -13,16 +13,7 @@ import ErrorCache from "./error.cache";
 import * as util from "util";
 import { ethers } from "forta-agent";
 import { createErrorAlert } from "./findings";
-
-interface apiKeys {
-  etherscanApiKeys: string[];
-  optimisticEtherscanApiKeys: string[];
-  bscscanApiKeys: string[];
-  polygonscanApiKeys: string[];
-  fantomscanApiKeys: string[];
-  arbiscanApiKeys: string[];
-  snowtraceApiKeys: string[];
-}
+import { apiKeys } from "./storage";
 
 export default class DataFetcher {
   provider: providers.Provider;
@@ -46,52 +37,24 @@ export default class DataFetcher {
   }
 
   private getBlockExplorerKey = (chainId: number) => {
-    switch (chainId) {
-      case 10:
-        return this.apiKeys.optimisticEtherscanApiKeys.length > 0
-          ? this.apiKeys.optimisticEtherscanApiKeys[
-              Math.floor(
-                Math.random() * this.apiKeys.optimisticEtherscanApiKeys.length
-              )
-            ]
-          : "YourApiKeyToken";
-      case 56:
-        return this.apiKeys.bscscanApiKeys.length > 0
-          ? this.apiKeys.bscscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.bscscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 137:
-        return this.apiKeys.polygonscanApiKeys.length > 0
-          ? this.apiKeys.polygonscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.polygonscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 250:
-        return this.apiKeys.fantomscanApiKeys.length > 0
-          ? this.apiKeys.fantomscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.fantomscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 42161:
-        return this.apiKeys.arbiscanApiKeys.length > 0
-          ? this.apiKeys.arbiscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.arbiscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      case 43114:
-        return this.apiKeys.snowtraceApiKeys.length > 0
-          ? this.apiKeys.snowtraceApiKeys[
-              Math.floor(Math.random() * this.apiKeys.snowtraceApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-      default:
-        return this.apiKeys.etherscanApiKeys.length > 0
-          ? this.apiKeys.etherscanApiKeys[
-              Math.floor(Math.random() * this.apiKeys.etherscanApiKeys.length)
-            ]
-          : "YourApiKeyToken";
-    }
+    const apiKeysMap: Record<number, string[]> = {
+      1: this.apiKeys.apiKeys.nativeIcePhishing.etherscanApiKeys,
+      10: this.apiKeys.apiKeys.nativeIcePhishing.optimisticEtherscanApiKeys,
+      56: this.apiKeys.apiKeys.nativeIcePhishing.bscscanApiKeys,
+      137: this.apiKeys.apiKeys.nativeIcePhishing.polygonscanApiKeys,
+      250: this.apiKeys.apiKeys.nativeIcePhishing.fantomscanApiKeys,
+      42161: this.apiKeys.apiKeys.nativeIcePhishing.arbiscanApiKeys,
+      43114: this.apiKeys.apiKeys.nativeIcePhishing.snowtraceApiKeys,
+    };
+
+    const selectedApiKeys = apiKeysMap[chainId];
+    return this.getRandomApiKey(selectedApiKeys);
+  };
+
+  private getRandomApiKey = (apiKeys: string[]) => {
+    return apiKeys.length > 0
+      ? apiKeys[Math.floor(Math.random() * apiKeys.length)]
+      : "YourApiKeyToken";
   };
 
   // Fetches transactions in descending order (newest first)
@@ -244,6 +207,33 @@ export default class DataFetcher {
     }
 
     return "";
+  };
+
+  getLabelFromEtherscan = async (address: string): Promise<string[]> => {
+    const url = `https://api-metadata.etherscan.io/v1/api.ashx?module=nametag&action=getaddresstag&address=${address}&apikey=${this.apiKeys.generalApiKeys.ETHERSCAN_METADATA_TOKEN}`;
+    const maxRetries = 3;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await (await fetch(url)).json();
+        if (!response || !response.result.length) return [];
+        let { nametag, labels, labels_slug } = response.result[0];
+        return [
+          ...new Set(
+            [nametag, ...labels, ...labels_slug].map((label) =>
+              label.toLowerCase()
+            )
+          ),
+        ];
+      } catch (error) {
+        console.log(`Error fetching label from Etherscan: ${error}`);
+
+        // wait for 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+
+    return [];
   };
 
   getNonce = async (address: string) => {
@@ -512,65 +502,35 @@ export default class DataFetcher {
         if (!frequencyMap[toAddress]) {
           frequencyMap[toAddress] = [];
         }
-        // Count victim once
         if (!frequencyMap[toAddress].includes(victim)) {
           frequencyMap[toAddress].push(victim);
         }
       });
-
-      const majorityThreshold = Math.ceil(victims.length / 2); // change as needed
-      for (const address in frequencyMap) {
-        if (frequencyMap[address].length >= majorityThreshold) {
-          haveInteractedWithSameAddress = true;
-          break;
-        }
-      }
-
-      return haveInteractedWithSameAddress;
     }
+
+    const majorityThreshold = Math.ceil(victims.length / 2);
+    for (const address in frequencyMap) {
+      if (frequencyMap[address].length >= majorityThreshold) {
+        haveInteractedWithSameAddress = true;
+        break;
+      }
+    }
+
+    return haveInteractedWithSameAddress;
   };
 
   isRecentlyInvolvedInTransfer = async (
     address: string,
     hash: string,
     chainId: number,
-    blockNumber: number
+    blockNumber: number,
+    transactions = null
   ) => {
-    const maxRetries = 3;
-    let result;
-    let isInvolved = false;
+    let result =
+      transactions || (await this.fetchTransactions(address, chainId));
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        result = await (
-          await fetch(this.getEtherscanAddressUrl(address, chainId, 1000))
-        ).json();
-        if (
-          result.message.startsWith("NOTOK") ||
-          result.message.startsWith("Query Timeout") ||
-          result.message.startsWith("No transactions found")
-        ) {
-          console.log(
-            `block explorer error occured (attempt ${attempt}); retrying check for ${address}`
-          );
-          if (attempt === maxRetries) {
-            console.log(
-              `block explorer error occured (final attempt); skipping check for ${address}`
-            );
-            return true;
-          }
-        } else {
-          break;
-        }
-      } catch {
-        console.log(`An error occurred during the fetch (attempt ${attempt}):`);
-        if (attempt === maxRetries) {
-          console.log(
-            `Error during fetch (final attempt); skipping check for ${address}`
-          );
-          return true;
-        }
-      }
+    if (!result) {
+      return true;
     }
 
     result.result.forEach((tx: any) => {
@@ -580,11 +540,70 @@ export default class DataFetcher {
         parseInt(tx.blockNumber) >= blockNumber - 10 &&
         parseInt(tx.blockNumber) < blockNumber
       ) {
-        isInvolved = true;
+        return true;
       }
     });
 
-    return isInvolved;
+    return false;
+  };
+
+  isMajorityNativeTransfers = async (
+    address: string,
+    chainId: number,
+    transactions = null
+  ) => {
+    let result =
+      transactions || (await this.fetchTransactions(address, chainId));
+
+    if (!result) return true;
+
+    const outboundTransactions = result.result.filter(
+      (tx: any) => tx.from === address
+    );
+    const outboundEthTransfers = outboundTransactions.filter(
+      (tx: any) => tx.value !== "0"
+    ).length;
+
+    return (
+      outboundTransactions.length >= 5 &&
+      outboundEthTransfers > 0.75 * outboundTransactions.length
+    );
+  };
+
+  fetchTransactions = async (address: string, chainId: number) => {
+    const maxRetries = 3;
+    let result: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await (
+          await fetch(this.getEtherscanAddressUrl(address, chainId, 1000))
+        ).json();
+        if (
+          ["NOTOK", "Query Timeout", "No transactions found"].some((msg) =>
+            result.message.startsWith(msg)
+          )
+        ) {
+          console.log(
+            `block explorer error occurred (attempt ${attempt}); retrying for ${address}`
+          );
+          if (attempt === maxRetries) {
+            console.log(`final attempt failed; skipping ${address}`);
+            return null;
+          }
+        } else {
+          return result; // Successfully fetched data
+        }
+      } catch (error) {
+        console.log(
+          `An error occurred during the fetch (attempt ${attempt}): ${error}`
+        );
+        if (attempt === maxRetries) {
+          console.log(`Error during final attempt; skipping ${address}`);
+          return null;
+        }
+      }
+    }
   };
 
   hasValidEntries = async (address: string, chainId: number, hash: string) => {
