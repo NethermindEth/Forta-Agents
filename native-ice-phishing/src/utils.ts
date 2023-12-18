@@ -1,4 +1,4 @@
-import { ethers } from "forta-agent";
+import { TransactionEvent, ethers } from "forta-agent";
 
 const ONE_DAY = 24 * 60 * 60;
 const timePeriodDays = 5;
@@ -15,6 +15,8 @@ export const BALANCEOF_SIG = "70a08231";
 export const MULTICALL_SIGS = ["caa5c23f", "63fb0b96"]; // multicall((address,bytes)[]), multicall(address[],bytes[])
 export const TRANSFER_FROM_SIG = "0x23b872dd"; // transferFrom(address,address,uint256)
 export const TRANSFER_SIG = "0xa9059cbb";
+export const PERMIT2_SIG = "0x2a2d80d1"; // permit(address,((address,uint160,uint48,uint48)[],address,uint256),bytes)
+export const PERMIT2_TRANSFER_FROM_SIG = "0x0d58b1db"; // transferFrom((address,address,uint160,address)[])
 
 export const OWNER_ABI = [
   "function owner() public view returns (address)",
@@ -32,6 +34,14 @@ export const TRANSFER_ABI = [
 ];
 export const TRANSFER_EVENT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint value)",
+];
+
+export const PERMIT2_FUNCTION_ABI = [
+  "function permit(address owner, ((address token, uint160 value, uint48 expiration, uint48 nonce)[] details, address spender, uint256 deadline), bytes signature)",
+];
+
+export const PERMIT2_TRANSFER_FROM_FUNCTION_ABI = [
+  "function transferFrom((address from, address to, uint160 amount, address token)[] transferDetails)",
 ];
 
 export const toTxCountThreshold = 2000;
@@ -143,4 +153,19 @@ export const isKeywordPresent = (labels: string[]) => {
   return labels.some((label) =>
     keywords.some((keyword) => label.toLowerCase().includes(keyword))
   );
+};
+
+export const collectAttackersAndVictims = (txEvent: TransactionEvent) => {
+  let attackers: string[] = [];
+  let victims: string[] = [];
+
+  txEvent.traces.forEach((trace) => {
+    if (
+      MULTICALL_SIGS.some((sig) => trace.action.input?.startsWith(`0x${sig}`))
+    ) {
+      attackers.push(trace.action.from, trace.action.to);
+    }
+  });
+
+  return { attackers, victims };
 };

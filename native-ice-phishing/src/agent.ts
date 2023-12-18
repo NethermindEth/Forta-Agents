@@ -47,6 +47,11 @@ import {
   TRANSFER_SIG,
   TRANSFER_ABI,
   isKeywordPresent,
+  PERMIT2_SIG,
+  PERMIT2_FUNCTION_ABI,
+  PERMIT2_TRANSFER_FROM_FUNCTION_ABI,
+  PERMIT2_TRANSFER_FROM_SIG,
+  collectAttackersAndVictims,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -315,22 +320,13 @@ export const provideHandleTransaction =
       erc20TransfersCount += txEvent.filterLog(TRANSFER_EVENT_ABI).length;
     }
 
-    const multicalls = txEvent.filterFunction(MULTICALL_ABIS);
+    const tupleMulticalls = txEvent.filterFunction(MULTICALL_ABIS[0]); // multicall((address,bytes)[])
+    const parallelMulticalls = txEvent.filterFunction(MULTICALL_ABIS[1]); // multicall(address[],bytes[])
 
-    if (multicalls.length) {
-      let attackers: string[] = [];
-      let victims: string[] = [];
+    if (tupleMulticalls.length) {
+      let { attackers, victims } = collectAttackersAndVictims(txEvent);
 
-      txEvent.traces.forEach((trace) => {
-        if (
-          MULTICALL_SIGS.some((sig) =>
-            trace.action.input?.startsWith(`0x${sig}`)
-          )
-        ) {
-          attackers.push(trace.action.from, trace.action.to);
-        }
-      });
-      multicalls.forEach((invocation) => {
+      tupleMulticalls.forEach((invocation) => {
         const { args }: { args: ethers.utils.Result } = invocation;
 
         args[0].forEach((call: any) => {
@@ -348,6 +344,89 @@ export const provideHandleTransaction =
             const data = iface.decodeFunctionData("transfer", call.callData);
             const { recipient } = data;
             if (!attackers.includes(recipient)) attackers.push(recipient);
+          } else if (call.callData.startsWith(PERMIT2_SIG)) {
+            txEvent.traces.forEach((trace) => {
+              if (trace.action.input?.startsWith(PERMIT2_TRANSFER_FROM_SIG)) {
+                const iface = new ethers.utils.Interface(
+                  PERMIT2_TRANSFER_FROM_FUNCTION_ABI
+                );
+                const data = iface.decodeFunctionData(
+                  "transferFrom",
+                  trace.action.input
+                );
+                const { transferDetails } = data;
+                transferDetails.forEach((transferDetail: any) => {
+                  if (!attackers.includes(transferDetail.to))
+                    attackers.push(transferDetail.to);
+                  if (!victims.includes(transferDetail.from))
+                    victims.push(transferDetail.from);
+                });
+              }
+            });
+          }
+        });
+      });
+
+      if (attackers.length) {
+        const anomalyScore = await calculateAlertRate(
+          Number(chainId),
+          BOT_ID,
+          "NIP-9",
+          isRelevantChain
+            ? ScanCountType.CustomScanCount
+            : ScanCountType.ErcTransferCount,
+          erc20TransfersCount // No issue in passing 0 for non-relevant chains
+        );
+        const attackers_to_alert = Array.from(
+          new Set([txEvent.from, ...attackers])
+        );
+        // fundSenders will be populated in the "transferFrom" case (i.e. when the victim has given approval) and be empty in the "transfer" case (i.e. when the victim has already sent funds to the contract)
+        findings.push(
+          createMulticallPhishingFinding(
+            attackers_to_alert,
+            victims,
+            anomalyScore
+          )
+        );
+      }
+    } else if (parallelMulticalls.length) {
+      let { attackers, victims } = collectAttackersAndVictims(txEvent);
+
+      parallelMulticalls.forEach((invocation) => {
+        const {
+          args: { callData },
+        }: { args: ethers.utils.Result } = invocation;
+        callData.forEach((call: any) => {
+          if (call.startsWith(TRANSFER_FROM_SIG)) {
+            const iface = new ethers.utils.Interface(TRANSFER_FROM_ABI);
+            const data = iface.decodeFunctionData("transferFrom", call);
+            const { recipient, sender } = data;
+            if (!attackers.includes(recipient)) attackers.push(recipient);
+            if (!victims.includes(sender)) victims.push(sender);
+          } else if (call.startsWith(TRANSFER_SIG)) {
+            const iface = new ethers.utils.Interface(TRANSFER_ABI);
+            const data = iface.decodeFunctionData("transfer", call);
+            const { recipient } = data;
+            if (!attackers.includes(recipient)) attackers.push(recipient);
+          } else if (call.startsWith(PERMIT2_SIG)) {
+            txEvent.traces.forEach((trace) => {
+              if (trace.action.input?.startsWith(PERMIT2_TRANSFER_FROM_SIG)) {
+                const iface = new ethers.utils.Interface(
+                  PERMIT2_TRANSFER_FROM_FUNCTION_ABI
+                );
+                const data = iface.decodeFunctionData(
+                  "transferFrom",
+                  trace.action.input
+                );
+                const { transferDetails } = data;
+                transferDetails.forEach((transferDetail: any) => {
+                  if (!attackers.includes(transferDetail.to))
+                    attackers.push(transferDetail.to);
+                  if (!victims.includes(transferDetail.from))
+                    victims.push(transferDetail.from);
+                });
+              }
+            });
           }
         });
       });
