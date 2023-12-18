@@ -90,7 +90,7 @@ describe("DatFetcher tests suite", () => {
   });
 
   it("should fetch function signature and use cache correctly", async () => {
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
 
     for (let [input, sig] of TEST_SIGNATURES) {
       mockFetch.mockResolvedValueOnce(new Response(JSON.stringify(sig)));
@@ -111,7 +111,7 @@ describe("DatFetcher tests suite", () => {
     const mockTxFrom = createAddress("0x1238");
     const mockTxTo = createAddress("0x1239");
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(
       new Response(
         JSON.stringify({
