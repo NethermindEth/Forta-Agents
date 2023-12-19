@@ -51,7 +51,7 @@ import {
   PERMIT2_FUNCTION_ABI,
   PERMIT2_TRANSFER_FROM_FUNCTION_ABI,
   PERMIT2_TRANSFER_FROM_SIG,
-  collectAttackersAndVictims,
+  extractAttackers,
 } from "./utils";
 import { PersistenceHelper } from "./persistence.helper";
 import ErrorCache from "./error.cache";
@@ -322,9 +322,11 @@ export const provideHandleTransaction =
 
     const tupleMulticalls = txEvent.filterFunction(MULTICALL_ABIS[0]); // multicall((address,bytes)[])
     const parallelMulticalls = txEvent.filterFunction(MULTICALL_ABIS[1]); // multicall(address[],bytes[])
+    const erc20TransferEvents = txEvent.filterLog(TRANSFER_EVENT_ABI);
 
-    if (tupleMulticalls.length) {
-      let { attackers, victims } = collectAttackersAndVictims(txEvent);
+    if (tupleMulticalls.length && erc20TransferEvents.length) {
+      let attackers = extractAttackers(txEvent);
+      let victims: string[] = [];
 
       tupleMulticalls.forEach((invocation) => {
         const { args }: { args: ethers.utils.Result } = invocation;
@@ -389,8 +391,9 @@ export const provideHandleTransaction =
           )
         );
       }
-    } else if (parallelMulticalls.length) {
-      let { attackers, victims } = collectAttackersAndVictims(txEvent);
+    } else if (parallelMulticalls.length && erc20TransferEvents.length) {
+      let attackers = extractAttackers(txEvent);
+      let victims: string[] = [];
 
       parallelMulticalls.forEach((invocation) => {
         const {
@@ -431,7 +434,7 @@ export const provideHandleTransaction =
         });
       });
 
-      if (attackers.length) {
+      if (attackers.length && victims.length) {
         const anomalyScore = await calculateAlertRate(
           Number(chainId),
           BOT_ID,
