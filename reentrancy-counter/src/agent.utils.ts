@@ -1,23 +1,18 @@
-import {
-  Finding,
-  FindingSeverity,
-  FindingType,
-  Label,
-  EntityType,
-} from "forta-agent";
+import { Finding, FindingSeverity, FindingType, Label, EntityType } from "forta-agent";
 
 export interface Counter {
   [key: string]: number;
 }
 
+export type TraceAddressInstances = {
+  [key: string]: number[][];
+};
+
 export const reentrancyLevel = (
   reentrancyCount: number,
   thresholds: [number, FindingSeverity][]
 ): [Boolean, FindingSeverity] => {
-  let isDangerousAndSeverity: [boolean, FindingSeverity] = [
-    false,
-    FindingSeverity.Unknown,
-  ];
+  let isDangerousAndSeverity: [boolean, FindingSeverity] = [false, FindingSeverity.Unknown];
   for (let i: number = 0; i < thresholds.length; i++) {
     const [threshold, severity] = thresholds[i];
     if (reentrancyCount < threshold) return isDangerousAndSeverity;
@@ -73,21 +68,21 @@ export const createFinding = (
   anomalyScore: number,
   confidenceLevel: number,
   txHash: string,
-  txFrom: string
+  txFrom: string,
+  traceAddressInstances: number[][]
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentrancyCount} calls to the same contract occured`,
+    description: `Calls to ${addr} occurred ${reentrancyCount} times`,
     alertId: "NETHFORTA-25",
+    protocol: "N/A",
     type: FindingType.Suspicious,
     severity: severity,
     metadata: {
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
-      anomalyScore:
-        anomalyScore.toFixed(2) === "0.00"
-          ? anomalyScore.toString()
-          : anomalyScore.toFixed(2),
+      traceAddressInstances: JSON.stringify(traceAddressInstances),
+      anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
     },
     labels: [
       Label.fromObject({

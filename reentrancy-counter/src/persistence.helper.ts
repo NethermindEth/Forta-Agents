@@ -14,6 +14,7 @@ export class PersistenceHelper {
   }
 
   async persist(value: number | Counter, key: string) {
+    /*
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
       const token = await fetchJwt({});
@@ -36,9 +37,11 @@ export class PersistenceHelper {
       writeFileSync(key, JSON.stringify(value));
       return;
     }
+    */
   }
 
   async load(key: string): Promise<number | Counter | undefined> {
+    /*
     const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
     if (!hasLocalNode) {
       const token = await fetchJwt({});
@@ -94,5 +97,7 @@ export class PersistenceHelper {
             };
       }
     }
+    */
+   return 0
   }
 }

@@ -94,9 +94,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(spy).toHaveBeenCalledWith(
-      "successfully persisted [object Object] to database"
-    );
+    expect(spy).toHaveBeenCalledWith("successfully persisted [object Object] to database");
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
@@ -157,9 +155,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     await persistenceHelper.persist(mockValue, mockKey);
-    expect(spy).not.toHaveBeenCalledWith(
-      "successfully persisted 202 to database"
-    );
+    expect(spy).not.toHaveBeenCalledWith("successfully persisted 202 to database");
 
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -240,10 +236,10 @@ describe("Persistence Helper test suite", () => {
     const mockEnv = { LOCAL_NODE: 121 };
     Object.assign(process.env, mockEnv);
 
+    const fetchedValue = await persistenceHelper.load(mockKey);
+
     expect(mockFetchJwt).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
-
-    const fetchedValue = await persistenceHelper.load(mockKey);
     expect(fetchedValue).toStrictEqual(4234);
   });
 
@@ -251,11 +247,11 @@ describe("Persistence Helper test suite", () => {
     const mockEnv = { LOCAL_NODE: 121 };
     Object.assign(process.env, mockEnv);
 
-    expect(mockFetchJwt).not.toHaveBeenCalled();
-    expect(mockFetch).not.toHaveBeenCalled();
-
     const mockNumberKey = "nm-reentrancy-counter-total-mock-key";
     const fetchedValue = await persistenceHelper.load(mockNumberKey);
+
+    expect(mockFetchJwt).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
     expect(fetchedValue).toStrictEqual(0);
   });
 
@@ -263,10 +259,10 @@ describe("Persistence Helper test suite", () => {
     const mockEnv = { LOCAL_NODE: 121 };
     Object.assign(process.env, mockEnv);
 
+    const fetchedValue = await persistenceHelper.load(mockKey);
+
     expect(mockFetchJwt).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
-
-    const fetchedValue = await persistenceHelper.load(mockKey);
     expect(fetchedValue).toStrictEqual({
       Info: 0,
       Low: 0,
