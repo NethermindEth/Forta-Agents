@@ -94,9 +94,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(spy).toHaveBeenCalledWith(
-      "successfully persisted [object Object] to database"
-    );
+    expect(spy).toHaveBeenCalledWith("successfully persisted [object Object] to database");
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
@@ -157,9 +155,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     await persistenceHelper.persist(mockValue, mockKey);
-    expect(spy).not.toHaveBeenCalledWith(
-      "successfully persisted 202 to database"
-    );
+    expect(spy).not.toHaveBeenCalledWith("successfully persisted 202 to database");
 
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);

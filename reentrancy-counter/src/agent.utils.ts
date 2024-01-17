@@ -5,7 +5,7 @@ export interface Counter {
 }
 
 export interface TraceTracker {
-  [key: string]: number[][]
+  [key: string]: number[][];
 }
 
 export interface RootCounter {
@@ -85,7 +85,7 @@ export const createFinding = (
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
       anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
-      traceAddresses
+      traceAddresses,
     },
     labels: [
       Label.fromObject({
