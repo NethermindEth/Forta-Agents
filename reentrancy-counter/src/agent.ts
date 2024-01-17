@@ -87,7 +87,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   txEvent.traces.forEach((trace: Trace) => {
     const curStack: number[] = trace.traceAddress;
     const to: string = trace.action.to;
-    // increment all trace addresses by one to allow for top level calls to be considered
+    // increment all trace address roots by one to allow for top level calls to be considered
     const curRoot: number = curStack.length === 0 || currentCounter[to][0] ? 0 : curStack[0] + 1;
     while (stack.length > curStack.length) {
       // @ts-ignore
