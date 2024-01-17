@@ -25,6 +25,7 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
   - `reentrancyCount`: A reentrancy counter based on how many times it occurred
   - `anomalyScore`: Score of how anomalous the alert is (0-1)
     - Score calculated by finding amount of either `NETHFORTA-25` alerts out of the total number of transactions that contained traces processed by this bot and differs based on chain.
+  - `traceAddresses` : A string representation of the trace addresses stack per each call that contributed to the reentrancy detection.
   - Labels:
     - Label 1:
       - `entity`: The transaction's hash
