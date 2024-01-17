@@ -4,6 +4,10 @@ export interface Counter {
   [key: string]: number;
 }
 
+export interface TraceTracker {
+  [key: string]: number[][]
+}
+
 export interface RootCounter {
   [key: string]: Counter;
 }
@@ -67,6 +71,7 @@ export const createFinding = (
   severity: FindingSeverity,
   anomalyScore: number,
   confidenceLevel: number,
+  traceAddresses: string,
   txHash: string,
   txFrom: string
 ): Finding => {
@@ -80,6 +85,7 @@ export const createFinding = (
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
       anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
+      traceAddresses
     },
     labels: [
       Label.fromObject({

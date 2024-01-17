@@ -18,6 +18,7 @@ import {
   RootCounter,
 } from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
+import { TraceTracker } from "./agent.utils";
 
 const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
 const TOTAL_TXS_WITH_TRACES_KEY: string = "nm-reentrancy-counter-total-txs-with-traces-key";
@@ -62,6 +63,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   const maxReentrancyNumber: Counter = {};
   const currentCounter: RootCounter = {};
+  const traceAddresses: TraceTracker = {}
 
   // Update the total number of transactions with traces counter
   if (txEvent.traces.length > 0) {
@@ -94,6 +96,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
         currentCounter[last][lastRoot] -= 1;
       }
     }
+    traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
     currentCounter[to][curRoot] = (currentCounter[to][curRoot] || 0) + 1;
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to][curRoot]);
     stack.push([to, curRoot]);
@@ -107,7 +110,8 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
       anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
-      findings.push(createFinding(addr, maxCount, severity, anomalyScore, confidenceLevel, txEvent.hash, txEvent.from));
+      const reentrancyTraceAddresses = JSON.stringify(traceAddresses[addr])
+      findings.push(createFinding(addr, maxCount, severity, anomalyScore, confidenceLevel, reentrancyTraceAddresses, txEvent.hash, txEvent.from));
     }
   }
   return findings;
