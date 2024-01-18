@@ -8,8 +8,8 @@ export interface TraceTracker {
   [key: string]: number[][];
 }
 
-export interface RootCounter {
-  [key: string]: Counter;
+export interface RootTracker {
+  [key: string]: number[];
 }
 
 export const reentrancyLevel = (
