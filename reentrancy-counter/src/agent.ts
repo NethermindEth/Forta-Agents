@@ -64,7 +64,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   const maxReentrancyNumber: Counter = {};
   const currentCounter: Counter = {};
   const traceAddresses: TraceTracker = {};
-  const rootTracker : RootTracker = {}
+  const rootTracker: RootTracker = {};
 
   // Update the total number of transactions with traces counter
   if (txEvent.traces.length > 0) {
@@ -79,62 +79,53 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   addresses.forEach((addr: string) => {
     maxReentrancyNumber[addr] = 1;
     currentCounter[addr] = 0;
-    rootTracker[addr] = []
+    rootTracker[addr] = [];
   });
 
-  // const stack: string[] = [];
   const stack: [string, number][] = [];
-
-  let currentDepth = 0
+  let currentDepth: number = 0;
 
   // Review the traces stack
   txEvent.traces.forEach((trace: Trace) => {
-    let victim = "0xb5599f568d3f3e6113b286d010d2bca40a7745aa";
     const curStack: number[] = trace.traceAddress;
     const to: string = trace.action.to;
-    // const to: string = trace.action.to;
-    // increment all trace address roots by one to allow for top level calls to be considered
-    // const curRoot: number = curStack.length === 0 ? 0 : curStack[0] + 1;
+
+    // update call counts for next trace with calls at previous or equal depth in call stack
     while (currentDepth >= curStack.length && stack.length > 0) {
-      if (stack[stack.length - 1][1] >= curStack.length) {
+      const topTraceLength = stack[stack.length - 1][1];
+      if (topTraceLength >= curStack.length) {
         // @ts-ignore
         const [last, lastTraceLength] = stack.pop();
-        let sameRootPath : boolean = true;
-        for (let i = 0; i < rootTracker[last].length; i++) {
-          if (rootTracker[last][i] !== curStack[i]) {
-            sameRootPath = false;
-          }
-        }
-        currentDepth = lastTraceLength
-        if (!sameRootPath) {
-          currentCounter[last] -= 1
-        }
+        const sameRootPath: boolean = rootTracker[last].every(
+          (traceVal: number, index: number) => traceVal === curStack[index]
+        );
+        currentDepth = lastTraceLength;
+        currentCounter[last] = sameRootPath ? currentCounter[last] : currentCounter[last] - 1;
       }
-      currentDepth -= 1
+      currentDepth -= 1;
     }
-    currentDepth += 1
-    if (rootTracker[to].length === 0 || rootTracker[to].length >= curStack.length) {
-      rootTracker[to] = curStack
-    } else {
-      for (let i = 0; i < rootTracker[to].length; i++) {
-        if (rootTracker[to][i] != curStack[i]) {
-          rootTracker[to] = curStack
-          break
-        }
-      }
-    }
-    traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
-    currentCounter[to] += 1
+    currentDepth += 1;
+
+    // update the base call path to count reentries from if changed
+    const rootPathChanged: boolean = rootTracker[to].some(
+      (traceVal: number, index: number) => traceVal !== curStack[index]
+    );
+    rootTracker[to] =
+      rootTracker[to].length === 0 || rootTracker[to].length >= curStack.length || rootPathChanged
+        ? curStack
+        : rootTracker[to];
     
-    // console.log(`rootTracker[${victim}] : ${rootTracker[victim]}`)
-    // console.log(`currentCounter[${victim}]: ${currentCounter[victim]}`)
+    // store trace address arrays for metadata
+    traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
+
+    currentCounter[to] += 1;
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
+
     stack.push([to, curStack.length]);
   });
 
   // Create findings if needed
   for (const addr in maxReentrancyNumber) {
-    console.log(`maxReentrancyNumber After going through traces: ${addr} : ${maxReentrancyNumber[addr]}`);
     const maxCount: number = maxReentrancyNumber[addr];
     const [report, severity] = reentrancyLevel(maxCount, thresholds);
     if (report) {
