@@ -64,6 +64,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   const maxReentrancyNumber: Counter = {};
   const currentCounter: Counter = {};
   const traceAddresses: TraceTracker = {};
+  const reentrancyTraceAddresses: TraceTracker = {};
   const rootTracker: RootTracker = {};
 
   // Update the total number of transactions with traces counter
@@ -106,20 +107,29 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     }
     currentDepth += 1;
 
-    // update the base call path to count reentries from if changed
-    const rootPathChanged: boolean = rootTracker[to].some(
-      (traceVal: number, index: number) => traceVal !== curStack[index]
-    );
-    rootTracker[to] =
-      rootTracker[to].length === 0 || rootTracker[to].length >= curStack.length || rootPathChanged
-        ? curStack
-        : rootTracker[to];
-    
+    // check all scenarios that would cause last stored root path to be different than current
+    const rootPathChanged: boolean =
+      rootTracker[to].some((traceVal: number, index: number) => traceVal !== curStack[index]) ||
+      (rootTracker[to].length === 0 && to !== txEvent.traces[0].action.to) ||
+      rootTracker[to].length >= curStack.length;
+
+    // reset counter, update last stored root path, and update current traces for metadata if changed
+    if (rootPathChanged) {
+      rootTracker[to] = curStack;
+      currentCounter[to] = 0;
+      traceAddresses[to] = [];
+    }
+
     // store trace address arrays for metadata
     traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
 
+    // update reentrancy counters
     currentCounter[to] += 1;
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
+
+    // only store trace address path for highest reentrancy
+    reentrancyTraceAddresses[to] =
+      maxReentrancyNumber[to] === currentCounter[to] ? traceAddresses[to] : reentrancyTraceAddresses[to];
 
     stack.push([to, curStack.length]);
   });
@@ -132,7 +142,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
       anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
-      const reentrancyTraceAddresses = JSON.stringify(traceAddresses[addr]);
+      const reentrancyTraceAddressArray = JSON.stringify(reentrancyTraceAddresses[addr]);
       findings.push(
         createFinding(
           addr,
@@ -140,7 +150,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
           severity,
           anomalyScore,
           confidenceLevel,
-          reentrancyTraceAddresses,
+          reentrancyTraceAddressArray,
           txEvent.hash,
           txEvent.from
         )

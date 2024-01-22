@@ -74,10 +74,9 @@ describe("Reentrancy counter agent tests suit", () => {
     expect(findings).toStrictEqual([]);
   });
 
-
   it("Should ignore multiple calls from same address with different first level calls", async () => {
     const tx: TestTransactionEvent = new TestTransactionEvent().addTraces(
-      { to: "0x0", traceAddress: []},
+      { to: "0x0", traceAddress: [] },
       { to: "0x1", traceAddress: [0] },
       { to: "0x1", traceAddress: [1] },
       { to: "0x2", traceAddress: [2] },
@@ -87,6 +86,56 @@ describe("Reentrancy counter agent tests suit", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("Should ignore psuedo-reentries that don't stem from the same root call path", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent().addTraces(
+      { to: "0x0", traceAddress: [] },
+      { to: "0x1", traceAddress: [0] },
+      { to: "0x2", traceAddress: [0, 0] },
+      { to: "0x2", traceAddress: [1] },
+      { to: "0x1", traceAddress: [1, 0] },
+      { to: "0x1", traceAddress: [1, 0, 0] },
+      { to: "0x1", traceAddress: [1, 1] },
+      { to: "0x2", traceAddress: [1, 1, 0] },
+      { to: "0x1", traceAddress: [1, 1, 0, 0] }
+    );
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("Should return correct findings for nested call path splits", async () => {
+    const traceAddresses = [
+      [1, 0],
+      [1, 0, 0],
+      [1, 0, 2],
+    ];
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x0", traceAddress: [] },
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x2", traceAddress: [0, 0] },
+        { to: "0x2", traceAddress: [1] },
+        { to: "0x1", traceAddress: [1, 0] },
+        { to: "0x1", traceAddress: [1, 0, 0] },
+        { to: "0x3", traceAddress: [1, 0, 1] },
+        { to: "0x1", traceAddress: [1, 0, 2] },
+        { to: "0x1", traceAddress: [1, 1] },
+        { to: "0x2", traceAddress: [1, 1, 0] },
+        { to: "0x1", traceAddress: [1, 1, 0, 0] }
+      );
+    const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
+    const expected: Finding[] = [];
+    if (report0x1) {
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      expected.push(
+        createFinding("0x1", 3, severity0x1, mockAnomalyScore, 0.3, JSON.stringify(traceAddresses), "0x2222", "0x9876")
+      );
+    }
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual(expected);
+    expect(findings.length).toEqual(expected.length);
+  });
 
   it("Should detect reentrancy with address called from top level", async () => {
     const traceAddresses = [[], [0], [0, 0]];
@@ -120,9 +169,6 @@ describe("Reentrancy counter agent tests suit", () => {
         [0, 0, 0, 0, 0, 0],
       ],
       "0x4": [
-        [0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 1],
         [0, 1, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0],
@@ -156,7 +202,7 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x6", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0] },
         { to: "0x1", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0] },
-        { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
       );
     const [report0x1, severity0x1] = reentrancyLevel(1, thresholds);
     const [report0x2, severity0x2] = reentrancyLevel(3, thresholds);

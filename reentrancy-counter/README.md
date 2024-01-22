@@ -48,3 +48,11 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
       - `confidence`^: The confidence level of the transaction initiator being an attacker (0-1).
         - Confidence level calculated based on the Finding Severity:
           - Info -> 0.3, Low -> 0.4, Medium -> 0.5, High -> 0.6, Critical -> 0.7
+
+## Test Data
+
+The bot behaviour can be verified with the following transactions:
+
+- [0xa6f63fcb6bec8818864d96a5b1bb19e8bd85ee37b2cc916412e720988440b2aa](https://etherscan.io/tx/0xa6f63fcb6bec8818864d96a5b1bb19e8bd85ee37b2cc916412e720988440b2aa) (Orion Protocol Exploit)
+- [0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e](https://etherscan.io/tx/0xa9a1b8ea288eb9ad315088f17f7c7386b9989c95b4d13c81b69d5ddad7ffe61e) (Cream Finance Exploit)
+- [0xeb87ebc0a18aca7d2a9ffcabf61aa69c9e8d3c6efade9e2303f8857717fb9eb7](https://etherscan.io/tx/0xeb87ebc0a18aca7d2a9ffcabf61aa69c9e8d3c6efade9e2303f8857717fb9eb7) (Sturdy Finance Exploit)
