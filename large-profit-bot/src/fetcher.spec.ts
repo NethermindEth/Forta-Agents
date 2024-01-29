@@ -167,15 +167,16 @@ describe("TokenInfoFetcher tests suite", () => {
     const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
       PROTOCOL_ADDRESS,
       mockTxFrom,
-      "txEventHash",
+      34543543,
       chainId
     );
     expect([isFirstInteraction, hasHighNumberOfTotalTxs]).toStrictEqual([true, false]);
   });
 
-  it("should fetch the contract creator correctly", async () => {
+  it("should fetch contract creation info correctly", async () => {
     const chainId = 1;
     const mockContractCreator = createAddress("0x1237");
+    const mockContractCreationTxHash = "0x1234";
     const mockFetch = jest.mocked(fetch, true);
 
     mockFetch.mockResolvedValueOnce(
@@ -185,13 +186,88 @@ describe("TokenInfoFetcher tests suite", () => {
           result: [
             {
               contractCreator: mockContractCreator,
+              txHash: mockContractCreationTxHash,
             },
           ],
         })
       )
     );
 
-    const contractCreator = await fetcher.getContractCreator(PROTOCOL_ADDRESS, chainId);
+    const { contractCreator, creationTxHash } = await fetcher.getContractCreationInfo(PROTOCOL_ADDRESS, chainId);
     expect(contractCreator).toStrictEqual(mockContractCreator);
+    expect(creationTxHash).toStrictEqual(mockContractCreationTxHash);
+  });
+
+  it("should correctly determine if the contract was created by the tx initiator", async () => {
+    const chainId = 1;
+    const mockContractCreator = createAddress("0x221237");
+    const mockContractCreationTxHash = "0x221234";
+    const mockContractAddress = createAddress("0x221235");
+    const mockFetch = jest.mocked(fetch, true);
+
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [
+            {
+              contractCreator: mockContractCreator,
+              txHash: mockContractCreationTxHash,
+            },
+          ],
+        })
+      )
+    );
+
+    const isContractCreatedByTxInitiator = await fetcher.isContractCreatedByInitiator(
+      mockContractAddress,
+      mockContractCreator, // tx initiator is the contract creator
+      2343424,
+      chainId
+    );
+
+    expect(isContractCreatedByTxInitiator).toStrictEqual(true);
+
+    const mockTxFrom = createAddress("0x1238");
+    const mockContractAddress2 = createAddress("0x221236");
+
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [
+            {
+              contractCreator: mockContractCreator,
+              txHash: mockContractCreationTxHash,
+            },
+          ],
+        })
+      )
+    );
+
+    // Contract Initator has interacted with Tx Initiator in the past
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [
+            {
+              from: mockTxFrom,
+              to: mockContractCreator,
+              blockNumber: 1343424, // Older blocknumber
+            },
+          ],
+        })
+      )
+    );
+
+    const isContractCreatedByTxInitiator2 = await fetcher.isContractCreatedByInitiator(
+      mockContractAddress2,
+      mockTxFrom,
+      2343424,
+      chainId
+    );
+
+    expect(isContractCreatedByTxInitiator2).toStrictEqual(true);
   });
 });
