@@ -73,6 +73,39 @@ export const createFinding = (
   });
 };
 
+export const filterAddressesInTracesUnsupportedChains = (
+  filteredLargeProfitAddresses: LargeProfitAddress[],
+  balanceChangesMapUsd: Map<string, Record<string, number>>,
+  txEvent: TransactionEvent
+): LargeProfitAddress[] => {
+  return filteredLargeProfitAddresses.filter((addressObj) => {
+    const balanceChange = balanceChangesMapUsd.get(addressObj.address);
+
+    // Check if balanceChange exists, has only the 'native' key and traces are can't be retrieved
+    return !(
+      balanceChange &&
+      Object.keys(balanceChange).length === 1 &&
+      "native" in balanceChange &&
+      txEvent.traces.length === 0
+    );
+  });
+};
+
+export const updateBalanceChangesMap = (
+  balanceChangesMap: Map<string, Record<string, ethers.BigNumber>>,
+  address: string,
+  token: string,
+  value: ethers.BigNumber
+) => {
+  if (balanceChangesMap.has(address)) {
+    let currentEntry = balanceChangesMap.get(address);
+    currentEntry![token] = (currentEntry![token] || ZERO).add(value);
+    balanceChangesMap.set(address, currentEntry!);
+  } else {
+    balanceChangesMap.set(address, { [token]: value });
+  }
+};
+
 export const MAX_USD_VALUE = 500000;
 
 export const wrappedNativeTokens: Record<number, string> = {
