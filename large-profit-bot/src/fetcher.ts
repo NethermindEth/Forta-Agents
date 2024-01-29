@@ -31,21 +31,23 @@ type TokenPriceCacheEntry = {
 
 export default class Fetcher {
   provider: providers.JsonRpcProvider;
-  private cache: LRU<string, BigNumber | number | string | boolean>;
+  private cache: LRU<string, BigNumber | number | boolean | { contractCreator: string; creationTxHash: string }>;
   private tokenContract: Contract;
   private tokensPriceCache: LRU<string, TokenPriceCacheEntry>;
   private priceCacheExpirationTime: number;
   private apiKeys: ApiKeys;
+  private maxRetries: number;
 
   constructor(provider: ethers.providers.JsonRpcProvider, apiKeys: ApiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.tokenContract = new Contract("", new Interface(TOKEN_ABI), this.provider);
-    this.cache = new LRU<string, BigNumber | number | string | boolean>({
+    this.cache = new LRU<string, BigNumber | number | boolean | { contractCreator: string; creationTxHash: string }>({
       max: 10000,
     });
     this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
     this.priceCacheExpirationTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+    this.maxRetries = 3;
   }
 
   public async getTotalSupply(block: number, tokenAddress: string): Promise<BigNumber> {
@@ -54,10 +56,9 @@ export default class Fetcher {
     const key: string = `totalSupply-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as BigNumber;
 
-    const retryCount = 3;
     let totalSupply;
 
-    for (let i = 0; i <= retryCount; i++) {
+    for (let i = 0; i <= this.maxRetries; i++) {
       try {
         totalSupply = await token.totalSupply({
           blockTag: block,
@@ -70,7 +71,7 @@ export default class Fetcher {
           console.log(`Unknown error when fetching total supply: ${err}`);
         }
 
-        if (i === retryCount) {
+        if (i === this.maxRetries) {
           totalSupply = ethers.constants.MaxUint256;
           console.log(
             `Failed to fetch total supply for ${tokenAddress} after retries, using default max value ${totalSupply.toString()}`
@@ -217,10 +218,10 @@ export default class Fetcher {
   };
 
   // Fetches transactions in descending order (newest first)
-  private getEtherscanAddressUrl = (address: string, chainId: number) => {
+  private getEtherscanAddressUrl = (address: string, blockNumber: number, chainId: number) => {
     const { urlAccount } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
-    return `${urlAccount}&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${key}`;
+    return `${urlAccount}&address=${address}&startblock=0&endblock=${blockNumber - 1}&sort=desc&apikey=${key}`;
   };
 
   private getEthplorerTopTokenHoldersUrl = (tokenAddress: string, key: string) => {
@@ -277,9 +278,9 @@ export default class Fetcher {
     }
   };
 
-  public getContractInfo = async (contract: string, txFrom: string, txHash: string, chainId: number) => {
+  public getContractInfo = async (contract: string, txFrom: string, blockNumber: number, chainId: number) => {
     try {
-      const result = await (await fetch(this.getEtherscanAddressUrl(contract, chainId))).json();
+      const result = await (await fetch(this.getEtherscanAddressUrl(contract, blockNumber, chainId))).json();
 
       if (result.message.startsWith("NOTOK") || result.message.startsWith("Query Timeout")) {
         console.log(`block explorer error occured; skipping check for ${contract}`);
@@ -288,7 +289,7 @@ export default class Fetcher {
 
       let numberOfInteractions: number = 0;
       result.result.forEach((tx: any) => {
-        if (tx.from === txFrom && tx.hash !== txHash) {
+        if (tx.from === txFrom && Number(tx.blockNumber) < blockNumber) {
           numberOfInteractions++;
         }
       });
@@ -303,16 +304,22 @@ export default class Fetcher {
     }
   };
 
-  public getContractCreator = async (address: string, chainId: number) => {
+  public getContractCreationInfo = async (
+    address: string,
+    chainId: number
+  ): Promise<{
+    contractCreator: string | null;
+    creationTxHash: string | null;
+  }> => {
     const cacheKey: string = `contractCreator-${address}-${chainId}`;
-    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey) as string;
+    if (this.cache.has(cacheKey))
+      return this.cache.get(cacheKey) as { contractCreator: string; creationTxHash: string };
 
     const { urlContractCreation } = etherscanApis[chainId];
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
-    const maxRetries = 3;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         const result = await (await fetch(url)).json();
 
@@ -322,25 +329,97 @@ export default class Fetcher {
           result.message.startsWith("Query Timeout")
         ) {
           console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${address}`);
-          if (attempt === maxRetries) {
+          if (attempt === this.maxRetries) {
             console.log(`Block explorer error occurred (final attempt); skipping check for ${address}`);
-            return null;
+            return {
+              contractCreator: null,
+              creationTxHash: null,
+            };
           }
         } else {
-          this.cache.set(cacheKey, result.result[0].contractCreator);
-          return result.result[0].contractCreator;
+          this.cache.set(cacheKey, {
+            contractCreator: result.result[0].contractCreator,
+            creationTxHash: result.result[0].txHash,
+          });
+
+          return {
+            contractCreator: result.result[0].contractCreator,
+            creationTxHash: result.result[0].txHash,
+          };
         }
       } catch (error) {
         console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
-        if (attempt === maxRetries) {
+        if (attempt === this.maxRetries) {
           console.error(`Error during fetch (final attempt); skipping check for ${address}`);
-          return null;
+          return {
+            contractCreator: null,
+            creationTxHash: null,
+          };
         }
       }
     }
 
-    console.error(`Failed to fetch contract creator for ${address} after ${maxRetries} retries`);
-    return null;
+    console.error(`Failed to fetch contract creator for ${address} after ${this.maxRetries} retries`);
+    return {
+      contractCreator: null,
+      creationTxHash: null,
+    };
+  };
+
+  public isContractCreatedByInitiator = async (
+    contract: string,
+    initiator: string,
+    blockNumber: number,
+    chainId: number
+  ) => {
+    const { contractCreator } = await this.getContractCreationInfo(contract.toLowerCase(), chainId);
+
+    if (!contractCreator) return false;
+
+    if (contractCreator.toLowerCase() === initiator.toLowerCase()) {
+      return true;
+    } else {
+      // Check if the initiator has interacted with the contract creator before
+      for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+        try {
+          const result = await (await fetch(this.getEtherscanAddressUrl(initiator, blockNumber, chainId))).json();
+          if (
+            result.message.startsWith("NOTOK") ||
+            result.message.startsWith("No data") ||
+            result.message.startsWith("Query Timeout")
+          ) {
+            console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${initiator}`);
+            if (attempt === this.maxRetries) {
+              console.log(`Block explorer error occurred (final attempt); skipping check for ${initiator}`);
+              return false;
+            }
+          } else {
+            let haveInteracted = false;
+
+            for (const tx of result.result) {
+              if (
+                [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.from) &&
+                [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.to) &&
+                tx.to !== tx.from &&
+                Number(tx.blockNumber) < blockNumber
+              ) {
+                haveInteracted = true;
+                break;
+              }
+            }
+            return haveInteracted;
+          }
+        } catch (error) {
+          console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
+          if (attempt === this.maxRetries) {
+            console.error(`Error during fetch (final attempt); skipping check for ${initiator}`);
+            return false;
+          }
+        }
+      }
+    }
+
+    return false;
   };
 
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {
@@ -467,8 +546,7 @@ export default class Fetcher {
     let response;
     // Fantom is not supported by Chainbase
     // For Ethereum we use Ethplorer
-    const retries = 2;
-    for (let i = 0; i < retries; i++) {
+    for (let i = 0; i < this.maxRetries; i++) {
       try {
         if (![1, 250].includes(chainId)) {
           response = await (
