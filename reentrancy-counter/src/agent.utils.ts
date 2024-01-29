@@ -12,6 +12,34 @@ export interface RootTracker {
   [key: string]: number[];
 }
 
+// Create each path from the highest reentrancy trace addresses
+export const processReentrancyTraces = (
+  reentrancyTraces: number[][]
+) : TraceTracker => {
+  const processedPaths: TraceTracker = {};
+  let currentPath: number[][] = [];
+  let lastSharedPrefix: number[] = reentrancyTraces[0];
+  let pathCount: number = 1
+  for (let i = 0; i < reentrancyTraces.length; i++) {
+    const currentTrace = reentrancyTraces[i];
+    const sharedPrefix: boolean = lastSharedPrefix.every((traceVal: number, index: number) =>
+      traceVal === currentTrace[index]
+    );
+    if (sharedPrefix) {
+      currentPath.push(currentTrace)
+    } else {
+      processedPaths[`traceAddresses_${pathCount}`] = currentPath
+      currentPath = [reentrancyTraces[0], currentTrace]
+      pathCount += 1
+    }
+    lastSharedPrefix = currentTrace;
+  }
+  if (currentPath.length > 1) {
+    processedPaths[`traceAddresses_${pathCount}`] = currentPath
+  }
+  return processedPaths
+}
+
 export const reentrancyLevel = (
   reentrancyCount: number,
   thresholds: [number, FindingSeverity][]
@@ -71,13 +99,13 @@ export const createFinding = (
   severity: FindingSeverity,
   anomalyScore: number,
   confidenceLevel: number,
-  traceAddresses: string,
+  traceAddressPaths: TraceTracker,
   txHash: string,
   txFrom: string
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentrancyCount} calls to the same contract occured`,
+    description: `${reentrancyCount} calls to the same contract occured in ${Object.keys(traceAddressPaths).length} paths`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,
@@ -85,7 +113,7 @@ export const createFinding = (
       address: addr,
       reentrancyCount: reentrancyCount.toString(),
       anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
-      traceAddresses,
+      traceAddresses: JSON.stringify(traceAddressPaths),
     },
     labels: [
       Label.fromObject({

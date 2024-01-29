@@ -16,9 +16,10 @@ import {
   getAnomalyScore,
   getConfidenceLevel,
   RootTracker,
+  TraceTracker,
+  processReentrancyTraces
 } from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
-import { TraceTracker } from "./agent.utils";
 
 const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
 const TOTAL_TXS_WITH_TRACES_KEY: string = "nm-reentrancy-counter-total-txs-with-traces-key";
@@ -63,6 +64,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   const maxReentrancyNumber: Counter = {};
   const currentCounter: Counter = {};
+  const longestPathCounter: Counter = {};
   const traceAddresses: TraceTracker = {};
   const reentrancyTraceAddresses: TraceTracker = {};
   const rootTracker: RootTracker = {};
@@ -80,11 +82,13 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   addresses.forEach((addr: string) => {
     maxReentrancyNumber[addr] = 1;
     currentCounter[addr] = 0;
+    longestPathCounter[addr] = 0;
     rootTracker[addr] = [];
   });
 
   const stack: [string, number][] = [];
   let currentDepth: number = 0;
+  let currentLongestTrace: number = 0;
 
   // Review the traces stack
   txEvent.traces.forEach((trace: Trace) => {
@@ -127,9 +131,13 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     currentCounter[to] += 1;
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
 
+    // track longest reentrancy trace for equal reentrancy counts
+    longestPathCounter[to] = Math.max(longestPathCounter[to], curStack.length)
+    currentLongestTrace = Math.max(...traceAddresses[to].map((trace: number[]) => trace.length));
+
     // only store trace address path for highest reentrancy
     reentrancyTraceAddresses[to] =
-      maxReentrancyNumber[to] === currentCounter[to] ? traceAddresses[to] : reentrancyTraceAddresses[to];
+      (maxReentrancyNumber[to] === currentCounter[to] && longestPathCounter[to] === currentLongestTrace) ? traceAddresses[to] : reentrancyTraceAddresses[to];
 
     stack.push([to, curStack.length]);
   });
@@ -142,7 +150,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
       let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
       anomalyScore = Math.min(1, anomalyScore);
       const confidenceLevel = getConfidenceLevel(severity);
-      const reentrancyTraceAddressArray = JSON.stringify(reentrancyTraceAddresses[addr]);
+      const reentrancyTracePaths = processReentrancyTraces(reentrancyTraceAddresses[addr]);
       findings.push(
         createFinding(
           addr,
@@ -150,7 +158,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
           severity,
           anomalyScore,
           confidenceLevel,
-          reentrancyTraceAddressArray,
+          reentrancyTracePaths,
           txEvent.hash,
           txEvent.from
         )

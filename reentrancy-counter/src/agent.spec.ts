@@ -1,7 +1,7 @@
 import { Finding, HandleBlock, HandleTransaction } from "forta-agent";
 import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import agent, { thresholds } from "./agent";
-import { Counter, createFinding, reentrancyLevel } from "./agent.utils";
+import { Counter, createFinding, reentrancyLevel, processReentrancyTraces } from "./agent.utils";
 
 const mockPersistenceHelper = {
   persist: jest.fn(),
@@ -129,7 +129,40 @@ describe("Reentrancy counter agent tests suit", () => {
     if (report0x1) {
       const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
       expected.push(
-        createFinding("0x1", 3, severity0x1, mockAnomalyScore, 0.3, JSON.stringify(traceAddresses), "0x2222", "0x9876")
+        createFinding("0x1", 3, severity0x1, mockAnomalyScore, 0.3, processReentrancyTraces(traceAddresses), "0x2222", "0x9876")
+      );
+    }
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual(expected);
+    expect(findings.length).toEqual(expected.length);
+  });
+
+  it("Should return correct findings for paths with same reentrancy count but different max trace path lengths", async () => {
+    const traceAddresses = [
+      [1],
+      [1, 1],
+      [1, 1, 0, 0, 1]
+    ];
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x0", traceAddress: [] },
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x1", traceAddress: [0, 0] },
+        { to: "0x1", traceAddress: [0, 1] },
+        { to: "0x1", traceAddress: [1] },
+        { to: "0x1", traceAddress: [1, 1] },
+        { to: "0x2", traceAddress: [1, 1, 0] },
+        { to: "0x2", traceAddress: [1, 1, 0, 0] },
+        { to: "0x1", traceAddress: [1, 1, 0, 0, 1] },
+      );
+    const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
+    const expected: Finding[] = [];
+    if (report0x1) {
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      expected.push(
+        createFinding("0x1", 3, severity0x1, mockAnomalyScore, 0.3, processReentrancyTraces(traceAddresses), "0x2222", "0x9876")
       );
     }
     const findings: Finding[] = await handleTransaction(tx);
@@ -153,7 +186,7 @@ describe("Reentrancy counter agent tests suit", () => {
     if (report0x0) {
       const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
       expected.push(
-        createFinding("0x0", 3, severity0x0, mockAnomalyScore, 0.3, JSON.stringify(traceAddresses), "0x2222", "0x9876")
+        createFinding("0x0", 3, severity0x0, mockAnomalyScore, 0.3, processReentrancyTraces(traceAddresses), "0x2222", "0x9876")
       );
     }
     const findings: Finding[] = await handleTransaction(tx);
@@ -208,7 +241,7 @@ describe("Reentrancy counter agent tests suit", () => {
     const [report0x2, severity0x2] = reentrancyLevel(3, thresholds);
     const [report0x4, severity0x4] = reentrancyLevel(5, thresholds);
     const expected: Finding[] = [];
-    if (report0x1) expected.push(createFinding("0x1", 1, severity0x1, 0.0, 0, "", "0x2222", "0x9876")); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
+    if (report0x1) expected.push(createFinding("0x1", 1, severity0x1, 0.0, 0, {}, "0x2222", "0x9876")); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
     if (report0x2) {
       const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
       expected.push(
@@ -218,7 +251,7 @@ describe("Reentrancy counter agent tests suit", () => {
           severity0x2,
           mockAnomalyScore,
           0.3,
-          JSON.stringify(traceAddresses["0x2"]),
+          processReentrancyTraces(traceAddresses["0x2"]),
           "0x2222",
           "0x9876"
         )
@@ -233,7 +266,7 @@ describe("Reentrancy counter agent tests suit", () => {
           severity0x4,
           mockAnomalyScore,
           0.4,
-          JSON.stringify(traceAddresses["0x4"]),
+          processReentrancyTraces(traceAddresses["0x4"]),
           "0x2222",
           "0x9876"
         )
