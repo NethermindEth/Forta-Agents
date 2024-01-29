@@ -25,6 +25,7 @@ export const createFinding = (
   addresses.map((address) => {
     profit = address.isProfitInUsd ? `$${address.profit.toFixed(2)}` : `${address.profit}% of total supply`;
     metadata[`profit${index}`] = profit;
+    metadata[`profitAddress${index}`] = address.address.toLowerCase();
     index++;
     labels.push(
       Label.fromObject({
