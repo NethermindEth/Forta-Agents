@@ -8,6 +8,10 @@ export interface TraceTracker {
   [key: string]: number[][];
 }
 
+export interface FormattedTraces {
+  [key: string]: string;
+}
+
 export interface RootTracker {
   [key: string]: number[];
 }
@@ -15,8 +19,8 @@ export interface RootTracker {
 // Create each path from the highest reentrancy trace addresses
 export const processReentrancyTraces = (
   reentrancyTraces: number[][]
-) : TraceTracker => {
-  const processedPaths: TraceTracker = {};
+) : FormattedTraces => {
+  const processedPaths: FormattedTraces = {};
   let currentPath: number[][] = [];
   let lastSharedPrefix: number[] = reentrancyTraces[0];
   let pathCount: number = 1
@@ -28,14 +32,14 @@ export const processReentrancyTraces = (
     if (sharedPrefix) {
       currentPath.push(currentTrace)
     } else {
-      processedPaths[`traceAddresses_${pathCount}`] = currentPath
-      currentPath = [reentrancyTraces[0], currentTrace]
+      processedPaths[`traceAddresses_${pathCount}`] = JSON.stringify(currentPath);
+      currentPath = [...(reentrancyTraces.filter(el => el.length - reentrancyTraces[0].length <= 2)), currentTrace]
       pathCount += 1
     }
-    lastSharedPrefix = currentTrace;
+    lastSharedPrefix = currentTrace.length - lastSharedPrefix.length > 2 ? currentTrace : lastSharedPrefix;
   }
   if (currentPath.length > 1) {
-    processedPaths[`traceAddresses_${pathCount}`] = currentPath
+    processedPaths[`traceAddresses_${pathCount}`] = JSON.stringify(currentPath);
   }
   return processedPaths
 }
@@ -99,13 +103,13 @@ export const createFinding = (
   severity: FindingSeverity,
   anomalyScore: number,
   confidenceLevel: number,
-  traceAddressPaths: TraceTracker,
+  traceAddressPaths: FormattedTraces,
   txHash: string,
   txFrom: string
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentrancyCount} calls to the same contract occured in ${Object.keys(traceAddressPaths).length} paths`,
+    description: `${reentrancyCount} reentrant calls to the same contract occurred in ${Object.keys(traceAddressPaths).length} paths`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,

@@ -105,8 +105,8 @@ describe("Reentrancy counter agent tests suit", () => {
   it("Should return correct findings for nested call path splits", async () => {
     const traceAddresses = [
       [1, 0],
-      [1, 0, 0],
-      [1, 0, 2],
+      [1, 0, 0, 0, 1],
+      [1, 0, 1, 0, 2],
     ];
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setHash("0x2222")
@@ -117,12 +117,16 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x2", traceAddress: [0, 0] },
         { to: "0x2", traceAddress: [1] },
         { to: "0x1", traceAddress: [1, 0] },
-        { to: "0x1", traceAddress: [1, 0, 0] },
-        { to: "0x3", traceAddress: [1, 0, 1] },
-        { to: "0x1", traceAddress: [1, 0, 2] },
-        { to: "0x1", traceAddress: [1, 1] },
-        { to: "0x2", traceAddress: [1, 1, 0] },
-        { to: "0x1", traceAddress: [1, 1, 0, 0] }
+        { to: "0x3", traceAddress: [1, 0, 0] },
+        { to: "0x3", traceAddress: [1, 0, 0, 0] },
+        { to: "0x3", traceAddress: [1, 0, 0, 0, 0] },
+        { to: "0x1", traceAddress: [1, 0, 0, 0, 1] },
+        { to: "0x4", traceAddress: [1, 0, 1] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0, 0] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0, 1] },
+        { to: "0x1", traceAddress: [1, 0, 1, 0, 2] },
+        { to: "0x2", traceAddress: [1, 1] },
       );
     const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
     const expected: Finding[] = [];
@@ -141,7 +145,8 @@ describe("Reentrancy counter agent tests suit", () => {
     const traceAddresses = [
       [1],
       [1, 1],
-      [1, 1, 0, 0, 1]
+      [1, 1, 0, 0, 1],
+      [1, 1, 0, 0, 2]
     ];
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setHash("0x2222")
@@ -150,12 +155,15 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x0", traceAddress: [] },
         { to: "0x1", traceAddress: [0] },
         { to: "0x1", traceAddress: [0, 0] },
-        { to: "0x1", traceAddress: [0, 1] },
+        { to: "0x1", traceAddress: [0, 0, 1] },
+        { to: "0x1", traceAddress: [0, 0, 1, 0] },
+        { to: "0x1", traceAddress: [0, 0, 1, 1] },
         { to: "0x1", traceAddress: [1] },
         { to: "0x1", traceAddress: [1, 1] },
         { to: "0x2", traceAddress: [1, 1, 0] },
         { to: "0x2", traceAddress: [1, 1, 0, 0] },
         { to: "0x1", traceAddress: [1, 1, 0, 0, 1] },
+        { to: "0x1", traceAddress: [1, 1, 0, 0, 2] },
       );
     const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
     const expected: Finding[] = [];
@@ -171,15 +179,17 @@ describe("Reentrancy counter agent tests suit", () => {
   });
 
   it("Should detect reentrancy with address called from top level", async () => {
-    const traceAddresses = [[], [0], [0, 0]];
+    const traceAddresses = [[], [0, 0, 0], [0, 0, 1]];
     // 0x0 called 3 times
     const tx: TestTransactionEvent = new TestTransactionEvent()
       .setHash("0x2222")
       .setFrom("0x9876")
       .addTraces(
         { to: "0x0", traceAddress: [] },
-        { to: "0x0", traceAddress: [0] },
-        { to: "0x0", traceAddress: [0, 0] }
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x1", traceAddress: [0, 0] },
+        { to: "0x0", traceAddress: [0, 0, 0] },
+        { to: "0x0", traceAddress: [0, 0, 1] }
       );
     const [report0x0, severity0x0] = reentrancyLevel(3, thresholds);
     const expected: Finding[] = [];
@@ -198,7 +208,7 @@ describe("Reentrancy counter agent tests suit", () => {
     const traceAddresses = {
       "0x2": [
         [0, 0],
-        [0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
       ],
       "0x4": [
@@ -220,8 +230,8 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x1", traceAddress: [0] },
         { to: "0x2", traceAddress: [0, 0] },
         { to: "0x3", traceAddress: [0, 0, 0] },
-        { to: "0x2", traceAddress: [0, 0, 0, 0] },
-        { to: "0x3", traceAddress: [0, 0, 0, 0, 0] },
+        { to: "0x3", traceAddress: [0, 0, 0, 0] },
+        { to: "0x2", traceAddress: [0, 0, 0, 0, 0] },
         { to: "0x2", traceAddress: [0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 0, 0, 0, 0, 0, 0, 0] },

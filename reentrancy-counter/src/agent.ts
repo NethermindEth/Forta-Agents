@@ -111,6 +111,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     }
     currentDepth += 1;
 
+    // store root length for relative comparison prior to updating count
+    const lastRootLength: number = rootTracker[to].length
+
     // check all scenarios that would cause last stored root path to be different than current
     const rootPathChanged: boolean =
       rootTracker[to].some((traceVal: number, index: number) => traceVal !== curStack[index]) ||
@@ -127,8 +130,8 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     // store trace address arrays for metadata
     traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
 
-    // update reentrancy counters
-    currentCounter[to] += 1;
+    // update reentrancy counters (only count reentrancy's 2+ levels deeper relative to root path)
+    currentCounter[to] = (rootPathChanged || curStack.length - lastRootLength > 2) ? currentCounter[to] + 1 : currentCounter[to]
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
 
     // track longest reentrancy trace for equal reentrancy counts
