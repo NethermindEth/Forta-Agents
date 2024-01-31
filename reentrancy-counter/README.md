@@ -17,7 +17,7 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
 ## Alerts
 
 - NETHFORTA-25
-  - Fired when multiple nested calls occur to the same contract in a transaction (Reentrancy)
+  - Fired when multiple nested calls occur to the same contract in a transaction with call depths greater than 2 levels from the root call path (Reentrancy)
   - It reports all possible severities based on different call volume thresholds.
   - Type is always set to "suspicious"
   - The metadata includes:
@@ -25,7 +25,7 @@ This bot checks transactions for reentrancy. This is done by the bot watching th
   - `reentrancyCount`: A reentrancy counter based on how many times it occurred
   - `anomalyScore`: Score of how anomalous the alert is (0-1)
     - Score calculated by finding amount of either `NETHFORTA-25` alerts out of the total number of transactions that contained traces processed by this bot and differs based on chain.
-  - `traceAddresses` : A string representation of each path of reentrancy, where each path ends at the deepest call to the contract along the same call path and from the same root call.
+  - `traceAddresses` : A string representation of each path of reentrancy, where each path ends at the deepest call to the contract along the same call path and from the same root call. Note that calls on a reentrancy path that are within the threshold of depth from the root call will be displayed, but not counted towards the total reentrancy count.
   - Labels:
     - Label 1:
       - `entity`: The transaction's hash
