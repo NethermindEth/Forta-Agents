@@ -17,32 +17,30 @@ export interface RootTracker {
 }
 
 // Create each path from the highest reentrancy trace addresses
-export const processReentrancyTraces = (
-  reentrancyTraces: number[][]
-) : FormattedTraces => {
+export const processReentrancyTraces = (reentrancyTraces: number[][]): FormattedTraces => {
   const processedPaths: FormattedTraces = {};
   let currentPath: number[][] = [];
   let lastSharedPrefix: number[] = reentrancyTraces[0];
-  let pathCount: number = 1
+  let pathCount: number = 1;
   for (let i = 0; i < reentrancyTraces.length; i++) {
     const currentTrace = reentrancyTraces[i];
-    const sharedPrefix: boolean = lastSharedPrefix.every((traceVal: number, index: number) =>
-      traceVal === currentTrace[index]
+    const sharedPrefix: boolean = lastSharedPrefix.every(
+      (traceVal: number, index: number) => traceVal === currentTrace[index]
     );
     if (sharedPrefix) {
-      currentPath.push(currentTrace)
+      currentPath.push(currentTrace);
     } else {
       processedPaths[`traceAddresses_${pathCount}`] = JSON.stringify(currentPath);
-      currentPath = [...(reentrancyTraces.filter(el => el.length - reentrancyTraces[0].length <= 2)), currentTrace]
-      pathCount += 1
+      currentPath = [...currentPath.slice(0, currentPath.length - 1), currentTrace];
+      pathCount += 1;
     }
-    lastSharedPrefix = currentTrace.length - lastSharedPrefix.length > 2 ? currentTrace : lastSharedPrefix;
+    lastSharedPrefix = currentTrace;
   }
   if (currentPath.length > 1) {
     processedPaths[`traceAddresses_${pathCount}`] = JSON.stringify(currentPath);
   }
-  return processedPaths
-}
+  return processedPaths;
+};
 
 export const reentrancyLevel = (
   reentrancyCount: number,
@@ -109,7 +107,9 @@ export const createFinding = (
 ): Finding => {
   return Finding.fromObject({
     name: "Reentrancy calls detected",
-    description: `${reentrancyCount} reentrant calls to the same contract occurred in ${Object.keys(traceAddressPaths).length} paths`,
+    description: `${reentrancyCount} reentrant calls to the same contract occurred in ${
+      Object.keys(traceAddressPaths).length
+    } paths`,
     alertId: "NETHFORTA-25",
     type: FindingType.Suspicious,
     severity: severity,

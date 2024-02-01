@@ -17,7 +17,7 @@ import {
   getConfidenceLevel,
   RootTracker,
   TraceTracker,
-  processReentrancyTraces
+  processReentrancyTraces,
 } from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
 
@@ -112,7 +112,7 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     currentDepth += 1;
 
     // store root length for relative comparison prior to updating count
-    const lastRootLength: number = rootTracker[to].length
+    const lastRootLength: number = rootTracker[to].length;
 
     // check all scenarios that would cause last stored root path to be different than current
     const rootPathChanged: boolean =
@@ -131,16 +131,19 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
     traceAddresses[to] = [...(traceAddresses[to] ?? []), curStack];
 
     // update reentrancy counters (only count reentrancy's 2+ levels deeper relative to root path)
-    currentCounter[to] = (rootPathChanged || curStack.length - lastRootLength > 2) ? currentCounter[to] + 1 : currentCounter[to]
+    currentCounter[to] =
+      rootPathChanged || curStack.length - lastRootLength > 2 ? currentCounter[to] + 1 : currentCounter[to];
     maxReentrancyNumber[to] = Math.max(maxReentrancyNumber[to], currentCounter[to]);
 
     // track longest reentrancy trace for equal reentrancy counts
-    longestPathCounter[to] = Math.max(longestPathCounter[to], curStack.length)
+    longestPathCounter[to] = Math.max(longestPathCounter[to], curStack.length);
     currentLongestTrace = Math.max(...traceAddresses[to].map((trace: number[]) => trace.length));
 
     // only store trace address path for highest reentrancy
     reentrancyTraceAddresses[to] =
-      (maxReentrancyNumber[to] === currentCounter[to] && longestPathCounter[to] === currentLongestTrace) ? traceAddresses[to] : reentrancyTraceAddresses[to];
+      maxReentrancyNumber[to] === currentCounter[to] && longestPathCounter[to] === currentLongestTrace
+        ? traceAddresses[to]
+        : reentrancyTraceAddresses[to];
 
     stack.push([to, curStack.length]);
   });
