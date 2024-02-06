@@ -12,7 +12,7 @@ import {
   ERC20_TRANSFER_EVENT,
   LOAN_CREATED_ABI,
   LargeProfitAddress,
-  UNISWAP_ROUTER_ADDRESSES,
+  ROUTER_ADDRESSES,
   WRAPPED_NATIVE_TOKEN_EVENTS,
   ZERO,
   createFinding,
@@ -20,6 +20,9 @@ import {
   wrappedNativeTokens,
   FUNCTION_ABIS,
   EVENTS_ABIS,
+  filterAddressesInTracesUnsupportedChains,
+  GNOSIS_PROXY_EVENT_ABI,
+  updateBalanceChangesMap,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -30,6 +33,7 @@ let lastBlock = 0;
 let fetcher: Fetcher;
 
 const TX_COUNT_THRESHOLD = 70;
+const MAX_RETRIES = 3;
 
 const contractsCache = new LRU<string, boolean>({
   max: 10000,
@@ -61,24 +65,19 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
-    if (txEvent.filterFunction(FUNCTION_ABIS).length) {
-      return findings;
-    }
-
-    if (txEvent.filterLog(EVENTS_ABIS).length) {
-      return findings;
-    }
-
     const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
 
     // return if it's a single transfer or a single swap
     if (erc20TransferEvents.length < 3) return findings;
 
+    // Filter out FPs
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
-    if (loanCreatedEvents.length > 0) {
+    const gnosisProxyEvents = txEvent.filterLog(GNOSIS_PROXY_EVENT_ABI);
+    if (loanCreatedEvents.length > 0 || gnosisProxyEvents.length > 0) {
       return findings;
     }
 
+    let wasCalledContractCreatedByInitiator: boolean | undefined;
     if (txEvent.to) {
       if (
         nftCollateralizedLendingProtocols[txEvent.network] &&
@@ -86,17 +85,16 @@ export const provideHandleTransaction =
       ) {
         return findings;
       }
-      if (UNISWAP_ROUTER_ADDRESSES.includes(txEvent.to.toLowerCase())) {
+      if (ROUTER_ADDRESSES.includes(txEvent.to.toLowerCase())) {
         return findings;
       }
       let isToAnEOA: boolean = false;
-      let retries = 3;
-      for (let i = 0; i < retries; i++) {
+      for (let i = 0; i < MAX_RETRIES; i++) {
         if (contractsCache.has(txEvent.to)) {
           break;
         } else {
           try {
-            isToAnEOA = (await provider.getCode(txEvent.to)) === "0x";
+            isToAnEOA = (await provider.getCode(txEvent.to, txEvent.blockNumber - 1)) === "0x";
             if (!isToAnEOA) {
               contractsCache.set(txEvent.to, true);
             }
@@ -106,15 +104,24 @@ export const provideHandleTransaction =
           }
         }
       }
-
       if (isToAnEOA) return findings;
+
+      if (txEvent.filterFunction(FUNCTION_ABIS).length || txEvent.filterLog(EVENTS_ABIS).length) {
+        if (erc20TransferEvents.length < 5) return findings;
+        wasCalledContractCreatedByInitiator = await fetcher.isContractCreatedByInitiator(
+          txEvent.to,
+          txEvent.from,
+          txEvent.blockNumber,
+          Number(txEvent.network)
+        );
+        if (!wasCalledContractCreatedByInitiator) return findings;
+      }
     }
 
     let txCount = EOA_TRANSACTION_COUNT_THRESHOLD + 1;
-    let retries = 3;
-    for (let i = 0; i < retries; i++) {
+    for (let i = 0; i < MAX_RETRIES; i++) {
       try {
-        txCount = await provider.getTransactionCount(txEvent.from);
+        txCount = await provider.getTransactionCount(txEvent.from, txEvent.blockNumber);
         break;
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 250));
@@ -143,14 +150,7 @@ export const provideHandleTransaction =
           from = ethers.utils.getAddress(from);
         }
 
-        // Update the balances map for 'from'
-        if (balanceChangesMap.has(from)) {
-          let currentEntry = balanceChangesMap.get(from);
-          currentEntry![token] = (currentEntry![token] || ZERO).sub(value);
-          balanceChangesMap.set(from, currentEntry!);
-        } else {
-          balanceChangesMap.set(from, { [token]: value.mul(-1) });
-        }
+        updateBalanceChangesMap(balanceChangesMap, from, token, value.mul(-1));
 
         if (!to) {
           to = wrappedNativeTokens[txEvent.network];
@@ -158,13 +158,7 @@ export const provideHandleTransaction =
           to = ethers.utils.getAddress(to);
         }
 
-        if (balanceChangesMap.has(to)) {
-          let currentEntry = balanceChangesMap.get(to);
-          currentEntry![token] = (currentEntry![token] || ZERO).add(value);
-          balanceChangesMap.set(to, currentEntry!);
-        } else {
-          balanceChangesMap.set(to, { [token]: value });
-        }
+        updateBalanceChangesMap(balanceChangesMap, to, token, value);
       })
     );
 
@@ -178,22 +172,8 @@ export const provideHandleTransaction =
             to = ethers.utils.getAddress(to);
             const bnValue = ethers.BigNumber.from(value);
 
-            // Update the native token balance for the from address
-            if (balanceChangesMap.has(from)) {
-              let currentEntry = balanceChangesMap.get(from);
-              currentEntry!["native"] = (currentEntry!["native"] || ZERO).sub(bnValue);
-              balanceChangesMap.set(from, currentEntry!);
-            } else {
-              balanceChangesMap.set(from, { ["native"]: bnValue.mul(-1) });
-            }
-            // Update the native token balance for the to address
-            if (balanceChangesMap.has(to)) {
-              let currentEntry = balanceChangesMap.get(to);
-              currentEntry!["native"] = (currentEntry!["native"] || ZERO).add(bnValue);
-              balanceChangesMap.set(to, currentEntry!);
-            } else {
-              balanceChangesMap.set(to, { ["native"]: bnValue });
-            }
+            updateBalanceChangesMap(balanceChangesMap, from, "native", bnValue.mul(-1));
+            updateBalanceChangesMap(balanceChangesMap, to, "native", bnValue);
           }
         })
       );
@@ -203,25 +183,20 @@ export const provideHandleTransaction =
         const to = ethers.utils.getAddress(txEvent.to);
         const bnValue = ethers.BigNumber.from(txEvent.transaction.value);
 
-        // Update the native token balance for the from address
-        if (balanceChangesMap.has(from)) {
-          let currentEntry = balanceChangesMap.get(from);
-          currentEntry!["native"] = ZERO.sub(bnValue);
-          balanceChangesMap.set(from, currentEntry!);
-        } else {
-          balanceChangesMap.set(from, { ["native"]: bnValue.mul(-1) });
-        }
-
-        // Update the native token balance for the to address
-        if (balanceChangesMap.has(to)) {
-          let currentEntry = balanceChangesMap.get(to);
-          currentEntry!["native"] = ZERO.add(bnValue);
-          balanceChangesMap.set(to, currentEntry!);
-        } else {
-          balanceChangesMap.set(to, { ["native"]: bnValue });
-        }
+        updateBalanceChangesMap(balanceChangesMap, from, "native", bnValue.mul(-1));
+        updateBalanceChangesMap(balanceChangesMap, to, "native", bnValue);
       }
     }
+
+    if (txEvent.to && wasCalledContractCreatedByInitiator === undefined) {
+      wasCalledContractCreatedByInitiator = await fetcher.isContractCreatedByInitiator(
+        txEvent.to!,
+        txEvent.from,
+        txEvent.blockNumber,
+        Number(txEvent.network)
+      );
+    }
+
     // Remove empty records and filter out addresses other than txEvent.from and txEvent.to
     await Promise.all(
       Array.from(balanceChangesMap.entries()).map(async ([key, record]) => {
@@ -236,22 +211,56 @@ export const provideHandleTransaction =
           key.toLowerCase() === "0x000000000000000000000000000000000000dead"
         ) {
           balanceChangesMap.delete(key);
-        }
-        if (![txEvent.from.toLowerCase(), txEvent.to?.toLowerCase()].includes(key.toLowerCase())) {
+        } else if (![txEvent.from.toLowerCase(), txEvent.to?.toLowerCase()].includes(key.toLowerCase())) {
           const retries = 2;
           let txCount = 0;
           for (let i = 0; i < retries; i++) {
             try {
-              txCount = await provider.getTransactionCount(key);
+              txCount = await provider.getTransactionCount(key, txEvent.blockNumber);
               break;
             } catch (e) {
               await new Promise((resolve) => setTimeout(resolve, 500));
             }
           }
 
-          // Check the transaction count of the address, if it's <= 1 remove it from the map, as it is a contract
-          if (txCount <= 1 || txCount > TX_COUNT_THRESHOLD) {
+          // Check the transaction count of the address, removing contracts and high nonce EOAs from the map
+          if (txCount > TX_COUNT_THRESHOLD) {
             balanceChangesMap.delete(key);
+          } else if (txCount <= 1) {
+            let isEOA: boolean = false;
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+              try {
+                isEOA = (await provider.getCode(key, txEvent.blockNumber)) === "0x";
+                if (!isEOA) {
+                  if (!wasCalledContractCreatedByInitiator) {
+                    balanceChangesMap.delete(key);
+                  } else {
+                    // Keep only contracts directly created by the called contract
+                    let conditionMet = false;
+
+                    // Check each trace to see if it meets the condition
+                    txEvent.traces.forEach((trace) => {
+                      if (trace.type === "create" && trace.result.address === key.toLowerCase()) {
+                        if (trace.action.from !== txEvent.to?.toLowerCase()) {
+                          balanceChangesMap.delete(key);
+                        } else {
+                          conditionMet = true;
+                        }
+                      }
+                    });
+
+                    // If the condition was never met (i.e., false for all traces), delete the key
+                    if (!conditionMet) {
+                      balanceChangesMap.delete(key);
+                    }
+                  }
+                }
+                break;
+              } catch {
+                await new Promise((resolve) => setTimeout(resolve, 250));
+              }
+            }
           }
         }
       })
@@ -280,9 +289,12 @@ export const provideHandleTransaction =
         return acc + value;
       }, 0);
 
-      const hasZeroValue = Object.values(record).some((value) => value === 0);
+      const hasZeroValue = Object.entries(record).some(([key, value]) => {
+        const correspondingValue = balanceChangesMap.get(address)?.[key];
+        return value === 0 && correspondingValue && correspondingValue.lt(0);
+      });
 
-      // If the sum of the values is more than 10000 USD and, there's no token with an unknown price, add the address to the large profit addresses list
+      // If the sum of the values is more than 10000 USD and, there's no token with an unknown price and a negative sign, add the address to the large profit addresses list
       if (sum > 10000 && !hasZeroValue) {
         const [confidence, anomalyScore] = fetcher.getCLandAS(sum, "usdValue") as number[];
         largeProfitAddresses.push({ address, confidence, anomalyScore, isProfitInUsd: true, profit: sum });
@@ -292,10 +304,9 @@ export const provideHandleTransaction =
     // For tokens with no USD value fetched, check if the balance change is greater than 5% of the total supply (only in the case of an initiator not sending other tokens away)
     await Promise.all(
       Array.from(balanceChangesMapUsd.entries()).map(async ([address, record]) => {
-        const balancheChanges = balances.get(address);
-
-        // Check if "balancheChanges" has more than one key (token) for the current address
-        if (Object.keys(balancheChanges!).length > 1) {
+        const balanceChanges = balances.get(address);
+        // Check if "balanceChanges" has more than one key (token) for the current address
+        if (Object.keys(balanceChanges!).length > 1) {
           return;
         }
 
@@ -314,13 +325,16 @@ export const provideHandleTransaction =
             return;
           }
 
-          if (!balancheChanges![token].isNegative()) {
+          if (!balanceChanges![token].isNegative()) {
             const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token);
             const threshold = totalSupply.div(20); // 5%
-            const absValue = balancheChanges![token];
+            const absValue = balanceChanges![token];
             if (absValue.gt(threshold)) {
               // Filter out token mints (e.g. Uniswap LPs) to contract creators
-              const tokenCreator = await fetcher.getContractCreator(token, Number(txEvent.network));
+              const { contractCreator: tokenCreator } = await fetcher.getContractCreationInfo(
+                token,
+                Number(txEvent.network)
+              );
               if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
                 return;
               }
@@ -363,7 +377,7 @@ export const provideHandleTransaction =
     }
 
     // Filter out duplicate addresses, keeping the entry with the higher confidence level
-    const filteredLargeProfitAddresses = largeProfitAddresses.reduce((acc: LargeProfitAddress[], curr) => {
+    const filteredLargeProfitAddressesTemp = largeProfitAddresses.reduce((acc: LargeProfitAddress[], curr) => {
       const existingIndex = acc.findIndex((item: LargeProfitAddress) => item.address === curr.address);
       if (existingIndex === -1) {
         acc.push(curr);
@@ -374,18 +388,32 @@ export const provideHandleTransaction =
       return acc;
     }, []);
 
-    let wasCalledContractCreatedByInitiator = false;
+    // Filters out addresses on chains lacking trace support,
+    // specifically when their profit solely originates from native transfers (reflected in tx.value)
+    const filteredLargeProfitAddresses = filterAddressesInTracesUnsupportedChains(
+      filteredLargeProfitAddressesTemp,
+      balanceChangesMapUsd,
+      txEvent
+    );
+
     if (!txEvent.to) {
       findings.push(
         createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, "")
       );
     } else {
-      wasCalledContractCreatedByInitiator =
-        (await fetcher.getContractCreator(txEvent.to, Number(txEvent.network))) === txEvent.from.toLowerCase();
       if (wasCalledContractCreatedByInitiator) {
-        findings.push(
-          createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, txEvent.to)
-        );
+        const fromRecord = balanceChangesMapUsd.get(ethers.utils.getAddress(txEvent.from));
+        const toRecord = balanceChangesMapUsd.get(ethers.utils.getAddress(txEvent.to));
+
+        const fromSum = fromRecord ? Object.values(fromRecord).reduce((acc, value) => acc + value, 0) : 0;
+        const toSum = toRecord ? Object.values(toRecord).reduce((acc, value) => acc + value, 0) : 0;
+
+        // Create a finding only if the funds are not removed from either txEvent.from or txEvent.to (except if it's a very small amount)
+        if (fromSum >= -500 && toSum >= -500) {
+          findings.push(
+            createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, txEvent.to)
+          );
+        }
       } else {
         await Promise.all(
           filteredLargeProfitAddresses.map(async (entry) => {
@@ -393,7 +421,7 @@ export const provideHandleTransaction =
               const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
                 txEvent.to!,
                 txEvent.from,
-                txEvent.hash,
+                txEvent.blockNumber,
                 Number(txEvent.network)
               );
               if (isFirstInteraction) {
@@ -429,7 +457,7 @@ export const provideHandleTransaction =
                       txEvent.to!
                     )
                   );
-                } else return;
+                }
               }
             }
           })

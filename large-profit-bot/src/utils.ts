@@ -1,4 +1,4 @@
-import { EntityType, Finding, FindingSeverity, FindingType, Label, ethers } from "forta-agent";
+import { EntityType, Finding, FindingSeverity, FindingType, Label, TransactionEvent, ethers } from "forta-agent";
 
 export const createFinding = (
   addresses: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
@@ -25,6 +25,7 @@ export const createFinding = (
   addresses.map((address) => {
     profit = address.isProfitInUsd ? `$${address.profit.toFixed(2)}` : `${address.profit}% of total supply`;
     metadata[`profit${index}`] = profit;
+    metadata[`profitAddress${index}`] = address.address.toLowerCase();
     index++;
     labels.push(
       Label.fromObject({
@@ -72,6 +73,39 @@ export const createFinding = (
   });
 };
 
+export const filterAddressesInTracesUnsupportedChains = (
+  filteredLargeProfitAddresses: LargeProfitAddress[],
+  balanceChangesMapUsd: Map<string, Record<string, number>>,
+  txEvent: TransactionEvent
+): LargeProfitAddress[] => {
+  return filteredLargeProfitAddresses.filter((addressObj) => {
+    const balanceChange = balanceChangesMapUsd.get(addressObj.address);
+
+    // Check if balanceChange exists, has only the 'native' key and traces are can't be retrieved
+    return !(
+      balanceChange &&
+      Object.keys(balanceChange).length === 1 &&
+      "native" in balanceChange &&
+      txEvent.traces.length === 0
+    );
+  });
+};
+
+export const updateBalanceChangesMap = (
+  balanceChangesMap: Map<string, Record<string, ethers.BigNumber>>,
+  address: string,
+  token: string,
+  value: ethers.BigNumber
+) => {
+  if (balanceChangesMap.has(address)) {
+    let currentEntry = balanceChangesMap.get(address);
+    currentEntry![token] = (currentEntry![token] || ZERO).add(value);
+    balanceChangesMap.set(address, currentEntry!);
+  } else {
+    balanceChangesMap.set(address, { [token]: value });
+  }
+};
+
 export const MAX_USD_VALUE = 500000;
 
 export const wrappedNativeTokens: Record<number, string> = {
@@ -82,11 +116,19 @@ export const wrappedNativeTokens: Record<number, string> = {
   43114: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
 };
 
-export const UNISWAP_ROUTER_ADDRESSES = [
-  "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b", // Uniswap Universal Router
+export const ROUTER_ADDRESSES = [
+  "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", // Uniswap Universal Router
+  "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b", // Uniswap Universal Router V2
   "0xe592427a0aece92de3edee1f18e0157c05861564", // Uniswap V3: Router
   "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45", // Uniswap V3: Router 2
   "0x7a250d5630b4cf539739df2c5dacb4c659f2488d", // Uniswap V2: Router 2
+  "0xec8b0f7ffe3ae75d7ffab09429e3675bb63503e4", // Uniswap Universal Router (OP)
+  "0x10ed43c718714eb63d5aa57b78b54704e256024e", // Pancakeswap Router (BSC)
+  "0x13f4ea83d0bd40e75c8222255bc855a974568dd4", // Pancakeswap Smart Router V3 (BSC)
+  "0x881d40237659c251811cec9c364ef91dc08d300c", // Metamask Swap Router (ETH)
+  "0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31", // Metamask Swap Router (BSC)
+  "0x3c11f6265ddec22f4d049dde480615735f451646", // Swapper (BSC)
+  "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30", // TraderJoe LB Router (AVAX)
 ];
 
 export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
@@ -192,6 +234,8 @@ export const LOAN_CREATED_ABI = [
   "event LoanCreated(uint indexed loanId, address nftContract, uint nft, uint interest, uint startTime, uint216 borrowed)",
 ];
 
+export const GNOSIS_PROXY_EVENT_ABI = ["event ExecutionSuccess(bytes32 txHash, uint256 payment)"];
+
 export interface LargeProfitAddress {
   address: string;
   confidence: number;
@@ -214,4 +258,5 @@ export const FUNCTION_ABIS = [
 
 export const EVENTS_ABIS = [
   "event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)",
+  "event WithdrawFromPosition(uint256 indexed tokenId, uint256 amount)",
 ];
