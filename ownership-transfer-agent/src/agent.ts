@@ -4,29 +4,35 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
-  Label,
-  EntityType,
-  getEthersProvider,
+  // Label,
+  // EntityType,
+  scanBase,
+  scanEthereum,
+  getChainId,
+  runHealthCheck,
   ethers,
   Initialize,
-} from "forta-agent";
+} from "forta-bot";
 
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import { ZETTABLOCK_API_KEY } from "./keys";
 
+// const BOT_ID = "0x50d84a3cd8ca2336ffc231b666f5c1df5ae94ad6b1674a3b2d7834c3015c2de8"; // beta botId
 const BOT_ID = "0x7704a975c97ed444c0329cade1f85af74566d30fb6a51550529b19153a0781cb";
 
 let chainId: string;
 let isRelevantChain: boolean;
 let txCount = 0;
 
-export const provideInitialize = (provider: ethers.providers.Provider): Initialize => {
+export const provideInitialize = (): Initialize => {
   return async () => {
     process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
-    chainId = (await provider.getNetwork()).chainId.toString();
+    const chainIdNum = getChainId()!
 
-    //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
-    isRelevantChain = [10, 250, 43114].includes(Number(chainId));
+    chainId = String(chainIdNum);
+
+    //  Optimism, Fantom, Base, & Avalanche not yet supported by bot-alert-rate package
+    isRelevantChain = [10, 250, 8354, 43114].includes(chainIdNum);
   };
 };
 
@@ -43,7 +49,7 @@ export const provideHandleTransaction = (): HandleTransaction => {
 
     await Promise.all(
       logs.map(async (log) => {
-        if (ethers.constants.AddressZero != log.args.previousOwner) {
+        if (ethers.ZeroAddress != log.args.previousOwner) {
           const anomalyScore = await calculateAlertRate(
             Number(chainId),
             BOT_ID,
@@ -73,35 +79,39 @@ export const provideHandleTransaction = (): HandleTransaction => {
                 ]),
               ],
               labels: [
-                Label.fromObject({
-                  entity: txEvent.transaction.hash,
-                  entityType: EntityType.Transaction,
-                  label: "Attack",
-                  confidence: 0.6,
-                  remove: false,
-                }),
-                Label.fromObject({
-                  entity: txEvent.from,
-                  entityType: EntityType.Address,
-                  label: "Attacker",
-                  confidence: 0.6,
-                  remove: false,
-                }),
-                Label.fromObject({
-                  entity: log.args.previousOwner,
-                  entityType: EntityType.Address,
-                  label: "Victim",
-                  confidence: 0.6,
-                  remove: false,
-                }),
-                Label.fromObject({
-                  entity: log.args.newOwner,
-                  entityType: EntityType.Address,
-                  label: "Attacker",
-                  confidence: 0.6,
-                  remove: false,
-                }),
+                // Label.fromObject({
+                //   entity: txEvent.transaction.hash,
+                //   entityType: EntityType.Transaction,
+                //   label: "Attack",
+                //   confidence: 0.6,
+                //   remove: false,
+                // }),
+                // Label.fromObject({
+                //   entity: txEvent.from,
+                //   entityType: EntityType.Address,
+                //   label: "Attacker",
+                //   confidence: 0.6,
+                //   remove: false,
+                // }),
+                // Label.fromObject({
+                //   entity: log.args.previousOwner,
+                //   entityType: EntityType.Address,
+                //   label: "Victim",
+                //   confidence: 0.6,
+                //   remove: false,
+                // }),
+                // Label.fromObject({
+                //   entity: log.args.newOwner,
+                //   entityType: EntityType.Address,
+                //   label: "Attacker",
+                //   confidence: 0.6,
+                //   remove: false,
+                // }),
               ],
+              source: {
+                chains: [{ chainId: txEvent.network }],
+                transactions: [{ chainId: txEvent.network, hash: txEvent.hash }],
+              },
             })
           );
         }
@@ -112,7 +122,27 @@ export const provideHandleTransaction = (): HandleTransaction => {
   };
 };
 
-export default {
-  initialize: provideInitialize(getEthersProvider()),
-  handleTransaction: provideHandleTransaction(),
-};
+async function main() {
+  const initialize = provideInitialize();
+  const handleTransaction = provideHandleTransaction();
+
+  await initialize();
+
+  scanBase({
+    rpcUrl: "https://base-mainnet.g.alchemy.com/v2",
+    rpcKeyId: "1d3097d9-6e44-4ca7-a61b-2209a85d262f",
+    localRpcUrl: "8453",
+    handleTransaction,
+  });
+
+  scanEthereum({
+    rpcUrl: "https://eth-mainnet.g.alchemy.com/v2",
+    rpcKeyId: "e698634d-79c2-44fe-adf8-f7dac20dd33c",
+    localRpcUrl: "1",
+    handleTransaction,
+  });
+
+  runHealthCheck();
+}
+
+main();
