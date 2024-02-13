@@ -4,11 +4,11 @@ import {
   TransactionEvent,
   FindingSeverity,
   FindingType,
-  // Label,
-  // EntityType,
+  Label,
+  EntityType,
   scanBase,
   scanEthereum,
-  getChainId,
+  getFortaChainId,
   runHealthCheck,
   ethers,
   Initialize,
@@ -27,7 +27,9 @@ let txCount = 0;
 export const provideInitialize = (): Initialize => {
   return async () => {
     process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
-    const chainIdNum = getChainId()!
+    const chainIdNum = getFortaChainId()!
+
+    console.log(`Inside 'provideInitialize' | chainId: ${chainIdNum}`);
 
     chainId = String(chainIdNum);
 
@@ -79,34 +81,34 @@ export const provideHandleTransaction = (): HandleTransaction => {
                 ]),
               ],
               labels: [
-                // Label.fromObject({
-                //   entity: txEvent.transaction.hash,
-                //   entityType: EntityType.Transaction,
-                //   label: "Attack",
-                //   confidence: 0.6,
-                //   remove: false,
-                // }),
-                // Label.fromObject({
-                //   entity: txEvent.from,
-                //   entityType: EntityType.Address,
-                //   label: "Attacker",
-                //   confidence: 0.6,
-                //   remove: false,
-                // }),
-                // Label.fromObject({
-                //   entity: log.args.previousOwner,
-                //   entityType: EntityType.Address,
-                //   label: "Victim",
-                //   confidence: 0.6,
-                //   remove: false,
-                // }),
-                // Label.fromObject({
-                //   entity: log.args.newOwner,
-                //   entityType: EntityType.Address,
-                //   label: "Attacker",
-                //   confidence: 0.6,
-                //   remove: false,
-                // }),
+                Label.fromObject({
+                  entity: txEvent.transaction.hash,
+                  entityType: EntityType.Transaction,
+                  label: "Attack",
+                  confidence: 0.6,
+                  remove: false,
+                }),
+                Label.fromObject({
+                  entity: txEvent.from,
+                  entityType: EntityType.Address,
+                  label: "Attacker",
+                  confidence: 0.6,
+                  remove: false,
+                }),
+                Label.fromObject({
+                  entity: log.args.previousOwner,
+                  entityType: EntityType.Address,
+                  label: "Victim",
+                  confidence: 0.6,
+                  remove: false,
+                }),
+                Label.fromObject({
+                  entity: log.args.newOwner,
+                  entityType: EntityType.Address,
+                  label: "Attacker",
+                  confidence: 0.6,
+                  remove: false,
+                }),
               ],
               source: {
                 chains: [{ chainId: txEvent.network }],

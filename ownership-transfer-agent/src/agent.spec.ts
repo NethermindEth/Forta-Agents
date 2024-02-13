@@ -1,45 +1,51 @@
-// import {
-//   Finding,
-//   HandleTransaction,
-//   TransactionEvent,
-//   FindingSeverity,
-//   FindingType,
-//   // Label,
-//   // EntityType,
-// } from "forta-bot";
+import {
+  Finding,
+  HandleTransaction,
+  TransactionEvent as TransactionEventV2,
+  FindingSeverity,
+  FindingType,
+  Label,
+  EntityType,
+  createTransactionEvent
+} from "forta-bot";
+import { TransactionEvent as TransactionEventV1 } from "forta-agent";
 
-// import { provideHandleTransaction } from "./agent";
+import { provideHandleTransaction } from "./agent";
 
-// import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-// import { createAddress } from "forta-agent-tools/lib";
+import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
+import { createAddress } from "forta-agent-tools/lib";
+import { txEventV1ToV2Converter } from "./txn.v1.to.v2.converter"
 
-// const OWNERSHIP_TRANSFERRED_ABI: string =
-//   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)";
+const OWNERSHIP_TRANSFERRED_ABI: string =
+  "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)";
 
-// const testContract = createAddress("0x1234");
+const testContract = createAddress("0x1234");
 
-// const mockCalculateAlertRate = jest.fn();
-// jest.mock("bot-alert-rate", () => ({
-//   ...jest.requireActual("bot-alert-rate"),
-//   __esModule: true,
-//   default: () => mockCalculateAlertRate(),
-// }));
+const mockCalculateAlertRate = jest.fn();
+jest.mock("bot-alert-rate", () => ({
+  ...jest.requireActual("bot-alert-rate"),
+  __esModule: true,
+  default: () => mockCalculateAlertRate(),
+}));
 
-// mockCalculateAlertRate.mockResolvedValue("0.1");
+mockCalculateAlertRate.mockResolvedValue("0.1");
 
-// describe("trasnferred ownership agent", () => {
-//   let handleTransaction: HandleTransaction;
+describe("trasnferred ownership agent", () => {
+  let handleTransaction: HandleTransaction;
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
 
-//   beforeAll(() => {
-//     handleTransaction = provideHandleTransaction();
-//   });
+  beforeAll(() => {
+    handleTransaction = provideHandleTransaction();
+  });
 
-//   describe("handleTransaction", () => {
-//     it("Returns empty findings if there is no event", async () => {
-//       const txEvent: TransactionEvent = new TestTransactionEvent();
-//       const findings = await handleTransaction(txEvent);
-//       expect(findings).toStrictEqual([]);
-//     });
+  describe("handleTransaction", () => {
+    it("Returns empty findings if there is no event", async () => {
+      const txEventV1: TransactionEventV1 = new TestTransactionEvent();
+      const txEventV2: TransactionEventV2 = txEventV1ToV2Converter(txEventV1);
+
+      const findings = await handleTransaction(txEventV2, mockProvider as any);
+      expect(findings).toStrictEqual([]);
+    });
 
 //     it("Returns empty findings if there is random event from a non zero address", async () => {
 //       const randomEvent = "event RandomEvent(address indexed previousOwner, address indexed newOwner)";
@@ -119,5 +125,5 @@
 //         }),
 //       ]);
 //     });
-//   });
-// });
+  });
+});

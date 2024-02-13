@@ -31,7 +31,7 @@
     "enable": "forta-bot enable",
     "keyfile": "forta-bot keyfile",
     "stake": "forta-bot stake",
-    "test": "jest"
+    "test": "jest --transformIgnorePatterns 'node_modules/(?!axios)/'"
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
@@ -41,9 +41,10 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-bot-cli": "file:forta-bot-cli-0.2.0.tgz",
+    "forta-agent": "^0.1.48",
     "forta-agent-tools": "^3.2.10",
-    "jest": "^27.0.6",
+    "forta-bot-cli": "file:forta-bot-cli-0.2.0.tgz",
+    "jest": "^27.5.1",
     "nodemon": "^2.0.8",
     "prettier": "^2.8.7",
     "ts-jest": "^27.0.3",
