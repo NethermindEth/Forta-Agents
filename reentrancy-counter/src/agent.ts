@@ -20,11 +20,13 @@ import {
   processReentrancyTraces,
 } from "./agent.utils";
 import { PersistenceHelper } from "./persistence.helper";
+import Fetcher, { ApiKeys, EOA_TRANSACTION_COUNT_THRESHOLD } from "./fetcher";
 
 const DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-key";
 const TOTAL_TXS_WITH_TRACES_KEY: string = "nm-reentrancy-counter-total-txs-with-traces-key";
 
-const DATABASE_URL = "https://research.forta.network/database/bot/";
+const BOT_DATABASE_URL = "https://research.forta.network/database/bot/";
+const OWNER_DATABASE_URL = "https://research.forta.network/database/owner/";
 
 let reentrantCallsPerSeverity: Counter = {
   Info: 0,
@@ -36,6 +38,7 @@ let reentrantCallsPerSeverity: Counter = {
 
 let totalTxsWithTraces: number = 0;
 let chainId: string;
+let fetcher: Fetcher;
 
 export const thresholds: [number, FindingSeverity][] = [
   [3, FindingSeverity.Info],
@@ -45,14 +48,24 @@ export const thresholds: [number, FindingSeverity][] = [
   [11, FindingSeverity.Critical],
 ];
 
+export async function createNewFetcher(
+  provider: ethers.providers.Provider,
+  persistenceHelper: PersistenceHelper
+): Promise<Fetcher> {
+  const apiKeys = (await persistenceHelper.getSecrets()) as ApiKeys;
+  return new Fetcher(provider, apiKeys);
+}
+
 const provideInitialize = (
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
+  fetcherCreator: (provider: ethers.providers.Provider, persistenceHelper: PersistenceHelper) => Promise<Fetcher>,
   detectReentrantCallsKey: string,
   totalTxsKey: string
 ): Initialize => {
   return async () => {
     chainId = (await provider.getNetwork()).chainId.toString();
+    fetcher = await fetcherCreator(provider, persistenceHelper);
 
     totalTxsWithTraces = (await persistenceHelper.load(totalTxsKey.concat("-", chainId))) as number;
     reentrantCallsPerSeverity = (await persistenceHelper.load(detectReentrantCallsKey.concat("-", chainId))) as Counter;
@@ -72,6 +85,10 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
   // Update the total number of transactions with traces counter
   if (txEvent.traces.length > 0) {
     totalTxsWithTraces += 1;
+  }
+
+  if (txEvent.transaction.nonce > EOA_TRANSACTION_COUNT_THRESHOLD) {
+    return findings;
   }
 
   // Add the addresses to the counters
@@ -150,26 +167,33 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 
   // Create findings if needed
   for (const addr in maxReentrancyNumber) {
-    const maxCount: number = maxReentrancyNumber[addr];
+    const maxCount = maxReentrancyNumber[addr];
     const [report, severity] = reentrancyLevel(maxCount, thresholds);
-    if (report) {
-      let anomalyScore = getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity);
-      anomalyScore = Math.min(1, anomalyScore);
-      const confidenceLevel = getConfidenceLevel(severity);
-      const reentrancyTracePaths = processReentrancyTraces(reentrancyTraceAddresses[addr]);
-      findings.push(
-        createFinding(
-          addr,
-          maxCount,
-          severity,
-          anomalyScore,
-          confidenceLevel,
-          reentrancyTracePaths,
-          txEvent.hash,
-          txEvent.from
-        )
-      );
+
+    if (!report) continue;
+
+    if (txEvent.to && (await fetcher.isHighTxCountContract(txEvent.to, txEvent.blockNumber, Number(chainId)))) {
+      console.log("High Tx Count Contract : ", txEvent.to);
+      console.log("Transaction : ", txEvent.hash);
+      return findings;
     }
+
+    const anomalyScore = Math.min(1, getAnomalyScore(reentrantCallsPerSeverity, totalTxsWithTraces, severity));
+    const confidenceLevel = getConfidenceLevel(severity);
+    const reentrancyTracePaths = processReentrancyTraces(reentrancyTraceAddresses[addr]);
+
+    findings.push(
+      createFinding(
+        addr,
+        maxCount,
+        severity,
+        anomalyScore,
+        confidenceLevel,
+        reentrancyTracePaths,
+        txEvent.hash,
+        txEvent.from
+      )
+    );
   }
   return findings;
 };
@@ -193,14 +217,15 @@ const provideHandleBlock = (
 export default {
   initialize: provideInitialize(
     getEthersProvider(),
-    new PersistenceHelper(DATABASE_URL),
+    new PersistenceHelper(BOT_DATABASE_URL, OWNER_DATABASE_URL),
+    createNewFetcher,
     DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY,
     TOTAL_TXS_WITH_TRACES_KEY
   ),
   provideInitialize,
   handleTransaction,
   handleBlock: provideHandleBlock(
-    new PersistenceHelper(DATABASE_URL),
+    new PersistenceHelper(BOT_DATABASE_URL, OWNER_DATABASE_URL),
     DETECT_REENTRANT_CALLS_PER_THRESHOLD_KEY,
     TOTAL_TXS_WITH_TRACES_KEY
   ),

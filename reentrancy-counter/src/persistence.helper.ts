@@ -5,12 +5,16 @@ import fetch from "node-fetch";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { Counter } from "./agent.utils";
 
+const hasLocalNode = process.env.hasOwnProperty("LOCAL_NODE");
+
 export class PersistenceHelper {
-  databaseUrl: string;
+  botDatabaseUrl: string;
+  ownerDatabaseUrl: string;
   fetch: any;
 
-  constructor(dbUrl: string) {
-    this.databaseUrl = dbUrl;
+  constructor(botDbUrl: string, ownerDbUrl: string) {
+    this.botDatabaseUrl = botDbUrl;
+    this.ownerDatabaseUrl = ownerDbUrl;
   }
 
   async persist(value: number | Counter, key: string) {
@@ -19,7 +23,7 @@ export class PersistenceHelper {
       const token = await fetchJwt({});
       const headers = { Authorization: `Bearer ${token}` };
       try {
-        const response = await fetch(`${this.databaseUrl}${key}`, {
+        const response = await fetch(`${this.botDatabaseUrl}${key}`, {
           method: "POST",
           headers: headers,
           body: JSON.stringify(value),
@@ -44,7 +48,7 @@ export class PersistenceHelper {
       const token = await fetchJwt({});
       const headers = { Authorization: `Bearer ${token}` };
       try {
-        const response = await fetch(`${this.databaseUrl}${key}`, { headers });
+        const response = await fetch(`${this.botDatabaseUrl}${key}`, { headers });
 
         if (response.ok) {
           let data: number | Counter;
@@ -95,4 +99,33 @@ export class PersistenceHelper {
       }
     }
   }
+
+  getToken = async () => {
+    const tk = await fetchJwt({});
+    return { Authorization: `Bearer ${tk}` };
+  };
+
+  loadJson = async (key: string): Promise<object> => {
+    if (hasLocalNode) {
+      const data = readFileSync("secrets.json", "utf8");
+      return JSON.parse(data);
+    } else {
+      try {
+        const response = await fetch(`${this.ownerDatabaseUrl}${key}`, {
+          headers: await this.getToken(),
+        });
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error(`Error loading JSON from owner db: ${response.status}, ${response.statusText}`);
+        }
+      } catch (error) {
+        throw new Error(`Error loading JSON from owner db: ${error}`);
+      }
+    }
+  };
+
+  getSecrets = async (): Promise<object> => {
+    return await this.loadJson("secrets.json");
+  };
 }

@@ -5,6 +5,7 @@ import fetch, { Response } from "node-fetch";
 jest.mock("node-fetch");
 
 const mockDbUrl = "databaseurl.com/";
+const mockOwnerDbUrl = "ownerDatabaseurl.com/";
 const mockJwt = "MOCK_JWT";
 const mockKey = "mock-test-key";
 
@@ -26,10 +27,10 @@ const removePersistentState = () => {
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = jest.mocked(fetch);
 
   beforeAll(() => {
-    persistenceHelper = new PersistenceHelper(mockDbUrl);
+    persistenceHelper = new PersistenceHelper(mockDbUrl, mockOwnerDbUrl);
   });
 
   beforeEach(() => {

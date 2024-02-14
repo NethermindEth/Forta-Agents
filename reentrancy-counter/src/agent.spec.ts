@@ -20,15 +20,22 @@ const mockReentrantCalls: Counter = {
 };
 const mockTotalTxsWithTraces = 645;
 
-describe("Reentrancy counter agent tests suit", () => {
+describe("Reentrancy counter bot tests suite", () => {
   let initialize;
   const mockProvider = new MockEthersProvider();
+  const mockFetcher = {
+    isHighTxCountContract: jest.fn(),
+  };
+  async function mockDataFetcherCreator() {
+    return mockFetcher as any;
+  }
   const handleTransaction: HandleTransaction = agent.handleTransaction;
 
   beforeEach(async () => {
     initialize = agent.provideInitialize(
       mockProvider as any,
       mockPersistenceHelper as any,
+      mockDataFetcherCreator,
       mockReentrantCallsKey,
       mockTotalTxsWithTracesKey
     );
@@ -315,11 +322,25 @@ describe("Block handler test suite", () => {
   let initialize;
   let handleBlock: HandleBlock;
   const mockProvider = new MockEthersProvider();
+  const mockFetcher = {
+    getValueInUsd: jest.fn(),
+    getTotalSupply: jest.fn(),
+    getCLandAS: jest.fn(),
+    getContractCreationInfo: jest.fn(),
+    getContractInfo: jest.fn(),
+    isContractVerified: jest.fn(),
+    isContractCreatedByInitiator: jest.fn(),
+    hasHighNumberOfHolders: jest.fn(),
+  };
+  async function mockDataFetcherCreator() {
+    return mockFetcher as any;
+  }
 
   beforeEach(async () => {
     initialize = agent.provideInitialize(
       mockProvider as any,
       mockPersistenceHelper as any,
+      mockDataFetcherCreator,
       mockReentrantCallsKey,
       mockTotalTxsWithTracesKey
     );
