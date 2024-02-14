@@ -29,8 +29,6 @@ export const provideInitialize = (): Initialize => {
     process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
     const chainIdNum = getFortaChainId()!
 
-    console.log(`Inside 'provideInitialize' | chainId: ${chainIdNum}`);
-
     chainId = String(chainIdNum);
 
     //  Optimism, Fantom, Base, & Avalanche not yet supported by bot-alert-rate package
@@ -43,6 +41,7 @@ export const OWNERSHIP_TRANSFERRED_ABI: string =
 
 export const provideHandleTransaction = (): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
+
     const findings: Finding[] = [];
 
     const logs = txEvent.filterLog(OWNERSHIP_TRANSFERRED_ABI);
@@ -146,5 +145,9 @@ async function main() {
 
   runHealthCheck();
 }
+
+// if (require.main === module) {
+//   main();
+// }
 
 main();
