@@ -146,8 +146,6 @@ async function main() {
   runHealthCheck();
 }
 
-// if (require.main === module) {
-//   main();
-// }
-
-main();
+if (require.main === module) {
+  main();
+}
