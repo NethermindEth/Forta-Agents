@@ -1,21 +1,15 @@
 import { Finding, HandleBlock, HandleTransaction } from "forta-agent";
-import {
-  TestTransactionEvent,
-  TestBlockEvent,
-  MockEthersProvider,
-} from "forta-agent-tools/lib/test";
+import { TestTransactionEvent, TestBlockEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import agent, { thresholds } from "./agent";
-import { Counter, createFinding, reentrancyLevel } from "./agent.utils";
+import { Counter, createFinding, reentrancyLevel, processReentrancyTraces } from "./agent.utils";
 
 const mockPersistenceHelper = {
   persist: jest.fn(),
   load: jest.fn(),
 };
 
-const mockReentrantCallsKey: string =
-  "nm-reentrancy-counter-reentranct-calls-per-threshold-mock-key";
-const mockTotalTxsWithTracesKey: string =
-  "nm-reentrancy-counter-total-txs-with-traces-mock-key";
+const mockReentrantCallsKey: string = "nm-reentrancy-counter-reentranct-calls-per-threshold-mock-key";
+const mockTotalTxsWithTracesKey: string = "nm-reentrancy-counter-total-txs-with-traces-mock-key";
 
 const mockReentrantCalls: Counter = {
   Info: 21,
@@ -26,22 +20,27 @@ const mockReentrantCalls: Counter = {
 };
 const mockTotalTxsWithTraces = 645;
 
-describe("Reentrancy counter agent tests suit", () => {
+describe("Reentrancy counter bot tests suite", () => {
   let initialize;
   const mockProvider = new MockEthersProvider();
+  const mockFetcher = {
+    isHighTxCountContract: jest.fn(),
+  };
+  async function mockDataFetcherCreator() {
+    return mockFetcher as any;
+  }
   const handleTransaction: HandleTransaction = agent.handleTransaction;
 
   beforeEach(async () => {
     initialize = agent.provideInitialize(
       mockProvider as any,
       mockPersistenceHelper as any,
+      mockDataFetcherCreator,
       mockReentrantCallsKey,
       mockTotalTxsWithTracesKey
     );
     mockProvider.setNetwork(1);
-    mockPersistenceHelper.load
-      .mockReturnValueOnce(mockTotalTxsWithTraces)
-      .mockReturnValueOnce(mockReentrantCalls);
+    mockPersistenceHelper.load.mockReturnValueOnce(mockTotalTxsWithTraces).mockReturnValueOnce(mockReentrantCalls);
     await initialize();
   });
 
@@ -82,7 +81,173 @@ describe("Reentrancy counter agent tests suit", () => {
     expect(findings).toStrictEqual([]);
   });
 
+  it("Should ignore multiple calls from same address with different first level calls", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent().addTraces(
+      { to: "0x0", traceAddress: [] },
+      { to: "0x1", traceAddress: [0] },
+      { to: "0x1", traceAddress: [1] },
+      { to: "0x2", traceAddress: [2] },
+      { to: "0x1", traceAddress: [2, 0] }
+    );
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("Should ignore psuedo-reentries that don't stem from the same root call path", async () => {
+    const tx: TestTransactionEvent = new TestTransactionEvent().addTraces(
+      { to: "0x0", traceAddress: [] },
+      { to: "0x1", traceAddress: [0] },
+      { to: "0x2", traceAddress: [0, 0] },
+      { to: "0x2", traceAddress: [1] },
+      { to: "0x1", traceAddress: [1, 0] },
+      { to: "0x1", traceAddress: [1, 0, 0] },
+      { to: "0x1", traceAddress: [1, 1] },
+      { to: "0x2", traceAddress: [1, 1, 0] },
+      { to: "0x1", traceAddress: [1, 1, 0, 0] }
+    );
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual([]);
+  });
+
+  it("Should return correct findings for nested call path splits", async () => {
+    const traceAddresses = [
+      [1, 0],
+      [1, 0, 0, 0, 1],
+      [1, 0, 1, 0, 2],
+    ];
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x0", traceAddress: [] },
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x2", traceAddress: [0, 0] },
+        { to: "0x2", traceAddress: [1] },
+        { to: "0x1", traceAddress: [1, 0] },
+        { to: "0x3", traceAddress: [1, 0, 0] },
+        { to: "0x3", traceAddress: [1, 0, 0, 0] },
+        { to: "0x3", traceAddress: [1, 0, 0, 0, 0] },
+        { to: "0x1", traceAddress: [1, 0, 0, 0, 1] },
+        { to: "0x4", traceAddress: [1, 0, 1] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0, 0] },
+        { to: "0x4", traceAddress: [1, 0, 1, 0, 1] },
+        { to: "0x1", traceAddress: [1, 0, 1, 0, 2] },
+        { to: "0x2", traceAddress: [1, 1] }
+      );
+    const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
+    const expected: Finding[] = [];
+    if (report0x1) {
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      expected.push(
+        createFinding(
+          "0x1",
+          3,
+          severity0x1,
+          mockAnomalyScore,
+          0.3,
+          processReentrancyTraces(traceAddresses),
+          "0x2222",
+          "0x9876"
+        )
+      );
+    }
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual(expected);
+    expect(findings.length).toEqual(expected.length);
+  });
+
+  it("Should return correct findings for paths with same reentrancy count but different max trace path lengths", async () => {
+    const traceAddresses = [[1], [1, 1], [1, 1, 0, 0, 1], [1, 1, 0, 0, 2]];
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x0", traceAddress: [] },
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x1", traceAddress: [0, 0] },
+        { to: "0x1", traceAddress: [0, 0, 1] },
+        { to: "0x1", traceAddress: [0, 0, 1, 0] },
+        { to: "0x1", traceAddress: [0, 0, 1, 1] },
+        { to: "0x1", traceAddress: [1] },
+        { to: "0x1", traceAddress: [1, 1] },
+        { to: "0x2", traceAddress: [1, 1, 0] },
+        { to: "0x2", traceAddress: [1, 1, 0, 0] },
+        { to: "0x1", traceAddress: [1, 1, 0, 0, 1] },
+        { to: "0x1", traceAddress: [1, 1, 0, 0, 2] }
+      );
+    const [report0x1, severity0x1] = reentrancyLevel(3, thresholds);
+    const expected: Finding[] = [];
+    if (report0x1) {
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      expected.push(
+        createFinding(
+          "0x1",
+          3,
+          severity0x1,
+          mockAnomalyScore,
+          0.3,
+          processReentrancyTraces(traceAddresses),
+          "0x2222",
+          "0x9876"
+        )
+      );
+    }
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual(expected);
+    expect(findings.length).toEqual(expected.length);
+  });
+
+  it("Should detect reentrancy with address called from top level", async () => {
+    const traceAddresses = [[], [0, 0, 0], [0, 0, 1]];
+    // 0x0 called 3 times
+    const tx: TestTransactionEvent = new TestTransactionEvent()
+      .setHash("0x2222")
+      .setFrom("0x9876")
+      .addTraces(
+        { to: "0x0", traceAddress: [] },
+        { to: "0x1", traceAddress: [0] },
+        { to: "0x1", traceAddress: [0, 0] },
+        { to: "0x0", traceAddress: [0, 0, 0] },
+        { to: "0x0", traceAddress: [0, 0, 1] }
+      );
+    const [report0x0, severity0x0] = reentrancyLevel(3, thresholds);
+    const expected: Finding[] = [];
+    if (report0x0) {
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      expected.push(
+        createFinding(
+          "0x0",
+          3,
+          severity0x0,
+          mockAnomalyScore,
+          0.3,
+          processReentrancyTraces(traceAddresses),
+          "0x2222",
+          "0x9876"
+        )
+      );
+    }
+    const findings: Finding[] = await handleTransaction(tx);
+    expect(findings).toStrictEqual(expected);
+    expect(findings.length).toEqual(expected.length);
+  });
+
   it("Should detect different thresholds of reentrancy", async () => {
+    const traceAddresses = {
+      "0x2": [
+        [0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+      ],
+      "0x4": [
+        [0, 1],
+        [0, 1, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      ],
+    };
     // 0x0, 0x1, 0x3, 0x5, 0x6 called less than 3 times
     // 0x2 called 3 times
     // 0x4 called 5 times
@@ -94,9 +259,12 @@ describe("Reentrancy counter agent tests suit", () => {
         { to: "0x1", traceAddress: [0] },
         { to: "0x2", traceAddress: [0, 0] },
         { to: "0x3", traceAddress: [0, 0, 0] },
-        { to: "0x2", traceAddress: [0, 0, 0, 0] },
-        { to: "0x3", traceAddress: [0, 0, 0, 0, 0] },
+        { to: "0x3", traceAddress: [0, 0, 0, 0] },
+        { to: "0x2", traceAddress: [0, 0, 0, 0, 0] },
         { to: "0x2", traceAddress: [0, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 0, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 0, 0, 0, 0, 0, 0, 0] },
+        { to: "0x4", traceAddress: [0, 0, 0, 0, 0, 0, 0, 0, 0] },
         { to: "0x4", traceAddress: [0, 1] },
         { to: "0x5", traceAddress: [0, 1, 0] },
         { to: "0x6", traceAddress: [0, 1, 0, 0] },
@@ -112,13 +280,9 @@ describe("Reentrancy counter agent tests suit", () => {
     const [report0x2, severity0x2] = reentrancyLevel(3, thresholds);
     const [report0x4, severity0x4] = reentrancyLevel(5, thresholds);
     const expected: Finding[] = [];
-    if (report0x1)
-      expected.push(
-        createFinding("0x1", 1, severity0x1, 0.0, 0, "0x2222", "0x9876")
-      ); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
+    if (report0x1) expected.push(createFinding("0x1", 1, severity0x1, 0.0, 0, {}, "0x2222", "0x9876")); //Anomaly Score is 0.0, because Severity needs not to be "Unknown", in order for the "report" to be true and anomaly score to be calculated
     if (report0x2) {
-      const mockAnomalyScore =
-        (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
+      const mockAnomalyScore = (mockReentrantCalls.Info + 1) / (mockTotalTxsWithTraces + 1);
       expected.push(
         createFinding(
           "0x2",
@@ -126,14 +290,14 @@ describe("Reentrancy counter agent tests suit", () => {
           severity0x2,
           mockAnomalyScore,
           0.3,
+          processReentrancyTraces(traceAddresses["0x2"]),
           "0x2222",
           "0x9876"
         )
       );
     }
     if (report0x4) {
-      const mockAnomalyScore =
-        (mockReentrantCalls.Low + 1) / (mockTotalTxsWithTraces + 1);
+      const mockAnomalyScore = (mockReentrantCalls.Low + 1) / (mockTotalTxsWithTraces + 1);
       expected.push(
         createFinding(
           "0x4",
@@ -141,6 +305,7 @@ describe("Reentrancy counter agent tests suit", () => {
           severity0x4,
           mockAnomalyScore,
           0.4,
+          processReentrancyTraces(traceAddresses["0x4"]),
           "0x2222",
           "0x9876"
         )
@@ -157,18 +322,30 @@ describe("Block handler test suite", () => {
   let initialize;
   let handleBlock: HandleBlock;
   const mockProvider = new MockEthersProvider();
+  const mockFetcher = {
+    getValueInUsd: jest.fn(),
+    getTotalSupply: jest.fn(),
+    getCLandAS: jest.fn(),
+    getContractCreationInfo: jest.fn(),
+    getContractInfo: jest.fn(),
+    isContractVerified: jest.fn(),
+    isContractCreatedByInitiator: jest.fn(),
+    hasHighNumberOfHolders: jest.fn(),
+  };
+  async function mockDataFetcherCreator() {
+    return mockFetcher as any;
+  }
 
   beforeEach(async () => {
     initialize = agent.provideInitialize(
       mockProvider as any,
       mockPersistenceHelper as any,
+      mockDataFetcherCreator,
       mockReentrantCallsKey,
       mockTotalTxsWithTracesKey
     );
     mockProvider.setNetwork(1);
-    mockPersistenceHelper.load
-      .mockReturnValueOnce(mockTotalTxsWithTraces)
-      .mockReturnValueOnce(mockReentrantCalls);
+    mockPersistenceHelper.load.mockReturnValueOnce(mockTotalTxsWithTraces).mockReturnValueOnce(mockReentrantCalls);
     await initialize();
     handleBlock = agent.provideHandleBlock(
       mockPersistenceHelper as any,

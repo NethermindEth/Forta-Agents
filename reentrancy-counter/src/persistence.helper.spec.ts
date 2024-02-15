@@ -5,6 +5,7 @@ import fetch, { Response } from "node-fetch";
 jest.mock("node-fetch");
 
 const mockDbUrl = "databaseurl.com/";
+const mockOwnerDbUrl = "ownerDatabaseurl.com/";
 const mockJwt = "MOCK_JWT";
 const mockKey = "mock-test-key";
 
@@ -26,10 +27,10 @@ const removePersistentState = () => {
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = jest.mocked(fetch);
 
   beforeAll(() => {
-    persistenceHelper = new PersistenceHelper(mockDbUrl);
+    persistenceHelper = new PersistenceHelper(mockDbUrl, mockOwnerDbUrl);
   });
 
   beforeEach(() => {
@@ -94,9 +95,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(spy).toHaveBeenCalledWith(
-      "successfully persisted [object Object] to database"
-    );
+    expect(spy).toHaveBeenCalledWith("successfully persisted [object Object] to database");
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
@@ -157,9 +156,7 @@ describe("Persistence Helper test suite", () => {
     const spy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     await persistenceHelper.persist(mockValue, mockKey);
-    expect(spy).not.toHaveBeenCalledWith(
-      "successfully persisted 202 to database"
-    );
+    expect(spy).not.toHaveBeenCalledWith("successfully persisted 202 to database");
 
     expect(mockFetchJwt).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
