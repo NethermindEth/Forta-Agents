@@ -12,7 +12,6 @@ import {
   ERC20_TRANSFER_EVENT,
   LOAN_CREATED_ABI,
   LargeProfitAddress,
-  ROUTER_ADDRESSES,
   WRAPPED_NATIVE_TOKEN_EVENTS,
   ZERO,
   createFinding,
@@ -23,6 +22,8 @@ import {
   filterAddressesInTracesUnsupportedChains,
   GNOSIS_PROXY_EVENT_ABI,
   updateBalanceChangesMap,
+  FILTERED_OUT_ADDRESSES,
+  isBatchTransfer,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -70,6 +71,8 @@ export const provideHandleTransaction =
     // return if it's a single transfer or a single swap
     if (erc20TransferEvents.length < 3) return findings;
 
+    if (isBatchTransfer(erc20TransferEvents)) return findings;
+
     // Filter out FPs
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     const gnosisProxyEvents = txEvent.filterLog(GNOSIS_PROXY_EVENT_ABI);
@@ -85,7 +88,7 @@ export const provideHandleTransaction =
       ) {
         return findings;
       }
-      if (ROUTER_ADDRESSES.includes(txEvent.to.toLowerCase())) {
+      if (FILTERED_OUT_ADDRESSES.includes(txEvent.to.toLowerCase())) {
         return findings;
       }
       let isToAnEOA: boolean = false;
