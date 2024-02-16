@@ -1,4 +1,13 @@
-import { EntityType, Finding, FindingSeverity, FindingType, Label, TransactionEvent, ethers } from "forta-agent";
+import {
+  EntityType,
+  Finding,
+  FindingSeverity,
+  FindingType,
+  Label,
+  LogDescription,
+  TransactionEvent,
+  ethers,
+} from "forta-agent";
 
 export const createFinding = (
   addresses: { address: string; confidence: number; anomalyScore: number; isProfitInUsd: boolean; profit: number }[],
@@ -106,6 +115,21 @@ export const updateBalanceChangesMap = (
   }
 };
 
+export const isBatchTransfer = (erc20TransferEvents: LogDescription[]) => {
+  if (erc20TransferEvents.length <= 50) {
+    return false;
+  }
+
+  const firstAddress = erc20TransferEvents[0].address;
+  for (let i = 1; i < erc20TransferEvents.length; i++) {
+    if (erc20TransferEvents[i].address !== firstAddress) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const MAX_USD_VALUE = 500000;
 
 export const wrappedNativeTokens: Record<number, string> = {
@@ -116,7 +140,9 @@ export const wrappedNativeTokens: Record<number, string> = {
   43114: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
 };
 
-export const ROUTER_ADDRESSES = [
+export const FILTERED_OUT_ADDRESSES = [
+  "0x00000000000000adc04c56bf30ac9d3c0aaf14dc", // Seaport 1.5,
+  "0xdef1c0ded9bec7f1a1670819833240f027b25eff", // 0x Exchange Proxy
   "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", // Uniswap Universal Router
   "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b", // Uniswap Universal Router V2
   "0xe592427a0aece92de3edee1f18e0157c05861564", // Uniswap V3: Router
@@ -129,6 +155,7 @@ export const ROUTER_ADDRESSES = [
   "0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31", // Metamask Swap Router (BSC)
   "0x3c11f6265ddec22f4d049dde480615735f451646", // Swapper (BSC)
   "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30", // TraderJoe LB Router (AVAX)
+  "0x1111111254eeb25477b68fb85ed929f73a960582", // 1inch Router
 ];
 
 export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
