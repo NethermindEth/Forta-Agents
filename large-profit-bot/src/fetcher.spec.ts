@@ -112,7 +112,7 @@ describe("TokenInfoFetcher tests suite", () => {
   it("should fetch the value in USD correctly", async () => {
     const chainId = 1;
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ ethereum: { usd: 1.2 } })));
 
     const fetchedNativeValue = await fetcher.getValueInUsd(TEST_BLOCK, chainId, "2000000000000000000", "native");
@@ -133,7 +133,7 @@ describe("TokenInfoFetcher tests suite", () => {
   it("should fetch the verification status of a contract correctly", async () => {
     const chainId = 1;
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ message: "OK", status: "1" })));
 
     const isVerified = await fetcher.isContractVerified(PROTOCOL_ADDRESS, chainId);
@@ -149,7 +149,7 @@ describe("TokenInfoFetcher tests suite", () => {
     const chainId = 1;
     const mockTxFrom = createAddress("0x1238");
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(
       new Response(
         JSON.stringify({
@@ -177,7 +177,7 @@ describe("TokenInfoFetcher tests suite", () => {
     const chainId = 1;
     const mockContractCreator = createAddress("0x1237");
     const mockContractCreationTxHash = "0x1234";
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
 
     mockFetch.mockResolvedValueOnce(
       new Response(
@@ -203,7 +203,7 @@ describe("TokenInfoFetcher tests suite", () => {
     const mockContractCreator = createAddress("0x221237");
     const mockContractCreationTxHash = "0x221234";
     const mockContractAddress = createAddress("0x221235");
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
 
     mockFetch.mockResolvedValueOnce(
       new Response(
