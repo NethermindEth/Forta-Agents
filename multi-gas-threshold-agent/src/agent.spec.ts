@@ -49,7 +49,7 @@ jest.mock("forta-agent", () => {
 describe("multi gas threshold agent", () => {
   let mockPersistenceHelper: PersistenceHelper;
   let mockProvider: MockEthersProvider;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = jest.mocked(fetch);
   let initialize: Initialize;
   let handleTransaction: HandleTransaction;
   let handleBlock: HandleBlock;
@@ -89,7 +89,7 @@ describe("multi gas threshold agent", () => {
 
     await initialize();
 
-    handleTransaction = provideHandleTransaction(mockGetTransactionReceipt);
+    handleTransaction = provideHandleTransaction(mockGetTransactionReceipt, mockProvider as any);
     handleBlock = provideHandleBlock(
       mockPersistenceHelper,
       mockMedGasKey,
