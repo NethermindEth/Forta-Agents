@@ -88,7 +88,8 @@ export function provideInitialize(
 }
 
 export function provideHandleTransaction(
-  getTransactionReceipt: (txHash: string) => Promise<Receipt>
+  getTransactionReceipt: (txHash: string) => Promise<Receipt>,
+  provider: ethers.providers.JsonRpcProvider
 ): HandleTransaction {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     let findings: Finding[] = [];
@@ -113,10 +114,23 @@ export function provideHandleTransaction(
 
     while (retryCount <= maxRetries) {
       try {
-        const receipt = await getTransactionReceipt(txEvent.hash);
-        gasUsed = ethers.BigNumber.from(receipt.gasUsed);
-        txStatus = receipt.status;
-        break; // if we reach this point, the operation was successful and we can exit the loop
+        if (![10, 42161].includes(Number(CHAIN_ID))) {
+          const receipt = await getTransactionReceipt(txEvent.hash);
+          gasUsed = ethers.BigNumber.from(receipt.gasUsed);
+          txStatus = receipt.status;
+          break;
+        } else {
+          const receipt = await provider.send("eth_getTransactionReceipt", [txEvent.hash]);
+          if (Number(CHAIN_ID) === 42161) {
+            if (!receipt.gasUsedForL1) return findings;
+            gasUsed = ethers.BigNumber.from(receipt.gasUsed).sub(ethers.BigNumber.from(receipt.gasUsedForL1));
+          } else if (Number(CHAIN_ID) === 10) {
+            if (!receipt.l1GasUsed) return findings;
+            gasUsed = ethers.BigNumber.from(receipt.gasUsed).sub(ethers.BigNumber.from(receipt.l1GasUsed));
+          }
+          txStatus = !ethers.BigNumber.from(receipt.status).isZero();
+          break;
+        }
       } catch {
         console.log(`Attempt ${retryCount + 1} to fetch transaction receipt failed`);
         if (retryCount === maxRetries) {
@@ -262,7 +276,7 @@ export default {
     INFO_GAS_KEY,
     ALL_GAS_KEY
   ),
-  handleTransaction: provideHandleTransaction(getTransactionReceipt),
+  handleTransaction: provideHandleTransaction(getTransactionReceipt, getEthersProvider()),
   handleBlock: provideHandleBlock(
     new PersistenceHelper(DATABASE_URL),
     MEDIUM_GAS_KEY,
