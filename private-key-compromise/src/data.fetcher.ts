@@ -2,7 +2,7 @@ import { ethers } from "forta-agent";
 import { providers, Contract } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import LRU from "lru-cache";
-import { TOKEN_ABI } from "./utils";
+import { TOKEN_ABI, MKR_TOKEN_ABI } from "./utils";
 
 export default class DataFetcher {
   readonly provider: providers.Provider;
@@ -16,7 +16,7 @@ export default class DataFetcher {
     this.eoaCache = new LRU<string, boolean>({ max: 10000 });
     this.symbolCache = new LRU<string, string>({ max: 10000 });
     this.tokenContractString = new Contract("", new Interface([TOKEN_ABI[1]]), this.provider);
-    this.tokenContractBytes32 = new Contract("", new Interface([TOKEN_ABI[2]]), this.provider);
+    this.tokenContractBytes32 = new Contract("", new Interface([MKR_TOKEN_ABI]), this.provider);
   }
 
   isEoa = async (address: string) => {
@@ -54,15 +54,20 @@ export default class DataFetcher {
         })
       ).toLowerCase();
     } catch (error) {
-      const token = this.tokenContractBytes32.attach(tokenAddress);
+      try {
+        const token = this.tokenContractBytes32.attach(tokenAddress);
 
-      symbol = ethers.utils
-        .parseBytes32String(
-          await token.symbol({
-            blockTag: block,
-          })
-        )
-        .toLowerCase();
+        symbol = ethers.utils
+          .parseBytes32String(
+            await token.symbol({
+              blockTag: block,
+            })
+          )
+          .toLowerCase();
+      } catch (error) {
+        // If the second attempt also fails, return an empty string
+        return "";
+      }
     }
 
     this.symbolCache.set(tokenAddress, symbol);

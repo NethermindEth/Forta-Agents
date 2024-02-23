@@ -234,7 +234,7 @@ describe("Detect Private Key Compromise", () => {
     getValueInUsd: jest.fn(),
   };
   let mockProvider: MockEthersProviderExtension;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = jest.mocked(fetch);
   let initialize: Initialize;
   let handleTransaction: HandleTransaction;
   let networkManager: NetworkManager<NetworkData>;
@@ -253,6 +253,10 @@ describe("Detect Private Key Compromise", () => {
     getSymbol: jest.fn(),
   };
 
+  async function mockContractFetcherCreator() {
+    return mockContractFetcher as any;
+  }
+
   beforeAll(() => {
     mockProvider = new MockEthersProviderExtension();
     networkManager = new NetworkManager(DEFAULT_CONFIG, Network.MAINNET);
@@ -266,7 +270,8 @@ describe("Detect Private Key Compromise", () => {
       mockProvider as any,
       mockPersistenceHelper as any,
       mockDBKeys,
-      mockMarketCapFetcher as any
+      mockMarketCapFetcher as any,
+      mockContractFetcherCreator
     );
     const mockEnv = {};
     Object.assign(process.env, mockEnv);
@@ -296,7 +301,6 @@ describe("Detect Private Key Compromise", () => {
       mockProvider as any,
       networkManager,
       mockBalanceFetcher,
-      mockContractFetcher as any,
       mockDataFetcher as any,
       mockMarketCapFetcher as any,
       mockPriceFetcher as any,

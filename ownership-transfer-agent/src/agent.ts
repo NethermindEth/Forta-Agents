@@ -10,19 +10,21 @@ import {
   ethers,
   Initialize,
 } from "forta-agent";
-
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
-import { ZETTABLOCK_API_KEY } from "./keys";
+
+import { getSecrets } from "./storage";
 
 const BOT_ID = "0x7704a975c97ed444c0329cade1f85af74566d30fb6a51550529b19153a0781cb";
 
 let chainId: string;
+let apiKeys: any;
 let isRelevantChain: boolean;
 let txCount = 0;
 
 export const provideInitialize = (provider: ethers.providers.Provider): Initialize => {
   return async () => {
-    process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
+    apiKeys = await getSecrets();
+    process.env["ZETTABLOCK_API_KEY"] = apiKeys.generalApiKeys.ZETTABLOCK[0];
     chainId = (await provider.getNetwork()).chainId.toString();
 
     //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package

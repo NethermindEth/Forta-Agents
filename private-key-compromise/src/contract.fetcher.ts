@@ -1,28 +1,19 @@
 import { providers, ethers } from "ethers";
 import LRU from "lru-cache";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./bot.config";
-
-interface apiKeys {
-  etherscanApiKeys: string[];
-  optimisticEtherscanApiKeys: string[];
-  bscscanApiKeys: string[];
-  polygonscanApiKeys: string[];
-  fantomscanApiKeys: string[];
-  arbiscanApiKeys: string[];
-  snowtraceApiKeys: string[];
-}
+import { BlockExplorerApiKeys } from "./storage";
 
 const getApiKey = (keys: string[]) => {
   return keys.length > 0 ? keys[Math.floor(Math.random() * keys.length)] : "YourApiKeyToken";
 };
 
 export default class Fetcher {
-  provider: providers.JsonRpcProvider;
+  provider: providers.Provider;
   fetch: any;
-  private apiKeys: apiKeys;
+  private apiKeys: BlockExplorerApiKeys;
   private cache: LRU<string, boolean>;
 
-  constructor(provider: ethers.providers.JsonRpcProvider, fetch: any, apiKeys: apiKeys) {
+  constructor(provider: ethers.providers.Provider, fetch: any, apiKeys: BlockExplorerApiKeys) {
     this.apiKeys = apiKeys;
     this.provider = provider;
     this.fetch = fetch;

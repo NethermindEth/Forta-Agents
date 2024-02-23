@@ -1,4 +1,4 @@
-import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import { Block, Finding, Initialize, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import {
   NetworkData,
   Transfer,
@@ -20,8 +20,8 @@ import MarketCapFetcher from "./marketcap.fetcher";
 import PriceFetcher from "./price.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
 import CONFIG, { priceThreshold } from "./bot.config";
-import { keys } from "./keys";
-import { ZETTABLOCK_API_KEY } from "./keys";
+import { getSecrets, ApiKeys, BlockExplorerApiKeys } from "./storage";
+
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
@@ -34,6 +34,8 @@ const DATABASE_OBJECT_KEYS = {
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
 let chainId: string;
+let apiKeys: ApiKeys;
+let contractFetcher: ContractFetcher;
 let transferObj: Transfer = {};
 let alertedAddresses: AlertedAddress[] = [];
 let queuedAddresses: QueuedAddress[] = [];
@@ -50,16 +52,30 @@ let st = 0;
 let lastPersistenceTime = 0;
 let isPersistenceTime = false;
 
+export async function createNewContractFetcher(
+  provider: ethers.providers.Provider,
+  blockExplorerApiKeys: BlockExplorerApiKeys
+): Promise<ContractFetcher> {
+  return new ContractFetcher(provider, fetch, blockExplorerApiKeys);
+}
+
 export const provideInitialize = (
   networkManager: NetworkManager<NetworkData>,
   provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper,
   databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string },
-  marketCapFetcher: MarketCapFetcher
+  marketCapFetcher: MarketCapFetcher,
+  contractFetcherCreator: (
+    provider: ethers.providers.Provider,
+    blockExplorerApiKeys: BlockExplorerApiKeys
+  ) => Promise<ContractFetcher>
 ): Initialize => {
   return async () => {
     await networkManager.init(provider);
-    process.env["ZETTABLOCK_API_KEY"] = ZETTABLOCK_API_KEY;
+    apiKeys = await getSecrets();
+    process.env["ZETTABLOCK_API_KEY"] = apiKeys.generalApiKeys.ZETTABLOCK[0];
+    contractFetcher = await contractFetcherCreator(provider, apiKeys.apiKeys.privateKeyCompromise);
+
     chainId = networkManager.getNetwork().toString();
 
     transferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
@@ -78,7 +94,6 @@ export const provideHandleTransaction =
     provider: ethers.providers.Provider,
     networkManager: NetworkManager<NetworkData>,
     balanceFetcher: BalanceFetcher,
-    contractFetcher: ContractFetcher,
     dataFetcher: DataFetcher,
     marketCapFetcher: MarketCapFetcher,
     priceFetcher: PriceFetcher,
@@ -219,7 +234,7 @@ export const provideHandleTransaction =
               }
 
               // if there are multiple transfers to the same address, emit an alert
-              if (transferObj[to].length > 2) {
+              if (transferObj[to] && transferObj[to].length > 2) {
                 // check if the victims were initially funded by the same address
                 const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                   transferObj[to],
@@ -361,7 +376,7 @@ export const provideHandleTransaction =
                     }
 
                     // if there are multiple transfers to the same address, emit an alert
-                    if (transferObj[transfer.args.to].length > 2) {
+                    if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length > 2) {
                       // check if the victims were initially funded by the same address
                       const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
                         transferObj[transfer.args.to],
@@ -479,13 +494,13 @@ export default {
     getEthersProvider(),
     new PersistenceHelper(DATABASE_URL),
     DATABASE_OBJECT_KEYS,
-    new MarketCapFetcher()
+    new MarketCapFetcher(),
+    createNewContractFetcher
   ),
   handleTransaction: provideHandleTransaction(
     getEthersProvider(),
     networkManager,
     new BalanceFetcher(getEthersProvider()),
-    new ContractFetcher(getEthersProvider(), fetch, keys),
     new DataFetcher(getEthersProvider()),
     new MarketCapFetcher(),
     new PriceFetcher(getEthersProvider()),

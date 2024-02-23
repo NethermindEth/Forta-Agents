@@ -27,7 +27,7 @@ describe("TokenInfoFetcher tests suite", () => {
   it("should fetch the value in USD correctly", async () => {
     const chainId = 1;
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ ethereum: { usd: 1.2 } })));
 
     const fetchedNativeValue = await fetcher.getValueInUsd(TEST_BLOCK, chainId, "2000000000000000000", "native");
