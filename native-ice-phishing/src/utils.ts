@@ -155,9 +155,8 @@ export const isKeywordPresent = (labels: string[]) => {
   );
 };
 
-export const collectAttackersAndVictims = (txEvent: TransactionEvent) => {
+export const extractAttackers = (txEvent: TransactionEvent) => {
   let attackers: string[] = [];
-  let victims: string[] = [];
 
   txEvent.traces.forEach((trace) => {
     if (
@@ -167,5 +166,5 @@ export const collectAttackersAndVictims = (txEvent: TransactionEvent) => {
     }
   });
 
-  return { attackers, victims };
+  return attackers;
 };
