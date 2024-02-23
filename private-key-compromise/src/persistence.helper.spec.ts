@@ -26,7 +26,7 @@ const removePersistentState = () => {
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = jest.mocked(fetch);
 
   beforeAll(() => {
     persistenceHelper = new PersistenceHelper(mockDbUrl);

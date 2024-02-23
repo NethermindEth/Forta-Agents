@@ -33,7 +33,7 @@ describe("TokenInfoFetcher tests suite", () => {
     const chainId = 1;
     const mockTxTo = createAddress("0x1238");
 
-    const mockFetch = jest.mocked(fetch, true);
+    const mockFetch = jest.mocked(fetch);
     mockFetch.mockResolvedValueOnce(
       new Response(
         JSON.stringify({
