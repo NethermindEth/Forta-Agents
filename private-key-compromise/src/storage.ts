@@ -1,5 +1,6 @@
 import { fetchJwt } from "forta-agent";
 import { readFileSync } from "fs";
+import fetch from "node-fetch";
 import * as dotenv from "dotenv";
 dotenv.config();
 
