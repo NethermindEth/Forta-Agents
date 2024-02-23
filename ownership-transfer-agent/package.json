@@ -1,7 +1,7 @@
 {
   "name": "ownership-transfer-detection",
   "displayName": "Ownership Transfer Detection",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Forta bot that detects when the ownership transfers",
   "longDescription": "This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ownership-transfer-agent",
@@ -38,16 +38,17 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "bot-alert-rate": "^0.0.4",
-    "forta-agent": "^0.1.40"
+    "forta-agent": "^0.1.48",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
+    "@types/jest": "^29.5.10",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^3.2.10",
-    "jest": "^27.0.6",
+    "jest": "^29.7.0",
     "nodemon": "^2.0.8",
     "prettier": "^2.8.7",
-    "ts-jest": "^27.0.3",
+    "ts-jest": "^29.1.1",
     "typescript": "^4.3.4"
   }
 }
