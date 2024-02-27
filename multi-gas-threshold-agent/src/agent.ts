@@ -20,6 +20,7 @@ let CHAIN_ID: string;
 export const MEDIUM_GAS_THRESHOLD = "4000000";
 export const HIGH_GAS_THRESHOLD = "6000000";
 const AIRDROPS_THRESHOLD = 20;
+const GAS_TOKEN_ADDRESS = "0x0000000000004946c0e9f43f4dee607b0ef1fa1c";
 
 const MEDIUM_GAS_KEY = "nm-medium-gas-use-bot-key";
 const HIGH_GAS_KEY = "nm-high-gas-use-bot-key";
@@ -100,6 +101,11 @@ export function provideHandleTransaction(
       transactionsProcessed = 0;
     }
     transactionsProcessed += 1;
+
+    // Ignore transactions to gas token address
+    if ([1, 56, 137].includes(Number(CHAIN_ID)) && txEvent.to === GAS_TOKEN_ADDRESS) {
+      return findings;
+    }
 
     // Ignore transactions in which contracts are created
     const createdContracts = getCreatedContracts(txEvent);

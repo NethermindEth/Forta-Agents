@@ -1,7 +1,7 @@
 {
   "name": "high-gas-used-bot",
   "displayName": "High Gas Use",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "agentId": "nethforta-1",
   "description": "Bot that detects transactions with unusually high gas used",
   "longDescription": "The bot identifies transactions characterized by an unusual consumption of gas. Its core operation involves systematically assessing each transaction individually, comparing its gas usage against predefined thresholds labeled as MEDIUM_GAS_THRESHOLD and HIGH_GAS_THRESHOLD. ",
