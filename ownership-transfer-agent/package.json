@@ -10,7 +10,9 @@
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ownership-transfer-agent",
   "chainIds": [
     1,
-    8453
+    10,
+    137,
+    42161
   ],
   "scripts": {
     "build": "tsc",
@@ -36,7 +38,8 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "bot-alert-rate": "^0.0.4",
-    "forta-bot": "file:forta-bot-0.2.0.tgz"
+    "forta-bot": "file:forta-bot-0.2.0.tgz",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

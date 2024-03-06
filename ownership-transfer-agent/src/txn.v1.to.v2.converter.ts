@@ -1,12 +1,5 @@
-import { TransactionEvent as TransactionEventV2, createTransactionEvent, Log as LogV2 } from "forta-bot";
+import { TransactionEvent as TransactionEventV2, createTransactionEvent, JsonRpcLog } from "forta-bot";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
-
-// NOTE: `forta-bot` does not export this type
-type JsonRpcLog = Omit<LogV2, "logIndex" | "blockNumber" | "transactionIndex"> & {
-    logIndex: string;
-    blockNumber: string;
-    transactionIndex: string;
-};
 
 export function txEventV1ToV2Converter(txEventV1: TestTransactionEvent): TransactionEventV2 {
     const { hash, from, to, transaction, block } = txEventV1;
