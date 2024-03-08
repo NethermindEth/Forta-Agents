@@ -1,17 +1,18 @@
 import {
   Finding,
+  HandleTransaction,
+  TransactionEvent as TransactionEventV2,
   FindingSeverity,
   FindingType,
-  HandleTransaction,
-  TransactionEvent,
   Label,
-  EntityType,
-} from "forta-agent";
+  EntityType
+} from "forta-bot";
 
 import { provideHandleTransaction } from "./agent";
 
-import { TestTransactionEvent } from "forta-agent-tools/lib/test";
+import { TestTransactionEvent, MockEthersProvider } from "forta-agent-tools/lib/test";
 import { createAddress } from "forta-agent-tools/lib";
+import { txEventV1ToV2Converter } from "./txn.v1.to.v2.converter"
 
 const OWNERSHIP_TRANSFERRED_ABI: string =
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)";
@@ -29,6 +30,7 @@ mockCalculateAlertRate.mockResolvedValue("0.1");
 
 describe("trasnferred ownership agent", () => {
   let handleTransaction: HandleTransaction;
+  const mockProvider: MockEthersProvider = new MockEthersProvider();
 
   beforeAll(() => {
     handleTransaction = provideHandleTransaction();
@@ -36,51 +38,57 @@ describe("trasnferred ownership agent", () => {
 
   describe("handleTransaction", () => {
     it("Returns empty findings if there is no event", async () => {
-      const txEvent: TransactionEvent = new TestTransactionEvent();
-      const findings = await handleTransaction(txEvent);
+      const txEventV1: TestTransactionEvent = new TestTransactionEvent();
+      const txEventV2: TransactionEventV2 = txEventV1ToV2Converter(txEventV1);
+
+      const findings = await handleTransaction(txEventV2, mockProvider as any);
       expect(findings).toStrictEqual([]);
     });
 
     it("Returns empty findings if there is random event from a non zero address", async () => {
       const randomEvent = "event RandomEvent(address indexed previousOwner, address indexed newOwner)";
 
-      const txEvent = new TestTransactionEvent().addEventLog(randomEvent, testContract, [
+      const txEventV1 = new TestTransactionEvent().addEventLog(randomEvent, testContract, [
         createAddress("0x1"),
         createAddress("0x2"),
       ]);
+      const txEventV2: TransactionEventV2 = txEventV1ToV2Converter(txEventV1);
 
-      const findings = await handleTransaction(txEvent);
+
+      const findings = await handleTransaction(txEventV2, mockProvider as any);
       expect(findings).toStrictEqual([]);
     });
 
     it("Returns empty findings if there is ownership transfer event from a zero address", async () => {
-      const txEvent = new TestTransactionEvent().addEventLog(OWNERSHIP_TRANSFERRED_ABI, testContract, [
+      const txEventV1 = new TestTransactionEvent().addEventLog(OWNERSHIP_TRANSFERRED_ABI, testContract, [
         createAddress("0x0"),
         createAddress("0x2"),
       ]);
+      const txEventV2: TransactionEventV2 = txEventV1ToV2Converter(txEventV1);
 
-      const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEventV2, mockProvider as any);
       expect(findings).toStrictEqual([]);
     });
 
     it("Returns findings if there is ownership transfer event from a non zero address", async () => {
-      const txEvent = new TestTransactionEvent().addEventLog(OWNERSHIP_TRANSFERRED_ABI, testContract, [
+      const txEventV1 = new TestTransactionEvent().addEventLog(OWNERSHIP_TRANSFERRED_ABI, testContract, [
         createAddress("0x1"),
         createAddress("0x2"),
       ]);
+      const txEventV2: TransactionEventV2 = txEventV1ToV2Converter(txEventV1);
 
-      const findings = await handleTransaction(txEvent);
+      const findings = await handleTransaction(txEventV2, mockProvider as any);
 
       const labels = [
         Label.fromObject({
-          entity: txEvent.transaction.hash,
+          entity: txEventV2.transaction.hash,
           entityType: EntityType.Transaction,
           label: "Attack",
           confidence: 0.6,
           remove: false,
         }),
         Label.fromObject({
-          entity: txEvent.from,
+          entity: txEventV2.from,
           entityType: EntityType.Address,
           label: "Attacker",
           confidence: 0.6,
@@ -116,6 +124,10 @@ describe("trasnferred ownership agent", () => {
           },
           addresses: [createAddress("0x0"), createAddress("0x1"), createAddress("0x2")],
           labels,
+          source: {
+            chains: [{ chainId: txEventV2.network }],
+            transactions: [{ chainId: txEventV2.network, hash: txEventV2.hash }],
+          },
         }),
       ]);
     });
