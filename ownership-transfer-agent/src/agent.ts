@@ -21,7 +21,9 @@ import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 
 import { getSecrets } from "./storage";
 
-const BOT_ID = "0x7704a975c97ed444c0329cade1f85af74566d30fb6a51550529b19153a0781cb";
+// const BOT_ID = "0x7704a975c97ed444c0329cade1f85af74566d30fb6a51550529b19153a0781cb";
+// Beta
+const BOT_ID = "0x50d84a3cd8ca2336ffc231b666f5c1df5ae94ad6b1674a3b2d7834c3015c2de8";
 
 let chainId: string;
 let apiKeys: any;
