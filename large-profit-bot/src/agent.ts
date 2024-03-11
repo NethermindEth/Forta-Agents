@@ -66,7 +66,9 @@ export const provideHandleTransaction =
     }
     transactionsProcessed += 1;
 
-    const erc20TransferEvents = txEvent.filterLog(ERC20_TRANSFER_EVENT).filter((event) => !event.args.value.eq(ZERO));
+    const erc20TransferEvents = txEvent
+      .filterLog(ERC20_TRANSFER_EVENT)
+      .filter((event) => !event.args.value.eq(ZERO) && event.args.from !== event.args.to);
 
     // return if it's a single transfer or a single swap
     if (erc20TransferEvents.length < 3) return findings;
