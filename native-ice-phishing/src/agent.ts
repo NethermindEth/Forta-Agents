@@ -458,7 +458,7 @@ export const provideHandleTransaction =
       }
     }
 
-    if (to) {
+    if (to && value === "0x0") {
       let owner = "";
       let receiver = "";
       let conditionMetCount = 0; //
@@ -484,6 +484,7 @@ export const provideHandleTransaction =
                 }
                 if (numberOfLogs < 2) {
                   const hasValidEntries = await dataFetcher.hasValidEntries(
+                    from,
                     to,
                     chainId,
                     hash
@@ -525,6 +526,7 @@ export const provideHandleTransaction =
 
           if (numberOfLogs < 2) {
             const hasValidEntries = await dataFetcher.hasValidEntries(
+              from,
               to,
               chainId,
               hash
@@ -547,7 +549,7 @@ export const provideHandleTransaction =
           }
         }
       }
-    } else {
+    } else if (!to) {
       if (isRelevantChain) contractCreationsCount++;
       const nonce = txEvent.transaction.nonce;
       const createdContractAddress = ethers.utils.getContractAddress({
