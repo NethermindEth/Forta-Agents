@@ -858,7 +858,11 @@ export const provideHandleTransaction =
           const symbol = await dataFetcher.getSymbol(transfer.address, blockNumber);
 
           if (topTokens.includes(symbol)) {
-            // check only if the to address is not inside alertedAddresses
+            // alertedAddresses = await persistenceHelper.load(
+            //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+            // );
+            // Only proceed with addresses that have only emitted an alert for the
+            // min. amount of transfers OR if they have not emitted any alert
             const alertedAddressIndex = alertedAddresses.findIndex((alertedAddress) => alertedAddress.address == transfer.args.to);
             if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].highTransferAmountAlerted != true) || alertedAddressIndex < 0) {
               if (await dataFetcher.isEoa(transfer.args.to)) {
@@ -896,109 +900,129 @@ export const provideHandleTransaction =
                       );
 
                       if (hasUniqueInitialFunders) {
-                        // alertedAddresses = await persistenceHelper.load(
-                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
-                        // );
+                        // Add from addresses into the queue
+                        transferObj[transfer.args.to].forEach((el) => {
+                          queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
 
-                        if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                          alertedAddresses.push({
-                            address: transfer.args.to,
-                            timestamp: txEvent.timestamp,
+                          queuedAddresses.push({
+                            timestamp: timestamp,
+                            transfer: {
+                              from: el.victimAddress,
+                              to: transfer.args.to,
+                              txHash: el.txHash,
+                              asset: el.transferredAsset,
+                            },
                           });
+                        });
 
-                          if (isPersistenceTime) {
-                            // await persistenceHelper.persist(
-                            //   alertedAddresses,
-                            //   databaseKeys.alertedAddressesKey.concat("-", chainId)
-                            // );
-                          }
+                        if (isPersistenceTime) {
+                          // await persistenceHelper.persist(
+                          //   queuedAddresses,
+                          //   databaseKeys.queuedAddressesKey.concat("-", chainId)
+                          // );
+                        }
 
-                          // Add from addresses into the queue
-                          transferObj[transfer.args.to].forEach((el) => {
-                            queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+                        const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
+                          return accumulator + object.valueInUSD;
+                        }, 0);
 
-                            queuedAddresses.push({
-                              timestamp: timestamp,
-                              transfer: {
-                                from: el.victimAddress,
-                                to: transfer.args.to,
-                                txHash: el.txHash,
-                                asset: el.transferredAsset,
-                              },
-                            });
-                          });
+                        if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
+                          if (totalTransferValue > priceThreshold) {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-3",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
 
-                          if (isPersistenceTime) {
-                            // await persistenceHelper.persist(
-                            //   queuedAddresses,
-                            //   databaseKeys.queuedAddressesKey.concat("-", chainId)
-                            // );
-                          }
-
-                          const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
-                            return accumulator + object.valueInUSD;
-                          }, 0);
-
-                          if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
-                            if (totalTransferValue > priceThreshold) {
-                              const anomalyScore = await calculateAlertRate(
-                                Number(chainId),
-                                BOT_ID,
-                                "PKC-3",
-                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                                ercTransferCount
-                              );
-  
-                              findings.push(
-                                createFinding(
-                                  hash,
-                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
-                                  transfer.args.to,
-                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                                  anomalyScore,
-                                  "PKC-3"
-                                )
-                              );
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-3"
+                              )
+                            );
+                      
+                            if (alertedAddressIndex < 0) {
+                              alertedAddresses.push({ address: transfer.args.to, timestamp: txEvent.timestamp, minTransferAmountAlerted: true });
                             } else {
-                              const anomalyScore = await calculateAlertRate(
-                                Number(chainId),
-                                BOT_ID,
-                                "PKC-1",
-                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
-                                ercTransferCount
-                              );
+                              alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                              alertedAddresses[alertedAddressIndex].minTransferAmountAlerted = true;
+                            }
   
-                              findings.push(
-                                createFinding(
-                                  hash,
-                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
-                                  transfer.args.to,
-                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                                  anomalyScore,
-                                  "PKC-1"
-                                )
-                              );
+                            if (isPersistenceTime) {
+                              // await persistenceHelper.persist(
+                              //   alertedAddresses,
+                              //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                              // );
                             }
                           } else {
-                            if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
-                              const anomalyScore = await calculateAlertRate(
-                                Number(chainId),
-                                BOT_ID,
-                                "PKC-4",
-                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                                transfersCount
-                              );
-        
-                              findings.push(
-                                createHighVictimAmountFinding(
-                                  hash,
-                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
-                                  transfer.args.to,
-                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
-                                  anomalyScore,
-                                  "PKC-4"
-                                )
-                              );
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-1",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                              ercTransferCount
+                            );
+
+                            findings.push(
+                              createFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-1"
+                              )
+                            );
+
+                            if (alertedAddressIndex < 0) {
+                              alertedAddresses.push({ address: transfer.args.to, timestamp: txEvent.timestamp, minTransferAmountAlerted: true });
+                            } else {
+                              alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                              alertedAddresses[alertedAddressIndex].minTransferAmountAlerted = true;
+                            }
+  
+                            if (isPersistenceTime) {
+                              // await persistenceHelper.persist(
+                              //   alertedAddresses,
+                              //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                              // );
+                            }
+                          }
+                        } else {
+                          if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-4",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                              transfersCount
+                            );
+      
+                            findings.push(
+                              createHighVictimAmountFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-4"
+                              )
+                            );
+
+                            alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                            alertedAddresses[alertedAddressIndex].highTransferAmountAlerted = true;
+  
+                            if (isPersistenceTime) {
+                              // await persistenceHelper.persist(
+                              //   alertedAddresses,
+                              //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                              // );
                             }
                           }
                         }
