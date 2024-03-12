@@ -5,13 +5,18 @@ import {
   updateRecord,
   TIME_PERIOD,
   AlertedAddress,
+  UpdatedAlertedAddress,
   QueuedAddress,
   ERC20_TRANSFER_FUNCTION,
   deepMerge,
   MAX_OBJECT_SIZE,
+  ONE_DAY_IN_BLOCKS,
+  SIX_HOURS_IN_BLOCKS,
+  FIVE_MINS_IN_SECS,
+  ONE_WEEK_IN_SECS,
 } from "./utils";
 import { NetworkManager } from "forta-agent-tools";
-import { createFinding, createDelayedFinding } from "./findings";
+import { createFinding, createHighVictimAmountFinding, createDelayedFinding } from "./findings";
 import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
 import BalanceFetcher from "./balance.fetcher";
 import DataFetcher from "./data.fetcher";
@@ -19,16 +24,22 @@ import ContractFetcher from "./contract.fetcher";
 import MarketCapFetcher from "./marketcap.fetcher";
 import PriceFetcher from "./price.fetcher";
 import { PersistenceHelper } from "./persistence.helper";
-import CONFIG, { priceThreshold } from "./bot.config";
+import CONFIG, { priceThreshold, MIN_TRANSFER_AMOUNT_THRESHOLD, HIGH_TRANSFER_AMOUNT_THRESHOLD } from "./bot.config";
 import { getSecrets, ApiKeys, BlockExplorerApiKeys } from "./storage";
 
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
+// const DATABASE_OBJECT_KEYS = {
+//   transfersKey: "nm-pk-comp-bot-key-1",
+//   alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1",
+//   queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1",
+// };
+
 const DATABASE_OBJECT_KEYS = {
-  transfersKey: "nm-pk-comp-bot-key-1",
-  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1",
-  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1",
+  transfersKey: "nm-pk-comp-bot-key-1-test",
+  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1-test",
+  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1-test",
 };
 
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
@@ -37,7 +48,8 @@ let chainId: string;
 let apiKeys: ApiKeys;
 let contractFetcher: ContractFetcher;
 let transferObj: Transfer = {};
-let alertedAddresses: AlertedAddress[] = [];
+// let alertedAddresses: AlertedAddress[] = [];
+let alertedAddresses: UpdatedAlertedAddress[] = []
 let queuedAddresses: QueuedAddress[] = [];
 let isRelevantChain: boolean;
 let transfersCount = 0;
@@ -78,9 +90,9 @@ export const provideInitialize = (
 
     chainId = networkManager.getNetwork().toString();
 
-    transferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
-    alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
-    queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
+    // transferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
+    // alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+    // queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
 
     //  Optimism, Fantom & Avalanche not yet supported by bot-alert-rate package
     isRelevantChain = [10, 250, 43114].includes(Number(chainId));
@@ -89,6 +101,7 @@ export const provideInitialize = (
   };
 };
 
+/*
 export const provideHandleTransaction =
   (
     provider: ethers.providers.Provider,
@@ -115,47 +128,47 @@ export const provideHandleTransaction =
     // At the beginning of the block
     if (blockNumber != lastBlock) {
       // fetch top tokens list sorted by market cap in every 6 hours
-      if (blockNumber % 1800 == 0) {
+      if (blockNumber % SIX_HOURS_IN_BLOCKS == 0) {
         topTokens = await marketCapFetcher.getTopMarketCap();
       }
 
       // fetch queue daily to check if the possible victims have been active for the last week
-      if (blockNumber % 7200 == 0) {
-        queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
-        await Promise.all(
-          queuedAddresses
-            .filter((queue) => timestamp - queue.timestamp > 604800)
-            .map(async (el) => {
-              const isActive = await contractFetcher.getVictimInfo(el.transfer.from, Number(chainId), el.timestamp);
+      if (blockNumber % ONE_DAY_IN_BLOCKS == 0) {
+        // queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
+        // await Promise.all(
+        //   queuedAddresses
+        //     .filter((queue) => timestamp - queue.timestamp > ONE_WEEK_IN_SECS)
+        //     .map(async (el) => {
+        //       const isActive = await contractFetcher.getVictimInfo(el.transfer.from, Number(chainId), el.timestamp);
 
-              if (!isActive) {
-                const anomalyScore = await calculateAlertRate(
-                  Number(chainId),
-                  BOT_ID,
-                  "PKC-2",
-                  isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
-                  transfersCount
-                );
-                findings.push(
-                  createDelayedFinding(
-                    el.transfer.txHash,
-                    el.transfer.from,
-                    el.transfer.to,
-                    el.transfer.asset,
-                    anomalyScore
-                  )
-                );
-              }
-            })
-        );
+        //       if (!isActive) {
+        //         const anomalyScore = await calculateAlertRate(
+        //           Number(chainId),
+        //           BOT_ID,
+        //           "PKC-2",
+        //           isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+        //           transfersCount
+        //         );
+        //         findings.push(
+        //           createDelayedFinding(
+        //             el.transfer.txHash,
+        //             el.transfer.from,
+        //             el.transfer.to,
+        //             el.transfer.asset,
+        //             anomalyScore
+        //           )
+        //         );
+        //       }
+        //     })
+        // );
 
-        // Remove processed logs from the queue which are older than 1 week
-        queuedAddresses = queuedAddresses.filter((address) => timestamp - address.timestamp < 604800);
-        await persistenceHelper.persist(queuedAddresses, databaseKeys.queuedAddressesKey.concat("-", chainId));
+        // // Remove processed logs from the queue which are older than 1 week
+        // queuedAddresses = queuedAddresses.filter((address) => timestamp - address.timestamp < ONE_WEEK_IN_SECS);
+        // await persistenceHelper.persist(queuedAddresses, databaseKeys.queuedAddressesKey.concat("-", chainId));
       }
       const et = new Date().getTime();
 
-      if (et / 1000 - lastPersistenceTime > 300) {
+      if (et / 1000 - lastPersistenceTime > FIVE_MINS_IN_SECS) {
         isPersistenceTime = true;
         lastPersistenceTime = et / 1000;
       } else {
@@ -163,10 +176,10 @@ export const provideHandleTransaction =
       }
 
       console.log(`Block processing time: ${et - st} ms`);
-      const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
-      alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+      // const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
+      // alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
 
-      transferObj = deepMerge(transferObj, loadedTransferObj);
+      // transferObj = deepMerge(transferObj, loadedTransferObj);
 
       // Remove alerted addresses from the object to be persisted into db
       if (alertedAddresses.length) {
@@ -175,7 +188,7 @@ export const provideHandleTransaction =
         }
       }
 
-      alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
+      // alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
 
       lastBlock = blockNumber;
       console.log(`-----Transactions processed in the last block before ${blockNumber}: ${transactionsProcessed}-----`);
@@ -199,12 +212,10 @@ export const provideHandleTransaction =
       }
 
       if (isPersistenceTime) {
-        await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+        // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
       }
     }
     transactionsProcessed += 1;
-
-    const transferFunctions = txEvent.filterFunction(ERC20_TRANSFER_FUNCTION);
 
     // check for native token transfers
     if (to && value != "0x0" && data === "0x") {
@@ -236,24 +247,26 @@ export const provideHandleTransaction =
               // if there are multiple transfers to the same address, emit an alert
               if (transferObj[to] && transferObj[to].length > 2) {
                 // check if the victims were initially funded by the same address
-                const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
-                  transferObj[to],
-                  Number(chainId)
-                );
+                // const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                //   transferObj[to],
+                //   Number(chainId)
+                // );
+
+                const hasUniqueInitialFunders = true;
 
                 if (hasUniqueInitialFunders) {
-                  alertedAddresses = await persistenceHelper.load(
-                    databaseKeys.alertedAddressesKey.concat("-", chainId)
-                  );
+                  // alertedAddresses = await persistenceHelper.load(
+                  //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                  // );
 
                   if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
-                    alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
+                    // alertedAddresses.push({ address: to, timestamp: txEvent.timestamp });
 
                     if (isPersistenceTime) {
-                      await persistenceHelper.persist(
-                        alertedAddresses,
-                        databaseKeys.alertedAddressesKey.concat("-", chainId)
-                      );
+                      // await persistenceHelper.persist(
+                      //   alertedAddresses,
+                      //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                      // );
                     }
 
                     // Add "from addresses" into the queue
@@ -272,17 +285,38 @@ export const provideHandleTransaction =
                     });
 
                     if (isPersistenceTime) {
-                      await persistenceHelper.persist(
-                        queuedAddresses,
-                        databaseKeys.queuedAddressesKey.concat("-", chainId)
-                      );
+                      // await persistenceHelper.persist(
+                      //   queuedAddresses,
+                      //   databaseKeys.queuedAddressesKey.concat("-", chainId)
+                      // );
                     }
 
                     const totalTransferValue = transferObj[to].reduce((accumulator, object) => {
                       return accumulator + object.valueInUSD;
                     }, 0);
 
-                    if (totalTransferValue > priceThreshold) {
+                    // Higher threshold for instances where a lot of wallets associated
+                    // with a singular app were drained by the same exploiter
+                    if (transferObj[to] && transferObj[to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-4",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createHighVictimAmountFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-4"
+                        )
+                      );
+                    } else if (totalTransferValue > priceThreshold) {
                       const anomalyScore = await calculateAlertRate(
                         Number(chainId),
                         BOT_ID,
@@ -327,7 +361,7 @@ export const provideHandleTransaction =
                   delete transferObj[to];
 
                   if (isPersistenceTime) {
-                    await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                    // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
                   }
                 }
               }
@@ -336,6 +370,8 @@ export const provideHandleTransaction =
         }
       }
     }
+
+    const transferFunctions = txEvent.filterFunction(ERC20_TRANSFER_FUNCTION);
 
     // check for ERC20 transfers
     if (transferFunctions.length) {
@@ -347,8 +383,8 @@ export const provideHandleTransaction =
           const symbol = await dataFetcher.getSymbol(transfer.address, blockNumber);
 
           if (topTokens.includes(symbol)) {
+            // check only if the to address is not inside alertedAddresses
             if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == transfer.args.to)) {
-              // check only if the to address is not inside alertedAddresses
               if (await dataFetcher.isEoa(transfer.args.to)) {
                 const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
                   transfer.args.to,
@@ -384,9 +420,9 @@ export const provideHandleTransaction =
                       );
 
                       if (hasUniqueInitialFunders) {
-                        alertedAddresses = await persistenceHelper.load(
-                          databaseKeys.alertedAddressesKey.concat("-", chainId)
-                        );
+                        // alertedAddresses = await persistenceHelper.load(
+                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        // );
 
                         if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
                           alertedAddresses.push({
@@ -395,10 +431,10 @@ export const provideHandleTransaction =
                           });
 
                           if (isPersistenceTime) {
-                            await persistenceHelper.persist(
-                              alertedAddresses,
-                              databaseKeys.alertedAddressesKey.concat("-", chainId)
-                            );
+                            // await persistenceHelper.persist(
+                            //   alertedAddresses,
+                            //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                            // );
                           }
 
                           // Add from addresses into the queue
@@ -417,17 +453,36 @@ export const provideHandleTransaction =
                           });
 
                           if (isPersistenceTime) {
-                            await persistenceHelper.persist(
-                              queuedAddresses,
-                              databaseKeys.queuedAddressesKey.concat("-", chainId)
-                            );
+                            // await persistenceHelper.persist(
+                            //   queuedAddresses,
+                            //   databaseKeys.queuedAddressesKey.concat("-", chainId)
+                            // );
                           }
 
                           const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
                             return accumulator + object.valueInUSD;
                           }, 0);
 
-                          if (totalTransferValue > priceThreshold) {
+                          if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
+                            const anomalyScore = await calculateAlertRate(
+                              Number(chainId),
+                              BOT_ID,
+                              "PKC-4",
+                              isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                              transfersCount
+                            );
+      
+                            findings.push(
+                              createHighVictimAmountFinding(
+                                hash,
+                                transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                transfer.args.to,
+                                transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                anomalyScore,
+                                "PKC-4"
+                              )
+                            );
+                          } else if (totalTransferValue > priceThreshold) {
                             const anomalyScore = await calculateAlertRate(
                               Number(chainId),
                               BOT_ID,
@@ -472,7 +527,7 @@ export const provideHandleTransaction =
                         delete transferObj[transfer.args.to];
 
                         if (isPersistenceTime) {
-                          await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                          // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
                         }
                       }
                     }
@@ -487,6 +542,487 @@ export const provideHandleTransaction =
 
     return findings;
   };
+*/
+
+  export const provideHandleTransaction =
+  (
+    provider: ethers.providers.Provider,
+    networkManager: NetworkManager<NetworkData>,
+    balanceFetcher: BalanceFetcher,
+    dataFetcher: DataFetcher,
+    marketCapFetcher: MarketCapFetcher,
+    priceFetcher: PriceFetcher,
+    persistenceHelper: PersistenceHelper,
+    databaseKeys: { transfersKey: string; alertedAddressesKey: string; queuedAddressesKey: string }
+  ) =>
+  async (txEvent: TransactionEvent) => {
+    const findings: Finding[] = [];
+
+    const {
+      hash,
+      from,
+      to,
+      transaction: { value, data },
+      timestamp,
+      blockNumber,
+    } = txEvent;
+
+    // At the beginning of the block
+    if (blockNumber != lastBlock) {
+      // fetch top tokens list sorted by market cap in every 6 hours
+      if (blockNumber % SIX_HOURS_IN_BLOCKS == 0) {
+        topTokens = await marketCapFetcher.getTopMarketCap();
+      }
+
+      // fetch queue daily to check if the possible victims have been active for the last week
+      if (blockNumber % ONE_DAY_IN_BLOCKS == 0) {
+        // queuedAddresses = await persistenceHelper.load(databaseKeys.queuedAddressesKey.concat("-", chainId));
+        // await Promise.all(
+        //   queuedAddresses
+        //     .filter((queue) => timestamp - queue.timestamp > ONE_WEEK_IN_SECS)
+        //     .map(async (el) => {
+        //       const isActive = await contractFetcher.getVictimInfo(el.transfer.from, Number(chainId), el.timestamp);
+
+        //       if (!isActive) {
+        //         const anomalyScore = await calculateAlertRate(
+        //           Number(chainId),
+        //           BOT_ID,
+        //           "PKC-2",
+        //           isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+        //           transfersCount
+        //         );
+        //         findings.push(
+        //           createDelayedFinding(
+        //             el.transfer.txHash,
+        //             el.transfer.from,
+        //             el.transfer.to,
+        //             el.transfer.asset,
+        //             anomalyScore
+        //           )
+        //         );
+        //       }
+        //     })
+        // );
+
+        // // Remove processed logs from the queue which are older than 1 week
+        // queuedAddresses = queuedAddresses.filter((address) => timestamp - address.timestamp < ONE_WEEK_IN_SECS);
+        // await persistenceHelper.persist(queuedAddresses, databaseKeys.queuedAddressesKey.concat("-", chainId));
+      }
+      const et = new Date().getTime();
+
+      if (et / 1000 - lastPersistenceTime > FIVE_MINS_IN_SECS) {
+        isPersistenceTime = true;
+        lastPersistenceTime = et / 1000;
+      } else {
+        isPersistenceTime = false;
+      }
+
+      console.log(`Block processing time: ${et - st} ms`);
+      // const loadedTransferObj = await persistenceHelper.load(databaseKeys.transfersKey.concat("-", chainId));
+      // alertedAddresses = await persistenceHelper.load(databaseKeys.alertedAddressesKey.concat("-", chainId));
+
+      // transferObj = deepMerge(transferObj, loadedTransferObj);
+
+      // Remove alerted addresses from the object to be persisted into db
+      // if (alertedAddresses.length) {
+      //   for (const el of alertedAddresses) {
+      //     delete transferObj[el.address];
+      //   }
+      // }
+
+      // alertedAddresses = alertedAddresses.filter((address) => timestamp - address.timestamp < TIME_PERIOD);
+
+      lastBlock = blockNumber;
+      console.log(`-----Transactions processed in the last block before ${blockNumber}: ${transactionsProcessed}-----`);
+      transactionsProcessed = 0;
+      st = new Date().getTime();
+
+      let objectSize = Buffer.from(JSON.stringify(transferObj)).length;
+
+      while (objectSize > MAX_OBJECT_SIZE) {
+        console.log("Cleaning Object of size: ", objectSize);
+
+        const indexToDelete = Math.floor(Object.keys(transferObj).length / 4);
+
+        const myObj = Object.keys(transferObj);
+        for (let i = 0; i < indexToDelete; i++) {
+          delete transferObj[myObj[i]];
+        }
+
+        objectSize = Buffer.from(JSON.stringify(transferObj)).length;
+        console.log("Object size after cleaning: ", objectSize);
+      }
+
+      if (isPersistenceTime) {
+        // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+      }
+    }
+    transactionsProcessed += 1;
+
+    // check for native token transfers
+    if (to && value != "0x0" && data === "0x") {
+      if (isRelevantChain) transfersCount++;
+      // alertedAddresses = await persistenceHelper.load(
+      //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+      // );
+      // Only proceed with addresses that have only emitted an alert for the
+      // min. amount of transfers OR if they have not emitted any alert
+      const alertedAddressIndex = alertedAddresses.findIndex((alertedAddress) => alertedAddress.address == to);
+      if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].highTransferAmountAlerted != true) || alertedAddressIndex < 0) {
+        if (await dataFetcher.isEoa(to)) {
+          const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(to, Number(chainId), false);
+          if (!hasHighNumberOfTotalTxs) {
+            const balance = await provider.getBalance(txEvent.transaction.from, txEvent.blockNumber);
+
+            // if the account is drained
+            if (balance.lt(ethers.BigNumber.from(ethers.utils.parseEther(networkManager.get("threshold"))))) {
+              // check if "from" address was funded by "to" address before.
+              const isFromFundedByTo = await contractFetcher.getFundInfo(from, to, Number(chainId));
+
+              if (!isFromFundedByTo) {
+                // check the amount in USD, if over 100$ update record
+                const price = await priceFetcher.getValueInUsd(
+                  txEvent.blockNumber,
+                  Number(chainId),
+                  value.toString(),
+                  "native"
+                );
+
+                await updateRecord(from, to, networkManager.get("tokenName"), hash, price, transferObj);
+              }
+
+              // if there are at least the minimum amount of transfers to the same address, proceed
+              if (transferObj[to] && transferObj[to].length > MIN_TRANSFER_AMOUNT_THRESHOLD) {
+                // check if the victims were initially funded by the same address
+                // const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                //   transferObj[to],
+                //   Number(chainId)
+                // );
+
+                const hasUniqueInitialFunders = true;
+
+                if (hasUniqueInitialFunders) {
+                  // Add "from addresses" into the queue
+                  transferObj[to].forEach((el) => {
+                    queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
+                    queuedAddresses.push({
+                      timestamp: timestamp,
+                      transfer: {
+                        from: el.victimAddress,
+                        to,
+                        txHash: el.txHash,
+                        asset: el.transferredAsset,
+                      },
+                    });
+                  });
+
+                  if (isPersistenceTime) {
+                    // await persistenceHelper.persist(
+                    //   queuedAddresses,
+                    //   databaseKeys.queuedAddressesKey.concat("-", chainId)
+                    // );
+                  }
+
+                  const totalTransferValue = transferObj[to].reduce((accumulator, object) => {
+                    return accumulator + object.valueInUSD;
+                  }, 0);
+
+                  // Cannot emit multiple "min. transfer amount" alerts
+                  // else
+                  // Higher threshold for instances where a lot of wallets associated
+                  // with a singular app were drained by the same exploiter
+                  if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
+                    if (totalTransferValue > priceThreshold) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-3",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-3"
+                        )
+                      );
+                      
+                      if (alertedAddressIndex < 0) {
+                        alertedAddresses.push({ address: to, timestamp: txEvent.timestamp, minTransferAmountAlerted: true });
+                      } else {
+                        alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                        alertedAddresses[alertedAddressIndex].minTransferAmountAlerted = true;
+                      }
+
+                      if (isPersistenceTime) {
+                        // await persistenceHelper.persist(
+                        //   alertedAddresses,
+                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        // );
+                      }
+                    } else {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-1",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-1"
+                        )
+                      );
+                        
+                      if (alertedAddressIndex < 0) {
+                        alertedAddresses.push({ address: to, timestamp: txEvent.timestamp, minTransferAmountAlerted: true });
+                      } else {
+                        alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                        alertedAddresses[alertedAddressIndex].minTransferAmountAlerted = true;
+                      }
+
+                      if (isPersistenceTime) {
+                        // await persistenceHelper.persist(
+                        //   alertedAddresses,
+                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        // );
+                      }
+                    }
+                  } else {
+                    if (transferObj[to] && transferObj[to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
+                      const anomalyScore = await calculateAlertRate(
+                        Number(chainId),
+                        BOT_ID,
+                        "PKC-4",
+                        isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                        transfersCount
+                      );
+
+                      findings.push(
+                        createHighVictimAmountFinding(
+                          hash,
+                          transferObj[to].map((el) => el.victimAddress),
+                          to,
+                          transferObj[to].map((el) => el.transferredAsset),
+                          anomalyScore,
+                          "PKC-4"
+                        )
+                      );
+                        
+                      alertedAddresses[alertedAddressIndex].timestamp = timestamp;
+                      alertedAddresses[alertedAddressIndex].highTransferAmountAlerted = true;
+
+                      if (isPersistenceTime) {
+                        // await persistenceHelper.persist(
+                        //   alertedAddresses,
+                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        // );
+                      }
+                    }
+                  }
+                } else {
+                  // if it's FP, remove them from the db
+                  delete transferObj[to];
+
+                  if (isPersistenceTime) {
+                    // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // check for ERC20 transfers
+    const transferFunctions = txEvent.filterFunction(ERC20_TRANSFER_FUNCTION);
+    if (transferFunctions.length) {
+      await Promise.all(
+        transferFunctions.map(async (transfer) => {
+          if (isRelevantChain) ercTransferCount++;
+
+          // check top 100 tokens in the market
+          const symbol = await dataFetcher.getSymbol(transfer.address, blockNumber);
+
+          if (topTokens.includes(symbol)) {
+            // check only if the to address is not inside alertedAddresses
+            const alertedAddressIndex = alertedAddresses.findIndex((alertedAddress) => alertedAddress.address == transfer.args.to);
+            if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].highTransferAmountAlerted != true) || alertedAddressIndex < 0) {
+              if (await dataFetcher.isEoa(transfer.args.to)) {
+                const hasHighNumberOfTotalTxs = await contractFetcher.getContractInfo(
+                  transfer.args.to,
+                  Number(chainId),
+                  true
+                );
+
+                if (!hasHighNumberOfTotalTxs) {
+                  const balanceFrom = await balanceFetcher.getBalanceOf(from, transfer.address, txEvent.blockNumber);
+
+                  if (balanceFrom.eq(0)) {
+                    // check if "from" address was funded by "to" address before.
+                    const isFromFundedByTo = await contractFetcher.getFundInfo(from, transfer.args.to, Number(chainId));
+
+                    if (!isFromFundedByTo) {
+                      // check the amount in USD, if over 100$ update record
+                      const price = await priceFetcher.getValueInUsd(
+                        txEvent.blockNumber,
+                        Number(chainId),
+                        transfer.args.amount.toString(),
+                        transfer.address
+                      );
+
+                      await updateRecord(from, transfer.args.to, transfer.address, hash, price, transferObj);
+                    }
+
+                    // if there are multiple transfers to the same address, emit an alert
+                    if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length > MIN_TRANSFER_AMOUNT_THRESHOLD) {
+                      // check if the victims were initially funded by the same address
+                      const hasUniqueInitialFunders = await contractFetcher.checkInitialFunder(
+                        transferObj[transfer.args.to],
+                        Number(chainId)
+                      );
+
+                      if (hasUniqueInitialFunders) {
+                        // alertedAddresses = await persistenceHelper.load(
+                        //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                        // );
+
+                        if (!alertedAddresses.some((alertedAddress) => alertedAddress.address == to)) {
+                          alertedAddresses.push({
+                            address: transfer.args.to,
+                            timestamp: txEvent.timestamp,
+                          });
+
+                          if (isPersistenceTime) {
+                            // await persistenceHelper.persist(
+                            //   alertedAddresses,
+                            //   databaseKeys.alertedAddressesKey.concat("-", chainId)
+                            // );
+                          }
+
+                          // Add from addresses into the queue
+                          transferObj[transfer.args.to].forEach((el) => {
+                            queuedAddresses = queuedAddresses.filter((obj) => obj.transfer.from != el.victimAddress);
+
+                            queuedAddresses.push({
+                              timestamp: timestamp,
+                              transfer: {
+                                from: el.victimAddress,
+                                to: transfer.args.to,
+                                txHash: el.txHash,
+                                asset: el.transferredAsset,
+                              },
+                            });
+                          });
+
+                          if (isPersistenceTime) {
+                            // await persistenceHelper.persist(
+                            //   queuedAddresses,
+                            //   databaseKeys.queuedAddressesKey.concat("-", chainId)
+                            // );
+                          }
+
+                          const totalTransferValue = transferObj[transfer.args.to].reduce((accumulator, object) => {
+                            return accumulator + object.valueInUSD;
+                          }, 0);
+
+                          if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
+                            if (totalTransferValue > priceThreshold) {
+                              const anomalyScore = await calculateAlertRate(
+                                Number(chainId),
+                                BOT_ID,
+                                "PKC-3",
+                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                                ercTransferCount
+                              );
+  
+                              findings.push(
+                                createFinding(
+                                  hash,
+                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                  transfer.args.to,
+                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                  anomalyScore,
+                                  "PKC-3"
+                                )
+                              );
+                            } else {
+                              const anomalyScore = await calculateAlertRate(
+                                Number(chainId),
+                                BOT_ID,
+                                "PKC-1",
+                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.ErcTransferCount,
+                                ercTransferCount
+                              );
+  
+                              findings.push(
+                                createFinding(
+                                  hash,
+                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                  transfer.args.to,
+                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                  anomalyScore,
+                                  "PKC-1"
+                                )
+                              );
+                            }
+                          } else {
+                            if (transferObj[transfer.args.to] && transferObj[transfer.args.to].length >= HIGH_TRANSFER_AMOUNT_THRESHOLD) {
+                              const anomalyScore = await calculateAlertRate(
+                                Number(chainId),
+                                BOT_ID,
+                                "PKC-4",
+                                isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TransferCount,
+                                transfersCount
+                              );
+        
+                              findings.push(
+                                createHighVictimAmountFinding(
+                                  hash,
+                                  transferObj[transfer.args.to].map((el) => el.victimAddress),
+                                  transfer.args.to,
+                                  transferObj[transfer.args.to].map((el) => el.transferredAsset),
+                                  anomalyScore,
+                                  "PKC-4"
+                                )
+                              );
+                            }
+                          }
+                        }
+                      } else {
+                        // if it's FP, remove them from the db
+                        delete transferObj[transfer.args.to];
+
+                        if (isPersistenceTime) {
+                          // await persistenceHelper.persist(transferObj, databaseKeys.transfersKey.concat("-", chainId));
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
+      );
+    }
+
+    return findings;
+  };
+
 
 export default {
   initialize: provideInitialize(
