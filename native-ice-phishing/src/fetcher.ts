@@ -8,6 +8,7 @@ import {
   fromTxCountThreshold,
   toTxCountThreshold,
   Response,
+  BUY_TOKENS_SIG,
 } from "./utils";
 import ErrorCache from "./error.cache";
 import * as util from "util";
@@ -606,7 +607,12 @@ export default class DataFetcher {
     }
   };
 
-  hasValidEntries = async (address: string, chainId: number, hash: string) => {
+  hasValidEntries = async (
+    owner: string,
+    address: string,
+    chainId: number,
+    hash: string
+  ) => {
     const maxRetries = 3;
     let result: Response = { message: "", status: "", result: [] };
     let hasValidEntries = false;
@@ -651,13 +657,41 @@ export default class DataFetcher {
         const hasZeroValue = prevEntries.some(
           (prevEntry) => prevEntry.value === "0"
         );
+        const hasOwnerInteractedBefore = prevEntries.some(
+          (prevEntry) => prevEntry.from === owner
+        );
+        const hasLongCalldata = prevEntries.some(
+          (prevEntry) => prevEntry.input.length > 74
+        );
+        const hasRoundValues = prevEntries.some((prevEntry) =>
+          prevEntry.value.endsWith("000000")
+        );
         const hasDuplicateFrom = prevEntries.some(
           (prevEntry, j) =>
             prevEntries.findIndex(
               (otherPrevEntry) => otherPrevEntry.from === prevEntry.from
             ) !== j
         );
-        if (!hasZeroValue && !hasDuplicateFrom) {
+        const hasDuplicateValue = prevEntries.some(
+          (prevEntry, j) =>
+            prevEntries.findIndex(
+              (otherPrevEntry) => otherPrevEntry.value === prevEntry.value
+            ) !== j
+        );
+        // Manually filter out known false positives (buyTokens(uint256) function signature)
+        const hasBuyTokensSig = prevEntries.some((prevEntry) =>
+          prevEntry.input.startsWith(BUY_TOKENS_SIG)
+        );
+
+        if (
+          !hasZeroValue &&
+          !hasOwnerInteractedBefore &&
+          !hasLongCalldata &&
+          !hasRoundValues &&
+          !hasDuplicateFrom &&
+          !hasDuplicateValue &&
+          !hasBuyTokensSig
+        ) {
           hasValidEntries = true;
         }
       }

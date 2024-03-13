@@ -17,6 +17,7 @@ export const TRANSFER_FROM_SIG = "0x23b872dd"; // transferFrom(address,address,u
 export const TRANSFER_SIG = "0xa9059cbb";
 export const PERMIT2_SIG = "0x2a2d80d1"; // permit(address,((address,uint160,uint48,uint48)[],address,uint256),bytes)
 export const PERMIT2_TRANSFER_FROM_SIG = "0x0d58b1db"; // transferFrom((address,address,uint160,address)[])
+export const BUY_TOKENS_SIG = "0x3610724e"; // buyTokens(uint256)
 
 export const OWNER_ABI = [
   "function owner() public view returns (address)",
