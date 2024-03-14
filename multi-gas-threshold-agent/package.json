@@ -1,7 +1,7 @@
 {
   "name": "high-gas-used-bot",
   "displayName": "High Gas Use",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "agentId": "nethforta-1",
   "description": "Bot that detects transactions with unusually high gas used",
   "longDescription": "The bot identifies transactions characterized by an unusual consumption of gas. Its core operation involves systematically assessing each transaction individually, comparing its gas usage against predefined thresholds labeled as MEDIUM_GAS_THRESHOLD and HIGH_GAS_THRESHOLD. ",
@@ -16,20 +16,20 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 7,
-      "target": 3
+      "shards": 10,
+      "target": 2
     },
     "56": {
-      "shards": 9,
-      "target": 3
+      "shards": 13,
+      "target": 2
     },
     "137": {
-      "shards": 6,
-      "target": 3
+      "shards": 9,
+      "target": 2
     },
     "default": {
-      "shards": 2,
-      "target": 3
+      "shards": 3,
+      "target": 2
     }
   },
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/multi-gas-threshold-agent",

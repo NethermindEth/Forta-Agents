@@ -179,7 +179,7 @@ export function provideHandleTransaction(
     const isPotentialAirdrop =
       airdropCountByToken.size > 0 && // Check if there are any token addresses in the map
       [...airdropCountByToken.values()].every((tokenCountMap) => {
-        return [...tokenCountMap.values()].every((count) => count >= AIRDROPS_THRESHOLD);
+        return [...tokenCountMap.values()].some((count) => count >= AIRDROPS_THRESHOLD);
       });
 
     allHighGasAlerts += 1;
