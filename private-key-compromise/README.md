@@ -7,6 +7,7 @@ This bot identifies possible private key compromises by analyzing all the native
 The bot emits an alert under the following conditions:
 
 - If a receiver receives more than 2 transfers from different addresses, either native or ERC20 token (can be 3 native & 0 ERC20 token, 3 ERC20 token & 0 native, 1 native & 2 ERC20 etc.), in 6 hours, it emits an alert.
+  - Additionally, if the receiver then exceeds ten transfers sent to them, an additional alert of higher severity is emitted.
 - The receiver address should be an EOA and should have less than 500 total transactions. (to reduce false positives because of CEX addresses)
 - in order for an ERC20 token transfer to be counted as a drain, the victim’s token balance is checked whether it’s zero for that particular token that is transferred.
 - in order for a native transfer to be counted as a drain, the bot checks the sender’s balance to see if the leftover amount is below the threshold for that particular network. These thresholds can be set inside `src/bot.config.ts`.

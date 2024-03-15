@@ -115,8 +115,12 @@ export default class Fetcher {
         await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true, false))
       ).json();
 
-      const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
-      return isFromFundedByTo;
+      if (result.status === "1" && result.message === "OK") {
+        const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
+        return isFromFundedByTo;
+      } else {
+        return true;
+      }
     } catch (error) {
       console.error(`Error fetching fund info ${from}:`, error);
       return true;
@@ -151,33 +155,42 @@ export default class Fetcher {
     if (
       txs.length != new Set(victimFunders.map((el) => el?.from)).size ||
       txs.length != new Set(victimFunders.map((el) => el?.timestamp)).size
-    )
+    ) {
       return false;
+    } else {
+      return true;
+    }
 
-    // check internal transfers to see if the addresses were funded by the same contract
-    let internalFunders = await Promise.all(
-      txs.map(async (tx) => {
-        try {
-          const internalTxResult = await (
-            await this.fetch(
-              `${etherscanApis[chainId].urlAccount}internal&address=${
-                tx.victimAddress
-              }&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${this.getBlockExplorerKey(chainId)}`
-            )
-          ).json();
+    // NOTE: Commenting out this part as EOAs cannot send internal transactions.
+    // Therefore, this would only really eliminate duplicate contracts.
+    // Because unrelated victim accounts could be funded by widely-used contracts,
+    // and not necessarily be associated with one another,
+    // it is not a great heuristic to rely on unique contracts.
+    //
+    // // check internal transfers to see if the addresses were funded by the same contract
+    // let internalFunders = await Promise.all(
+    //   txs.map(async (tx) => {
+    //     try {
+    //       const internalTxResult = await (
+    //         await this.fetch(
+    //           `${etherscanApis[chainId].urlAccount}internal&address=${
+    //             tx.victimAddress
+    //           }&startblock=0&endblock=99999999&sort=asc&page=1&offset=1&apikey=${this.getBlockExplorerKey(chainId)}`
+    //         )
+    //       ).json();
 
-          if (internalTxResult.result.length) {
-            return internalTxResult.result[0].from;
-          }
-        } catch (error) {
-          console.error(`Error fetching internal transfers ${tx.victimAddress}:`, error);
-        }
-      })
-    );
+    //       if (internalTxResult.result.length) {
+    //         return internalTxResult.result[0].from;
+    //       }
+    //     } catch (error) {
+    //       console.error(`Error fetching internal transfers ${tx.victimAddress}:`, error);
+    //     }
+    //   })
+    // );
 
-    // remove addresses which don't have internal transactions
-    internalFunders = internalFunders.filter((el) => el);
+    // // remove addresses which don't have internal transactions
+    // internalFunders = internalFunders.filter((el) => el);
 
-    return internalFunders.length === new Set(internalFunders).size;
+    // return internalFunders.length === new Set(internalFunders).size;
   };
 }
