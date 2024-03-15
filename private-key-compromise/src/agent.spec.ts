@@ -37,9 +37,23 @@ const senders = [
   createAddress("0x3"),
   createAddress("0x4"),
   createAddress("0x5"),
+  createAddress("0x6"),
+  createAddress("0x7"),
+  createAddress("0x8"),
+  createAddress("0x9"),
+  createAddress("0x10"),
+  createAddress("0x11"),
 ];
 
-const receivers = [createAddress("0x11"), createAddress("0x12"), createAddress("0x13"), createAddress("0x14")];
+const receivers = [
+  createAddress("0x11"),
+  createAddress("0x12"),
+  createAddress("0x13"),
+  createAddress("0x14"),
+  createAddress("0x15"),
+  createAddress("0x16"),
+  createAddress("0x17")
+];
 
 const mockpKCompValueTxns = {};
 
@@ -145,6 +159,60 @@ const createFinding = (
     description: `${from.toString()} transferred funds to ${to}`,
     alertId,
     severity: FindingSeverity.Low,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker: to,
+      victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.3,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: to,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.3,
+        remove: false,
+      }),
+      ...victims,
+    ],
+  });
+};
+
+const createHighVictimAmountFinding = (
+  txHash: string,
+  from: string[],
+  to: string,
+  assets: string[],
+  anomalyScore: number,
+  alertId: string
+): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.3,
+      remove: false,
+    });
+  });
+
+  return Finding.fromObject({
+    name: "Possible private key compromise",
+    description: `${from.length} accounts transferred funds to ${to}`,
+    alertId,
+    severity: FindingSeverity.High,
     type: FindingType.Suspicious,
     metadata: {
       attacker: to,
@@ -437,7 +505,7 @@ describe("Detect Private Key Compromise", () => {
         .addTraces({
           to: createAddress("0x99"),
           function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          arguments: [receivers[4], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[0]);
@@ -447,7 +515,7 @@ describe("Detect Private Key Compromise", () => {
         .addTraces({
           to: createAddress("0x99"),
           function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          arguments: [receivers[4], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[1]);
@@ -457,7 +525,7 @@ describe("Detect Private Key Compromise", () => {
         .addTraces({
           to: createAddress("0x99"),
           function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          arguments: [receivers[4], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[2]);
@@ -467,7 +535,7 @@ describe("Detect Private Key Compromise", () => {
         .addTraces({
           to: createAddress("0x99"),
           function: ERC20_TRANSFER_FUNCTION,
-          arguments: [receivers[1], ethers.BigNumber.from("1000000")],
+          arguments: [receivers[4], ethers.BigNumber.from("1000000")],
           output: [],
         })
         .setFrom(senders[3]);
@@ -477,7 +545,7 @@ describe("Detect Private Key Compromise", () => {
       setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
       setTokenBalance(createAddress("0x99"), 1, senders[3], "0");
 
-      when(mockDataFetcher.isEoa).calledWith(receivers[1]).mockReturnValue(true);
+      when(mockDataFetcher.isEoa).calledWith(receivers[4]).mockReturnValue(true);
       when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
 
       findings = await handleTransaction(txEvent);
@@ -489,7 +557,7 @@ describe("Detect Private Key Compromise", () => {
       findings = await handleTransaction(txEvent3);
 
       expect(findings).toStrictEqual([
-        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[1], [createAddress("0x99")], 0.1, "PKC-3"),
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[4], [createAddress("0x99")], 0.1, "PKC-3"),
       ]);
 
       findings = await handleTransaction(txEvent4);
@@ -536,6 +604,238 @@ describe("Detect Private Key Compromise", () => {
           "PKC-3"
         ),
       ]);
+    });
+
+    it("returns findings if there are 10 native transfers to a single address", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent().setFrom(senders[0]).setTo(receivers[5]);
+      const txEvent2 = new TestTransactionEvent().setFrom(senders[1]).setTo(receivers[5]);
+      const txEvent3 = new TestTransactionEvent().setFrom(senders[2]).setTo(receivers[5]);
+      const txEvent4 = new TestTransactionEvent().setFrom(senders[3]).setTo(receivers[5]);
+      const txEvent5 = new TestTransactionEvent().setFrom(senders[4]).setTo(receivers[5]);
+      const txEvent6 = new TestTransactionEvent().setFrom(senders[5]).setTo(receivers[5]);
+      const txEvent7 = new TestTransactionEvent().setFrom(senders[6]).setTo(receivers[5]);
+      const txEvent8 = new TestTransactionEvent().setFrom(senders[7]).setTo(receivers[5]);
+      const txEvent9 = new TestTransactionEvent().setFrom(senders[8]).setTo(receivers[5]);
+      const txEvent10 = new TestTransactionEvent().setFrom(senders[9]).setTo(receivers[5]);
+      const txEvent11 = new TestTransactionEvent().setFrom(senders[10]).setTo(receivers[5]);
+
+      when(mockDataFetcher.isEoa).calledWith(receivers[5]).mockReturnValue(true);
+
+      txEvent.setValue("110");
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+      txEvent2.setValue("200");
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+      txEvent3.setValue("300");
+      findings = await handleTransaction(txEvent3);
+
+      expect(findings).toStrictEqual([
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[5], ["ETH"], 0.1, "PKC-3"),
+      ]);
+
+      txEvent4.setValue("110");
+      findings = await handleTransaction(txEvent4);
+      expect(findings).toStrictEqual([]);
+      txEvent5.setValue("200");
+      findings = await handleTransaction(txEvent5);
+      expect(findings).toStrictEqual([]);
+      txEvent6.setValue("300");
+      findings = await handleTransaction(txEvent6);
+      txEvent7.setValue("110");
+      findings = await handleTransaction(txEvent7);
+      expect(findings).toStrictEqual([]);
+      txEvent8.setValue("200");
+      findings = await handleTransaction(txEvent8);
+      expect(findings).toStrictEqual([]);
+      txEvent9.setValue("300");
+      findings = await handleTransaction(txEvent9);
+      txEvent10.setValue("300");
+      findings = await handleTransaction(txEvent10);
+
+      expect(findings).toStrictEqual([
+        createHighVictimAmountFinding("0x", [senders[0], senders[1], senders[2], senders[3], senders[4], senders[5], senders[6], senders[7], senders[8], senders[9]], receivers[5], ["ETH"], 0.1, "PKC-4"),
+      ]);
+
+      txEvent11.setValue("110");
+      findings = await handleTransaction(txEvent11);
+      expect(findings).toStrictEqual([]);
+
+    });
+
+    it("returns findings if there are 10 token transfers", async () => {
+      let findings;
+      const txEvent = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[0]);
+
+      const txEvent2 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[1]);
+
+      const txEvent3 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[2]);
+
+      const txEvent4 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[3]);
+
+      const txEvent5 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[4]);
+
+      const txEvent6 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[5]);
+
+      const txEvent7 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[6]);
+
+      const txEvent8 = new TestTransactionEvent()
+        .setBlock(1)
+        .addTraces({
+          to: createAddress("0x99"),
+          function: ERC20_TRANSFER_FUNCTION,
+          arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+          output: [],
+        })
+        .setFrom(senders[7]);
+
+        const txEvent9 = new TestTransactionEvent()
+          .setBlock(1)
+          .addTraces({
+            to: createAddress("0x99"),
+            function: ERC20_TRANSFER_FUNCTION,
+            arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+            output: [],
+          })
+          .setFrom(senders[8]);
+  
+        const txEvent10 = new TestTransactionEvent()
+          .setBlock(1)
+          .addTraces({
+            to: createAddress("0x99"),
+            function: ERC20_TRANSFER_FUNCTION,
+            arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+            output: [],
+          })
+          .setFrom(senders[9]);
+  
+          const txEvent11 = new TestTransactionEvent()
+            .setBlock(1)
+            .addTraces({
+              to: createAddress("0x99"),
+              function: ERC20_TRANSFER_FUNCTION,
+              arguments: [receivers[6], ethers.BigNumber.from("1000000")],
+              output: [],
+            })
+            .setFrom(senders[10]);
+
+      setTokenBalance(createAddress("0x99"), 1, senders[0], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[1], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[2], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[3], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[4], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[5], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[6], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[7], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[8], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[9], "0");
+      setTokenBalance(createAddress("0x99"), 1, senders[10], "0");
+
+      when(mockDataFetcher.isEoa).calledWith(receivers[6]).mockReturnValue(true);
+      when(mockDataFetcher.getSymbol).calledWith(createAddress("0x99"), 1).mockReturnValue("ABC");
+
+      findings = await handleTransaction(txEvent);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent2);
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent3);
+
+      expect(findings).toStrictEqual([
+        createFinding("0x", [senders[0], senders[1], senders[2]], receivers[6], [createAddress("0x99")], 0.1, "PKC-3"),
+      ]);
+
+      findings = await handleTransaction(txEvent4);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent5);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent6);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent7);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent8);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent9);
+
+      expect(findings).toStrictEqual([]);
+
+      findings = await handleTransaction(txEvent10);
+
+      expect(findings).toStrictEqual([
+        createHighVictimAmountFinding("0x", [senders[0], senders[1], senders[2], senders[3], senders[4], senders[5], senders[6], senders[7], senders[8], senders[9]], receivers[6], [createAddress("0x99")], 0.1, "PKC-4"),
+      ]);
+
+      findings = await handleTransaction(txEvent11);
+
+      expect(findings).toStrictEqual([]);
     });
 
     it("returns delayed findings if a victim stays inactive for a week", async () => {

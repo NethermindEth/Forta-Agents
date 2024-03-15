@@ -223,6 +223,8 @@ async (txEvent: TransactionEvent) => {
       databaseKeys.alertedAddressesKey.concat("-", chainId)
     );
 
+    if(to === "0x0000000000000000000000000000000000000015") console.log(`alertedAddresses: ${JSON.stringify(alertedAddresses)}`); 
+
     // Only proceed with addresses that have only emitted an alert for
     // the min. amount of transfers OR have not emitted any alert
     const alertedAddressIndex = alertedAddresses.findIndex((alertedAddress) => alertedAddress.address == to);
@@ -287,7 +289,7 @@ async (txEvent: TransactionEvent) => {
                 // Do not emit "min. transfer amount" alerts if one has been emitted
                 // else
                 // proceed to determining whether a "high transfer amount" alert should be emitted
-                if (alertedAddresses[alertedAddressIndex].minTransferAmountAlerted != true) {
+                if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
                   if (totalTransferValue > priceThreshold) {
                     const anomalyScore = await calculateAlertRate(
                       Number(chainId),
@@ -470,7 +472,7 @@ async (txEvent: TransactionEvent) => {
                         return accumulator + object.valueInUSD;
                       }, 0);
 
-                      if (alertedAddresses[alertedAddressIndex].minTransferAmountAlerted != true) {
+                      if ((alertedAddressIndex >= 0 && alertedAddresses[alertedAddressIndex].minTransferAmountAlerted == false) || alertedAddressIndex < 0) {
                         if (totalTransferValue > priceThreshold) {
                           const anomalyScore = await calculateAlertRate(
                             Number(chainId),
