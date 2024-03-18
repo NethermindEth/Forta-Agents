@@ -30,12 +30,14 @@ import { getSecrets, ApiKeys, BlockExplorerApiKeys } from "./storage";
 import fetch from "node-fetch";
 
 const DATABASE_URL = "https://research.forta.network/database/bot/";
+// Prod keys
 // const DATABASE_OBJECT_KEYS = {
 //   transfersKey: "nm-pk-comp-bot-key-1",
 //   alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1",
 //   queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1",
 // };
 
+// Test keys
 const DATABASE_OBJECT_KEYS = {
   transfersKey: "nm-pk-comp-bot-key-1-test",
   alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1-test",
@@ -222,8 +224,6 @@ async (txEvent: TransactionEvent) => {
     alertedAddresses = await persistenceHelper.load(
       databaseKeys.alertedAddressesKey.concat("-", chainId)
     );
-
-    if(to === "0x0000000000000000000000000000000000000015") console.log(`alertedAddresses: ${JSON.stringify(alertedAddresses)}`); 
 
     // Only proceed with addresses that have only emitted an alert for
     // the min. amount of transfers OR have not emitted any alert
