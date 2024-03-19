@@ -140,7 +140,7 @@ export const wrappedNativeTokens: Record<number, string> = {
   43114: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
 };
 
-export const FILTERED_OUT_ADDRESSES = [
+const FILTERED_OUT_ADDRESSES = [
   "0x00000000000000adc04c56bf30ac9d3c0aaf14dc", // Seaport 1.5,
   "0xdef1c0ded9bec7f1a1670819833240f027b25eff", // 0x Exchange Proxy
   "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", // Uniswap Universal Router
@@ -148,15 +148,68 @@ export const FILTERED_OUT_ADDRESSES = [
   "0xe592427a0aece92de3edee1f18e0157c05861564", // Uniswap V3: Router
   "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45", // Uniswap V3: Router 2
   "0x7a250d5630b4cf539739df2c5dacb4c659f2488d", // Uniswap V2: Router 2
+  "0x6000da47483062a0d734ba3dc7576ce6a0b645c4", // UniswapX Dutch Auction Reactor
   "0xec8b0f7ffe3ae75d7ffab09429e3675bb63503e4", // Uniswap Universal Router (OP)
+  "0xb971ef87ede563556b2ed4b1c0b0019111dd85d2", // Uniswap Swap Router 02 (BSC)
   "0x10ed43c718714eb63d5aa57b78b54704e256024e", // Pancakeswap Router (BSC)
   "0x13f4ea83d0bd40e75c8222255bc855a974568dd4", // Pancakeswap Smart Router V3 (BSC)
+  "0x556b9306565093c855aea9ae92a594704c2cd59e", // Pancakeswap MasterChef V3 (BSC)
+  "0x46a15b0b27311cedf172ab29e4f4766fbe7f4364", // Pancakeswap NFT Position Manager V3 (BSC)
   "0x881d40237659c251811cec9c364ef91dc08d300c", // Metamask Swap Router (ETH)
   "0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31", // Metamask Swap Router (BSC)
   "0x3c11f6265ddec22f4d049dde480615735f451646", // Swapper (BSC)
   "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30", // TraderJoe LB Router (AVAX)
   "0x1111111254eeb25477b68fb85ed929f73a960582", // 1inch Router
+  "0x1a8f43e01b78979eb4ef7febec60f32c9a72f58e", // Bitget Swap Router V1 (BSC)
+  "0xd1ca1f4dbb645710f5d5a9917aa984a47524f49a", // Bitget Swap Router (BSC)
+  "0xdbc1a13490deef9c3c12b44fe77b503c1b061739", // Biswap Masterchef (BSC)
+  "0x00000047bb99ea4d791bb749d970de71ee0b1a34", // Transit Finance Router (BSC)
+  "0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae", // LI.FI Diamon (BSC),
+  "0xd152f549545093347a162dce210e7293f1452150", // Disperse App
+  "0x9333c74bdd1e118634fe5664aca7a9710b108bab", // OKX Dex Router (BSC)
+  "0xd4ae6eca985340dd434d38f470accce4dc78d109", // Thena Router (BSC)
+  "0xd50cf00b6e600dd036ba8ef475677d816d6c4281", // Radiant Lending Pool (BSC)
+  "0xce16F69375520ab01377ce7B88f5BA8C48F8D666", // Squid Router (BSC)
+  "0x53e0e51b5ed9202110d7ecd637a4581db8b9879f", // Dooar Swap Router V2 (BSC)
+  "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff", // QuickSwap Router (Polygon)
+  "0xf5b509bb0909a69b1c207e495f687a596c168e12", // QuickSwap Router V3 (Polygon)
+  "0xf3a3d1b89a70e291531ecb4a1299117f5de44612", // Meta Force: Tactile Matrix Classic (Polygon)
+  "0x415d01fc2266e3c5908e94b8958057936911bed8", // Meta Force: Uniteverse (Polygon)
+  "0x75dc8e5f50c8221a82ca6af64af811caa983b65f", // Layer Zero: Relayer V2 (Polygon)
+  "0xa27a2ca24dd28ce14fb5f5844b59851f03dcf182", // Layer Zero: Relayer V2 (BSC)
+  "0x0c1ebbb61374da1a8c57cb6681bf27178360d36f", // Layer Zero Bridge agEUR (Polygon)
+  "0xec7be89e9d109e7e3fec59c222cf297125fefda2", // Uniswap Universal Router V1 2 V2 Support (Polygon)
+  "0xc36442b4a4522e871399cd717abdd847ab11fe88", // Uniswap V3: Positions NFT (Polygon),
+  "0xdef171fe48cf0115b1d80b88dc8eab59176fee57", // Paraswap V5: Augustus Swapper (Polygon)
+  "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789", // ERC-4337 Entry Point 0.6.0
+  "0x6131b5fae19ea4f9d964eac0408e4408b66337b5", // Kyberswap: Meta Aggregation Router V2
+  "0xbeb09000fa59627dc02bb55448ac1893eaa501a5", // Bepop: Settlement (Polygon)
+  "0xbebebeb035351f58602e0c1c8b59ecbff5d5f47b", // Bepop: JamSettlement (Polygon)
+  "0x78852a22b6178406683afea36d1e4bdd2ff9c08d", // PIX Marketplace (Polygon)
+  "0xa748d6573aca135af68f2635be60cb80278bd855", // OKX Dex Router (Polygon)
+  "0x111111125421ca6dc452d289314280a0f8842a65", // 1inch Router
+  "0x1111111254fb6c44bac0bed2854e76f90643097d", // 1inch Router v4
+  "0x9008d19f58aabd9ed0d60971565aa8510560ab41", // CoW Protocol: GPv2Settlement (Ethereum)
+  "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43", // Coinbase 10 (Ethereum)
+  "0x3328f7f4a1d1c57c35df56bbf0c9dcafca309c49", // Banana Gun: Router V2 (Ethereum)
+  "0x80a64c6d7f12c47b7c66c5b4e20e72bc1fcd5d9e", // Maestro: Router V2 (Ethereum)
+  "0xba12222222228d8ba445958a75a0704d566bf2c8", // Balancer Vault (Ethereum)
+  "0xe66b31678d6c16e9ebf358268a790b763c133750", // 0x: Coinbase Wallet Proxy
+  "0xbcd7254a1d759efa08ec7c3291b2e85c5dcc12ce", // LooksRare Fee Sharing (Ethereum)
+  "0xd91efec7e42f80156d1d9f660a69847188950747", // KuCoin ERC-20 Batch Transfer (Ethereum)
+  "0x3a23f943181408eac424116af7b7790c94cb97a5", // Socket Gateway (BSC)
+  "0x89b8aa89fdd0507a99d334cbe3c808fafc7d850e", // Odos Router V2 (BSC)
+  "0xcf5540fffcdc3d510b18bfca6d2b9987b0772559", // Odos Router V2 (Ethereum)
+  "0xcf0febd3f17cef5b47b0cd257acf6025c5bff3b7", // Apeswap Router (BSC)
+  "0xb099ed146fad4d0daa31e3810591fc0554af62bb", // Bogged Finance Router (BSC)
+  "0xca10e8825fa9f1db0651cd48a9097997dbf7615d", // WooFi Cross Swap Router (BSC)
+  "0x78e51e1420477a50f5ae0cd40ebf6d81bc283e3a", // Matrix Chain Vote Contract (BSC)
+  "0x8a226b70dceb9656eb75545424400128fcef9d9e", // Radiant Capital wETH Gateway (BSC)
+  "0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11", // Aavegotchi: Gotchiverse REALM Diamon (Polygon)
+  "0x19f870bd94a34b3adaa9caa439d333da18d6812a", // Aavegotchi: InstallationDiamond Token (Polygon)
 ];
+
+export const filteredOutAddressesSet = new Set(FILTERED_OUT_ADDRESSES.map((address) => address.toLowerCase()));
 
 export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
   1: [
@@ -288,4 +341,5 @@ export const FUNCTION_ABIS = [
 export const EVENTS_ABIS = [
   "event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)",
   "event WithdrawFromPosition(uint256 indexed tokenId, uint256 amount)",
+  "event Withdrawn(address indexed user, uint256 amount)",
 ];
