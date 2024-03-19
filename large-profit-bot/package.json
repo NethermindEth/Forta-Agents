@@ -1,7 +1,7 @@
 {
   "name": "large-profit-bot",
   "displayName": "Large Profit Bot",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "description": "Forta bot that detects large profits",
   "longDescription": "The bot identifies transactions that lead to substantial profits for the transaction initiators. Its primary function involves closely monitoring transactional activities to identify instances where the resulting profit exceeds the defined thresholds of either $10,000 or more than 5% of the token's total supply. By employing a combination of Moralis and block explorer APIs, the bot aids in timely detection of these sizable profits.",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/large-profit-bot",

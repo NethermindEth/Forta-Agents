@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 jest.mock("node-fetch");
 const { Response } = jest.requireActual("node-fetch");
 
-// [blockNumber, name]
+// [blockNumber, number of decimals]
 const TEST_DECIMALS: [number, number][] = [
   [10, 18],
   [20, 6],

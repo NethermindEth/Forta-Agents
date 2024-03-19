@@ -47,7 +47,7 @@ export default class Fetcher {
     });
     this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
     this.priceCacheExpirationTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-    this.maxRetries = 3;
+    this.maxRetries = 2;
   }
 
   public async getTotalSupply(block: number, tokenAddress: string): Promise<BigNumber> {
@@ -58,7 +58,7 @@ export default class Fetcher {
 
     let totalSupply;
 
-    for (let i = 0; i <= this.maxRetries; i++) {
+    for (let i = 0; i < this.maxRetries; i++) {
       try {
         totalSupply = await token.totalSupply({
           blockTag: block,
@@ -71,7 +71,7 @@ export default class Fetcher {
           console.log(`Unknown error when fetching total supply: ${err}`);
         }
 
-        if (i === this.maxRetries) {
+        if (i === this.maxRetries - 1) {
           totalSupply = ethers.constants.MaxUint256;
           console.log(
             `Failed to fetch total supply for ${tokenAddress} after retries, using default max value ${totalSupply.toString()}`
@@ -95,10 +95,9 @@ export default class Fetcher {
     const key: string = `decimals-${tokenAddress}-${block}`;
     if (this.cache.has(key)) return this.cache.get(key) as number;
 
-    const retryCount = 3;
     let decimals: number = 0;
 
-    for (let i = 0; i <= retryCount; i++) {
+    for (let i = 0; i < this.maxRetries; i++) {
       try {
         decimals = await token.decimals({
           blockTag: block,
@@ -110,7 +109,7 @@ export default class Fetcher {
         } else {
           console.log(`Unknown error when fetching total supply: ${err}`);
         }
-        if (i === retryCount) {
+        if (i === this.maxRetries - 1) {
           decimals = 18;
           console.log(`Failed to fetch decimals for ${tokenAddress} after retries, using default max value: 18`);
           break;
@@ -149,8 +148,7 @@ export default class Fetcher {
       headers: { accept: "application/json", "X-API-Key": moralisApiKey },
     };
 
-    const retryCount = 2;
-    for (let i = 0; i <= retryCount; i++) {
+    for (let i = 0; i < this.maxRetries; i++) {
       const response = (await (
         await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
       ).json()) as any;
@@ -319,17 +317,19 @@ export default class Fetcher {
     const key = this.getBlockExplorerKey(chainId);
     const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
 
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         const result = await (await fetch(url)).json();
 
         if (
           result.message.startsWith("NOTOK") ||
           result.message.startsWith("No data") ||
-          result.message.startsWith("Query Timeout")
+          result.message.startsWith("Query Timeout") ||
+          result.message.startsWith("You are reaching the maximum number of requests") ||
+          !result.result[0]
         ) {
           console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${address}`);
-          if (attempt === this.maxRetries) {
+          if (attempt === this.maxRetries - 1) {
             console.log(`Block explorer error occurred (final attempt); skipping check for ${address}`);
             return {
               contractCreator: null,
@@ -349,7 +349,7 @@ export default class Fetcher {
         }
       } catch (error) {
         console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
-        if (attempt === this.maxRetries) {
+        if (attempt === this.maxRetries - 1) {
           console.error(`Error during fetch (final attempt); skipping check for ${address}`);
           return {
             contractCreator: null,
@@ -380,16 +380,18 @@ export default class Fetcher {
       return true;
     } else {
       // Check if the initiator has interacted with the contract creator before
-      for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      for (let attempt = 0; attempt < this.maxRetries; attempt++) {
         try {
           const result = await (await fetch(this.getEtherscanAddressUrl(initiator, blockNumber, chainId))).json();
           if (
             result.message.startsWith("NOTOK") ||
             result.message.startsWith("No data") ||
-            result.message.startsWith("Query Timeout")
+            result.message.startsWith("Query Timeout") ||
+            result.message.startsWith("You are reaching the maximum number of requests") ||
+            result.message.startsWith("An error occurred")
           ) {
             console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${initiator}`);
-            if (attempt === this.maxRetries) {
+            if (attempt === this.maxRetries - 1) {
               console.log(`Block explorer error occurred (final attempt); skipping check for ${initiator}`);
               return false;
             }
@@ -411,7 +413,7 @@ export default class Fetcher {
           }
         } catch (error) {
           console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
-          if (attempt === this.maxRetries) {
+          if (attempt === this.maxRetries - 1) {
             console.error(`Error during fetch (final attempt); skipping check for ${initiator}`);
             return false;
           }
@@ -459,8 +461,7 @@ export default class Fetcher {
         }
       } else {
         const chain = this.getChainByChainId(chainId);
-        let retryCount = 1;
-        for (let i = 0; i < retryCount; i++) {
+        for (let i = 0; i < this.maxRetries; i++) {
           try {
             response = (await (await fetch(this.getTokenPriceUrl(chain, token))).json()) as any;
             if (response && response["coins"][`${chain}:${token}`]) {

@@ -22,7 +22,7 @@ import {
   filterAddressesInTracesUnsupportedChains,
   GNOSIS_PROXY_EVENT_ABI,
   updateBalanceChangesMap,
-  FILTERED_OUT_ADDRESSES,
+  filteredOutAddressesSet,
   isBatchTransfer,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
@@ -70,8 +70,12 @@ export const provideHandleTransaction =
       .filterLog(ERC20_TRANSFER_EVENT)
       .filter((event) => !event.args.value.eq(ZERO) && event.args.from !== event.args.to);
 
-    // return if it's a single transfer or a single swap
-    if (erc20TransferEvents.length < 3) return findings;
+    // return if it's a single transfer or swap, or if all events are about the same token
+    if (
+      erc20TransferEvents.length < 3 ||
+      erc20TransferEvents.every((event) => event.address === erc20TransferEvents[0].address)
+    )
+      return findings;
 
     if (isBatchTransfer(erc20TransferEvents)) return findings;
 
@@ -90,7 +94,7 @@ export const provideHandleTransaction =
       ) {
         return findings;
       }
-      if (FILTERED_OUT_ADDRESSES.includes(txEvent.to.toLowerCase())) {
+      if (filteredOutAddressesSet.has(txEvent.to.toLowerCase())) {
         return findings;
       }
       let isToAnEOA: boolean = false;
