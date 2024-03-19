@@ -119,6 +119,7 @@ const testCreateFinding = (
 
 const mockTxFrom = createAddress("0x1234");
 const TEST_TOKEN = createAddress("0x2222");
+const TEST_TOKEN_2 = createAddress("0x3333");
 const TRANSFER_IFACE = new Interface([ERC20_TRANSFER_EVENT]);
 
 const transferEvent = TRANSFER_IFACE.getEvent("Transfer");
@@ -283,7 +284,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -314,7 +316,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(0);
     when(mockFetcher.getTotalSupply)
@@ -358,7 +361,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -387,7 +391,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -418,7 +423,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -450,7 +456,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -482,7 +489,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
@@ -514,7 +522,8 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(randomEvent, createAddress("0x1234"), []) //avoid short logs filtering
       .addEventLog(transferEvent, TEST_TOKEN, data)
       .addEventLog(transferEvent, TEST_TOKEN, data2)
-      .addEventLog(transferEvent, TEST_TOKEN, data3);
+      .addEventLog(transferEvent, TEST_TOKEN, data3)
+      .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
