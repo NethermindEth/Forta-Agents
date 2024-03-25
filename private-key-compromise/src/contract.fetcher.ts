@@ -115,7 +115,7 @@ export default class Fetcher {
         await this.fetch(this.getEtherscanAddressUrl(from, chainId, false, false, true, false))
       ).json();
 
-      if (result.status === "1" && result.message === "OK") {
+      if (result.message === "OK") {
         const isFromFundedByTo = result.result.some((tx: any) => tx.from == to);
         return isFromFundedByTo;
       } else {
