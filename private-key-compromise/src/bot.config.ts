@@ -7,6 +7,9 @@ export const timePeriodDays = 0.25;
 
 export const priceThreshold = 100;
 
+export const MIN_TRANSFER_AMOUNT_THRESHOLD = 2;
+export const HIGH_TRANSFER_AMOUNT_THRESHOLD = 10;
+
 // threshold amounts for individual network tokens to be left in an account in order to be considered as drained
 const thresholds = {
   MAINNET_ETH: "0.01",

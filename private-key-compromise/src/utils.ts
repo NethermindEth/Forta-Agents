@@ -1,7 +1,13 @@
 import { timePeriodDays } from "./bot.config";
 
+export const FIVE_MINS_IN_SECS = 60 * 5;
 const ONE_DAY = 24 * 60 * 60;
+export const ONE_WEEK_IN_SECS = ONE_DAY * 7;
 export const TIME_PERIOD = timePeriodDays * ONE_DAY;
+
+const ONE_BLOCK_IN_SECS = 12; // Based on ETH mainnet block time
+export const ONE_DAY_IN_BLOCKS = ONE_DAY / 12;
+export const SIX_HOURS_IN_BLOCKS = (ONE_DAY / 4) / ONE_BLOCK_IN_SECS;
 
 export const MAX_OBJECT_SIZE = 1024 * 1024 * 2;
 
@@ -25,6 +31,15 @@ export type Transfer = Record<
 export type AlertedAddress = {
   address: string;
   timestamp: number;
+};
+
+// Left two properties `optional` for
+// backwards compatibility
+export type UpdatedAlertedAddress = {
+  address: string;
+  timestamp: number;
+  minTransferAmountAlerted?: boolean;
+  highTransferAmountAlerted?: boolean;
 };
 
 export type QueuedAddress = {
@@ -62,22 +77,32 @@ export const updateRecord = async (
    *    attacker1: [{
    *                  victimAddress:   victim1
    *                  transferredAsset: asset1
+   *                  valueInUSD:       price1
+   *                  txHash:            hash1
    *                },
    *                {
    *                  victimAddress:   victim2
    *                  transferredAsset: asset2
+   *                  valueInUSD:       price2
+   *                  txHash:            hash2
    *                }]
    *    attacker2: [{
    *                  victimAddress:   victim1
    *                  transferredAsset: asset1
+   *                  valueInUSD:       price1
+   *                  txHash:            hash1
    *                },
    *                {
    *                  victimAddress:   victim2
    *                  transferredAsset: asset2
+   *                  valueInUSD:       price2
+   *                  txHash:            hash2
    *                },
    *                {
    *                  victimAddress:   victim3
    *                  transferredAsset: asset3
+   *                  valueInUSD:       price3
+   *                  txHash:            hash3
    *                }]
    *    ...
    *  }

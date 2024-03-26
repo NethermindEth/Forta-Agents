@@ -54,6 +54,60 @@ export const createFinding = (
   });
 };
 
+export const createHighVictimAmountFinding = (
+  txHash: string,
+  from: string[],
+  to: string,
+  assets: string[],
+  anomalyScore: number,
+  alertId: string
+): Finding => {
+  const victims = from.map((victim) => {
+    return Label.fromObject({
+      entity: victim,
+      entityType: EntityType.Address,
+      label: "Victim",
+      confidence: 0.3,
+      remove: false,
+    });
+  });
+
+  return Finding.fromObject({
+    name: "Possible private key compromise",
+    description: `${from.length} accounts transferred funds to ${to}`,
+    alertId,
+    severity: FindingSeverity.High,
+    type: FindingType.Suspicious,
+    metadata: {
+      attacker: to,
+      victims: from.toString(),
+      transferredAssets: assets
+        .filter(function (item, pos) {
+          return assets.indexOf(item) == pos;
+        })
+        .toString(),
+      anomalyScore: anomalyScore.toString(),
+    },
+    labels: [
+      Label.fromObject({
+        entity: txHash,
+        entityType: EntityType.Transaction,
+        label: "Attack",
+        confidence: 0.3,
+        remove: false,
+      }),
+      Label.fromObject({
+        entity: to,
+        entityType: EntityType.Address,
+        label: "Attacker",
+        confidence: 0.3,
+        remove: false,
+      }),
+      ...victims,
+    ],
+  });
+};
+
 export const createDelayedFinding = (
   txHash: string,
   from: string,
