@@ -1,11 +1,10 @@
-import { Block, Finding, Initialize, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
+import { Finding, Initialize, TransactionEvent, ethers, getEthersProvider } from "forta-agent";
 import {
   NetworkData,
   Transfer,
   updateRecord,
   TIME_PERIOD,
   AlertedAddress,
-  UpdatedAlertedAddress,
   QueuedAddress,
   ERC20_TRANSFER_FUNCTION,
   deepMerge,
@@ -28,27 +27,13 @@ import CONFIG, { priceThreshold, MIN_TRANSFER_AMOUNT_THRESHOLD, HIGH_TRANSFER_AM
 import { getSecrets, ApiKeys, BlockExplorerApiKeys } from "./storage";
 
 import fetch from "node-fetch";
-import * as dotenv from "dotenv";
-dotenv.config();
 
-const isBeta = process.env.hasOwnProperty("BETA");
 const DATABASE_URL = "https://research.forta.network/database/bot/";
-// Prod keys
-const DATABASE_OBJECT_KEYS_PROD = {
+const DATABASE_OBJECT_KEYS = {
   transfersKey: "nm-pk-comp-bot-key-1",
   alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1",
   queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1",
 };
-
-// Test keys
-const DATABASE_OBJECT_KEYS_BETA = {
-  transfersKey: "nm-pk-comp-bot-key-1-test",
-  alertedAddressesKey: "nm-pk-comp-bot-alerted-addresses-key-1-test",
-  queuedAddressesKey: "nm-pk-comp-bot-queued-addresses-key-1-test",
-};
-
-// Requires adding `BETA=1` to `.env`
-const DATABASE_OBJECT_KEYS = isBeta ? DATABASE_OBJECT_KEYS_BETA : DATABASE_OBJECT_KEYS_PROD;
 
 const BOT_ID = "0x6ec42b92a54db0e533575e4ebda287b7d8ad628b14a2268398fd4b794074ea03";
 
@@ -56,8 +41,7 @@ let chainId: string;
 let apiKeys: ApiKeys;
 let contractFetcher: ContractFetcher;
 let transferObj: Transfer = {};
-// let alertedAddresses: AlertedAddress[] = [];
-let alertedAddresses: UpdatedAlertedAddress[] = []
+let alertedAddresses: AlertedAddress[] = [];
 let queuedAddresses: QueuedAddress[] = [];
 let isRelevantChain: boolean;
 let transfersCount = 0;
