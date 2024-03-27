@@ -31,13 +31,6 @@ export type Transfer = Record<
 export type AlertedAddress = {
   address: string;
   timestamp: number;
-};
-
-// Left two properties `optional` for
-// backwards compatibility
-export type UpdatedAlertedAddress = {
-  address: string;
-  timestamp: number;
   minTransferAmountAlerted?: boolean;
   highTransferAmountAlerted?: boolean;
 };
