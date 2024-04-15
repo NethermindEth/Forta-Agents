@@ -119,7 +119,11 @@ describe("TokenInfoFetcher tests suite", () => {
     expect(fetchedNativeValue).toStrictEqual(2.4);
 
     mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ coins: { "ethereum:0x00000000000000000000000000000000000000a2": { price: 3 } } }))
+      new Response(
+        JSON.stringify({
+          coins: { "ethereum:0x00000000000000000000000000000000000000a2": { price: 3, confidence: 0.99 } },
+        })
+      )
     );
 
     mockProvider.addCallTo(tokenAddress, TEST_BLOCK, TOKEN_IFACE, "decimals", {

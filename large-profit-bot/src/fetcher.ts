@@ -285,15 +285,31 @@ export default class Fetcher {
         return [null, null];
       }
 
-      let numberOfInteractions: number = 0;
-      result.result.forEach((tx: any) => {
-        if (tx.from === txFrom && Number(tx.blockNumber) < blockNumber) {
-          numberOfInteractions++;
-        }
-      });
-
-      const isFirstInteraction = numberOfInteractions === 0;
+      const numberOfInteractions = result.result.filter(
+        (tx: any) => tx.from === txFrom && Number(tx.blockNumber) < blockNumber
+      ).length;
+      let isFirstInteraction = numberOfInteractions === 0;
       const hasHighNumberOfTotalTxs = result.result.length > CONTRACT_TRANSACTION_COUNT_THRESHOLD;
+
+      // If the max tx limit returned by the block explorer is reached and it's the first interaction,
+      // check the past transactions of the initiator
+      if (isFirstInteraction && result.result.length == 10000) {
+        try {
+          const initiatorResult = await (await fetch(this.getEtherscanAddressUrl(txFrom, blockNumber, chainId))).json();
+          if (initiatorResult.message.startsWith("NOTOK") || initiatorResult.message.startsWith("Query Timeout")) {
+            console.log(`block explorer error occured; skipping check for ${contract}`);
+            return [null, null];
+          }
+
+          const initiatorInteractions = initiatorResult.result.filter(
+            (tx: any) => tx.to === contract && Number(tx.blockNumber) < blockNumber
+          ).length;
+          isFirstInteraction = initiatorInteractions === 0;
+        } catch (error) {
+          console.error(`Error getting contract info ${contract}: `, error);
+          return [false, true];
+        }
+      }
 
       return [isFirstInteraction, hasHighNumberOfTotalTxs];
     } catch (error) {
@@ -464,7 +480,12 @@ export default class Fetcher {
         for (let i = 0; i < this.maxRetries; i++) {
           try {
             response = (await (await fetch(this.getTokenPriceUrl(chain, token))).json()) as any;
-            if (response && response["coins"][`${chain}:${token}`]) {
+
+            if (
+              response &&
+              response["coins"][`${chain}:${token}`] &&
+              response["coins"][`${chain}:${token}`]["confidence"] > 0.7
+            ) {
               usdPrice = response["coins"][`${chain}:${token}`]["price"];
               break;
             } else {

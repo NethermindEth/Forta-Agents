@@ -7,7 +7,6 @@ import {
   ethers,
   getEthersProvider,
 } from "forta-agent";
-import LRU from "lru-cache";
 import {
   ERC20_TRANSFER_EVENT,
   LOAN_CREATED_ABI,
@@ -24,6 +23,10 @@ import {
   updateBalanceChangesMap,
   filteredOutAddressesSet,
   isBatchTransfer,
+  ERC721_TRANSFER_EVENT,
+  hasMatchingTokenTransfer,
+  GEARBOX_CREDIT_FACADE_EVENT_ABI,
+  EXECUTE_FUNCTION_ABI,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -35,10 +38,6 @@ let fetcher: Fetcher;
 
 const TX_COUNT_THRESHOLD = 70;
 const MAX_RETRIES = 3;
-
-const contractsCache = new LRU<string, boolean>({
-  max: 10000,
-});
 
 export async function createNewFetcher(provider: ethers.providers.JsonRpcProvider): Promise<Fetcher> {
   const apiKeys = (await getSecrets()) as ApiKeys;
@@ -82,7 +81,14 @@ export const provideHandleTransaction =
     // Filter out FPs
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     const gnosisProxyEvents = txEvent.filterLog(GNOSIS_PROXY_EVENT_ABI);
-    if (loanCreatedEvents.length > 0 || gnosisProxyEvents.length > 0) {
+    const gearboxMulticallEvents = txEvent.filterLog(GEARBOX_CREDIT_FACADE_EVENT_ABI);
+    const executeFunctionInvocations = txEvent.filterFunction(EXECUTE_FUNCTION_ABI);
+    if (
+      loanCreatedEvents.length > 0 ||
+      gnosisProxyEvents.length > 0 ||
+      gearboxMulticallEvents.length > 0 ||
+      executeFunctionInvocations.length > 0
+    ) {
       return findings;
     }
 
@@ -97,23 +103,6 @@ export const provideHandleTransaction =
       if (filteredOutAddressesSet.has(txEvent.to.toLowerCase())) {
         return findings;
       }
-      let isToAnEOA: boolean = false;
-      for (let i = 0; i < MAX_RETRIES; i++) {
-        if (contractsCache.has(txEvent.to)) {
-          break;
-        } else {
-          try {
-            isToAnEOA = (await provider.getCode(txEvent.to, txEvent.blockNumber - 1)) === "0x";
-            if (!isToAnEOA) {
-              contractsCache.set(txEvent.to, true);
-            }
-            break;
-          } catch {
-            await new Promise((resolve) => setTimeout(resolve, 250));
-          }
-        }
-      }
-      if (isToAnEOA) return findings;
 
       if (txEvent.filterFunction(FUNCTION_ABIS).length || txEvent.filterLog(EVENTS_ABIS).length) {
         if (erc20TransferEvents.length < 5) return findings;
@@ -235,7 +224,7 @@ export const provideHandleTransaction =
           // Check the transaction count of the address, removing contracts and high nonce EOAs from the map
           if (txCount > TX_COUNT_THRESHOLD) {
             balanceChangesMap.delete(key);
-          } else if (txCount <= 1) {
+          } else if (txCount <= 3) {
             let isEOA: boolean = false;
 
             for (let i = 0; i < MAX_RETRIES; i++) {
@@ -292,7 +281,7 @@ export const provideHandleTransaction =
       }
       balanceChangesMapUsd.set(key, usdRecord);
     }
-    const largeProfitAddresses: LargeProfitAddress[] = [];
+    let largeProfitAddresses: LargeProfitAddress[] = [];
     balanceChangesMapUsd.forEach((record: Record<string, number>, address: string) => {
       const sum = Object.values(record).reduce((acc, value) => {
         return acc + value;
@@ -381,6 +370,13 @@ export const provideHandleTransaction =
       })
     );
 
+    // Filter out largeProfitAddresses that have sent NFTs (ERC721 tokens) in the transaction
+    const erc721TransferEvents = txEvent.filterLog(ERC721_TRANSFER_EVENT);
+    if (erc721TransferEvents.length) {
+      const nftSenders = new Set(erc721TransferEvents.map((event) => event.args.from));
+      largeProfitAddresses = largeProfitAddresses.filter((address) => !nftSenders.has(address.address));
+    }
+
     if (!(largeProfitAddresses.length > 0)) {
       return findings;
     }
@@ -419,9 +415,23 @@ export const provideHandleTransaction =
 
         // Create a finding only if the funds are not removed from either txEvent.from or txEvent.to (except if it's a very small amount)
         if (fromSum >= -500 && toSum >= -500) {
-          findings.push(
-            createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, txEvent.to)
-          );
+          let matchingTokenTransferFound = false;
+          if (toSum === 0) {
+            // Skip alert generation for transactions where `tx.from` and `tx.to` exchange the same token amount with opposite signs.
+            // Often, there is an exchange of a token and its derivative (e.g., original vs. wrapped versions), where only the original token's price is retrievable.
+            matchingTokenTransferFound = hasMatchingTokenTransfer(txEvent, balanceChangesMap);
+          }
+          if (!matchingTokenTransferFound) {
+            findings.push(
+              createFinding(
+                filteredLargeProfitAddresses,
+                txEvent.hash,
+                FindingSeverity.Medium,
+                txEvent.from,
+                txEvent.to
+              )
+            );
+          }
         }
       } else {
         await Promise.all(

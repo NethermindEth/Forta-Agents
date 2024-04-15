@@ -130,6 +130,33 @@ export const isBatchTransfer = (erc20TransferEvents: LogDescription[]) => {
   return true;
 };
 
+export const hasMatchingTokenTransfer = (
+  txEvent: TransactionEvent,
+  balanceChangesMap: Map<string, { [key: string]: ethers.BigNumber }>
+): boolean => {
+  const toBalanceChanges = balanceChangesMap.get(ethers.utils.getAddress(txEvent.to!));
+  const fromBalanceChanges = balanceChangesMap.get(ethers.utils.getAddress(txEvent.from));
+
+  if (!toBalanceChanges || !fromBalanceChanges) {
+    return false;
+  }
+
+  for (const [toToken, toAmount] of Object.entries(toBalanceChanges!)) {
+    if (toAmount.lt(ethers.constants.Zero)) {
+      for (const [fromToken, fromAmount] of Object.entries(fromBalanceChanges!)) {
+        if (fromAmount.gte(ethers.constants.Zero) && toAmount.abs().eq(fromAmount)) {
+          console.log(
+            `Matching token transfer found: ${toToken} (${toAmount.toString()}) in txEvent.to matches ${fromToken} (${fromAmount.toString()}) in txEvent.from`
+          );
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+};
+
 export const MAX_USD_VALUE = 500000;
 
 export const wrappedNativeTokens: Record<number, string> = {
@@ -200,6 +227,7 @@ const FILTERED_OUT_ADDRESSES = [
   "0x3a23f943181408eac424116af7b7790c94cb97a5", // Socket Gateway (BSC)
   "0x89b8aa89fdd0507a99d334cbe3c808fafc7d850e", // Odos Router V2 (BSC)
   "0xcf5540fffcdc3d510b18bfca6d2b9987b0772559", // Odos Router V2 (Ethereum)
+  "0xa669e7a0d4b3e4fa48af2de86bd4cd7126be4e13", // Odos Router V2 (Arbitrum)
   "0xcf0febd3f17cef5b47b0cd257acf6025c5bff3b7", // Apeswap Router (BSC)
   "0xb099ed146fad4d0daa31e3810591fc0554af62bb", // Bogged Finance Router (BSC)
   "0xca10e8825fa9f1db0651cd48a9097997dbf7615d", // WooFi Cross Swap Router (BSC)
@@ -207,6 +235,11 @@ const FILTERED_OUT_ADDRESSES = [
   "0x8a226b70dceb9656eb75545424400128fcef9d9e", // Radiant Capital wETH Gateway (BSC)
   "0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11", // Aavegotchi: Gotchiverse REALM Diamon (Polygon)
   "0x19f870bd94a34b3adaa9caa439d333da18d6812a", // Aavegotchi: InstallationDiamond Token (Polygon)
+  "0x00000000005bbb0ef59571e58418f9a4357b68a0", // Pendle: Router V3 (Arbitrum)
+  "0x03f34be1bf910116595db1b11e9d1b2ca5d59659", // Tokenlon: DEX 2 (Ethereum),
+  "0x1a0a18ac4becddbd6389559687d1a73d8927e416", // PancakeSwap Universal Router (BSC)
+  "0x196bf3a63c50bca1eff5a5809b72dfc58f0c2c1a", // Radiant Capital: Leverager (Arbitrum)
+  "0xf491e7b69e4244ad4002bc14e878a34207e38c29", // Spookyswap: Router (Fantom)
 ];
 
 export const filteredOutAddressesSet = new Set(FILTERED_OUT_ADDRESSES.map((address) => address.toLowerCase()));
@@ -295,6 +328,8 @@ export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
 export const ZERO = ethers.constants.Zero;
 
 export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
+export const ERC721_TRANSFER_EVENT =
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)";
 
 export const WRAPPED_NATIVE_TOKEN_EVENTS = [
   "event Deposit(address indexed to, uint256 value)",
@@ -316,6 +351,12 @@ export const LOAN_CREATED_ABI = [
 
 export const GNOSIS_PROXY_EVENT_ABI = ["event ExecutionSuccess(bytes32 txHash, uint256 payment)"];
 
+export const GEARBOX_CREDIT_FACADE_EVENT_ABI = [
+  "event StartMultiCall(address indexed creditAccount, address indexed caller)",
+];
+
+export const EXECUTE_FUNCTION_ABI = ["function execute(address target, bytes data)"];
+
 export interface LargeProfitAddress {
   address: string;
   confidence: number;
@@ -333,13 +374,18 @@ export const FUNCTION_ABIS = [
   "function removeLiquidityETHWithPermit(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)",
   "function removeLiquidityETHSupportingFeeOnTransferTokens(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline)",
   "function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address token, uint liquidity, uint amountTokenMin, uint amountETHMin, address to, uint deadline, bool approveMax, uint8 v, bytes32 r, bytes32 s)",
+  "function removeLiquidity(uint256 id, uint32 portion)",
   "function burn(int24 tickLower, int24 tickUpper, uint128 amount)",
   "function borrow(uint256 amount, uint64 maxAPR)",
   "function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)",
+  "function swap(uint256 amount)",
+  "function withdrawAndUnwrap(uint256 amount)",
 ];
 
 export const EVENTS_ABIS = [
   "event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)",
   "event WithdrawFromPosition(uint256 indexed tokenId, uint256 amount)",
   "event Withdrawn(address indexed user, uint256 amount)",
+  "event Burn(address indexed from, address indexed target, uint256 value, uint256 index)",
+  "event RewardClaimed(bytes32 indexed identifier, address indexed token, address indexed account, uint256 amount)", // Redacted Finance
 ];
