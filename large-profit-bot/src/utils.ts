@@ -194,6 +194,7 @@ const FILTERED_OUT_ADDRESSES = [
   "0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae", // LI.FI Diamon (BSC),
   "0xd152f549545093347a162dce210e7293f1452150", // Disperse App
   "0x9333c74bdd1e118634fe5664aca7a9710b108bab", // OKX Dex Router (BSC)
+  "0xf332761c673b59B21fF6dfa8adA44d78c12dEF09", // OKX Dex Router (Fantom)
   "0xd4ae6eca985340dd434d38f470accce4dc78d109", // Thena Router (BSC)
   "0xd50cf00b6e600dd036ba8ef475677d816d6c4281", // Radiant Lending Pool (BSC)
   "0xce16F69375520ab01377ce7B88f5BA8C48F8D666", // Squid Router (BSC)
@@ -235,11 +236,13 @@ const FILTERED_OUT_ADDRESSES = [
   "0x8a226b70dceb9656eb75545424400128fcef9d9e", // Radiant Capital wETH Gateway (BSC)
   "0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11", // Aavegotchi: Gotchiverse REALM Diamon (Polygon)
   "0x19f870bd94a34b3adaa9caa439d333da18d6812a", // Aavegotchi: InstallationDiamond Token (Polygon)
-  "0x00000000005bbb0ef59571e58418f9a4357b68a0", // Pendle: Router V3 (Arbitrum)
+  "0x00000000005bbb0ef59571e58418f9a4357b68a0", // Pendle: Router V3 (Arbitrum/Ethereum)
   "0x03f34be1bf910116595db1b11e9d1b2ca5d59659", // Tokenlon: DEX 2 (Ethereum),
   "0x1a0a18ac4becddbd6389559687d1a73d8927e416", // PancakeSwap Universal Router (BSC)
   "0x196bf3a63c50bca1eff5a5809b72dfc58f0c2c1a", // Radiant Capital: Leverager (Arbitrum)
   "0xf491e7b69e4244ad4002bc14e878a34207e38c29", // Spookyswap: Router (Fantom)
+  "0xa7995f71aa11525db02fc2473c37dee5dbf55107", // Morpho: ETH Bundler (Ethereum)
+  "0x4095f064b8d3c3548a3bebfd0bbfd04750e30077", // Morpho: ETH Bundler V2 (Ethereum)
 ];
 
 export const filteredOutAddressesSet = new Set(FILTERED_OUT_ADDRESSES.map((address) => address.toLowerCase()));
@@ -328,9 +331,10 @@ export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
 export const ZERO = ethers.constants.Zero;
 
 export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const ERC721_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)";
-
+export const NFT_TRANSFER_EVENTS = [
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+  "event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256 id, uint256 value)",
+];
 export const WRAPPED_NATIVE_TOKEN_EVENTS = [
   "event Deposit(address indexed to, uint256 value)",
   "event Withdrawal(address indexed from, uint256 value)",
@@ -350,12 +354,12 @@ export const LOAN_CREATED_ABI = [
 ];
 
 export const GNOSIS_PROXY_EVENT_ABI = ["event ExecutionSuccess(bytes32 txHash, uint256 payment)"];
-
 export const GEARBOX_CREDIT_FACADE_EVENT_ABI = [
   "event StartMultiCall(address indexed creditAccount, address indexed caller)",
 ];
-
 export const EXECUTE_FUNCTION_ABI = ["function execute(address target, bytes data)"];
+export const SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS = ["0x1dc437b1", "0x49bc17e9"]; // swapExactETHForTokens(uint256), similar unknown selector
+export const CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR = "0x4ab794a3"; // withdrawLockedAndUnwrap(bytes32 _kek_id)
 
 export interface LargeProfitAddress {
   address: string;
@@ -377,15 +381,29 @@ export const FUNCTION_ABIS = [
   "function removeLiquidity(uint256 id, uint32 portion)",
   "function burn(int24 tickLower, int24 tickUpper, uint128 amount)",
   "function borrow(uint256 amount, uint64 maxAPR)",
+  "function borrow(uint128 amount, address recipient)",
   "function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)",
   "function swap(uint256 amount)",
   "function withdrawAndUnwrap(uint256 amount)",
+  "function unstake(uint256 amount, bool trigger)",
+  "function unstake(uint256 amount)",
+  "function instantWithdraw(uint256 amount, uint256 shares)",
 ];
 
 export const EVENTS_ABIS = [
   "event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)",
   "event WithdrawFromPosition(uint256 indexed tokenId, uint256 amount)",
+  "event Withdraw(address indexed user, uint256 amount)",
+  "event Withdraw(address indexed user, uint256 indexed pid, uint256 amount)",
+  "event Withdraw(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares)",
   "event Withdrawn(address indexed user, uint256 amount)",
+  "event Withdrawn(address indexed supplier, address indexed receiver, address indexed token, uint256 amount, uint256 balanceOnPool, uint256 balanceInP2P)",
+  "event WithdrawThenBurn(address indexed user, uint256 amount, uint256 amount0, uint256 amount1)",
+  "event WithdrawLocked(address indexed user, uint256 amount, bytes32 kek_id, address destination)",
+  "event WithdrawFund(address indexed user, uint256 amount, address indexed index)",
+  "event Withdrawal(address indexed account, uint256 ethAmount, address[] tokens, uint256[] tokenAmounts)",
   "event Burn(address indexed from, address indexed target, uint256 value, uint256 index)",
   "event RewardClaimed(bytes32 indexed identifier, address indexed token, address indexed account, uint256 amount)", // Redacted Finance
+  "event Claim(address token, address account, uint256 amount, uint256 startInterval, uint256 endInterval)",
+  "event LogCast(address indexed origin, address indexed sender, uint256 value, string[] targetsNames, address[] targets, string[] eventNames, bytes[] eventsParams)",
 ];
