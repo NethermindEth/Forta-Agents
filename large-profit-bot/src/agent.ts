@@ -23,10 +23,12 @@ import {
   updateBalanceChangesMap,
   filteredOutAddressesSet,
   isBatchTransfer,
-  ERC721_TRANSFER_EVENT,
   hasMatchingTokenTransfer,
   GEARBOX_CREDIT_FACADE_EVENT_ABI,
   EXECUTE_FUNCTION_ABI,
+  NFT_TRANSFER_EVENTS,
+  SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS,
+  CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -83,11 +85,19 @@ export const provideHandleTransaction =
     const gnosisProxyEvents = txEvent.filterLog(GNOSIS_PROXY_EVENT_ABI);
     const gearboxMulticallEvents = txEvent.filterLog(GEARBOX_CREDIT_FACADE_EVENT_ABI);
     const executeFunctionInvocations = txEvent.filterFunction(EXECUTE_FUNCTION_ABI);
+    const IsSwapExactETHForTokensInvocation = SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS.some((selector) =>
+      txEvent.transaction.data.startsWith(selector)
+    );
+    const IsConvexWithdrawLockedAndUnwrapInvocation = txEvent.transaction.data.startsWith(
+      CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR
+    );
     if (
       loanCreatedEvents.length > 0 ||
       gnosisProxyEvents.length > 0 ||
       gearboxMulticallEvents.length > 0 ||
-      executeFunctionInvocations.length > 0
+      executeFunctionInvocations.length > 0 ||
+      IsSwapExactETHForTokensInvocation ||
+      IsConvexWithdrawLockedAndUnwrapInvocation
     ) {
       return findings;
     }
@@ -369,11 +379,10 @@ export const provideHandleTransaction =
         }
       })
     );
-
-    // Filter out largeProfitAddresses that have sent NFTs (ERC721 tokens) in the transaction
-    const erc721TransferEvents = txEvent.filterLog(ERC721_TRANSFER_EVENT);
-    if (erc721TransferEvents.length) {
-      const nftSenders = new Set(erc721TransferEvents.map((event) => event.args.from));
+    // Filter out largeProfitAddresses that have sent NFTs in the transaction
+    const nftTransferEvents = txEvent.filterLog(NFT_TRANSFER_EVENTS);
+    if (nftTransferEvents.length) {
+      const nftSenders = new Set(nftTransferEvents.map((event) => event.args.from));
       largeProfitAddresses = largeProfitAddresses.filter((address) => !nftSenders.has(address.address));
     }
 
