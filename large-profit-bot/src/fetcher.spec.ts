@@ -40,6 +40,7 @@ const testKeys = {
     largeProfit: {
       ethplorerApiKeys: ["TestEthplorer"],
       chainbaseApiKeys: ["TestChainbase"],
+      moralisApiKeys: ["TestMoralis"],
       etherscanApiKeys: ["TestEtherscan"],
       optimisticEtherscanApiKeys: ["TestOptimisticEtherscan"],
       bscscanApiKeys: ["TestBscscan"],
@@ -54,6 +55,7 @@ const testKeys = {
 describe("TokenInfoFetcher tests suite", () => {
   const mockProvider: MockEthersProvider = new MockEthersProvider();
   let fetcher: Fetcher;
+  let maxRetries = 2;
 
   beforeAll(() => {
     fetcher = new Fetcher(mockProvider as any, testKeys);
@@ -70,18 +72,18 @@ describe("TokenInfoFetcher tests suite", () => {
         outputs: [totalSupply],
       });
 
-      const fetchedTotalSupply = await fetcher.getTotalSupply(block, token);
+      const fetchedTotalSupply = await fetcher.getTotalSupply(block, token, maxRetries);
       expect(fetchedTotalSupply).toStrictEqual(totalSupply);
     }
-    expect(mockProvider.call).toBeCalledTimes(5);
+    expect(mockProvider.call).toHaveBeenCalledTimes(5);
 
     // clear mockProvider to use cache
     mockProvider.clear();
     for (let [block, token, totalSupply] of TEST_TOTAL_SUPPLIES) {
-      const fetchedTotalSupply = await fetcher.getTotalSupply(block, token);
+      const fetchedTotalSupply = await fetcher.getTotalSupply(block, token, maxRetries);
       expect(fetchedTotalSupply).toStrictEqual(totalSupply);
     }
-    expect(mockProvider.call).toBeCalledTimes(5);
+    expect(mockProvider.call).toHaveBeenCalledTimes(5);
 
     mockProvider.clear();
   });
@@ -197,7 +199,7 @@ describe("TokenInfoFetcher tests suite", () => {
       )
     );
 
-    const { contractCreator, creationTxHash } = await fetcher.getContractCreationInfo(PROTOCOL_ADDRESS, chainId);
+    const { contractCreator, creationTxHash } = (await fetcher.getContractCreationInfo(PROTOCOL_ADDRESS, chainId))[0];
     expect(contractCreator).toStrictEqual(mockContractCreator);
     expect(creationTxHash).toStrictEqual(mockContractCreationTxHash);
   });
@@ -223,6 +225,15 @@ describe("TokenInfoFetcher tests suite", () => {
       )
     );
 
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [],
+        })
+      )
+    );
+
     const isContractCreatedByTxInitiator = await fetcher.isContractCreatedByInitiator(
       mockContractAddress,
       mockContractCreator, // tx initiator is the contract creator
@@ -230,7 +241,7 @@ describe("TokenInfoFetcher tests suite", () => {
       chainId
     );
 
-    expect(isContractCreatedByTxInitiator).toStrictEqual(true);
+    expect(isContractCreatedByTxInitiator[mockContractAddress]).toStrictEqual(true);
 
     const mockTxFrom = createAddress("0x1238");
     const mockContractAddress2 = createAddress("0x221236");
@@ -265,6 +276,15 @@ describe("TokenInfoFetcher tests suite", () => {
       )
     );
 
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: "OK",
+          result: [],
+        })
+      )
+    );
+
     const isContractCreatedByTxInitiator2 = await fetcher.isContractCreatedByInitiator(
       mockContractAddress2,
       mockTxFrom,
@@ -272,6 +292,6 @@ describe("TokenInfoFetcher tests suite", () => {
       chainId
     );
 
-    expect(isContractCreatedByTxInitiator2).toStrictEqual(true);
+    expect(isContractCreatedByTxInitiator2[mockContractAddress2]).toStrictEqual(true);
   });
 });
