@@ -115,19 +115,27 @@ export const updateBalanceChangesMap = (
   }
 };
 
-export const isBatchTransfer = (erc20TransferEvents: LogDescription[]) => {
-  if (erc20TransferEvents.length <= 50) {
+export const isBatchTransfer = async (erc20TransferEvents: LogDescription[], provider: ethers.providers.Provider) => {
+  if (erc20TransferEvents.length <= 30) {
     return false;
   }
 
   const firstAddress = erc20TransferEvents[0].address;
+  const firstReceiver = erc20TransferEvents[0].args.to;
   for (let i = 1; i < erc20TransferEvents.length; i++) {
     if (erc20TransferEvents[i].address !== firstAddress) {
       return false;
     }
   }
 
-  return true;
+  if (!erc20TransferEvents.every((event) => event.args.to === firstReceiver)) return true;
+
+  const containsContract = (
+    await Promise.all(erc20TransferEvents.map(async (event) => (await provider.getCode(event.args.from)) !== "0x"))
+  ).some((result) => result);
+  if (containsContract) return true;
+
+  return false;
 };
 
 export const hasMatchingTokenTransfer = (
@@ -172,6 +180,7 @@ const FILTERED_OUT_ADDRESSES = [
   "0xdef1c0ded9bec7f1a1670819833240f027b25eff", // 0x Exchange Proxy
   "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad", // Uniswap Universal Router
   "0xef1c6e67703c7bd7107eed8303fbe6ec2554bf6b", // Uniswap Universal Router V2
+  "0x4dae2f939acf50408e13d58534ff8c2776d45265", // Uniswap Universal Router (Uniswap)
   "0xe592427a0aece92de3edee1f18e0157c05861564", // Uniswap V3: Router
   "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45", // Uniswap V3: Router 2
   "0x7a250d5630b4cf539739df2c5dacb4c659f2488d", // Uniswap V2: Router 2
@@ -184,12 +193,15 @@ const FILTERED_OUT_ADDRESSES = [
   "0x46a15b0b27311cedf172ab29e4f4766fbe7f4364", // Pancakeswap NFT Position Manager V3 (BSC)
   "0x881d40237659c251811cec9c364ef91dc08d300c", // Metamask Swap Router (ETH)
   "0x1a1ec25dc08e98e5e93f1104b5e5cdd298707d31", // Metamask Swap Router (BSC)
+  "0x9dda6ef3d919c9bc8885d5560999a3640431e8e6", // Metamask Swap Router (Arbitrum)
+  "0x9c9c920e51778c4abf727b8bb223e78132f00aa4", // SpookySwap: MasterChef V2 (Fantom)
   "0x3c11f6265ddec22f4d049dde480615735f451646", // Swapper (BSC)
   "0xb4315e873dbcf96ffd0acd8ea43f689d8c20fb30", // TraderJoe LB Router (AVAX)
   "0x1111111254eeb25477b68fb85ed929f73a960582", // 1inch Router
   "0x1a8f43e01b78979eb4ef7febec60f32c9a72f58e", // Bitget Swap Router V1 (BSC)
   "0xd1ca1f4dbb645710f5d5a9917aa984a47524f49a", // Bitget Swap Router (BSC)
   "0xdbc1a13490deef9c3c12b44fe77b503c1b061739", // Biswap Masterchef (BSC)
+  "0xa6fa4115f9c6b3aca9454df84b43deb7fe389019", // Biswap V3 Positions (BSC)
   "0x00000047bb99ea4d791bb749d970de71ee0b1a34", // Transit Finance Router (BSC)
   "0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae", // LI.FI Diamon (BSC),
   "0xd152f549545093347a162dce210e7293f1452150", // Disperse App
@@ -207,6 +219,8 @@ const FILTERED_OUT_ADDRESSES = [
   "0xa27a2ca24dd28ce14fb5f5844b59851f03dcf182", // Layer Zero: Relayer V2 (BSC)
   "0x0c1ebbb61374da1a8c57cb6681bf27178360d36f", // Layer Zero Bridge agEUR (Polygon)
   "0xec7be89e9d109e7e3fec59c222cf297125fefda2", // Uniswap Universal Router V1 2 V2 Support (Polygon)
+  "0x5e325eda8064b456f4781070c0738d849c824258", // Uniswap Universal Router V1 2 V2 Support (Arbitrum)
+  "0xcb1355ff08ab38bbce60111f1bb2b784be25d7e8", // Uniswap Universal Router V1 2 V2 Support (Optimism)
   "0xc36442b4a4522e871399cd717abdd847ab11fe88", // Uniswap V3: Positions NFT (Polygon),
   "0xdef171fe48cf0115b1d80b88dc8eab59176fee57", // Paraswap V5: Augustus Swapper (Polygon)
   "0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789", // ERC-4337 Entry Point 0.6.0
@@ -229,6 +243,8 @@ const FILTERED_OUT_ADDRESSES = [
   "0x89b8aa89fdd0507a99d334cbe3c808fafc7d850e", // Odos Router V2 (BSC)
   "0xcf5540fffcdc3d510b18bfca6d2b9987b0772559", // Odos Router V2 (Ethereum)
   "0xa669e7a0d4b3e4fa48af2de86bd4cd7126be4e13", // Odos Router V2 (Arbitrum)
+  "0xca423977156bb05b13a2ba3b76bc5419e2fe9680", // Odos Router V2 (Optimism)
+  "0xd0c22a5435f4e8e5770c1fafb5374015fc12f7cd", // Odos Router V2 (Fantom)
   "0xcf0febd3f17cef5b47b0cd257acf6025c5bff3b7", // Apeswap Router (BSC)
   "0xb099ed146fad4d0daa31e3810591fc0554af62bb", // Bogged Finance Router (BSC)
   "0xca10e8825fa9f1db0651cd48a9097997dbf7615d", // WooFi Cross Swap Router (BSC)
@@ -237,12 +253,35 @@ const FILTERED_OUT_ADDRESSES = [
   "0x1d0360bac7299c86ec8e99d0c1c9a95fefaf2a11", // Aavegotchi: Gotchiverse REALM Diamon (Polygon)
   "0x19f870bd94a34b3adaa9caa439d333da18d6812a", // Aavegotchi: InstallationDiamond Token (Polygon)
   "0x00000000005bbb0ef59571e58418f9a4357b68a0", // Pendle: Router V3 (Arbitrum/Ethereum)
+  "0x888888888889758F76e7103c6CbF23ABbF58F946", // Pendle: Router V4 (Arbitrum/Ethereum)
   "0x03f34be1bf910116595db1b11e9d1b2ca5d59659", // Tokenlon: DEX 2 (Ethereum),
   "0x1a0a18ac4becddbd6389559687d1a73d8927e416", // PancakeSwap Universal Router (BSC)
   "0x196bf3a63c50bca1eff5a5809b72dfc58f0c2c1a", // Radiant Capital: Leverager (Arbitrum)
   "0xf491e7b69e4244ad4002bc14e878a34207e38c29", // Spookyswap: Router (Fantom)
+  "0x6ab0ca9c94fde313a3a1d34a8247ae6065bd2e73", // Spookyswap: Universal Router (Fantom)
+  "0x31f63a33141ffee63d4b26755430a390acdd8a4d", // Spookyswap: Liquidity Brewer (Fantom)
   "0xa7995f71aa11525db02fc2473c37dee5dbf55107", // Morpho: ETH Bundler (Ethereum)
   "0x4095f064b8d3c3548a3bebfd0bbfd04750e30077", // Morpho: ETH Bundler V2 (Ethereum)
+  "0x13761d473ff1478957adb80cb4e58e0af76d2c51", // Beefy Zap Router (Fantom)
+  "0x4178E335bd36295FFbC250490edbB6801081D022", // WigoSwap Vault (Fantom)
+  "0xf0d4c12a5768d806021f80a262b4d39d26c58b8d", // Curve Router (Ethereum)
+  "0x400d75dAb26bBc18D163AEA3e83D9Ea68F6c1804", // SushiSwap RouteProcessor3 (BNB Chain)
+  "0x33d91116e0370970444b0281ab117e161febfcdd", // SushiSwap RouteProcessor4 (BNB Chain)
+  "0x544ba588efd839d2692fc31ea991cd39993c135f", // RouteProcessor4 (Arbitrum)
+  "0x46b3fdf7b5cde91ac049936bf0bdb12c5d22202e", // RouteProcessor4 (Fantom)
+  "0x74a09653a083691711cf8215a6ab074bb4e99ef5", // Renzo Protocol: Deposit (Ethereum)
+  "0xf3de3c0d654fda23dad170f0f320a92172509127", // Custom Router (Ethereum)
+  "0xeddb16da43daed83158417955dc0c402c61e7e7d", // Custom Router (BNB Chain)
+  "0x213c9062d6d00a06812b1de290c1a4a6cde17380", // Custom Proxy (Polygon)
+  "0x6352a56caadc4f1e25cd6c75970fa768a3304e64", // OpenOcean Exchange V2 (Fantom)
+  "0x2cf641f7c0eac2788a7924b82d6ca8eb7baa4e3a", // Paraswap Liquidity Swap Adapter (Avalanche)
+  "0x589a2b78768885f5a66446f3340922e3e6c9ac88", // Lyve Finance: Borrower Operations (Ethereum)
+  "0x3f29cb4111cbda8081642da1f75b3c12decf2516", // ClaimZap (Ethereum)
+  "0x551c6791c2f01c3cd48cd35291ac4339f206430d", // Transfers (Polygon)
+  "0x11e590f6092d557bf71baded50d81521674f8275", // GMX Exchange Router (Avalanche)
+  "0xe54ca86531e17ef3616d22ca28b0d458b6c89106", // Pangolin Router (Avalanche)
+  "0x05498574bd0fa99eecb01e1241661e7ee58f8a85", // Portico (BSC)
+  "0x69460570c93f9de5e2edbc3052bf10125f0ca22d", // Rango Diamond (Ethereum)
 ];
 
 export const filteredOutAddressesSet = new Set(FILTERED_OUT_ADDRESSES.map((address) => address.toLowerCase()));
@@ -328,6 +367,8 @@ export const nftCollateralizedLendingProtocols: Record<number, string[]> = {
   ],
 };
 
+export const METIS_TOKEN_BSC = "0xe552fb52a4f19e44ef5a967632dbc320b0820639";
+
 export const ZERO = ethers.constants.Zero;
 
 export const ERC20_TRANSFER_EVENT = "event Transfer(address indexed from, address indexed to, uint256 value)";
@@ -357,8 +398,10 @@ export const GNOSIS_PROXY_EVENT_ABI = ["event ExecutionSuccess(bytes32 txHash, u
 export const GEARBOX_CREDIT_FACADE_EVENT_ABI = [
   "event StartMultiCall(address indexed creditAccount, address indexed caller)",
 ];
+export const INSTADAPP_CAST_EVENT =
+  "event LogCast(address indexed origin, address indexed sender, uint256 value, string[] targetsNames, address[] targets, string[] eventNames, bytes[] eventsParams)";
 export const EXECUTE_FUNCTION_ABI = ["function execute(address target, bytes data)"];
-export const SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS = ["0x1dc437b1", "0x49bc17e9"]; // swapExactETHForTokens(uint256), similar unknown selector
+export const SWAP_SELECTORS = ["0x1dc437b1", "0x49bc17e9", "0xc10bea5c", "0x56feb11b"]; // swapExactETHForTokens(uint256), similar unknown selector, swap(tuple desc,tuple callbytesDesc), swapTokensForEth(address router, uint256 tokenAmount)
 export const CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR = "0x4ab794a3"; // withdrawLockedAndUnwrap(bytes32 _kek_id)
 
 export interface LargeProfitAddress {
@@ -385,9 +428,19 @@ export const FUNCTION_ABIS = [
   "function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)",
   "function swap(uint256 amount)",
   "function withdrawAndUnwrap(uint256 amount)",
+  "function withdraw(address recipient, address token, uint256 amountShares, bytes data)",
   "function unstake(uint256 amount, bool trigger)",
   "function unstake(uint256 amount)",
   "function instantWithdraw(uint256 amount, uint256 shares)",
+  "function reduceStakeTo(address sponsorship, uint256 targetStakeWei)",
+  "function swap((uint256,address,address,address,address,uint256,uint256))",
+  "function executeSwap((address maker, address takerToken, uint256 takerTokenAmout, address makerToken, uint256 makerTokenAmount, uint256 minMakerTokenAmount, uint256 expiry, uint256 salt, address recipient, bytes strategyData),bytes takerTokenPermit)",
+  "function withdrawLiquidityAndClaim(address tokenA, address tokenB, uint256 liquidityToWithdraw, uint256 minReclaimedA, uint256 minReclaimedB, uint256 deadline)",
+  "function withdrawBaseToken(address receiver, uint256 minBaseOut)",
+  "function unlock(bytes memory proof, bytes memory rawHeader, bytes memory headerProof, bytes memory curRawHeader, bytes memory headerSig)",
+  "function withdrawBurnRewardByAddress()",
+  "function rollRound(string[] tickers, uint256[] lockedBalances)",
+  "function buy(uint256 id, uint256 amount)",
 ];
 
 export const EVENTS_ABIS = [
@@ -395,15 +448,30 @@ export const EVENTS_ABIS = [
   "event WithdrawFromPosition(uint256 indexed tokenId, uint256 amount)",
   "event Withdraw(address indexed user, uint256 amount)",
   "event Withdraw(address indexed user, uint256 indexed pid, uint256 amount)",
+  "event Withdraw(uint256 indexed pool, address indexed user, uint256 amount, uint256 timestamp)",
+  "event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount)",
   "event Withdraw(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares)",
+  "event Withdraw(address indexed asset, address indexed operator, address indexed receiver, uint256 amount, bool collateralOnly)",
+  "event Withdraw(address indexed user, uint256 indexed poolId, uint256 indexed targetChainId, uint256 shares, uint256 wantAmount)",
   "event Withdrawn(address indexed user, uint256 amount)",
+  "event Withdrawn(address indexed investor, address indexed beneficiary, uint256 amount)",
   "event Withdrawn(address indexed supplier, address indexed receiver, address indexed token, uint256 amount, uint256 balanceOnPool, uint256 balanceInP2P)",
   "event WithdrawThenBurn(address indexed user, uint256 amount, uint256 amount0, uint256 amount1)",
   "event WithdrawLocked(address indexed user, uint256 amount, bytes32 kek_id, address destination)",
   "event WithdrawFund(address indexed user, uint256 amount, address indexed index)",
   "event Withdrawal(address indexed account, uint256 ethAmount, address[] tokens, uint256[] tokenAmounts)",
+  "event WithdrawAdded(address indexed user, uint256 addedAmount, uint256 totalAmount)",
   "event Burn(address indexed from, address indexed target, uint256 value, uint256 index)",
   "event RewardClaimed(bytes32 indexed identifier, address indexed token, address indexed account, uint256 amount)", // Redacted Finance
+  "event RewardClaimed(address indexed user, address indexed market, address indexed token, uint256 epoch, uint256 released, uint256 unreleased)",
   "event Claim(address token, address account, uint256 amount, uint256 startInterval, uint256 endInterval)",
-  "event LogCast(address indexed origin, address indexed sender, uint256 value, string[] targetsNames, address[] targets, string[] eventNames, bytes[] eventsParams)",
+  "event Claimed(address indexed rewardToken, address indexed claimer, uint256 indexed batchId, uint256 amount)",
+  "event Unstaked(address account)",
+  "event Unstaked(uint256 depositId, address indexed user, uint256 amount)",
+  "event Unstaked(address indexed user, uint256 stakeNumber, uint256 amount)",
+  "event GnsClaimed(address indexed staker, uint256[] ids, uint128 amountGns)",
+  "event ValidatorsRedeemed(uint256 indexed count, uint256 indexed amount)",
+  "event MintAndWithdraw(address indexed mintRecipient, uint256 amount, address indexed mintToken)",
+  "event BillClaimed(uint256 indexed billId, address indexed recipient, uint256 payout, uint256 remaining)",
+  "event Liquidate(bytes indexed id, address indexed caller, address indexed borrower, uint256 repaidAssets, uint256 repaidShares, uint256 seizedAssets, uint256 badDebtAssets, uint256 badDebtShares)",
 ];

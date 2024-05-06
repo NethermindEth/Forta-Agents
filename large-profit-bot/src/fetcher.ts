@@ -2,6 +2,7 @@ import { providers, Contract, BigNumber, ethers } from "ethers";
 import LRU from "lru-cache";
 import { Interface } from "ethers/lib/utils";
 import fetch from "node-fetch";
+import Moralis from "moralis";
 import { MAX_USD_VALUE, TOKEN_ABI } from "./utils";
 import { CONTRACT_TRANSACTION_COUNT_THRESHOLD, etherscanApis } from "./config";
 
@@ -13,6 +14,7 @@ export type ApiKeys = {
     largeProfit: {
       ethplorerApiKeys: string[];
       chainbaseApiKeys: string[];
+      moralisApiKeys: string[];
       etherscanApiKeys: string[];
       optimisticEtherscanApiKeys: string[];
       bscscanApiKeys: string[];
@@ -48,9 +50,19 @@ export default class Fetcher {
     this.tokensPriceCache = new LRU<string, TokenPriceCacheEntry>({ max: 20000 });
     this.priceCacheExpirationTime = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
     this.maxRetries = 2;
+    (async () => {
+      await Moralis.start({
+        apiKey: this.getKey(),
+      });
+    })();
   }
 
-  public async getTotalSupply(block: number, tokenAddress: string): Promise<BigNumber> {
+  private getKey = () => {
+    const keys = this.apiKeys.apiKeys.largeProfit.moralisApiKeys;
+    return keys.length > 0 ? keys[Math.floor(Math.random() * keys.length)] : "YourApiKeyToken";
+  };
+
+  public async getTotalSupply(block: number, tokenAddress: string, retries: number): Promise<BigNumber> {
     const token = this.tokenContract.attach(tokenAddress);
 
     const key: string = `totalSupply-${tokenAddress}-${block}`;
@@ -58,24 +70,15 @@ export default class Fetcher {
 
     let totalSupply;
 
-    for (let i = 0; i < this.maxRetries; i++) {
+    for (let i = 0; i < retries; i++) {
       try {
         totalSupply = await token.totalSupply({
           blockTag: block,
         });
         break;
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.log(`Error fetching total supply for token ${tokenAddress}`);
-        } else {
-          console.log(`Unknown error when fetching total supply: ${err}`);
-        }
-
-        if (i === this.maxRetries - 1) {
+        if (i === retries - 1) {
           totalSupply = ethers.constants.MaxUint256;
-          console.log(
-            `Failed to fetch total supply for ${tokenAddress} after retries, using default max value ${totalSupply.toString()}`
-          );
           break;
         }
 
@@ -125,39 +128,21 @@ export default class Fetcher {
     return decimals;
   }
 
-  private getMoralisChainByChainId = (chainId: number) => {
-    switch (Number(chainId)) {
-      case 56:
-        return "bsc";
-      case 137:
-        return "polygon";
-      case 250:
-        return "fantom";
-      case 43114:
-        return "avalanche";
-      default:
-        return "eth";
-    }
-  };
-
-  private getUniswapPrice = async (chainId: number, token: string) => {
-    const moralisApiKey = this.apiKeys.generalApiKeys.MORALIS;
-    const options = {
-      method: "GET",
-      params: { chain: this.getMoralisChainByChainId(chainId) },
-      headers: { accept: "application/json", "X-API-Key": moralisApiKey },
-    };
-
+  private getUniswapPrice = async (chainId: number, block: number, token: string) => {
     for (let i = 0; i < this.maxRetries; i++) {
-      const response = (await (
-        await fetch(`https://deep-index.moralis.io/api/v2/erc20/${token}/price`, options)
-      ).json()) as any;
+      try {
+        const response = await Moralis.EvmApi.token.getTokenPrice({
+          chain: chainId,
+          toBlock: block - 1,
+          address: token,
+        });
 
-      if (response.usdPrice && response.tokenAddress.toLowerCase() === token.toLowerCase()) {
-        return response.usdPrice;
-      } else if (response.message && !response.message.startsWith("No pools found")) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } else {
+        if (response.raw.usdPrice && response.raw.tokenAddress?.toLowerCase() === token.toLowerCase()) {
+          return response.raw.usdPrice;
+        } else {
+          return 0;
+        }
+      } catch (e) {
         return 0;
       }
     }
@@ -319,21 +304,35 @@ export default class Fetcher {
   };
 
   public getContractCreationInfo = async (
-    address: string,
+    addresses: string | string[],
     chainId: number
-  ): Promise<{
-    contractCreator: string | null;
-    creationTxHash: string | null;
-  }> => {
-    const cacheKey: string = `contractCreator-${address}-${chainId}`;
-    if (this.cache.has(cacheKey))
-      return this.cache.get(cacheKey) as { contractCreator: string; creationTxHash: string };
+  ): Promise<{ contractCreator: string | null; creationTxHash: string | null }[]> => {
+    const addressesArray = Array.isArray(addresses) ? addresses : [addresses];
+    const results: { contractCreator: string | null; creationTxHash: string | null }[] = [];
 
-    const { urlContractCreation } = etherscanApis[chainId];
-    const key = this.getBlockExplorerKey(chainId);
-    const url = `${urlContractCreation}&contractaddresses=${address}&apikey=${key}`;
+    // Split addresses into batches of 5
+    const addressBatches = [];
+    for (let i = 0; i < addressesArray.length; i += 5) {
+      addressBatches.push(addressesArray.slice(i, i + 5));
+    }
 
-    for (let attempt = 0; attempt < this.maxRetries; attempt++) {
+    for (const batch of addressBatches) {
+      const uncachedAddresses = batch.filter((address) => {
+        const cacheKey: string = `contractCreator-${address}-${chainId}`;
+        if (this.cache.has(cacheKey)) {
+          results.push(this.cache.get(cacheKey) as { contractCreator: string; creationTxHash: string });
+          return false;
+        }
+        return true;
+      });
+
+      if (uncachedAddresses.length === 0) {
+        continue;
+      }
+
+      const { urlContractCreation } = etherscanApis[chainId];
+      const key = this.getBlockExplorerKey(chainId);
+      const url = `${urlContractCreation}&contractaddresses=${uncachedAddresses.join(",")}&apikey=${key}`;
       try {
         const result = await (await fetch(url)).json();
 
@@ -342,102 +341,72 @@ export default class Fetcher {
           result.message.startsWith("No data") ||
           result.message.startsWith("Query Timeout") ||
           result.message.startsWith("You are reaching the maximum number of requests") ||
-          !result.result[0]
+          !result.result
         ) {
-          console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${address}`);
-          if (attempt === this.maxRetries - 1) {
-            console.log(`Block explorer error occurred (final attempt); skipping check for ${address}`);
-            return {
-              contractCreator: null,
-              creationTxHash: null,
-            };
-          }
-        } else {
-          this.cache.set(cacheKey, {
-            contractCreator: result.result[0].contractCreator,
-            creationTxHash: result.result[0].txHash,
+          uncachedAddresses.forEach((address) => {
+            results.push({ contractCreator: null, creationTxHash: null });
           });
-
-          return {
-            contractCreator: result.result[0].contractCreator,
-            creationTxHash: result.result[0].txHash,
-          };
+        } else {
+          result.result.forEach((contractInfo: any) => {
+            const address = contractInfo.contractAddress;
+            const cacheKey: string = `contractCreator-${address}-${chainId}`;
+            const contractData = {
+              contractCreator: contractInfo.contractCreator,
+              creationTxHash: contractInfo.txHash,
+            };
+            this.cache.set(cacheKey, contractData);
+            results.push(contractData);
+          });
         }
       } catch (error) {
-        console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
-        if (attempt === this.maxRetries - 1) {
-          console.error(`Error during fetch (final attempt); skipping check for ${address}`);
-          return {
-            contractCreator: null,
-            creationTxHash: null,
-          };
-        }
+        console.error(`Error during fetch for batch ${uncachedAddresses.join(",")}:`, error);
+        uncachedAddresses.forEach((address) => {
+          results.push({ contractCreator: null, creationTxHash: null });
+        });
       }
     }
 
-    console.error(`Failed to fetch contract creator for ${address} after ${this.maxRetries} retries`);
-    return {
-      contractCreator: null,
-      creationTxHash: null,
-    };
+    return results;
   };
 
   public isContractCreatedByInitiator = async (
-    contract: string,
+    contracts: string | string[],
     initiator: string,
     blockNumber: number,
     chainId: number
-  ) => {
-    const { contractCreator } = await this.getContractCreationInfo(contract.toLowerCase(), chainId);
+  ): Promise<{ [contract: string]: boolean | undefined }> => {
+    const contractCreationInfos = await this.getContractCreationInfo(contracts, chainId);
+    const initiatorTxResult = await this.getInitiatorTransactionData(initiator, blockNumber, chainId);
+    const contractArray = Array.isArray(contracts) ? contracts : [contracts];
 
-    if (!contractCreator) return false;
+    return contractArray.reduce((results, contract, i) => {
+      const { contractCreator } = contractCreationInfos[i];
 
-    if (contractCreator.toLowerCase() === initiator.toLowerCase()) {
-      return true;
-    } else {
-      // Check if the initiator has interacted with the contract creator before
-      for (let attempt = 0; attempt < this.maxRetries; attempt++) {
-        try {
-          const result = await (await fetch(this.getEtherscanAddressUrl(initiator, blockNumber, chainId))).json();
-          if (
-            result.message.startsWith("NOTOK") ||
-            result.message.startsWith("No data") ||
-            result.message.startsWith("Query Timeout") ||
-            result.message.startsWith("You are reaching the maximum number of requests") ||
-            result.message.startsWith("An error occurred")
-          ) {
-            console.log(`Block explorer error occurred (attempt ${attempt}); retrying check for ${initiator}`);
-            if (attempt === this.maxRetries - 1) {
-              console.log(`Block explorer error occurred (final attempt); skipping check for ${initiator}`);
-              return false;
-            }
-          } else {
-            let haveInteracted = false;
-
-            for (const tx of result.result) {
-              if (
-                [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.from) &&
-                [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.to) &&
-                tx.to !== tx.from &&
-                Number(tx.blockNumber) < blockNumber
-              ) {
-                haveInteracted = true;
-                break;
-              }
-            }
-            return haveInteracted;
-          }
-        } catch (error) {
-          console.error(`An error occurred during the fetch (attempt ${attempt}):`, error);
-          if (attempt === this.maxRetries - 1) {
-            console.error(`Error during fetch (final attempt); skipping check for ${initiator}`);
-            return false;
-          }
-        }
+      if (!contractCreator) {
+        results[contract] = undefined;
+      } else if (contractCreator.toLowerCase() === initiator.toLowerCase()) {
+        results[contract] = true;
+      } else {
+        results[contract] = initiatorTxResult.result.some(
+          (tx: any) =>
+            [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.from) &&
+            [contractCreator.toLowerCase(), initiator.toLowerCase()].includes(tx.to) &&
+            tx.to !== tx.from &&
+            Number(tx.blockNumber) < blockNumber
+        );
       }
-    }
 
-    return false;
+      return results;
+    }, {} as { [contract: string]: boolean | undefined });
+  };
+
+  private getInitiatorTransactionData = async (initiator: string, blockNumber: number, chainId: number) => {
+    try {
+      return await (await fetch(this.getEtherscanAddressUrl(initiator, blockNumber, chainId))).json();
+    } catch (error) {
+      console.error(`Error fetching transaction data for initiator ${initiator}:`, error);
+      return { message: "An error occurred", result: [] };
+    }
   };
 
   public async getValueInUsd(block: number, chainId: number, amount: string, token: string): Promise<number> {
@@ -504,7 +473,7 @@ export default class Fetcher {
           if (chainId === 10) {
             return 0;
           }
-          usdPrice = await this.getUniswapPrice(chainId, token);
+          usdPrice = await this.getUniswapPrice(chainId, block, token);
           if (!usdPrice) {
             const newCacheEntry = {
               timestamp: Date.now(),

@@ -287,10 +287,14 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005678": true });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: mockTxFrom });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValueOnce([true, false]); // First Interaction
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -319,10 +323,13 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005678": true });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(0);
     when(mockFetcher.getTotalSupply)
-      .calledWith(10, TEST_TOKEN)
-      .mockReturnValue(ethers.BigNumber.from("4424324324423423"));
+      .calledWith(10, TEST_TOKEN, 2)
+      .mockReturnValueOnce(ethers.BigNumber.from("4424324324423423"));
 
     const percentage = ethers.BigNumber.from("3424324324423423")
       .mul(100)
@@ -331,9 +338,14 @@ describe("Large Profit Bot test suite", () => {
 
     when(mockFetcher.hasHighNumberOfHolders).calledWith(1, TEST_TOKEN).mockReturnValue(true);
     when(mockFetcher.getCLandAS).calledWith(percentage, "totalSupply").mockReturnValue([1, 0.001]);
-    when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: mockTxFrom });
-    when(mockFetcher.getContractCreationInfo).calledWith(TEST_TOKEN, 1).mockReturnValue({ contractCreator: "0x9876" });
+    when(mockFetcher.getContractCreationInfo)
+      .calledWith(mockTxTo, 1)
+      .mockReturnValue([{ contractCreator: mockTxFrom }]);
+    when(mockFetcher.getContractCreationInfo)
+      .calledWith(TEST_TOKEN, 1)
+      .mockReturnValue([{ contractCreator: "0x9876" }]);
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValueOnce([true, false]); // First Interaction
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
 
     const findings = await handleTransaction(txEvent);
 
@@ -394,10 +406,15 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005678": false });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: "0x4545" });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValueOnce([true, false]); // First Interaction
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
+
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -426,11 +443,15 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005678": false });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: "0x4545" });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValue([false, false]); // Not high number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -438,7 +459,7 @@ describe("Large Profit Bot test suite", () => {
   });
 
   it("should return an Info severity finding if the contract called is not verifed but has a high number of past transactions", async () => {
-    const mockTxTo = createAddress("0x5678");
+    const mockTxTo = createAddress("0x5679");
     mockProvider.setCode(mockTxTo, "0x123456", 1);
     mockProvider.setNonce(mockTxFrom, 1, 1);
     mockProvider.setNetwork(1);
@@ -459,11 +480,16 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005679": false });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: "0x4545" });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValue([false, true]); // High number of past transactions
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(false); // Not verified
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
+
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -471,7 +497,7 @@ describe("Large Profit Bot test suite", () => {
   });
 
   it("should return an Info severity finding if the contract called is verifed but has a low number of past transactions", async () => {
-    const mockTxTo = createAddress("0x5678");
+    const mockTxTo = createAddress("0x5677");
     mockProvider.setCode(mockTxTo, "0x123456", 1);
     mockProvider.setNonce(mockTxFrom, 1, 1);
     mockProvider.setNetwork(1);
@@ -492,11 +518,16 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005677": false });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: "0x4545" });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValue([false, false]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
+
     const findings = await handleTransaction(txEvent);
 
     const addresses = [{ address: mockTxFrom, confidence: 0, anomalyScore: 1, isProfitInUsd: true, profit: 11000 }];
@@ -504,7 +535,7 @@ describe("Large Profit Bot test suite", () => {
   });
 
   it("should return empty findings if the contract called is verifed and has a high number of past transactions", async () => {
-    const mockTxTo = createAddress("0x5678");
+    const mockTxTo = createAddress("0x5676");
     mockProvider.setCode(mockTxTo, "0x123456", 1);
     mockProvider.setNonce(mockTxFrom, 1, 1);
     mockProvider.setNetwork(1);
@@ -525,11 +556,16 @@ describe("Large Profit Bot test suite", () => {
       .addEventLog(transferEvent, TEST_TOKEN, data3)
       .addEventLog(transferEvent, TEST_TOKEN_2, data3); // Txs with transfer events from only one token are filtered out
 
+    when(mockFetcher.isContractCreatedByInitiator)
+      .calledWith(mockTxTo, mockTxFrom, 10, 1)
+      .mockReturnValueOnce({ "0x0000000000000000000000000000000000005676": false });
     when(mockFetcher.getValueInUsd).calledWith(10, 1, "3424324324423423", TEST_TOKEN).mockReturnValue(11000);
     when(mockFetcher.getCLandAS).calledWith(11000, "usdValue").mockReturnValue([0, 1]);
     when(mockFetcher.getContractCreationInfo).calledWith(mockTxTo, 1).mockReturnValue({ contractCreator: "0x4545" });
     when(mockFetcher.getContractInfo).calledWith(mockTxTo, mockTxFrom, 10, 1).mockReturnValue([false, true]);
     when(mockFetcher.isContractVerified).calledWith(mockTxTo, 1).mockReturnValue(true);
+    when(mockFetcher.getTotalSupply).calledWith(10, mockTxTo, 1).mockReturnValueOnce(ethers.constants.MaxUint256);
+
     const findings = await handleTransaction(txEvent);
 
     expect(findings).toStrictEqual([]);
