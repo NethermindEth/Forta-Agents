@@ -3,6 +3,7 @@ import {
   FindingSeverity,
   HandleTransaction,
   Initialize,
+  Trace,
   TransactionEvent,
   ethers,
   getEthersProvider,
@@ -27,8 +28,10 @@ import {
   GEARBOX_CREDIT_FACADE_EVENT_ABI,
   EXECUTE_FUNCTION_ABI,
   NFT_TRANSFER_EVENTS,
-  SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS,
+  SWAP_SELECTORS,
   CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR,
+  METIS_TOKEN_BSC,
+  INSTADAPP_CAST_EVENT,
 } from "./utils";
 import Fetcher, { ApiKeys } from "./fetcher";
 import { EOA_TRANSACTION_COUNT_THRESHOLD } from "./config";
@@ -36,6 +39,7 @@ import { getSecrets } from "./storage";
 
 let transactionsProcessed = 0;
 let lastBlock = 0;
+let newEOAs: string[] = [];
 let fetcher: Fetcher;
 
 const TX_COUNT_THRESHOLD = 70;
@@ -71,39 +75,56 @@ export const provideHandleTransaction =
       .filterLog(ERC20_TRANSFER_EVENT)
       .filter((event) => !event.args.value.eq(ZERO) && event.args.from !== event.args.to);
 
+    let events = erc20TransferEvents;
+    if (txEvent.network in wrappedNativeTokens) {
+      const wrappedTokenEvents = txEvent
+        .filterLog(WRAPPED_NATIVE_TOKEN_EVENTS, wrappedNativeTokens[txEvent.network])
+        .filter((event) => !event.args.value.eq(ZERO));
+      events = events.concat(wrappedTokenEvents);
+    }
+
     // return if it's a single transfer or swap, or if all events are about the same token
     if (
-      erc20TransferEvents.length < 3 ||
-      erc20TransferEvents.every((event) => event.address === erc20TransferEvents[0].address)
+      events.length < 3 ||
+      (erc20TransferEvents.every((event) => event.address === erc20TransferEvents[0].address) &&
+        !erc20TransferEvents.every((event) => event.args.to === erc20TransferEvents[0].args.to))
     )
       return findings;
 
-    if (isBatchTransfer(erc20TransferEvents)) return findings;
+    if (await isBatchTransfer(erc20TransferEvents, provider)) return findings;
 
     // Filter out FPs
     const loanCreatedEvents = txEvent.filterLog(LOAN_CREATED_ABI);
     const gnosisProxyEvents = txEvent.filterLog(GNOSIS_PROXY_EVENT_ABI);
     const gearboxMulticallEvents = txEvent.filterLog(GEARBOX_CREDIT_FACADE_EVENT_ABI);
+    const instadappCastEvents = txEvent.filterLog(INSTADAPP_CAST_EVENT);
     const executeFunctionInvocations = txEvent.filterFunction(EXECUTE_FUNCTION_ABI);
-    const IsSwapExactETHForTokensInvocation = SWAP_EXACT_ETH_FOR_TOKENS_SELECTORS.some((selector) =>
+    const IsSwapExactETHForTokensInvocation = SWAP_SELECTORS.some((selector) =>
       txEvent.transaction.data.startsWith(selector)
     );
     const IsConvexWithdrawLockedAndUnwrapInvocation = txEvent.transaction.data.startsWith(
       CONVEX_WITHDRAW_LOCKED_AND_UNWRAP_SELECTOR
     );
+    const IsMetisTokenInvolved =
+      txEvent.network === 56 && erc20TransferEvents.some((event) => event.address === METIS_TOKEN_BSC); // Wrong price retrieved
     if (
       loanCreatedEvents.length > 0 ||
       gnosisProxyEvents.length > 0 ||
+      instadappCastEvents.length > 0 ||
       gearboxMulticallEvents.length > 0 ||
       executeFunctionInvocations.length > 0 ||
       IsSwapExactETHForTokensInvocation ||
-      IsConvexWithdrawLockedAndUnwrapInvocation
+      IsConvexWithdrawLockedAndUnwrapInvocation ||
+      IsMetisTokenInvolved
     ) {
       return findings;
     }
 
     let wasCalledContractCreatedByInitiator: boolean | undefined;
     if (txEvent.to) {
+      if (txEvent.to === txEvent.from) {
+        return findings;
+      }
       if (
         nftCollateralizedLendingProtocols[txEvent.network] &&
         nftCollateralizedLendingProtocols[txEvent.network].includes(txEvent.to.toLowerCase())
@@ -116,12 +137,14 @@ export const provideHandleTransaction =
 
       if (txEvent.filterFunction(FUNCTION_ABIS).length || txEvent.filterLog(EVENTS_ABIS).length) {
         if (erc20TransferEvents.length < 5) return findings;
-        wasCalledContractCreatedByInitiator = await fetcher.isContractCreatedByInitiator(
-          txEvent.to,
-          txEvent.from,
-          txEvent.blockNumber,
-          Number(txEvent.network)
-        );
+        wasCalledContractCreatedByInitiator = (
+          await fetcher.isContractCreatedByInitiator(
+            txEvent.to,
+            txEvent.from,
+            txEvent.blockNumber,
+            Number(txEvent.network)
+          )
+        )[0];
         if (!wasCalledContractCreatedByInitiator) return findings;
       }
     }
@@ -139,14 +162,6 @@ export const provideHandleTransaction =
     if (txCount > EOA_TRANSACTION_COUNT_THRESHOLD) return findings;
 
     const balanceChangesMap: Map<string, Record<string, ethers.BigNumber>> = new Map();
-
-    let events = erc20TransferEvents;
-    if (txEvent.network in wrappedNativeTokens) {
-      const wrappedTokenEvents = txEvent
-        .filterLog(WRAPPED_NATIVE_TOKEN_EVENTS, wrappedNativeTokens[txEvent.network])
-        .filter((event) => !event.args.value.eq(ZERO));
-      events = events.concat(wrappedTokenEvents);
-    }
 
     await Promise.all(
       events.map(async (event) => {
@@ -172,12 +187,12 @@ export const provideHandleTransaction =
 
     if (txEvent.traces.length > 0) {
       await Promise.all(
-        txEvent.traces.map(async (trace) => {
-          let { from, to, value, callType } = trace.action;
+        txEvent.traces.map(async (trace: Trace) => {
+          let { from, to, value, callType, init } = trace.action;
 
-          if (value && value !== "0x0" && callType === "call") {
+          if (value && value !== "0x0" && (callType === "call" || init != undefined)) {
             from = ethers.utils.getAddress(from);
-            to = ethers.utils.getAddress(to);
+            to = callType === "call" ? ethers.utils.getAddress(to) : ethers.utils.getAddress(trace.result.address);
             const bnValue = ethers.BigNumber.from(value);
 
             updateBalanceChangesMap(balanceChangesMap, from, "native", bnValue.mul(-1));
@@ -188,7 +203,7 @@ export const provideHandleTransaction =
     } else {
       if (txEvent.to && txEvent.transaction.value !== "0x0") {
         const from = ethers.utils.getAddress(txEvent.from);
-        const to = ethers.utils.getAddress(txEvent.to);
+        const to = ethers.utils.getAddress(txEvent.to!);
         const bnValue = ethers.BigNumber.from(txEvent.transaction.value);
 
         updateBalanceChangesMap(balanceChangesMap, from, "native", bnValue.mul(-1));
@@ -197,13 +212,19 @@ export const provideHandleTransaction =
     }
 
     if (txEvent.to && wasCalledContractCreatedByInitiator === undefined) {
-      wasCalledContractCreatedByInitiator = await fetcher.isContractCreatedByInitiator(
-        txEvent.to!,
-        txEvent.from,
-        txEvent.blockNumber,
-        Number(txEvent.network)
-      );
+      wasCalledContractCreatedByInitiator = (
+        await fetcher.isContractCreatedByInitiator(
+          txEvent.to!,
+          txEvent.from,
+          txEvent.blockNumber,
+          Number(txEvent.network)
+        )
+      )[txEvent.to!];
+      if (wasCalledContractCreatedByInitiator === undefined) return findings;
     }
+
+    const contractsToCheck: string[] = [];
+    const contractToKeyMap: { [contract: string]: string[] } = {};
 
     // Remove empty records and filter out addresses other than txEvent.from and txEvent.to
     await Promise.all(
@@ -221,10 +242,10 @@ export const provideHandleTransaction =
           balanceChangesMap.delete(key);
         } else if (![txEvent.from.toLowerCase(), txEvent.to?.toLowerCase()].includes(key.toLowerCase())) {
           const retries = 2;
-          let txCount = 0;
+          let txCount = 10000;
           for (let i = 0; i < retries; i++) {
             try {
-              txCount = await provider.getTransactionCount(key, txEvent.blockNumber);
+              txCount = await provider.getTransactionCount(key, txEvent.blockNumber - 100);
               break;
             } catch (e) {
               await new Promise((resolve) => setTimeout(resolve, 500));
@@ -244,25 +265,15 @@ export const provideHandleTransaction =
                   if (!wasCalledContractCreatedByInitiator) {
                     balanceChangesMap.delete(key);
                   } else {
-                    // Keep only contracts directly created by the called contract
-                    let conditionMet = false;
-
-                    // Check each trace to see if it meets the condition
-                    txEvent.traces.forEach((trace) => {
-                      if (trace.type === "create" && trace.result.address === key.toLowerCase()) {
-                        if (trace.action.from !== txEvent.to?.toLowerCase()) {
-                          balanceChangesMap.delete(key);
-                        } else {
-                          conditionMet = true;
-                        }
-                      }
-                    });
-
-                    // If the condition was never met (i.e., false for all traces), delete the key
-                    if (!conditionMet) {
-                      balanceChangesMap.delete(key);
+                    // Add the contract to the list of contracts to check
+                    contractsToCheck.push(key);
+                    if (!contractToKeyMap[key]) {
+                      contractToKeyMap[key] = [];
                     }
+                    contractToKeyMap[key].push(key);
                   }
+                } else {
+                  if (txCount === 0) newEOAs.push(key);
                 }
                 break;
               } catch {
@@ -273,6 +284,41 @@ export const provideHandleTransaction =
         }
       })
     );
+
+    // Batch the calls to isContractCreatedByInitiator
+    const creationResults = await fetcher.isContractCreatedByInitiator(
+      contractsToCheck,
+      txEvent.from,
+      txEvent.blockNumber,
+      Number(txEvent.network)
+    );
+
+    // Process the results and update balanceChangesMap
+    contractsToCheck.forEach((contract) => {
+      const keys = contractToKeyMap[contract];
+      const wasCreatedByInitiator = creationResults[contract];
+
+      keys.forEach((key) => {
+        if (!wasCreatedByInitiator) {
+          // Check each trace to see if it meets the condition
+          let conditionMet = false;
+          txEvent.traces.forEach((trace) => {
+            if (trace.type === "create" && trace.result.address === key.toLowerCase()) {
+              if (trace.action.from !== txEvent.to?.toLowerCase()) {
+                balanceChangesMap.delete(key);
+              } else {
+                conditionMet = true;
+              }
+            }
+          });
+
+          // If the condition was never met (i.e., false for all traces), delete the key
+          if (!conditionMet) {
+            balanceChangesMap.delete(key);
+          }
+        }
+      });
+    });
     const balances = new Map(balanceChangesMap);
     const balanceChangesMapUsd: Map<string, Record<string, number>> = new Map();
     // Get the USD value of the balance changes
@@ -329,20 +375,19 @@ export const provideHandleTransaction =
               return;
             }
             // Filter out token transfers to the token contract itself
-          } else if (txEvent.to.toLowerCase() === token) {
+          } else if (txEvent.to.toLowerCase() === token || address.toLowerCase() === token) {
             return;
           }
 
           if (!balanceChanges![token].isNegative()) {
-            const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token);
+            const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, token, 2);
             const threshold = totalSupply.div(20); // 5%
             const absValue = balanceChanges![token];
             if (absValue.gt(threshold)) {
               // Filter out token mints (e.g. Uniswap LPs) to contract creators
-              const { contractCreator: tokenCreator } = await fetcher.getContractCreationInfo(
-                token,
-                Number(txEvent.network)
-              );
+              const { contractCreator: tokenCreator } = (
+                await fetcher.getContractCreationInfo(token, Number(txEvent.network))
+              )[0];
               if (!tokenCreator || tokenCreator === txEvent.from.toLowerCase()) {
                 return;
               }
@@ -415,6 +460,9 @@ export const provideHandleTransaction =
         createFinding(filteredLargeProfitAddresses, txEvent.hash, FindingSeverity.Medium, txEvent.from, "")
       );
     } else {
+      const totalSupply = await fetcher.getTotalSupply(txEvent.blockNumber, txEvent.to, 1);
+      // Raise an alert only if the contract called isn't a token (getTotalSupply method returns the max uint as the default value)
+      if (totalSupply !== ethers.constants.MaxUint256) return findings;
       if (wasCalledContractCreatedByInitiator) {
         const fromRecord = balanceChangesMapUsd.get(ethers.utils.getAddress(txEvent.from));
         const toRecord = balanceChangesMapUsd.get(ethers.utils.getAddress(txEvent.to));
@@ -423,7 +471,7 @@ export const provideHandleTransaction =
         const toSum = toRecord ? Object.values(toRecord).reduce((acc, value) => acc + value, 0) : 0;
 
         // Create a finding only if the funds are not removed from either txEvent.from or txEvent.to (except if it's a very small amount)
-        if (fromSum >= -500 && toSum >= -500) {
+        if (fromSum >= -750 && toSum >= -750) {
           let matchingTokenTransferFound = false;
           if (toSum === 0) {
             // Skip alert generation for transactions where `tx.from` and `tx.to` exchange the same token amount with opposite signs.
@@ -444,8 +492,12 @@ export const provideHandleTransaction =
         }
       } else {
         await Promise.all(
-          filteredLargeProfitAddresses.map(async (entry) => {
-            if (entry.address.toLowerCase() === txEvent.from.toLowerCase()) {
+          filteredLargeProfitAddresses.map(async (entry: LargeProfitAddress) => {
+            if (
+              entry.address.toLowerCase() === txEvent.from.toLowerCase() ||
+              (newEOAs.filter((address) => !address.startsWith("0x00000000000000000000000000000000")).length === 1 &&
+                newEOAs.includes(entry.address))
+            ) {
               const [isFirstInteraction, hasHighNumberOfTotalTxs] = await fetcher.getContractInfo(
                 txEvent.to!,
                 txEvent.from,
