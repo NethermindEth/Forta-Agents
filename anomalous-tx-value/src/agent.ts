@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import {
   Finding,
   HandleTransaction,
@@ -6,16 +5,13 @@ import {
   BlockEvent,
   FindingSeverity,
   FindingType,
-  getEthersProvider,
-  Initialize,
-  Label,
-  EntityType,
-} from "forta-agent";
+  scanBase,
+  scanEthereum,
+  getChainId,
+  runHealthCheck,
+} from "forta-bot";
 import { PersistenceHelper } from "./persistence.helper";
-import { NetworkData } from "./utils";
-import { providers } from "ethers";
-import { NetworkManager } from "forta-agent-tools";
-import CONFIG from "./agent.config";
+import { thresholds } from "./agent.config";
 
 let chainId: string;
 
@@ -27,34 +23,38 @@ const ANY_VALUE_TXNS_KEY = "nm-any-txn-value-bot-key";
 let anomalousValueTxns = 0;
 let allTxnsWithValue = 0;
 
-const networkManager = new NetworkManager<NetworkData>(CONFIG);
-
 export const provideInitialize = (
-  networkManager: NetworkManager<NetworkData>,
-  provider: providers.Provider,
   persistenceHelper: PersistenceHelper,
   anomalousValueKey: string,
   anyValueKey: string
-): Initialize => {
+) => {
   return async () => {
-    await networkManager.init(provider);
-    chainId = networkManager.getNetwork().toString();
+    const chainIdValue = getChainId();
+
+    if (chainIdValue !== undefined) {
+      chainId = chainIdValue.toString();
+      console.log("chain id is:", chainId);
+    } else {
+      console.log("chain id is undefined");
+      throw new Error("Chain ID is undefined");
+    }
 
     anomalousValueTxns = await persistenceHelper.load(anomalousValueKey.concat("-", chainId));
     allTxnsWithValue = await persistenceHelper.load(anyValueKey.concat("-", chainId));
   };
 };
 
-export const provideHandleTransaction = (networkManager: NetworkManager<NetworkData>): HandleTransaction => {
+export const provideHandleTransaction = (thresholds: any): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     const findings: Finding[] = [];
 
-    const value = new BigNumber(txEvent.transaction.value);
+    const value = BigInt(txEvent.transaction.value);
 
-    if (value.isGreaterThan(new BigNumber(0))) {
+    if (value > BigInt(0)) {
       allTxnsWithValue += 1;
     }
-    if (value.isLessThanOrEqualTo(networkManager.get("threshold"))) return findings;
+
+    if (value <= BigInt(thresholds[chainId])) return findings;
 
     anomalousValueTxns += 1;
     let anomalyScore = anomalousValueTxns / allTxnsWithValue;
@@ -70,22 +70,27 @@ export const provideHandleTransaction = (networkManager: NetworkManager<NetworkD
           value: value.toString(),
           anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
         },
-        labels: [
-          Label.fromObject({
-            entityType: EntityType.Transaction,
-            entity: txEvent.hash,
-            label: "Suspicious",
-            confidence: 0.6,
-            remove: false,
-          }),
-          Label.fromObject({
-            entityType: EntityType.Address,
-            entity: txEvent.from,
-            label: "Attacker",
-            confidence: 0.1,
-            remove: false,
-          }),
-        ],
+        source: {
+          chains: [{ chainId: txEvent.network }],
+          blocks: [{ chainId: txEvent.network, hash: txEvent.blockHash, number: txEvent.blockNumber }],
+          transactions: [{ chainId: txEvent.network, hash: txEvent.hash }],
+        },
+        // labels: [
+        //   Label.fromObject({
+        //     entityType: EntityType.Transaction,
+        //     entity: txEvent.hash,
+        //     label: "Suspicious",
+        //     confidence: 0.6,
+        //     remove: false,
+        //   }),
+        //   Label.fromObject({
+        //     entityType: EntityType.Address,
+        //     entity: txEvent.from,
+        //     label: "Attacker",
+        //     confidence: 0.1,
+        //     remove: false,
+        //   }),
+        // ],
       })
     );
 
@@ -110,14 +115,30 @@ export function provideHandleBlock(
   };
 }
 
-export default {
-  initialize: provideInitialize(
-    networkManager,
-    getEthersProvider(),
-    new PersistenceHelper(DATABASE_URL),
-    ANOMALOUS_TXNS_KEY,
-    ANY_VALUE_TXNS_KEY
-  ),
-  handleTransaction: provideHandleTransaction(networkManager),
-  handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), ANOMALOUS_TXNS_KEY, ANY_VALUE_TXNS_KEY),
-};
+async function main() {
+  const initialize = provideInitialize(new PersistenceHelper(DATABASE_URL), ANOMALOUS_TXNS_KEY, ANY_VALUE_TXNS_KEY);
+  const handleTransaction = provideHandleTransaction(thresholds);
+  const handleBlock = provideHandleBlock(new PersistenceHelper(DATABASE_URL), ANOMALOUS_TXNS_KEY, ANY_VALUE_TXNS_KEY);
+
+  await initialize();
+
+  scanBase({
+    rpcUrl: "https://base-mainnet.g.alchemy.com/v2",
+    rpcKeyId: "ff890297-bee3-41a6-b985-1e68cdc78f7c",
+    localRpcUrl: "8453",
+    handleTransaction,
+    handleBlock,
+  });
+
+  scanEthereum({
+    rpcUrl: "https://eth-mainnet.g.alchemy.com/v2",
+    rpcKeyId: "64286df1-4567-405a-a102-1122653022e4",
+    localRpcUrl: "1",
+    handleTransaction,
+    handleBlock,
+  });
+
+  runHealthCheck();
+}
+
+main();
