@@ -1,4 +1,4 @@
-import { TransactionEvent as TransactionEventV2, createTransactionEvent, JsonRpcLog } from "forta-bot";
+import { TransactionEvent as TransactionEventV2, createTransactionEvent, JsonRpcLog } from "@fortanetwork/forta-bot";
 import { TestTransactionEvent } from "forta-agent-tools/lib/test";
 
 export function txEventV1ToV2Converter(txEventV1: TestTransactionEvent): TransactionEventV2 {

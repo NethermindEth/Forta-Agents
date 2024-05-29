@@ -1,45 +1,42 @@
 import {
   Finding,
   HandleTransaction,
+  HandleBlock,
   TransactionEvent,
+  BlockEvent,
   FindingSeverity,
   FindingType,
   Label,
   EntityType,
-  // scanBase,
   scanEthereum,
-  scanPolygon,
-  scanOptimism,
-  scanArbitrum,
   getChainId,
   runHealthCheck,
   ethers,
   Initialize,
-} from "forta-bot";
+} from "@fortanetwork/forta-bot";
 
-import calculateAlertRate, { ScanCountType } from "bot-alert-rate";
+import { PersistenceHelper } from "./persistence.helper";
 
-import { getSecrets } from "./storage";
+const DATABASE_URL = "https://research.forta.network/database/bot/";
 
-// const BOT_ID = "0x7704a975c97ed444c0329cade1f85af74566d30fb6a51550529b19153a0781cb";
-// Beta
-const BOT_ID = "0x50d84a3cd8ca2336ffc231b666f5c1df5ae94ad6b1674a3b2d7834c3015c2de8";
+const NONZERO_OWNERSHIP_TRANSFER_KEY = "nm-nonzero-ownership-transfers-bot-filecoin-key";
+const TOTAL_OWNERSHIP_TRANSFERS_KEY = "nm-total-ownership-transfers-bot-filecoin-key";
 
 let chainId: string;
-let apiKeys: any;
-let isRelevantChain: boolean;
-let txCount = 0;
+let nonZeroOwnershipTransfers = 0;
+let totalOwnersipTransfers = 0;
 
-export const provideInitialize = (): Initialize => {
+export const provideInitialize = (
+  persistenceHelper: PersistenceHelper,
+  nonZeroOwnershipTransferKey: string,
+  totalOwnershipTransfersKey: string
+): Initialize => {
   return async () => {
-    apiKeys = await getSecrets();
-    process.env["ZETTABLOCK_API_KEY"] = apiKeys.generalApiKeys.ZETTABLOCK[0];
     const chainIdNum = getChainId()!
-
     chainId = String(chainIdNum);
 
-    //  Optimism, Fantom, & Avalanche not yet supported by bot-alert-rate package
-    isRelevantChain = [10, 250, 43114].includes(chainIdNum);
+    nonZeroOwnershipTransfers = await persistenceHelper.load(nonZeroOwnershipTransferKey.concat("-", chainId));
+    totalOwnersipTransfers = await persistenceHelper.load(totalOwnershipTransfersKey.concat("-", chainId));
   };
 };
 
@@ -48,23 +45,17 @@ export const OWNERSHIP_TRANSFERRED_ABI: string =
 
 export const provideHandleTransaction = (): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-
     const findings: Finding[] = [];
 
     const logs = txEvent.filterLog(OWNERSHIP_TRANSFERRED_ABI);
 
-    if (isRelevantChain) txCount++;
-
     await Promise.all(
       logs.map(async (log) => {
+        totalOwnersipTransfers++;
+
         if (ethers.ZeroAddress != log.args.previousOwner) {
-          const anomalyScore = await calculateAlertRate(
-            Number(chainId),
-            BOT_ID,
-            "NETHFORTA-4",
-            isRelevantChain ? ScanCountType.CustomScanCount : ScanCountType.TxCount,
-            txCount
-          );
+          nonZeroOwnershipTransfers++;
+          const anomalyScore = nonZeroOwnershipTransfers / totalOwnersipTransfers;
 
           findings.push(
             Finding.fromObject({
@@ -130,49 +121,44 @@ export const provideHandleTransaction = (): HandleTransaction => {
   };
 };
 
+export const provideHandleBlock = (
+  persistenceHelper: PersistenceHelper,
+  nonZeroOwnershipTransferKey: string,
+  totalOwnershipTransfersKey: string
+): HandleBlock => {
+  return async (blockEvent: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+
+    if (blockEvent.blockNumber % 240 === 0) {
+      await persistenceHelper.persist(nonZeroOwnershipTransfers, nonZeroOwnershipTransferKey.concat("-", chainId));
+      await persistenceHelper.persist(totalOwnersipTransfers, totalOwnershipTransfersKey.concat("-", chainId));
+    }
+
+    return findings;
+  };
+}
+
 async function main() {
-  const initialize = provideInitialize();
+  const initialize = provideInitialize(
+    new PersistenceHelper(DATABASE_URL),
+    NONZERO_OWNERSHIP_TRANSFER_KEY,
+    TOTAL_OWNERSHIP_TRANSFERS_KEY
+  );
   const handleTransaction = provideHandleTransaction();
+  const handleBlock = provideHandleBlock(
+    new PersistenceHelper(DATABASE_URL),
+    NONZERO_OWNERSHIP_TRANSFER_KEY,
+    TOTAL_OWNERSHIP_TRANSFERS_KEY
+  );
 
   await initialize();
 
+  // Using in lieu of `scanFilecoin`
   scanEthereum({
-    rpcUrl: "https://eth-mainnet.g.alchemy.com/v2",
-    rpcKeyId: "e698634d-79c2-44fe-adf8-f7dac20dd33c",
-    localRpcUrl: "1",
+    rpcUrl: "https://rpc.ankr.com/filecoin",
+    localRpcUrl: "314",
     handleTransaction,
-  });
-
-  scanOptimism({
-    rpcUrl: "https://opt-mainnet.g.alchemy.com/v2",
-    rpcKeyId: "5143945b-1e97-46d6-8b29-14125afcc810",
-    localRpcUrl: "10",
-    handleTransaction,
-  });
-
-  scanPolygon({
-    rpcUrl: "https://polygon-mainnet.g.alchemy.com/v2",
-    rpcKeyId: "b9017deb-b785-48f8-bfb3-771f31190845",
-    localRpcUrl: "137",
-    handleTransaction,
-  });
-
-  // Note: `bot-alert-rate` doesn't properly handle it.
-  // It correctly handles chains it doesn't support,
-  // but not Base.
-  // Errors out here: https://github.com/forta-network/bot-alert-rate/blob/main/typescript/src/helpers/calculate_alert_rate.ts#L113-L115
-  // scanBase({
-  //   rpcUrl: "https://base-mainnet.g.alchemy.com/v2",
-  //   rpcKeyId: "1d3097d9-6e44-4ca7-a61b-2209a85d262f",
-  //   localRpcUrl: "8453",
-  //   handleTransaction,
-  // });
-
-  scanArbitrum({
-    rpcUrl: "https://arb-mainnet.g.alchemy.com/v2",
-    rpcKeyId: "c59959d5-3ab6-4fea-afc5-495f4571cf02",
-    localRpcUrl: "42161",
-    handleTransaction,
+    handleBlock
   });
 
   runHealthCheck();
