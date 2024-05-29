@@ -1,18 +1,12 @@
-# Ownership Transfer
+# Ownership Transfer - Filecoin
 
 ## Description
 
-This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address.
+This bot reports when the `OwnershipTransferred` event is emitted and the `from` address is a non zero address on Filecoin.
 
 ## Supported Chains
 
-- Ethereum
-- Optimism
-- BNB Smart Chain
-- Polygon
-- Fantom
-- Arbitrum
-- Avalanche
+- Filecoin
 
 ## Alerts
 
@@ -55,8 +49,8 @@ This bot reports when the OwnershipTransferred event is emitted and the `from` a
 
 The bot behaviour can be verified with the following command:
 
-On Ethereum:
+On Filecoin:
 
 ```
-npm run tx 0x1e27044e3bfaba75ea95207e692da407ca325cb4c8a5602cb1943bf6cc0fd356
+npx forta-bot run --tx 0x3bb2f7b0b38f90b5f3cfb1905b560f125583c0b684a064daeb0a7da9f7dc31e0 --chainId 314
 ```
