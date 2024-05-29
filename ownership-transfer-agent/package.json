@@ -1,18 +1,12 @@
 {
-  "name": "ownership-transfer-detection-beta",
-  "displayName": "Ownership Transfer Detection (beta)",
-  "version": "0.3.0",
-  "engines": {
-    "node": ">=20"
-  },
-  "description": "Forta bot that detects when the ownership transfers",
-  "longDescription": "This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address",
+  "name": "ownership-transfer-detection-filecoin",
+  "displayName": "Ownership Transfer Detection - Filecoin",
+  "version": "0.1.0",
+  "description": "Forta bot that detects when the ownership transfers on Filecoin",
+  "longDescription": "This bot reports when the OwnershipTransferred event is emitted and the `from` address is a non zero address on Filecoin",
   "repository": "https://github.com/NethermindEth/Forta-Agents/tree/main/ownership-transfer-agent",
   "chainIds": [
-    1,
-    10,
-    137,
-    42161
+    314
   ],
   "scripts": {
     "build": "tsc",
@@ -36,16 +30,16 @@
     "test": "jest"
   },
   "dependencies": {
+    "@fortanetwork/forta-bot": "^0.2.3",
     "bignumber.js": "^9.0.1",
-    "bot-alert-rate": "^0.0.4",
-    "forta-bot": "file:forta-bot-0.2.0.tgz",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
+    "@fortanetwork/forta-bot-cli": "^0.2.4",
     "@types/jest": "^29.5.12",
     "@types/nodemon": "^1.19.0",
     "forta-agent-tools": "^3.2.10",
-    "forta-bot-cli": "file:forta-bot-cli-0.2.0.tgz",
     "jest": "^29.7.0",
     "nodemon": "^2.0.8",
     "prettier": "^2.8.7",

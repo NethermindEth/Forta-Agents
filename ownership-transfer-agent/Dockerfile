@@ -13,8 +13,6 @@ LABEL "network.forta.settings.agent-logs.enable"="true"
 WORKDIR /app
 COPY --from=builder /app/dist ./src
 COPY package*.json ./
-COPY forta-bot-0.2.0.tgz ./
-COPY forta-bot-cli-0.2.0.tgz ./
 COPY LICENSE ./
 RUN npm ci --production
 CMD [ "npm", "run", "start:prod" ]
