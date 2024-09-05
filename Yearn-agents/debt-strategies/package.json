@@ -22,9 +22,9 @@
     "@types/lru-cache": "^5.1.1",
     "bignumber.js": "^9.0.1",
     "ethereumjs-util": "^7.1.3",
-    "forta-agent": "^0.0.28",
-    "forta-agent-tools": "^1.0.27",
-    "web3": "^1.6.0"
+    "forta-agent": "^0.1.46",
+    "forta-agent-tools": "^3.2.12",
+    "web3": "^4.0.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
