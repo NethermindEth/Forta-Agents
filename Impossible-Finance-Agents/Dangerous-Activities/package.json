@@ -24,7 +24,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "axios": "^0.21.4",
+    "axios": "^1.6.8",
     "forta-agent": "^0.1.6"
   },
   "devDependencies": {

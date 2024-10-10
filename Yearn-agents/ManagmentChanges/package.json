@@ -24,7 +24,7 @@
     "ethers": "^5.5.1",
     "forta-agent": "^0.0.24",
     "forta-agent-tools": "^1.0.24",
-    "hardhat": "^2.6.7",
+    "hardhat": "^2.22.11",
     "lru-cache": "^6.0.0"
   },
   "devDependencies": {
