@@ -19,14 +19,14 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
-    "axios": "^0.21.4",
-    "forta-agent": "^0.0.34"
+    "axios": "^1.7.7",
+    "forta-agent": "^0.1.48"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/jest-when": "^2.7.4",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^1.0.32",
+    "forta-agent-tools": "^1.0.25",
     "jest": "^27.0.6",
     "jest-when": "^3.5.0",
     "nodemon": "^2.0.8",
