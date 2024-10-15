@@ -21,9 +21,9 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "dotenv": "^10.0.0",
-    "ethers": "^5.5.1",
-    "forta-agent": "^0.0.24",
-    "forta-agent-tools": "^1.0.24",
+    "ethers": "^6.0.0",
+    "forta-agent": "^0.0.26",
+    "forta-agent-tools": "^1.0.26",
     "hardhat": "^2.22.11",
     "lru-cache": "^6.0.0"
   },
