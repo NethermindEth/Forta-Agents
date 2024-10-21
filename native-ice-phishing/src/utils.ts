@@ -37,10 +37,6 @@ export const TRANSFER_EVENT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint value)",
 ];
 
-export const PERMIT2_FUNCTION_ABI = [
-  "function permit(address owner, ((address token, uint160 value, uint48 expiration, uint48 nonce)[] details, address spender, uint256 deadline), bytes signature)",
-];
-
 export const PERMIT2_TRANSFER_FROM_FUNCTION_ABI = [
   "function transferFrom((address from, address to, uint160 amount, address token)[] transferDetails)",
 ];

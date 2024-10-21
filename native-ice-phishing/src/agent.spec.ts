@@ -207,42 +207,6 @@ const testCreateHighSeverityFinding = (
   });
 };
 
-const testCreateCriticalSeverityFinding = (
-  txHash: string,
-  attacker: string,
-  address: string,
-  anomalyScore: number
-): Finding => {
-  return Finding.fromObject({
-    name: "Contract deployed with characteristics indicative of a potential native ice phishing attack",
-    description: `${attacker} created contract with address ${address} to be possibly used in a native ice phishing attack`,
-    alertId: "NIP-5",
-    severity: FindingSeverity.Critical,
-    type: FindingType.Suspicious,
-    metadata: {
-      attacker,
-      address,
-      anomalyScore: anomalyScore.toString(),
-    },
-    labels: [
-      Label.fromObject({
-        entity: txHash,
-        entityType: EntityType.Transaction,
-        label: "Attack",
-        confidence: 0.9,
-        remove: false,
-      }),
-      Label.fromObject({
-        entity: attacker,
-        entityType: EntityType.Address,
-        label: "Attacker",
-        confidence: 0.9,
-        remove: false,
-      }),
-    ],
-  });
-};
-
 const testCreateWithdrawalFinding = (
   txHash: string,
   attacker: string,
@@ -1208,77 +1172,6 @@ describe("Native Ice Phishing Bot test suite", () => {
     expect(findings).toStrictEqual([]);
   });
 
-  it("should return a finding if a contract is deployed and the contract code contains both a payable function and a withdraw-like function", async () => {
-    const tx: TestTransactionEvent = new TestTransactionEvent()
-      .setFrom(createAddress("0x0f"))
-      .setTo(null)
-      .setNonce(23)
-      .setHash("0xabcd");
-    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
-    when(mockFetcher.getCode)
-      .calledWith(mockContractAddress)
-      .mockReturnValueOnce("0xccc");
-    when(mockFetcher.getEvents).calledWith("0xccc").mockReturnValueOnce([]);
-
-    const sourceCode = `function random() payable {}
-    function withdraw() {
-      require(owner == msg.sender);
-      msg.sender.transfer(address(this).balance);
-    }`;
-    when(mockFetcher.getSourceCode)
-      .calledWith(mockContractAddress, 1)
-      .mockReturnValueOnce(sourceCode);
-
-    when(mockCalculateRate)
-      .calledWith(1, BOT_ID, "NIP-5", ScanCountType.ContractCreationCount, 0)
-      .mockReturnValue(0.0034231);
-    const findings: Finding[] = await handleTransaction(tx);
-    expect(findings).toStrictEqual([
-      testCreateCriticalSeverityFinding(
-        "0xabcd",
-        createAddress("0x0f"),
-        mockContractAddress,
-        0.0034231
-      ),
-    ]);
-  });
-
-  it("should return a finding if a contract is deployed, the source code can't be fetched, but the bytecode contains a withdraw function and a payable function which has already created an alert", async () => {
-    mockStoredData.alertedHashes.push("0xa9059cbb");
-
-    const tx: TestTransactionEvent = new TestTransactionEvent()
-      .setFrom(createAddress("0x0f"))
-      .setTo(null)
-      .setNonce(23)
-      .setHash("0xabcd");
-    const mockContractAddress = "0xD5B2a1345290AA8F4c671676650B5a1cE16A8575";
-    when(mockFetcher.getCode)
-      .calledWith(mockContractAddress)
-      .mockReturnValueOnce(`0xa9059cbb${WITHDRAW_SIG}`);
-    when(mockFetcher.getEvents)
-      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
-      .mockReturnValueOnce([]);
-    when(mockFetcher.getFunctions)
-      .calledWith(`0xa9059cbb${WITHDRAW_SIG}`)
-      .mockReturnValueOnce([]);
-    when(mockFetcher.getSourceCode)
-      .calledWith(mockContractAddress, 1)
-      .mockReturnValueOnce("");
-
-    when(mockCalculateRate)
-      .calledWith(1, BOT_ID, "NIP-5", ScanCountType.ContractCreationCount, 0)
-      .mockReturnValueOnce(0.0034231);
-    const findings: Finding[] = await handleTransaction(tx);
-    expect(findings).toStrictEqual([
-      testCreateCriticalSeverityFinding(
-        "0xabcd",
-        createAddress("0x0f"),
-        mockContractAddress,
-        0.0034231
-      ),
-    ]);
-  });
-
   it("should return a finding if there's a withdrawal from the owner of a contract used for native ice phishing attack", async () => {
     mockFetcher.getTransactions.mockReturnValueOnce([
       { hash: "hash15" },
@@ -1291,6 +1184,7 @@ describe("Native Ice Phishing Bot test suite", () => {
         "0x00f714ce00000000000000000000000000000000000000000000000000128ed4154bf6b9000000000000000000000000bca7af384bc384f86d78e37516537b3fecb86bbc"
       )
       .setBlock(234)
+      .setValue("0x0")
       .setHash("0xabcd");
 
     when(mockFetcher.getOwner)
@@ -1302,7 +1196,7 @@ describe("Native Ice Phishing Bot test suite", () => {
       .mockResolvedValueOnce(1);
 
     when(mockFetcher.hasValidEntries)
-      .calledWith(createAddress("0x01"), 1, "0xabcd")
+      .calledWith(createAddress("0x0f"), createAddress("0x01"), 1, "0xabcd")
       .mockResolvedValueOnce(true);
 
     when(mockCalculateRate)

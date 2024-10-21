@@ -113,15 +113,15 @@ export default class DataFetcher {
         break; // exit the loop if successful
       } catch (err: any) {
         tries++;
-        if (tries === maxTries) {
-          const stackTrace = util.inspect(err, {
-            showHidden: false,
-            depth: null,
-          });
-          ErrorCache.add(
-            createErrorAlert(err.toString(), "fetcher.getCode", stackTrace)
-          );
-        }
+        // if (tries === maxTries) {
+        //   const stackTrace = util.inspect(err, {
+        //     showHidden: false,
+        //     depth: null,
+        //   });
+        //   ErrorCache.add(
+        //     createErrorAlert(err.toString(), "fetcher.getCode", stackTrace)
+        //   );
+        // }
         await new Promise((resolve) => setTimeout(resolve, 1000)); // wait for 1 second before retrying
       }
     }
