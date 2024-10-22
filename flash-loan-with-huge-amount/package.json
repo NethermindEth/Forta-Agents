@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.8",
-    "web3": "^1.5.2"
+    "forta-agent": "^0.0.26",
+    "web3": "^4.2.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
