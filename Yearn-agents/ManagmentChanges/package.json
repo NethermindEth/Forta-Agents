@@ -22,9 +22,9 @@
     "bignumber.js": "^9.0.1",
     "dotenv": "^10.0.0",
     "ethers": "^5.5.1",
-    "forta-agent": "^0.0.24",
-    "forta-agent-tools": "^1.0.24",
-    "hardhat": "^2.6.7",
+    "forta-agent": "^0.1.46",
+    "forta-agent-tools": "^3.2.12",
+    "hardhat": "^2.16.0",
     "lru-cache": "^6.0.0"
   },
   "devDependencies": {
