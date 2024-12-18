@@ -20,10 +20,10 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.27",
-    "forta-agent-tools": "^1.0.25",
+    "forta-agent": "^0.1.46",
+    "forta-agent-tools": "^3.2.12",
     "lru-cache": "^6.0.0",
-    "web3": "^1.6.0"
+    "web3": "^4.0.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
