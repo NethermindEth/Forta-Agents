@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.27",
-    "forta-agent-tools": "^1.0.24",
+    "forta-agent": "^0.1.46",
+    "forta-agent-tools": "^3.2.12",
     "node-ts-cache": "^4.4.0",
     "node-ts-cache-storage-memory": "^4.4.0"
   },
