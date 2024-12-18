@@ -23,7 +23,7 @@
     "forta-agent": "^0.0.27",
     "forta-agent-tools": "^1.0.25",
     "lru-cache": "^6.0.0",
-    "web3": "^1.6.0"
+    "web3": "^4.13.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
