@@ -21,7 +21,7 @@
     "@uniswap/v3-core": "^1.0.0",
     "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
-    "forta-agent": "0.0.11",
+    "forta-agent": "0.1.46",
     "merkle-patricia-tree": "^4.2.1"
   },
   "devDependencies": {
