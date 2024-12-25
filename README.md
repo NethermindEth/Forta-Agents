@@ -18,7 +18,7 @@ Forta Agents proof of concepts from **Venice** team.
 - **Recently-created Smart Contracts with Little History**: Detect txns to contracts recently-created or with little history.
 - **Contracts deployed by contracts**: Detect when a contract deploys a new contract.
 - **Gnosis Safe admin changes**: Detect transactions that emits gnosis safe events of admin or threshold changes.
-- **Initialize**: Detects if the intialize function is called multiple times.
+- **Initialize**: Detects if the initialize function is called multiple times.
 - **Hight Flash Loan Value**: Detects if a flash loan with huge amount is used.
 - **Possible locked NFTs**: Detect transactions that may lock an NFT in a contract.
 - **Chainkeeper**: Detects transactions involving blacklisted addresses.
