@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@types/jest-when": "^2.7.3",
-    "@types/lru-cache": "^7.4.0",
+    "@types/lru-cache": "^7.10.9",
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.26",
     "forta-agent-tools": "^1.0.24",
