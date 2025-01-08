@@ -21,9 +21,9 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "forta-agent": "^0.0.27",
-    "forta-agent-tools": "^1.0.25",
+    "forta-agent-tools": "^1.0.26",
     "lru-cache": "^6.0.0",
-    "web3": "^1.6.0"
+    "web3": "^4.2.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
