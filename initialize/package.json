@@ -19,9 +19,9 @@
     "abi-decoder": "^2.4.0",
     "bignumber.js": "^9.0.1",
     "ethereum-checksum-address": "0.0.6",
-    "forta-agent": "^0.0.8",
+    "forta-agent": "^0.0.26",
     "keccak256": "^1.0.3",
-    "web3": "^1.5.2"
+    "web3": "^4.2.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
