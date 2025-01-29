@@ -2,7 +2,7 @@
 
 ## Description
 
-This bot detects transactions with unusual amount of gas used. It checks every transaction one by one and evalutes each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
+This bot detects transactions with unusual amount of gas used. It checks every transaction one by one and evaluates each of them by `MEDIUM_GAS_THRESHOLD` and `HIGH_GAS_THRESHOLD`.
 
 ## Supported Chains
 
