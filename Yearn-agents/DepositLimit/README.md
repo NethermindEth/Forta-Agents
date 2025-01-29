@@ -19,5 +19,5 @@ Describe each of the type of alerts fired by this agent
   - In the metadata you can find the following data:
     - `YearnVault`: The address of the vault.
     - `DepositLimit`: The deposit limt of the vault.
-    - `TotalAssets`: The ammount of assets currently in the vault.
+    - `TotalAssets`: The amount of assets currently in the vault.
 
