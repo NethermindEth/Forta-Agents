@@ -146,7 +146,7 @@ You can verify the bot's behavior by following these steps:
 npm install
 ```
 
-2. Run the bot for a specific underyling bot's alert, like this:
+2. Run the bot for a specific underlying bot's alert, like this:
 
 ```
 npm run alert 0x98513fc3790aed850af40293cedb2cd567a25234c4c31e9ba4d31947c77e070e
