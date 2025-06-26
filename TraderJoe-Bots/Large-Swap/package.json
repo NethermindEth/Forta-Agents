@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "ethers-multicall": "^0.2.3",
-    "forta-agent": "^0.1.6",
+    "forta-agent": "^0.1.46",
     "lru-cache": "^7.10.1"
   },
   "devDependencies": {
