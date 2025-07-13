@@ -20,7 +20,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.0.39"
+    "forta-agent": "^0.1.46"
   },
   "devDependencies": {
     "forta-agent-tools": "^2.0.3",
