@@ -22,7 +22,7 @@
     "@types/jest-when": "^2.7.3",
     "@types/lru-cache": "^5.1.1",
     "forta-agent": "^0.0.32",
-    "forta-agent-tools": "^1.0.31",
+    "forta-agent-tools": "^2.2.2",
     "jest-when": "^3.4.2",
     "lru-cache": "^6.0.0"
   },
