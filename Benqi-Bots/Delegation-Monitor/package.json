@@ -24,7 +24,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
+    "forta-agent": "^0.1.46",
     "lru-cache": "^7.4.2"
   },
   "devDependencies": {
