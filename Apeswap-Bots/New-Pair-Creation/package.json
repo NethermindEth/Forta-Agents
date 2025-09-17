@@ -23,7 +23,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.4"
+    "forta-agent": "^0.1.46"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
