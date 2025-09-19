@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "forta-agent": "^0.0.6",
+    "forta-agent": "^0.1.46",
     "keccak256": "^1.0.3"
   },
   "devDependencies": {
