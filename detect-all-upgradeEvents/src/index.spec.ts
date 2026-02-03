@@ -56,9 +56,13 @@ describe("Detect Upgrade Events", () => {
     it("returns a finding when upgrade event detected", async () => {
       const upgradeEventTopic: string = generateHash(UPGRADE_EVENT_SIGNATURE);
 
+      // `Upgraded(address indexed implementation)` puts the implementation in topics[1]
+      const newImpl = "0x2000000000000000000000000000000000000002";
+      const implTopic = "0x" + "0".repeat(24) + newImpl.slice(2);
+
       const upgradeEvent = {
-        topics: [upgradeEventTopic],
-        address: CONTRACT_ADDRESS
+        topics: [upgradeEventTopic, implTopic],
+        address: "0x1000000000000000000000000000000000000001"
       };
 
       const txEvent = createTxEvent({
@@ -70,12 +74,15 @@ describe("Detect Upgrade Events", () => {
       expect(findings).toStrictEqual([
         Finding.fromObject({
           name: "Upgrade Event Detection",
-          description: `Upgrade event is detected.`,
+          description: `Upgrade event detected for proxy 0x1000000000000000000000000000000000000001`,
           alertId: "NETHFORTA-5",
           type: FindingType.Suspicious,
           severity: FindingSeverity.High,
           metadata: {
-            proxy: CONTRACT_ADDRESS
+            proxy: "0x1000000000000000000000000000000000000001",
+            newImplementation: newImpl,
+            caller: "",
+            txHash: ""
           }
         })
       ]);
@@ -94,6 +101,24 @@ describe("Detect Upgrade Events", () => {
 
       const findings = await handleTransaction(txEvent);
       expect(findings).toStrictEqual([]);
+    });
+
+    it("dedupes multiple identical upgrade logs in a single transaction", async () => {
+      const upgradeEventTopic: string = generateHash(UPGRADE_EVENT_SIGNATURE);
+      const newImpl = "0x2000000000000000000000000000000000000002";
+      const implTopic = "0x" + "0".repeat(24) + newImpl.slice(2);
+
+      const upgradeEvent = {
+        topics: [upgradeEventTopic, implTopic],
+        address: "0x1000000000000000000000000000000000000001"
+      };
+
+      const txEvent = createTxEvent({
+        logs: [upgradeEvent, upgradeEvent]
+      });
+
+      const findings = await handleTransaction(txEvent);
+      expect(findings.length).toBe(1);
     });
   });
 });
