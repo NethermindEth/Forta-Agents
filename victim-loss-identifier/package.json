@@ -39,10 +39,10 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "alchemy-sdk": "^2.10.0",
+    "alchemy-sdk": "^3.1.2",
     "dotenv": "^16.3.1",
-    "forta-agent": "^0.1.36",
-    "forta-agent-tools": "^3.2.8",
+    "forta-agent": "^0.1.46",
+    "forta-agent-tools": "^3.2.10",
     "lru-cache": "^10.0.1"
   },
   "devDependencies": {
