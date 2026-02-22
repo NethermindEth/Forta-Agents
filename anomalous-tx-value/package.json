@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "forta-agent": "^0.1.36",
+    "forta-agent": "^0.1.48",
     "forta-agent-tools": "^3.1.2",
     "node-fetch": "^2.6.8",
     "bignumber.js": "^9.1.1"
