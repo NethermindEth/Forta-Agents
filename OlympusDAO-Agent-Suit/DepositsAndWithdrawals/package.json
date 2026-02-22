@@ -22,12 +22,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.0"
+    "forta-agent": "^0.1.48"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^3.2.0",
+    "forta-agent-tools": "^3.2.12",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
