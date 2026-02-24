@@ -24,7 +24,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "forta-agent": "^0.1.6",
+    "forta-agent": "^0.1.48",
     "lru-cache": "^7.7.1"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@types/jest-when": "^3.5.0",
     "@types/lru-cache": "^7.5.0",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.2.0",
+    "forta-agent-tools": "^2.3.1",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.6.0",
