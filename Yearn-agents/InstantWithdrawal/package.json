@@ -24,14 +24,14 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "axios": "^0.21.4",
-    "forta-agent": "^0.1.9",
+    "axios": "^1.13.5",
+    "forta-agent": "^0.1.48",
     "ganache": "^7.4.3"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
-    "forta-agent-tools": "^2.0.3",
+    "forta-agent-tools": "^2.3.1",
     "jest": "^27.0.6",
     "nodemon": "^2.0.8",
     "prettier": "^2.7.1",
