@@ -22,7 +22,7 @@
     "forta-agent": "^0.0.36"
   },
   "devDependencies": {
-    "forta-agent-tools": "^1.0.34",
+    "forta-agent-tools": "^3.2.12",
     "@types/jest": "^27.0.1",
     "@types/nodemon": "^1.19.0",
     "jest": "^27.0.6",
