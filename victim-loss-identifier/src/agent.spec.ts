@@ -4,6 +4,7 @@ import { when, resetAllWhenMocks } from "jest-when";
 import { BigNumber, providers } from "ethers";
 import { MockErc721Transfer, MockExploitInfo, MockTxnReceipt, MockTxnResponse } from "./mocks/mock.types";
 import { provideHandleAlert, provideHandleBlock, provideInitialize } from "./agent";
+import { isScammerFalsePositive } from "./utils/utils";
 import { createTestingFraudNftOrderFinding } from "./mocks/mock.findings";
 import { TestAlertEvent } from "./mocks/mock.alert";
 import DataFetcher from "./fetcher";
@@ -25,6 +26,51 @@ const NINETY_DAYS = 90;
 const FRAUD_NFT_ORDER_ALERT_ID = "SCAM-DETECTOR-FRAUDULENT-NFT-ORDER";
 
 describe("Victim & Loss Identifier Test Suite", () => {
+  describe("isScammerFalsePositive", () => {
+    it("should return true when a victim has more than 3 transactions with the scammer", async () => {
+      const scammerAddress = createAddress("0x1234");
+      const victimAddress = createAddress("0x5678");
+
+      const scammersCurrentlyMonitored = {
+        [scammerAddress]: {
+          mostRecentActivityByBlockNumber: 100,
+          firstAlertIdAppearance: "test-alert",
+          totalUsdValueStolen: 0,
+          victims: {
+            [victimAddress]: {
+              mostRecentActivityByBlockNumber: 100,
+              scammedBy: {
+                [scammerAddress]: {
+                  totalUsdValueLostToScammer: 0,
+                  hasBeenAlerted: true,
+                  transactions: {
+                    tx1: {},
+                    tx2: {},
+                    tx3: {},
+                    tx4: {},
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const mockDataFetcher = {
+        hasBuyerTransferredTokenToSeller: jest.fn().mockResolvedValue(false),
+      };
+
+      const result = await isScammerFalsePositive(
+        scammerAddress,
+        scammersCurrentlyMonitored,
+        mockDataFetcher as any,
+        1,
+        100
+      );
+
+      expect(result).toBe(true);
+    });
+  });
   describe("Fraudulent NFT Order Test Suite", () => {
     const mockProvider: MockEthersProvider = new MockEthersProvider();
 

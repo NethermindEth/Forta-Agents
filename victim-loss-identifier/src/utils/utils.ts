@@ -181,13 +181,14 @@ export async function isScammerFalsePositive(
     return true;
   }
 
-  Object.keys(victims).forEach((victimAddress) => {
+  for (const victimAddress of Object.keys(victims)) {
     const victimInfo = victims[victimAddress];
     const transactions = Object.keys(victimInfo.scammedBy[scammerAddress].transactions);
+
     if (transactions.length > FP_SELLER_TO_BUYER_TXS_THRESHOLD) {
       return true;
     }
-  });
+  }
 
   if (await dataFetcher.hasBuyerTransferredTokenToSeller(scammerAddress, Object.keys(victims), chainId, blockNumber))
     return true;
